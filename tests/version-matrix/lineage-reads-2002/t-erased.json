@@ -1,0 +1,1868 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice t-erased of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "t-erased",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.61.3-18",
+   "2002-GR-13.16.61.3-3",
+   "2002-GR-14.8.1.3-21",
+   "2002-GR-14.8.1.3-7",
+   "2002-GR-14.8.1.3-8",
+   "2002-SR-14.8.2.2-1",
+   "2002-GR-14.8.2.3-5",
+   "2002-SR-14.8.4.2-13",
+   "2002-GR-14.8.4.3-9",
+   "2002-GR-14.8.5.3-1",
+   "2002-GR-14.8.5.3-2",
+   "2002-GR-14.8.5.3-3",
+   "2002-SR-14.8.11.2-4",
+   "2002-GR-14.8.11.3-4",
+   "2002-GR-14.8.11.3-5",
+   "2002-GR-14.8.11.3-6",
+   "2002-GR-14.8.12.3-2",
+   "2002-GR-14.8.13.3-11",
+   "2002-GR-14.8.15.3-4",
+   "2002-GR-14.8.15.3-5",
+   "2002-SR-14.8.18.2-1",
+   "2002-GR-14.8.19.3-8",
+   "2002-GR-14.8.21.3-12",
+   "2002-GR-14.8.21.3-17",
+   "2002-GR-14.8.21.3-20"
+  ],
+  "pointers": {
+   "2002-GR-13.16.61.3-18": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.63.4-22",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.61.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.63.4-3",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.1.3-21": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.1.4-21",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.1.3-7": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.1.4-7",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.1.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.1.4-8",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.2.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.2.3-1",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.2.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.2.4-5",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.4.2-13": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.4.3-15",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.4.3-9": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.4.4-9",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.5.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.5.4-1",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.5.3-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.5.4-2",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.5.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.5.4-3",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.11.2-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.12.3-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.11.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.12.4-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.11.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.12.4-5",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.11.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.12.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.12.3-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.13.4-2",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.13.3-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.14.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.15.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.16.4-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.15.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.16.4-5",
+    "similarity": 1.0
+   },
+   "2002-SR-14.8.18.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-14.9.19.3-1",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.19.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.20.4-9",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.21.3-12": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.22.4-13",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.21.3-17": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.22.4-18",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.21.3-20": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.22.4-21",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "t-erased",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.61.3-18",
+    "to": [
+     "GR-13.18.63.4-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.61 VALUE clause, FORMAT 4 (report-section)",
+    "clause-2023": "13.18.63 VALUE clause, FORMAT 4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 4 VALUE on a printable item of a report group description entry",
+     "suppression by GROUP INDICATE",
+     "suppression by PRESENT WHEN",
+     "suppression by OCCURS ... DEPENDING"
+    ],
+    "evidence-2002": {
+     "format 4 VALUE printed": "covered by conformance-suite/cases/13.15-Report-group-description/pb565_report_repeating_entry and pb565_report_vertical_repetition (both MATCH their .out at --std 2002, accept [2002])",
+     "OCCURS DEPENDING suppression": "covered by pb565_report_repeating_entry @2002 (line CCC CCC)",
+     "GROUP INDICATE suppression": "covered by probe rw_value_suppress.cob @2002 (GGG printed on first detail only)",
+     "PRESENT WHEN suppression": "covered by probe rw_value_suppress.cob @2002 (PPP absent when WS-K=2)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR18",
+      "quote": "a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR22",
+      "quote": "a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ only in the clause numbers of the three referenced clauses (13.16.26/39/36 vs 13.18.28/41/38). Format 4 of the VALUE clause is the same in both editions. The 2002 report section has no communication-section reach (format 4 is report-section only). The pointer's witnesses run clean at --std 2002; they show only the OCCURS DEPENDING suppressor, so the probe adds the GROUP INDICATE and PRESENT WHEN suppressors at 2002 (and the same output at 2023).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/rw_value_suppress.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-3",
+    "to": [
+     "GR-13.18.63.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.61 VALUE clause, FORMATS 1 AND 2",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (data-item) VALUE in the linkage section",
+     "format 2 (table) VALUE in the linkage section",
+     "effect only at explicit or implicit INITIALIZE; initial value per 13.6 Linkage section GR5"
+    ],
+    "evidence-2002": {
+     "format 2 in linkage": "covered by conformance-suite/cases/13.7-Linkage-section/pb499_table_value_linkage_and_file_2002 (MATCH at --std 2002)",
+     "format 1 in linkage": "covered by probe val_link_f1.cob @2002 (entry shows caller's value, INITIALIZE ... TO VALUE restores ABC123)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR3",
+      "quote": "In the linkage section, VALUE clauses take effect only during the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR3",
+      "quote": "In the linkage section, VALUE clauses take effect only during the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.6.3 GR5",
+      "quote": "A data-item format or table format VALUE clause specified in the linkage section is ignored except in the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR5",
+      "quote": "A data-item format or table format VALUE clause specified in the linkage section is ignored except in the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause number of the referenced Linkage section clause differs (13.6 vs 13.7); that clause's GR5 is word-identical except its own cross-reference. Formats 1 and 2 of VALUE are the same in both editions; the linkage section has no communication reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/val_link_f1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-21",
+    "to": [
+     "GR-14.9.1.4-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1 ACCEPT statement, FORMAT 3 (screen)",
+    "clause-2023": "14.9.1 ACCEPT statement, FORMAT 3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT screen-name-1 (format 3) with inconsistent data left in a screen item: EC-DATA-INCOMPATIBLE, partial transfer per GR22, unsuccessful completion per GR25"
+    ],
+    "evidence-2002": {
+     "format 3 ACCEPT": "declined: refused COBOL1560/COBOL1707 at --std 2002 by wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal and a42-accept-screen-positioned (both re-run now at 2002, exit 65 with the refusal)"
+    },
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and the screen format of ACCEPT are processor-dependent; 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented', with a required compile-time warning (the compiler errors, which 3.1.5 permits: 'The implementor is not required to produce executable code')",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR21",
+      "quote": "the EC-DATA-INCOMPATIBLE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR21",
+      "quote": "the EC-DATA-INCOMPATIBLE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR25b1",
+      "quote": "If the ACCEPT statement is specified in a statement that is in imperative-statement-1 in an exception-checking PERFORM statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical but for 'general rule' capitalisation. The referenced GR25 differs (2023 adds the exception-checking PERFORM arm, 2002 GR25b/c is the declarative-only form), and the 2023 non-support licence is 4.2.7; neither matters because the facility is declined at 2002 too, and 2002 licenses that through its own processor-dependent list (B.3 item 1). The refusal holds at --std 2002. Note: the diagnostic text cites the 2023 licence (§2023:4.2.7, Annex A.4.2) even at --std 2002; the 2002 licence is 3.1.5/B.3 item 1 (a wording point for CONFORMANCE.md, not a behaviour defect).",
+    "probe": "E:/COBOL/conformance-suite/wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal.cob (run at 2002 into probes-t-erased/bin/2002)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-7",
+    "to": [
+     "GR-14.9.1.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1 ACCEPT statement, FORMAT 2 (chronological)",
+    "clause-2023": "14.9.1 ACCEPT statement, Format 2 (temporal)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT identifier-2 FROM DATE: a 6-digit unsigned integer display item YYMMDD, moved per the MOVE rules (GR6) to receivers of any allowed class"
+    ],
+    "evidence-2002": {
+     "DATE image and MOVE to numeric/alphanumeric/shorter receivers": "covered by probe acc_date.cob @2002 (D6=261115 on 2026-11-15, DX=[261115    ], D4=1115), identical at 2023; the pointer's conformance-tests are not run at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR7",
+      "quote": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR7",
+      "quote": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR6",
+      "quote": "The ACCEPT statement causes the information requested to be transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text (table rule differs only in markdown). Format 2 is the same in both editions; 2002 SR3 excludes alphabetic, boolean, index, object, pointer (2023 adds message-tag, and SR6 variable-length groups: restrictions on 2023-only classes). No communication reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/acc_date.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-8",
+    "to": [
+     "GR-14.9.1.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1 ACCEPT statement, FORMAT 2 (chronological)",
+    "clause-2023": "14.9.1 ACCEPT statement, Format 2 (temporal)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT identifier-2 FROM DATE YYYYMMDD: an 8-digit unsigned integer display item YYYYMMDD, moved per GR6"
+    ],
+    "evidence-2002": {
+     "DATE YYYYMMDD": "covered by conformance-test AcceptDifferentialTests.DateYYYYMMDD_RejectedAt85_RunsAt2002 (runs at 2002 by name) and probe acc_date.cob @2002 (D8=20261115, DN=0020261115)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR8",
+      "quote": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR8",
+      "quote": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text; same format; see GR7.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/acc_date.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.2.2-1",
+    "to": [
+     "SR-14.9.2.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "14.8.2 ADD statement, syntax rules (with 14.6.6 Arithmetic statements rule 2)",
+    "clause-2023": "14.9.2 ADD statement (with 14.7.7 rule 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native-arithmetic composite of formats 1, 2 (excluding GIVING items) and 3 (per corresponding pair)",
+     "the 31-digit cap of 14.6.6 rule 2, whose exclusion list names intrinsic functions and binary-char/short/long/double and float-short/long/extended data items ONLY: a floating-point numeric literal operand is IN the 2002 composite",
+     "operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "formats 1-3 composite": "covered by cases 14.9.2-ADD/ca4_giving_composite, ca6_binary_operand_composite, pb155_composite_edges (MATCH at --std 2002)",
+     "floating-point literal in the composite": "not shown; probe add_composite_float_lit.cob shows the compiler EXCLUDES it at 2002 (2023 rule) - defect",
+     "CD operands": "not shown (no probe for the composite of a CD numeric item)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR1",
+      "quote": "When native arithmetic is in effect, the composite of operands described in 14.6.6, Arithmetic statements, is determined as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.3 SR1",
+      "quote": "When native arithmetic is in effect, the composite of operands described in 14.7.7, Arithmetic statements, is determined as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "When none of the operands is an intrinsic function or a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.7",
+      "quote": "a floating-point literal; the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "A floating-point numeric literal is formed from two fixed-point numeric literals separated by the letter",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ only in the referenced clause number, but the referenced 2002 clause 14.6.6 rule 2 does not exclude a floating-point literal from the composite; 2023 14.7.7 rule 2 a)/b) does (it adds 'a floating-point literal' and standard floating-point usages). 2002 has floating-point numeric literals (8.3.1.2.2.2), so `ADD 1.234567890123456789E0 TO X` with X PIC 9(18)V9(13) has a 2002 composite of 18 integer + 18 fraction = 36 digits (the literal's value equals its significand at E0, so the superimposition is unambiguous) and violates the 2002 rule; the compiler accepts and runs it at --std 2002 exactly as at 2023, while it rejects the same literal written fixed-point (COBOL0805, 36 digits).",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a floating-point literal operand is wrong (excluded from the composite as in 2023); after the fix, a 2002 witness for that case and for a CD-resident operand",
+    "compiler-at-2002": "wrong: probe add_composite_float_lit.cob at --std 2002 compiles and prints X=000000000000000002.2345678901234 (expected: COBOL0805, composite 36 > 31 per §2002:14.6.6 rule 2a); control add_composite_fixed_lit.cob is refused COBOL0805 '36 digits (18 integer + 18 fraction)' at both editions. Code site: src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs CheckComposite, `case BoundNumLiteral lit when !NumericLiteral.IsFloatingPointForm(lit.Text)` (the PB155 exclusion, not edition-gated).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/add_composite_float_lit.cob",
+    "widening": "2023 also excludes floating-point literals and standard floating-point usages from the composite"
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-5",
+    "to": [
+     "GR-14.9.2.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.2 ADD statement format 3, with 14.6.5 CORRESPONDING phrase",
+    "clause-2023": "14.9.2 ADD format 3, with 14.7.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADD CORRESPONDING identifier-4 TO identifier-5 over alphanumeric, national, bit or strongly-typed groups, pairs selected by 14.6.5 rules 1-6",
+     "size error aggregated over the implied statements",
+     "identifier-4/identifier-5 that are communication-section records or groups under a CD"
+    ],
+    "evidence-2002": {
+     "pair selection and results": "covered by cases 14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4, l1c04_corr_occurs_redefines_subordinate, 14.9.2-ADD/pb229_corresponding_size_error_per_pair, pb228_add_corresponding_values (all MATCH at --std 2002; corresponding_rounded_mode is 2014+ ROUNDED MODE)",
+     "CD group operand": "covered by probe cd_operands.cob @2002 (AC=011 022)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR5",
+      "quote": "Data items within identifier-4 are selected to be added to selected data items within identifier-5 according to the rules specified in 14.6.5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR5",
+      "quote": "Data items within identifier-4 are selected to be added to selected data items within identifier-5 according to the rules specified in 14.7.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "D1 and D2 are identifiers that refer to alphanumeric group items, bit group items, national group items, or strongly-typed group items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.6",
+      "quote": "national group items, strongly-typed group items, or variable-length groups",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "14.6.5 is the same as 14.7.6 except that 2023 adds variable-length groups and class message-tag (2023-only). In 2002 identifier-4 may be a record of the communication section (the compiler supports Annex A at --std 2002), which the pointer's witnesses never use; the probe shows it correct.",
+    "needs": "a 2002 witness for ADD CORRESPONDING with a communication-section group operand (cd_operands.cob AC leg can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob",
+    "widening": "2023 adds variable-length groups as D1/D2"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-13",
+    "to": [
+     "SR-14.9.4.3-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4 CALL statement, Format 3 (program-prototype)",
+    "clause-2023": "14.9.4 CALL statement, Format 2 (program-prototype)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CALL literal-1 AS NESTED: literal-1 required; it names a visible common program (8.4.5.2) or a directly contained program"
+    ],
+    "evidence-2002": {
+     "accepted forms": "covered by 14.9.4-CALL/pb46_call_format2_as_nested and pb131_gr9_formal_mode (MATCH at --std 2002)",
+     "refusals": "covered by 14.9.4-CALL/pb131-as-nested-scope (COBOL1676 at 2002) and pb131-as-nested-identifier (COBOL1676 'literal-1 shall be specified' at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR13",
+      "quote": "Literal-1 shall be the same as the program-name specified in a PROGRAM-ID paragraph of a common program as specified in 8.4.5.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR15",
+      "quote": "Literal-1 shall be the same as the program-name specified in a PROGRAM-ID paragraph of a common program as specified in 8.4.6.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.2",
+      "quote": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.6.3",
+      "quote": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause number of Scope of program-names differs; that clause is word-identical in both editions. Format 3 (2002) and Format 2 (2023) have the same NESTED phrase. No operand reaches the communication section. Rule numbers differ (SR13 vs SR15) because 2023 inserts SR14 on restricted program-pointers, which does not touch NESTED.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-9",
+    "to": [
+     "GR-14.9.4.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.4 CALL statement, Format 3, GR9 (leaning on SR3)",
+    "clause-2023": "14.9.4 CALL statement, Format 2, GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a format 3 argument with no BY keyword: BY REFERENCE when it meets 2002 SR3, which admits an address-identifier or a data item of the file, working-storage, local-storage, linkage OR COMMUNICATION section; BY CONTENT otherwise; BY VALUE when the formal is BY VALUE"
+    ],
+    "evidence-2002": {
+     "WS/linkage arguments, BY VALUE formal, literals and expressions": "covered by 14.9.4-CALL/pb131_gr9_formal_mode, pb130_call_format2_bare, pb238_call_format2_operands, pb613_gr8_one_reduction, pb3760_* (MATCH at --std 2002), pb613-bare-literal-by-value-formal (refusal at 2002)",
+     "communication-section argument": "covered by probe call_gr9_cd_arg.cob @2002 (IA=XYZ IN4=0042 W=QQ: callee's writes to CD items visible, so BY REFERENCE was assumed)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR9",
+      "quote": "if the argument meets the requirements of syntax rule 3, BY REFERENCE is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR9",
+      "quote": "if the argument meets the requirements of Syntax rule 3, BY REFERENCE is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR9 defers to syntax rule 3, and 2002 SR3 names the communication section; so in 2002 a bare argument that is a CD record item is passed BY REFERENCE. The pointer's witnesses have no CD argument.",
+    "needs": "a 2002 witness for a format 3 CALL whose bare argument is a communication-section item (call_gr9_cd_arg.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/call_gr9_cd_arg.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/call_gr9_cd_arg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-1",
+    "to": [
+     "GR-14.9.5.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CANCEL identifier-1 (content names the program, 8.3.1.1.1)",
+     "CANCEL literal-1",
+     "CANCEL program-prototype-name-1",
+     "identifier-1 that is a communication-section item"
+    ],
+    "evidence-2002": {
+     "literal and prototype forms": "covered by 8.3.2.2-User-defined-words/pb237_program_prototype and 13.5-Working-storage-section/recursive_ws (MATCH at --std 2002)",
+     "identifier-1 in working-storage": "covered by probe cancel_scope.cob @2002 (CANCEL WS-NAME holding HLPX resets H)",
+     "identifier-1 in a CD record": "covered by probe cd_operands.cob @2002 (CANCEL PN, PN in a CD record holding SUBC: next CALL shows C=ORIG 1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR1",
+      "quote": "describes how this value is used to identify the program to be canceled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR1",
+      "quote": "describes how this value is used to identify the program to be canceled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.2 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and same three identification forms; the 8.3.1.1.1 vs 8.3.2.2 reference is a renumbering. 2002 SR2 has no zero-length literal clause because 2002 has no zero-length literal. In 2002 identifier-1 may be an alphanumeric item of a CD record, outside the pointer's evidence; probed correct.",
+    "needs": "a 2002 witness for CANCEL identifier-1 with identifier-1 in a CD record (cd_operands.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob, cancel_scope.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-2",
+    "to": [
+     "GR-14.9.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5 CANCEL statement, with 8.4.5 and 8.4.5.2",
+    "clause-2023": "14.9.5 CANCEL statement, with 8.4.6 and 8.4.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "locating the canceled program by 8.4.5 and 8.4.5.2: contained, COMMON and outermost programs; a function is not located; an unknown name is no action"
+    ],
+    "evidence-2002": {
+     "scope rules": "the pointer's witness 14.9.5-CANCEL/pb154_cancel_scope does NOT run at 2002 (refused COBOL0900 for an unrelated DYNAMIC LENGTH item); covered by probe cancel_scope.cob @2002 (F3=0003: CANCEL of a function name locates no program; B=0001 after C cancels the COMMON sibling B; H=0001 after CANCEL of the outermost HLPX; CANCEL NOPEX no action)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR2",
+      "quote": "The program-name is used by the runtime system to locate the program according to the rules specified in 8.4.5, Scope of names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR2",
+      "quote": "The program-name is used by the runtime system to locate the program according to the rules specified in 8.4.6, Scope of names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.2",
+      "quote": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program",
+      "check": "OK"
+     }
+    ],
+    "reason": "The program-name parts of 8.4.5/8.4.5.2 and 8.4.6/8.4.6.3 are word-identical (2002's 8.4.5 also mentions cd-names, which are not program-names). The requirement is the same; its 2002 evidence is the probe, because the pointer's only conformance case is refused at 2002 for a 2014 construct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cancel_scope.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-3",
+    "to": [
+     "GR-14.9.5.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.5 CANCEL statement, with 14.5.2 State of a function, method, object, or program",
+    "clause-2023": "14.9.5 CANCEL statement, with 14.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a canceled program is in its initial state when next called: working-storage, local-storage AND COMMUNICATION-section data re-initialized per VALUE (14.5.2.1.2.1), file connectors not open, based items null"
+    ],
+    "evidence-2002": {
+     "working-storage re-initialization": "covered by 13.5-Working-storage-section/recursive_ws and 14.9.5-CANCEL/pb234_recursive_address_of_static (MATCH at --std 2002); pb154_cancel_initial is refused at 2002 (OCCURS DYNAMIC, DYNAMIC LENGTH)",
+     "communication-section re-initialization": "covered by probe cd_operands.cob @2002 (SUBC's CD item SV VALUE ORIG, changed to CHGD, back to ORIG after CANCEL)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR3",
+      "quote": "If the program referenced by a successfully executed CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR3",
+      "quote": "If the program referenced by a successfully executed CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The internal data described in the working-storage section, local-storage section, and communication section is initialized as described in 13.16.61, VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.2.3.2",
+      "quote": "The internal data described in the working-storage section and local-storage section is initialized as described in 13.18.63, VALUE clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR3 points to the State clause; the 2002 initial state re-initializes communication-section data, which the 2023 clause cannot name. (2023's added INITIALIZE clause, dynamic-capacity and dynamic-length steps are 2023-only.)",
+    "needs": "a 2002 witness for CANCEL re-initializing a communication-section item with a VALUE clause (cd_operands.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob",
+    "widening": "2023 adds the INITIALIZE-clause fill, dynamic-capacity tables and dynamic-length items to the initial state"
+   },
+   {
+    "rule-id": "2002-SR-14.8.11.2-4",
+    "to": [
+     "SR-14.9.12.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "14.8.11 DIVIDE statement, SR4 (with 14.6.6 rule 2)",
+    "clause-2023": "14.9.12 DIVIDE statement, SR4 (with 14.7.7 rule 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native-arithmetic composite of every DIVIDE operand except the REMAINDER item",
+     "a floating-point literal operand counts in the 2002 composite (14.6.6 rule 2 excludes only intrinsic functions and binary/float data items)",
+     "CD-resident operands"
+    ],
+    "evidence-2002": {
+     "composite incl. numeric-edited GIVING": "covered by 14.9.12-DIVIDE/pb155-divide-composite-edited (COBOL0805 at 2002) and 14.9.2-ADD/pb155_composite_edges (MATCH at 2002)",
+     "floating-point literal": "not shown; probe div_composite_float_lit.cob shows it excluded at 2002 - defect",
+     "CD operands": "not shown"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.2 SR4",
+      "quote": "excluding the data item that follows the word REMAINDER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.3 SR4",
+      "quote": "excluding the data item that follows the word REMAINDER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "When none of the operands is an intrinsic function or a data item described with usage binary-char, binary-short, binary-long, binary-double, float-short, float-long, or float-extended, the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.7",
+      "quote": "a floating-point literal; the composite of operands shall not contain more than 31 digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cause as 2002-SR-14.8.2.2-1: the referenced 2002 14.6.6 keeps floating-point literals in the composite. `DIVIDE 1.234567890123456789E0 INTO A GIVING Q REMAINDER R` with Q PIC 9(18)V9(13) has a 2002 composite of 36 digits (REMAINDER excluded) and is accepted at --std 2002; the fixed-point spelling is refused COBOL0805 (36 digits) at both editions.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a floating-point literal DIVIDE operand is wrong (excluded from the composite); after the fix, a 2002 witness",
+    "compiler-at-2002": "wrong: probe div_composite_float_lit.cob compiles and runs at --std 2002 (Q=000000000000000008.1000000729000 R=0.000000000000000819100000081900); expected COBOL0805 per §2002:14.6.6 rule 2a; same code site as 2002-SR-14.8.2.2-1 (StatementValidation.cs CheckComposite float-literal exclusion). One defect, two rules (MULTIPLY/SUBTRACT siblings outside this slice).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/div_composite_float_lit.cob",
+    "widening": "2023 excludes floating-point literals and standard floating-point usages"
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-4",
+    "to": [
+     "GR-14.9.12.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.11 DIVIDE statement, FORMAT 1",
+    "clause-2023": "14.9.12 DIVIDE statement, Format 1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DIVIDE INTO: divisor determined first, each identifier-2 identified as reached, left to right, quotient per GR1 stored per 14.6.6 (per-receiver size error)",
+     "GR1 under 2002 standard arithmetic (ARITHMETIC IS STANDARD)",
+     "identifier-2 that are communication-section items"
+    ],
+    "evidence-2002": {
+     "order and per-receiver store": "the pointer's only case 8.8.1.2/pb129_store_discipline is refused at 2002 (ROUNDED MODE, 2014); covered by probe div_order.cob @2002 (F1 I=3 T3=45; SE with A unchanged 5, B=40)",
+     "CD dividends": "covered by probe cd_operands.cob @2002 (D4=012 003)",
+     "standard arithmetic": "not shown; reached by the known 32-vs-34-digit standard-arithmetic defect at --std 2002 through GR1 (not re-probed)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR4",
+      "quote": "This divisor is used with each dividend, which is each identifier-2 proceeding from left to right",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR4",
+      "quote": "This divisor is used with each dividend, which is each identifier-2 proceeding from left to right",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.11.3 GR1",
+      "quote": "When standard arithmetic is in effect, the quotient is the result of the arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical but for clause numbers; GR1 in 2002 names 2002 standard arithmetic (a different arithmetic from 2023 standard-decimal). In 2002 identifier-2 may be a CD record item. The pointer's witness does not run at 2002; the probes show the native behaviour correct.",
+    "needs": "a 2002 witness for DIVIDE INTO order and per-receiver size error (div_order.cob) and for CD dividends (cd_operands.cob); the standard-arithmetic leg waits on the known 32-digit defect",
+    "compiler-at-2002": "correct for native arithmetic (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/div_order.cob, cd_operands.cob); standard arithmetic: known defect, not re-probed",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/div_order.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-5",
+    "to": [
+     "GR-14.9.12.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.11 DIVIDE statement, FORMATS 2 AND 3",
+    "clause-2023": "14.9.12 DIVIDE statement, Formats 2 and 3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DIVIDE INTO/BY GIVING: divisor and dividend first, quotient per GR1 stored in each identifier-3 per 14.6.6",
+     "GR1 under 2002 standard arithmetic",
+     "identifier-3 in a CD record"
+    ],
+    "evidence-2002": {
+     "GIVING stores": "covered by 14.9.2-ADD/pb45_function_in_sending_operands (MATCH at 2002) and probe div_order.cob @2002 (SE, F2 12 0: only the overflowing Q2 unchanged); pb129_store_discipline is refused at 2002",
+     "CD quotient": "covered by probe cd_operands.cob @2002 (D5=012)",
+     "standard arithmetic": "known 32-vs-34 defect reaches it via GR1 (not re-probed)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR5",
+      "quote": "The quotient is then formed as specified in general rule 1 and stored in each identifier-3 as specified in 14.6.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR5",
+      "quote": "The quotient is then formed as specified in General rule 1 and stored in each identifier-3 as specified in 14.7.7",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR4: identical words; CD-resident receivers and 2002 standard arithmetic are outside the pointer's evidence.",
+    "needs": "a 2002 witness for DIVIDE GIVING into a CD item (cd_operands.cob) and for multi-receiver GIVING with one size error (div_order.cob)",
+    "compiler-at-2002": "correct for native arithmetic (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob, div_order.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-6",
+    "to": [
+     "GR-14.9.12.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.11 DIVIDE statement, FORMATS 4 AND 5",
+    "clause-2023": "14.9.12 DIVIDE statement, Formats 4 and 5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "quotient into identifier-3, subsidiary quotient, remainder per GR7 into identifier-4 (identified after the quotient store), size error on the remainder",
+     "GR1/GR7 under 2002 standard arithmetic",
+     "identifier-3/identifier-4 in a CD record"
+    ],
+    "evidence-2002": {
+     "remainder rules": "covered by 14.9.12-DIVIDE/pb84_sdidi_intermediate_consumers and pb3975_remainder_after_quotient_size_error (MATCH at 2002); pb129_* are refused at 2002; pb3975 standard-decimal variant is 2023-only",
+     "identification order": "covered by probe div_order.cob @2002 (F4 I=3 T3=02)",
+     "CD quotient/remainder": "covered by probe cd_operands.cob @2002 (D6=012 004)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR6",
+      "quote": "Item identification of the data item referenced by identifier-4 is done after the quotient is stored in the data item referenced by identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR6",
+      "quote": "Item identification of the data item referenced by identifier-4 is done after the quotient is stored in the data item referenced by identifier-3",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words; CD-resident identifier-3/identifier-4 and 2002 standard arithmetic lie outside the pointer's evidence.",
+    "needs": "a 2002 witness for DIVIDE GIVING ... REMAINDER with CD items (cd_operands.cob) and for identifier-4 identified after the quotient store (div_order.cob)",
+    "compiler-at-2002": "correct for native arithmetic (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob, div_order.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/div_order.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.12.3-2",
+    "to": [
+     "GR-14.9.13.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.12 EVALUATE statement, with 14.6.7 THROUGH phrase",
+    "clause-2023": "14.9.13 EVALUATE statement, with 14.7.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "range-expression identifier-3/literal-3/arithmetic-expression-3 THROUGH ... [IN alphabet-name-1]: numeric ranges, collated ranges, EC-RANGE-INVALID on an inverted range",
+     "THROUGH operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "range determination and EC-RANGE-INVALID": "covered by 14.7.8-THROUGH/pb401_range_invalid_by_class, 13.18.63-VALUE/ec_range_invalid, pb398_range_in_alphabet (MATCH at --std 2002)",
+     "CD THROUGH operands": "covered by probe cd_operands.cob @2002 (EV2=IN then EV2=OUT for WHEN N1 THRU DV with CD items)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR2",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.6.7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.4 GR2",
+      "quote": "The manner of determining the range of values specified by the THROUGH phrase is described in 14.7.8",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.7",
+      "quote": "When the range of values is defined by numeric literals, the range of values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.8",
+      "quote": "When the range of values is defined by numeric literals, the range of values includes literal-1, literal-2, and all algebraic values between literal-1 and literal-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "14.6.7 and 14.7.8 are word-identical; the EVALUATE range-expression has the same operands. In 2002 identifier-3/identifier-4 may be CD record items (outside the pointer's evidence); probed correct.",
+    "needs": "a 2002 witness for an EVALUATE THROUGH range whose operands are CD items (cd_operands.cob EV2 leg can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cd_operands.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.13.3-11",
+    "to": [
+     "GR-14.9.14.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.13 EXIT statement, FORMAT 6 (procedure)",
+    "clause-2023": "14.9.14 EXIT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "EXIT PARAGRAPH: control to an implicit CONTINUE after the paragraph's last statement, before its return mechanisms (PERFORM, SORT/MERGE procedures, USE declaratives - NOTE)"
+    ],
+    "evidence-2002": {
+     "EXIT PARAGRAPH in performed and inline contexts": "covered by 14.9.14-EXIT/pb405_exit_paragraph_section_in_inline_perform (MATCH at --std 2002, accept [2002]) and pb405-exit-paragraph-in-inline-perform-85 (runs at 2002: IT 2 / NEXT)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.3 GR11",
+      "quote": "The execution of an EXIT PARAGRAPH statement causes control to be passed to an implicit CONTINUE statement immediately following the last explicit statement of the current paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.4 GR6",
+      "quote": "The execution of an EXIT PARAGRAPH statement causes control to be passed to an implicit CONTINUE statement immediately following the last explicit statement of the current paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format 6 (EXIT PARAGRAPH/SECTION); only a comma in the NOTE differs. The rule is about the paragraph, not operands; the 2002 USE statement has no debugging form, so no 2002-only return mechanism exists. The other 2002 EXIT formats (RAISING etc.) are other rules.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.15.3-4",
+    "to": [
+     "GR-14.9.16.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.15 GENERATE statement",
+    "clause-2023": "14.9.16 GENERATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "first GENERATE after INITIATE: RH (with own-page advance and PAGE-COUNTER / NEXT GROUP WITH RESET), PH, CH major to minor, then DE unless summary reporting"
+    ],
+    "evidence-2002": {
+     "RH/PH/CH order and DE": "the pointer's conformance-tests compile at --std 2023 (ReportWriterConformanceTests class comment); covered by 13.18.37-NEXT-GROUP/pb957_next_group_control (MATCH at --std 2002) and probe gen_first_next.cob @2002 ([RH] [PH 1] [CHF] [CHK A] [DE A 1] ...), identical at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.15.3 GR4",
+      "quote": "Execution of the chronologically first GENERATE statement following an INITIATE causes the following actions to take place in order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR4",
+      "quote": "Execution of the chronologically first GENERATE statement following an INITIATE causes the following actions to take place in order",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same GENERATE format and rules; the referenced TYPE, NEXT GROUP and CONTROL clauses have the same general formats in both editions. Report writer has no communication reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/gen_first_next.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.15.3-5",
+    "to": [
+     "GR-14.9.16.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.15 GENERATE statement",
+    "clause-2023": "14.9.16 GENERATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "second and later GENERATEs: on a control break, CF and CH up to the break level, then DE unless summary reporting"
+    ],
+    "evidence-2002": {
+     "control break and summary GENERATE": "the pointer's conformance-test compiles at 2023; covered by probe gen_first_next.cob @2002 ([CFK A] [CHK B] [DE B 3] [CFK B] [CHK C], no DE for GENERATE R-G, then [CFK C] [CFF] [PF])"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.15.3 GR5",
+      "quote": "each control footing and control heading is printed, if defined, up to the level of the control break",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR5",
+      "quote": "each control footing and control heading is printed, if defined, up to the level of the control break",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words apart from clause numbers; same format and referenced clauses as GR4.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/gen_first_next.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.18.2-1",
+    "to": [
+     "SR-14.9.19.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.18 IF statement, with 14.4.2 Scope of statements",
+    "clause-2023": "14.9.19 IF statement, with 14.5.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "statement-1/statement-2 drawn from the 2002 imperative and conditional statements, which include CALL ... ON OVERFLOW (conditional), the communication statements SEND, ENABLE, DISABLE, PURGE (imperative) and RECEIVE ... NO DATA (conditional)"
+    ],
+    "evidence-2002": {
+     "ordinary imperative/conditional statements": "covered by 14.9.19-IF/pb396-if-empty-consequent (refusal of an empty consequent, also at 2002)",
+     "2002-only statements as statement-1/2": "covered by probe if_2002_statements.cob @2002 (compiles; OVF then END at run time)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.2 SR1",
+      "quote": "Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.3 SR1",
+      "quote": "Statement-1 and statement-2 represent either one or more imperative statements or a conditional statement optionally preceded by one or more imperative statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "NOTE ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3g1",
+      "quote": "an ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule is defined over the edition's set of imperative and conditional statements; 2002's set includes CALL ON OVERFLOW and the Annex A statements, none of which the pointer's evidence can contain.",
+    "needs": "a 2002 witness for IF with CALL ... ON OVERFLOW and communication statements as statement-1/statement-2 (if_2002_statements.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/if_2002_statements.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/if_2002_statements.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.19.3-8",
+    "to": [
+     "GR-14.9.20.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.19 INITIALIZE statement, with 14.5.9 Overlapping operands",
+    "clause-2023": "14.9.20 INITIALIZE statement, with 14.6.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 sharing storage with a REPLACING identifier-2: result undefined (also for the same data description entry); no requirement beyond accepting and running the program"
+    ],
+    "evidence-2002": {
+     "accept and run": "the pointer's row has no test-ref by design (no testable requirement, measured program in its notes); the same program runs at --std 2002: probe init_overlap.cob (A1=AAA B1=AAA, exit 0)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.19.3 GR8",
+      "quote": "If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.20.4 GR9",
+      "quote": "If identifier-1 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "If there are no specific rules addressing such overlapping operands, the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.10",
+      "quote": "When the data items are described by the same data description entry, the result of the statement is the same as if the data items shared no part of their respective storage areas",
+      "check": "OK"
+     }
+    ],
+    "reason": "The referenced overlap clause changed (2002 14.5.9 leaves same-entry overlaps undefined unless a rule says otherwise; 2023 14.6.10 rule 2 defines them), but this rule makes every overlap undefined in both editions, so the requirement is identical: none. The pointer row is recorded the same way (no testable requirement).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/init_overlap.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-12",
+    "to": [
+     "GR-14.9.22.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21 INSPECT statement, formats 1 and 3 (tallying)",
+    "clause-2023": "14.9.22 INSPECT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1/3/4 overlapping the TALLYING counter identifier-2: result undefined (also for the same entry)"
+    ],
+    "evidence-2002": {
+     "documented behaviour": "covered by 14.9.22-INSPECT/pb1907_inspect_tally_overlap and pb1907_inspect_format3_counter_overlap (MATCH at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR12",
+      "quote": "If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR13",
+      "quote": "If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "If there are no specific rules addressing such overlapping operands, the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Operand numbering of the INSPECT formats is the same in both editions (2023 adds BACKWARD and other phrases, a widening). Undefined in both editions for every overlap; the pinned documented behaviour holds at 2002.",
+    "probe": null,
+    "widening": "2023 INSPECT adds phrases (BACKWARD, TRAILING) the identical sentence also covers"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-17",
+    "to": [
+     "GR-14.9.22.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21 INSPECT statement, formats 2 and 3 (replacing)",
+    "clause-2023": "14.9.22 INSPECT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-3/4/5 overlapping identifier-1 in REPLACING: result undefined"
+    ],
+    "evidence-2002": {
+     "documented behaviour": "covered by 14.9.22-INSPECT/pb1907_inspect_replacing_overlap (MATCH at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR17",
+      "quote": "If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR18",
+      "quote": "If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR12: identical requirement (undefined) in both editions; witness holds at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-20",
+    "to": [
+     "GR-14.9.22.4-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.21 INSPECT statement, format 4 (converting)",
+    "clause-2023": "14.9.22 INSPECT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-4/6/7 overlapping identifier-1 in CONVERTING: result undefined"
+    ],
+    "evidence-2002": {
+     "documented behaviour": "covered by 14.9.22-INSPECT/pb1907_inspect_converting_overlap (MATCH at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR20",
+      "quote": "If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR21",
+      "quote": "If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1, the result of the execution of this statement is undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR12: identical requirement (undefined) in both editions; witness holds at 2002.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "t-erased",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.61.3-18",
+    "verdict": "DOUBTFUL",
+    "reason": "The VALUE format 4 text, GROUP INDICATE, PRESENT WHEN and the report OCCURS DEPENDING suppression are the same in both editions (diffed 13.16.26/13.18.28, 13.16.39/13.18.41). But the GROUP INDICATE suppression the rule invokes is reset by 'any control break' (GI GR1c), and in 2002 a control may be a subscripted table element: 2002 CONTROL SR3 says only 'Data-name-1 may be qualified' and 5.1.3 admits subscription, while 2023 CONTROL SR3 forbids any OCCURS. The compiler refuses every report with a subscripted control at --std 2002 (refute-t-erased/gen_subctl.cob: COBOL1699 citing the 2023 SR3), so the GI-suppression arm of this rule has no 2002 behaviour for such reports. The rule's own content is uniform over the control form. Settle it the same way as q-21 GR5/GR8: if a removed operand form reaches a rule that is uniform over it, OVERTURNED removed-form; otherwise UPHELD.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR18",
+      "quote": "a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR22",
+      "quote": "a GROUP INDICATE, PRESENT WHEN, or OCCURS clause with the DEPENDING phrase may suppress the appearance of the item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.26.3 GR1c",
+      "quote": "Any control break, if the report description contains a CONTROL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/gen_subctl.cob (refused at 2002 and 2023)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.61.3-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 and 2 general formats are the same. 13.6.3 GR5 and 13.7.4 GR5 are word-identical. The linkage section has no CD entries. 2023 moved the format 2 arm to GR11, which imports GR3. That split is harmless here because the pointer row's own test-ref (pb499_table_value_linkage_and_file_2002, accept [2002]) is the format 2 linkage witness. The format 1 arm is shown only by the reader's probe val_link_f1.cob, which I re-ran at 2002: ON ENTRY=[...999], AFTER INIT TO VALUE=[ABC123]. The KEPT record should cite that probe.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.3 GR3",
+      "quote": "In the linkage section, VALUE clauses take effect only during the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR3",
+      "quote": "In the linkage section, VALUE clauses take effect only during the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.4 GR11",
+      "quote": "General rules 1, 2, 3, 4, 5, 6, 7, 8, and 10 above apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.6.3 GR5",
+      "quote": "A data-item format or table format VALUE clause specified in the linkage section is ignored except in the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR5",
+      "quote": "A data-item format or table format VALUE clause specified in the linkage section is ignored except in the execution of an explicit or implicit INITIALIZE statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/val_link_f1.cob (re-run @2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-21",
+    "verdict": "UPHELD",
+    "reason": "Format 3 is the same in both editions. The facility is declined in both editions, and 2002 licenses that: B.3 item 1 makes the screen section and the screen format of ACCEPT processor-dependent, and 3.1.5 says unsupported processor-dependent elements need not be implemented (a compile-time diagnostic is required, and the compiler refuses). GR25's 2023 exception-checking PERFORM arm is moot when the facility is declined. The diagnostic text cites §2023:4.2.7 even at 2002. That is a documentation point, not a behaviour difference.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR21",
+      "quote": "If inconsistent data is entered into a screen item and allowed by the implementor to remain there",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR21",
+      "quote": "If inconsistent data is entered into a screen item and allowed by the implementor to remain there",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-7",
+    "verdict": "UPHELD",
+    "reason": "Format 2 is the same apart from its name ('chronological' in 2002, 'temporal' in 2023), and GR6 and GR7 are word-identical. The rule describes the conceptual DATE item, not identifier-2, so a CD-resident receiver is GR6's concern, not GR7's. The reader's probe acc_date.cob, re-run at 2002, gives D6=261115 on 2026-11-15. The pointer's AcceptDifferentialTests run at the default edition, so the KEPT record should cite the probe.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR7",
+      "quote": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR7",
+      "quote": "DATE without the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display six digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR6",
+      "quote": "transferred to the data item specified by identifier-2 according to the rules for the MOVE statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/acc_date.cob (re-run @2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-8",
+    "verdict": "UPHELD",
+    "reason": "The same as GR7. The pointer's test DateYYYYMMDD_RejectedAt85_RunsAt2002 runs at 2002, and the probe gives D8=20261115.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR8",
+      "quote": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR8",
+      "quote": "DATE with the phrase YYYYMMDD behaves as if it had been described as an unsigned elementary integer data item of usage display eight digits in length",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-13",
+    "verdict": "UPHELD",
+    "reason": "The 2002 Format 3 and the 2023 Format 2 are the same diagram, including the optional identifier-1/literal-1 and AS NESTED. The rule's only operand is literal-1. The 2023 addition to SR2 (no zero-length literal) cannot name a program. 8.4.5.2 and 8.4.6.3 are word-identical. The sentence 2023 dropped from 8.4.5 ('Except for program-names and method-names, ...') exempts program-names, so it changes nothing here. The pointer's four cases run at 2002 (the reader's evidence).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR13",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR15",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.2",
+      "quote": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.6.3",
+      "quote": "If the program-name is that of a program that does possess the common attribute and that is directly contained within another program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-2",
+    "verdict": "UPHELD",
+    "reason": "The CANCEL format is the same. 8.4.5.2 and 8.4.6.3 are word-identical. 8.4.5 differs from 8.4.6.1 in three places: the dropped sentence 'Except for program-names and method-names...' (which exempts program-names), the cd-name sentence, and the OO name lists. None of these touches locating a program-name. A CD-resident identifier-1 changes which name is supplied (GR1, already DIFFERENT), not how the name is located. One caveat for the KEPT record: the pointer's only witness, pb154_cancel_scope, does NOT compile at 2002 (I re-ran it: COBOL0900, a DYNAMIC LENGTH item). The 2002 evidence is the reader's probe cancel_scope.cob, which I re-ran at 2002: F3=0003, B=0001 after the COMMON cancel, H=0001. The KEPT record should cite that probe.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR2",
+      "quote": "The program-name is used by the runtime system to locate the program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR2",
+      "quote": "The program-name is used by the runtime system to locate the program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5",
+      "quote": "Except for program-names and method-names, a source element shall not reference any name declared in any source element it contains",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/cancel_scope.cob (re-run @2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.13.3-11",
+    "verdict": "UPHELD",
+    "reason": "Format 6 (EXIT PARAGRAPH/SECTION) is the 2023 Format 4. The return mechanisms the NOTE names are PERFORM, SORT and USE. The 2002 USE formats (file-exception, reporting, exception-name, exception-object) add no return mechanism that 2023 lacks: 2002 has no USE FOR DEBUGGING. The 2002-only EXIT forms are other rules. The pointer's cases run at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.3 GR11",
+      "quote": "causes control to be passed to an implicit CONTINUE statement immediately following the last explicit statement of the current paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.4 GR6",
+      "quote": "causes control to be passed to an implicit CONTINUE statement immediately following the last explicit statement of the current paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.15.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "The reader checked only that CONTROL has the same GENERAL FORMAT, and it does. The syntax rules differ. Sub-item c) prints, at the first GENERATE, 'each control heading ... in order from major to minor (See 13.16.15, CONTROL clause)', and the set of controls is wider in 2002. 2002 CONTROL SR3 says only that data-name-1 may be qualified, a 2002 data-name operand includes subscription (5.1.3; 2014 E.2), and a table element reference shall be subscripted (8.4.1.2.2 SR5). 2023 SR3 forbids any OCCURS. So 'RD R-G CONTROLS ARE FINAL WS-K(1)' with CH/CF WS-K(1) is a legal 2002 report whose first GENERATE this rule governs, and the 2023 row cannot reach it. This is the same family as the q-21 overturn of TYPE GR6 c)/e). A second, lesser reach: a 2002 control may also be a CD record item (CONTROL SR2 excludes only the report section). The compiler does that one correctly: gen_cdctl.cob at 2002 prints [RH] [PH 1] [CHF] [CHK A] [DE A 1]..., identical to the WS twin.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.15.3 GR4c",
+      "quote": "each control heading is printed, wherever defined, in order from major to minor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR4c",
+      "quote": "each control heading is printed, wherever defined, in order from major to minor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 a report whose control operand is a subscripted table element is refused (COBOL1699 citing §2023:13.18.16.3 SR3), so GR4 c) is not met for it; plus a 2002 witness for a CD-resident control (gen_cdctl.cob, correct)",
+    "compiler-at-2002": "wrong for the subscripted control (gen_subctl.cob refused, exit 65; expected output as probes-t-erased/gen_first_next.cob); correct for the CD-resident control (gen_cdctl.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/gen_subctl.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/gen_cdctl.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.15.3-5",
+    "verdict": "OVERTURNED",
+    "reason": "The same cause as GR4, and here the rule engages the control directly. Sub-item a) prints each control footing and heading 'up to the level of the control break', and the break is sensed by comparing each control data item with its prior control (CONTROL GR3). In 2002 that item may be a subscripted table element (CONTROL SR3 'may be qualified' only; 5.1.3; 8.4.1.2.2 SR5), which 2023 SR3 removes. gen_subctl.cob changes WS-K(1) from A to B to C and is refused at --std 2002. The CD-resident control variant gen_cdctl.cob is correct at 2002: [CFK A] [CHK B] [DE B 3] [CFK B] [CHK C], with no DE for GENERATE R-G.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.15.3 GR5a",
+      "quote": "each control footing and control heading is printed, if defined, up to the level of the control break",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.16.4 GR5a",
+      "quote": "each control footing and control heading is printed, if defined, up to the level of the control break",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.3 GR3",
+      "quote": "automatically test the current value of each control data item, in order major to minor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "its own verdict: control-break processing for a subscripted control at --std 2002 (refused COBOL1699); plus a 2002 witness for a CD-resident control (gen_cdctl.cob, correct)",
+    "compiler-at-2002": "wrong for the subscripted control (gen_subctl.cob refused); correct for the CD-resident control (gen_cdctl.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/gen_subctl.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/gen_cdctl.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.19.3-8",
+    "verdict": "UPHELD",
+    "reason": "The rule makes every identifier-1/identifier-2 overlap undefined in both editions. It overrides 14.5.9 (2002) and 14.6.10 (2023) alike, so their difference cannot show. 2002 identifier-1 may be a CD record item, but undefined there too adds no requirement. The pointer row is recorded with no testable requirement (no test-ref, a measured program in its notes), which is what the brief requires for SAME on such a rule. init_overlap.cob re-run at 2002: A1=AAA B1=AAA, exit 0.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.19.3 GR8",
+      "quote": "the result of the execution of this statement is undefined, even if they are defined by the same data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.20.4 GR9",
+      "quote": "the result of the execution of this statement is undefined, even if they are defined by the same data description entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-erased/init_overlap.cob (re-run @2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-12",
+    "verdict": "OVERTURNED",
+    "reason": "The INSPECT formats and operand numbering are the same in both editions (2023 adds BACKWARD, a widening). In 2002, though, every identifier the rule names may be a record item under a CD: 2002 INSPECT SR1 and SR2 restrict only class and usage, not section, and A.1.1.2 makes CD records ordinary record description entries. 2023 has no such entries. The pointer row does not record this rule as untestable. It is CONFORMS with goldens that pin a documented implementor choice for TALLYING (D-INS1), all in working storage. So the 2002 scope has a part the pointer's evidence never shows. This is the class the reader itself applied to CANCEL GR1, DIVIDE GR4-6 and EVALUATE GR2 in this slice, and the reader did not apply it here. The compiler is correct: insp_cd.cob (operands in a CD record) at 2002 gives D1=[5AAAAA] D2=[31A1A1], identical to its WS twin insp_ws.cob at 2002 and 2023 and to the pb1907 goldens.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR12",
+      "quote": "If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR13",
+      "quote": "If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR1",
+      "quote": "Identifier-1 shall reference either an alphanumeric or national group item or an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR2",
+      "quote": "shall reference an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CD-resident overlapping operands (insp_cd.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob, insp_cd.2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_ws.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-17",
+    "verdict": "OVERTURNED",
+    "reason": "The INSPECT formats and operand numbering are the same in both editions (2023 adds BACKWARD, a widening). In 2002, though, every identifier the rule names may be a record item under a CD: 2002 INSPECT SR1 and SR2 restrict only class and usage, not section, and A.1.1.2 makes CD records ordinary record description entries. 2023 has no such entries. The pointer row does not record this rule as untestable. It is CONFORMS with goldens that pin a documented implementor choice for REPLACING (D-INS3), all in working storage. So the 2002 scope has a part the pointer's evidence never shows. This is the class the reader itself applied to CANCEL GR1, DIVIDE GR4-6 and EVALUATE GR2 in this slice, and the reader did not apply it here. The compiler is correct: insp_cd.cob (operands in a CD record) at 2002 gives E1=[RQ] E2=[BA], identical to its WS twin insp_ws.cob at 2002 and 2023 and to the pb1907 goldens.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR17",
+      "quote": "If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR18",
+      "quote": "If identifier-3, identifier-4, or identifier-5 occupies the same storage area as identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR1",
+      "quote": "Identifier-1 shall reference either an alphanumeric or national group item or an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR2",
+      "quote": "shall reference an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CD-resident overlapping operands (insp_cd.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob, insp_cd.2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_ws.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-20",
+    "verdict": "OVERTURNED",
+    "reason": "The INSPECT formats and operand numbering are the same in both editions (2023 adds BACKWARD, a widening). In 2002, though, every identifier the rule names may be a record item under a CD: 2002 INSPECT SR1 and SR2 restrict only class and usage, not section, and A.1.1.2 makes CD records ordinary record description entries. 2023 has no such entries. The pointer row does not record this rule as untestable. It is CONFORMS with goldens that pin a documented implementor choice for CONVERTING (D-INS4), all in working storage. So the 2002 scope has a part the pointer's evidence never shows. This is the class the reader itself applied to CANCEL GR1, DIVIDE GR4-6 and EVALUATE GR2 in this slice, and the reader did not apply it here. The compiler is correct: insp_cd.cob (operands in a CD record) at 2002 gives F1=[WXYW] F2=[BAAB], identical to its WS twin insp_ws.cob at 2002 and 2023 and to the pb1907 goldens.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR20",
+      "quote": "If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR21",
+      "quote": "If identifier-4, identifier-6, or identifier-7 occupies the same storage area as identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR1",
+      "quote": "Identifier-1 shall reference either an alphanumeric or national group item or an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.21.2 SR2",
+      "quote": "shall reference an elementary item described implicitly or explicitly as usage display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CD-resident overlapping operands (insp_cd.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob, insp_cd.2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_cd.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-erased/insp_ws.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "bc4fbe786ff4869fda29cf4c9273114bf2a3d4211a2baec4bd3e09b2815338b2",
+  "read": "c09ed20661bdfabee7c13405bc0f38234e091403f142a1627c830f4f3c2ed6f0",
+  "refute": "67aa5a5ed87a64beca01649d099008b583990bcf2f049ac60b9a95bd93579fda"
+ }
+}

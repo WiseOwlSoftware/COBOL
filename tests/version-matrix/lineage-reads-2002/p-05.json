@@ -1,0 +1,1400 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-05 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-05",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.10.3-3",
+   "2002-GR-14.8.11.3-2",
+   "2002-GR-14.8.13.3-12",
+   "2002-GR-14.8.18.3-1",
+   "2002-GR-14.8.18.3-2",
+   "2002-GR-14.8.18.3-3",
+   "2002-GR-14.8.18.3-5",
+   "2002-GR-14.8.18.3-6",
+   "2002-GR-14.8.23.3-1",
+   "2002-GR-14.8.26.3-12",
+   "2002-GR-14.8.26.3-13",
+   "2002-GR-14.8.26.3-7",
+   "2002-GR-14.8.27.3-2",
+   "2002-GR-14.8.3.3-4",
+   "2002-GR-14.8.30.3-2",
+   "2002-GR-14.8.30.3-6",
+   "2002-GR-14.8.33.3-12",
+   "2002-GR-14.8.33.3-5",
+   "2002-GR-14.8.33.3-7",
+   "2002-GR-14.8.35.3-1",
+   "2002-GR-14.8.35.3-11",
+   "2002-GR-14.8.35.3-13",
+   "2002-GR-14.8.35.3-14",
+   "2002-GR-14.8.35.3-19",
+   "2002-GR-14.8.35.3-20"
+  ]
+ },
+ "read": {
+  "slice": "p-05",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.10.3-3",
+    "to": [
+     "GR-14.9.11.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10",
+    "clause-2023": "14.9.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR3",
+      "quote": "only a single occurrence of the figurative constant is displayed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR3",
+      "quote": "only a single occurrence of the figurative constant is displayed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.10.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class object or class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 (line/device) identical in both: identifier-1 or literal-1 ..., UPON mnemonic-name-1, WITH NO ADVANCING. No CD or other 2002-only operand. Figurative-constant formats 1-7 (§2002:8.3.1.2.5 vs §2023:8.3.3.6.1) are the same list; the 2023 restructuring of figurative GR2/3 concerns length in other contexts, and this rule itself fixes the DISPLAY length at one occurrence in both. Probe: DISPLAY ALL 'AB' SPACE ZERO prints [AB][ ][0] at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": "2023 says 'device' (hardware or software) where 2002 says 'hardware device', and adds class message-tag to SR1's exclusions and zero-length literals; the 2002 cases are all covered.",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-2",
+    "to": [
+     "GR-14.9.12.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.11",
+    "clause-2023": "14.9.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.11.3 GR2",
+      "quote": "The dividend is identifier-2 or literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.12.4 GR2",
+      "quote": "The dividend is identifier-2 or literal-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Five DIVIDE formats identical in operands (2023 only names ROUNDED as rounded-phrase, which governs storing, not operand determination). SR1-3 identical. The rule defines dividend/divisor only; it does not lean on the standard-arithmetic text of GR1. Probe: DIVIDE B INTO A GIVING Q REMAINDER R and DIVIDE 4 INTO A give Q=014 R=002, A=025 at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.13.3-12",
+    "to": [
+     "GR-14.9.14.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.13",
+    "clause-2023": "14.9.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.3 GR12",
+      "quote": "control to be passed to an unnamed empty paragraph immediately following the last paragraph of the current section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.4 GR7",
+      "quote": "control to be passed to an unnamed empty paragraph immediately following the last paragraph of the current section",
+      "check": "OK"
+     }
+    ],
+    "reason": "EXIT procedure format (2002 Format 6, 2023 Format 4) identical: EXIT PARAGRAPH|SECTION; SR 'only in a section' identical. 2023's loss of EXIT METHOD/FUNCTION formats does not touch the procedure format; sections remain in method and function procedure divisions. NOTE on return mechanisms (PERFORM, SORT, USE) identical. Probe: EXIT SECTION in a performed section returns without executing the rest at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "band-formats: band-formats [6] against [[4]]": "2002 Format 6 (procedure) is 2023 Format 4, both EXIT {PARAGRAPH | SECTION}; the number moved because 2023 dropped 2002's Format 3 (EXIT METHOD) and Format 4 (EXIT FUNCTION), which this band does not reach. §2002:14.8.13.2 SR11 equals §2023:14.9.14.3 SR9 and §2002:14.8.13.3 GR11/GR12 equal §2023:14.9.14.4 GR6/GR7. Same format reached; no split."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: ctl.cob's EXIT SECTION in performed section S2 prints S2A then BACK-FROM-S2, skipping NOT-S2A and NOT-S2B (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/ctl-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.13.3 GR12",
+      "quote": "control to be passed to an unnamed empty paragraph immediately following the last paragraph of the current section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.4 GR7",
+      "quote": "control to be passed to an unnamed empty paragraph immediately following the last paragraph of the current section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.2 SR11",
+      "quote": "The EXIT statement with the SECTION phrase may be specified only in a section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.3 SR9",
+      "quote": "The EXIT statement with the SECTION phrase may be specified only in a section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.2 SR9",
+      "quote": "An EXIT FUNCTION statement may be specified only in a function procedure division",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-1",
+    "to": [
+     "GR-14.9.19.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18",
+    "clause-2023": "14.9.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR1",
+      "quote": "control is transferred to the first statement of statement-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.4 GR1",
+      "quote": "control is transferred to the first statement of statement-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "IF general formats 1 (delimited) and 2 (historic) identical; SR1-3 same in substance (2023 lists the ELSE/END-IF matching as a/b). Rule leans only on condition-1 and statement-1, which other clauses define. Probe T1/F2 correct at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "deferral: the rules for ": "§2002:14.8.18.3 GR1: 'execution continues according to the rules for each statement specified in statement-1'. The deferral is to the rules of whatever statements are nested in statement-1/statement-2; each of those is a 2002 rule of its own statement and is decided in its own row. The IF rule adds no edition-dependent content, and the reader's probe ctl.cob runs it correctly at --std 2002, so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR1",
+      "quote": "execution continues according to the rules for each statement specified in statement-1",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-2",
+    "to": [
+     "GR-14.9.19.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18",
+    "clause-2023": "14.9.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR2",
+      "quote": "If condition-1 is false, the THEN phrase is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.4 GR2",
+      "quote": "If condition-1 is false, the THEN phrase is ignored",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same Format 1 in both; no operand or phrase differs. Probe: F2 printed for a false condition with ELSE at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "deferral: the rules for ": "§2002:14.8.18.3 GR2: 'execution continues according to the rules for each statement specified in statement-2'. The deferral is to the rules of whatever statements are nested in statement-1/statement-2; each of those is a 2002 rule of its own statement and is decided in its own row. The IF rule adds no edition-dependent content, and the reader's probe ctl.cob runs it correctly at --std 2002, so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR2",
+      "quote": "execution continues according to the rules for each statement specified in statement-2",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-3",
+    "to": [
+     "GR-14.9.19.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18",
+    "clause-2023": "14.9.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR3",
+      "quote": "If condition-1 is true and statement-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.4 GR3",
+      "quote": "If condition-1 is true and statement-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical in both (statement-1 | NEXT SENTENCE, optional ELSE statement-2 | NEXT SENTENCE); NEXT SENTENCE is archaic in both. Probe IF N = 0 DISPLAY 'T4'. prints T4 at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "deferral: the rules for ": "§2002:14.8.18.3 GR3: 'execution continues according to the rules for each statement specified in statement-1'. The deferral is to the rules of whatever statements are nested in statement-1/statement-2; each of those is a 2002 rule of its own statement and is decided in its own row. The IF rule adds no edition-dependent content, and the reader's probe ctl.cob runs it correctly at --std 2002, so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR3",
+      "quote": "execution continues according to the rules for each statement specified in statement-1",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-5",
+    "to": [
+     "GR-14.9.19.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18",
+    "clause-2023": "14.9.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR5",
+      "quote": "If condition-1 is false and statement-2 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.4 GR5",
+      "quote": "If condition-1 is false and statement-2 is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical; rule self-contained. Probe of the false/ELSE branch correct at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "deferral: the rules for ": "§2002:14.8.18.3 GR5: 'execution continues according to the rules for each statement specified in statement-2'. The deferral is to the rules of whatever statements are nested in statement-1/statement-2; each of those is a 2002 rule of its own statement and is decided in its own row. The IF rule adds no edition-dependent content, and the reader's probe ctl.cob runs it correctly at --std 2002, so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR5",
+      "quote": "execution continues according to the rules for each statement specified in statement-2",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-6",
+    "to": [
+     "GR-14.9.19.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18",
+    "clause-2023": "14.9.19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.3 GR6",
+      "quote": "control is transferred to an implicit CONTINUE statement immediately preceding the next separator period",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.4 GR6",
+      "quote": "control is transferred to an implicit CONTINUE statement immediately preceding the next separator period",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 ELSE NEXT SENTENCE identical; 2002 NOTE 'archaic, should be avoided' vs 2023 'archaic, see F.1' is informative. Probe IF N = 1 DISPLAY 'T3' ELSE NEXT SENTENCE. continues at the next sentence at both (2023 adds the archaic warning). The compiler refuses NEXT SENTENCE followed by another statement in the same phrase at both (COBOL2269), which Format 2 supports.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-1",
+    "to": [
+     "GR-14.9.24.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR1",
+      "quote": "The MERGE statement merges all records contained on the files referenced by file-name-2 and file-name-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR1",
+      "quote": "The MERGE statement merges all records contained on the files referenced by file-name-2 and file-name-3",
+      "check": "OK"
+     }
+    ],
+    "reason": "MERGE general format identical; SR2-13 identical apart from key-item exclusions for 2023-only data (message-tag, dynamic-length, dynamic-capacity). 2023 SR1 forbids MERGE in an output procedure of a MERGE or in SORT procedures; in 2002 that case sets EC-SORT-MERGE-ACTIVE with undefined results (§2002:14.8.23.3 GR8), so GR1 promises nothing there in 2002 either. File-name-2/3 organizations are sequential, relative, indexed in both. Probe: MERGE USING two files GIVING one yields 01 03 05 07 at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-12",
+    "to": [
+     "GR-14.9.27.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR12",
+      "quote": "the file position indicator for that file connector is set to 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR14",
+      "quote": "the file position indicator for that file connector is set to 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "OPEN general format identical (INPUT/OUTPUT/I-O/EXTEND, sharing-phrase, retry-phrase, NO REWIND). Same three organizations; no CD or other file kind. 2023 changes 'physical file' to 'file' in neighbouring rules only. Probe: OPEN I-O on an indexed file then READ NEXT gives the lowest key (10) at both; OPEN INPUT sequential reads the first record at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-13",
+    "to": [
+     "GR-14.9.27.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR13",
+      "quote": "the OPEN statement positions the file immediately after the last logical record for that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR15",
+      "quote": "the OPEN statement positions the file immediately after the last logical record for that file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; EXTEND SR2 (sequential access, no LINAGE) identical. Probe: OUTPUT AAA, EXTEND BBB, INPUT reads AAA then BBB at both; the compiler refuses OPEN EXTEND on a dynamic-access file at both (SR2), correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-7",
+    "to": [
+     "GR-14.9.27.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR7",
+      "quote": "Execution of the OPEN statement does not obtain or release the first record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR9",
+      "quote": "Execution of the OPEN statement does not obtain or release the first record",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and file kinds; rule self-contained. Probe: first READ after OPEN INPUT returns the first record at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-2",
+    "to": [
+     "GR-14.9.28.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR2",
+      "quote": "An inline PERFORM statement and an out-of-line PERFORM statement function identically according to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR4",
+      "quote": "An inline PERFORM statement and an out-of-line PERFORM statement function identically according to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR11",
+      "quote": "If the until-phrase with the EXIT reserved word is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.27.3 GR10",
+      "quote": "The range of a PERFORM statement consists logically of all those statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR1",
+      "quote": "The range of a PERFORM statement consists logically of all those statements",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats 1 and 2 identical apart from 2023 adding UNTIL EXIT; 2023's Format 3 (exception-checking) is outside this rule (FORMATS 1 AND 2). 'The following rules' in 2002 are GR3-11; each has a 2023 counterpart with the same words (GR5-10, GR12-13; the range and nested-PERFORM rules 2002 GR10-11 moved to 2023 GR1-2 under ALL FORMATS and still apply). No 2002 case is lost. Probe: out-of-line and inline TIMES correct at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": "2023 adds until-phrase UNTIL EXIT (GR11) to the rules this one introduces.",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-4",
+    "to": [
+     "GR-14.9.3.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.3",
+    "clause-2023": "14.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR4",
+      "quote": "If the specified amount of storage is available for allocation, it shall be obtained",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR4",
+      "quote": "If the specified amount of storage is available for allocation, it shall be obtained",
+      "check": "OK"
+     }
+    ],
+    "reason": "ALLOCATE general format and SR1-5 identical. The 2023 change in GR8/9 (OPTIONS INITIALIZE fill) concerns content, not this address assignment. Probe: ALLOCATE BX RETURNING P1 sets a non-NULL pointer at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-2",
+    "to": [
+     "GR-14.9.32.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.30",
+    "clause-2023": "14.9.32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR2",
+      "quote": "causes the record named by record-name-1 to be released to the initial phase of a sort operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR2",
+      "quote": "causes the record named by record-name-1 to be released to the initial phase of a sort operation",
+      "check": "OK"
+     }
+    ],
+    "reason": "RELEASE format identical; SR1-3 identical (2002 SR2's same-storage clause became a 2023 NOTE; 2023 SR4 forbids zero-length literals, which 2002 lacks). Probe: SORT with an input procedure that RELEASEs two records sorts them at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-6",
+    "to": [
+     "GR-14.9.32.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.30",
+    "clause-2023": "14.9.32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.3 GR6",
+      "quote": "the content of the bytes that extend beyond the end of record-name-1 are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.4 GR6",
+      "quote": "the content of the bytes that extend beyond the end of record-name-1 are undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; rule self-contained (undefined content). No observable requirement beyond the shared RELEASE probe.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-12",
+    "to": [
+     "GR-14.9.35.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33",
+    "clause-2023": "14.9.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR12",
+      "quote": "The file position indicator in the rewrite file connector is not affected by the execution of a REWRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR13",
+      "quote": "The file position indicator in the rewrite file connector is not affected by the execution of a REWRITE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "REWRITE general format identical (record-name-1 | FILE file-name-1, FROM, retry, LOCK, INVALID KEY); same organizations. 2023 adds an APPLY COMMIT SR only. Probe: READ NEXT, REWRITE, READ NEXT on an indexed I-O file returns the next record (20b) at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\fio.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-5",
+    "to": [
+     "GR-14.9.35.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33",
+    "clause-2023": "14.9.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR5",
+      "quote": "is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR6",
+      "quote": "is no longer available in the record area unless file-name-1 or the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; SAME RECORD AREA governs files only in both editions. Not probed separately.",
+    "probe": null,
+    "widening": null,
+    "compiler-at-2002": "not probed"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-7",
+    "to": [
+     "GR-14.9.35.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33",
+    "clause-2023": "14.9.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR7",
+      "quote": "The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR8",
+      "quote": "The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and same SR10b (no figurative constant with FILE) in both; figurative SPACE format identical. Not probed separately.",
+    "probe": null,
+    "widening": null,
+    "compiler-at-2002": "not probed",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'One alphanumeric space character' is a single code value of the alphanumeric coded character set (4.29), what §2023:3.7 calls an alphanumeric character; confirmed now at --std 2002: REWRITE R FROM SPACE of PIC X(5) 'ABCDE' reads back [     ] (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-14/rw_space.cob (rw_space-2002.txt, rw_space-2023.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR7",
+      "quote": "The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-14/rw_space.cob (rw_space-2002.txt, rw_space-2023.txt)",
+    "from-slice": "p-05",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-1",
+    "to": [
+     "GR-14.9.39.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR1",
+      "quote": "Index-names are associated with a given table by being specified in the INDEXED BY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR1",
+      "quote": "Index-names are associated with a given table by being specified in the INDEXED BY phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "SET Formats 1 and 2 identical in both; INDEXED BY of OCCURS is the only source of index-names in both. Probe: SET IX TO 3, SET J TO IX gives J=3 at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": "2023 OCCURS adds dynamic-capacity tables whose INDEXED BY index-names the same rule covers.",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-11",
+    "to": [
+     "GR-14.9.39.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR11",
+      "quote": "the address identified by identifier-6 is stored in each data item referenced by identifier-5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR12",
+      "quote": "the address identified by identifier-6 is stored in each data item referenced by identifier-5",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 7 data-pointer-assignment identical in both (same operand names); SR17-19 identical. Probe: SET P2 TO P1 and SET ADDRESS OF BX TO P2 behave at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\ctl.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-13",
+    "to": [
+     "GR-14.9.39.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR13",
+      "quote": "The address identified by identifier-8 is stored in each data item referenced by identifier-7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR16",
+      "quote": "The address identified by identifier-8 is stored in each data item referenced by identifier-7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR20",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR21",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 8 (program-pointer-assignment) is 2023 Format 9, same operands identifier-7/identifier-8 and same SRs; 2023's new Format 8 (function-pointer) uses identifier-12/13, outside this rule. Probe: SET PQ TO PP, with PP from ADDRESS OF PROGRAM, compares equal at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\loc2.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "band-formats: band-formats [8] against [[9]]": "2002 Format 8 (program-pointer-assignment) is 2023 Format 9, both 'SET { identifier-7 } … TO identifier-8' (§2002:14.8.35.1, §2023:14.9.39.2); 2023's new Format 8 is the function-pointer format on identifier-12/identifier-13, which this rule does not name, and §2002:14.8.35.2 SR20 equals §2023:14.9.39.3 SR21. Same format reached; no change."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: loc2.cob prints PP-EQ (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/loc2-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR13",
+      "quote": "The address identified by identifier-8 is stored in each data item referenced by identifier-7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR16",
+      "quote": "The address identified by identifier-8 is stored in each data item referenced by identifier-7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.1",
+      "quote": "SET { identifier-7 } … TO identifier-8",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET { identifier-7 } … TO identifier-8",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET { identifier-12 } … TO identifier-13",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR20",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR21",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-14",
+    "to": [
+     "GR-14.9.39.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR14",
+      "quote": "The effect of the SET statement on the program whose address is being stored in the program-pointer is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR17",
+      "quote": "The effect of the SET statement on the program whose address is being stored in the program-pointer is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same program-pointer format, implementor-defined effect in both.",
+    "probe": null,
+    "widening": null,
+    "compiler-at-2002": "not probed",
+    "flags-answered": {
+     "band-formats: band-formats [8] against [[9]]": "2002 Format 8 (program-pointer-assignment) is 2023 Format 9, both 'SET { identifier-7 } … TO identifier-8' (§2002:14.8.35.1, §2023:14.9.39.2); 2023's new Format 8 is the function-pointer format on identifier-12/identifier-13, which this rule does not name, and §2002:14.8.35.2 SR20 equals §2023:14.9.39.3 SR21. Same format reached; no change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR14",
+      "quote": "The effect of the SET statement on the program whose address is being stored in the program-pointer is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR17",
+      "quote": "The effect of the SET statement on the program whose address is being stored in the program-pointer is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.1",
+      "quote": "SET { identifier-7 } … TO identifier-8",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET { identifier-12 } … TO identifier-13",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-19",
+    "to": [
+     "GR-14.9.39.4-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR19",
+      "quote": "the user default locale is set to the locale identified by the second operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR22",
+      "quote": "the user default locale is set to the locale identified by the second operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "set-locale format (2002 F10, 2023 F11) identical, same categories and TO operands; SR24-26 identical. Probe: SET LOCALE USER-DEFAULT TO SV compiles and runs at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\loc2.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "band-formats: band-formats [10] against [[11]]": "Renumbering only: 2002 Format 10 (set-locale) and 2023 Format 11 (set-locale) are the same diagram (LC_ALL..LC_TIME with choice indicators or USER-DEFAULT, TO identifier-10 / locale-name-1 / USER-DEFAULT / SYSTEM-DEFAULT); 2023 inserted Format 8 (function-pointer-assignment) before it. No 2002 format is outside the 2023 band."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR19",
+      "quote": "the user default locale is set to the locale identified by the second operand",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-05"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-20",
+    "to": [
+     "GR-14.9.39.4-23"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR20",
+      "quote": "the current runtime locale for the specified category is set to that category in the system default locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR23",
+      "quote": "the current runtime locale for the specified category is set to that category in the system default locale",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same set-locale format; the list a-c covers the same three TO forms (locale-name-1/identifier-10, USER-DEFAULT, SYSTEM-DEFAULT) in both. Probe: SET LOCALE LC_NUMERIC TO SV, LC_TIME TO SYSTEM-DEFAULT and TO USER-DEFAULT run at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-05\\loc2.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "band-formats: band-formats [10] against [[11]]": "Renumbering only: 2002 Format 10 (set-locale) is 2023 Format 11 (set-locale), the same diagram and TO operands; the a)-c) TO forms are the same. No 2002 format is outside the 2023 band."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR20",
+      "quote": "the current runtime locale for the specified category is set to that category in the system default locale",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-05"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-05",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.10.3-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 (line/device) identical operand by operand; SR1 2023 only adds message-tag. Figurative constants including ALL boolean/national literal exist in both (2002 table at line 19572, 2023 at 25422). No CD operand: UPON mnemonic-name names a device in both. GR3 text identical.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR3",
+      "quote": "only a single occurrence of the figurative constant is displayed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR3",
+      "quote": "only a single occurrence of the figurative constant is displayed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.11.3-2",
+    "verdict": "UPHELD",
+    "reason": "Five DIVIDE formats identical apart from ROUNDED -> rounded-phrase (storing, not operand determination); SR1-3 identical. A numeric item under a CD could be an operand in 2002, but the rule's semantics do not depend on where the item is defined; the CD entries are governed by their own data-description rules.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.13.3-12",
+    "verdict": "UPHELD",
+    "reason": "Procedure format (2002 F6, 2023 F4) identical; 'only in a section' SR identical; NOTE on return mechanisms (PERFORM, SORT, USE) identical. The removed EXIT METHOD/FUNCTION formats are other formats; EXIT SECTION's effect within a section of a function or method is the same.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-1",
+    "verdict": "UPHELD",
+    "reason": "IF formats 1 and 2 identical; SR2 2023 only restates the ELSE/END-IF matching as a/b. GR text identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-2",
+    "verdict": "UPHELD",
+    "reason": "Same as GR1: Format 1 identical, rule self-contained.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-3",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical in both, NEXT SENTENCE archaic in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-5",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical; rule self-contained.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.18.3-6",
+    "verdict": "UPHELD",
+    "reason": "Format 2 ELSE NEXT SENTENCE identical; NOTE difference informative only.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical. 2002 SR1 admits a MERGE inside a SORT/MERGE procedure that 2023 SR1 forbids, but in 2002 executing it sets EC-SORT-MERGE-ACTIVE with undefined results (GR8, and the SORT counterpart), so GR1 promises nothing there; that difference belongs to SR1's row, not GR1. SR9 (no report or sort-merge file) identical.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR1",
+      "quote": "A MERGE statement may appear anywhere in the procedure division except in the declaratives portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR1",
+      "quote": "or in an output procedure of another MERGE statement, or an input or output procedure of a file format SORT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR8",
+      "quote": "If this rule is violated, the EC-SORT-MERGE-ACTIVE exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-12",
+    "verdict": "UPHELD",
+    "reason": "OPEN format identical; same three organizations; 'collating sequence associated with the file' rests on the file-control COLLATING SEQUENCE clause and its default (native) in both editions (2002 12.3.4.6 and FORMAT 1 GR6 vs 2023 12.4.5.7 and GR6, same text). The 2023 removal of CLOSE WITH LOCK / status 38 touches OPEN GR24, not this rule.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-13",
+    "verdict": "UPHELD",
+    "reason": "Same format; EXTEND SR2 identical; definitions of last logical record identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-7",
+    "verdict": "UPHELD",
+    "reason": "Same format and file kinds; self-contained.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 binds inline and out-of-line PERFORM to function identically 'according to the following rules', and in 2002 those include GR10, whose range excludes statements reached by EXIT FUNCTION and EXIT METHOD. 2023 removed both statements (Annex E.2 item 1), its range rule (now GR1, placed BEFORE GR4 so no longer among 'the following rules') names only EXIT PROGRAM and GOBACK. So the 2002 rule covers inline and out-of-line PERFORM ranges left by EXIT FUNCTION/EXIT METHOD, a case the 2023 verdict says nothing about (the 2023 compiler rejects the program). Probe: function FX leaves an inline PERFORM and an out-of-line PERFORM by EXIT FUNCTION, called twice each: --std 2002 prints I1=002 I2=002 O1=020 O2=020 (correct: range ended, no stale return mechanism); --std 2023 refuses with COBOL0902 'the EXIT FUNCTION statement was removed in COBOL-2023'. needs: a 2002 witness for PERFORM ranges left by EXIT FUNCTION and EXIT METHOD (inline and out-of-line). compiler-at-2002: correct for EXIT FUNCTION (probe); EXIT METHOD not probed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR2",
+      "quote": "An inline PERFORM statement and an out-of-line PERFORM statement function identically according to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.27.3 GR10",
+      "quote": "except for statements executed as the result of a transfer of control by an EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR1",
+      "quote": "except for statements executed as the result of a transfer of control by an EXIT PROGRAM or GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR4",
+      "quote": "An inline PERFORM statement and an out-of-line PERFORM statement function identically according to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR8",
+      "quote": "The execution of an EXIT FUNCTION statement causes the executing function to terminate",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-05\\pfx.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-4",
+    "verdict": "UPHELD",
+    "reason": "ALLOCATE format and SR1-5 identical; GR4 text identical; 2023's GR8/9 change concerns content only.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-2",
+    "verdict": "UPHELD",
+    "reason": "RELEASE format identical; record-name-1 is a sort-merge file record in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.30.3-6",
+    "verdict": "UPHELD",
+    "reason": "Same format; self-contained undefined-content rule.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-12",
+    "verdict": "UPHELD",
+    "reason": "REWRITE format identical; same organizations; 2023 adds APPLY COMMIT SR and drops the same-storage SR (wider).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-5",
+    "verdict": "UPHELD",
+    "reason": "Same format; SAME RECORD AREA governs files in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-7",
+    "verdict": "UPHELD",
+    "reason": "Same format; SR10b (no figurative constant with FILE) identical, so SPACE reaches only FROM with record-name-1 in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-1",
+    "verdict": "UPHELD",
+    "reason": "SET formats 1 and 2 identical; GR1 under FORMATS 1 AND 2 in both. A table under a CD record could carry INDEXED BY in 2002, but that is the OCCURS clause's reach (its own rows), not this rule's.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-11",
+    "verdict": "UPHELD",
+    "reason": "Format 7 identical with the same operand names; SR17-19 identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-13",
+    "verdict": "UPHELD",
+    "reason": "2002 F8 = 2023 F9, same identifier-7/8 and SRs; program-address-identifier GR identical in both (2002 8.4.2.12.3 GR1 at line 4954, 2023 line 6629). Function-pointer format is new and separate.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-14",
+    "verdict": "UPHELD",
+    "reason": "Same program-pointer format; implementor-defined effect in both (2023 GR17).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-19",
+    "verdict": "UPHELD",
+    "reason": "set-locale format (2002 F10, 2023 F11) identical: same seven categories, same four TO operands; SR24-26 = 2023 SR25-27.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-20",
+    "verdict": "UPHELD",
+    "reason": "Same format; a-c cover the same TO operands in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "4d782fd3b37ca3f219ec888029ebe0cac1f5463d4ebfef82139a1e539cc41a9f",
+  "read": "6774b66cbce853b7ce476204ec852c0ad4e253cfc670788b06247ad854f0eaed",
+  "refute": "912ed296dadbfc6660388aee884be34a343e23128a2325c4571c9415ff8ab978"
+ }
+}

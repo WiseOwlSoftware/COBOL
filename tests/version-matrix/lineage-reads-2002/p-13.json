@@ -1,0 +1,1594 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-13 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-13",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.43.2-2",
+   "2002-SR-13.16.43.2-4",
+   "2002-SR-13.16.43.2-5",
+   "2002-SR-13.16.43.2-9",
+   "2002-SR-13.16.47.2-2",
+   "2002-SR-13.16.47.2-5",
+   "2002-SR-13.16.47.2-8",
+   "2002-SR-13.16.5.2-1",
+   "2002-SR-13.16.50.2-2",
+   "2002-SR-13.16.51.2-1",
+   "2002-SR-13.16.55.2-5",
+   "2002-SR-13.16.56.2-1",
+   "2002-SR-13.16.58.2-1",
+   "2002-SR-13.16.58.2-19",
+   "2002-SR-13.16.58.2-2",
+   "2002-SR-13.16.58.2-3",
+   "2002-SR-13.16.58.2-5",
+   "2002-SR-13.16.61.2-10",
+   "2002-SR-13.16.61.2-14",
+   "2002-SR-13.16.61.2-15",
+   "2002-SR-13.16.61.2-16",
+   "2002-SR-13.16.61.2-21",
+   "2002-SR-13.16.61.2-23",
+   "2002-SR-13.16.61.2-25",
+   "2002-SR-13.16.62.2-2"
+  ]
+ },
+ "read": {
+  "slice": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\in\\p-13.json",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.43.2-2",
+    "to": [
+     "SR-13.18.45.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43 RENAMES clause",
+    "clause-2023": "13.18.45 RENAMES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "66 entries after a record in the file, working-storage, local-storage and linkage sections",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe ren-sr2-ws.cob at 2002 and 2023 (66 after an intervening 01 refused, COBOL1655)",
+     "covered by probe ren-sr2-cd.cob at 2002 (refused, COBOL1655) but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR2",
+      "quote": "All RENAMES entries referring to data items within a given record shall immediately follow the last data description entry of the associated record description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR2",
+      "quote": "All RENAMES entries referring to data items within a given record shall immediately follow the last data description entry of the associated record description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. The clause names the CD itself in 2002 SR3 and drops it in 2023 SR3. Format identical. The compiler enforces SR2 through its same-record check (message cites §2023 SR4), at both editions and under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\ren-sr2-ws.cob, ren-sr2-cd.cob (std 2002: refused COBOL1655 in both sections)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.43.2-4",
+    "to": [
+     "SR-13.18.45.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43 RENAMES clause",
+    "clause-2023": "13.18.45 RENAMES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "66 RENAMES entries (with and without THROUGH) in file, working-storage, local-storage and linkage records",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes ren-sr4-same-ws.cob, ren-sr4-rec-ws.cob at 2002 and 2023 (refused COBOL2740, COBOL1655)",
+     "covered by probes ren-sr4-same-cd.cob, ren-sr4-rec-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR4",
+      "quote": "Data-name-2 and data-name-3 shall be names of elementary items or groups of elementary items in the same record, and shall not be the same data-name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR4",
+      "quote": "Data-name-2 and data-name-3 shall be names of elementary items or groups of elementary items in the same record, and shall not be the same data-name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Same RENAMES format; SR3 names CD in 2002 only. A1 THRU A1 is refused through the SR11 storage check, different records through the same-record check.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\ren-sr4-same-*.cob, ren-sr4-rec-*.cob (std 2002: both refused in WS and in a CD record)",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.43.2-5",
+    "to": [
+     "SR-13.18.45.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43 RENAMES clause",
+    "clause-2023": "13.18.45 RENAMES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "66 RENAMES entries in file, working-storage, local-storage and linkage records",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes ren-sr5-ws.cob (level 1 refused COBOL2740), ren-sr5-88-ws.cob (level 88 refused COBOL1655) at 2002 and 2023",
+     "covered by probes ren-sr5-cd.cob, ren-sr5-88-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR5",
+      "quote": "Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR5",
+      "quote": "Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66, 77, or 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Same format and the same level-number list in both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\ren-sr5-*.cob, ren-sr5-88-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.43.2-9",
+    "to": [
+     "SR-13.18.45.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.43 RENAMES clause",
+    "clause-2023": "13.18.45 RENAMES clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "66 RENAMES ... THROUGH over bit data items in file, working-storage, local-storage and linkage records",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe ren-sr9-ws.cob at 2002 and 2023 (two USAGE BIT items, 2 bits, refused COBOL2562)",
+     "covered by probe ren-sr9-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.43.2 SR9",
+      "quote": "The area described by data-name-2 THROUGH data-name-3 shall define an integral number of bytes.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.45.3 SR10",
+      "quote": "The area described by data-name-2 THROUGH data-name-3 shall define an integral number of bytes.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.43.2 SR3",
+      "quote": "Data-name-1 may be qualified only by the names of the associated level 01, FD, CD, or SD entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Renumbered SR9 -> SR10 by the inserted CONSTANT RECORD rule (a 2023-only construct). USAGE BIT exists in both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\ren-sr9-ws.cob, ren-sr9-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.47.2-2",
+    "to": [
+     "SR-13.18.49.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.47 SAME AS clause",
+    "clause-2023": "13.18.49 SAME AS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SAME AS subjects in file, working-storage, local-storage and linkage entries",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe sa-sr2-ws.cob at 2002 and 2023 (refused COBOL1555)",
+     "covered by probe sa-sr2-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.2 SR2",
+      "quote": "A data description entry that specifies the SAME AS clause shall not be immediately followed by a subordinate data description entry or level 88 entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR2",
+      "quote": "A data description entry that specifies the SAME AS clause shall not be immediately followed by a subordinate data description entry or level 88 entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.47.2 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. SAME AS is inline in 2002 13.14 format 1; SR7 limits data-name-1 (the target) to file/WS/LS/linkage but not the subject, which may sit in a CD record (pos-cd.cob: X SAME AS WG in a CD record runs).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\sa-sr2-ws.cob, sa-sr2-cd.cob, pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.47.2-5",
+    "to": [
+     "SR-13.18.49.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.47 SAME AS clause",
+    "clause-2023": "13.18.49 SAME AS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SAME AS entries in file, working-storage, local-storage and linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe sa-sr5-ws.cob at 2002 and 2023 (target with OCCURS refused COBOL1556)",
+     "covered by probe sa-sr5-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.2 SR5",
+      "quote": "The description of data-name-1 shall not contain an OCCURS clause. However, items subordinate to data-name-1 may contain OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR5",
+      "quote": "The description of data-name-1 shall not contain an OCCURS clause. However, items subordinate to data-name-1 may contain OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Format identical. 2023 SR1 (data-name-1 not subject to OCCURS) replaces 2002 SR1 'may be qualified'; it does not narrow SR5.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\sa-sr5-ws.cob, sa-sr5-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.47.2-8",
+    "to": [
+     "SR-13.18.49.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.47 SAME AS clause",
+    "clause-2023": "13.18.49 SAME AS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level 77 SAME AS subjects in working-storage, local-storage and linkage (13.1 admits 77-level entries only there; none under a CD or FD)"
+    ],
+    "evidence-2002": [
+     "covered by probes sa-sr8-ws.cob (77 SAME AS a group refused COBOL1555) and sa77.cob (77 SAME AS an elementary item runs 'ABC 3') at 2002 and 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.2 SR8",
+      "quote": "If the subject of the entry is a level 77 item, data-name-1 shall reference an elementary item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR8",
+      "quote": "If the subject of the entry is a level 77 item, data-name-1 shall reference an elementary item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.11",
+      "quote": "Items in the linkage section, local-storage, and the working-storage section that bear no hierarchical relationship to one another need not be grouped into records",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format and SR1-SR9 correspond (2023 adds SR10 CONSTANT RECORD, a 2023-only construct). The rule is confined to level 77 subjects, which 2002 13.1 admits only in working-storage, local-storage and linkage, so it cannot reach a CD record. No band, no enumeration, no deferral.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\sa-sr8-ws.cob, sa77.cob",
+    "widening": null,
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.5.2-1",
+    "to": [
+     "SR-13.18.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.5 BASED clause",
+    "clause-2023": "13.18.5 BASED clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level 1 and 77 BASED entries in working-storage, local-storage and linkage"
+    ],
+    "evidence-2002": [
+     "covered by probe based-sr1-ws.cob at 2002 and 2023 (USAGE OBJECT REFERENCE BASED refused COBOL1797)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.2 SR1",
+      "quote": "The subject of the entry shall not be of class object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.3 SR1",
+      "quote": "The subject of the entry shall not be of class object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR16",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     }
+    ],
+    "reason": "BASED is confined to WS/LS/linkage in both editions, so no CD reach. Class object (object references) is the same class in both. 2023 adds SR2 (dynamic-length, variable-length group), 2023-only constructs.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\based-sr1-ws.cob",
+    "widening": null,
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class object is category object-reference in both; the excluded 2002 entries are the same (USAGE OBJECT REFERENCE, refused COBOL1797 at 2002 by the reader's probe). Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.50.2-2",
+    "to": [
+     "SR-13.18.52.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "numeric data, screen and report group description entries with symbol S in any section",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe sign-sr2-ws.cob at 2002 and 2023 (S9(3) COMP SIGN LEADING refused COBOL2422)",
+     "covered by probe sign-sr2-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.2 SR2",
+      "quote": "The usage of an elementary item for which the SIGN clause is specified shall be display or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.3 SR2",
+      "quote": "The usage of an elementary item for which the SIGN clause is specified shall be display or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. SIGN is inline in 2002 13.14 format 1. Same as the p-04 GR1-GR4 of this clause. Observation, the same at both editions: a group SIGN clause over a COMP subordinate is accepted (sign-sr2-grp), reading 'specified for' as the entry that carries the clause.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\sign-sr2-ws.cob, sign-sr2-cd.cob, sign-sr2-grp-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.51.2-1",
+    "to": [
+     "SR-13.18.53.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.51 SOURCE clause",
+    "clause-2023": "13.18.53 SOURCE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SOURCE / SOURCES in report group description entries (report section only)"
+    ],
+    "evidence-2002": [
+     "covered by probe rw-sources.cob at 2002 and 2023 (SOURCES ARE WA and SOURCE IS WB print 'AB CD')"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.51.2 SR1",
+      "quote": "SOURCE and SOURCES are synonyms.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.3 SR1",
+      "quote": "SOURCE and SOURCES are synonyms.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical except 2023 writes rounded-phrase for ROUNDED (a widening). Report-section only, so no CD reach; the synonym does not depend on the operand.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\rw-sources.cob",
+    "widening": "2023 [rounded-phrase] in place of [ROUNDED]",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.55.2-5",
+    "to": [
+     "SR-13.18.57.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.55 TYPE clause",
+    "clause-2023": "13.18.57 TYPE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 TYPE entries in file, working-storage, local-storage and linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes type-sr5-ws.cob, type-sr5-usage-ws.cob at 2002 and 2023 (refused COBOL1538)",
+     "covered by probes type-sr5-cd.cob, type-sr5-usage-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.55.2 SR5",
+      "quote": "No group item to which the subject of the entry is subordinate shall contain a GROUP-USAGE, SIGN, or USAGE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.57.3 SR5",
+      "quote": "No group item to which the subject of the entry is subordinate shall contain a GROUP-USAGE, SIGN, or USAGE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. TYPE format 1 is inline in 13.14 format 1 (13.14.2 SR13 sets no section). Formats and FORMAT 1 band identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\type-sr5-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.56.2-1",
+    "to": [
+     "SR-13.18.58.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.56 TYPEDEF clause",
+    "clause-2023": "13.18.58 TYPEDEF clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level 1 type declarations in working-storage, local-storage, linkage and file record description entries",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe tdef-sr1-ws.cob at 2002 and 2023 (elementary TYPEDEF STRONG refused COBOL1529)",
+     "covered by probe tdef-sr1-cd.cob at 2002 (refused) but by no test; tdef-cd.cob shows 2002 accepts a type declaration after a CD and uses it ('ZZ')"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.56.2 SR1",
+      "quote": "If the subject of the entry is an elementary item, the STRONG phrase shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.58.3 SR1",
+      "quote": "If the subject of the entry is an elementary item, the STRONG phrase shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR14",
+      "quote": "The TYPEDEF clause may be specified only in a data description entry whose level-number is 1 and for which the data-name format of the entry-name clause is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. 2002 13.14 SR14 limits TYPEDEF to level 1 with no section restriction, and in 2002 a type declaration is written as a record description entry (13.1, 13.10), which the communication section admits after a CD. 2023 widens TYPEDEF (SR3 EXTERNAL). Format identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\tdef-sr1-ws.cob, tdef-sr1-cd.cob, tdef-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.58.2-1",
+    "to": [
+     "SR-13.18.60.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "66 and 88 entries in file, working-storage, local-storage and linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes usage-sr1-88-ws.cob (COBOL1747) and usage-sr1-66-ws.cob (COBOL0001) at 2002 and 2023",
+     "covered by probes usage-sr1-88-cd.cob, usage-sr1-66-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR1",
+      "quote": "The USAGE clause shall not be specified in a data description entry that has a level-number of 66 or 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.3 SR1",
+      "quote": "The USAGE clause shall not be specified in a data description entry that has a level-number of 66 or 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. The USAGE format of 2023 is a superset of 2002's (adds FLOAT-BINARY/DECIMAL, MESSAGE-TAG, FUNCTION-POINTER, encodings); no 2002 phrase removed. 2002 13.16.31 admits 66 and 88 under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\usage-sr1-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.58.2-19",
+    "to": [
+     "SR-13.18.60.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "elementary PIC N data, report group and screen items in any section",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe usage-sr19-ws.cob at 2002 and 2023 (PIC N USAGE DISPLAY refused COBOL0881)",
+     "covered by probe usage-sr19-cd.cob at 2002 but by no test; pos-cd.cob shows a PIC N item in an output CD record accepted"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR19",
+      "quote": "Only the NATIONAL phrase may be specified in a USAGE clause associated with an elementary data item whose explicit or implicit picture character-string contains the symbol 'N'.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.3 SR20",
+      "quote": "Only the NATIONAL phrase may be specified in a USAGE clause associated with an elementary data item whose explicit or implicit picture character-string contains the symbol 'N'.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. An output CD's records have no class restriction, so a national item may sit there.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\usage-sr19-*.cob, pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.58.2-2",
+    "to": [
+     "SR-13.18.60.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "group and subordinate entries in file, working-storage, local-storage, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe usage-sr2-ws.cob at 2002 and 2023 (BINARY under a USAGE DISPLAY group refused COBOL1927)",
+     "covered by probe usage-sr2-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR2",
+      "quote": "If the USAGE clause is written in the data description entry for a group item, it may also be written in the data description entry for any subordinate elementary item or group item, but the same usage shall be specified in both entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.3 SR2",
+      "quote": "If the USAGE clause is written in the data description entry for a group item, it may also be written in the data description entry for any subordinate elementary item or group item, but the same usage shall be specified in both entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Identical clause apart from 2023-only phrases.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\usage-sr2-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.58.2-3",
+    "to": [
+     "SR-13.18.60.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "elementary items with, or under a group with, USAGE BINARY/COMP/PACKED-DECIMAL in file, WS, LS, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes usage-sr3-ws.cob (PIC X PACKED-DECIMAL) and usage-sr3-grp-ws.cob (PIC X under a COMP group) at 2002 and 2023 (refused COBOL0881)",
+     "covered by probes usage-sr3-cd.cob, usage-sr3-grp-cd.cob at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR3",
+      "quote": "a USAGE clause specifying BINARY, COMPUTATIONAL, or PACKED-DECIMAL shall be specified only with a picture character-string that describes a numeric item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.3 SR3",
+      "quote": "a USAGE clause specifying BINARY, COMPUTATIONAL, or PACKED-DECIMAL shall be specified only with a picture character-string that describes a numeric item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. Same three phrases in both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\usage-sr3-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.58.2-5",
+    "to": [
+     "SR-13.18.60.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "USAGE COMP in data description entries of file, WS, LS, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe pos-ws.cob at 2002 and 2023 (COMP and COMPUTATIONAL items alike: length 2, '-0012')",
+     "covered by probe pos-cd.cob at 2002 (same output in a CD record) but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR5",
+      "quote": "COMP is an abbreviation for COMPUTATIONAL.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.3 SR6",
+      "quote": "COMP is an abbreviation for COMPUTATIONAL.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. The abbreviation itself cannot differ by section; the CD part is listed only because no 2002 witness exercises it.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\pos-ws.cob, pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-10",
+    "to": [
+     "SR-13.18.63.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 VALUE in redefining entries",
+     "format 2 (table) VALUE in redefining entries",
+     "both in CD records (a subordinate REDEFINES is legal there, 13.16.42 SR4)"
+    ],
+    "evidence-2002": [
+     "covered by probes val-sr10-f1-ws.cob, val-sr10-sub-ws.cob, val-sr10-f2-ws.cob at 2002 and 2023 (refused COBOL2406; format 2 cites SR12 via SR16)",
+     "covered by the -cd probes at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR10",
+      "quote": "The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR12",
+      "quote": "The VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause or in an entry that is subordinate to an entry containing a REDEFINES clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR16",
+      "quote": "Syntax rules 10, 11,12,13,14,and 15 above apply.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (c): 2002 bands SR10 under FORMATS 1 AND 2; 2023 bands SR12 under FORMAT 1 and reaches format 2 only through SR16, so the 2023 twin alone does not cover the 2002 format 2 case. Also cause (a): 2002's VALUE covers communication-section items and a subordinate REDEFINES is legal in a CD record.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr10-*.cob",
+    "widening": null,
+    "class": "split-rule",
+    "needs": "KEPT to both targets plus a 2002 witness for the CD record case",
+    "compiler-at-2002": "correct",
+    "second-targets": [
+     "SR-13.18.63.3-16"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-14",
+    "to": [
+     "SR-13.18.63.3-18"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 VALUE entries in file, WS, LS, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probe val-sr14-ws.cob at 2002 and 2023 (refused COBOL1944)",
+     "covered by probe val-sr14-cd.cob at 2002 but by no test; pos-cd.cob shows a legal format 2 table VALUE in a CD record initialises 'PPQ'"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR14",
+      "quote": "A data description entry that contains the VALUE clause shall contain an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR18",
+      "quote": "A data description entry that contains the VALUE clause shall contain an OCCURS clause or be subordinate to a data description entry that contains an OCCURS clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. FORMAT 2 band in both; the VALUE description names the communication section in 2002 only.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr14-*.cob, pos-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-15",
+    "to": [
+     "SR-13.18.63.3-19"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 VALUE FROM/TO subscripts in file, WS, LS, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes val-sr15-ws.cob (1.5, COBOL5506) and val-sr15-name-ws.cob (data-name, COBOL1547) at 2002 and 2023",
+     "covered by the -cd probes at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR15",
+      "quote": "Subscript-1 and subscript-2 shall be integer numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR19",
+      "quote": "Subscript-1 and subscript-2 shall be integer numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. FORMAT 2 band and format identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr15-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-16",
+    "to": [
+     "SR-13.18.63.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 VALUE FROM subscripts in file, WS, LS, linkage",
+     "the same entries in a record description entry under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by probes val-sr16-max-ws.cob (COBOL1586) and val-sr16-count-ws.cob (COBOL1945) at 2002 and 2023",
+     "covered by the -cd probes at 2002 but by no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR16",
+      "quote": "In one FROM phrase, there shall be one subscript-1 specified for each OCCURS clause for the subject of the entry or superordinate to that entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR20",
+      "quote": "In one FROM phrase, there shall be one subscript-1 specified for each OCCURS clause for the subject of the entry or superordinate to that entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a): in 2002 the record description entries written after a CD are ordinary 13.14 data description entries (A.1.1, A.1.1.2), with no section restriction on this clause, so the rule also governs entries of a CD record; 2023 has no communication section, so the 2023 row and its witness say nothing about that part of the 2002 scope. FORMAT 2 band identical; 2023 adds SR22/SR23 for dynamic-capacity tables (2023-only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr16-*.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-21",
+    "to": [
+     "SR-13.18.63.3-29"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 condition-name entries",
+     "format 5 content-validation entries (VALIDATE facility, a required 2002 element)",
+     "both under CD records"
+    ],
+    "evidence-2002": [
+     "format 3: covered by probe val-sr21-f3-ws.cob at 2002 and 2023 (refused COBOL5983)",
+     "format 5: not shown; every format 5 entry is refused at 2002 as the declined VALIDATE facility (COBOL1708), legal or not (f5-legal.cob)",
+     "CD: val-sr21-f3-cd.cob at 2002, no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR21",
+      "quote": "If the category of the subject of the entry is boolean, the THROUGH phrase shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR29",
+      "quote": "If the category of the subject of the entry is boolean, the THROUGH phrase shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR36",
+      "quote": "Syntax rules 10, 11, 13, 17, 26, 27, 28, 29, 30, and 31 above apply.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.1",
+      "quote": "Format 5 (content-validation-entry):",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 bands SR21 under FORMATS 3 AND 5; 2023 bands SR29 under FORMAT 3 and reaches format 5 only through SR36, inside the VALIDATE facility that 2023 makes optional (A.4.14) and the compiler declines. In 2002 only Annex A (communication) is optional, so format 5 is required and the 2023 verdict cannot carry it. Plus cause (a).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr21-f3-*.cob, val-sr21-f5-*.cob, f5-legal.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: the compiler at --std 2002 refuses every format 5 content-validation entry (COBOL1708, justified by 2023 Annex A.4.14), so the format 5 half is not implemented at 2002",
+    "compiler-at-2002": "wrong (format 5 half; format 3 correct)",
+    "second-targets": [
+     "SR-13.18.63.3-36"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-23",
+    "to": [
+     "SR-13.18.63.3-31"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 IN alphabet-name-1",
+     "format 5 IN alphabet-name-1 (literal-5/literal-6; VALIDATE facility, required in 2002)",
+     "both under CD records"
+    ],
+    "evidence-2002": [
+     "format 3: covered by probes val-sr23-num-ws.cob (COBOL1998) and val-sr23-nat-ws.cob (COBOL1999) at 2002 and 2023; pos-ws.cob accepts a legal alphanumeric range IN ALPH",
+     "format 5: not shown; refused as the declined facility (val-sr23-f5num-ws.cob COBOL1708)",
+     "CD: -cd probes at 2002, no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR23",
+      "quote": "Alphabet-name-1 may be specified only when the literals specified in the THROUGH phrase are of class alphanumeric or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR31",
+      "quote": "Alphabet-name-1 may be specified only when the literals specified in the THROUGH phrase are of class alphanumeric or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR36",
+      "quote": "Syntax rules 10, 11, 13, 17, 26, 27, 28, 29, 30, and 31 above apply.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule names literal-5 and literal-6, the format 5 operands, itself; 2002 bands it FORMATS 3 AND 5, 2023 FORMAT 3 with format 5 through SR36 inside the optional VALIDATE facility. Format 5 is required in 2002 (3.1). Plus cause (a).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr23-*.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: the compiler at --std 2002 refuses every format 5 entry (COBOL1708), so the format 5 half is not implemented at 2002",
+    "compiler-at-2002": "wrong (format 5 half; format 3 correct)",
+    "second-targets": [
+     "SR-13.18.63.3-36"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.61.2-25",
+    "to": [
+     "SR-13.18.63.3-33"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 3 at level 88 only",
+     "format 5 at level 88 only (VALIDATE facility, required in 2002)",
+     "both in CD records"
+    ],
+    "evidence-2002": [
+     "format 3: covered by probe val-sr25-f3-ws.cob at 2002 and 2023 (level 5 THRU refused COBOL2167)",
+     "format 5: the restriction is enforced (val-sr25-f5-ws.cob COBOL2167) but the permission is not: a legal level 88 format 5 entry is refused COBOL1708 (f5-legal.cob)",
+     "CD: -cd probes at 2002, no test"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.61.2 SR25",
+      "quote": "Formats 3 and 5 may be specified only when the level-number of the subject of the entry is 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.63.3 SR33",
+      "quote": "Formats 3 and 5 may be specified only when the level-number of the subject of the entry is 88.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "shall provide the normative elements specified in 6, Reference format through 16, Standard classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule names format 5 itself in both editions, but in 2023 format 5 is part of the optional VALIDATE facility and the compiler declines it; in 2002 it is required (only Annex A is optional), so the 2023 CONFORMS verdict says nothing about format 5 at 2002. Plus cause (a).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\val-sr25-*.cob, f5-legal.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 a legal 88 VALUE 1 THRU 5 VALID entry is refused COBOL1708",
+    "compiler-at-2002": "wrong (format 5 half; format 3 correct)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.62.2-2",
+    "to": [
+     "SR-13.18.64.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.62 VARYING clause",
+    "clause-2023": "13.18.64 VARYING clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VARYING in report group description entries",
+     "VARYING in data description validation clauses (VALIDATE facility, required in 2002)",
+     "validation VARYING in CD records"
+    ],
+    "evidence-2002": [
+     "report leg: covered by probes rw-varying-dup.cob (counter also defined in WS refused COBOL1559) and rw-varying-reuse.cob (same name in two sibling entries accepted, prints twice) at 2002 and 2023",
+     "validation leg: not shown; refused at 2002 as the declined VALIDATE facility (vary-sr2-ws.cob COBOL1708)",
+     "CD: vary-sr2-cd.cob refused COBOL1708"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.62.2 SR2",
+      "quote": "Data-name-1 shall not be defined elsewhere in the source element, except as data-name-1 in another VARYING clause of an entry not subordinate to the subject of the current entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.3 SR2",
+      "quote": "Data-name-1 shall not be defined elsewhere in the source element, except as data-name-1 in another VARYING clause of an entry not subordinate to the subject of the current entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.64.1",
+      "quote": "The VARYING clause feature of the VALIDATE facility is an obsolete feature.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "The fifth cause p-04 found for this clause's GR1: in 2023 the validation leg of VARYING is part of the optional VALIDATE facility (A.4.14) and obsolete; in 2002 it is required. Plus cause (a) (validation clauses inline in 13.14 format 1).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\vary-sr2-*.cob, rw-varying-*.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 VARYING in a data description entry is refused COBOL1708, justified by 2023 Annex A.4.14",
+    "compiler-at-2002": "wrong (validation leg; report leg correct)"
+   }
+  ],
+  "defects": [
+   {
+    "summary": "At --std 2002 the compiler refuses the VALIDATE facility's data-division clauses (format 5 content-validation VALUE entries, VARYING's validation leg) with COBOL1708, citing 2023 Annex A.4.14 optional status; in 2002 only Annex A (communication) is optional, so these are required elements. Same defect p-04 reported for 2002-GR-13.16.62.3-1.",
+    "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-13\\f5-legal.cob (01 A. 05 B PIC 9. 88 VALUE 1 THRU 5 VALID.)",
+    "expected": "accepted (§2002:3.1 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes'; §2002:13.16.61.2 SR25 permits format 5 at level 88)",
+    "observed": "error COBOL1708: the VALUE clause's content-validation entry ... The VALIDATE facility is an OPTIONAL element (Annex A.4.14) whose support WiseOwl COBOL does not claim"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-13",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.47.2-8",
+    "verdict": "UPHELD",
+    "reason": "Format identical (SAME AS data-name-1); SR1-SR9 correspond, 2023 SR10 (CONSTANT RECORD) is 2023-only. The rule's subject is a level 77 entry, which 2002 13.1.1 admits only in working-storage, local-storage and linkage (the COMMUNICATION SECTION format takes only communication-description entries, constant entries and record-description entries), so no CD reach for the subject; data-name-1 is confined by SR7 (identical in both) to the file, working-storage, local-storage and linkage sections, so no CD reach for the operand either. 'Elementary item' is the same notion (2002 8.5.1.2). No band, no enumeration, no deferral. Probes at both editions agree: 77 SAME AS a local-storage group and 77 SAME AS a file-section record are refused (COBOL1555), 77 SAME AS a file-section elementary item is accepted.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.47.2 SR8",
+      "quote": "If the subject of the entry is a level 77 item, data-name-1 shall reference an elementary item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR8",
+      "quote": "If the subject of the entry is a level 77 item, data-name-1 shall reference an elementary item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.47.2 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.49.3 SR7",
+      "quote": "Data-name-1 shall reference an elementary item or a level 1 group item described in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-13\\sa77-ls.cob, sa77-fd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical (BASED). BASED is confined to level 1/77 entries of linkage, working-storage and local-storage in both editions (2002 13.14.2 SR15, 2023 13.16.3 SR16), so no CD, report or screen reach. Class object has the single category object-reference in both class/category tables (2002 line 'Object | Object-reference', same in 2023); 2023 adds message-tag as a separate class, not object. 2023 SR2 (dynamic-length/variable-length) is 2023-only. Probes at both editions agree: USAGE OBJECT REFERENCE BASED refused in local-storage at level 77 and via TYPE of an object-reference typedef (COBOL1797); a PIC X BASED entry runs (XYZ).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.2 SR1",
+      "quote": "The subject of the entry shall not be of class object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.3 SR1",
+      "quote": "The subject of the entry shall not be of class object.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR16",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-13\\based-ls77.cob, based-type.cob, based-ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.51.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical apart from 2023 rounded-phrase for ROUNDED (a widening). The rule is a keyword synonymy independent of the operand. The reader's scope ('report section only') misses that 2002 SR4 lets identifier-1 name an item of ANY data-division section, which in 2002 includes the communication section; I probed that leg at --std 2002: SOURCES ARE / SOURCE IS a CD-record item print 'MN OP', so the synonymy holds there too. Multi-operand (SOURCE IS a b c vs SOURCES ARE c b a) and ROUNDED forms also agree at both editions ('ABCDEF EF CD AB 1.3 1.3').",
+    "citations": [
+     {
+      "cite": "§2002:13.16.51.2 SR1",
+      "quote": "SOURCE and SOURCES are synonyms.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.3 SR1",
+      "quote": "SOURCE and SOURCES are synonyms.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR4",
+      "quote": "Identifier-1 specifies a data item defined in any section of the data division.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-13\\src-multi.cob, src-cd.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "6ece5eef8e409eb0834476d8c9160cfecdd034d0000adc750614712dc6def267",
+  "read": "75f72ba245c6c447c306b5946ccbf2db66804aa81031cdf8379a3d1d9b58b613",
+  "refute": "e9e61492248dc16d97f4b6c850ac9529cf359d3e3500fdb403a33973d563c884"
+ }
+}

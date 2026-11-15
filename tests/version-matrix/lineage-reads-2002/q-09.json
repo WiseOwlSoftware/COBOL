@@ -1,0 +1,1963 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-09 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-09",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-12.3.6.2-5",
+   "2002-SR-12.3.6.2-7",
+   "2002-GR-12.3.6.3-2",
+   "2002-SR-13.3.2-1",
+   "2002-SR-13.3.4.2-5",
+   "2002-SR-13.3.4.2-7",
+   "2002-GR-13.3.4.3-3",
+   "2002-GR-13.3.4.3-4",
+   "2002-SR-13.4.2-1",
+   "2002-SR-13.5.2-1",
+   "2002-SR-13.6.2-1",
+   "2002-SR-13.6.2-2",
+   "2002-GR-13.6.3-3",
+   "2002-GR-13.6.3-4",
+   "2002-SR-13.7.2-1",
+   "2002-SR-13.8.2-1",
+   "2002-SR-13.9.2-1",
+   "2002-SR-13.9.2-10",
+   "2002-SR-13.9.2-11",
+   "2002-SR-13.9.2-4",
+   "2002-SR-13.9.2-5",
+   "2002-SR-13.9.2-6",
+   "2002-SR-13.9.2-8",
+   "2002-SR-13.9.2-9",
+   "2002-GR-13.9.3-1"
+  ],
+  "flags": {
+   "2002-GR-12.3.6.3-2": {
+    "normalized": "normalized",
+    "changed-definition-term": "runtime element"
+   },
+   "2002-SR-13.3.4.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.3.4.3-3": {
+    "changed-definition-term": "external data"
+   },
+   "2002-SR-13.6.2-1": {
+    "changed-definition-term": "program prototype definition"
+   },
+   "2002-GR-13.6.3-3": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-SR-13.8.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.9.2-10": {
+    "band-lacks-2002": "bands ['2014,2023']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-09",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.6.2-5",
+    "to": [
+     "SR-12.4.6.4.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6.2",
+    "clause-2023": "12.4.6.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report file (FD with REPORT clause) named in one file-area SAME (legal)",
+     "report file in a second file-area SAME (refused)",
+     "report file in a record-area or sort-merge-area SAME (refused)"
+    ],
+    "evidence-2002": [
+     "legal leg: covered by conformance-suite\\cases\\12.4.6.4-SAME\\pb1087_same_clauses_legal.cob (S1 run at 2002: pass)",
+     "second file-area: covered by pb1087-same-report-file-two-file-areas, COBOL2738 at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt)",
+     "record-area: covered by pb1087-same-report-file-record-area, COBOL2738 at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt)"
+    ],
+    "reason": "Three SAME formats identical in 12.3.6.1 and 12.4.6.4.2; SR1-SR10 word-identical (2023 adds only SR11/GR3 APPLY COMMIT). 'Report file' is the FD format 3 in both editions; the I-O-CONTROL paragraph has no CD reach. The twin's refusal witnesses give the same COBOL2738 at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule's term is report file, defined identically (§2002:9.1.19 = §2023:9.1.22) as a sequential output file whose FD carries a REPORT clause; the dropped 'report' definition does not change which files it governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.19",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.22",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-7",
+    "to": [
+     "SR-12.4.6.4.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6.2",
+    "clause-2023": "12.4.6.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR7",
+      "quote": "may be specified in one file-area format, in one record-area format, and in one or more sort-merge-area format SAME clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR7",
+      "quote": "may be specified in one file-area format, in one record-area format, and in one or more sort-merge-area format SAME clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sequential/relative/indexed file in one file-area, one record-area and many sort-merge-area SAME (legal)",
+     "same file in two file-area SAME (refused)",
+     "same file in two record-area SAME (refused)"
+    ],
+    "evidence-2002": [
+     "legal: pb1087_same_clauses_legal pass at 2002 (S1)",
+     "two file-areas: pb1087-same-plain-file-two-file-areas COBOL2738 at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt)",
+     "two record-areas: pb1087-same-plain-file-two-record-areas COBOL2738 at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt)"
+    ],
+    "reason": "Formats and file kinds identical; 2023's added LINE SEQUENTIAL organization only widens 'file other than a report or sort-merge file'. No 2002-only file kind.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt",
+    "widening": "2023 also covers LINE SEQUENTIAL files (2023-only organization)",
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs files other than a report file; report file is defined identically (§2002:9.1.19 = §2023:9.1.22), so the excluded set and hence the governed set are the same at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.19",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.22",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-2",
+    "to": [
+     "GR-12.4.6.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6.3",
+    "clause-2023": "12.4.6.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR2",
+      "quote": "The record area is available to the runtime element when any file connector referenced by file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR2",
+      "quote": "The record area is available to the runtime element when any file connector referenced by file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SAME RECORD AREA: shared current-record area across the named files, open-mode limits, implicit redefinition, availability while any connector is open"
+    ],
+    "evidence-2002": [
+     "covered by conformance-suite\\cases\\12.4.6.4-SAME\\pb235_same_record_area_close.cob (S1 widened run at 2002: pass)"
+    ],
+    "reason": "Text identical except '...' vs the ellipsis character (the normalized match). GR3 of 2023 (APPLY COMMIT) is inserted after it and touches only commit-subject files, absent in 2002.",
+    "flags-answered": {
+     "definition-changed: runtime element": "Same referent: §2002:4 (4.167) 'The executable unit resulting from compiling a source element' and §2023:3.159 'element consisting of code and data produced by the compilation of a source element' name the same programs, functions and methods; the record area is available to the running program in both. The scope and the evidence are unchanged.",
+     "normalized: normalized": "The 2002 text is 'file-name-1, file-name-2, ...' with three periods where 2023 prints the ellipsis glyph. The words are otherwise identical, the requirement is the same, and GR-12.4.6.4.4-2 is the right pointer.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "The screen matched 'aligned' in GR2's 'This is equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position'. That sentence is about storage redefinition. §2002:14.5.8 governs where data is placed in a receiving elementary item on a move ('The standard rules for positioning data within an elementary item depend on the category of the receiving item'), and 8.5.3 (types) and 8.5.4 (zero-length items) name nothing the rule uses. The rule does not rest on any of them."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "normalized: the only difference is '...' (2002) vs the ellipsis glyph (2023); GR-12.4.6.4.4-2 is the pointer; no scope change",
+     "changed-definition-term 'runtime element': 2002 4 'The executable unit resulting from compiling a source element' vs 2023 3.159 'element consisting of code and data produced by the compilation of a source element': editorial; the rule's scope (availability of the record area to the running program) is the same"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.6.3 GR2",
+      "quote": "This is equivalent to an implicit redefinition of the area with records aligned on the leftmost byte position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.3.2-1",
+    "to": [
+     "SR-13.4.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.3.2",
+    "clause-2023": "13.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.2 SR1",
+      "quote": "Within a class definition, the file section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.3 SR1",
+      "quote": "Within a class definition, the file section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FILE SECTION in program, function, factory, instance (legal)",
+     "in a method (refused)",
+     "in an interface (refused)"
+    ],
+    "evidence-2002": [
+     "program/function/factory/object: probes place\\FS-program, FS-function, FS-factory, FS-object compile at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt)",
+     "method: place\\FS-method COBOL1519 at 2002",
+     "interface: place\\FS-interface COBOL2272+COBOL1519 at 2002"
+    ],
+    "reason": "Same source-element kinds in both editions (2002 already has functions, classes with factory/object, methods, interfaces, prototypes). The twin's only witness is a unit conformance-test, so the 2002 evidence is the probe set.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule places the file section by source-element kind (class, factory, instance, method, interface definition); none of the kinds rests on the interface-of-an-object definition.",
+     "definition-dropped: class definition | in object orientation (newer: undefined); method (newer: 9.3.4)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. §2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds an invocation by method-name alone (2023 9.3.6 adds signature matching); this rule is a placement or structure rule triggered by the word 'method' and involves no invocation or binding, so it does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-SR-13.3.4.2-5",
+    "to": [
+     "SR-13.4.5.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.3.4.2",
+    "clause-2023": "13.4.5.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.2 SR5",
+      "quote": "If the FORMAT clause is specified, variable-length records shall be specified for the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.3 SR6",
+      "quote": "If the FORMAT clause is specified, variable-length records shall be specified for the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for an optional element only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FD format 1 with FORMAT clause and variable-length records (legal)",
+     "FD format 1 with FORMAT clause and fixed-length records (refused by this rule)"
+    ],
+    "evidence-2002": [
+     "legal leg: not shown; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\fmt-var.cob is refused at 2002 with COBOL1705",
+     "refusal leg: not shown as this rule; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\fmt-fixed.cob is refused only because every FORMAT clause is (COBOL1705)"
+    ],
+    "licence-2002": "none: §2002:3.1 makes only Annex A (communications) optional; the FORMAT clause (13.16.22) is not in B.3 (processor-dependent) either",
+    "reason": "Words and the FD format 1 FORMAT phrase are identical, but the 2023 row is DOCUMENTED-NON-SUPPORT under 2023's optional-element licence (A.4.8). 2002 has no such licence, so the 2002 rule needs the compiler to accept FORMAT with variable-length records and to refuse it with fixed-length records; at --std 2002 it refuses every FORMAT clause. Same cause as p-12's 2002-SR-13.16.42.2-3.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the twin is declined under 2023 A.4.8; 2002 grants no licence (3.1, 3.1.1, B.3), so the 2002 verdict cannot carry"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\fmt-var.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the FORMAT clause; the compiler declines it (COBOL1705 at --std 2002)",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\fmt-var.cob)",
+    "defect": "fmt-var.cob (FD F1 FORMAT CHARACTER DATA RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS, one record, WRITE) at --std 2002: expected accepted and run (§2002:3.1, §2002:3.1.1; §2002:13.3.4.2 SR5 satisfied); observed rc=65 error COBOL1705 citing ISO §2023:13.18.24 and 2023 Annex A.4.8 optional status. Same defect as p-12 fmt-legal.cob; code site: the COBOL1705 decline via EditionContext.Declined (docs/conformance/5/A.4.8.md) is applied at every edition."
+   },
+   {
+    "rule-id": "2002-SR-13.3.4.2-7",
+    "to": [
+     "SR-13.4.5.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.3.4.2",
+    "clause-2023": "13.4.5.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.2 SR7",
+      "quote": "No record description entries or constant entries shall be associated with the file description entry for a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.3 SR8",
+      "quote": "No record description entries or constant entries shall be associated with the file description entry for a report file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report FD (format 3) with no record/constant entries (legal)",
+     "report FD followed by a record description entry (refused)",
+     "report FD followed by a constant entry (refused)"
+    ],
+    "evidence-2002": [
+     "legal: pb1171_report_file_legal_references pass at 2002 (S1 widened)",
+     "record entry: pb1171-report-fd-record-entry COBOL2578 at 2002 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt)",
+     "constant entry: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\rfd-const.cob COBOL2578 at 2002"
+    ],
+    "reason": "FD format 3 identical in both editions (EXTERNAL, GLOBAL, BLOCK, record-clause, CODE-SET, REPORT). No CD reach (an FD is not a CD).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\rfd-const.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so 'report file' (an FD with a REPORT clause) is the same file, and it may hold no record or constant entries; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.3.4.3-3",
+    "to": [
+     "GR-13.4.5.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.3.4.3",
+    "clause-2023": "13.4.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.3 GR3",
+      "quote": "the LINAGE-COUNTER data item is an external data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.4 GR3",
+      "quote": "the LINAGE-COUNTER data item is an external data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "Data that belongs to the run unit and may be accessed by any runtime element in which it is described",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.79",
+      "quote": "data that belongs to the run unit and can be accessed by any runtime element in which it is described",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sequential FD with LINAGE + EXTERNAL: LINAGE-COUNTER external",
+     "sequential FD with LINAGE + GLOBAL: LINAGE-COUNTER global"
+    ],
+    "evidence-2002": [
+     "both: covered by conformance-suite\\cases\\13.4.5-File-description\\l1c11_linage_counter_external_global.cob (S1 widened run at 2002: pass)"
+    ],
+    "reason": "Identical; LINAGE is inline in 2002 format 1 and a linage-clause non-terminal in 2023, same phrases.",
+    "flags-answered": {
+     "definition-changed: external data": "§2002:4 (4.81) 'Data that belongs to the run unit and may be accessed by any runtime element in which it is described' is 2023 3.79 with may/can; LINAGE-COUNTER of an EXTERNAL file is external data in the same sense; no change."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'external data': 2002 4 'may be accessed' vs 2023 3.79 'can be accessed': editorial, no scope change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "Data that belongs to the run unit and may be accessed by any runtime element in which it is described",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-GR-13.3.4.3-4",
+    "to": [
+     "GR-13.4.5.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.3.4.3",
+    "clause-2023": "13.4.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.3 GR4",
+      "quote": "The report writer logical record structure of the file associated with file-name-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.4 GR4",
+      "quote": "The report writer logical record structure of the file associated with file-name-1 is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report file record structure, implementor-defined"
+    ],
+    "evidence-2002": [
+     "covered by conformance-suite\\cases\\A.1-Implementor-defined-language-element-list\\pb690_report_line_byte_image_85.cob (S1 widened run at 2002: pass); pb2556 is refused at 2002 for ORGANIZATION LINE SEQUENTIAL, a 2023-only form, which is correct"
+    ],
+    "reason": "Identical text and identical FD format 3.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). This rule's term is report writer, defined identically in §2002:4 and §2023:3.156, and its file is a report file (§2002:9.1.19 = §2023:9.1.22); the dropped definition does not change which FD format 3 entries it governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.19",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.22",
+      "quote": "A report file is an output file having sequential organization whose file description entry contains a REPORT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.156",
+      "quote": "comprehensive set of data clauses and statements that enable a print layout to be described",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A comprehensive set of data clauses and statements that enable a print layout to be described",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.4.2-1",
+    "to": [
+     "SR-13.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.4.2",
+    "clause-2023": "13.5.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.4.2 SR1",
+      "quote": "The working-storage section may be specified in a function definition or a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.3 SR1",
+      "quote": "The working-storage section may be specified in a function definition or a program definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WORKING-STORAGE in program, function, factory, instance (legal)",
+     "in a method (refused)",
+     "in an interface (refused)"
+    ],
+    "evidence-2002": [
+     "legal: pb1308_method_storage_is_local_or_object pass at 2002 (S1); place\\WS-program/function/factory/object compile",
+     "method: pb1308-method-working-storage-every-edition COBOL1519 at 2002 (twins.txt); place\\WS-method",
+     "interface: place\\WS-interface refused"
+    ],
+    "reason": "Same source-element kinds; 2023's added type-declaration-entry only widens the section's content, not where it may appear.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule places the working-storage section by source-element kind (class, factory, instance, method, interface definition); none of the kinds rests on the interface-of-an-object definition.",
+     "definition-dropped: class definition | in object orientation (newer: undefined); method (newer: 9.3.4)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. §2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds an invocation by method-name alone (2023 9.3.6 adds signature matching); this rule is a placement or structure rule triggered by the word 'method' and involves no invocation or binding, so it does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-SR-13.5.2-1",
+    "to": [
+     "SR-13.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.5.2",
+    "clause-2023": "13.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.5.2 SR1",
+      "quote": "The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.6.3 SR1",
+      "quote": "The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOCAL-STORAGE in program, function, method (legal)",
+     "in factory or instance definition (refused)",
+     "in an interface method prototype (refused)"
+    ],
+    "evidence-2002": [
+     "legal: place\\LS-program/function/method compile at 2002",
+     "factory/object: pb1251-factory-local-storage, pb1251-object-local-storage COBOL1519 at 2002 (twins.txt); place\\LS-factory/object",
+     "interface: place\\LS-interface COBOL2272"
+    ],
+    "reason": "Same text and element kinds.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "The rule's 'class definition' is the object-orientation sense (§2002:4 4.33/4.36), not class of a data item. Scope unchanged.",
+     "definition-dropped: class definition | in object orientation (newer: undefined); method (newer: 9.3.4)": "2002 4.36 class definition 'A compilation unit that defines a class of objects' matches 2023 3.35; 2002 4.121 method 'A procedural entity defined by a method definition within, or inherited by, a class definition' matches 2023 9.3.4. The program, function, method, factory, object and interface elements are the same; the reader's 2002 placement probes cover each. No change.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 (method invocation; 2023 9.3.6 adds signature-based overload resolution) governs binding an invocation; this rule only places a section in a method definition and does not rest on it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.6.2-1",
+    "to": [
+     "SR-13.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.6.2",
+    "clause-2023": "13.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.6.2 SR1",
+      "quote": "The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.3 SR1",
+      "quote": "The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A definition that specifies the rules governing the class of the parameters expected to be received by a particular subprogram",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.148",
+      "quote": "definition that specifies the rules governing the class of the parameters expected to be received by a particular called program",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINKAGE in program, function, method, program prototype, function prototype (legal)",
+     "in factory or instance definition (refused)"
+    ],
+    "evidence-2002": [
+     "legal: place\\LK-program/function/method/progproto/funcproto compile at 2002",
+     "factory/object: pb1251-factory-linkage, pb1251-object-linkage COBOL1519 at 2002 (twins.txt)"
+    ],
+    "reason": "Same text and element kinds.",
+    "flags-answered": {
+     "definition-changed: program prototype definition": "§2002:4 (4.153) 'expected to be received by a particular subprogram' vs §2023:3.148 'a particular called program': the same PROGRAM-ID ... IS PROTOTYPE element; the listed placements of the linkage section are unchanged.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods in 9.3.4. The rule names the method definition (a source element), the same element in both; which source elements may hold a linkage section is unchanged.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds a method by name only (no method resolution signature or overloading, which 2023 9.3.6 adds). The rule places the linkage section in a method definition; it does not rest on how an invocation is bound. No dependence."
+    },
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt",
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'program prototype definition': 2002 4 'a particular subprogram' vs 2023 3.148 'a particular called program': editorial; 2002 prototypes are the same PROGRAM-ID ... IS PROTOTYPE elements and the probe compiles one at 2002"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A definition that specifies the rules governing the class of the parameters expected to be received by a particular subprogram",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "If a method is found, that method is bound; otherwise, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.6.2-2",
+    "to": [
+     "SR-13.7.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.6.2",
+    "clause-2023": "13.7.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.6.2 SR2",
+      "quote": "shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition, respectively",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.3 SR2",
+      "quote": "shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition, respectively",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "program/function prototype linkage descriptions match the definition (legal)",
+     "mismatch (refused)"
+    ],
+    "evidence-2002": [
+     "legal: pb1115_prototype_group_description pass at 2002 (S1)",
+     "mismatch: pb894-program-prototype-signature and pb1115-prototype-group-subordinates COBOL1513 at 2002 (twins.txt)"
+    ],
+    "reason": "Identical; SR3 of the same list points at 14.7 (2002) vs 14.8.2/14.8.3 (2023) but SR2 does not lean on it.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\twins.txt",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding function definition or program definition' of a prototype), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.6.2 SR2",
+      "quote": "in the corresponding function definition or program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-GR-13.6.3-3",
+    "to": [
+     "GR-13.7.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.6.3",
+    "clause-2023": "13.7.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.6.3 GR3",
+      "quote": "If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR3",
+      "quote": "If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "called program with CALL USING: formal access guaranteed",
+     "OS-activated: undefined",
+     "non-COBOL activator: implementor-defined"
+    ],
+    "evidence-2002": [
+     "CALL USING: pb2087_by_reference_area_formals pass at 2002 (S1)",
+     "non-COBOL activator: conformance-test NonCobolActivatorLinkageTests (not edition-specific: the runtime entry does not vary by --std); undefined leg has nothing to witness"
+    ],
+    "reason": "Identical text; CALL formats with USING exist in both.",
+    "flags-answered": [
+     "changed-definition-term 'runtime element': editorial (see 2002-GR-12.3.6.3-2); no scope change"
+    ],
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.6.3-4",
+    "to": [
+     "GR-13.7.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.6.3",
+    "clause-2023": "13.7.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.6.3 GR4",
+      "quote": "In a function definition and in a method definition, access to formal parameters and the returning item is always guaranteed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR4",
+      "quote": "In a function definition and in a method definition, access to formal parameters and the returning item is always guaranteed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "function formals and returning item accessible",
+     "method formals and returning item accessible"
+    ],
+    "evidence-2002": [
+     "function: udf_prototype pass at 2002 (S1)",
+     "method: oo_method_redefines_linkage, pb1051_method_by_value, pb1051_method_by_value_match pass at 2002 (S1)"
+    ],
+    "reason": "Identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. GR4 governs the linkage section of every method definition; the set is the same.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). GR4 is about access to formals and the returning item once a method is executing, not about which method is bound; the method witnesses pass at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "method: A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "that method is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-SR-13.7.2-1",
+    "to": [
+     "SR-13.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.7.2",
+    "clause-2023": "13.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.7.2 SR1",
+      "quote": "The report section shall not be specified within an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.3 SR1",
+      "quote": "The report section shall not be specified within an interface definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REPORT SECTION in program, function, factory, instance (legal)",
+     "in a method (refused)",
+     "in an interface (refused)"
+    ],
+    "evidence-2002": [
+     "legal: l1m8_report_section_placements pass at 2002 (S1 widened); place\\RS-program/function/factory/object",
+     "method: l1m8-report-section-in-method COBOL1519 at 2002 (twins.txt)",
+     "interface: l1m8-report-section-in-interface COBOL2272 at 2002 (twins.txt)"
+    ],
+    "reason": "Same text; report writer is a core module in both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule places the report section by source-element kind (class, factory, instance, method, interface definition); none of the kinds rests on the interface-of-an-object definition.",
+     "definition-dropped: class definition | in object orientation (newer: undefined); method (newer: 9.3.4); report (newer: 13.18.46.2)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. §2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements. §2002:4 (4.163) report 'A printed output described in the report section ...'; 2023 describes it through the RD and REPORT clause; the rule names the report section, the same construct.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds an invocation by method-name alone (2023 9.3.6 adds signature matching); this rule is a placement or structure rule triggered by the word 'method' and involves no invocation or binding, so it does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-SR-13.8.2-1",
+    "to": [
+     "SR-13.9.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.8.2",
+    "clause-2023": "13.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.8.2 SR1",
+      "quote": "The screen section shall not be specified within an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.9.3 SR1",
+      "quote": "The screen section shall not be specified within an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SCREEN SECTION placement (program, function, factory, instance legal; method, interface refused)"
+    ],
+    "evidence-2002": [
+     "the screen section is declined at 2002 with a diagnostic everywhere: place\\SS-program/function/factory/object COBOL1560, SS-method COBOL1519, SS-interface COBOL2272 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place-2002.txt)"
+    ],
+    "licence-2002": "§2002:B.3 item 1 (the screen section is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time warning mechanism is required)",
+    "reason": "2002 licenses the same non-support by its own text (processor-dependent, B.3 item 1), and the compiler refuses every SCREEN SECTION at --std 2002 by name. Note: the COBOL1560 text at --std 2002 cites the 2023 optional-module licence (§2023:4.2.7, A.4.2) instead of §2002:3.1.5/B.3; behaviour is permitted, the message's grounds name the wrong edition.",
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule places the screen section by source-element kind (class, factory, instance, method, interface definition); none of the kinds rests on the interface-of-an-object definition.",
+     "definition-dropped: class definition | in object orientation (newer: undefined); method (newer: 9.3.4)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. §2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds an invocation by method-name alone (2023 9.3.6 adds signature matching); this rule is a placement or structure rule triggered by the word 'method' and involves no invocation or binding, so it does not rest on the changed text."
+    },
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\place\\SS-program.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: 2002 licence exists (B.3 item 1, 3.1.5); compiler declines with a diagnostic at --std 2002 (probe)"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-09"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-1",
+    "to": [
+     "SR-13.10.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR1",
+      "quote": "If the operand of the constant entry consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR1",
+      "quote": "If the operand of the constant entry consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "single numeric literal operand of a constant entry in WS/LS/linkage/file/report/screen sections",
+     "same, in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: constant_entry and pb1230_constant_literal_as_written pass at 2002 (S1)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-lit.cob prints KC=2.5 (literal) vs KE=2 (2.5 + 0, an integer expression) at 2002"
+    ],
+    "reason": "Text and constant-entry format identical (13.9.1 vs 13.10.2). 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-lit.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-lit.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-10",
+    "to": [
+     "SR-13.10.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR10",
+      "quote": "Data-name-1 and data-name-2 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR10",
+      "quote": "Data-name-1 and data-name-2 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LENGTH OF / BYTE-LENGTH OF an ANY LENGTH item (refused) from a constant entry in a non-CD section",
+     "same from a constant entry in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: pb1227-constant-length-any-length and pb1227-constant-byte-length-any-length COBOL1547 at 2002 (twins.txt; S1 list D)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-anylen.cob COBOL1547 at 2002"
+    ],
+    "reason": "Text identical; ANY LENGTH (13.16.2 SR1) is the same linkage-only clause in 2002. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-anylen.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-anylen.cob)",
+    "flags-answered": [
+     "band-lacks-2002: the twin's refusal tests list 2014,2023 but run at --std 2002 they refuse with the expected text (twins.txt), and the CD probe covers the 2002-only placement"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-11",
+    "to": [
+     "SR-13.10.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR11",
+      "quote": "Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR11",
+      "quote": "Data-name-1 and data-name-2, if defined in the report section, shall reference elementary report items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LENGTH OF a report group (refused) / elementary report item (legal) from a non-CD constant entry",
+     "same from a constant entry in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: pb1226_constant_length_report_item pass, pb1226-constant-length-report-group COBOL1547 at 2002",
+     "CD: probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-rpt.cob COBOL1547 and c-cd-rptok.cob prints 5 at 2002"
+    ],
+    "reason": "Text identical; report section is core in both editions. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-rpt.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-rpt.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-4",
+    "to": [
+     "SR-13.10.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR4",
+      "quote": "The length of data-name-1 or data-name-2 shall not be dependent, directly or indirectly, upon the value of constant-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR4",
+      "quote": "The length of data-name-1 or data-name-2 shall not be dependent, directly or indirectly, upon the value of constant-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "length of LENGTH OF / BYTE-LENGTH OF operand dependent on the constant (refused), non-CD",
+     "same with the constant entry and the operand in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: pb1231-constant-length-cycle, pb1941-constant-length-cycle-open-record COBOL1547 at 2002; pb1231/pb1941 legal cases pass (S1)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-lencyc.cob COBOL1547 at 2002"
+    ],
+    "reason": "Text identical. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-lencyc.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-lencyc.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-5",
+    "to": [
+     "SR-13.10.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR5",
+      "quote": "Neither the value of literal-1 nor the value of any of the literals in arithmetic-expression-1 shall be dependent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR5",
+      "quote": "Neither the value of literal-1 nor the value of any of the literals in arithmetic-expression-1 shall be dependent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "constant value dependent on itself (refused), non-CD",
+     "same in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: pb1231-constant-direct-cycle, -indirect-cycle COBOL1547 at 2002; pb1231_constant_forward_references pass (S1)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-valcyc.cob COBOL1547 at 2002"
+    ],
+    "reason": "Text identical. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-valcyc.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-valcyc.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-6",
+    "to": [
+     "SR-13.10.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR6",
+      "quote": "Neither literal-1 nor any of the literals in arithmetic-expression-1 shall be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR6",
+      "quote": "Neither literal-1 nor any of the literals in arithmetic-expression-1 shall be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "figurative constant as literal-1 or in arithmetic-expression-1 (refused), non-CD",
+     "same in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: constant-figurative, constant-figurative-arith-operand COBOL1547 at 2002 (twins.txt); probe c-ws-fig.cob",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-fig.cob COBOL1547 at 2002"
+    ],
+    "reason": "Text identical; 2002 figurative constants (ZERO, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE, ALL literal, symbolic-character) as in 2023. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-fig.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-fig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-8",
+    "to": [
+     "SR-13.10.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR8",
+      "quote": "Compilation-variable-name-1 shall be a compilation-variable-name for which the defined condition is currently true",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR8",
+      "quote": "Compilation-variable-name-1 shall be a compilation-variable-name for which the defined condition is currently true",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FROM a compilation variable not currently defined (refused), non-CD",
+     "same in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: constant-from-compilation-variable, pb1368-constant-from-after-define-off, pb1368-constant-from-defined-later COBOL1547 at 2002 (twins.txt)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-cvoff.cob COBOL1547 at 2002; c-cd-ok.cob FROM CV prints ABC"
+    ],
+    "reason": "Text identical; DEFINE directive (2002 7.2) has the same OFF form. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-cvoff.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-cvoff.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.9.2-9",
+    "to": [
+     "SR-13.10.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.2",
+    "clause-2023": "13.10.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.2 SR9",
+      "quote": "If constant-name-1 duplicates another constant-name, the specification of arithmetic-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.3 SR9",
+      "quote": "If constant-name-1 duplicates another constant-name, the specification of arithmetic-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "duplicate constant-name with a different specification (refused) / same specification (legal), non-CD",
+     "one of the duplicates in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: constant-dup-mismatch, pb1230-constant-dup-same-value COBOL1547 at 2002; pb1225/pb1230 legal cases pass (S1)",
+     "CD: probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-dup.cob COBOL1547 and c-cd-dupsame.cob compiles and runs at 2002"
+    ],
+    "reason": "Text identical. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-dup.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-dup.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.9.3-1",
+    "to": [
+     "GR-13.10.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.9.3",
+    "clause-2023": "13.10.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.9.3 GR1",
+      "quote": "the effect of specifying constant-name-1 in other than this entry is as if literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.10.4 GR1",
+      "quote": "the effect of specifying constant-name-1 in other than this entry is as if literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "constant-name with literal-1 or FROM compilation variable used as if the literal were written, non-CD",
+     "same for a constant entry in the communication section"
+    ],
+    "evidence-2002": [
+     "non-CD: constant_entry, pb1368_constant_from_compilation_variable pass at 2002 (S1)",
+     "CD: probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-ok.cob prints K1=7 (and PIC X(K1) gives LENGTH 7) and K4=ABC (FROM CV) at 2002"
+    ],
+    "reason": "Text identical. 2002 13.1.1 and Annex A.1.1 put constant-entry in the COMMUNICATION SECTION format after each CD entry (communication-description-entry [constant-entry | record-description-entry]...), and a CD record's items are data-names a constant entry may name in LENGTH OF / BYTE-LENGTH OF; the 2023 row has no communication section, so no twin witness reaches a constant entry under a CD.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-ok.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the constant entry written in the communication section (after a CD); the probe shows the compiler correct there",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-09\\c-cd-ok.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-09",
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.6.2-5",
+    "verdict": "UPHELD",
+    "reason": "2002 12.3.6.1 Formats 1-3 and SR1-SR10 are word-identical to 2023 12.4.6.4.2/.3; the SAME clause names only file-names of FILE-CONTROL (SR2), so no cd-name or CD record reaches it; 'report file' is FD format 3 in both. 2023 adds only SR11 (APPLY COMMIT), absent in 2002. No 2002-only form found.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-7",
+    "verdict": "UPHELD",
+    "reason": "Same SAME formats; 2002 file organizations (sequential, relative, indexed) are all present in 2023; nothing in 2002 SAME reaches a CD or a debugging-only form.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR7",
+      "quote": "may be specified in one file-area format, in one record-area format, and in one or more sort-merge-area format SAME clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR7",
+      "quote": "may be specified in one file-area format, in one record-area format, and in one or more sort-merge-area format SAME clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.6.3-2",
+    "verdict": "UPHELD",
+    "reason": "GR2 text identical; it governs the record area by whether a file connector is open. Checked for a 2002-only form reaching it: 2023 E.2 removed CLOSE ... WITH LOCK, which 2002 has, but GR2 is about the closed STATE, and its consequence (record area not available) has no observable behaviour that differs by the CLOSE form; not a decisive difference.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.3 GR2",
+      "quote": "The record area is available to the runtime element when any file connector referenced by file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.4 GR2",
+      "quote": "The record area is available to the runtime element when any file connector referenced by file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical text; 2002 source-element kinds are the same as 2023. Probed prototypes (absent from the reader's scope list): FILE SECTION in a program prototype and in a function prototype is refused at 2002 (COBOL2272), so the rule's exclusion of prototypes holds at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.3.2 SR1",
+      "quote": "Within a class definition, the file section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.3 SR1",
+      "quote": "Within a class definition, the file section may be specified only in a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-09\\FS-progproto.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.3.4.2-7",
+    "verdict": "UPHELD",
+    "reason": "FD format 3 identical in both (EXTERNAL, GLOBAL, BLOCK, record-clause, CODE-SET, REPORT). An FD is never a CD; no 2002-only phrase.",
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.2 SR7",
+      "quote": "No record description entries or constant entries shall be associated with the file description entry for a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.3 SR8",
+      "quote": "No record description entries or constant entries shall be associated with the file description entry for a report file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.3.4.3-3",
+    "verdict": "UPHELD",
+    "reason": "2002 FD format 1 inline LINAGE phrases equal 2023 linage-clause; EXTERNAL and GLOBAL identical. No 2002-only form.",
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.3 GR3",
+      "quote": "the LINAGE-COUNTER data item is an external data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.4 GR3",
+      "quote": "the LINAGE-COUNTER data item is an external data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.3.4.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identical implementor-defined statement over identical FD format 3.",
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.3 GR4",
+      "quote": "The report writer logical record structure of the file associated with file-name-1 is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.5.4 GR4",
+      "quote": "The report writer logical record structure of the file associated with file-name-1 is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.4.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical; probed prototypes: WORKING-STORAGE in a program prototype and in a function prototype is refused at 2002 (COBOL2272).",
+    "citations": [
+     {
+      "cite": "§2002:13.4.2 SR1",
+      "quote": "The working-storage section may be specified in a function definition or a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.3 SR1",
+      "quote": "The working-storage section may be specified in a function definition or a program definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-09\\WS-progproto.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical; probed prototypes: LOCAL-STORAGE in a program prototype and in a function prototype is refused at 2002 (COBOL2272).",
+    "citations": [
+     {
+      "cite": "§2002:13.5.2 SR1",
+      "quote": "The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.6.3 SR1",
+      "quote": "The local-storage section may be specified in a program definition or function definition or in a method definition contained in a class definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-09\\LS-progproto.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical list of source elements; 2002 prototypes are the same IS PROTOTYPE elements.",
+    "citations": [
+     {
+      "cite": "§2002:13.6.2 SR1",
+      "quote": "The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.3 SR1",
+      "quote": "The linkage section may be specified in a program definition, function definition, method definition, program prototype definition, or function prototype definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.6.2-2",
+    "verdict": "UPHELD",
+    "reason": "Identical. 'Match' leans on the signature (2002 external repository list), whose items exist in 2023 too; a linkage description cannot hold a CD record; no 2002-only data clause reaches a linkage item found.",
+    "citations": [
+     {
+      "cite": "§2002:13.6.2 SR2",
+      "quote": "shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition, respectively",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.3 SR2",
+      "quote": "shall match the description of the formal parameters and the returning item in the corresponding function definition or program definition, respectively",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.6.3-3",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "GR3 makes formal access depend on 'a CALL statement' that 'contains a USING phrase'. In 2002 that includes CALL format 1 (on-overflow): CALL ... USING ... ON OVERFLOW imperative-statement. 2023 removed the ON OVERFLOW phrase of CALL (E.2 item 1), so no 2023 CALL form and no twin witness reaches a program activated by CALL ... USING ... ON OVERFLOW. Probe: at --std 2002 it compiles and the callee sees and updates the formal (GOT HELLO / BACK WORLD), so compiler-at-2002 is correct; at --std 2023 it is refused (COBOL0882). Needs: a 2002 witness for CALL ... USING ... ON OVERFLOW (the probe serves).",
+    "citations": [
+     {
+      "cite": "§2002:13.6.3 GR3",
+      "quote": "access to formal parameters and the returning item is guaranteed if and only if the program is to execute under the control of a CALL statement, and the CALL statement contains a USING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR3",
+      "quote": "access to formal parameters and the returning item is guaranteed if and only if the program is to execute under the control of a CALL statement, and the CALL statement contains a USING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "On Overflow phrase of the CALL statement",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-09\\call-ovf-using.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.6.3-4",
+    "verdict": "UPHELD",
+    "reason": "Identical; functions are activated by function identifiers and methods by INVOKE or inline invocation; the 2002 14.8.22.1 INVOKE format matches 2023 14.9.23.2 (class-name-1 renamed object-class-name-1). The EXIT METHOD / EXIT FUNCTION removal (2023 E.2) ends an activation and does not bear on access to formals.",
+    "citations": [
+     {
+      "cite": "§2002:13.6.3 GR4",
+      "quote": "In a function definition and in a method definition, access to formal parameters and the returning item is always guaranteed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.7.4 GR4",
+      "quote": "In a function definition and in a method definition, access to formal parameters and the returning item is always guaranteed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical; report writer core in both; the reader's placement probes refuse method and interface at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.7.2 SR1",
+      "quote": "The report section shall not be specified within an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.3 SR1",
+      "quote": "The report section shall not be specified within an interface definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.8.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 licenses non-support of the screen section by its own text (B.3 item 1 with 3.1.5 implementor discretion), and the compiler refuses every SCREEN SECTION at --std 2002 with COBOL1560 (reader's probes). The diagnostic cites 2023 grounds, a message defect only.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "notes": "Probes for WS/LS/FS in program and function prototypes (COBOL2272 at 2002 and 2023) and the CALL ON OVERFLOW probe are under refute-q-09, logs in refute-q-09\\logs. The reader's DIFFERENT rows (FORMAT clause licence; constant entries under a CD per 2002 13.1.1) were checked and are not disputed."
+ },
+ "imported": {
+  "asked": "2aa388568b5bd5b5a11c85028134b1d01973b680d91ffbf2b1b9bbbac7532169",
+  "read": "203607cf8a5a12dc6a022367d54489ce8e476f1bd34fca40c74b7f88162f7220",
+  "refute": "8cea47b9c900d3a9c4cd0b3ba7772304026985fb1f6ad4846823f86c4c8e8f2e"
+ }
+}

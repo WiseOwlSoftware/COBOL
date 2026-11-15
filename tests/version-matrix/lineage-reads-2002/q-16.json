@@ -1,0 +1,2450 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-16 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-16",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.33.3-10",
+   "2002-GR-13.16.33.3-11",
+   "2002-GR-13.16.33.3-12",
+   "2002-GR-13.16.33.3-13",
+   "2002-GR-13.16.33.3-14",
+   "2002-GR-13.16.33.3-2",
+   "2002-GR-13.16.33.3-3",
+   "2002-GR-13.16.33.3-6",
+   "2002-GR-13.16.33.3-7",
+   "2002-GR-13.16.33.3-9",
+   "2002-GR-13.16.34.2-1",
+   "2002-GR-13.16.34.2-2",
+   "2002-SR-13.16.35.2-3",
+   "2002-SR-13.16.35.2-4",
+   "2002-SR-13.16.35.2-6",
+   "2002-SR-13.16.35.2-7",
+   "2002-GR-13.16.35.3-2",
+   "2002-GR-13.16.35.3-3",
+   "2002-GR-13.16.35.3-4",
+   "2002-GR-13.16.35.3-5",
+   "2002-GR-13.16.35.3-6",
+   "2002-SR-13.16.36.2-10",
+   "2002-SR-13.16.36.2-11",
+   "2002-SR-13.16.36.2-12",
+   "2002-SR-13.16.36.2-13"
+  ],
+  "flags": {
+   "2002-GR-13.16.33.3-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.33.3-11": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.33.3-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.33.3-13": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.33.3-14": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.34.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.34.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.36.2-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.36.2-11": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.36.2-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.36.2-13": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-16",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.33.3-10",
+    "to": [
+     "GR-13.18.35.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause (Format 2, screen)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR10",
+      "quote": "establishes the starting coordinates for a screen item within a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR10",
+      "quote": "establishes the starting coordinates for a screen item within a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "screen-item LINE clause (format 2) in a screen description entry",
+     "positioning on ACCEPT screen / DISPLAY screen"
+    ],
+    "evidence-2002": [
+     "LINE format 2: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt (COBOL1560 'the LINE clause, format 2 (screen item)', rc 65)",
+     "ACCEPT/DISPLAY screen: covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-accept-screen-minimal.2002.txt and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt (COBOL1707, rc 65)"
+    ],
+    "reason": "General format 2 of the LINE clause, its Format-2 syntax rules and GR10-14 are word-identical in 2002 and 2023; the terms (screen item, screen record, ACCEPT screen / DISPLAY screen) are unchanged and EC-SCREEN-LINE-NUMBER is NF in both tables. The rule governs only the screen section, which 2002 makes processor-dependent; the compiler declines the whole screen section at --std 2002 by name (probe), as §2002:3.1.5 permits. No communication-section or debugging-line reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-11",
+    "to": [
+     "GR-13.18.35.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause (Format 2, screen)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR11",
+      "quote": "A line number of 1 represents the first line of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR11",
+      "quote": "A line number of 1 represents the first line of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINE without PLUS/MINUS in a screen description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt (COBOL1560, rc 65)"
+    ],
+    "reason": "General format 2 of the LINE clause, its Format-2 syntax rules and GR10-14 are word-identical in 2002 and 2023; the terms (screen item, screen record, ACCEPT screen / DISPLAY screen) are unchanged and EC-SCREEN-LINE-NUMBER is NF in both tables. The rule governs only the screen section, which 2002 makes processor-dependent; the compiler declines the whole screen section at --std 2002 by name (probe), as §2002:3.1.5 permits. No communication-section or debugging-line reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-12",
+    "to": [
+     "GR-13.18.35.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause (Format 2, screen)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR12",
+      "quote": "the line number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR12",
+      "quote": "the line number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINE PLUS/MINUS identifier-1 or integer-3 in a screen description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt (COBOL1560 on the SCREEN SECTION header and on the LINE clause, rc 65)"
+    ],
+    "reason": "General format 2 of the LINE clause, its Format-2 syntax rules and GR10-14 are word-identical in 2002 and 2023; the terms (screen item, screen record, ACCEPT screen / DISPLAY screen) are unchanged and EC-SCREEN-LINE-NUMBER is NF in both tables. The rule governs only the screen section, which 2002 makes processor-dependent; the compiler declines the whole screen section at --std 2002 by name (probe), as §2002:3.1.5 permits. No communication-section or debugging-line reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-13",
+    "to": [
+     "GR-13.18.35.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause (Format 2, screen)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR13",
+      "quote": "if no previous screen item has been defined, LINE 1 of the screen record is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR13",
+      "quote": "if no previous screen item has been defined, LINE 1 of the screen record is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "screen description entry with no LINE clause"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt (a screen entry without LINE: COBOL1560 'the SCREEN SECTION', rc 65)"
+    ],
+    "reason": "General format 2 of the LINE clause, its Format-2 syntax rules and GR10-14 are word-identical in 2002 and 2023; the terms (screen item, screen record, ACCEPT screen / DISPLAY screen) are unchanged and EC-SCREEN-LINE-NUMBER is NF in both tables. The rule governs only the screen section, which 2002 makes processor-dependent; the compiler declines the whole screen section at --std 2002 by name (probe), as §2002:3.1.5 permits. No communication-section or debugging-line reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-14",
+    "to": [
+     "GR-13.18.35.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause (Format 2, screen)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR14",
+      "quote": "the EC-SCREEN-LINE-NUMBER exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR14",
+      "quote": "the EC-SCREEN-LINE-NUMBER exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "runtime ACCEPT/DISPLAY screen with a line number of zero or beyond the terminal",
+     "EC-SCREEN-LINE-NUMBER (NF in the 2002 table, as in 2023)"
+    ],
+    "evidence-2002": [
+     "covered: no screen program compiles at --std 2002 (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-accept-screen-minimal.2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt: COBOL1560/COBOL1707), so the runtime rule is unreachable, as licensed"
+    ],
+    "reason": "General format 2 of the LINE clause, its Format-2 syntax rules and GR10-14 are word-identical in 2002 and 2023; the terms (screen item, screen record, ACCEPT screen / DISPLAY screen) are unchanged and EC-SCREEN-LINE-NUMBER is NF in both tables. The rule governs only the screen section, which 2002 makes processor-dependent; the compiler declines the whole screen section at --std 2002 by name (probe), as §2002:3.1.5 permits. No communication-section or debugging-line reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": {
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "EC-SCREEN-LINE-NUMBER is NF in the 2002 table, so §2002:14.5.12.1.3 would govern it as 2023's nonfatal rule does (less the PERFORM WHEN path). The screen section is declined at --std 2002 as §2002:3.1.5 licenses, so the runtime rule is unreachable; no change."
+    },
+    "flags-answered-earlier": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-SCREEN-LINE-NUMBER | NF | Screen item line number exceeds terminal size",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-2",
+    "to": [
+     "GR-13.18.35.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 1, report-writer)",
+    "clause-2023": "13.18.35 LINE clause (Format 1, report-writer)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR2",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR2",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.15.3 GR8",
+      "quote": "execution resumes at the next report item, line, or report group, whichever follows in logical order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If it is not enabled, processing proceeds as indicated for the statement in which the exception condition was set to exist",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "paged report group that would be split between two pages (GENERATE/TERMINATE)",
+     "EC-REPORT-PAGE-LIMIT set (NF in the 2002 table); a checked raise resumes at the next report group (§2002:14.8.15.3 GR8)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise, run now at --std 2002: stdout MATCHES the golden (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1188_report_nonfatal_raise.2002.stdout)"
+    ],
+    "reason": "LINE Format 1 is identical in both editions; EC-REPORT-PAGE-LIMIT is NF in both exception tables; the 2002 non-fatal handling and GENERATE resume rule give the 2023 behaviour for this case. Report section: no CD and no debugging-line reach. The twin's witness runs and matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1188_report_nonfatal_raise.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so 'the report is divided into pages' means a report description with a PAGE clause, as in 2023; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.3: EC-REPORT-PAGE-LIMIT is NF in the 2002 table (§2002:14.5.12.1.5); unchecked it is ignored ('processing proceeds as indicated for the statement'), checked a USE declarative runs and execution continues, as §2023:14.6.13.1.4 says apart from 2023's PERFORM WHEN path, which neither the rule nor its witness uses; GENERATE/TERMINATE resume per §2002:14.8.15.3 GR8 and §2002:14.8.42.3 GR5. pb1188_report_nonfatal_raise (accept [2002], checking ON) re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If it is not enabled, processing proceeds as indicated for the statement in which the exception condition was set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If execution of the declarative completes normally, execution continues as specified in the statement for normal execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.4",
+      "quote": "If checking is not enabled, execution continues as if the exception did not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-REPORT-PAGE-LIMIT | NF | Vertical page limit exceeded",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.15.3 GR8",
+      "quote": "execution resumes at the next report item, line, or report group, whichever follows in logical order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.42.3 GR5",
+      "quote": "execution resumes at the next report item, line, or report group",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-3",
+    "to": [
+     "GR-13.18.35.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 1, report-writer)",
+    "clause-2023": "13.18.35 LINE clause (Format 1, report-writer)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR3",
+      "quote": "If this rule is violated the EC-REPORT-LINE-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR3",
+      "quote": "If this rule is violated the EC-REPORT-LINE-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative LINE PLUS 0 overwrites the preceding line",
+     "any other overlap: EC-REPORT-LINE-OVERLAP (NF in the 2002 table)"
+    ],
+    "evidence-2002": [
+     "overlap raise: covered by conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1130_report_sum_size_line_overlap.2002.stdout)",
+     "PLUS 0 overwrite: covered by pb1247_line_placement_unpaged_85 (accept 85) run at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1247_line_placement_unpaged_85.2002.stdout)"
+    ],
+    "reason": "Identical format, terms and exception category (NF in both tables); no CD or debugging reach. Both twin witnesses match at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/pb1130_report_sum_size_line_overlap-2002/run.log (re-run PASS at 2002)",
+    "widening": null,
+    "flags-answered-reader": [
+     "no flag: held back for its dependence on the uncatalogued 2002 exception-condition clause. Read §2002:14.5.12.1.3 and §2002:14.8.15.3 GR8: the same NF handling and resume rule as 2023; the twin's witness matches at --std 2002"
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 14648 writes 'nonspace' for 'non-space': spelling only. Re-read §2002:13.16.33.3 GR3: unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "Same report object in both editions; GR3 governs line overlap within a report group, and both of its cases are shown at --std 2002.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Read §2002:14.5.12.1.3: EC-REPORT-LINE-OVERLAP is NF (2002 table), ignored unless checking is enabled, then declarative and continue, as in 2023 apart from 2023's PERFORM WHEN path; pb1130 re-run now passes at --std 2002. The 14.6.4/14.6.6 match is the word 'corresponding' ('the corresponding characters of the preceding line'), not the CORRESPONDING phrase or size error; GR3 does not rest on them."
+    },
+    "probe-reader": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1130_report_sum_size_line_overlap.2002.stdout",
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR3",
+      "quote": "the EC-REPORT-LINE-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-REPORT-LINE-OVERLAP | NF | Overlapping report lines",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-6",
+    "to": [
+     "GR-13.18.35.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 1, report-writer)",
+    "clause-2023": "13.18.35 LINE clause (Format 1, report-writer)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR6",
+      "quote": "the report's LINE-COUNTER is set equal to that line number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR6",
+      "quote": "the report's LINE-COUNTER is set equal to that line number",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "first line of a report group of every type: LINE-COUNTER set, line printed at that location"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.35-LINE/pb484_report_line_placement at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb484_report_line_placement.2002.stdout)"
+    ],
+    "reason": "GR5, the calculation GR6 consumes, is identical in both editions; LINE-COUNTER and the report group types are the same. No CD/debugging reach. The witness matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb484_report_line_placement.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (the first line of a report group) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-7",
+    "to": [
+     "GR-13.18.35.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 1, report-writer)",
+    "clause-2023": "13.18.35 LINE clause (Format 1, report-writer)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR7",
+      "quote": "Line numbers need not be consecutive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR7",
+      "quote": "Line numbers need not be consecutive",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "subsequent absolute LINE",
+     "subsequent relative LINE (PLUS 0 included)",
+     "unoccupied lines print blank"
+    ],
+    "evidence-2002": [
+     "covered by pb484_report_line_placement and pb1247_line_placement_unpaged_85 at --std 2002, both MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/)"
+    ],
+    "reason": "The a)/b) list is closed and identical, and so is Format 1. The witnesses match at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb484_report_line_placement.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (subsequent report lines) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-9",
+    "to": [
+     "GR-13.18.35.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause (Format 1, report-writer)",
+    "clause-2023": "13.18.35 LINE clause (Format 1, report-writer)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR9",
+      "quote": "A multiple LINE clause is functionally equivalent to a LINE clause with a single operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR9",
+      "quote": "A multiple LINE clause is functionally equivalent to a LINE clause with a single operand",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "multiple LINE clause = single LINE plus a simple OCCURS (report-writer format 3)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb565_report_vertical_repetition.2002.stdout)"
+    ],
+    "reason": "The referenced OCCURS format 3 is identical in 2002 (13.16.36.1) and 2023 (13.18.38.2); 2023's Format 4 (dynamic capacity) is not a report form. The SR10 multiple-LINE rules are identical. The witness matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb565_report_vertical_repetition.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (multiple LINE clauses) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.34.2-1",
+    "to": [
+     "GR-13.18.36.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.34 LOWLIGHT clause",
+    "clause-2023": "13.18.36 LOWLIGHT clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.34.2 GR1",
+      "quote": "A LOWLIGHT clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.36.3 GR1",
+      "quote": "A LOWLIGHT clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The rendition of the monochromatic, polychromatic or other attributes specified by the following clauses is dependent upon a terminal device capable of supporting them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOWLIGHT on a group screen description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-lowlight.2002.txt (COBOL1560 'the LOWLIGHT clause', rc 65)"
+    ],
+    "reason": "The clause (format LOWLIGHT; GR1-2) is identical. Screen section only; 2002 B.3 items 1 and 2 make the section and the LOWLIGHT rendition processor-dependent. Declined by name at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-lowlight.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.34.2-2",
+    "to": [
+     "GR-13.18.36.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.34 LOWLIGHT clause",
+    "clause-2023": "13.18.36 LOWLIGHT clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.34.2 GR2",
+      "quote": "displayed in the foreground color at the lowest intensity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.36.3 GR2",
+      "quote": "displayed in the foreground color at the lowest intensity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The rendition of the monochromatic, polychromatic or other attributes specified by the following clauses is dependent upon a terminal device capable of supporting them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOWLIGHT rendition on ACCEPT/DISPLAY screen"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-lowlight.2002.txt (COBOL1560) and the COBOL1707 probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-accept-screen-minimal.2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt"
+    ],
+    "reason": "As GR1: identical text, processor-dependent in 2002 (B.3 items 1 and 2), declined by name at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-lowlight.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-3",
+    "to": [
+     "SR-13.18.37.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR3",
+      "quote": "only the relative form of the clause may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR3",
+      "quote": "only the relative form of the clause may be specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "unpaged report: absolute form refused",
+     "unpaged report: NEXT PAGE form refused",
+     "unpaged report: relative form accepted"
+    ],
+    "evidence-2002": [
+     "absolute refused: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-absolute-unpaged.2002.txt (COBOL2284, rc 65)",
+     "relative accepted: pb951_relative_sign_synonyms at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb951_relative_sign_synonyms.2002.stdout)",
+     "NEXT PAGE unpaged: the 2023 row's notes name the same check (BindNextGroupClauses); not probed separately, no wider at 2002"
+    ],
+    "reason": "The NEXT GROUP general format is identical (integer-1 | PLUS integer-2 | NEXT PAGE [WITH RESET]); 'divided into pages' rests on the PAGE clause, whose 2002 format equals 2023's. Report section only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-absolute-unpaged.2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). 'Divided into pages' rests on the RD PAGE clause in both editions; the dropped definition changes neither the unpaged reports governed nor the 2002 witnesses."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-4",
+    "to": [
+     "SR-13.18.37.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR4",
+      "quote": "The NEXT GROUP clause shall not be specified in a page heading or report footing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR4",
+      "quote": "The NEXT GROUP clause shall not be specified in a page heading or report footing",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NEXT GROUP in a page heading",
+     "NEXT GROUP in a report footing"
+    ],
+    "evidence-2002": [
+     "page heading: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-in-page-heading.2002.txt (COBOL2284)",
+     "report footing: new probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/q16-next-group-in-rf.cob at 2002 and 2023, COBOL2284 rc 65 at both (the twin's witness covers only the page heading)"
+    ],
+    "reason": "The format and the report group types (TYPE clause) are identical. The twin's witness also draws an incidental COBOL2199 (page heading below lower limit 0, no FIRST DETAIL) at both editions alike; my probe shows the report-footing half.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/q16-next-group-in-rf.2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule governs page heading and report footing groups of an RD-described report; the report concept is unchanged, so the two 2002 probes stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-6",
+    "to": [
+     "SR-13.18.37.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR6",
+      "quote": "integer-1 shall lie between the FIRST DETAIL integer and the FOOTING integer, inclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR6",
+      "quote": "integer-1 shall lie between the FIRST DETAIL integer and the FOOTING integer, inclusive",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) report heading, absolute",
+     "b) body group, absolute",
+     "c) page footing, absolute"
+    ],
+    "evidence-2002": [
+     "a) probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-report-heading-absolute.2002.txt COBOL2284",
+     "b) probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-body-outside-region.2002.txt COBOL2284",
+     "c) probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-page-footing-absolute.2002.txt COBOL2284"
+    ],
+    "reason": "The closed a)-c) list is identical, and FIRST DETAIL/FOOTING come from an identical PAGE clause. All three witnesses refuse at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-body-outside-region.2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule's FIRST DETAIL and FOOTING integers come from the RD PAGE clause of the report in both editions; the dropped definition changes neither the a)-c) cases nor the witnesses."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-7",
+    "to": [
+     "SR-13.18.37.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR7",
+      "quote": "the minimum last line number of the report group plus integer-2 shall not exceed the page limit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR7",
+      "quote": "the minimum last line number of the report group plus integer-2 shall not exceed the page limit",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) report heading, relative",
+     "b) page footing, relative"
+    ],
+    "evidence-2002": [
+     "a) probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-report-heading-relative.2002.txt COBOL2284",
+     "b) probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-page-footing-relative.2002.txt COBOL2284"
+    ],
+    "reason": "The closed list and its terms are identical; the witnesses refuse at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-report-heading-relative.2002.txt",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule's page limit comes from the RD PAGE clause of the report in both editions; the dropped definition changes neither the a)-b) cases nor the witnesses."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-2",
+    "to": [
+     "GR-13.18.37.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR2",
+      "quote": "as covered in the following general rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR2",
+      "quote": "as covered in the following general rules",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINE-COUNTER modified after the group's last line, per GR3-GR6"
+    ],
+    "evidence-2002": [
+     "covered by pb957_next_group_forms and pb957_next_group_control at --std 2002, both MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/)"
+    ],
+    "reason": "'the following general rules' are GR3-GR6, word-identical in both editions (all four are in this slice and were compared).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_forms.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2); type | for type declaration (newer: 8.5.3)": "Read §2002:4 'report': 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and identifies a report by its RD and the REPORT clause (§2023:13.18.46.1). Same entity in both, so the rule governs the same report description entries and report groups in 2002; scope and evidence unchanged. The rule's 'type' is 'the type of report group' (the report-group TYPE clause, §2002:13.16.55 format 2), not the type that §2002:4 defines for a type declaration ('A template that contains all the characteristics of a data item and its subordinates', the same words as §2023:8.5.3.1); the dropped definition cannot change which programs the rule governs.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "Invoked only by the word 'type'. §2002:8.5.3 (TYPEDEF types), §2002:8.5.4 (zero-length items) and §2002:14.5.8 (alignment of data in a receiving item) do not bear on NEXT GROUP or LINE-COUNTER; the rule does not rest on their 2002 text, and the evidence already shown at --std 2002 stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.3.1",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55",
+      "quote": "The TYPE clause in a report group description entry identifies the circumstances under which a report group will be printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is referenced in a data description entry by specifying the TYPE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-3",
+    "to": [
+     "GR-13.18.37.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR3",
+      "quote": "LINE-COUNTER is then set equal to zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR3",
+      "quote": "LINE-COUNTER is then set equal to zero",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report heading: a) absolute",
+     "b) relative",
+     "c) NEXT PAGE"
+    ],
+    "evidence-2002": [
+     "b) and c): pb957_next_group_forms and pb957_next_group_control MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/)",
+     "a) absolute report heading: no positive golden at any edition (the 2023 row says so); same code path, unchanged at 2002"
+    ],
+    "reason": "Identical; the a) gap belongs to the 2023 row and is no wider at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_control.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 has the same rule with a '## Page 365' marker inside it: page break only. Re-read §2002:13.16.35.3 GR3: unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 report = printed output described in the report section; 2023 keeps the same object through RD and the REPORT clause (§2023:13.18.46.1). The report heading rule governs the same groups; b) and c) are shown at 2002, a) is unshown at every edition (the 2023 row's own gap)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR3",
+      "quote": "If the NEXT GROUP clause is relative, integer-2 is added to LINE-COUNTER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-4",
+    "to": [
+     "GR-13.18.37.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR4",
+      "quote": "integer-1 is placed in a save location and LINE-COUNTER is set equal to the FOOTING integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR4",
+      "quote": "integer-1 is placed in a save location and LINE-COUNTER is set equal to the FOOTING integer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "body group: a) absolute, sub-items 1-3 and TERMINATE",
+     "b) relative",
+     "c) NEXT PAGE"
+    ],
+    "evidence-2002": [
+     "pb957_next_group_forms, pb957_next_group_control and pb1001_line_next_page all MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/)"
+    ],
+    "reason": "Identical text; the LINE ... NEXT PAGE phrase (sub-item 2) is in the 2002 Format 1 as in 2023's. The witnesses match at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1001_line_next_page.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so the body groups of the report and its LINE-COUNTER are the same; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Matched on the word TERMINATE (the report writer statement, after which a pending NEXT GROUP has no effect), not on run unit termination (§2002:14.5.10), the initial state (§2002:14.5.2.1.2.1) or transfers of control (§2002:14.5.3); the rule rests on none of those clauses. pb957_next_group_forms, pb957_next_group_control and pb1001_line_next_page re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "When normal run unit termination occurs, the runtime system performs the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "The flow of control mechanism transfers control from statement to statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "Automatic data and initial data is placed in the initial state",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-5",
+    "to": [
+     "GR-13.18.37.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR5",
+      "quote": "affects any report footing defined in the current report using only relative LINE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR5",
+      "quote": "affects any report footing defined in the current report using only relative LINE clauses",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "page footing: a) absolute, b) relative"
+    ],
+    "evidence-2002": [
+     "covered by pb957_next_group_forms at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_forms.2002.stdout)"
+    ],
+    "reason": "Identical, and so is the relative report-footing placement it feeds (LINE GR5b5).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_forms.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (report footing placement after NEXT GROUP) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-6",
+    "to": [
+     "GR-13.18.37.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause",
+    "clause-2023": "13.18.37 NEXT GROUP clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR6",
+      "quote": "the value of PAGE-COUNTER for the report is set to 1 (one) immediately after the page feed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR6",
+      "quote": "the value of PAGE-COUNTER for the report is set to 1 (one) immediately after the page feed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WITH RESET in a report heading or a body group"
+    ],
+    "evidence-2002": [
+     "covered by pb957_next_group_forms and pb957_next_group_control at --std 2002, MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/)"
+    ],
+    "reason": "Identical; WITH RESET is in the 2002 format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_control.2002.stdout",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (PAGE-COUNTER reset by NEXT GROUP WITH RESET) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-10",
+    "to": [
+     "SR-13.18.38.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause (Format 1, screen description entry)",
+    "clause-2023": "13.18.38 OCCURS clause (Format 1, screen description entry)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR10",
+      "quote": "An OCCURS clause specified in a screen description entry shall be a format 1 OCCURS clause without any optional phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR11",
+      "quote": "An OCCURS clause specified in a screen description entry shall be a format 1 OCCURS clause without any optional phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OCCURS in a screen description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt (COBOL1560 'the OCCURS clause of a screen description entry', rc 65)"
+    ],
+    "reason": "Format 1 (fixed-table) is identical; 2023's Format 4 and its SR9/SR19/SR23 do not reach screen entries. 2002 SR10-13 are 2023 SR11-14, renumbered only, by 2023's added SR9. Screen section only, declined at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ],
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD's records are ordinary record description entries (§2002:A.1.1.2), never screen description entries; this rule governs only screen description entries (screen section), so no CD entry is reached. The screen section stays declined at --std 2002 (re-run now: a42-screen-occurs PASS, COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). (§2002:13.16.36.2 SR10.)"
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR10",
+      "quote": "An OCCURS clause specified in a screen description entry shall be a format 1 OCCURS clause without any optional phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-11",
+    "to": [
+     "SR-13.18.38.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause (Format 1, screen description entry)",
+    "clause-2023": "13.18.38 OCCURS clause (Format 1, screen description entry)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR11",
+      "quote": "The maximum number of dimensions for a table described in a screen description entry is two",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR12",
+      "quote": "The maximum number of dimensions for a table described in a screen description entry is two",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "dimensions of a screen table"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt (COBOL1560)"
+    ],
+    "reason": "Identical; screen only; declined at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ],
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD's records are ordinary record description entries (§2002:A.1.1.2), never screen description entries; this rule governs only screen description entries (screen section), so no CD entry is reached. The screen section stays declined at --std 2002 (re-run now: a42-screen-occurs PASS, COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). (§2002:13.16.36.2 SR11.)"
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR11",
+      "quote": "The maximum number of dimensions for a table described in a screen description entry is two",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-12",
+    "to": [
+     "SR-13.18.38.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause (Format 1, screen description entry)",
+    "clause-2023": "13.18.38 OCCURS clause (Format 1, screen description entry)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR12",
+      "quote": "shall not be subordinate to an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR13",
+      "quote": "shall not be subordinate to an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "screen table with TO/FROM/USING operands"
+    ],
+    "evidence-2002": [
+     "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-accept-screen-minimal.2002.txt (COBOL1560 on TO) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt (COBOL1560 on FROM)"
+    ],
+    "reason": "Identical; screen only; declined at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ],
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD's records are ordinary record description entries (§2002:A.1.1.2), never screen description entries; this rule governs only screen description entries (screen section), so no CD entry is reached. The screen section stays declined at --std 2002 (re-run now: a42-screen-occurs PASS, COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). (§2002:13.16.36.2 SR12.)"
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR12",
+      "quote": "If a screen description entry includes the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-13",
+    "to": [
+     "SR-13.18.38.3-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause (Format 1, screen description entry)",
+    "clause-2023": "13.18.38 OCCURS clause (Format 1, screen description entry)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR13",
+      "quote": "then the COLUMN clause shall include the PLUS or MINUS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR14",
+      "quote": "then the COLUMN clause shall include the PLUS or MINUS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "is a conforming compilation group, even on implementations where it does not compile successfully due to the use of those elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "screen OCCURS entry with a COLUMN clause"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt (COBOL1560)"
+    ],
+    "reason": "Identical; screen only; declined at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 item 1: the screen section and screen ACCEPT/DISPLAY are processor-dependent; unclaimed ones 'need not be implemented'; a compile-time warning mechanism is required, executable code is not",
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.2 (an OPTIONAL module). 2002 licenses non-support on a DIFFERENT ground: its only optional facility is the Communications facility (§2002:3.1); the screen section is PROCESSOR-DEPENDENT (§2002:B.3 item 1), licensed by §2002:3.1.5, which requires a compile-time warning mechanism and does not require executable code; §2002:3.2 expects a conforming program that does not compile on such an implementation. So the named ERROR (COBOL1560/COBOL1707) conforms at 2002 too. Scope and evidence unchanged. Documentation note, not a defect: the COBOL1560 text at --std 2002 cites '§2023:13.9; Annex A.4.2', and docs/CONFORMANCE.md states the non-support (which §2002:3.1.5 requires) in 2023 terms only."
+    ],
+    "flags-answered": {
+     "communication-reach: clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD's records are ordinary record description entries (§2002:A.1.1.2), never screen description entries; this rule governs only screen description entries (screen section), so no CD entry is reached. The screen section stays declined at --std 2002 (re-run now: a42-screen-occurs PASS, COBOL1560, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). (§2002:13.16.36.2 SR13.)"
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR13",
+      "quote": "If a screen description entry that includes the OCCURS clause also contains the COLUMN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-16"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-16",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.33.3-10",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR10",
+      "quote": "establishes the starting coordinates for a screen item within a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR10",
+      "quote": "establishes the starting coordinates for a screen item within a screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/a42-screen-line.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-11",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR11",
+      "quote": "A line number of 1 represents the first line of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR11",
+      "quote": "A line number of 1 represents the first line of the screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-12",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR12",
+      "quote": "the line number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR12",
+      "quote": "the line number is relative to the end of the preceding screen item in the same screen record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-line.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-13",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR13",
+      "quote": "if no previous screen item has been defined, LINE 1 of the screen record is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR13",
+      "quote": "if no previous screen item has been defined, LINE 1 of the screen record is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-14",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference. Runtime rule unreachable at --std 2002 because the section is declined.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR14",
+      "quote": "the EC-SCREEN-LINE-NUMBER exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR14",
+      "quote": "the EC-SCREEN-LINE-NUMBER exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-display-screen-minimal.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-2",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Re-ran pb1188_report_nonfatal_raise at --std 2002 myself: MATCH golden.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR2",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR2",
+      "quote": "If this rule is violated the EC-REPORT-PAGE-LIMIT exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/pb1188_report_nonfatal_raise.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-3",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Reader's pb1130 / pb1247 2002 stdouts compared to goldens: MATCH.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR3",
+      "quote": "If this rule is violated the EC-REPORT-LINE-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR3",
+      "quote": "If this rule is violated the EC-REPORT-LINE-OVERLAP exception condition is set to exist and the results are undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1130_report_sum_size_line_overlap.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-6",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Re-ran pb484_report_line_placement at --std 2002: MATCH golden.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR6",
+      "quote": "the report's LINE-COUNTER is set equal to that line number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR6",
+      "quote": "the report's LINE-COUNTER is set equal to that line number",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/pb484_report_line_placement.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-7",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. pb484 (re-run) and pb1247 match at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR7",
+      "quote": "Line numbers need not be consecutive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR7",
+      "quote": "Line numbers need not be consecutive",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb484_report_line_placement.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-9",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. pb565 2002 stdout MATCHES golden.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR9",
+      "quote": "A multiple LINE clause is functionally equivalent to a LINE clause with a single operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR9",
+      "quote": "A multiple LINE clause is functionally equivalent to a LINE clause with a single operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR12",
+      "quote": "printable items in each successive occurrence are positioned integer-5 columns",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb565_report_vertical_repetition.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.34.2-1",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.34.2 GR1",
+      "quote": "A LOWLIGHT clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.36.3 GR1",
+      "quote": "A LOWLIGHT clause specified at the group level applies to each elementary screen item in that group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/a42-screen-lowlight.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.34.2-2",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.34.2 GR2",
+      "quote": "displayed in the foreground color at the lowest intensity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.36.3 GR2",
+      "quote": "displayed in the foreground color at the lowest intensity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-lowlight.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-3",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Closed the reader's unprobed NEXT PAGE item: r16-ng-nextpage-unpaged refused COBOL2284 rc 65 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR3",
+      "quote": "only the relative form of the clause may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR3",
+      "quote": "only the relative form of the clause may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.35.2 SR3",
+      "quote": "only the relative form of the clause may be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/r16-ng-nextpage-unpaged.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-4",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Re-ran q16-next-group-in-rf at 2002: COBOL2284 rc 65.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR4",
+      "quote": "The NEXT GROUP clause shall not be specified in a page heading or report footing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR4",
+      "quote": "The NEXT GROUP clause shall not be specified in a page heading or report footing",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/q16-next-group-in-rf.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-6",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR6",
+      "quote": "integer-1 shall lie between the FIRST DETAIL integer and the FOOTING integer, inclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR6",
+      "quote": "integer-1 shall lie between the FIRST DETAIL integer and the FOOTING integer, inclusive",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-body-outside-region.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-7",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR7",
+      "quote": "the minimum last line number of the report group plus integer-2 shall not exceed the page limit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR7",
+      "quote": "the minimum last line number of the report group plus integer-2 shall not exceed the page limit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/pb957-next-group-report-heading-relative.2002.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-2",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR2",
+      "quote": "as covered in the following general rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR2",
+      "quote": "as covered in the following general rules",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_forms.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-3",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral. Closed the reader's a) gap: r16-rh-absolute-ng (RH LINE 1 NEXT GROUP 4, PH LINE PLUS 1, FIRST DETAIL 8) prints RH line 1, PH line 5, DE line 8 at 2002 and 2023, as GR3a with LINE GR5b2/b3 require.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR3",
+      "quote": "LINE-COUNTER is then set equal to zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR3",
+      "quote": "LINE-COUNTER is then set equal to zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.35.3 GR3",
+      "quote": "If the NEXT GROUP clause is absolute, LINE-COUNTER is set equal to integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.33.3 GR5",
+      "quote": "If the report group is a page heading and a report heading has been printed on the same page",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/r16rha.2002.report.txt"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-4",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR4",
+      "quote": "integer-1 is placed in a save location and LINE-COUNTER is set equal to the FOOTING integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR4",
+      "quote": "integer-1 is placed in a save location and LINE-COUNTER is set equal to the FOOTING integer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb1001_line_next_page.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-5",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR5",
+      "quote": "affects any report footing defined in the current report using only relative LINE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR5",
+      "quote": "affects any report footing defined in the current report using only relative LINE clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_forms.2002.stdout"
+   },
+   {
+    "rule-id": "2002-GR-13.16.35.3-6",
+    "verdict": "UPHELD",
+    "reason": "Clause diffed line by line in both editions: Format 1 of LINE and the NEXT GROUP format are identical; the referenced PAGE clause, report TYPE clause rules, OCCURS format 3 rules (only a typo fix integer-5 -> integer-3 in a horizontal-repetition rule) and the EC-REPORT-* / NF table rows are identical. Report section only: no CD reach, no removed form, no unnamed deferral.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.3 GR6",
+      "quote": "the value of PAGE-COUNTER for the report is set to 1 (one) immediately after the page feed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.4 GR6",
+      "quote": "the value of PAGE-COUNTER for the report is set to 1 (one) immediately after the page feed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/pos/pb957_next_group_control.2002.stdout"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-10",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR10",
+      "quote": "An OCCURS clause specified in a screen description entry shall be a format 1 OCCURS clause without any optional phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR11",
+      "quote": "An OCCURS clause specified in a screen description entry shall be a format 1 OCCURS clause without any optional phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-16/a42-screen-occurs.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-11",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR11",
+      "quote": "The maximum number of dimensions for a table described in a screen description entry is two",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR12",
+      "quote": "The maximum number of dimensions for a table described in a screen description entry is two",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-12",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR12",
+      "quote": "shall not be subordinate to an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR13",
+      "quote": "shall not be subordinate to an OCCURS clause with the DEPENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-13",
+    "verdict": "UPHELD",
+    "reason": "Both clauses diffed line by line: general format 2 of LINE, LOWLIGHT format and OCCURS format 1 and its screen SRs are word-identical (2023's added OCCURS SR9 and Format 4 renumber SR10-13 to SR11-14 and do not reach screen entries). Screen section only: no CD, no debugging-line, no removed form. 2002 licence is its own text: §2002:B.3 item 1 makes the screen section processor-dependent and §2002:3.1.5 lets unclaimed support go unimplemented with a compile-time diagnostic. Re-ran the reader's probe at --std 2002 with the pinned compiler: COBOL1560 by name, rc 65. Documentation of absence (§2002:3.1.5) is stated in 2023 terms only; a doc note, not a rule-level difference.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR13",
+      "quote": "then the COLUMN clause shall include the PLUS or MINUS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR14",
+      "quote": "then the COLUMN clause shall include the PLUS or MINUS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-16/neg/a42-screen-occurs.2002.txt"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "3803f7d56ae6f663d3a21f63139b38e627f50b99912f4e3b82048635363d2d70",
+  "read": "2918dbb4a8a645499abdb66220713c3278a3f73fcd41b23a01395756f81d1d08",
+  "refute": "74a5995a681788514852e927f6ad55884f643d6768083b2aad9ba86be3713287"
+ }
+}

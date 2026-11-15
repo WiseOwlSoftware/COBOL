@@ -1,0 +1,1644 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-10 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-10",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-12.3.4.8.2-1",
+   "2002-SR-12.3.6.2-10",
+   "2002-SR-12.3.6.2-2",
+   "2002-SR-12.3.6.2-6",
+   "2002-SR-13.12.2-2",
+   "2002-SR-13.13.2-11",
+   "2002-SR-13.13.2-15",
+   "2002-SR-13.13.2-17",
+   "2002-SR-13.13.2-2",
+   "2002-SR-13.13.2-3",
+   "2002-SR-13.13.2-6",
+   "2002-SR-13.13.2-9",
+   "2002-SR-13.14.2-1",
+   "2002-SR-13.14.2-17",
+   "2002-SR-13.14.2-18",
+   "2002-SR-13.14.2-2",
+   "2002-SR-13.14.2-21",
+   "2002-SR-13.14.2-7",
+   "2002-SR-13.16.13.2-3",
+   "2002-SR-13.16.14.2-10",
+   "2002-SR-13.16.14.2-3",
+   "2002-SR-13.16.14.2-4",
+   "2002-SR-13.16.20.2-2",
+   "2002-SR-13.16.25.2-2",
+   "2002-SR-13.16.31.2-1"
+  ]
+ },
+ "read": {
+  "slice": "p-10",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.4.8.2-1",
+    "to": [
+     "SR-12.4.5.9.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8 LOCK MODE clause",
+    "clause-2023": "12.4.5.9 LOCK MODE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.2 SR1",
+      "quote": "The MULTIPLE phrase shall not be specified for a file described with sequential organization or sequential access mode.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.3 SR2",
+      "quote": "The MULTIPLE phrase shall not be specified for a file described with sequential organization or sequential access mode.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOCK MODE ... MULTIPLE for a sequential-organization file",
+     "... for a relative/indexed file with sequential access mode"
+    ],
+    "evidence-2002": [
+     "covered by probe lockseq.cob at --std 2002 (COBOL1512 on F1)",
+     "covered by probe lockseq.cob at --std 2002 (COBOL1512 on F2); lockok.cob dynamic access accepted"
+    ],
+    "reason": "General format identical (MANUAL|AUTOMATIC, WITH LOCK ON [MULTIPLE] RECORD|RECORDS). Organizations (sequential, relative, indexed) and access modes are the same; 2023 only adds SR1 (APPLY COMMIT, 2023-only). File control entry only: no CD or debugging reach. File sharing/record locking is optional in 2023 (A.4.7) but the 2023 row is witnessed by tests, not declined. Probe: MULTIPLE refused for ORGANIZATION SEQUENTIAL and for indexed ACCESS SEQUENTIAL (COBOL1512), accepted for indexed DYNAMIC, identically at 2002 and 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\lockseq.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\lockok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-10",
+    "to": [
+     "SR-12.4.6.4.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6 SAME clause",
+    "clause-2023": "12.4.6.4 SAME clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR10",
+      "quote": "all of the file-names specified in that file-area format SAME clause shall also be specified in those sort-merge-area format SAME clause(s)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR10",
+      "quote": "all of the file-names specified in that file-area format SAME clause shall also be specified in those sort-merge-area format SAME clause(s)",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "file-area SAME clause files also named in a sort-merge-area SAME clause (I-O-CONTROL)"
+    ],
+    "evidence-2002": [
+     "covered by probes same.cob (refused, SR10) and sameok.cob (accepted) at --std 2002"
+    ],
+    "reason": "Formats 1-3 identical (file-area, record-area, SORT|SORT-MERGE area). SR1-SR10 word-identical; 2023 adds SR11 (APPLY COMMIT, 2023-only). No 2002-only SAME form; no CD reach. Probe: SAME SORT AREA naming A1 but not A2 of SAME AREA A1 A2 refused (COBOL2738 SR10); the complete form accepted, identically at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\same.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sameok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-2",
+    "to": [
+     "SR-12.4.6.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6 SAME clause",
+    "clause-2023": "12.4.6.4 SAME clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR2",
+      "quote": "File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph of the source element that contains this SAME clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR2",
+      "quote": "File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph of the source element that contains this SAME clause.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "file-name-1/-2 of all three SAME formats"
+    ],
+    "evidence-2002": [
+     "covered by probe same.cob at --std 2002 (NOSUCH refused)"
+    ],
+    "reason": "Same formats; 'source element' and FILE-CONTROL unchanged. Probe: SAME RECORD AREA naming a file absent from FILE-CONTROL refused (COBOL2738 SR2) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\same.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-6",
+    "to": [
+     "SR-12.4.6.4.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6 SAME clause",
+    "clause-2023": "12.4.6.4 SAME clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sort/merge file in record-area, sort-merge-area and file-area SAME clauses"
+    ],
+    "evidence-2002": [
+     "covered by probes same.cob (refused) and sameok.cob (accepted) at --std 2002"
+    ],
+    "reason": "Same formats and file kinds (SD sort/merge files). Probe: an SD in a file-area SAME refused (COBOL2738 SR6); an SD in one record-area and one sort-merge-area SAME accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\same.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sameok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.12.2-2",
+    "to": [
+     "SR-13.14.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.12 Report description entry",
+    "clause-2023": "13.14 Report description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.12.2 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.3 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "order of GLOBAL, CODE, CONTROL, PAGE clauses in an RD entry"
+    ],
+    "evidence-2002": [
+     "covered by probe rdord.cob at --std 2002 (accepted, runs)"
+    ],
+    "reason": "The clauses after report-name-1 are GLOBAL, CODE, CONTROL, PAGE in both; 2002 writes them inline, 2023 as code-clause/control-clause/page-clause whose formats (13.18.12, 13.18.16, 13.18.39) carry the same phrases. RD only, no CD reach. Probe: RD with PAGE, CONTROLS, CODE, IS GLOBAL in reverse order compiles and runs at 2002 (CODE 'Q' written first in the line).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\rdord.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-11",
+    "to": [
+     "SR-13.15.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR11",
+      "quote": "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in an elementary entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR11",
+      "quote": "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in an elementary entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr11.cob at --std 2002"
+    ],
+    "reason": "Report group format identical clause for clause (USAGE DISPLAY|NATIONAL, SOURCE|SUM|VALUE, PRESENT WHEN, GROUP INDICATE, OCCURS..STEP, VARYING); the six named clauses have the same formats. Probe: PICTURE/COLUMN/SOURCE on a group and GROUP INDICATE on a level 1 group refused (COBOL2247) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr11.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-15",
+    "to": [
+     "SR-13.15.3-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR15",
+      "quote": "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR15",
+      "quote": "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr15.cob at --std 2002"
+    ],
+    "reason": "Same format and clauses. Probe: JUSTIFIED and BLANK WHEN ZERO without COLUMN refused (COBOL2247), BLANK WHEN ZERO with COLUMN accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr15.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-17",
+    "to": [
+     "SR-13.15.3-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR17",
+      "quote": "The GROUP INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR17",
+      "quote": "The GROUP INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is specified.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr17.cob at --std 2002"
+    ],
+    "reason": "Same format; the PRESENT WHEN here is the report-writer format (condition-1), not the VALIDATE one. Probe: GROUP INDICATE with PRESENT WHEN refused (COBOL1559), GROUP INDICATE alone accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr17.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-2",
+    "to": [
+     "SR-13.15.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR2",
+      "quote": "The entry-name clause shall immediately follow the level-number. All other clauses may be written in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR2",
+      "quote": "The entry-name clause shall immediately follow the level-number. All other clauses may be written in any order.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr2.cob at --std 2002"
+    ],
+    "reason": "Same format; the entry-name clause (2002 13.16.18 / 2023 13.18.20) has the same three formats and, for report groups, data-name or FILLER in both (2023 adds only 'not qualified or subscripted'). Probe: entry-name after TYPE refused at both editions; other clauses in mixed order accepted (rdord.cob, sr15.cob).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr2.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-3",
+    "to": [
+     "SR-13.15.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR3",
+      "quote": "Level-number shall be any integer from 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR3",
+      "quote": "Level-number shall be any integer from 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr3.cob at --std 2002"
+    ],
+    "reason": "Same rule; the level-number clause agrees (2002 13.16.31 SR4 = 2023 13.18.33 SR4). Probe: levels 50 and 51 refused (COBOL1746), 49 accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr3.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-6",
+    "to": [
+     "SR-13.15.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR6",
+      "quote": "The NEXT GROUP clause may be specified only in a level 1 entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR6",
+      "quote": "The NEXT GROUP clause may be specified only in a level 1 entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr6.cob at --std 2002"
+    ],
+    "reason": "Same format and NEXT GROUP clause. Probe: NEXT GROUP at level 5 refused (COBOL2284), at level 1 accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr6.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-9",
+    "to": [
+     "SR-13.15.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.13 Report group description entry",
+    "clause-2023": "13.15 Report group description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR9",
+      "quote": "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry with a LINE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR9",
+      "quote": "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry with a LINE clause.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "report group description entries in the report section (the only place they appear, 13.13.2 SR1)"
+    ],
+    "evidence-2002": [
+     "covered by probe sr9.cob at --std 2002"
+    ],
+    "reason": "Same format; LINE and COLUMN formats identical. Probe: an elementary COLUMN entry with no LINE above refused (COBOL2247) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr9.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-1",
+    "to": [
+     "SR-13.16.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR1",
+      "quote": "Level-number may be 77 or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR1",
+      "quote": "Level-number may be 77 or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR2",
+      "quote": "Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 entries in file, working-storage, local-storage, linkage sections",
+     "format 1 entries in record descriptions under a CD (communication section)"
+    ],
+    "evidence-2002": [
+     "covered by the 2023 twin's witnesses (editions include 2002) and probe ws1314.cob",
+     "covered by probes cdlev.cob / cdlevok.cob / cd77.cob at --std 2002 only; not shown by the 2023 row"
+    ],
+    "reason": "Cause (a), missed by the screen. Format 1 governs every data description entry, and in 2002 the record description entries written after a CD are data description entries (A.1.1, A.1.1.2); 13.16.31 SR2 admits 1-49 there (not 77). 2023 has no communication section and its 13.18.33 SR2 names only FD or SD. Probe at 2002: in an output-CD record, level 49 accepted and run (QP Q); level 50 and level 77 refused (COBOL1746 citing 2002 13.16.31 SR2). Working-storage identical at both editions (ws1314.cob).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdlev.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdlevok.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cd77.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\ws1314.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (probes cdlev.cob, cdlevok.cob, cd77.cob)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdlev.cob, cdlevok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-17",
+    "to": [
+     "SR-13.16.3-19"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR17",
+      "quote": "If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR19",
+      "quote": "If the LOCALE phrase of the PICTURE clause is specified, the SIGN clause shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 entries in file, working-storage, local-storage, linkage sections",
+     "format 1 entries in record descriptions under a CD"
+    ],
+    "evidence-2002": [
+     "covered by the twin's witness pb64t6-picture-locale-sign (editions include 2002) and probe ws1314.cob",
+     "covered by probe cdloc.cob at --std 2002 only; not shown by the 2023 row"
+    ],
+    "reason": "Cause (a). The LOCALE phrase (PICTURE format 2) and SIGN are both inline in the 2002 format 1 and not barred from CD record entries, so the prohibition also governs an item of a record under a CD in 2002. Probe at 2002: PIC +ZZZ9.99 LOCALE SIZE IS 14 SIGN IS LEADING in an output-CD record refused (COBOL1674 SR19); the same item without SIGN accepted; working-storage identical at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdloc.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\ws1314.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (probe cdloc.cob)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdloc.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-18",
+    "to": [
+     "SR-13.16.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR18",
+      "quote": "The PRESENT WHEN clause shall not be specified in a data description entry that has a level number of 1 or 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR20",
+      "quote": "The PRESENT WHEN clause shall not be specified in a data description entry that has a level number of 1 or 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.2.7",
+      "quote": "Language elements that an implementor may, but need not, implement are listed in A.4, Optional language element list.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.14",
+      "quote": "The VALIDATE facility is an obsolete feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.46",
+      "quote": "The VALIDATE statement invokes data validation, input distribution, and error indication",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "validation PRESENT WHEN at level 1 or 77 in file, working-storage, local-storage, linkage sections",
+     "validation PRESENT WHEN at level 1 of a record under a CD"
+    ],
+    "evidence-2002": [
+     "covered by the twin's witnesses l1-present-when-level-01/-77 (editions include 2002) and probe ws1314.cob (refused, COBOL1708)",
+     "covered by probe cdpw.cob at --std 2002 (refused, COBOL1708); not shown by the 2023 row"
+    ],
+    "reason": "Two causes. (a) The validation PRESENT WHEN is in 2002 format 1 and allowed in CD record entries, so the rule reaches a level 1 record under a CD. (fifth cause, optional status) The 2023 row's verdict rests on PRESENT WHEN being an unclaimed OPTIONAL element (A.4.14 item 5; its notes: the antecedent is unsatisfiable, refused by name with COBOL1708 at every level). In 2002 the only optional element is Annex A, so VALIDATE and its clauses are required and the antecedent is satisfiable. For SR18 itself the forbidden programs are refused at 2002 (level 1 in working-storage and in a CD record: COBOL1708), so the rule holds, but on a 2023-only ground. Observed sibling: at 2002 a legal level-05 PRESENT WHEN is also refused (ws1314.cob line 10), the VALIDATE-facility defect p-04 already reported (2002-GR-13.16.62.3-1); not counted again here.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\ws1314.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdpw.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for PRESENT WHEN at level 1 (working-storage and CD record) is refusal (COBOL1708); the row cannot borrow the 2023 'unclaimed optional element' reasoning, which 2002 lacks",
+    "compiler-at-2002": "correct for this rule (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdpw.cob, ws1314.cob); the blanket COBOL1708 refusal is wrong for legal level 2-49 PRESENT WHEN at 2002 (already reported by p-04)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-2",
+    "to": [
+     "SR-13.16.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR2",
+      "quote": "The data-name format of the entry-name clause shall be specified if level-number is 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR2",
+      "quote": "The data-name format of the entry-name clause shall be specified if level-number is 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "level 77 entries in working-storage, local-storage, linkage sections"
+    ],
+    "evidence-2002": [
+     "covered by probes ws1314.cob and cd77.cob at --std 2002 and the twin's witnesses pb485-level-77-*"
+    ],
+    "reason": "Level 77 exists only in working-storage, local-storage and linkage in 2002 (13.16.31 SR2 and SR5; not under a CD, FD or SD), the same places as 2023, so no CD reach. Probe: 77 FILLER and 77 with no entry-name refused (COBOL1747) in WS, LS, LK at both editions; 77 under a CD refused by 13.16.31 SR2.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\ws1314.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cd77.cob",
+    "widening": null,
+    "flags-answered": {
+     "communication-reach: clause 13.14 is reached by the 2002 communication section (Annex A, the CD entry)": "A CD may be followed by record description entries built from 13.14 (§2002:A.1.1.2), but 'Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49' (§2002:13.16.31.2 SR2), so no level 77 entry exists under a CD and this rule (§2002:13.14.2 SR2, level 77 only) has no CD population. The reader's cd77.cob shows the 77 under a CD refused; pb485-level-77-filler/-unnamed re-run now at 2002 refuse COBOL1747 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR2",
+      "quote": "The data-name format of the entry-name clause shall be specified if level-number is 77.",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-10"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-21",
+    "to": [
+     "SR-13.16.3-23"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR21",
+      "quote": "Each condition-name is subordinate to the data-name with which it is associated.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR23",
+      "quote": "Each condition-name is subordinate to the data-name with which it is associated.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "condition-names (formats 3 and 4) in file, working-storage, local-storage, linkage sections",
+     "condition-names under items of a record under a CD"
+    ],
+    "evidence-2002": [
+     "covered by the twin's witnesses pb567_condition_name_qualification / pb567-condition-name-misqualified (editions include 2002)",
+     "covered by probes cd88.cob / cd88amb.cob at --std 2002 only; not shown by the 2023 row"
+    ],
+    "reason": "Cause (a). Formats 3/4 (88) attach to any data description entry with a level-number (2002 SR22 has no section exclusion) and 13.16.31 SR2 admits 88 under a CD, so in 2002 the subordination (and so qualification of the condition-name by its conditional variable) also governs condition-names in a CD record. Probe at 2002: two B1-ONE condition-names under B1 and B2 of an output-CD record: 'B1-ONE OF B1', 'B1-ONE IN B2', 'B1-ONE IN B1 IN CDREC' resolve correctly (B1 ONE / B2 NOT / Q ONE; SET B1-ONE OF B2 TO TRUE gives 11); unqualified B1-ONE refused as ambiguous (COBOL1639).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cd88.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cd88amb.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (probes cd88.cob, cd88amb.cob)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cd88.cob, cd88amb.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-7",
+    "to": [
+     "SR-13.16.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.14 Data description entry",
+    "clause-2023": "13.16 Data description entry",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR7",
+      "quote": "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL or EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR7",
+      "quote": "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL or EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR1",
+      "quote": "A data description entry whose level-number is 1 that is specified in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WS/LS/LK/FS level 1 entries with GLOBAL; WS record entries with EXTERNAL; record descriptions of an FD with EXTERNAL or GLOBAL"
+    ],
+    "evidence-2002": [
+     "covered by probe sr7.cob at --std 2002 and the twin's witness pb518-external-fd-filler-record"
+    ],
+    "reason": "In 2002 GLOBAL is admitted on a level 1 data description entry of file/WS/LS/linkage (13.16.25 SR1 b; a CD entry is not in its list a-e) and EXTERNAL on FD and WS record entries (13.16.20 SR1), so no CD record carries either clause. 2023 widens EXTERNAL to level 1 type declarations. FD EXTERNAL/GLOBAL identical. Probe: FILLER or unnamed record under FD EXTERNAL / FD GLOBAL, and FILLER EXTERNAL / unnamed GLOBAL / FILLER GLOBAL in WS and LK, all refused (COBOL2404) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr7.cob",
+    "widening": "2023 also covers EXTERNAL on level 1 type declarations"
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-3",
+    "to": [
+     "SR-13.18.13.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.13 CODE-SET clause",
+    "clause-2023": "13.18.13 CODE-SET clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR3",
+      "quote": "either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR3",
+      "quote": "either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FD with CODE-SET and record descriptions, no SELECT WHEN: one alphabet only; a) usage display and SIGN SEPARATE; b) usage national and SIGN SEPARATE"
+    ],
+    "evidence-2002": [
+     "covered by probes codeset.cob and codeset2.cob at --std 2002 (and the twin's witnesses pb110-code-set-nonidentity, pb1219)"
+    ],
+    "reason": "CODE-SET format, SR1-SR3 and GR1-GR7 identical; FD clause only, no CD reach; SELECT WHEN exists in both and the rule governs only the no-SELECT-WHEN case. The twin's pb110_code_set_identity is refused at 2002 (it uses LINE SEQUENTIAL; S1 list B), so probes stand in: a COMP item and a non-separate S9 refused under alphabet-name-1, both names together refused, display and non-separate national-numeric items refused under alphabet-name-2, the correct national record accepted, identically at both editions (COBOL1672).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\codeset.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\codeset2.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-10",
+    "to": [
+     "SR-13.18.14.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14 COLUMN clause",
+    "clause-2023": "13.18.14 COLUMN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR10",
+      "quote": "All the occurrences of integer-1 shall be in increasing order of magnitude.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR10",
+      "quote": "All the occurrences of integer-1 shall be in increasing order of magnitude.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "multiple COLUMN clause in a report group description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe col10.cob at --std 2002"
+    ],
+    "reason": "COLUMN format 1 (report-writer) and SR1-SR10 identical. Probe: multiple COLUMN with OCCURS refused, non-increasing integer-1 refused (COBOL2745), at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col10.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-3",
+    "to": [
+     "SR-13.18.14.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14 COLUMN clause",
+    "clause-2023": "13.18.14 COLUMN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR3",
+      "quote": "The COLUMN clause may be specified only in an elementary entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR3",
+      "quote": "The COLUMN clause may be specified only in an elementary entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 COLUMN clause in a report group description entry"
+    ],
+    "evidence-2002": [
+     "covered by probe col3.cob at --std 2002"
+    ],
+    "reason": "Format 1 identical; report group entries identical. Probe: COLUMN on a group entry and COLUMN with no LINE above refused (COBOL2247) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col3.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-4",
+    "to": [
+     "SR-13.18.14.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14 COLUMN clause",
+    "clause-2023": "13.18.14 COLUMN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR4",
+      "quote": "The keyword ARE may be specified only if COLUMNS, COLS, or NUMBERS is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR4",
+      "quote": "The keyword ARE may be specified only if COLUMNS, COLS, or NUMBERS is specified.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 COLUMN clause keyword ARE"
+    ],
+    "evidence-2002": [
+     "covered by probes col4.cob, col4b.cob, col4ok.cob at --std 2002"
+    ],
+    "reason": "Format 1 keyword set identical (COLUMN NUMBER/NUMBERS, COLUMNS, COL NUMBER/NUMBERS, COLS). Probe: COLUMN ARE and COL NUMBER ARE refused; COLUMNS ARE, COLS ARE, COLUMN NUMBERS ARE, COL NUMBERS ARE, COLUMN IS accepted, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col4.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col4b.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col4ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.20.2-2",
+    "to": [
+     "SR-13.18.22.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.20 EXTERNAL clause",
+    "clause-2023": "13.18.22 EXTERNAL clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.20.2 SR2",
+      "quote": "the externalized name of the subject of the entry that includes the EXTERNAL clause shall not be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR2",
+      "quote": "the externalized name of the subject of the entry that includes the EXTERNAL clause shall not be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "in level 1 data description entries in the working-storage section, and in level 1 type declarations",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FD entries and WS record entries with EXTERNAL in one source element"
+    ],
+    "evidence-2002": [
+     "covered by probe extdup.cob at --std 2002 and the twin's witnesses pb511/pb1236"
+    ],
+    "reason": "Format identical. 2002 entries with EXTERNAL: FD and WS record description entries; 2023 adds level 1 type declarations (wider). The externalized name (2002 GR3 = 2023 GR5) is identical. No CD reach. Probe: a WS item AS \"SHARED\" equal to the FD's AS \"SHARED\", and AS \"E3\" equal to E3's own name, refused (COBOL2159) at both editions; a distinct name accepted.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\extdup.cob",
+    "widening": "2023 also covers external type declarations"
+   },
+   {
+    "rule-id": "2002-SR-13.16.25.2-2",
+    "to": [
+     "SR-13.18.27.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.25 GLOBAL clause",
+    "clause-2023": "13.18.27 GLOBAL clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.25.2 SR2",
+      "quote": "If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files shall not include the GLOBAL clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.27.3 SR2",
+      "quote": "If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files shall not include the GLOBAL clause.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FD and record description entries of files named in a SAME RECORD AREA clause"
+    ],
+    "evidence-2002": [
+     "covered by probe glsame.cob at --std 2002"
+    ],
+    "reason": "GLOBAL format and SR1 list a-e identical; SAME RECORD AREA format identical (12.3.6 / 12.4.6.4). Probe: GLOBAL on an FD and on a record of files in SAME RECORD AREA refused (COBOL2738) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\glsame.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.31.2-1",
+    "to": [
+     "SR-13.18.33.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.31 Level-number",
+    "clause-2023": "13.18.33 Level-number",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.2 SR1",
+      "quote": "A level-number is required as the first element in each data description or screen description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR1",
+      "quote": "A level-number is required as the first element in each data description or screen description entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR2",
+      "quote": "Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "data description entries in file, WS, LS, linkage sections",
+     "data description entries of records under a CD",
+     "screen description entries"
+    ],
+    "evidence-2002": [
+     "covered by the twin's witness pb485-level-number-missing (editions include 2002)",
+     "covered by probe cdnolev.cob at --std 2002 only; not shown by the 2023 row",
+     "covered by the twin's grammar witness (screen description entries identical in both)"
+    ],
+    "reason": "Cause (a), named in the clause itself: 2002 SR2 and GR3 name the CD ('subordinate to a CD, FD, or SD entry'), 2023 SR2 names only FD or SD. So 'each data description ... entry' in 2002 includes the record description entries under a CD. Probe at 2002: an entry under a CD with no level-number refused (COBOL0001); entries with level-numbers accepted and run (cdlevok.cob).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdnolev.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdlevok.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the rule applied to a record description entry under a CD entry (probe cdnolev.cob)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\cdnolev.cob)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-10",
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.3.4.8.2-1",
+    "verdict": "UPHELD",
+    "reason": "LOCK MODE general format identical in both (re-read 2002 12.3.4.8.1 and 2023 12.4.5.9.2). 2002 file control formats 1-3 carry LOCK MODE with the same organizations and access modes as 2023 (format 3 sequential already lacks MULTIPLE in its own diagram); 2002 12.3.4.4.3 GR1 default access sequential matches 2023. No CD or debugging reach. File sharing/record locking was required in 2002 and is optional from 2014 (2014 E.2 item 23), but the 2023 row is a witnessed CONFORMS, not an unclaimed-optional verdict. My own probe lockrel.cob (relative, ACCESS omitted, MULTIPLE) is refused COBOL1512 at 2002 and 2023, as the default-sequential reading requires.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.2 SR1",
+      "quote": "The MULTIPLE phrase shall not be specified for a file described with sequential organization or sequential access mode.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.3 SR2",
+      "quote": "The MULTIPLE phrase shall not be specified for a file described with sequential organization or sequential access mode.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.4.3 GR1",
+      "quote": "If the ACCESS MODE clause is not specified, sequential access is assumed.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\lockrel.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-10",
+    "verdict": "UPHELD",
+    "reason": "SAME clause formats 1-3 and SR1-SR10 are word-identical; 2023 adds only SR11 and GR3 (APPLY COMMIT, absent in 2002). The file kinds (report, sort/merge, other) are the same in both. No CD reach. Nothing in the I-O-CONTROL paragraph the rule leans on lost a form.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR10",
+      "quote": "all of the file-names specified in that file-area format SAME clause shall also be specified in those sort-merge-area format SAME clause(s)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR10",
+      "quote": "all of the file-names specified in that file-area format SAME clause shall also be specified in those sort-merge-area format SAME clause(s)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-2",
+    "verdict": "UPHELD",
+    "reason": "Identical formats and rule. I probed the one case the 2023 note singles out (a containing program's GLOBAL file named in a contained program's SAME RECORD AREA): refused COBOL2738 at 2002 and 2023, as SR2 requires (the file is not in the contained program's own FILE-CONTROL).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR2",
+      "quote": "File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph of the source element that contains this SAME clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR2",
+      "quote": "File-name-1 and file-name-2 shall be specified in the FILE-CONTROL paragraph of the source element that contains this SAME clause.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\samenest.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.6.2-6",
+    "verdict": "UPHELD",
+    "reason": "Identical formats; 2002 sort-merge file control format 4 and SD entries correspond to 2023. No 2002-only file kind reaches the rule.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.12.2-2",
+    "verdict": "UPHELD",
+    "reason": "2002 RD writes GLOBAL, CODE IS identifier-1|literal-1, CONTROL(S) and PAGE inline; 2023 13.18.12, 13.18.16 and 13.18.39 carry the same phrases and operands (compared phrase by phrase: PAGE LIMIT(S), LINE(S), COLS/COLUMNS, HEADING, FIRST DE/DETAIL, LAST CH/CONTROL HEADING, LAST DE/DETAIL, FOOTING). No clause dropped. No CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:13.12.2 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.3 SR2",
+      "quote": "The clauses that follow report-name-1 may appear in any order.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-11",
+    "verdict": "UPHELD",
+    "reason": "Report group general format identical clause for clause (2002 13.13.1 vs 2023 13.15.2), SR1-SR17 identical apart from the zero-length-literal words in SR14. Report group entries occur only in the report section in both. Report writer became optional in 2014 (E.2 item 23) but the 2023 row is a witnessed CONFORMS.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR11",
+      "quote": "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in an elementary entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR11",
+      "quote": "The PICTURE, COLUMN, SOURCE, VALUE, SUM, and GROUP INDICATE clauses may be written only in an elementary entry.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-15",
+    "verdict": "UPHELD",
+    "reason": "Same format; BLANK WHEN ZERO, JUSTIFIED and COLUMN are the same clauses.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR15",
+      "quote": "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR15",
+      "quote": "If BLANK WHEN ZERO or JUSTIFIED is specified, a COLUMN clause shall also be specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-17",
+    "verdict": "UPHELD",
+    "reason": "Same format; the PRESENT WHEN here is the report-group one (condition-1), not the VALIDATE one, so 2023's optional status of VALIDATE does not enter. Re-ran the reader's sr17.cob at 2002: COBOL1559 as reported.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR17",
+      "quote": "The GROUP INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR17",
+      "quote": "The GROUP INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr17.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-2",
+    "verdict": "UPHELD",
+    "reason": "Entry-name clause has the same three formats in both (2002 13.16.18.1, 2023 13.18.20.2); 2023 adds only SR1 (data-name-1 not qualified or subscripted), which has no meaning for a defining occurrence.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR2",
+      "quote": "If the entry-name clause is specified, the data-name format or filler format shall be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR2",
+      "quote": "If the entry-name clause is specified, the data-name format or filler format shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same rule; 2002 13.16.31 SR4 for RD-subordinate entries matches 2023. Re-ran reader's sr3.cob at 2002: levels 50/51 refused COBOL1746.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR3",
+      "quote": "Level-number shall be any integer from 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR3",
+      "quote": "Level-number shall be any integer from 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\sr3.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-6",
+    "verdict": "UPHELD",
+    "reason": "Same format and NEXT GROUP clause; no 2002-only form.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR6",
+      "quote": "The NEXT GROUP clause may be specified only in a level 1 entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR6",
+      "quote": "The NEXT GROUP clause may be specified only in a level 1 entry.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.13.2-9",
+    "verdict": "UPHELD",
+    "reason": "Same format; COLUMN format 1 is identical in both and LINE is the same report-writer clause.",
+    "citations": [
+     {
+      "cite": "§2002:13.13.2 SR9",
+      "quote": "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry with a LINE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.15.3 SR9",
+      "quote": "Every elementary entry with a COLUMN clause but no LINE clause shall be subordinate to an entry with a LINE clause.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-2",
+    "verdict": "UPHELD",
+    "reason": "Level 77 exists only in working-storage, local-storage and linkage in 2002 (13.16.31 SR2 and SR5); the communication section admits only CD, constant and record description entries (A.1.1), never 77. The 2002 format 1 clause list is a subset of 2023's. Same scope.",
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR2",
+      "quote": "The data-name format of the entry-name clause shall be specified if level-number is 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR2",
+      "quote": "The data-name format of the entry-name clause shall be specified if level-number is 77.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-7",
+    "verdict": "OVERTURNED",
+    "reason": "'Any entry containing the GLOBAL or EXTERNAL clause' reaches a different set of entries in 2002. 2002 admits EXTERNAL in 'record description entries in the working-storage section', and a record description entry is the whole set of data description entries of a record (13.10), so the words admit EXTERNAL on a subordinate (level 2-49) WS entry. 2023 SR1 restricts EXTERNAL to level 1 entries. 2014 E.2 item 12 says the 2002 rule opened exactly this case and that 2014 removed it. So in 2002 SR7 also governs a subordinate WS entry carrying EXTERNAL (e.g. 05 FILLER ... IS EXTERNAL). The 2023 row cannot show that case. Probe at 2002: ext05f.cob is refused with the SR7 message (correct for SR7), plus an SR1 message citing the 2023 level-1 rule. ext05ok.cob (a named 05 EXTERNAL item) is refused at 2002 on the 2023 SR1 ground. That outcome belongs to 2002-SR-13.16.20.2-1, outside this slice.",
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR7",
+      "quote": "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL or EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR7",
+      "quote": "The data-name format of the entry-name clause shall be specified for any entry containing the GLOBAL or EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries, in level 1 data description entries in the working-storage section, and in level 1 type declarations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.10",
+      "quote": "A record description entry consists of a set of data description entries, the first of which shall have level-number 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "introducing the possibility that implementors would allow the EXTERNAL clause in working-storage record descriptions declared at other than level 1",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for a subordinate (level 2-49) working-storage entry with EXTERNAL and no data-name, refused by SR7; ext05f.cob shows that refusal at --std 2002",
+    "compiler-at-2002": "correct for SR7 (ext05f.cob refused with the SR7 message). The same case also draws a 2023-SR1 refusal, which the 2002 SR1 words may not support: adjudicate under 2002-SR-13.16.20.2-1",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\ext05f.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\ext05ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.13.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "The words and format are identical, but the rule's antecedent ('no SELECT WHEN clauses are specified') bounds its scope, and the 2023 CONFORMS verdict rests on that antecedent being always true: its notes say 'no SELECT WHEN clauses (none exist in this grammar)', because SELECT WHEN is an optional 2023 element (A.4.8) for which no support is claimed. In 2002 the only optional element is Annex A (3.1), so SELECT WHEN is required, and an FD with CODE-SET whose records carry SELECT WHEN lies outside SR3 (GR4 converts only the selected record's display/national items). Probe csselw.cob (CODE-SET IS A1, records with SELECT WHEN T-A / OTHER, one COMP item): at --std 2002 the compiler reports COBOL1672 citing SR3 a ('RC is not usage DISPLAY'), applying the restriction exactly where 2002 SR3 lifts it. It also refuses the SELECT WHEN clauses themselves (COBOL1705, 'optional element', a 2023-only ground). Class other: the verdict rests on optional status. Same kind as p-02's BLOCK CONTAINS overturn and the reader's own SR18 note.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.2 SR3",
+      "quote": "If there are record description entries associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.3 SR3",
+      "quote": "If there are record description entries associated with the file and no SELECT WHEN clauses are specified, either alphabet-name-1 or alphabet-name-2 may be specified, but not both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.13.3 GR4",
+      "quote": "Alphabet-name-1 is used for code-set conversion of each data item described with usage display in the selected record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.2 SR1",
+      "quote": "A SELECT WHEN clause may be specified only at the 01 level of a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "A.4.7, FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "needs": "its own verdict: at --std 2002, for a CODE-SET FD whose records carry SELECT WHEN, the compiler applies SR3 a (COBOL1672 on a COMP item) where the 2002 rule does not apply; a 2002 witness also needs SELECT WHEN accepted at 2002",
+    "compiler-at-2002": "wrong: csselw.cob draws COBOL1672 citing SR3 a although SELECT WHEN clauses are specified (expected: no SR3 diagnostic, §2002:13.16.13.2 SR3 antecedent); the program is also refused by COBOL1705 because SELECT WHEN is treated as an unclaimed optional element, which 2002 does not make optional",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\csselw.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-10",
+    "verdict": "UPHELD",
+    "reason": "COLUMN format 1 and SR1-SR10 identical (re-read both). Re-ran reader's col10.cob at 2002: COBOL2745 on both arms.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR10",
+      "quote": "If more than one integer-1 or integer-2 operand is specified the clause is referred to as a multiple COLUMN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR10",
+      "quote": "If more than one integer-1 or integer-2 operand is specified the clause is referred to as a multiple COLUMN clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\col10.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 identical and the rule sits under FORMAT 1 in both, so the screen format (also identical) is not reached.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR3",
+      "quote": "The COLUMN clause may be specified only in an elementary entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR3",
+      "quote": "The COLUMN clause may be specified only in an elementary entry.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-4",
+    "verdict": "UPHELD",
+    "reason": "Format 1 keyword set identical (six spellings, optional IS/ARE); FORMAT 1 rule only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR4",
+      "quote": "The keyword ARE may be specified only if COLUMNS, COLS, or NUMBERS is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR4",
+      "quote": "The keyword ARE may be specified only if COLUMNS, COLS, or NUMBERS is specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.20.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "The reader cited both SR1s but misread them. The 2002 rule's 'entry that includes the EXTERNAL clause' covers every entry 2002 SR1 admits: file description entries and record description entries in working-storage. A record description entry is the whole set of a record's data description entries (13.10), so the words reach a subordinate level 2-49 WS entry with EXTERNAL. 2014 E.2 item 12 confirms 2002 opened that case and 2014 restored level 1 only. 2023 SR1 admits only level 1 data description entries and level 1 type declarations, so 2023 also adds a case. For 2002 the extra case is uniqueness of externalized names between subordinate EXTERNAL entries, which the 2023 row cannot witness. Probe ext05.cob (two 05 items EXTERNAL AS 'XSAME'): refused at 2002, but only by the 2023 level-1 SR1 (COBOL2404); SR2 (COBOL2159) never runs. The outcome is right; the 2002 SR2 reason is unshown. My extlk.cob (FD AS 'XREC' vs WS 01 XREC EXTERNAL) is refused COBOL2159 at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.20.2 SR2",
+      "quote": "the externalized name of the subject of the entry that includes the EXTERNAL clause shall not be the same as the externalized name of any other entry that includes the EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR2",
+      "quote": "the externalized name of the subject of the entry that includes the EXTERNAL clause shall not be the same as the externalized name of any other entry that includes the EXTERNAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries, in level 1 data description entries in the working-storage section, and in level 1 type declarations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "introducing the possibility that implementors would allow the EXTERNAL clause in working-storage record descriptions declared at other than level 1",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for two subordinate working-storage EXTERNAL entries with one externalized name, or a recorded 2002 adjudication of 13.16.20.2 SR1 (whether 2002 admits EXTERNAL below level 1) that makes the case vacuous",
+    "compiler-at-2002": "outcome correct (ext05.cob refused) but on the 2023 SR1 ground; whether that refusal is right at 2002 is a question for 2002-SR-13.16.20.2-1",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\ext05.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-10\\extlk.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.25.2-2",
+    "verdict": "UPHELD",
+    "reason": "GLOBAL SR1 list a-e identical in both (the communication section is not in item b), and the SAME RECORD AREA format is identical. Re-ran reader's glsame.cob at 2002: COBOL2738 on both halves.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.25.2 SR2",
+      "quote": "If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files shall not include the GLOBAL clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.27.3 SR2",
+      "quote": "If the SAME RECORD AREA clause is specified for several files, the record description entries or the file description entries for these files shall not include the GLOBAL clause.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-10\\glsame.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "4d79212773ec042f99b5a3a47fa5b2e7cad8be4d4bf4258dc7fc6454a999c2be",
+  "read": "9dd0de31a7a80b801cdfc3fe9710ace48116c09f644005adee100b59381274ec",
+  "refute": "6da67f55e1c08f77d431abb1ad1e4b20e23f73f8c534044cb9d2819b627bf198"
+ }
+}

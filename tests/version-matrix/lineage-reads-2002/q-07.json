@@ -1,0 +1,2321 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-07 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-07",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-11.6.3-6",
+   "2002-GR-11.6.3-7",
+   "2002-SR-11.7.2-2",
+   "2002-GR-11.7.3-1",
+   "2002-GR-11.8.4.2-3",
+   "2002-SR-11.8.5.2-1",
+   "2002-SR-11.9.2-6",
+   "2002-SR-12.2.2-2",
+   "2002-GR-12.2.4.3-1",
+   "2002-GR-12.2.4.3-2",
+   "2002-GR-12.2.4.3-3",
+   "2002-GR-12.2.5.3-1",
+   "2002-GR-12.2.5.3-10",
+   "2002-GR-12.2.5.3-11",
+   "2002-GR-12.2.5.3-12",
+   "2002-GR-12.2.5.3-4",
+   "2002-GR-12.2.5.3-5",
+   "2002-GR-12.2.5.3-6",
+   "2002-GR-12.2.5.3-7",
+   "2002-GR-12.2.5.3-8",
+   "2002-SR-12.2.6.2-1",
+   "2002-SR-12.2.6.2-16",
+   "2002-SR-12.2.6.2-23",
+   "2002-SR-12.2.6.2-25",
+   "2002-SR-12.2.6.2-26"
+  ],
+  "flags": {
+   "2002-GR-11.7.3-1": {
+    "cross-reference": "9.3.11"
+   },
+   "2002-SR-11.8.5.2-1": {
+    "changed-definition-term": "program prototype definition"
+   },
+   "2002-GR-12.2.4.3-1": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.4.3-2": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.4.3-3": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.5.3-1": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.5.3-10": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.5.3-4": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-12.2.5.3-6": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-SR-12.2.6.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "source unit"
+   },
+   "2002-SR-12.2.6.2-23": {
+    "normalized": "normalized"
+   },
+   "2002-SR-12.2.6.2-25": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "alphanumeric group item"
+   },
+   "2002-SR-12.2.6.2-26": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-07",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-11.6.3-6",
+    "to": [
+     "GR-11.7.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR6",
+      "quote": "If the GET phrase is specified, this method is a get property method for property-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR6",
+      "quote": "If the GET phrase is specified, this method is a get property method for property-name-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "METHOD-ID. GET PROPERTY property-name-1 in a method definition of an instance or factory definition",
+     "GET PROPERTY in a method prototype of an interface definition (the implementing class must supply the get property method)"
+    ],
+    "evidence-2002": [
+     "class get property method: covered by oo_property_explicit_ref (accept: [2002]; probe run at 2002 MATCH .out: SET-CALLED / GET-CALLED / W=00007) and oo_property_methods (2002 MATCH)",
+     "interface GET PROPERTY prototype: covered by pb1449_interface_property (accept: [2002], 2002 MATCH) and pb1449-implements-without-property-accessor (refuse-at includes 2002; COBOL0841 at 2002)"
+    ],
+    "reason": "The general format is identical in both editions (method-name-1 [AS literal-1] | {GET|SET} PROPERTY property-name-1, [OVERRIDE] [IS FINAL]). GR6 is identical; the 2023 SR6 adds an ACTIVE-CLASS restriction on the returning item, a separate syntax rule that narrows legal programs only in 2023 and does not touch what GR6 defines. No CD, debugging-line, removed-form or enumeration reach. All twin witnesses run and pass at --std 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\8.4.3.9-Object-property\\oo_property_explicit_ref.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-7",
+    "to": [
+     "GR-11.7.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR7",
+      "quote": "If the SET phrase is specified, this method is a set property method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR7",
+      "quote": "If the SET phrase is specified, this method is a set property method",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "METHOD-ID. SET PROPERTY property-name-1 in a method definition",
+     "SET PROPERTY in an interface method prototype"
+    ],
+    "evidence-2002": [
+     "class set property method: covered by oo_property_explicit_ref (2002 MATCH: SET-CALLED) and oo_property_methods (2002 MATCH)",
+     "interface SET PROPERTY prototype: covered by pb1449_interface_property (accept: [2002]; 2002 MATCH: MOVE 42 TO BAL OF I runs the implementer's SET, A=00042)"
+    ],
+    "reason": "Same format, same rule text; the 2023-only ACTIVE-CLASS restriction on the USING parameter is SR7, not this rule. No reach into removed forms. Twin witnesses run and pass at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\11.7-METHOD-ID\\pb1449_interface_property.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.7.2-2",
+    "to": [
+     "SR-11.8.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.7 OBJECT paragraph (conformance: 9.3.7.1.2, a pending 2002 clause)",
+    "clause-2023": "11.8 OBJECT paragraph (conformance: 9.3.8.2.3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.7.2 SR2",
+      "quote": "the object interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.8.3 SR2",
+      "quote": "the object interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "The entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.8.2.3",
+      "quote": "the entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OBJECT. IMPLEMENTS interface-name-1: every prototype of each implemented interface has a method of the same name",
+     "same number of parameters, consistent BY REFERENCE / BY VALUE",
+     "object-reference parameters and returning items per 9.3.7.1.2 items 2 and 5",
+     "non-object parameters and returning items: same ANY LENGTH, BLANK WHEN ZERO, JUSTIFIED, PICTURE, SIGN, USAGE",
+     "RETURNING presence, OPTIONAL presence, strongly-typed group type, RAISING, entry conventions"
+    ],
+    "evidence-2002": [
+     "missing method: covered by OoSpineTests.Implements_MissingMethod_0841 (ErrorsOf defaults to edition 2002, OoSpineTests.cs line 211) and pb1449-implements-without-property-accessor (COBOL0841 at 2002)",
+     "BY VALUE vs BY REFERENCE: covered by pb1051-implements-by-reference-vs-prototype-by-value (refuse-at includes 2002; COBOL0841 at 2002) and pb1051_method_by_value (2002 MATCH)",
+     "PICTURE mismatch: covered by OoSpineTests.Implements_NumericDescriptionMismatch_0841 (edition 2002 by default)",
+     "object-reference, RAISING, OPTIONAL and returning-item items: covered by the same OoConformance.MethodConformanceMismatches code the 2023 row cites; not separately probed at 2002"
+    ],
+    "reason": "OBJECT paragraph format and SR1/SR2 identical. The term 'conforms' is defined in 2002 by 9.3.7.1.2 (pending, uncatalogued) and in 2023 by 9.3.8.2.3. Read side by side: every 2002 condition (items 1 to 10) is present in 2023, the entry-convention item moved into the 2023 preamble; 2023 adds ALIGNED and DYNAMIC LENGTH to the clause lists and a variable-length-group sentence, none of which exist in 2002. So the 2002 requirement is a subset of the 2023 one. No CD, debugging or removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\9.3.8.2.3-Conformance-between-interfaces\\pb1051-implements-by-reference-vs-prototype-by-value.cob",
+    "widening": "2023 conformance also compares ALIGNED, DYNAMIC LENGTH and variable-length groups (2023-only items).",
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. This rule does use 'object interface' (§2002:11.7.2 SR2); §2002:4 (4.110) lists, per method, the ordered formal parameters with description and passing technique, the returned value, and the exceptions, the same three items as 2023 3.109, so what must conform is the same; the conformance test itself is §2002:9.3.7.1.2, read by the reader.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: binding by name only in 2002, by signature in 2023 (overloading, which this compiler does not claim, PB1519). Conformance (§2002:9.3.7.1.2) pairs each prototype with the class's method of the same name, which with one method per name is the binding 9.3.5 gives, so the 2002 witnesses (COBOL0841 at 2002) show the 2002 requirement."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The names of all the methods defined for the object, including inherited methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.7.2 SR2",
+      "quote": "the object interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-GR-11.7.3-1",
+    "to": [
+     "GR-11.8.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.7 OBJECT paragraph; 9.3.11",
+    "clause-2023": "11.8 OBJECT paragraph; 9.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.7.3 GR1",
+      "quote": "implemented by the object of the containing class according to 9.3.11, Interface implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.8.4 GR1",
+      "quote": "implemented by the object of the containing class according to 9.3.11, Interface implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications defined for the implemented interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications defined for the implemented interface definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OBJECT. IMPLEMENTS names the interfaces the instance object implements, per 9.3.11"
+    ],
+    "evidence-2002": [
+     "covered by oo_interface (accept: [2002]; run at 2002 MATCH .out: MEOW / WOOF) and pb1449-implements-without-property-accessor (COBOL0841 at 2002 for an unimplemented prototype)"
+    ],
+    "flags-answered": {
+     "cross-reference: 9.3.11": "I read §2002:9.3.11. A word diff with §2023:9.3.11 is empty apart from the heading level ('The implementing class shall implement all the method specifications'), so the scope is unchanged.",
+     "definition-changed: class | of a data item; interface | of an object": "The rule's 'class' is the object-orientation class (§2002:4: 'The entity that defines common behavior and implementation for zero, one, or more objects'), not the class of a data item, so that definition does not apply. Interface of an object (§2002:4) differs from 2023 only in 'may' against 'can'. Neither changes what the rule governs."
+    },
+    "reason": "Format identical (OBJECT. [IMPLEMENTS {interface-name-1}... .]); GR1 and GR2 (the three cases of implementing intf-1) identical; the referenced 9.3.11 is identical in both editions. The conformance it implies is the 9.3.7.1.2 comparison read under 2002-SR-11.7.2-2 (2002 items are a subset of 2023's). No CD or removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\11.8-OBJECT\\oo_interface.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "cross-reference 9.3.11: the 2002 text of 9.3.11 is word for word the 2023 text (both checked); it does not change the rule's scope or evidence"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The names of all the methods defined for the object, including inherited methods",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-11.8.4.2-3",
+    "to": [
+     "GR-11.9.5.2-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.8.4 ARITHMETIC clause; 8.8.1.2 Native arithmetic",
+    "clause-2023": "11.9.5 ARITHMETIC clause; 8.8.1.3 Native arithmetic",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.8.4.2 GR3",
+      "quote": "it is as if the ARITHMETIC clause were specified with the NATIVE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.5.2 GR4",
+      "quote": "it is as if the ARITHMETIC clause were specified with the NATIVE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a source element with no ARITHMETIC clause in itself or any containing source element: native arithmetic",
+     "a contained source element whose container has no ARITHMETIC clause: native"
+    ],
+    "evidence-2002": [
+     "single program: covered by l1_native_arith_lane_and_rounding (S1 widened pass; my 2002 run MATCH .out)",
+     "contained element: covered by probe ar_default_nested.cob at 2002 (OUTER=1.999999, INNER=1.999999); contrast ar_standard_nested.cob (container ARITHMETIC IS STANDARD: both 2.000000), which shows the 'containing source element' half"
+    ],
+    "reason": "The 2002 format has NATIVE | STANDARD, 2023 has NATIVE | STANDARD-BINARY | STANDARD-DECIMAL, but GR3 concerns only the absence of the clause, and the default is NATIVE in both. Native arithmetic is implementor-defined in both editions; 2002 8.8.1.2's extra sentence (native also applies to some operations under STANDARD) concerns GR2, not the default. The pair was held back for the uncatalogued arithmetic clauses: the default does not rest on standard arithmetic, so the 32-digit defect does not reach it.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\ar_default_nested.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). GR3 fixes only the default mode: with no ARITHMETIC clause it is as if NATIVE were written (§2002:11.8.4.2 GR3, §2002:8.8.1.2). It rests on no standard-arithmetic text, and PB5575 lies only under ARITHMETIC IS STANDARD, so the flag changes neither scope nor evidence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR3",
+      "quote": "it is as if the ARITHMETIC clause were specified with the NATIVE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.8.5.2-1",
+    "to": [
+     "SR-11.9.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.8.5 ENTRY-CONVENTION clause",
+    "clause-2023": "11.9.7 ENTRY-CONVENTION clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.8.5.2 SR1",
+      "quote": "a program prototype definition, or a program definition that is not contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.7.3 SR1",
+      "quote": "a program prototype definition, or a program definition that is not contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.5.3 GR2",
+      "quote": "The meaning of the entry convention specified by entry-convention-name-1 is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "ENTRY-CONVENTION clause (entry-convention-names, their meanings and the default when not specified). This item is optional",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPTIONS. ENTRY-CONVENTION IS entry-convention-name-1 permitted in a class, function, function-prototype, interface or program-prototype definition, or an outermost program definition",
+     "refused in a contained program, a method definition, a factory or instance definition"
+    ],
+    "evidence-2002": [
+     "contained program refused by placement: covered by probe ec_contained_name.cob at 2002 (COBOL2385 'specified in a program contained within another program') and by pb232-entry-convention-contained run at 2002 (same COBOL2385; its refuse-at lists only 2014 and 2023, so the suite does not check it at 2002)",
+     "method definition refused by placement: covered by probe ec_method.cob at 2002 (COBOL2385 'specified in a method definition')",
+     "permitted placements: the 2002 format names only entry-convention-name-1, and the compiler defines none (licensed: §2002:B.1 item 44 optional); every name is refused by name at 2002 (probes ec_outer_name.cob, ec_class_name.cob: COBOL2385 'this implementation defines no entry-convention-name'), so the permitted half has no accepting program at 2002; the 2023 accept witness pb232_entry_convention_cobol uses IS COBOL, which 2002's format lacks, and is correctly refused at 2002 (COBOL0900)"
+    ],
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object; program prototype definition": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. The rule's 'interface definition' is the language construct (§2002:4 4.111). §2002:4 (4.153) program prototype definition says 'a particular subprogram' where 2023 3.148 says 'called program': the same definitions; the list of definitions the rule permits is word for word the same.",
+     "definition-dropped: class definition | in object orientation (newer: undefined)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same."
+    },
+    "reason": "SR1's list of permitted source elements is word for word the same. 2023 widened the general format (a COBOL keyword alternative); the 2002 format is ENTRY-CONVENTION IS entry-convention-name-1 only. The rule restricts placement, and the compiler enforces the placement at 2002 with its own diagnostic, independent of the name refusal. Twin evidence does not run at 2002 (refuse-at lacks 2002); my probes supply it. Recommend adding 2002 to pb232-entry-convention-contained's refuse-at.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\ec_contained_name.cob",
+    "widening": "2023 adds ENTRY-CONVENTION IS COBOL to the format; the placement rule also governs that form in 2023.",
+    "reader-flags-answered": [
+     "changed-definition-term 'program prototype definition': 2002 4.153 says 'a particular subprogram', 2023 3.148 says 'a particular called program'; same definition otherwise; the set of definitions SR1 permits is unchanged, so neither scope nor evidence changes"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "the class of the parameters expected to be received by a particular subprogram",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-6",
+    "to": [
+     "SR-11.10.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9 PROGRAM-ID paragraph",
+    "clause-2023": "11.10 PROGRAM-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR6",
+      "quote": "The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR6",
+      "quote": "The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECURSIVE on a program directly contained in an INITIAL program (refuse)",
+     "RECURSIVE on a program indirectly contained in an INITIAL program (refuse)",
+     "a contained program without RECURSIVE inside an INITIAL program (legal)"
+    ],
+    "evidence-2002": [
+     "direct: covered by pb1507-recursive-in-initial-program (refuse-at includes 2002; COBOL2755 at 2002)",
+     "indirect: covered by probe rec_indirect.cob at 2002 (COBOL2755 naming the outermost initial program RIO)",
+     "legal control: covered by probe rec_legal.cob at 2002 (OK) and pb154_cancel_cascade (2002 MATCH)"
+    ],
+    "reason": "Format 1 is identical in both editions (IS {COMMON | {INITIAL | RECURSIVE}} PROGRAM with choice indicators); SR1 to SR6 identical except the 2023 zero-length-literal ban in SR1. 'Initial program' is the same attribute in both. No removed form, no CD or debugging reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\rec_indirect.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: initial program (newer: D.6.4.3)": "§2002:4 'initial program: A program that is placed into the initial state every time the program is called'; 2023 gives the same attribute by the INITIAL clause (11.10) and D.6.4.3. The programs SR6 governs (RECURSIVE inside an INITIAL program, directly or indirectly) are the same; covered at --std 2002 by pb1507 and the reader's probes."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "initial program: A program that is placed into the initial state every time the program is called",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-2",
+    "to": [
+     "SR-12.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2 Configuration section",
+    "clause-2023": "12.3 Configuration section",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR2",
+      "quote": "The configuration section shall not be specified in a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR2",
+      "quote": "The configuration section shall not be specified in a method definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CONFIGURATION SECTION header in a method definition (refuse)",
+     "CONFIGURATION SECTION with paragraphs in a method definition (refuse)",
+     "a bare ENVIRONMENT DIVISION header in a method (legal)"
+    ],
+    "evidence-2002": [
+     "header alone: covered by probe cfg_method.cob at 2002 (COBOL2644)",
+     "with SPECIAL-NAMES: covered by probe cfg_method_sn.cob at 2002 (COBOL2644)",
+     "bare header legal: covered by probe cfg_method_bare.cob at 2002 (compiles; exit 64 only because --run was given a class library)",
+     "the twin's witness OoEnvironmentPlacementTests compiles at edition 2023 only (OoEnvironmentPlacementTests.cs line 82), so it is not 2002 evidence"
+    ],
+    "reason": "Configuration section general format (four optional paragraphs) and SR1 to SR3 identical. 'Method definition' is the same construct in both. Nothing removed. The twin's test runs at 2023 only; probes show the same COBOL2644 at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cfg_method.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.4.3-1",
+    "to": [
+     "GR-12.3.5.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "12.2.4 SOURCE-COMPUTER paragraph",
+    "clause-2023": "12.3.5 SOURCE-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.4.3 GR1",
+      "quote": "All clauses of the SOURCE-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.4 GR1",
+      "quote": "All clauses of the SOURCE-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "If the DEBUGGING MODE clause is specified in a source unit, all debugging lines are compiled as if the debugging indicator was replaced by three spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR5",
+      "quote": "any debugging lines are compiled as if they were comment lines",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "computer-name-1 applies to the source unit and every contained source unit",
+     "WITH DEBUGGING MODE applies to the source unit and every contained source unit (fixed D indicator and floating >>D debugging lines compiled in contained programs)",
+     "SOURCE-COMPUTER. WITH DEBUGGING MODE. (no computer-name-1) likewise applies to contained units"
+    ],
+    "evidence-2002": [
+     "computer-name-1: no observable effect in this implementation; not shown beyond compile acceptance (pb78 at 2002)",
+     "DEBUGGING MODE inherited: covered by probe sc_dbg_inherit.cob at 2002 (OUTER, OUTER-DEBUG, INNER, INNER-DEBUG, INNER-FLOAT-DEBUG); control sc_dbg_off.cob at 2002 (OUTER, INNER: debugging lines are comments). The twin's witness pb1088_dbg_contained (accept: [85]) is refused at 2002 for its USE FOR DEBUGGING declarative, which 2002 does not have, so it is not 2002 evidence",
+     "DEBUGGING MODE without computer-name-1: not shown; the form itself is refused at 2002 (see 2002-GR-12.2.4.3-3, defect)"
+    ],
+    "needs": "a 2002 witness for WITH DEBUGGING MODE in a containing program governing a contained program's debugging lines (probe sc_dbg_inherit.cob is one); and the fix of the SOURCE-COMPUTER. WITH DEBUGGING MODE. refusal reported under 2002-GR-12.2.4.3-3",
+    "compiler-at-2002": "correct (inheritance; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sc_dbg_inherit.cob); the no-computer-name form is the defect counted under 2002-GR-12.2.4.3-3",
+    "reason": "The 2002 general format is SOURCE-COMPUTER. [computer-name-1] [WITH DEBUGGING MODE] . (rendered PDF page 212 confirms the two independent brackets); the 2023 format is SOURCE-COMPUTER. [computer-name-1] . So 'all clauses' in 2002 includes the DEBUGGING MODE clause, which the 2023 rule cannot govern. The twin row's code (ConfigurationStep/BindDeclarations OR-ing DebuggingMode) does implement it, and the probe shows it at 2002, but the 2023 row's witness does not run at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sc_dbg_inherit.cob",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.4.3-2",
+    "to": [
+     "GR-12.3.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.4 SOURCE-COMPUTER paragraph",
+    "clause-2023": "12.3.5 SOURCE-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.4.3 GR2",
+      "quote": "the computer on which the source unit is being compiled is the source computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.4 GR2",
+      "quote": "the computer on which the source unit is being compiled is the source computer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no SOURCE-COMPUTER paragraph in the unit or any containing unit: the compiling computer is the source computer"
+    ],
+    "evidence-2002": [
+     "the twin is a derivation (docs/CONFORMANCE.md#DRV-GR-12.3.5.4-2: the paragraph is optional in the grammar and the source computer has no observable effect), which holds at 2002 on the same grammar; probe sc_none_nested.cob at 2002 compiles and runs a contained program with no paragraph anywhere (OUTER, INNER; its D line is a comment, consistent with GR5)"
+    ],
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The rule tests whether the unit or a containing unit has a SOURCE-COMPUTER paragraph, and 'containing' means the same in both. The scope and the evidence do not change."
+    },
+    "reason": "The rule concerns only the absence of the paragraph; it does not name a clause, so the DEBUGGING MODE difference of the format does not reach it (absence of the paragraph is absence of DEBUGGING MODE, governed by GR5). Identical requirement.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sc_none_nested.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.4.3-3",
+    "to": [
+     "GR-12.3.5.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "12.2.4 SOURCE-COMPUTER paragraph",
+    "clause-2023": "12.3.5 SOURCE-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.4.3 GR3",
+      "quote": "When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.4 GR3",
+      "quote": "When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.2 SR1",
+      "quote": "If neither computer-name-1 nor the DEBUGGING MODE clause is specified, the second period in the general format may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.3 SR1",
+      "quote": "If computer-name-1 is not specified, the second period in the General format may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "If the DEBUGGING MODE clause is specified in a source unit, all debugging lines are compiled as if the debugging indicator was replaced by three spaces",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SOURCE-COMPUTER. (bare, one or two periods): the compiling computer is the source computer",
+     "SOURCE-COMPUTER. WITH DEBUGGING MODE. (paragraph specified, computer-name-1 absent, DEBUGGING MODE present): the compiling computer is the source computer, and the debugging lines are compiled"
+    ],
+    "evidence-2002": [
+     "bare paragraph: covered by pb78_object_computer_optional_name (S1 widened pass; my 2002 run MATCH) and probe sc_bare_two.cob at 2002 (BARE)",
+     "WITH DEBUGGING MODE without computer-name-1: REFUSED at 2002 (probe sc_dbg_noname.cob: error COBOL1971 \"unexpected 'WITH'. 'WITH' is not a paragraph of the CONFIGURATION SECTION\"); legal 2002 source"
+    ],
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for SOURCE-COMPUTER. WITH DEBUGGING MODE. (no computer-name-1) is a refusal (COBOL1971), which contradicts the 2002 format; after the fix, a 2002 witness for that form",
+    "compiler-at-2002": "wrong: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sc_dbg_noname.cob. Program (fixed form): IDENTIFICATION DIVISION. PROGRAM-ID. SCDNN. ENVIRONMENT DIVISION. CONFIGURATION SECTION. SOURCE-COMPUTER. WITH DEBUGGING MODE. PROCEDURE DIVISION. DISPLAY \"NO-NAME\". [D-line] DISPLAY \"DEBUG-ON\". STOP RUN. Expected at --std 2002: compiles (with the COBOL0903 obsolete warning) and prints NO-NAME, DEBUG-ON, per the 2002 general format SOURCE-COMPUTER. [computer-name-1] [WITH DEBUGGING MODE] . (PDF page 212 rendered: two independent brackets), §2002:12.2.4.2 SR1 and §2002:12.2.4.3 GR3/GR4. Observed: sc_dbg_noname.cob(5,25): error COBOL1971: unexpected 'WITH'. Code site: src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 sourceComputerParagraph: SOURCE_COMPUTER DOT (computerName debuggingModeClause? unrecognizedClause?)? DOT? (DEBUGGING MODE only after a computer-name, the 1985 shape)",
+    "reason": "Identical sentence, but the 2002 paragraph has a form the 2023 paragraph lacks: a paragraph specified with WITH DEBUGGING MODE and no computer-name-1. The 2002 SR1 ('neither computer-name-1 nor the DEBUGGING MODE clause') confirms the two are independent. GR3 governs that form in 2002; the compiler refuses it at 2002, so the 2002 rule is violated for a legal program. The twin's evidence is a derivation over the grammar, which encodes the 1985 nesting.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sc_dbg_noname.cob",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-1",
+    "to": [
+     "GR-12.3.6.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR1",
+      "quote": "All clauses of the OBJECT-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR1",
+      "quote": "All clauses of the OBJECT-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "PROGRAM COLLATING SEQUENCE applies to directly and indirectly contained source units",
+     "CHARACTER CLASSIFICATION applies to directly and indirectly contained source units",
+     "computer-name-1 (no observable effect)"
+    ],
+    "evidence-2002": [
+     "PCS and CHARACTER CLASSIFICATION in a direct and an indirect contained program: covered by probe oc_inherit.cob at 2002 (L1-REL=REV, L1-88=REV, L1-UP=00305, L2-REL=REV, L2-88=REV, L2-UP=00305; identical at 2023)",
+     "CHARACTER CLASSIFICATION IS LOCALE resolved at the contained program's activation: covered by probe cc_locale.cob at 2002 (OUTER-1=74, INNER=305, OUTER-2=74)",
+     "the twin's witness pb60_nested_configuration_inheritance is refused at 2002 for ARITHMETIC IS STANDARD-DECIMAL (a 2014 form unrelated to this rule), so it is not 2002 evidence"
+    ],
+    "reason": "The OBJECT-COMPUTER general format is the same in both editions (computer-name-1, CHARACTER CLASSIFICATION with locale-phrase-1/2 and FOR ALPHANUMERIC/NATIONAL, PROGRAM COLLATING SEQUENCE with alphabet-name-1/2 and FOR phrases); no clause exists in one edition only, so 'all clauses' covers the same set. Requirement identical; probes give the 2002 evidence the twin's witness cannot.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\oc_inherit.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. 'Apply to the source unit' therefore covers directly and indirectly contained units in both; probe oc_inherit.cob shows this at 2002. The scope and the evidence do not change."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-10",
+    "to": [
+     "GR-12.3.6.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR10",
+      "quote": "the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR10",
+      "quote": "the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no PROGRAM COLLATING SEQUENCE in the unit or a containing unit: native alphanumeric and native national sequences"
+    ],
+    "evidence-2002": [
+     "covered by l1c19_native_collating_default (accept: [2002]; my 2002 run MATCH .out: A1/A2/N1 true, ORD-A=066, ORD-a=098, MAX=a); control oc_national.cob at 2002 shows the alphanumeric comparison stays native when only a national PCS is given (ALN-REL=NAT)"
+    ],
+    "reason": "Same format, same default; the native collating sequences are implementor-defined in both editions. No removed form or CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\12.3.6-OBJECT-COMPUTER\\l1c19_native_collating_default.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test for PROGRAM COLLATING SEQUENCE is the same. The scope and the evidence do not change.",
+     "definition-dropped: initial program (newer: D.6.4.3)": "The screen matched 'initial program' inside 'the initial program collating sequences' (§2002:12.2.5.3 GR10). There 'initial' qualifies the program collating sequences. It is not the term defined in §2002:4 (4.106 'A program that is placed into the initial state every time the program is called'), so that definition has no bearing on the rule."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR10",
+      "quote": "the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A program that is placed into the initial state every time the program is called",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-11",
+    "to": [
+     "GR-12.3.6.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR11",
+      "quote": "Implicitly specified by the presence of a CONTROL clause in a report description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR11",
+      "quote": "Implicitly specified by the presence of a CONTROL clause in a report description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) relation conditions, alphanumeric and national",
+     "b) condition-name conditions",
+     "c) control-break comparisons implied by an RD CONTROL clause",
+     "an alphabet associated with a locale: LC_COLLATE"
+    ],
+    "evidence-2002": [
+     "a) alphanumeric: covered by pb78_object_computer_optional_name, pb3_ord_collating_tail, pb111_class_object_computer (all run at 2002, MATCH ignoring trailing spaces); national: probe oc_national.cob at 2002 (NAT-REL=REV)",
+     "b) covered by probe oc_inherit.cob at 2002 (88 VALUE \"A\" THRU \"C\" false for \"B\" under ALPHABET \"B\" \"A\": L1-88=REV)",
+     "c) covered by probe oc_control.cob at 2002: PCS with \"A\" ALSO \"B\" gives no control break between A and B (DET A, DET B, BREAK, DET C, BREAK); control oc_control_native.cob breaks at every change",
+     "locale: covered by pb64t1_locale_declare (accept: [2002], 2002 MATCH)",
+     "pb60_nested_configuration_inheritance does not run at 2002 (STANDARD-DECIMAL)"
+    ],
+    "reason": "Identical enumeration a) to c) in both editions; the report writer and its CONTROL clause exist in both. Nothing in the list exists in one edition only. The twin's tests do not witness b) or c) even at 2023; the probes show both at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\oc_control.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-12",
+    "to": [
+     "GR-12.3.6.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR12",
+      "quote": "are effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR12",
+      "quote": "are effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the program collating sequences take effect with the module's initial state",
+     "a locale-associated alphabet: LC_COLLATE of its locale, or of the locale current when the sequence is used"
+    ],
+    "evidence-2002": [
+     "covered by pb64t1_locale_declare (accept: [2002]; my 2002 run MATCH .out: ROOT/ES1/ES2/ES3/NAMED/BACK legs)"
+    ],
+    "reason": "Same format and wording; ALPHABET ... IS LOCALE [locale-name-2] exists in both editions' alphabet-name clause. No removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\12.3.6-OBJECT-COMPUTER\\pb64t1_locale_declare.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "The rule matches on 'initial state'. §2002:14.5.2.1.2.1 says the program collating sequences are determined before data is placed in the initial state, word for word as §2023:14.6.2.3.2, and its three activation occasions are the same; what differs (2002 initializes the communication section, 2023 adds the INITIALIZE clause and dynamic tables) is about data, not collating-sequence timing. 'Terminat'/transfer-of-control text (§2002:14.5.10, 14.5.3) is not named by the rule; 14.5.10 item 5 (locale reset at termination implementor-defined) does not touch when LC_COLLATE is read during execution. Scope and the pb64t1_locale_declare evidence at 2002 are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "Before data is placed in the initial state, the initial alphanumeric and national program collating sequences are determined as specified in 12.2.5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.2.3.2",
+      "quote": "Before data is placed in the initial state, the initial alphanumeric and national program collating sequences are determined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "If a locale was in use in the run unit, the implementor specifies whether the locale is reset",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR12",
+      "quote": "are effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-4",
+    "to": [
+     "GR-12.3.6.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR4",
+      "quote": "When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR4",
+      "quote": "When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no OBJECT-COMPUTER paragraph in the unit or a containing unit: implementor-defined object computer"
+    ],
+    "evidence-2002": [
+     "covered by pb77_move_past_the_carrier (S1 widened pass; my 2002 run MATCH .out) and every probe of this slice without the paragraph (e.g. ar_default_nested.cob, a contained program, at 2002)"
+    ],
+    "reason": "An implementor-defined default with no form or clause dependence; identical wording and format. The 'source unit' flag does not change the containment the rule tests.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\12.3.6-OBJECT-COMPUTER\\pb77_move_past_the_carrier.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test in GR4 is the same. The scope and the evidence do not change."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-5",
+    "to": [
+     "GR-12.3.6.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR5",
+      "quote": "If LOCALE is specified as locale-phrase-1, the initial alphanumeric character classification is the character classification associated with the current locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR5",
+      "quote": "If LOCALE is specified as locale-phrase-1, the initial alphanumeric character classification is the character classification associated with the current locale",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) locale-name-1",
+     "b) LOCALE as locale-phrase-1",
+     "c) SYSTEM-DEFAULT",
+     "d) USER-DEFAULT",
+     "e) locale-phrase-1 absent",
+     "f) locale-name-2",
+     "g) LOCALE as locale-phrase-2",
+     "h) SYSTEM-DEFAULT",
+     "i) USER-DEFAULT",
+     "j) locale-phrase-2 absent"
+    ],
+    "evidence-2002": [
+     "a): covered by pb64t5_character_classification (accept: [2002], 2002 MATCH: UP-I=305 under TR)",
+     "b): covered by probe cc_locale.cob at 2002 (resolved at the contained program's activation after SET LOCALE LC_CTYPE TO TR: INNER=305, OUTER-1/2=74); the twin's pb64t5_case_locale_phrase does not run at 2002 (UPPER-CASE LOCALE phrase is a 2014 form)",
+     "c), d), h), i): accepted and run at 2002 by probes cc_system-default.cob and cc_user-default.cob (UPPER-CASE(\"i\") = 74 on this host, whose system and user default locales are not Turkish); not distinguishable from the coded-character-set default on this host",
+     "e) and g): covered by probe cc_nat_locale.cob at 2002 (FOR NATIONAL IS LOCALE: national UPPER-CASE(N\"i\") = 305 under TR, alphanumeric = 74)",
+     "f) and j): covered by pb760_classification_national_group (accept: [2002], 2002 MATCH: FOR ALPHANUMERIC IS EN FOR NATIONAL IS TR)"
+    ],
+    "reason": "Format of CHARACTER CLASSIFICATION and locale-phrase-1/2 is the same in both editions (LOCALE, SYSTEM-DEFAULT, USER-DEFAULT, locale-name). All ten cases identical. No removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cc_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined); national character (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR5's 'character classification' is a locale's LC_CTYPE classification, not one of the dropped entries; the ten cases the reader listed are unchanged. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions.",
+     "pending-clause: §2002:8.1.1 (changed, undecided)": "Not dependent: GR5 takes the classification from the current locale (§2002:12.2.5.3 GR5), and 8.1.1's differing text (2023's single coded values for figurative constants and editing characters, and the currency prohibition) does not bear on classification; the evidence is runs at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR5",
+      "quote": "If LOCALE is specified as locale-phrase-1, the initial alphanumeric character classification is the character classification associated with the current locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.1",
+      "quote": "The computer's coded character set is the set of characters used in the memory of the computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "national character: A character in a national character set",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-6",
+    "to": [
+     "GR-12.3.6.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR6",
+      "quote": "the initial character classifications are the character classifications associated with the computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR6",
+      "quote": "the initial character classifications are the character classifications associated with the computer's coded character set",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no CHARACTER CLASSIFICATION in the unit or a containing unit: coded-character-set classification for alphanumeric and national"
+    ],
+    "evidence-2002": [
+     "covered by pb78_object_computer_optional_name (S1 widened pass; 2002 MATCH) and probe cc_none.cob at 2002 (UPPER-CASE(\"i\") = 74, \"ab\" IS ALPHABETIC-LOWER true)"
+    ],
+    "reason": "Identical default and format; the twin's other witness pb64t5_case_locale_phrase (its PLAIN leg) does not run at 2002 for a 2014 phrase, the probe covers the leg.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cc_none.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test for CHARACTER CLASSIFICATION is the same. The scope and the evidence do not change.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR6, 'characters' and 'coded character set' are the runtime alphanumeric and national characters (4.29 and 4.40). The term picks out the same characters in both, so the scope and the evidence do not change.",
+     "pending-clause: §2002:8.1.1 (changed, undecided)": "§2002:8.1.1 ('The computer's coded character set is the set of characters used in the memory of the computer during compilation or during execution of a COBOL runtime element', split into alphanumeric and national, characters and encoding specified by the implementor) is carried word for word into 2023 8.1.2. The 2023 changes, such as the list of single coded values for figurative constants, editing and fill characters, do not touch character classification. The default GR6 names is the same, and probe cc_none.cob shows it at 2002."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': 2002 4.173 ends 'the end of the compilation group, including any contained source units', 2023 3.165 ends 'the end of the compilation' with a note that contained units are part of the containing unit; the containment the rule relies on is the same, so scope and evidence do not change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.1",
+      "quote": "The computer's coded character set is the set of characters used in the memory of the computer during compilation or during execution of a COBOL runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR6",
+      "quote": "the initial character classifications are the character classifications associated with the computer's coded character set",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-7",
+    "to": [
+     "GR-12.3.6.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph; 8.8.4.1.3 class condition",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph; 8.8.4.4 class condition",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR7",
+      "quote": "the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR7",
+      "quote": "the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR6",
+      "quote": "Alphabet-name-1 shall not reference an alphabet associated with a locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR2",
+      "quote": "Alphabet-name-1 shall not reference an alphabet associated with a locale",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) UPPER-CASE and LOWER-CASE (2002 format: argument-1 only)",
+     "b) ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER class tests",
+     "b) class test with an alphabet-name associated with a locale: unreachable, the 2002 class condition forbids it (SR6), as 2023 does (SR2)"
+    ],
+    "evidence-2002": [
+     "a) and b): covered by pb64t5_character_classification (accept: [2002], 2002 MATCH: UP-I=305, LO-I=306, ALPHA-TR=yes, UPPER-TR=yes, LOWER-TR=yes) and pb760_classification_national_group (2002 MATCH)"
+    ],
+    "reason": "Identical enumeration. 2023 adds a LOCALE phrase to UPPER-CASE/LOWER-CASE, a widening of the functions this rule names; 2002 calls have argument-1 only and are covered. The alphabet-name leg is barred by the class condition's own syntax rule in both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\8.8.4.4-Simple-class-condition\\pb64t5_character_classification.cob",
+    "widening": "2023 UPPER-CASE/LOWER-CASE also take a LOCALE phrase (a 2014 addition)."
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-8",
+    "to": [
+     "GR-12.3.6.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5 OBJECT-COMPUTER paragraph",
+    "clause-2023": "12.3.6 OBJECT-COMPUTER paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR8",
+      "quote": "the associated character classification is defined by category LC_CTYPE in the locale identified by that locale-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR8",
+      "quote": "the associated character classification is defined by category LC_CTYPE in the locale identified by that locale-name",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "classification effective with the initial state of the runtime module (program, contained program, class methods)",
+     "locale-name-1/2: LC_CTYPE of that locale"
+    ],
+    "evidence-2002": [
+     "initial state per activation: covered by probe cc_locale.cob at 2002 (contained program resolves at its own activation; the container keeps 74 after SET LOCALE)",
+     "locale-name: covered by pb64t5_character_classification and pb760 (accept: [2002], 2002 MATCH)",
+     "class methods: covered by pb111_class_object_computer run at 2002 (CLS-UP=00305; matches .out ignoring trailing spaces)"
+    ],
+    "reason": "Identical wording, format and terms. No removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\12.3.6-OBJECT-COMPUTER\\pb111_class_object_computer.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Character classification classifies code values of the alphanumeric and national coded character sets (4.26/4.29), the 2023 alphanumeric/national characters; no change of scope.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "§2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination) are flagged by the word 'initial state' in GR8. GR8 rests only on WHEN a runtime module enters its initial state, and §2002:14.5.2.1.2.1 gives the same three activation events word for word as §2023:14.6.2.3.2 (2023 only adds INITIALIZE-clause fill and dynamic tables, 2002 only the communication section initialization, neither touching classification); 14.5.3 and 14.5.10 are not used. Scope unchanged; the reader's cc_locale/pb111 runs at 2002 stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR8",
+      "quote": "effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "Automatic data and initial data is placed in the initial state every time the function, method, or program in which it is described is activated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.2.3.2",
+      "quote": "Automatic data and initial data is placed in the initial state every time the function, method, or program in which it is described is activated",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-1",
+    "to": [
+     "SR-12.3.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph; B.3 item 1; 3.1.5",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph; A.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR1",
+      "quote": "At the outer level of a source unit that defines a class, the CURSOR and CRT STATUS clauses shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR1",
+      "quote": "At the outer level of a source unit that defines a class, the CURSOR and CRT STATUS clauses shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 (CURSOR and CRT STATUS clauses are processor-dependent) with §2002:3.1.5 (support need not be claimed; a compile-time diagnostic is required; no executable code is required)",
+    "scope-2002": [
+     "CURSOR and CRT STATUS at the outer level of a class definition (forbidden)",
+     "CURSOR and CRT STATUS anywhere else (processor-dependent; declined by this implementation)"
+    ],
+    "evidence-2002": [
+     "class outer level: covered by probe sn_cursor_class.cob at 2002 (COBOL1560 for CURSOR and for CRT STATUS)",
+     "program level: covered by a42-special-names-cursor and a42-special-names-crt-status (refuse-at includes 2002; my 2002 run: COBOL1560) and probe sn_cursor_prog.cob at 2002"
+    ],
+    "flags-answered": {
+     "definition-changed: class | of a data item; source unit": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.173) source unit runs from an identification division to an end marker 'including any contained source units', which 2023 3.165 carries as a note: the same outer level of a source unit that defines a class."
+    },
+    "reason": "Same format and SR1 text; the 2002 SPECIAL-NAMES format places CURSOR and CRT STATUS last, 2023 alphabetizes the clauses, which is presentation only. The non-support is licensed in 2002 (processor-dependent) and shown declined with a diagnostic at 2002, so the 2023 DOCUMENTED-NON-SUPPORT verdict carries.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sn_cursor_class.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK (DOCUMENTED-NON-SUPPORT): 2002 licenses non-support by its own text, B.3 item 1 with 3.1.5, so the 2023 Annex A.4.2 optional-module licence is not needed; the compiler declines the clauses at --std 2002 with a compile-time diagnostic, as 3.1.5 requires. Note: the 2002 diagnostic text cites §2023:12.3.7 and Annex A.4.2, the 2023 licence, not the 2002 one (wording only)",
+     "changed-definition-term 'source unit': same containment in both editions; does not change scope or evidence"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-16",
+    "to": [
+     "SR-12.3.7.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR16",
+      "quote": "A given symbolic-character-1 may be specified only once within the SYMBOLIC CHARACTER clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR16",
+      "quote": "A given symbolic-character-1 may be specified only once within the SYMBOLIC CHARACTER clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR16",
+      "quote": "Alphabet-name-3 shall not reference an alphabet specified with the LOCALE phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) a symbolic-character-1 only once",
+     "b) positional pairing",
+     "c) one-to-one correspondence",
+     "d) ALPHANUMERIC implied",
+     "e1) IN alphanumeric alphabet and ordinal exists",
+     "e2) native alphanumeric ordinal exists",
+     "f1) FOR NATIONAL IN national alphabet",
+     "f2) native national ordinal exists",
+     "g) no LOCALE alphabet"
+    ],
+    "evidence-2002": [
+     "a): probe sym_dup.cob at 2002 (COBOL1670 'already defined')",
+     "b), d), e1): pb110_symbolic_and_class_in (S1 widened pass; my 2002 run MATCH) and probe sym_nat_ok.cob (SA IS 67 gives ORD 67)",
+     "c): pb110-symbolic-sr16 and pb4108-symbolic-clause-count-mismatch (refuse-at includes 2002; COBOL1670 at 2002)",
+     "e2), f2): pb1557-symbolic-ordinal-too-long and pb1091-symbolic-national-ordinal-beyond-int32 (refuse-at includes 2002; COBOL1670 at 2002)",
+     "f1): probe sym_nat_in_alnum.cob at 2002 (COBOL1670 'shall reference an alphabet that defines a NATIONAL character set'); legal control sym_nat_ok.cob (SN = N\"B\")",
+     "g): pb110-symbolic-locale-alphabet (refuse-at includes 2002; COBOL1669 at 2002); undeclared IN name: pb4463 (COBOL5985 at 2002)"
+    ],
+    "reason": "symbolic-characters-clause format identical (SYMBOLIC [CHARACTERS] [FOR ALPHANUMERIC|NATIONAL] {{symbolic-character-1}... [IS|ARE] {integer-1}...}... [IN alphabet-name-3]); all sub-items a) to g) identical; the alphabet-name clause (including LOCALE, NATIVE, UCS-4, UTF-8, UTF-16) is the same in both. No removed form.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sym_dup.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined); native alphanumeric character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR16's ordinals count positions in a character set in that sense. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. 'native alphanumeric character set' (§2002:4: \"The computer's alphanumeric coded character set\") is 2023's native character set (3.128) restricted to alphanumeric; for this compiler both are UTF-16, so e2)'s 'native alphanumeric ordinal exists' governs the same ordinals; covered at --std 2002 by pb1557/pb1091.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Not dependent: SR16 is a compile-time rule on SYMBOLIC CHARACTERS ordinals; it involves no SIZE ERROR phrase or arithmetic statement (§2002:14.6.4, 14.6.6), and the integer-1 ordinal is a literal, not an arithmetic result."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "native alphanumeric character set: The computer's alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "national character: A character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-23",
+    "to": [
+     "SR-12.3.7.3-27"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR23",
+      "quote": "Literal-8 may be any character from the computer's coded character set except for the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR27",
+      "quote": "Literal-8 may be any character from the computer's coded character set except for the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR22",
+      "quote": "Literal-8 shall be an alphanumeric literal consisting of a single character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR26",
+      "quote": "Literal-8 shall be an alphanumeric or national literal consisting of a single character",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CURRENCY SIGN ... WITH PICTURE SYMBOL literal-8 (an alphanumeric literal in 2002): refuse digits, A B C D E N P R S V X Z in either case, space, + - , . * / ; ( ) \" =",
+     "accept any other character"
+    ],
+    "evidence-2002": [
+     "accept: pb60_currency_sign_set (S1 widened pass; 2002 MATCH) and probe cur8_U.cob (ACCEPTED)",
+     "refuse: probes at 2002, each COBOL0891: cur8_upper_Z, cur8_lower_z, cur8_lower_e, cur8_plus, cur8_minus, cur8_space, cur8_nine, cur8_eq, cur8_semi"
+    ],
+    "reason": "Same exclusion list; the currency clause format is the same apart from 2023's literal-8 also being national (SR26), a widening of the literal the rule applies to. No removed form.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-15/cur8_long_s.cob",
+    "widening": "2023 literal-8 may also be a national literal (SR26); 2002 literal-8 is alphanumeric only (SR22).",
+    "flags-answered-reader": [
+     "normalized: the only difference is the 2002 transcription's en dash in item c) where 2023 has '-'; the printed character is the minus/hyphen (the COBOL character repertoire has no en dash), so the exclusion lists are the same and SR-12.3.7.3-27 is the pointer to code (SpecialNamesBinder.Currency ValidateCurrencyChar) and tests"
+    ],
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR23's 'any character from the computer's coded character set' uses the term in that sense; the definition change itself does not move the scope (the 8.1.1 flag does, below).",
+     "normalized: normalized": "The only difference is the 2002 transcription's en dash in item c) where 2023 prints '-'; the COBOL repertoire character is the minus/hyphen (§2002:8.1.2 Table 2 'minus sign (hyphen)'), so the excluded lists are identical and SR-12.3.7.3-27 is the pointer (SpecialNamesBinder.Currency.cs ValidateCurrencyChar over CurrencySymbolExclusion).",
+     "pending-clause: §2002:8.1.1 (changed, undecided)": "It matters. §2002:8.1.1 has no counterpart of §2023:8.1.2's last paragraph (\"the implementor shall specify any such additional characters that are prohibited from use as a currency symbol\") and 2002 12.2.6 has no counterpart of 2023 SR20's implementor-defined equivalence; so in 2002 literal-8 is ANY character except the SR23 list (§2002:12.2.6.2 SR23), whose b) names A..Z 'or their lowercase equivalents', and lowercase equivalence is the Annex D folding (§2002:8.1.2.1 GR3). U+017F LONG S is an extended letter (§2002:C.2.1 Latin 00F8-01F5) with no Annex D pair, so it is not excluded in 2002; the compiler applies DOC-A.1-44's 2023 prohibition of it 'in every edition' and refuses it at --std 2002 (COBOL0891)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR23",
+      "quote": "Literal-8 may be any character from the computer's coded character set except for the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR23b",
+      "quote": "alphabetic characters A, B, C, D, E, N, P, R, S, V, X, Z, or their lowercase equivalents",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.2.1 GR3",
+      "quote": "Equivalence of uppercase and lowercase basic letters is achieved by folding from uppercase to lowercase in accordance with the case mapping described in Annex D",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR13",
+      "quote": "If the currency symbol is a lowercase letter, it is treated as its uppercase equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:C.2.1",
+      "quote": "presents the characters identified in Annex A of TR 10176:2001 as recommended for use in programming language identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.2",
+      "quote": "the implementor shall specify any such additional characters that are prohibited from use as a currency symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.1",
+      "quote": "The computer's coded character set is the set of characters used in the memory of the computer",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "class-detail": "the 2023 twin's conformance rests on a 2023-only implementor licence (§2023:8.1.2 additional prohibited currency characters); 2002 has no such licence, so the 2002 rule permits a character the compiler refuses",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CURRENCY SIGN ... WITH PICTURE SYMBOL \"ſ\" (U+017F) is a refusal (COBOL0891), which §2002:12.2.6.2 SR23 does not permit; the exclusion row for 2002 needs the 2023-only ſ prohibition removed (sibling: the bare literal-7 form, case l1c06-currency-long-s-prohibited claims every edition)",
+    "compiler-at-2002": "wrong: program: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-15/cur8_long_s.cob; expected: accepted: literal-8 \"ſ\" is a character of the computer's coded character set not in the SR23 list (§2002:12.2.6.2 SR23); ſ is an extended letter with no Annex D case pair, so it is not a 'lowercase equivalent' of S (§2002:8.1.2.1 GR3), and 2002 gives no implementor licence to prohibit further characters; observed: --std 2002: error COBOL0891: PICTURE SYMBOL literal 'ſ': not a valid currency symbol ... (ISO §2023:12.3.7.3 SR22/SR27); control cur8_euro.cob (€) runs X=[EUR12.50]; cur8_lower_s.cob (s) refused, correctly; results: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-15/cur8-results.txt; code-site: E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs:279-283 (CurrencySymbolExclusion.Excludes: char.ToUpperInvariant letter test applies the §2023:8.1.2 prohibition at every edition >= 2002)",
+    "from-slice": "q-07"
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-25",
+    "to": [
+     "SR-12.3.7.3-29"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph; B.3 item 1",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph; A.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR25",
+      "quote": "an alphanumeric group item consisting of two elementary unsigned integers of 3 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR29",
+      "quote": "an alphanumeric group item consisting of two elementary unsigned integers of 3 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (the CURSOR clause, whose operand this rule describes, is processor-dependent)",
+    "scope-2002": [
+     "CURSOR IS data-name-1: data-name-1 a 6-digit unsigned display integer or an alphanumeric group of two 3-digit unsigned display integers, in working-storage or local-storage"
+    ],
+    "evidence-2002": [
+     "the CURSOR clause is declined at 2002 with COBOL1560 whatever data-name-1's description: a42-special-names-cursor (PIC 9(6), refuse-at includes 2002) and probe sn_cursor_prog.cob (the two-integer group form) at 2002"
+    ],
+    "flags-answered": {
+     "definition-changed: alphanumeric group item": "§2002:4 (4.11) 'Any group item except for' a strongly-typed, bit or national group item; §2023:3.11 also excludes a variable-length group item, which 2002 does not have. The set of 2002 groups that qualify is the same; and the CURSOR clause is declined at 2002 (COBOL1560) whatever data-name-1's description."
+    },
+    "reason": "Identical rule; the clause it describes is processor-dependent in 2002 and declined with a diagnostic at --std 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\sn_cursor_prog.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002 by B.3 item 1 / 3.1.5 (processor-dependent), declined at 2002 with a diagnostic; the diagnostic cites the 2023 Annex A.4.2 (wording only)",
+     "changed-definition-term 'alphanumeric group item': 2002 4.11 excludes strongly-typed, bit and national group items; 2023 also excludes variable-length groups, which 2002 does not have, so the 2002 set is the same; moot here because the clause is declined"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "Any group item except for",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.11",
+      "quote": "a bit group item, a national group item, a strongly-typed group item, or a variable-length group item",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-26",
+    "to": [
+     "SR-12.3.7.3-30"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph; B.3 item 1",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph; A.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR26",
+      "quote": "Data-name-2 shall be described in the working-storage or local-storage section as an alphanumeric data item 4 characters in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR30",
+      "quote": "Data-name-2 shall be described in the working-storage or local-storage section as an alphanumeric data item 4 characters in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (CRT STATUS is processor-dependent)",
+    "scope-2002": [
+     "CRT STATUS IS data-name-2: alphanumeric, 4 characters, in working-storage or local-storage"
+    ],
+    "evidence-2002": [
+     "CRT STATUS declined at 2002 with COBOL1560: a42-special-names-crt-status (refuse-at includes 2002; my 2002 run) and probes sn_cursor_prog.cob, sn_cursor_class.cob"
+    ],
+    "flags-answered": [
+     "target-not-CONFORMS-OK: licensed in 2002 by B.3 item 1 / 3.1.5; declined at --std 2002 with a compile-time diagnostic (which cites the 2023 Annex A.4.2: wording only)"
+    ],
+    "reason": "Identical rule; CRT STATUS is processor-dependent in 2002 and declined with a diagnostic at 2002, so the non-support verdict carries.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-07\\cases\\12.3.7-SPECIAL-NAMES\\a42-special-names-crt-status.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-07",
+  "cases": [
+   {
+    "rule-id": "2002-GR-11.6.3-6",
+    "verdict": "OVERTURNED",
+    "class": "other (operand restriction: 2023 SR6 bans an ACTIVE-CLASS returning item for a get property method; 2002 SR6 has no such ban, so the 2002 rule governs get property methods 2023 cannot have)",
+    "reason": "The format and GR6 are word-identical, but the set of methods GR6 makes get property methods is larger in 2002. 2002 SR6 asks only for no USING parameters and a single RETURNING item. 2023 SR6 adds 'The returning item shall not be an object reference described with the ACTIVE-CLASS phrase' (a 2014 addition). 2002 lets ACTIVE-CLASS stand in a method's linkage section (13.16.58.2 SR15), and the 2002 object-property clause (8.4.2.9) has no ACTIVE-CLASS ban. So METHOD-ID. GET PROPERTY P. with PROCEDURE DIVISION RETURNING LK-R, LK-R USAGE OBJECT REFERENCE ACTIVE-CLASS, is legal 2002 and GR6 makes it the get property method for P. The 2023 row never sees that method. The reader called SR6 'a separate syntax rule', but it decides which methods GR6 reaches. Compiler at 2002: WRONG. Probe prop_active_class.cob at --std 2002 gives error COBOL2790 'the returning item of a get property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR6)': the 2023 ban is applied at 2002. Expected at 2002: compiles. Needs a defect note (gate COBOL2790 to 2014+) and then a 2002 witness.",
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR6",
+      "quote": "If the GET phrase is specified, this method is a get property method for property-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR6",
+      "quote": "If the GET phrase is specified, this method is a get property method for property-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.9.2 SR5",
+      "quote": "The description of an object property used as a sending item is the same as the description of the returning item of the get property method",
+      "check": "OK"
+     }
+    ],
+    "needs": "its own verdict: at --std 2002 a GET PROPERTY method with an ACTIVE-CLASS returning item is refused (COBOL2790, citing §2023:11.7.3 SR6); after the fix, a 2002 witness",
+    "compiler-at-2002": "wrong: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\prop_active_class.cob",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\prop_active_class.cob"
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-7",
+    "verdict": "OVERTURNED",
+    "class": "other (operand restriction: 2023 SR7 bans an ACTIVE-CLASS USING parameter for a set property method; 2002 SR7 does not)",
+    "reason": "The cause is the same as GR6. 2002 SR7 asks only for a single USING parameter and no RETURNING phrase. 2023 SR7 adds 'The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase'. In 2002, METHOD-ID. SET PROPERTY P. USING LK-V, LK-V USAGE OBJECT REFERENCE ACTIVE-CLASS, is legal, and GR7 makes it the set property method for P. That case is outside the 2023 row. Compiler at 2002: WRONG. Probe prop_active_class.cob at --std 2002 gives error COBOL2790 'the USING parameter of a set property method shall not be an object reference described with the ACTIVE-CLASS phrase (ISO §2023:11.7.3 SR7)'.",
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR7",
+      "quote": "If the SET phrase is specified, this method is a set property method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR7",
+      "quote": "If the SET phrase is specified, this method is a set property method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR7",
+      "quote": "then the method shall have a single USING parameter specified in the procedure division header and no RETURNING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR7",
+      "quote": "The USING parameter shall not be an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     }
+    ],
+    "needs": "its own verdict: at --std 2002 a SET PROPERTY method with an ACTIVE-CLASS USING parameter is refused (COBOL2790, citing §2023:11.7.3 SR7); after the fix, a 2002 witness",
+    "compiler-at-2002": "wrong: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\prop_active_class.cob",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\prop_active_class.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.7.2-2",
+    "verdict": "UPHELD",
+    "reason": "I read 2002 9.3.7.1.2 items 1-10 against 2023 9.3.8.2.3. Every 2002 condition is present in 2023. 2023 adds only ALIGNED and DYNAMIC LENGTH, which 2002 programs cannot carry, and moves the entry-convention item into the preamble. The 2002 NOTE about an explicit COBOL entry convention concerns a form the 2002 ENTRY-CONVENTION format lacks. Conformance asks for no clause that exists in 2002 only, and no CD item can be a method parameter (they are linkage items). The format and SR are identical.",
+    "citations": [
+     {
+      "cite": "§2002:11.7.2 SR2",
+      "quote": "the object interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.8.3 SR2",
+      "quote": "the object interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "The entry conventions for interface-1 and interface-2 are the same",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-11.7.3-1",
+    "verdict": "UPHELD",
+    "reason": "The OBJECT paragraph format, GR1, GR2 and the referenced 9.3.11 are word-identical. Nothing is reached in 2002 only.",
+    "citations": [
+     {
+      "cite": "§2002:11.7.3 GR1",
+      "quote": "implemented by the object of the containing class according to 9.3.11, Interface implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications defined for the implemented interface definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-11.8.4.2-3",
+    "verdict": "UPHELD",
+    "reason": "Both editions give the default as NATIVE, and 2002 8.8.1.2 and 2023 8.8.1.3 define native arithmetic as implementor-defined, in effect when no ARITHMETIC clause is given. The 2002 STANDARD form, and native operations under STANDARD, are not the default case. Nesting is the same (11.8.3 GR1). The reader's probe ar_default_nested.cob covers the contained case at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:11.8.4.2 GR3",
+      "quote": "it is as if the ARITHMETIC clause were specified with the NATIVE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.8.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "SR1's list of source elements is word-identical. The 2002 format is narrower (no IS COBOL), not wider, so no 2002 form escapes the rule. The compiler refuses a contained-program or method placement at 2002 with its placement diagnostic COBOL2385 (the reader's probes ec_contained_name.cob and ec_method.cob). No CD or debugging reach.",
+    "citations": [
+     {
+      "cite": "§2002:11.8.5.2 SR1",
+      "quote": "a program prototype definition, or a program definition that is not contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.7.3 SR1",
+      "quote": "a program prototype definition, or a program definition that is not contained within another program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-6",
+    "verdict": "UPHELD",
+    "reason": "Format 1 is identical. SR6 is word-identical, and 'initial program' rests on the same INITIAL clause and 8.6.5 attribute. The 2023 additions to the clause (the zero-length literal in SR1) are separate. The direct and indirect cases are covered at 2002 (pb1507, rec_indirect.cob).",
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR6",
+      "quote": "The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR6",
+      "quote": "The RECURSIVE clause shall not be specified if any program that directly or indirectly contains this program is an initial program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-2",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "The words are the same, but the configuration section has a form in 2002 that 2023 lacks: the SOURCE-COMPUTER paragraph's WITH DEBUGGING MODE clause (2002 format SOURCE-COMPUTER. [computer-name-1] [WITH DEBUGGING MODE] .; 2023 SR1 names only computer-name-1). So 2002 SR2 also forbids a method whose configuration section carries SOURCE-COMPUTER ... WITH DEBUGGING MODE, a case the 2023 rule never governs. This is the same cause the p-08 refuter upheld for this rule's siblings 2002-SR-12.2.2-1 and 2002-SR-12.2.2-3. Probe mthdbg.cob at --std 2002 gives the obsolete warning COBOL0903, then COBOL2644 'a method definition shall not contain a CONFIGURATION SECTION': correct. The no-computer-name form (mthdbg_noname.cob) is refused at 2002 by the parse error COBOL1971, the grammar defect the reader reported under 2002-GR-12.2.4.3-3; it is refused, but not by this rule.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR2",
+      "quote": "The configuration section shall not be specified in a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR2",
+      "quote": "The configuration section shall not be specified in a method definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.2 SR1",
+      "quote": "If neither computer-name-1 nor the DEBUGGING MODE clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.3 SR1",
+      "quote": "If computer-name-1 is not specified, the second period in the General format may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "If the DEBUGGING MODE clause is specified in a source unit, all debugging lines are compiled",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for a method with SOURCE-COMPUTER ... WITH DEBUGGING MODE in its configuration section (mthdbg.cob: refused with COBOL2644, correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\mthdbg.cob); the no-name form (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\mthdbg_noname.cob) is refused by COBOL1971, the defect counted under 2002-GR-12.2.4.3-3",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\mthdbg.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.2.4.3-2",
+    "verdict": "UPHELD",
+    "reason": "GR2 concerns only the absence of the paragraph. In 2002 its antecedent also excludes a unit contained in one whose paragraph is the 2002-only 'SOURCE-COMPUTER. WITH DEBUGGING MODE.'. GR3 via GR1 then names the same source computer (the compiling one), so the requirement and its observable outcome are the same. Whether debugging lines compile without the paragraph is GR5, not this rule. The reader's derivation and sc_none_nested.cob hold at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.4.3 GR2",
+      "quote": "the computer on which the source unit is being compiled is the source computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.4 GR2",
+      "quote": "the computer on which the source unit is being compiled is the source computer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-1",
+    "verdict": "UPHELD",
+    "reason": "The OBJECT-COMPUTER general format is identical in both editions (I read both: computer-name-1, CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE; no MEMORY SIZE or SEGMENT-LIMIT in 2002). So 'all clauses' is the same set, and the contained units are the same (12.2.2 SR1 and SR3 are the same placements). oc_inherit.cob covers it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR1",
+      "quote": "All clauses of the OBJECT-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR1",
+      "quote": "All clauses of the OBJECT-COMPUTER paragraph apply to the source unit in which they are explicitly or implicitly specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-10",
+    "verdict": "UPHELD",
+    "reason": "It sets the initial program collating sequence of a source unit; that is a default of the unit, not an operand rule, and the format is identical. Where the comparisons apply is GR11. Covered at 2002 by l1c19_native_collating_default.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR10",
+      "quote": "the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR10",
+      "quote": "the initial program collating sequences are the native alphanumeric collating sequence and the native national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-11",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The words and the a) to c) list are identical, but in 2002 the comparisons the rule governs include ones on communication-section items. b) 'condition-name conditions': a level-88 entry may be written in a record description entry under a CD, which implicitly redefines the CD record area (A.1.1.2; A.1.2.2 SR5). a) 'alphanumeric comparisons' in relation conditions: the implicit CD data-names are alphanumeric or numeric only by Annex A (A.1.2.3 GR2a: SYMBOLIC QUEUE is elementary alphanumeric, 12 characters), and that decides whether the PCS applies. 2023 has no CD, so the 2023 row and its witnesses do not cover these cases. The compiler claims the 2002 communication facility (warning COBOL0903, compiles and runs). Probe cd_pcs.cob at --std 2002, with PCS 'B' 'A': a CD-record 88 VALUE 'A' THRU 'C' is false for 'B' (CD-88=REV), and IN-Q > 'B' is true for IN-Q='A' (CD-Q-REL=REV). The control cd_pcs_none.cob gives NAT for both. Correct.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR11",
+      "quote": "Explicitly specified in condition-name conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR11",
+      "quote": "Explicitly specified in condition-name conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR11",
+      "quote": "used to determine the truth value of any alphanumeric comparisons and national comparisons",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "Record description entries following an input CD entry implicitly redefine the record area established by the input CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2a",
+      "quote": "The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for the program collating sequence applied to a condition-name under a CD record and to an implicit CD data-name in a relation condition (cd_pcs.cob and cd_pcs_none.cob can be adopted)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_pcs.cob, control E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_pcs_none.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_pcs.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-12",
+    "verdict": "UPHELD",
+    "reason": "It says when the sequences take effect (the initial state of the runtime module) and the locale's LC_COLLATE; there is no operand or form reach, and the alphabet-name LOCALE form exists in both editions. Covered at 2002 by pb64t1_locale_declare.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR12",
+      "quote": "are effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR12",
+      "quote": "are effective with the initial state of the runtime modules to which they apply",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-4",
+    "verdict": "UPHELD",
+    "reason": "An implementor-defined default with identical wording and containment, and no form, operand or CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR4",
+      "quote": "When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR4",
+      "quote": "When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-5",
+    "verdict": "UPHELD",
+    "reason": "The CHARACTER CLASSIFICATION format and locale-phrase-1/2 are identical (I read both). The ten cases a) to j) are word-identical and concern the unit's initial classification, not operands. The reader's per-case evidence at 2002 stands.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR5",
+      "quote": "If LOCALE is specified as locale-phrase-1, the initial alphanumeric character classification is the character classification associated with the current locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR5",
+      "quote": "If LOCALE is specified as locale-phrase-1, the initial alphanumeric character classification is the character classification associated with the current locale",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-6",
+    "verdict": "UPHELD",
+    "reason": "A default of the unit (the coded-character-set classification), with an identical format; there is no operand reach of its own. Covered at 2002 by cc_none.cob and pb78.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR6",
+      "quote": "the initial character classifications are the character classifications associated with the computer's coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR6",
+      "quote": "the initial character classifications are the character classifications associated with the computer's coded character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-7",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The list a) and b) is identical, but in 2002 the class tests and case mappings it governs can act on communication-section items: b) ALPHABETIC/ALPHABETIC-LOWER/ALPHABETIC-UPPER of an item in a record under a CD (A.1.1.2; A.1.2.2 SR5), and a) UPPER-CASE/LOWER-CASE of an implicit CD data-name, which is alphanumeric only by Annex A (A.1.2.3 GR2a). 2023 has no CD, so the 2023 row's witnesses (pb64t5, pb760: working-storage items) do not reach these cases. Probe cd_cc.cob at --std 2002 under CHARACTER CLASSIFICATION IS TR: UPPER-CASE(IN-Q) for IN-Q='i' gives ORD 305 (dotted capital I), and a CD-record item holding the dotless i IS ALPHABETIC. The control cd_cc_none.cob gives 74 and not alphabetic. Correct. (The reader's widening note about 2023's LOCALE phrase is right and is not the issue.)",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR7",
+      "quote": "the classification of characters for class tests ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR7",
+      "quote": "the classification of characters for class tests ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR7",
+      "quote": "the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2a",
+      "quote": "The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for the classification locale applied to a CD-record item in a class test and to an implicit CD data-name as an UPPER-CASE argument (cd_cc.cob and cd_cc_none.cob can be adopted)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_cc.cob, control E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_cc_none.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-07\\cd_cc.cob"
+   },
+   {
+    "rule-id": "2002-GR-12.2.5.3-8",
+    "verdict": "UPHELD",
+    "reason": "It says when the classification takes effect (the initial state of the runtime module) and the locale's LC_CTYPE; there is no operand or form reach. Covered at 2002 by cc_locale.cob, pb64t5, pb760 and pb111.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.3 GR8",
+      "quote": "the associated character classification is defined by category LC_CTYPE in the locale identified by that locale-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR8",
+      "quote": "the associated character classification is defined by category LC_CTYPE in the locale identified by that locale-name",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "SR1 is word-identical, and CURSOR and CRT STATUS appear in both formats. The 2002 licence is 2002's own text: B.3 makes the clauses processor-dependent, and 3.1.5 says support need not be claimed but a compile-time warning is required. The compiler declines both clauses at 2002 with COBOL1560 (sn_cursor_class.cob, a42-*). Only the diagnostic's wording cites the 2023 annex.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR1",
+      "quote": "At the outer level of a source unit that defines a class, the CURSOR and CRT STATUS clauses shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR1",
+      "quote": "At the outer level of a source unit that defines a class, the CURSOR and CRT STATUS clauses shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-16",
+    "verdict": "UPHELD",
+    "reason": "The symbolic-characters-clause format (FOR ALPHANUMERIC|NATIONAL, IN alphabet-name-3) and the sub-items a) to g) are word-identical (I read the 2002 text). The rule is bounded by 'this SPECIAL-NAMES paragraph', and there is no CD or removed-form reach. The reader's per-item probes at 2002 stand.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR16",
+      "quote": "A given symbolic-character-1 may be specified only once within the SYMBOLIC CHARACTER clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR16",
+      "quote": "A given symbolic-character-1 may be specified only once within the SYMBOLIC CHARACTER clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-25",
+    "verdict": "UPHELD",
+    "reason": "The rule describes the CURSOR operand, a processor-dependent clause in 2002 (B.3 with 3.1.5). It is declined at 2002 with COBOL1560 whatever data-name-1's description. The term change in 'alphanumeric group item' (variable-length groups) concerns only a 2023 construct.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR25",
+      "quote": "an alphanumeric group item consisting of two elementary unsigned integers of 3 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR29",
+      "quote": "an alphanumeric group item consisting of two elementary unsigned integers of 3 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-26",
+    "verdict": "UPHELD",
+    "reason": "The rule describes the CRT STATUS operand, a processor-dependent clause in 2002 (B.3 with 3.1.5). It is declined at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR26",
+      "quote": "Data-name-2 shall be described in the working-storage or local-storage section as an alphanumeric data item 4 characters in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR30",
+      "quote": "Data-name-2 shall be described in the working-storage or local-storage section as an alphanumeric data item 4 characters in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "ff791cec1584777c153ec080e5f41729f25dffc098f6b4a8e3c958ea513a7718",
+  "read": "10a71452c9076d16cd73e0a1f71d23e907c11d87f23cea8612c11bb934b6f19c",
+  "refute": "ce56f4f7c89f00c2230590d23e0121b516be0eeb92c3603e1b41d6a25b861715"
+ }
+}

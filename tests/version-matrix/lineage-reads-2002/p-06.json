@@ -1,0 +1,1865 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-06 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-06",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.35.3-23",
+   "2002-GR-14.8.35.3-7",
+   "2002-GR-14.8.36.3-17",
+   "2002-GR-14.8.36.3-2",
+   "2002-GR-14.8.36.3-20",
+   "2002-GR-14.8.36.3-22",
+   "2002-GR-14.8.37.3-1",
+   "2002-GR-14.8.37.3-8",
+   "2002-GR-14.8.39.3-5",
+   "2002-GR-14.8.39.3-6",
+   "2002-GR-14.8.39.3-7",
+   "2002-GR-14.8.4.3-10",
+   "2002-GR-14.8.4.3-4",
+   "2002-GR-14.8.4.3-5",
+   "2002-GR-14.8.4.3-6",
+   "2002-GR-14.8.43.3-2",
+   "2002-GR-14.8.44.3-1",
+   "2002-GR-14.8.44.3-12",
+   "2002-GR-14.8.44.3-13",
+   "2002-GR-14.8.44.3-14",
+   "2002-GR-14.8.44.3-15",
+   "2002-GR-14.8.44.3-3",
+   "2002-GR-14.8.44.3-4",
+   "2002-GR-14.8.44.3-8",
+   "2002-GR-14.8.5.3-10"
+  ]
+ },
+ "read": {
+  "slice": "p-06",
+  "seed": null,
+  "status": "complete: 25 of 25 read",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.4.3-4",
+    "to": [
+     "GR-14.9.4.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "also-class": "communication-reach",
+    "clause-2002": "14.8.4 CALL statement (GR4 under ALL FORMATS: on-overflow, on-exception, program-prototype)",
+    "clause-2023": "14.9.4 CALL statement (GR4 under FORMATS 1 AND 2: program, program-prototype)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR4",
+      "quote": "the result of the activated program is placed into identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR4",
+      "quote": "the result of the activated program is placed into identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule sits under ALL FORMATS and so governs CALL ... RETURNING identifier-3 ON OVERFLOW (2002 Format 1, on-overflow), a form 2023 removed (2023 has only the program and program-prototype formats). Also 2002 SR7 admits identifier-3 in the communication section, which 2023 SR7 drops, so the 2002 rule also places a RETURNING result into a CD record item. Neither case is reached by the 2023 verdict.",
+    "needs": "a 2002 witness for CALL ... RETURNING ... ON OVERFLOW and for RETURNING into a CD record item (both probed below), or its own verdict",
+    "compiler-at-2002": "correct",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\call-ovf2.cob (2002: AB  |CD  |zz  |0042, RETURNING 42 placed with ON OVERFLOW form; 2023: COBOL0882 rejects ON OVERFLOW) and call-cd.cob (2002: RETURNING into CD record item MC gives 000042)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-5",
+    "to": [
+     "GR-14.9.4.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "also-class": "communication-reach",
+    "clause-2002": "14.8.4 CALL statement (GR5 under FORMATS 1 AND 2: on-overflow and on-exception)",
+    "clause-2023": "14.9.4 CALL statement (GR5 under FORMAT 1: program)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR5",
+      "quote": "Both the BY CONTENT and BY REFERENCE phrases are transitive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR5",
+      "quote": "Both the BY CONTENT and BY REFERENCE phrases are transitive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR5 heads FORMATS 1 AND 2, where Format 1 is the on-overflow form; 2023 GR5 heads FORMAT 1, the program form without ON OVERFLOW. The 2002 rule therefore governs BY CONTENT/BY REFERENCE transitivity in CALL ... ON OVERFLOW, a form 2023 lacks; in 2002 identifier-2 may also be a communication-section item (SR3), which 2023 dropped.",
+    "needs": "a 2002 witness for BY CONTENT/BY REFERENCE transitivity in a CALL ... ON OVERFLOW statement (probed below)",
+    "compiler-at-2002": "correct",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\call-ovf2.cob (2002: CALL USING BY CONTENT A B BY REFERENCE D ... ON OVERFLOW: A and B unchanged, D changed: AB  |CD  |zz  |0042; 2023: COBOL0882) and call-cd.cob (2002: CD record item QN passed by implied BY REFERENCE is changed)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-6",
+    "to": [
+     "GR-14.9.4.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4 CALL statement, FORMAT 3 (program-prototype)",
+    "clause-2023": "14.9.4 CALL statement, FORMAT 2 (program-prototype)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 3 and 2023 Format 2 general formats are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE/CONTENT/VALUE, OMITTED, RETURNING, ON/NOT ON EXCEPTION). The NESTED syntax rules (2002 SR12-13, 2023 SR13 and SR15) say the same thing with renumbered cross-references. The rule touches no operand that the communication section reaches, and nothing on its scope was removed.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "NOTE ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR13",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR15",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-10",
+    "to": [
+     "GR-14.9.4.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4 CALL statement, FORMAT 3",
+    "clause-2023": "14.9.4 CALL statement, FORMAT 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.5.3 GR2",
+      "quote": "The meaning of the entry convention specified by entry-convention-name-1 is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.7.4 GR4",
+      "quote": "When ENTRY-CONVENTION is not specified, the entry convention used is as follows",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format pair as GR6. The referenced entry convention clause changed shape: 2023 adds the COBOL keyword and an explicit default (COBOL, or inherited for classes/interfaces), where 2002 left the default implementor-defined except for the naming convention of 8.3.1.1.1. 2023's COBOL convention is likewise naming per 8.3.2.2 with other aspects implementor-defined, so for every 2002 program (no clause, or entry-convention-name-1) the requirement is the same. 2023 only adds cases.",
+    "probe": null,
+    "widening": "2023 adds ENTRY-CONVENTION IS COBOL and inheritance of the convention through INHERITS (11.9.7.4 GR2, GR4)",
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "NOTE ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR13",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR15",
+      "quote": "If the NESTED phrase is specified, literal-1 shall be specified",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-10",
+    "to": [
+     "GR-14.9.5.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general formats are identical (identifier-1 / literal-1 / program-prototype-name-1). 2023 only adds that literal-1 may not be a zero-length literal, a construct 2002 lacks. The rule is an implementor-defined escape for non-COBOL programs, unchanged. The GR9 changes (USE EXCEPTION, exception-checking PERFORM) do not touch it.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-23",
+    "to": [
+     "GR-14.9.39.4-26"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement, Format 11 (save-locale)",
+    "clause-2023": "14.9.39 SET statement, Format 12 (save-locale)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR23",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR26",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR27",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR28",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "The save-locale format is identical (SET identifier-11 TO LOCALE {LC_ALL | USER-DEFAULT}), and the syntax rule on identifier-11 is identical. The set-locale rules that define 'saved locale' read the same in both editions. 2023 only renumbers the formats.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats [11] against [[12]]": "2002 Format 11 (save-locale) and 2023 Format 12 are the same diagram (§2002:14.8.35.1 'SET identifier-11 TO LOCALE' {LC_ALL | USER-DEFAULT}; §2023:14.9.39.2 the same words), renumbered only by 2023's inserted function-pointer format; §2002:14.8.35.2 SR27 equals §2023:14.9.39.3 SR28. Same format reached; no change."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: setloc.cob executes SET LP TO LOCALE LC_ALL, LP is not NULL (SAVED), and SET LOCALE LC_ALL TO LP then completes (DONE) (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/setloc-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR23",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR26",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.1",
+      "quote": "SET identifier-11 TO LOCALE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET identifier-11 TO LOCALE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR27",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR28",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-7",
+    "to": [
+     "GR-14.9.39.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement, Format 4 (condition-setting)",
+    "clause-2023": "14.9.39 SET statement, Format 4 (condition-setting)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR7",
+      "quote": "the results are the same as if a separate SET statement had been written for each condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR8",
+      "quote": "the results are the same as if a separate SET statement had been written for each condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR6",
+      "quote": "Condition-name-1 shall be associated with a conditional variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR6",
+      "quote": "Condition-name-1 shall be associated with a conditional variable",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 4 and its SR6-SR7 are identical. The sibling GRs 5-6 (2002) and 6-7 (2023) differ only in renumbered OCCURS references. The rule composes those GRs per condition-name and adds no case of its own. A conditional variable in a 2002 CD record is a data item like any other here; the rule has no section-specific behaviour.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-17",
+    "to": [
+     "GR-14.9.40.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement, FORMAT 2 (table)",
+    "clause-2023": "14.9.40 SORT statement, FORMAT 2 (table)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR17",
+      "quote": "The SORT statement sorts the table referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR18",
+      "quote": "The SORT statement sorts the table referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR13",
+      "quote": "the rightmost subscript shall be the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR13",
+      "quote": "Subscripting shall be specified in accordance with 8.4.2.3, Subscripts",
+      "check": "OK"
+     }
+    ],
+    "reason": "The table formats are identical. The data-name-2 subscripting of 2002 SR13 (all levels, rightmost ALL) is still legal under 2023 SR13 via 8.4.2.3 (SR5e, SR6: ALL as rightmost subscript of a table SORT). 2023 also permits omitting the rightmost subscript, a widening. The OCCURS KEY phrase this rule falls back on is present in both. The probe sorts with explicit and OCCURS-declared keys at both editions with identical correct output.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob (2002 and 2023: ABCDE / B1B2A3A9 / A9A3B2B1 / A9A3B2B1)",
+    "widening": "2023 adds dynamic-capacity tables and omission of the rightmost subscript of data-name-2"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-2",
+    "to": [
+     "GR-14.9.40.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement, ALL FORMATS",
+    "clause-2023": "14.9.40 SORT statement, ALL FORMATS",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR2",
+      "quote": "The order of significance of the keys is the order in which they are specified in the SORT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR2",
+      "quote": "The order of significance of the keys is the order in which they are specified in the SORT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR6d",
+      "quote": "The data items identified by key data-names shall not be variable-length data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR6d",
+      "quote": "A key data item shall not be a variable-length group, an occurs-depending-on data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats are identical in both editions. The key data-name restrictions differ only by 2023 additions (message-tag class, variable-length group, dynamic-length item, dynamic-capacity table: 2023-only constructs, §2023:8.5.1.12.1) and by the rename of the 2002 'variable-length data item' (ODO group) to 'occurs-depending(-on) group/data item'. So every 2002-legal key is a 2023-legal key. The order-of-significance requirement is unchanged.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob (two-key table sorts: identical correct output at 2002 and 2023)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-20",
+    "to": [
+     "GR-14.9.40.4-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement, FORMAT 2",
+    "clause-2023": "14.9.40 SORT statement, FORMAT 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR20",
+      "quote": "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR21",
+      "quote": "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the data description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format and identical SR15 precondition (KEY may be omitted only if the table description has a KEY phrase). The OCCURS KEY phrase exists in both editions' fixed and variable table formats. Probe: SORT E2 with no KEY phrase uses DESCENDING K1 ASCENDING K2 from OCCURS, giving B1B2A3A9 at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob",
+    "widening": "2023 adds the KEY phrase of dynamic-capacity tables"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-22",
+    "to": [
+     "GR-14.9.40.4-23"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement, FORMAT 2",
+    "clause-2023": "14.9.40 SORT statement, FORMAT 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR22",
+      "quote": "If data-name-1 is omitted, the data item referenced by data-name-2 is the key data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR23",
+      "quote": "If data-name-1 is omitted, the data item referenced by data-name-2 is the key data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "The table format KEY [data-name-1] ... is identical in both editions. Probe: SORT E1 ASCENDING KEY with no data-name-1 sorts on the element itself (ABCDE) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-1",
+    "to": [
+     "GR-14.9.41.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37 START statement",
+    "clause-2023": "14.9.41 START statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be input or I-O",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be input or I-O",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format is identical (FIRST / KEY ... WITH LENGTH / LAST, INVALID KEY phrases). File organizations reached (sequential, relative, indexed) are the same. Open modes (input, output, I-O, extend) are the same. Probe: START on a relative file open OUTPUT gives status 47 and no invalid key at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\start-rel.cob (2002 and 2023: START-OUTPUT FS=47)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-8",
+    "to": [
+     "GR-14.9.41.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37 START statement, RELATIVE FILES",
+    "clause-2023": "14.9.41 START statement, RELATIVE FILES",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR8",
+      "quote": "the START statement behaves as though KEY IS EQUAL TO data-name-1 had been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR8",
+      "quote": "the START statement behaves as though KEY IS EQUAL TO data-name-1 had been specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format. SR5 (relative data-name-1 is the RELATIVE KEY item) is identical. GR9-10 differ only in wording of where the RELATIVE KEY is declared (2002 'RELATIVE KEY phrase of the ACCESS MODE clause', 2023 'RELATIVE KEY clause in the file control entry'): the same declaration. Probe: START with no KEY phrase and RK=2 positions at R002 at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\start-rel.cob (START FS=00, R002 0002, IK9 23)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-5",
+    "to": [
+     "GR-14.9.43.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39 STRING statement",
+    "clause-2023": "14.9.43 STRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR5",
+      "quote": "If the POINTER phrase is not specified, the following general rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR5",
+      "quote": "If the POINTER phrase is not specified, the following general rules apply",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical general format. The 'following general rules' (GR6-GR10) are word-identical in both editions except GR8d's renumbered reference to nonfatal exception conditions and GR9's shortened control-transfer wording with the same effect. 2023 adds SR3 (no zero-length literal-2) and SR11 (no variable-length group), both on 2023-only constructs (§2023:8.5.1.12.1).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob (no POINTER: QRS******* at both editions)",
+    "widening": "2023 GR1 adds dynamic-length elementary senders"
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-6",
+    "to": [
+     "GR-14.9.43.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39 STRING statement",
+    "clause-2023": "14.9.43 STRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR6",
+      "quote": "The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR6",
+      "quote": "The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and the same identifier-3/identifier-4 syntax rules (2002 SR3-SR6 = 2023 SR4-SR7). Probe: POINTER 3, 4 characters moved, pointer ends at 7; overflow case leaves pointer 11 at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob (**ABXY****|07; OVF ********12|11)",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Identifier-4 counts character positions of identifier-3 in storage (4.29/4.31), the sense 2023 keeps under character position; no 2002 data is governed differently."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-06",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-7",
+    "to": [
+     "GR-14.9.43.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39 STRING statement",
+    "clause-2023": "14.9.43 STRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR7",
+      "quote": "only the portion of the data item referenced by identifier-3 that was referenced during the execution of the STRING statement is changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR7",
+      "quote": "only the portion of the data item referenced by identifier-3 that was referenced during the execution of the STRING statement is changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR11",
+      "quote": "Identifier-1, identifier-2, or identifier-3 shall not specify a variable-length group",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format, and identifier-3 admits the same 2002 items in both editions. The only new restriction (SR11, variable-length group) is a 2023-only construct (dynamic-length/dynamic-capacity subordinates). Probe shows untouched positions keep their prior content at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.43.3-2",
+    "to": [
+     "GR-14.9.47.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.43 UNLOCK statement",
+    "clause-2023": "14.9.47 UNLOCK statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.43.3 GR2",
+      "quote": "File-name-1 shall reference a file connector in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.4 GR2",
+      "quote": "File-name-1 shall reference a file connector in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.3 SR2",
+      "quote": "File-name-1 shall not be a file specified in an APPLY COMMIT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format (UNLOCK file-name-1 [RECORD|RECORDS]). 2023 adds only SR2 (not an APPLY COMMIT file), and APPLY COMMIT does not exist in 2002. The consequence of violating it (I-O status 42) lies in the I-O status clause; the probe shows 42 for a closed file and 00 for an open one at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unlock.cob (2002 and 2023: CLOSED FS=42, OPEN FS=00)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-1",
+    "to": [
+     "GR-14.9.48.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR1",
+      "quote": "All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR1",
+      "quote": "All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR1",
+      "quote": "nor a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR10",
+      "quote": "shall not reference a variable-length group",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general formats are identical, DELIMITED BY [ALL] {identifier-2|literal-1} OR [ALL] {identifier-3|literal-2} included. The UNSTRING GRs that name identifier-2/literal-1 (3, 7, 9, 10, 11b) are word-identical. 2023's only new restrictions are SR1 (no zero-length literal) and SR10 (no variable-length group), both 2023-only constructs. Probe: an OR-delimiter literal behaves like the first delimiter at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-3",
+    "to": [
+     "GR-14.9.48.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR3",
+      "quote": "Literal-1 or the data item referenced by identifier-2 specifies a delimiter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR3",
+      "quote": "Literal-1 or the data item referenced by identifier-2 specifies a delimiter",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format. Literal-1/identifier-2 admit the same 2002 operands: SR1 and SR2 are identical except 2023's added ban on zero-length literals, which 2002 does not have (no 'zero-length literal' in the 2002 text).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-4",
+    "to": [
+     "GR-14.9.48.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR4",
+      "quote": "This value does not include a count of the delimiter character(s)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR4",
+      "quote": "This value does not include a count of the delimiter character(s)",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format, and SR5 and SR7 (COUNT IN only with DELIMITED BY) are identical. Probe: COUNT IN gives 02 for 'AB' and 03 for 'EFG' at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob (AB  |02|    |000|EFG |,|03|12X |15|15 at both)",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The count is of character positions isolated in storage (4.29/4.31); 2023 counts the same unit, so no change of scope."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-06",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-8",
+    "to": [
+     "GR-14.9.48.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR8",
+      "quote": "the current receiving area shall be space-filled if it is described as alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR8",
+      "quote": "the current receiving area shall be space-filled if it is described as alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.44.2 SR4",
+      "quote": "Identifier-4 shall be described implicitly or explicitly as usage display and category alphabetic, alphanumeric, or numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR4",
+      "quote": "Identifier-4 shall be described implicitly or explicitly as usage display and category alphabetic, alphanumeric, or numeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "The identifier-4 categories (SR4) are identical, so the enumeration of receiving descriptions the rule fills is the same. Probe: numeric receivers between contiguous delimiters get 000, alphanumeric and alphabetic receivers get spaces, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring2.cob (012|000|   |034|   | at both)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-12",
+    "to": [
+     "GR-14.9.48.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR12",
+      "quote": "The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR12",
+      "quote": "The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and identical SR5-SR6 on identifier-7/identifier-8. The rule makes initialization the user's job; the probe shows the compiler starting from the user's values (TALLYING from 10, POINTER from 1) at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob (T 10 -> 15)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-13",
+    "to": [
+     "GR-14.9.48.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR13",
+      "quote": "will contain a value equal to the initial value plus the number of characters examined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR13",
+      "quote": "will contain a value equal to the initial value plus the number of characters examined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and same POINTER syntax. The examination rules (GR11a-g) are word-identical; 2023 only corrects the '12b through 12f' misprint, which 2002 shares, to 11b-11f. Probe: P 1 -> 15 after examining 14 characters, and P 5 after a GR15b overflow, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'Characters examined' are code values in identifier-1's storage (4.29), counted per character position as in 2023; no change of scope."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-06",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-14",
+    "to": [
+     "GR-14.9.48.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR14",
+      "quote": "plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR14",
+      "quote": "plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and same TALLYING syntax. Probe: T 10 + 5 receivers = 15; T 0 + 2 = 02 on overflow, at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-15",
+    "to": [
+     "GR-14.9.48.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44 UNSTRING statement",
+    "clause-2023": "14.9.48 UNSTRING statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR15",
+      "quote": "Either of the following situations causes an overflow condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR15",
+      "quote": "Either of the following situations causes an overflow condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.44.3 GR15b",
+      "quote": "all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR15b",
+      "quote": "all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both editions enumerate exactly the same two cases (a, b). The consequence (GR16: EC-OVERFLOW-UNSTRING, ON OVERFLOW, nonfatal continuation) is the same; only the control-transfer wording is condensed and the clause references renumbered. Probe: pointer 0, pointer 15 > 14, and unexamined characters each take ON OVERFLOW at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob (OVF-B 05 02 / OVF-A 00 / OVF-A15 15 at both)",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Character positions of identifier-1 and its unexamined characters are the storage sense (4.29/4.31), as in 2023; no change of scope.",
+     "removed-element: overflow": "§2002:G.1 item 4 makes archaic only the ON OVERFLOW phrase of the CALL statement; the UNSTRING overflow condition and its EC-OVERFLOW-UNSTRING (§2002:14.8.44.3 GR16) are not archaic or obsolete in 2002, and GR15 rests on neither G.1 nor G.2."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:G.1",
+      "quote": "ON OVERFLOW phrase of the CALL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.44.3 GR16",
+      "quote": "The EC-OVERFLOW-UNSTRING exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-06",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "removed-element: overflow": null
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-06",
+  "status": "complete: 23 of 23 SAME attacked",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.4.3-6",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "2002 GR6 sits under FORMAT 3 (program-prototype) and 2023 GR6 under FORMAT 2 (program-prototype). The two formats match phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2/OMITTED, BY CONTENT and BY VALUE, RETURNING, ON/NOT ON EXCEPTION). The removed ON OVERFLOW form is 2002 Format 1, which GR6 does not govern. GR6 is about how the callee's characteristics are found for NESTED. No operand it names can reach the communication section: 2002 SR3/SR7 (communication section) apply to identifier-2/3, which GR6 does not use. 2002 SR13 and 2023 SR15 (NESTED literal-1) match apart from renumbered cross-references.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR6",
+      "quote": "the common or contained program that has literal-1 specified in the PROGRAM-ID paragraph",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-10",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "Both rules sit under the program-prototype format (2002 FORMAT 3, 2023 FORMAT 2), and neither edition has ON OVERFLOW in that format. Without the clause, 2002 leaves the entry convention implementor-defined except for program-name naming and mapping. 2023 defaults a program to COBOL, whose naming is fixed and whose other aspects are implementor-defined. That is the same constraint. The INHERITS rules 2023 adds apply only to classes and interfaces, never to a CALLed program.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR10",
+      "quote": "Control is transferred to the called program in a manner consistent with the entry convention",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.5.3 GR2",
+      "quote": "The entry convention used when this clause is not specified is implementor-defined, except that the naming convention and mapping of method-names and program-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.7.4 GR2",
+      "quote": "When COBOL is specified, the naming convention and mapping of method-names and program-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.7.4 GR4c",
+      "quote": "In all other cases, the entry convention is COBOL",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-10",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "The CANCEL general format is identical in both editions. 2023 changes only SR2 (no zero-length literal-1, which 2002 lacks anyway) and GR9 (USE EXCEPTION and exception-checking PERFORM); GR10 is untouched. CANCEL does not appear in the 2002 Annex A list of clauses that refer to the communication facility.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-23",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "The save-locale format (2002 Format 11 = 2023 Format 12) is identical, and so is the identifier-11 syntax rule. The 'saved locale' definition in the set-locale GR (2002 GR18, 2023 GR21) is word-identical. Nothing removed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR23",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR26",
+      "quote": "If LC_ALL is specified, the current locale is saved",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR27",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR28",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-7",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "Format 4 and SR6-7 are identical. GR7 only composes GR5/GR6 (2023 GR6/GR7), which are word-identical apart from the OCCURS clause number. I attacked the communication-reach case: a conditional variable in a 2002 CD record. It does not apply. The SET clause is absent from the 2002 Annex A list of clauses that refer to the communication section, which names CALL SR3/SR7 and INVOKE SR9/SR11. The section of the conditional variable changes nothing in this rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR7",
+      "quote": "the results are the same as if a separate SET statement had been written for each condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR8",
+      "quote": "the results are the same as if a separate SET statement had been written for each condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.3 GR5",
+      "quote": "the literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules for the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR6",
+      "quote": "the literal in the VALUE clause associated with condition-name-1 is placed in the conditional variable according to the rules for the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-17",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-06\\sort2lvl.cob (2002 and 2023: ABCDEVXZWY / ABCDEZYXWV / B2A9B1A3)",
+    "reason": "The table formats are identical. I attacked the 2002-only subscripting form of data-name-2 (SR13: every level subscripted, the rightmost one ALL). 2023 still permits ALL as the rightmost subscript of a table SORT and treats it as an omitted subscript, so the form keeps its meaning. My probe sorts one row of two-level tables with (n, ALL) at both editions and gets identical, correct output. The reader's probe covered only one-level tables.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR17",
+      "quote": "The SORT statement sorts the table referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR18",
+      "quote": "The SORT statement sorts the table referenced by data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR13",
+      "quote": "subscripts shall be specified for all levels with the exception that the rightmost subscript shall be the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR6",
+      "quote": "as the rightmost or only subscript of a table in the table format of a SORT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob",
+    "reason": "Both SORT formats are identical. Every key a 2002 program can legally write is also legal in 2023. 2023 SR6c/6d and SR14d add only 2023-only constructs (message-tag, variable-length group, dynamic-length, dynamic-capacity), and its 'shall not be subject to OCCURS'/'not subscripted' restates 2002 SR6f/14e. 2023 moves the 2002 runtime EC-SORT-MERGE-ACTIVE case (a SORT inside an input or output procedure) into syntax rule 3. That changes when a SORT may run, not the order of key significance. No enumeration involved.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR2",
+      "quote": "The order of significance of the keys is the order in which they are specified in the SORT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR2",
+      "quote": "The order of significance of the keys is the order in which they are specified in the SORT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-20",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\sort-tab.cob",
+    "reason": "Identical format and identical SR15 precondition; the OCCURS KEY phrase exists in both. I also checked the two-level table case (sort2lvl.cob, third SORT): no KEY phrase, so the OCCURS DESCENDING KEY K1 is used, correct at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR20",
+      "quote": "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR21",
+      "quote": "If the KEY phrase is not specified, the sequence is determined by the KEY phrase in the data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR15",
+      "quote": "The KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR15",
+      "quote": "The KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY phrase",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-22",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-06\\sort2lvl.cob",
+    "reason": "The format KEY [data-name-1] is identical. I confirmed it beyond the reader's one-level probe: SORT E1 (n, ALL) ASCENDING/DESCENDING KEY with data-name-1 omitted sorts on the element at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR22",
+      "quote": "If data-name-1 is omitted, the data item referenced by data-name-2 is the key data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR23",
+      "quote": "If data-name-1 is omitted, the data item referenced by data-name-2 is the key data item",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\start-rel.cob",
+    "reason": "The START general format and SR1-8 are identical. SR4 changes only from 'may be qualified' to 'not subject to OCCURS', which is a no-op for a data-name. The consequence of violating GR1 is I-O status 47, defined in identical words in both editions. Nothing removed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be input or I-O",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be input or I-O",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "The execution of a READ or START statement is attempted referencing a file connector that is not open in the input or I-O mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.7 GR7",
+      "quote": "The execution of a READ or START statement is attempted referencing a file connector that is not open in the input or I-O mode",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.37.3-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\start-rel.cob",
+    "reason": "2002 already has the standalone RELATIVE KEY clause (12.3.4.13), with the same format and SR2/SR3 as 2023 12.4.5.13. The 'RELATIVE KEY phrase of the ACCESS MODE clause' wording in 2002 GR10 names the same declaration. Format identical.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.3 GR8",
+      "quote": "the START statement behaves as though KEY IS EQUAL TO data-name-1 had been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.4 GR8",
+      "quote": "the START statement behaves as though KEY IS EQUAL TO data-name-1 had been specified",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob",
+    "reason": "GR5 points to 'the following general rules' without naming them, so I read GR6-GR10 in both editions. They are word-identical except two cross-reference changes. GR8d points to the nonfatal exception clause: 2023's version is 2002's plus the exception-checking PERFORM WHEN step, which only adds cases. GR9 condenses the control-transfer wording to the same effect.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR5",
+      "quote": "If the POINTER phrase is not specified, the following general rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR5",
+      "quote": "If the POINTER phrase is not specified, the following general rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If checking for that exception condition is enabled, processing of the statement is interrupted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.4",
+      "quote": "If checking for that exception condition is enabled, processing of the statement is interrupted",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-6",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob",
+    "reason": "Identical format. 2002 SR3-SR9 match 2023 SR4-SR10 word for word, and the new 2023 SR3/SR11 apply only to 2023-only constructs (zero-length literal, variable-length group).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR6",
+      "quote": "The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR6",
+      "quote": "The value of the data item referenced by identifier-4 is changed during execution of the STRING statement only by the behavior specified above",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.39.3-7",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\string-ptr.cob",
+    "reason": "Identical format. The only new restriction on identifier-3 is SR11 (no variable-length group), and a variable-length group needs a dynamic-length item or dynamic-capacity table, which 2002 lacks.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.3 GR7",
+      "quote": "only the portion of the data item referenced by identifier-3 that was referenced during the execution of the STRING statement is changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.4 GR7",
+      "quote": "only the portion of the data item referenced by identifier-3 that was referenced during the execution of the STRING statement is changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR11",
+      "quote": "Identifier-1, identifier-2, or identifier-3 shall not specify a variable-length group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.12.1",
+      "quote": "A variable-length group is a group item whose data description has at least one dynamic-length elementary item or dynamic-capacity table as a subordinate item",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.43.3-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unlock.cob",
+    "reason": "Identical format. The only addition is 2023 SR2 (APPLY COMMIT, which 2002 lacks). The violation status 42 is defined in identical words in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.43.3 GR2",
+      "quote": "File-name-1 shall reference a file connector in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.4 GR2",
+      "quote": "File-name-1 shall reference a file connector in the open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.3 SR2",
+      "quote": "File-name-1 shall not be a file specified in an APPLY COMMIT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.13.7 GR2",
+      "quote": "A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "I compared the whole UNSTRING clause in both editions. The formats are identical, SR2-SR9 are word-identical, and GR1-GR18 are word-identical except clause renumbering and GR16c's condensed control-transfer wording. The only new syntax rules are SR1's zero-length literal ban and SR10's variable-length group ban, both on 2023-only constructs.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR1",
+      "quote": "All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR1",
+      "quote": "All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR10",
+      "quote": "shall not reference a variable-length group",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-3",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Same format; literal-1/identifier-2 admit the same 2002 operands (SR1 adds only the zero-length-literal ban, SR2 identical).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR3",
+      "quote": "Literal-1 or the data item referenced by identifier-2 specifies a delimiter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR3",
+      "quote": "Literal-1 or the data item referenced by identifier-2 specifies a delimiter",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-4",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Same format, and SR5/SR7 (COUNT IN only with DELIMITED BY) are identical, as is GR11e.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR4",
+      "quote": "This value does not include a count of the delimiter character(s)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR4",
+      "quote": "This value does not include a count of the delimiter character(s)",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring2.cob",
+    "reason": "The list of receiving descriptions the rule fills is fixed by SR4, which is identical in both editions including its national half. The reader quoted only the display half.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR8",
+      "quote": "the current receiving area shall be space-filled if it is described as alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR8",
+      "quote": "the current receiving area shall be space-filled if it is described as alphabetic, alphanumeric, or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.44.2 SR4",
+      "quote": "or as usage national and category national or numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR4",
+      "quote": "or as usage national and category national or numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-12",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Same format; SR5/SR6 on identifier-7/identifier-8 identical.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR12",
+      "quote": "The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR12",
+      "quote": "The initialization of the contents of the data items associated with the POINTER phrase or the TALLYING phrase is the responsibility of the user",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-13",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Same format. The examination rules GR11a-g match. 2023 GR11g corrects 2002's misprinted '12b through 12f' to '11b through 11f'; the rules meant are the same, since 2002 GR12 is the user-initialization rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR13",
+      "quote": "will contain a value equal to the initial value plus the number of characters examined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR13",
+      "quote": "will contain a value equal to the initial value plus the number of characters examined",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-14",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Same format and TALLYING syntax; nothing removed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR14",
+      "quote": "plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR14",
+      "quote": "plus a value equal to the number of identifier-4 receiving data items accessed during execution of the statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.44.3-15",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-06\\unstring.cob",
+    "reason": "Both editions list the same two cases, (a) and (b), word for word. The consequence rule GR16 gains only the 2023 exception-checking PERFORM path through the nonfatal-exception clause (2023 14.6.13.1.4 step 2), which adds cases. GR16 also condenses the control-transfer wording.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.3 GR15",
+      "quote": "Either of the following situations causes an overflow condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR15",
+      "quote": "Either of the following situations causes an overflow condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.44.3 GR15b",
+      "quote": "all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.4 GR15b",
+      "quote": "all receiving areas have been acted upon, and the data item referenced by identifier-1 contains characters that have not been examined",
+      "check": "OK"
+     }
+    ]
+   }
+  ],
+  "disputed-different": [],
+  "different-rows-note": "Not re-judged. A quick check finds both DIFFERENT rows (CALL GR4, GR5) sound: 2023 lists the CALL ON OVERFLOW phrase among its removals (§2023:E.2 'On Overflow phrase of the CALL statement', check OK), and 2002 Annex A names CALL SR3/SR7 as communication-section references (§2002:A, check OK)."
+ },
+ "imported": {
+  "asked": "f72a8b80a2cd6dd6d637b317bf550717cf841ac7e4720af1fa162e86deb61c75",
+  "read": "639a8729d888715d925de30a8be3ee539196adbf6211eb424648052f55abb546",
+  "refute": "8b4e3fbf908059abe4f8eb01126bad0ba2786fc012126d22c5b16731574f4c57"
+ }
+}

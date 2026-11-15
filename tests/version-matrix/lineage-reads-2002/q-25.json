@@ -1,0 +1,2299 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-25 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-25",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.4.2-21",
+   "2002-GR-14.8.4.3-1",
+   "2002-GR-14.8.4.3-12",
+   "2002-GR-14.8.4.3-8",
+   "2002-GR-14.8.5.3-12",
+   "2002-GR-14.8.5.3-5",
+   "2002-GR-14.8.5.3-7",
+   "2002-GR-14.8.5.3-8",
+   "2002-GR-14.8.6.3-1",
+   "2002-GR-14.8.6.3-10",
+   "2002-GR-14.8.6.3-5",
+   "2002-GR-14.8.6.3-7",
+   "2002-SR-14.8.10.2-3",
+   "2002-GR-14.8.10.3-11",
+   "2002-GR-14.8.10.3-12",
+   "2002-GR-14.8.10.3-13",
+   "2002-GR-14.8.10.3-14",
+   "2002-GR-14.8.10.3-15",
+   "2002-GR-14.8.10.3-16",
+   "2002-GR-14.8.10.3-18",
+   "2002-SR-14.8.12.2-5",
+   "2002-SR-14.8.12.2-8",
+   "2002-GR-14.8.12.3-3",
+   "2002-GR-14.8.12.3-4",
+   "2002-GR-14.8.12.3-5"
+  ],
+  "flags": {
+   "2002-SR-14.8.4.2-21": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.4.3-1": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-GR-14.8.4.3-8": {
+    "changed-definition-term": "boolean expression"
+   },
+   "2002-GR-14.8.5.3-12": {
+    "changed-definition-term": "zero-length item"
+   },
+   "2002-GR-14.8.5.3-5": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-GR-14.8.5.3-7": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.5.3-8": {
+    "changed-definition-term": "external data"
+   },
+   "2002-GR-14.8.6.3-10": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.6.3-7": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-SR-14.8.10.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-11": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-12": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-13": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-14": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-15": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.10.3-16": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.10.3-18": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.12.3-3": {
+    "changed-definition-term": "boolean expression, boolean position"
+   },
+   "2002-GR-14.8.12.3-4": {
+    "normalized": "normalized",
+    "changed-definition-term": "procedure"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-25",
+  "seed": null,
+  "counts": {
+   "SAME": 15,
+   "DIFFERENT": 10,
+   "DOUBTFUL": 0
+  },
+  "defects": 0,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.4.2-21",
+    "to": [
+     "SR-14.9.4.3-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4.2",
+    "clause-2023": "14.9.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR21",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR24",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CALL Format 3 (program-prototype) BY REFERENCE OMITTED: the corresponding formal parameter of the called program's procedure division header must carry OPTIONAL (compile-time)"
+    ],
+    "evidence-2002": {
+     "CALL Format 3 (program-prototype) BY REFERENCE OMITTED: the corresponding formal parameter of the called program's procedure division header must carry OPTIONAL (compile-time)": "covered by conformance-suite/cases/14.2-Procedure-division-structure/pb133-omitted-not-optional run now at --std 2002: exit 65, COBOL1685 'CALL USING OMITTED at argument 2: the corresponding formal parameter L-B is not declared OPTIONAL'; the legal pb133_omitted_args runs at 2002 and matches its .out"
+    },
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split.",
+     "definition-changed: procedure": "§2002:4 defines procedure as 'One or more successive paragraphs or sections in the procedure division' and §2023:3.145 as 'paragraph, section, or one or more successive paragraphs or sections that include the executable code'; the rule uses the word only inside the fixed term 'procedure division header', which neither definition governs, so the programs the rule reaches are unchanged.",
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The screen matched these clauses on the word 'corresponding' (14.6.4 size error and 14.6.6 arithmetic statements, whose trigger includes the CORRESPONDING phrase); here the word is only 'the corresponding formal parameter' of the procedure division header. The rule rests on nothing in §2002:14.6.4 or 14.6.6: no arithmetic statement, size error or CORRESPONDING phrase is involved, so no change of scope or evidence."
+    },
+    "reason": "2002 Format 3 and 2023 Format 2 (program-prototype) are identical phrase for phrase, and OMITTED appears only in that format in both editions. OMITTED is not a data operand, so there is no communication-section reach; the rule names no removed form. Same requirement; the twin's negative witness is refused at 2002.",
+    "probe": null,
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: pb133-omitted-not-optional refused COBOL1685; pb133_omitted_args matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR21",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR24",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-1",
+    "to": [
+     "GR-14.9.4.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.4.3",
+    "clause-2023": "14.9.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR1",
+      "quote": "is the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR1",
+      "quote": "is the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3",
+      "quote": "If the exception condition is any of the EC-PROGRAM exception conditions and an ON OVERFLOW or ON EXCEPTION phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The function, method, or program that executed a given activating statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.4",
+      "quote": "function, method, or program that executed a given activating statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 (on-overflow): CALL ... ON OVERFLOW",
+     "Format 2 (on-exception)",
+     "Format 3 (program-prototype)"
+    ],
+    "evidence-2002": {
+     "Format 1 (on-overflow): CALL ... ON OVERFLOW": "not shown by the 2023 row (2023 has no ON OVERFLOW form; GR1 is banded FORMATS 1 AND 2 = program, prototype). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_ovf_activating.cob (the l1 witness with every CALL in the ON OVERFLOW form) at --std 2002: R-ENTER D=1 TAG=11 / C-SEES=11 / R-ENTER D=2 TAG=22 / C-SEES=22 / R-RESUME D=2 TAG=22 / C-SEES=22 / R-RESUME D=1 TAG=11 / C-SEES=11, the witness's .out; --std 2023 refuses COBOL0882",
+     "Format 2 (on-exception)": "covered by conformance-suite/cases/11.10-PROGRAM-ID/l1_call_activating_instance_per_activation (accept [2002], matches .out at 2002), 14.9.4-CALL/pb133_instance_restore and 8.4.6.3-Scope-of-program-names/pb133_recursive_containee (match .out at 2002)",
+     "Format 3 (program-prototype)": "covered by the same witnesses' format (the activating instance is format-independent) and by pb3760_literal_and_expression_arguments (CALL AS NESTED, matches at 2002)"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CALL ... ON OVERFLOW is correct: the executing instance is the activating runtime element and each recursive activation resumes in its own instance (probe call_ovf_activating.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_ovf_activating.cob)",
+    "flags-answered": [
+     "changed-definition-term 'runtime element': 2002 4.167 'The executable unit resulting from compiling a source element' and 2023 'element consisting of code and data produced by the compilation of a source element' name the same thing; 'activating runtime element' is defined word for word alike (§2002:4 4.4, §2023:3.4). No change in scope; the scope change is the removed Format 1."
+    ],
+    "reason": "The 2002 rule sits under ALL FORMATS, and 2002 has three CALL formats: on-overflow, on-exception, program-prototype. 2023 bands its twin FORMATS 1 AND 2 (program, prototype) and has no ON OVERFLOW. So the 2002 rule also governs CALL ... ON OVERFLOW, which the 2023 row cannot witness. Same cause as p-06 GR4/GR5 and p-17 SR1/4/5/9.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_ovf_activating.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-12",
+    "to": [
+     "GR-14.9.4.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4.3",
+    "clause-2023": "14.9.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR12",
+      "quote": "the EC-PROGRAM-ARG-OMITTED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR12",
+      "quote": "the EC-PROGRAM-ARG-OMITTED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR11",
+      "quote": "If an OMITTED phrase is specified or a trailing argument is omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-PROGRAM-ARG-OMITTED | Fatal | A reference to an omitted argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.6",
+      "quote": "EC-PROGRAM-ARG-OMITTED | Fatal | A reference to an omitted argument",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 3 (program-prototype): a parameter whose argument is OMITTED or a trailing omitted argument, referenced in the called program other than as an argument or in the omitted-argument condition: EC-PROGRAM-ARG-OMITTED (fatal)"
+    ],
+    "evidence-2002": {
+     "Format 3 (program-prototype): a parameter whose argument is OMITTED or a trailing omitted argument, referenced in the called program other than as an argument or in the omitted-argument condition: EC-PROGRAM-ARG-OMITTED (fatal)": "covered by conformance-suite/cases/14.9.4-CALL/pb971_program_arg_omitted (accept [2002]; run now at --std 2002, matches .out apart from trailing spaces: C-CAUGHT 01..05=EC-PROGRAM-ARG-OMITTED, N-CAUGHT=EC-PROGRAM-ARG-OMITTED), and pb133_omitted_args, pb133_omitted_lenient, pb133_omitted_transitive, pb165_gr12_forward (all match at 2002)"
+    },
+    "flags-answered": [
+     "No flag; held back for its dependence on the uncatalogued 2002 exception-condition clause. Read §2002:14.5.12.1.5: EC-PROGRAM-ARG-OMITTED is Fatal there, as in 2023's table; the checking and declarative mechanics the witness exercises (>>TURN, USE AFTER EXCEPTION CONDITION) run at 2002."
+    ],
+    "reason": "Same format (2002 Format 3 = 2023 Format 2), same band, same omitted-argument condition (GR11 in both), same exception name and the same fatal class. The parameter is a linkage item of the called program, so no communication-section reach; no removed form reaches it (OMITTED and trailing omission exist only in the prototype format).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-8",
+    "to": [
+     "GR-14.9.4.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.4.3",
+    "clause-2023": "14.9.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR8",
+      "quote": "is regarded as an identifier or literal rather than an arithmetic or boolean expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR8",
+      "quote": "is regarded as an identifier or literal rather than an arithmetic or boolean expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR9",
+      "quote": "if the argument meets the requirements of syntax rule 3, BY REFERENCE is assumed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 3 arguments that are a single identifier or literal in working-storage, local-storage, linkage or file items",
+     "Format 3 arguments that are a single identifier referencing a communication-section item (2002 SR3 admits the communication section for identifier-2; identifier-4 is unrestricted)"
+    ],
+    "evidence-2002": {
+     "Format 3 arguments that are a single identifier or literal in working-storage, local-storage, linkage or file items": "covered by conformance-suite/cases/14.9.4-CALL/pb238_call_format2_operands, pb3760_literal_and_expression_arguments and pb3760_grouped_argument_before_boolean_argument (match .out at 2002), and the three pb3760_*_refused witnesses (refused at 2002, COBOL1688/COBOL1511)",
+     "Format 3 arguments that are a single identifier referencing a communication-section item (2002 SR3 admits the communication section for identifier-2; identifier-4 is unrestricted)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_gr8_cd.cob at --std 2002: CD record items as a single identifier pass BY REFERENCE (QN=changed, MC-ID=000042) while (MC) is an expression passed BY CONTENT (MC-EXPR=000005); BY VALUE MC gives V=+000000005; working-storage control WN behaves the same"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a single-identifier argument that is a communication-section item is correct (probe call_gr8_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_gr8_cd.cob)",
+    "flags-answered": [
+     "changed-definition-term 'boolean expression': 2002 4.22 'One or more boolean operands separated by boolean operators' and 2023 'expression consisting of one or more boolean operands separated by boolean operator' are the same; 2023 only adds the B-SHIFT operators (a widening of what counts as an expression, not of what counts as a single identifier). No scope change from the term."
+    ],
+    "reason": "Format identical (2002 Format 3 = 2023 Format 2). But 2002 SR3 lets identifier-2 be a communication-section item ('working-storage, local-storage, linkage, or communication section'), and 2023 SR3 drops it, so the 2002 rule also classifies CD items as single-identifier arguments, a case the 2023 row cannot witness. Probe shows the compiler handles it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/call_gr8_cd.cob",
+    "widening": "2023's boolean expressions add the B-SHIFT operators; irrelevant to a single identifier or literal"
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-12",
+    "to": [
+     "GR-14.9.5.4-12"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.5.3",
+    "clause-2023": "14.9.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR12",
+      "quote": "If identifier-1 references a zero-length item, the CANCEL statement has no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR12",
+      "quote": "If identifier-1 references a zero-length item, the CANCEL statement has no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An item whose minimum permitted length is zero and whose length at execution time is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 a zero-length item outside the communication section (in 2002: a variable-occurrence group at zero occurrences, an ANY LENGTH linkage item bound to one)",
+     "identifier-1 a zero-length item in a record under an output CD (ordinary data description entries, OCCURS DEPENDING allowed; input/I-O CD records are fixed at 87/33 positions)"
+    ],
+    "evidence-2002": {
+     "identifier-1 a zero-length item outside the communication section (in 2002: a variable-occurrence group at zero occurrences, an ANY LENGTH linkage item bound to one)": "the twin's witness conformance-suite/cases/14.9.5-CANCEL/pb154_cancel_scope does NOT run at 2002 (refused COBOL0900: its zero-length target is DYNAMIC LENGTH, a 2014 form). Covered instead by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_q25.cob at --std 2002: CANCEL G with G an ODO group at 0 occurrences leaves HLP25 un-canceled (H=0003 continues)",
+     "identifier-1 a zero-length item in a record under an output CD (ordinary data description entries, OCCURS DEPENDING allowed; input/I-O CD records are fixed at 87/33 positions)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_cd_zero.cob at --std 2002: CANCEL G (zero-length ODO group under CD CDOUT FOR OUTPUT) has no effect (H=0002), and the control CANCEL QN (content HLP25C) does cancel (H=0001)"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CANCEL of a zero-length item, including one in a record under an output CD, is correct (probes cancel_q25.cob and cancel_cd_zero.cob); the twin witness cannot serve at 2002",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_q25.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_cd_zero.cob)",
+    "flags-answered": [
+     "changed-definition-term 'zero-length item': 2002 4.188 'An item whose minimum permitted length is zero and whose length at execution time is zero' vs 2023 'element of data ... at runtime is zero': the same test. What differs is which items can be zero-length: 2002 has no DYNAMIC LENGTH items (2014+), so the 2002 cases are ODO groups at zero (also under an output CD) and ANY LENGTH parameters; the twin's DYNAMIC LENGTH witness is therefore not 2002 evidence."
+    ],
+    "reason": "CANCEL format identical (2023 SR2 only adds a zero-length-literal ban, a construct 2002 lacks). In 2002 identifier-1 may be a communication-section item (p-18 refuter, SR1), and a record under an output CD may hold an OCCURS DEPENDING group, so a zero-length CD item is in the 2002 scope; the 2023 row has none, and its witness's zero-length item is a 2014 form. Probes show the compiler right at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_cd_zero.cob",
+    "widening": "2023 also covers DYNAMIC LENGTH zero-length items (2014+)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-5",
+    "to": [
+     "GR-14.9.5.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5.3",
+    "clause-2023": "14.9.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR5",
+      "quote": "the EC-PROGRAM-CANCEL-ACTIVE exception condition is raised in the runtime element containing the CANCEL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR5",
+      "quote": "the EC-PROGRAM-CANCEL-ACTIVE exception condition is raised in the runtime element containing the CANCEL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-PROGRAM-CANCEL-ACTIVE | Fatal | Canceled program active",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CANCEL of an active program (or one containing an active program) with EC-PROGRAM-CANCEL-ACTIVE checking enabled: exception raised, program not canceled",
+     "the same with checking not enabled: implementor-defined (2002 B.1 item 18)"
+    ],
+    "evidence-2002": {
+     "CANCEL of an active program (or one containing an active program) with EC-PROGRAM-CANCEL-ACTIVE checking enabled: exception raised, program not canceled": "covered by conformance-suite/cases/14.9.5-CANCEL/pb154_cancel_active and pb5241_cancel_main_program_active (accept includes 2002), both run now at --std 2002 and match .out (EC=EC-PROGRAM-CANCEL-ACTIVE, A=1/A=2; AFTER-SELF-CANCEL M=1)",
+     "the same with checking not enabled: implementor-defined (2002 B.1 item 18)": "covered by the 2023 row's documented determination (the same implementor-defined item, numbered 18 in both B.1 lists)"
+    },
+    "flags-answered": {
+     "definition-changed: runtime element": "Same referent: §2002:4 (4.167) 'The executable unit resulting from compiling a source element' and §2023:3.159 'element consisting of code and data produced by the compilation of a source element' name the same programs, functions and methods; 'the runtime element containing the CANCEL statement' is the same program. The scope and the evidence are unchanged.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "What follows the raise rests on §2002:14.5.12.1.2. For a CANCEL it is the same as 2023: a declarative then abnormal termination, unless RESUME continues (§2002:14.8.31.3 GR2: control goes to 'an implicit CONTINUE statement that immediately follows the end of the statement'); then PROPAGATE; then abnormal termination; implementor-defined when checking is off. 2023 adds only SORT/MERGE, EC-I-O and PERFORM WHEN steps, none of which reaches a CANCEL. EC-PROGRAM-CANCEL-ACTIVE is Fatal, so 14.5.12.1.3 does not apply, and 14.5.12.2 is EC-DATA-INCOMPATIBLE only. Re-run at --std 2002 this session: pb154_cancel_active MATCH .out, and pb5241_cancel_main_program_active matches .out apart from trailing blanks (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-13/pb154_cancel_active-2002.log, pb5241_cancel_main_program_active-2002.log)."
+    },
+    "reason": "CANCEL format identical; the rule is word-identical; EC-PROGRAM-CANCEL-ACTIVE is Fatal in both tables; the implementor-defined escape is the same B.1 item. The rule's condition is the program's active state, not the form of identifier-1, so a CD-item identifier-1 or a program activated by CALL ... ON OVERFLOW does not change what it requires. Twin witnesses run clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'runtime element': same thing in both editions (see the CALL GR1 entry); no scope change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.3 GR5",
+      "quote": "the EC-PROGRAM-CANCEL-ACTIVE exception condition is raised in the runtime element containing the CANCEL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement that was executing when control was transferred to the declarative",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If a non-fatal exception condition other than an exception object is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-7",
+    "to": [
+     "GR-14.9.5.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5.3",
+    "clause-2023": "14.9.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR7",
+      "quote": "No action is taken when a CANCEL statement is executed referencing a program that has not been called in this run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR7",
+      "quote": "No action is taken when a CANCEL statement is executed referencing a program that has not been called in this run unit",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CANCEL of a program never called in the run unit: no action, control to the next statement",
+     "CANCEL of a program called and at present canceled: no action"
+    ],
+    "evidence-2002": {
+     "CANCEL of a program never called in the run unit: no action, control to the next statement": "the twin's witness pb154_cancel_scope does not run at 2002 (DYNAMIC LENGTH, 2014). Covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_q25.cob at --std 2002: CANCEL \"NEVER25\" then AFTER-NEVER",
+     "CANCEL of a program called and at present canceled: no action": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_q25.cob at --std 2002 (CANCEL HLP25 twice, AFTER-RECANCEL, next CALL H=0001) and by conformance-suite/cases/11.10-PROGRAM-ID/pb154_cancel_cascade (matches .out at 2002)"
+    },
+    "flags-answered": {
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; 'not been called in this run unit' covers the same programs.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The initial state after CANCEL (§2002:14.5.2.1.2.1 item 3) is CANCEL GR3's; GR7 is the no-action case and its transfer to the next statement is ordinary 14.5.3 flow. No dependence on the differing text; the reader's cancel_q25.cob at 2002 stands."
+    },
+    "reason": "Format and words identical. The rule turns on the program's call state, not on how it was called; the probe nevertheless makes the earlier calls with the 2002-only CALL ... ON OVERFLOW form and the result is the same. Evidence at 2002 comes from the probe because the twin's witness uses a 2014 construct for an unrelated leg.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/cancel_q25.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'run unit': 2002 4.166 'One or more runtime modules that interact with one another and that function, at execution time, as an entity' vs 2023 'runtime entity consisting of one or more runtime modules that interact and that function at execution time as an independent entity': the same notion; no scope change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The first time the function, method, or program in which it is described is activated in a run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-8",
+    "to": [
+     "GR-14.9.5.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5.3",
+    "clause-2023": "14.9.5.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR8",
+      "quote": "The contents of data items in external data records described by a program are not changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR8",
+      "quote": "The contents of data items in external data records described by a program are not changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "external data records (working-storage 01 EXTERNAL records and records of an EXTERNAL file) described by a canceled program keep their contents"
+    ],
+    "evidence-2002": {
+     "external data records (working-storage 01 EXTERNAL records and records of an EXTERNAL file) described by a canceled program keep their contents": "covered by conformance-suite/cases/13.18.22-EXTERNAL/l1_cancel_external_unchanged run now at --std 2002 (matches .out: AFTCANC=[OMEGA], SUBSEES=[OMEGA] CTR=1) for the working-storage case; the external-file-record case is in both editions' scope alike and is not separately witnessed by the 2023 row either"
+    },
+    "flags-answered": {
+     "definition-changed: external data": "§2002:4 (4.81) external data matches 2023 3.79 but for may/can; the external records a 2002 program can describe (EXTERNAL file and working-storage records, §2002:13.16.20.2 SR1) are a subset of 2023's, and the 2002 run of l1_cancel_external_unchanged covers the working-storage case."
+    },
+    "reason": "Format and words identical; the set of external records in 2002 is a subset of 2023's (2023 adds type declarations); communication-section records cannot be external in 2002. Twin witness runs clean at 2002.",
+    "probe": null,
+    "widening": "2023 also allows EXTERNAL on level 1 type declarations",
+    "reader-flags-answered": [
+     "changed-definition-term 'external data': 2002 4.81 'Data that belongs to the run unit and may be accessed by any runtime element in which it is described' and 2023 'data that belongs to the run unit and can be accessed by any runtime element in which it is described' are the same. 2002 EXTERNAL is allowed only on file descriptions and working-storage records, so no CD reach; 2023 adds level 1 type declarations (a widening)."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "Data that belongs to the run unit and may be accessed by any runtime element in which it is described",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-25"
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-1",
+    "to": [
+     "GR-14.9.6.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3",
+    "clause-2023": "14.9.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR1",
+      "quote": "the CLOSE statement is unsuccessful and the I-O status indicator for the file connector is set to '42'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR1",
+      "quote": "the CLOSE statement is unsuccessful and the I-O status indicator for the file connector is set to '42'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "A CLOSE or UNLOCK statement is attempted for a file connector that is not in an open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CLOSE, CLOSE REEL/UNIT [FOR REMOVAL], CLOSE WITH NO REWIND of a not-open file connector: unsuccessful, status 42",
+     "CLOSE ... WITH LOCK of a not-open file connector (a 2002 format alternative that 2023 lacks): unsuccessful, status 42, no lock"
+    ],
+    "evidence-2002": {
+     "CLOSE, CLOSE REEL/UNIT [FOR REMOVAL], CLOSE WITH NO REWIND of a not-open file connector: unsuccessful, status 42": "covered by conformance-suite/cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_close_status and 9.1.13.2-Successful-completion/pb1515_io_warning_07_raises_ec (pb140_close_status run now at 2002, matches .out)",
+     "CLOSE ... WITH LOCK of a not-open file connector (a 2002 format alternative that 2023 lacks): unsuccessful, status 42, no lock": "covered at 2002 by conformance-suite/cases/14.9.6-CLOSE/pb140_close_lock (linked to the 2023 row but accept [2014]; run now at --std 2002, matches .out: CWL42=42, then OPEN1=00 so the failed CLOSE WITH LOCK locked nothing, CWL00=00, OPEN38=38). The 2023 verdict itself says nothing about this form (2023 refuses it, COBOL0902)"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CLOSE WITH LOCK of a not-open file is correct (pb140_close_lock run at 2002)",
+    "compiler-at-2002": "correct (pb140_close_lock at --std 2002; outputs under E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25)",
+    "flags-answered": [
+     "No flag; held back for its dependence on the uncatalogued 2002 I-O status clause. Read §2002:9.1.12.6 item 2: status 42 is a CLOSE or UNLOCK of a file connector not in an open mode, the same value the rule sets; the WITH LOCK leg relies on 38 for the later OPEN, also shown at 2002."
+    ],
+    "reason": "The 2002 CLOSE format has WITH {NO REWIND | LOCK}; 2023 has only WITH NO REWIND (and its Table 14 lost the CLOSE WITH LOCK row and symbol e). GR1 names no phrase, so in 2002 it also governs CLOSE ... WITH LOCK, the removed form p-07 found for GR2/GR6. The compiler accepts WITH LOCK at 2002 and handles the not-open case correctly.",
+    "probe": "conformance-suite/cases/14.9.6-CLOSE/pb140_close_lock.cob (run at --std 2002)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-10",
+    "to": [
+     "GR-14.9.6.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3",
+    "clause-2023": "14.9.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR10",
+      "quote": "the same as if a separate CLOSE statement had been written for each file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR10",
+      "quote": "the same as if a separate CLOSE statement had been written for each file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "multi-file CLOSE without LOCK, and the RESUME NEXT STATEMENT step to the next implicit CLOSE",
+     "multi-file CLOSE whose file-names carry WITH LOCK (2002 only)"
+    ],
+    "evidence-2002": {
+     "multi-file CLOSE without LOCK, and the RESUME NEXT STATEMENT step to the next implicit CLOSE": "covered by conformance-suite/cases/14.9.6-CLOSE/l1_close_multi_file and pb893_close_report_completes, run now at --std 2002, both match .out",
+     "multi-file CLOSE whose file-names carry WITH LOCK (2002 only)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_multi.cob at --std 2002: CLOSE F1 WITH LOCK F2 WITH LOCK F3 WITH LOCK with F2 not open gives D2=42 from the declarative, RESUME AT NEXT STATEMENT continues to F3 (ST3=00), and F1 and F3 are each locked (re-OPEN 38 for both); --std 2023 refuses COBOL0902"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a multi-file CLOSE with WITH LOCK is correct (probe close_lock_multi.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_multi.cob)",
+    "reason": "Same removed form as GR1: in 2002 each file-name-1 of a multi-file CLOSE may carry WITH LOCK, and the rule's 'separate CLOSE statement for each file-name-1' then includes CLOSE ... WITH LOCK. The second sentence (implicit CLOSE, RESUME NEXT STATEMENT) is the same in both; 2023's new SR3 (exception-checking PERFORM) restricts only a 2023-only statement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_multi.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-5",
+    "to": [
+     "GR-14.9.6.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3",
+    "clause-2023": "14.9.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR5",
+      "quote": "the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR5",
+      "quote": "the CLOSE statement for that file is completed and the EC-REPORT-NOT-TERMINATED exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-REPORT-NOT-TERMINATED | NF | Report file closed with active report",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CLOSE of a report file with an active report (no LOCK): CLOSE completed, EC-REPORT-NOT-TERMINATED (non-fatal)",
+     "CLOSE ... WITH LOCK of a report file with an active report (2002 only)"
+    ],
+    "evidence-2002": {
+     "CLOSE of a report file with an active report (no LOCK): CLOSE completed, EC-REPORT-NOT-TERMINATED (non-fatal)": "covered by conformance-suite/cases/14.9.6-CLOSE/pb141_report_not_terminated, pb3102_report_not_terminated_with_location and pb893_close_report_completes, run now at --std 2002, all match .out",
+     "CLOSE ... WITH LOCK of a report file with an active report (2002 only)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_report.cob at --std 2002: CLOSE RPT WITH LOCK after INITIATE gives CLOSE=00 ES=EC-REPORT-NOT-TERMINATED, and the lock holds (REOPEN=38); --std 2023 refuses COBOL0902"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CLOSE WITH LOCK of a report file with an active report is correct (probe close_lock_report.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_report.cob)",
+    "reason": "Same removed form as GR1: the rule governs any CLOSE of a report file, which in 2002 includes CLOSE ... WITH LOCK. EC-REPORT-NOT-TERMINATED is non-fatal in both tables; the report writer's active state (INITIATE/TERMINATE) is the same.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_report.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-7",
+    "to": [
+     "GR-14.9.6.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3",
+    "clause-2023": "14.9.6.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR7",
+      "quote": "the successful execution of a CLOSE statement makes the record area unavailable to the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR7",
+      "quote": "the successful execution of a CLOSE statement makes the record area unavailable to the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "record-area availability after CLOSE without the UNIT phrase (plain, NO REWIND), with and without SAME RECORD AREA",
+     "the same after CLOSE ... WITH LOCK (2002 only)"
+    ],
+    "evidence-2002": {
+     "record-area availability after CLOSE without the UNIT phrase (plain, NO REWIND), with and without SAME RECORD AREA": "covered by conformance-suite/cases/12.4.6.4-SAME/pb235_same_record_area_close, run now at --std 2002, matches .out",
+     "the same after CLOSE ... WITH LOCK (2002 only)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_sra.cob (pb235 with CLOSE FA WITH LOCK while FB is open, then CLOSE FB WITH LOCK) at --std 2002: CLOSE-A=00 A=AAAAAA B=AAAAAA (area still available through FB), READ-B and CLOSE-B as pb235, REOPEN-A=38"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for record-area availability after CLOSE WITH LOCK under SAME RECORD AREA is correct (probe close_lock_sra.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_sra.cob)",
+    "flags-answered": [
+     "changed-definition-term 'runtime element': same notion in both editions (see CALL GR1); no scope change."
+    ],
+    "reason": "Same removed form as GR1: 'the CLOSE statement without the UNIT phrase' in 2002 includes CLOSE ... WITH LOCK, which 2023 lacks. SAME RECORD AREA is unchanged.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/close_lock_sra.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.10.2-3",
+    "to": [
+     "SR-14.9.11.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.2",
+    "clause-2023": "14.9.11.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR3",
+      "quote": "Identifier-2 and identifier-3 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR3",
+      "quote": "Identifier-2 and identifier-3 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINE NUMBER identifier-2 and COLUMN NUMBER identifier-3 of a DISPLAY screen statement (any section, including, in 2002, a CD item such as TEXT LENGTH)"
+    ],
+    "evidence-2002": {
+     "LINE NUMBER identifier-2 and COLUMN NUMBER identifier-3 of a DISPLAY screen statement (any section, including, in 2002, a CD item such as TEXT LENGTH)": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. In 2002 identifier-2/3 could be communication-section items, but the refusal is of the statement form, so that reach is declined too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-11",
+    "to": [
+     "GR-14.9.11.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR11",
+      "quote": "Column and line number positions are specified in terms of alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR12",
+      "quote": "Column and line number positions are specified in terms of alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "line and column positions of a DISPLAY screen statement"
+    ],
+    "evidence-2002": {
+     "line and column positions of a DISPLAY screen statement": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. ",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null,
+    "flags-answered-prior": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Here 'alphanumeric character positions' on the screen is the storage/presentation sense (4.31) and a screen item's characters are graphic characters (4.27), as in 2023; the whole screen DISPLAY is declined at both editions, so no 2002 program is governed differently."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-25",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-12",
+    "to": [
+     "GR-14.9.11.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR12",
+      "quote": "the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR13",
+      "quote": "the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "transfer of FROM/USING/VALUE data to the elementary screen items of screen-name-1 by the MOVE rules, order, overlap (EC-SCREEN-FIELD-OVERLAP), PICTURE editing"
+    ],
+    "evidence-2002": {
+     "transfer of FROM/USING/VALUE data to the elementary screen items of screen-name-1 by the MOVE rules, order, overlap (EC-SCREEN-FIELD-OVERLAP), PICTURE editing": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. The MOVE rules it defers to differ between the editions only in what 2023 added; that does not matter while the screen format is declined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null,
+    "flags-answered-reader": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 20203 has the same rule split by '## Page 513': page break only. Re-read §2002:14.8.10.3 GR12 (FORMAT 2, screen): unchanged.",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 defines character in four senses (4.26-4.29); the rule's 'character positions' of overlapping screen items is the screen-item sense. The difference in definitions cannot change scope: the whole DISPLAY screen format is processor-dependent (§2002:B.3) and declined at --std 2002 (COBOL1707/COBOL1560).",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.3: EC-SCREEN-FIELD-OVERLAP is NF in the 2002 table, and non-fatal handling ignores it when checking is off and runs a declarative otherwise, as in 2023 (2023 adds only the PERFORM WHEN path). None of it is reached at 2002 because the statement is refused at compile time under the §2002:3.1.5 licence; scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR12",
+      "quote": "the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-SCREEN-FIELD-OVERLAP | NF | Screen fields overlap",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-25"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-13",
+    "to": [
+     "GR-14.9.11.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR13",
+      "quote": "Identifier-2 and identifier-3 are evaluated once at the start of execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR14",
+      "quote": "Identifier-2 and identifier-3 are evaluated once at the start of execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "starting position of the screen record from LINE and COLUMN; one evaluation of identifier-2/3"
+    ],
+    "evidence-2002": {
+     "starting position of the screen record from LINE and COLUMN; one evaluation of identifier-2/3": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. ",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null,
+    "flags-answered-prior": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The rule turns on one evaluation of identifier-2/3; 'character' is not load-bearing beyond the screen-item sense (4.27, = §2023:3.93), and the screen DISPLAY is declined at both editions."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-25",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-14",
+    "to": [
+     "GR-14.9.11.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR14",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR15",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DISPLAY screen statement without the LINE phrase"
+    ],
+    "evidence-2002": {
+     "DISPLAY screen statement without the LINE phrase": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. ",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-15",
+    "to": [
+     "GR-14.9.11.4-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR15",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR16",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DISPLAY screen statement without the COLUMN phrase"
+    ],
+    "evidence-2002": {
+     "DISPLAY screen statement without the COLUMN phrase": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect."
+    ],
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. ",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-16",
+    "to": [
+     "GR-14.9.11.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR16",
+      "quote": "the ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the DISPLAY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR17",
+      "quote": "the ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the DISPLAY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "successful DISPLAY screen statement: ON EXCEPTION ignored, NOT ON EXCEPTION executed"
+    ],
+    "evidence-2002": {
+     "successful DISPLAY screen statement: ON EXCEPTION ignored, NOT ON EXCEPTION executed": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "flags-answered": {
+     "deferral: the rules for ": "The rule defers to 'the rules for each statement specified in imperative-statement-2' and to the transfer 'in accordance with the rules for that statement'. Those are the nested statements' own 2002 rules. The whole DISPLAY screen format is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (COBOL1707/COBOL1560, the reader's probe disp_screen_q25.cob), so no 2002 program reaches the deferred rules through this one.",
+     "definition-changed: procedure": "§2002:4 defines procedure as 'One or more successive paragraphs or sections in the procedure division'; 2023 says 'paragraph, section, or one or more successive paragraphs or sections'. The term appears only inside 'procedure branching statement', whose definition is identical, so the scope is unchanged, and the format is declined in any case.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "These clauses were matched by 'transfer of control'. The rule's explicit transfer goes through the branching statement's own rules (§2002:14.5.3) and involves no initial state or run-unit termination. Because the statement is declined at --std 2002, nothing that depends on those clauses can be observed through this rule."
+    },
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. ",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null,
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT (screen handling optional in 2023). 2002 has no optional screen module (§2002:3.1 makes only Annex A optional) but lists the screen format of the DISPLAY statement as processor-dependent (§2002:B.3 item 1), and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented with a compile-time diagnostic. Same non-support under a 2002 licence; the compiler declines it at --std 2002 with COBOL1707/COBOL1560. The messages cite the 2023 basis even at 2002; the form of messages is not specified, so this is not a conformance defect.",
+     "changed-definition-term 'procedure': used only in 'procedure branching'; the definitions say the same thing (paragraphs or sections); no scope change, and the format is declined in any case."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR16",
+      "quote": "execution continues according to the rules for each statement specified in imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.10.3 GR16",
+      "quote": "control is transferred in accordance with the rules for that statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-18",
+    "to": [
+     "GR-14.9.11.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.3",
+    "clause-2023": "14.9.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR18",
+      "quote": "the execution of the DISPLAY statement is considered unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR19",
+      "quote": "the execution of the DISPLAY statement is considered unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "EC-SCREEN-FIELD-OVERLAP, EC-SCREEN-ITEM-TRUNCATED, EC-SCREEN-LINE-NUMBER, EC-SCREEN-STARTING-COLUMN during a DISPLAY screen statement"
+    ],
+    "evidence-2002": {
+     "EC-SCREEN-FIELD-OVERLAP, EC-SCREEN-ITEM-TRUNCATED, EC-SCREEN-LINE-NUMBER, EC-SCREEN-STARTING-COLUMN during a DISPLAY screen statement": "covered (declined with a diagnostic) by conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-minimal and a42-display-screen-positioned (the twin's witnesses; wiseowl/diagnostics refuse-at includes 2002), run now at --std 2002: exit 65 with COBOL1707 'the DISPLAY statement's screen format 2' and COBOL1560 for the SCREEN SECTION; also a42-display-screen-exception (ON/NOT ON EXCEPTION) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (AT LINE NUMBER WS-L COLUMN NUMBER WS-C, ON/NOT ON EXCEPTION, a second DISPLAY SG with no LINE/COLUMN): exit 65, COBOL1707 at the DISPLAY, COBOL1560 at each screen entry"
+    },
+    "licence-2002": "§2002:B.3 item 1 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time diagnostic is required; no executable code is required); the absence is documented in docs/CONFORMANCE.md §5",
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). Read §2002:14.5.12.1.2 and §2002:14.5.12.1.3 (fatal and non-fatal processing; 2023's version adds SORT/MERGE, fatal EC-I-O, PERFORM ... WHEN and APPLY COMMIT steps, none of which exists in 2002 or applies here) and §2002:14.5.12.2 (incompatible data: numeric/boolean sending operands and de-editing MOVE). GR18 evaluates no arithmetic. It says the screen DISPLAY is unsuccessful when one of four EC-SCREEN conditions exists (§2002:14.8.10.3 GR18); fatal or non-fatal processing would follow, but the screen format is processor-dependent in 2002 and the compiler declines every DISPLAY screen statement at --std 2002 with a diagnostic, so nothing runs. Incompatible data does not arise."
+    },
+    "reason": "DISPLAY Format 2 (screen) is identical in both editions (screen-name-1, AT LINE/COLUMN with identifier-2/3 or integer-1/2, ON/NOT ON EXCEPTION, END-DISPLAY). Format 1 is the only other format in either edition, and the rule is banded FORMAT 2 in both. The whole format is processor-dependent in 2002 and the compiler refuses every DISPLAY screen statement at 2002 (the SCREEN SECTION that defines screen-name-1 is itself refused), so every 2002 case is declined with a diagnostic. The four EC-SCREEN names exist in both exception tables.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If a non-fatal exception condition other than an exception object is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.10.3 GR18",
+      "quote": "the execution of the DISPLAY statement is considered unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.12.2-5",
+    "to": [
+     "SR-14.9.13.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.12.2",
+    "clause-2023": "14.9.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.2 SR5",
+      "quote": "A selection object is a partial-expression if the leftmost portion of the selection object is a relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.3 SR5",
+      "quote": "A selection object is a partial-expression if the leftmost portion of the selection object is a relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.1",
+      "quote": "IS GREATER THAN OR EQUAL TO",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR5",
+      "quote": "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "selection objects whose leftmost portion is a 2002 relational operator (8.7.5: [NOT] GREATER/LESS/EQUAL and the four extended forms), a 2002 class condition word (NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name, class-name) or a sign condition word (POSITIVE, NEGATIVE, ZERO)"
+    ],
+    "evidence-2002": {
+     "selection objects whose leftmost portion is a 2002 relational operator (8.7.5: [NOT] GREATER/LESS/EQUAL and the four extended forms), a 2002 class condition word (NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name, class-name) or a sign condition word (POSITIVE, NEGATIVE, ZERO)": "covered by conformance-suite/cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression (accept [2002]), pb5179_partial_expression_object_2002, pb843_evaluate_symbol_decided_objects (accept [2002]) - all match .out at 2002 - and pb843-bare-classname-numeric-subject (refused at 2002, COBOL6000, correct by §2002:8.8.4.1.3.2 SR5); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob adds partial objects with CD subjects (T2, T3, T4 correct at 2002)"
+    },
+    "reason": "EVALUATE format, selection-object list and Table 16/15 are identical. The rule classifies a selection object by its leftmost word; the 2002 relational operators, class-condition and sign-condition forms are each a subset of 2023's (2023 adds the FLOAT-*/IN-ARITHMETIC-RANGE class words and a standard-float sign format), so 2023 conformance covers the 2002 cases. The rule involves no data operand, so no CD reach.",
+    "probe": null,
+    "widening": "2023's partial expressions also include its added class-condition words (FLOAT-INFINITY etc.) and relational spellings",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "The rule's 'class condition' is the condition form (§2002:8.8.4.1.3), not class of a data item; the 2002 class-condition words are the reader's scope. Scope unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Invoked by 'arithmetic expression' (sign condition without it). The rule classifies a selection object by its leftmost token; evaluation mode (§2002:8.8.1.1, 'regardless of the mode of arithmetic') does not enter. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.12.2-8",
+    "to": [
+     "SR-14.9.13.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.12.2",
+    "clause-2023": "14.9.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.2 SR8",
+      "quote": "The corresponding selection subject is treated as though it were specified by the word TRUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.3 SR8",
+      "quote": "The corresponding selection subject is treated as though it were specified by the word TRUE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "partial-expression objects with subjects outside the communication section",
+     "partial-expression objects whose selection subject is a communication-section item (implicit CD data-names, CD record items), spliced into condition-2"
+    ],
+    "evidence-2002": {
+     "partial-expression objects with subjects outside the communication section": "covered by conformance-suite/cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression and 8.8.2-Boolean-expressions/pb1412_evaluate_boolean_expression_operands (accept [2002], match at 2002); pb398-evaluate-partial-true-subject refused at 2002 (COBOL1634, Table 16 blank cell)",
+     "partial-expression objects whose selection subject is a communication-section item (implicit CD data-names, CD record items), spliced into condition-2": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob at --std 2002: EVALUATE TL WHEN > 5 / WHEN NOT 1 THRU 2 gives T2 NOT1-2; EVALUATE TL ALSO SD1 WHEN IS POSITIVE ALSO \"AB\" gives T3 POS-AB; EVALUATE SD1 WHEN IS ALPHABETIC gives T4 ALPHABETIC"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for partial-expression objects against communication-section subjects is correct (probe eval_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob)",
+    "reason": "Words and format identical. The rule builds condition-2 from the selection subject, and in 2002 a selection subject identifier may reference a communication-section item (implicit CD data-names whose class comes only from Annex A, or CD record items), the same reach the p-14 refuter found for SR3. The 2023 row has no such items.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.12.3-3",
+    "to": [
+     "GR-14.9.13.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.12.3",
+    "clause-2023": "14.9.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR3",
+      "quote": "Any selection subject specified by identifier-1 is assigned the value and class of the data item referenced by the identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.4 GR3",
+      "quote": "Any selection subject specified by identifier-1 is assigned the value and class of the data item referenced by the identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) identifier-1 subjects outside the communication section; b) literal; c) arithmetic expression; d) boolean expression (2002 operators); e) condition; f) TRUE/FALSE",
+     "a) identifier-1 subjects that are communication-section items (implicit CD data-names, whose class Annex A gives, and CD record items)"
+    ],
+    "evidence-2002": {
+     "a) identifier-1 subjects outside the communication section; b) literal; c) arithmetic expression; d) boolean expression (2002 operators); e) condition; f) TRUE/FALSE": "covered by conformance-suite/cases/14.9.13-EVALUATE/pb394_sending_value_evaluated_once_2002, pb3974_* (three), pb400_evaluate_boolean_sr6_pair, pb912_evaluate_condition_subject_once (accept includes 2002; all match .out at 2002); pb1412_evaluate_boolean_expression_subject is refused at 2002 only for the 2023 B-SHIFT operators (correct)",
+     "a) identifier-1 subjects that are communication-section items (implicit CD data-names, whose class Annex A gives, and CD record items)": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob at --std 2002: TL (TEXT LENGTH, numeric) compares numerically with 3.0 (T1 NUMERIC-EQ), SD1 (SYMBOLIC DESTINATION, alphanumeric) as alphanumeric (T3, T4), MC + TL as an arithmetic subject (T6 SUM10)"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for selection subjects that are communication-section items is correct (probe eval_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob)",
+    "flags-answered": [
+     "changed-definition-term 'boolean expression, boolean position': 2002 4.22 and 4.23 match the 2023 definitions in substance (boolean operands separated by boolean operators; storage or presentation space of one boolean character). 2023 adds B-SHIFT operators, a widening; the one-boolean-position test of item a) is the same. No scope change from the terms; the scope change is the communication reach."
+    ],
+    "reason": "Format, item list a) to f) and wording identical. Item a) assigns 'the value and class of the data item', and in 2002 identifier-1 may be a communication-section item whose class comes only from Annex A (implicit CD names) or a CD record item; the 2023 row cannot witness it. Probe correct at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob",
+    "widening": "2023 boolean expressions add the B-SHIFT operators"
+   },
+   {
+    "rule-id": "2002-GR-14.8.12.3-4",
+    "to": [
+     "GR-14.9.13.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.12.3",
+    "clause-2023": "14.9.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR4",
+      "quote": "the selection subject is placed to the left of the leading relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.4 GR4",
+      "quote": "the selection subject is placed to the left of the leading relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WHEN analysis (ANY, partial expression, condition, TRUE/FALSE, range, [NOT] identifier/literal/expression) for operands outside the communication section",
+     "the same analysis where selection subjects or objects (identifier-2, identifier-3/4 of a range) are communication-section items"
+    ],
+    "evidence-2002": {
+     "WHEN analysis (ANY, partial expression, condition, TRUE/FALSE, range, [NOT] identifier/literal/expression) for operands outside the communication section": "covered by conformance-suite/cases/14.9.13-EVALUATE/pb2722_evaluate_partial_not_ownership, pb400_evaluate_boolean_sr6_pair, pb5183_unreached_object_not_evaluated, pb3974_* (two), 8.8.4.13-Order-of-evaluation-of-conditions/udf_per_eval (accept includes 2002) and the 85-banded pb2722/pb400 witnesses, all matching .out at 2002",
+     "the same analysis where selection subjects or objects (identifier-2, identifier-3/4 of a range) are communication-section items": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob at --std 2002: range NOT 1 THRU 2 on TL (T2), ANY ALSO \"AC\" false then POSITIVE ALSO \"AB\" true (T3), TRUE ALSO MC with WHEN TL = W ALSO MC (T5 TL=W MC); refute-p-14/eval-cd-ok.cob already showed CD range operands"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for WHEN analysis over communication-section operands is correct (probe eval_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob)",
+    "flags-answered": [
+     "normalized: the 2002 and 2023 texts differ only in the transcription of '<=' and '<' ('&lt;=' / '&lt;' in the 2002 file); the words are otherwise identical, and GR-14.9.13.4-4 is the one pointer to code and tests.",
+     "changed-definition-term 'procedure': used only in 'source element' context and not in the analysis steps; the definitions say the same thing; no scope change."
+    ],
+    "reason": "Format and analysis steps 1 to 6 and b) to d) identical. The truth values come from comparing the subject with the object, and in 2002 either may be a communication-section item (as for GR3 and the p-14 SR3 overturn); the 2023 row cannot witness that. Probe correct at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.12.3-5",
+    "to": [
+     "GR-14.9.13.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.12.3",
+    "clause-2023": "14.9.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR5",
+      "quote": "If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.4 GR5",
+      "quote": "If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "control flow after the WHEN analysis: selected WHEN, WHEN OTHER, none selected and no WHEN OTHER"
+    ],
+    "evidence-2002": {
+     "control flow after the WHEN analysis: selected WHEN, WHEN OTHER, none selected and no WHEN OTHER": "covered by conformance-suite/cases/14.9.13-EVALUATE/pb396_required_imperative_85 and 8.8.4.13-Order-of-evaluation-of-conditions/udf_per_eval (accept [2002]), both match .out at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/eval_cd.cob T7 shows the no-WHEN-OTHER fall-through"
+    },
+    "reason": "Format identical, rule identical. It is pure control flow over imperative-statement-1/2, which carry no operand reach; the statements an imperative-statement may contain in 2002 (including the communication statements) are governed by their own rules, not this one.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 20578 has the same rule split by '## Page 521': page break only. Re-read §2002:14.8.12.3 GR5: unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "GR5 ends the EVALUATE statement; control then goes to the next executable statement under §2002:14.5.3. The 2002 text of 14.5.3 differs from 2023 14.6.3 only in paragraph/procedure wording, declaratives versus exception procedures, and EXIT FUNCTION/METHOD in the no-next-statement list, none of which bears on the end of an EVALUATE. The 2002 witnesses (pb396, udf_per_eval, probe eval_cd T7) show it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR5",
+      "quote": "If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "the term 'next executable statement' is used to refer to the next COBOL statement to which control is transferred",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-25"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-25",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.4.2-21",
+    "verdict": "UPHELD",
+    "reason": "OMITTED appears only in 2002 Format 3, which matches 2023 Format 2 phrase for phrase (AS NESTED or prototype, BY REFERENCE identifier-2 or OMITTED, BY CONTENT, BY VALUE, RETURNING, ON/NOT ON EXCEPTION). The ON OVERFLOW form (Format 1) has no OMITTED. The rule constrains the callee's header, and its OPTIONAL phrase is the same in both editions. There is no CD reach, because OMITTED is not a data operand. The reader ran pb133-omitted-not-optional at 2002 and it is refused.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR21",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR24",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-12",
+    "verdict": "OVERTURNED",
+    "reason": "GR12 governs EVERY reference to an omitted parameter in the called program, in any statement, 'except as an argument or in the omitted-argument condition'. In 2002 those statements include CALL ... ON OVERFLOW (Format 1, archaic; 2023 does not have it). The 2002 scope therefore includes an omitted parameter used in that form: (i) as an argument, which is exempt and transitive by 8.8.4.1.7 GR1c; (ii) as identifier-1; (iii) as RETURNING identifier-3. The 2023 row cannot witness any of these, because 2023 refuses ON OVERFLOW (COBOL0882). Probe omit_ovf.cob at --std 2002: (i) is correct (F-X-OMITTED); (ii) raises EC-PROGRAM-ARG-OMITTED; (iii) raises NOTHING. Q25G is called (G-RAN) and the declarative counter does not move. DEFECT, and the same at --std 2023 with ON EXCEPTION or with no phrase. In omit_ret.cob, at both editions, 'C2: RX as RETURNING, no phrase' prints G-RAN, while MOVE 5 TO RX is caught. By 2002 GR3a, item identification for identifier-3 is done at the start of the CALL, and by GR4 the result is placed into identifier-3. An omitted RETURNING target is therefore a reference, and it is not an argument. EC-PROGRAM-ARG-OMITTED should be set and, by GR3g, the program should not be called. The 2023 CONFORMS verdict that the KEPT record would carry is itself wrong for this leg. Secondary, likely: in case (ii) with ON OVERFLOW or ON EXCEPTION, the compiler runs the USE declarative instead of imperative-statement-1. GR3g1 sends an EC-PROGRAM condition raised during the GR3a evaluation to imperative-statement-1 (both editions).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR12",
+      "quote": "is referenced in a called program, except as an argument or in the omitted-argument condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR12",
+      "quote": "is referenced in a called program, except as an argument or in the omitted-argument condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3a",
+      "quote": "item identification is done for identifier-3 at the beginning of the execution of the CALL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR4",
+      "quote": "the result of the activated program is placed into identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR3a",
+      "quote": "item identification is done for identifier-3 at the beginning of the execution of the CALL statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3g1",
+      "quote": "If the exception condition is any of the EC-PROGRAM exception conditions and an ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.7.3 GR1c",
+      "quote": "is itself a formal parameter for which the omitted-argument condition is true",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "its own verdict. At --std 2002 an omitted parameter is handled correctly as a CALL ... ON OVERFLOW argument and raises EC-PROGRAM-ARG-OMITTED as identifier-1. As RETURNING identifier-3 (any CALL form, both editions) it raises nothing and the program is called. That is a compiler defect to file, and it also falsifies the 2023 row's CONFORMS.",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-25/omit_ovf.cob (output E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-25/omit_ovf-2002.txt); E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-25/omit_ret.cob (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-25/omit_ret-2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-25/omit_ret-2023.txt)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-5",
+    "verdict": "UPHELD",
+    "reason": "The CANCEL format and GR1 to GR12 are word-identical; 2023 SR2 adds only a ban on zero-length literals. GR5 turns on the referenced program's active state and on the checking state. It does not depend on the form of identifier-1 or of the CALL that activated the program. A CD-item identifier-1 names a program the same way (GR1a), so that reach changes nothing GR5 requires. The reader ran the twin's witnesses pb154_cancel_active and pb5241 clean at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR5",
+      "quote": "the referenced program is not canceled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR5",
+      "quote": "the referenced program is not canceled",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-7",
+    "verdict": "UPHELD",
+    "reason": "Word-identical, and it turns on call history only. The reader said the twin's witness pb154_cancel_scope is refused at 2002, so I checked the other twin witness: conformance-suite/cases/11.10-PROGRAM-ID/pb154_cancel_cascade lists GR-14.9.5.4-7. It covers both legs (a cascade over a NEVER-CALLED containee, and a repeated CANCEL of an already-canceled program). The reader ran it clean at 2002, so the evidence holds at 2002 without the probe.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR7",
+      "quote": "has been called and is at present canceled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR7",
+      "quote": "has been called and is at present canceled",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-8",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. In 2002, external data records are FD records and working-storage records (13.16.20.2 SR1). 2023 allows the same plus level 1 type declarations, a superset. A CD record cannot be EXTERNAL in 2002, so the rule has no communication reach. The reader ran l1_cancel_external_unchanged clean at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR8",
+      "quote": "external data records described by a program are not changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR8",
+      "quote": "external data records described by a program are not changed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "in level 1 data description entries in the working-storage section, and in level 1 type declarations",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.10.2-3",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR3",
+      "quote": "Identifier-2 and identifier-3 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR3",
+      "quote": "Identifier-2 and identifier-3 shall be unsigned integer data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-11",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR11",
+      "quote": "Column and line number positions are specified in terms of alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR12",
+      "quote": "Column and line number positions are specified in terms of alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-12",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR12",
+      "quote": "the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR13",
+      "quote": "the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-13",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR13",
+      "quote": "Identifier-2 and identifier-3 are evaluated once at the start of execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR14",
+      "quote": "Identifier-2 and identifier-3 are evaluated once at the start of execution of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-14",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR14",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR15",
+      "quote": "If the LINE phrase is not specified, the screen record starts on line 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-15",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. ",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR15",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR16",
+      "quote": "If the COLUMN phrase is not specified, the screen record starts in column 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-16",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. The wording of 2002 GR17 b) differs from 2023 GR18 b), which adds the exception-checking PERFORM. GR17 is a neighbouring rule, not this one, and the format is declined.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR16",
+      "quote": "the ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the DISPLAY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR17",
+      "quote": "the ON EXCEPTION phrase, if specified, is ignored and control is transferred to the end of the DISPLAY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-18",
+    "verdict": "UPHELD",
+    "reason": "DISPLAY Format 2 is the same phrase for phrase in 2002 14.8.10.1 and 2023 14.9.11.2, and the rule is banded FORMAT 2 in both. §2002:B.3 item 1 names the screen section and the screen DISPLAY format as processor-dependent. §2002:3.1.5 releases one that is not claimed: no executable code is required, the use is diagnosed at compile time, and the absence is documented (docs/CONFORMANCE.md §5). I re-ran disp_screen_q25.cob at --std 2002: exit 65, COBOL1560 at each screen entry and COBOL1707 at the DISPLAY. Every 2002 case is declined, so neither a CD-item identifier-2/3 nor the MOVE rules the format defers to can reach a run. The wording of 2002 GR17 b) differs from 2023 GR18 b), which adds the exception-checking PERFORM. GR17 is a neighbouring rule, not this one, and the format is declined.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR18",
+      "quote": "the execution of the DISPLAY statement is considered unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR19",
+      "quote": "the execution of the DISPLAY statement is considered unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-25/disp_screen_q25.cob (re-run at --std 2002 by the refuter: exit 65)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.12.2-5",
+    "verdict": "UPHELD",
+    "reason": "The EVALUATE format, the selection-object list and SR5 are word-identical. SR5 only classifies an object by its leftmost word. The 2002 class-condition words (NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name, class-name; 8.8.4.1.3) are a subset of the 2023 list in 8.8.4.4. The 2002 sign condition is the 2023 Format 1; 2023 adds a standard-float Format 2. The relational operators are the same in both. The validity restrictions that do differ sit in the condition clauses, not in SR5; one example is the locale alphabet, which 2002 8.8.4.1.3.2 SR6 also forbids. The rule has no data-operand reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.2 SR5",
+      "quote": "a relational operator, a class condition without the identifier, a sign condition without the identifier, or a sign condition without the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.3 SR5",
+      "quote": "a relational operator, a class condition without the identifier, a sign condition without the identifier, or a sign condition without the arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.12.3-5",
+    "verdict": "UPHELD",
+    "reason": "GR5 a) to c) are word-identical. The rule is pure control flow over imperative-statement-1 and imperative-statement-2. It names no operand, and no enumeration it belongs to changed. A 2002-only statement inside an imperative statement is governed by that statement's own rules.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.12.3 GR5b",
+      "quote": "If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.13.4 GR5b",
+      "quote": "If no WHEN phrase is selected and a WHEN OTHER phrase is specified, execution continues with imperative-statement-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "b1b670a3ad2ec23e6d9fee8c2c5913c34a3c267597b7573b0431e373a99cc18c",
+  "read": "9c59d40aae7f6f8501f5789db05f65a8dca8f6a0e8e4eff3bad33b55b480de7b",
+  "refute": "3b558fa758f1df33a8714ed157f2529a7e12b938f5c16879e6a3af00d12e09eb"
+ }
+}

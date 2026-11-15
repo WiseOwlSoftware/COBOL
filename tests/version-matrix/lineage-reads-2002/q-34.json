@@ -1,0 +1,1898 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-34 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-34",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.45.2-7",
+   "2002-SR-14.8.45.2-8",
+   "2002-SR-14.8.45.2-9",
+   "2002-GR-14.8.45.3-10",
+   "2002-GR-14.8.45.3-11",
+   "2002-GR-14.8.45.3-2",
+   "2002-GR-14.8.45.3-4",
+   "2002-GR-14.8.45.3-8",
+   "2002-SR-14.8.46.2-3",
+   "2002-SR-14.8.46.2-4",
+   "2002-SR-14.8.46.2-5",
+   "2002-GR-14.8.46.3-1",
+   "2002-GR-14.8.46.3-10",
+   "2002-GR-14.8.46.3-2",
+   "2002-GR-14.8.46.3-3",
+   "2002-GR-14.8.46.3-5",
+   "2002-GR-14.8.46.3-7",
+   "2002-GR-14.8.46.3-8",
+   "2002-GR-14.8.46.3-9",
+   "2002-SR-14.8.47.2-1",
+   "2002-SR-14.8.47.2-12",
+   "2002-SR-14.8.47.2-13",
+   "2002-SR-14.8.47.2-14",
+   "2002-SR-14.8.47.2-15",
+   "2002-SR-14.8.47.2-16"
+  ],
+  "flags": {
+   "2002-SR-14.8.45.2-7": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-14.8.45.2-8": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-14.8.45.2-9": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.45.3-10": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.45.3-2": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.45.3-8": {
+    "changed-definition-term": "procedure, runtime element"
+   },
+   "2002-SR-14.8.46.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.46.2-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.46.2-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.46.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.46.3-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.46.3-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "index"
+   },
+   "2002-GR-14.8.46.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.46.3-5": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.46.3-7": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "changed-definition-term": "subscript"
+   },
+   "2002-GR-14.8.46.3-8": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.46.3-9": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-34",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.45.2-7",
+    "to": [
+     "SR-14.9.49.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 USE: the INPUT, OUTPUT, I-O and EXTEND phrases, each at most once per procedure division's declaratives (programs, methods, functions alike)"
+    ],
+    "evidence-2002": [
+     "accept side covered by conformance:cases/14.9.49-USE/l1_use_four_mode_phrases at --std 2002 (golden MATCH, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log)",
+     "reject side covered by conformance:cases/14.9.49-USE/l1-use-input-phrase-twice at --std 2002 -> COBOL0897 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR7",
+      "quote": "may each be specified only once in the declaratives portion of a given procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR7",
+      "quote": "may each be specified only once in the declaratives portion of a given procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The I-O phrase of the USE statement is dependent upon a mass storage type of device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. The I-O phrase is processor-dependent in 2002 (B.3 item 20); the compiler supports it, so it does not narrow the rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses only the compound 'procedure division', not the defined term 'procedure' (§2002:4 4.150); no change of scope or evidence.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. The rule limits each Format 1 open-mode phrase to once per declaratives; Format 1 USE is file I-O error handling, not the 14.5.12 dispatch. No dependence; evidence unchanged."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': 2002 4.150 'one or more successive paragraphs or sections in the procedure division' vs 2023 3.145 'paragraph, section, or ... that include the executable code'. The referent is the same (paragraphs/sections of a procedure division); the rule's scope in 2002 does not change and the evidence covers it."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-8",
+    "to": [
+     "SR-14.9.49.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 USE: a file-name in more than one USE AFTER EXCEPTION statement of one procedure division (repetition inside one statement allowed)"
+    ],
+    "evidence-2002": [
+     "accept side (same file twice in one statement) covered by conformance:cases/14.9.49-USE/l1_use_sr8_file_named_twice at --std 2002 (MATCH)",
+     "reject side covered by conformance:cases/14.9.49-USE/l1-use-sr8-file-in-two-statements at --std 2002 -> COBOL0897 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR8",
+      "quote": "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR8",
+      "quote": "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. The phrase 'USE AFTER EXCEPTION statement' reads the same against the same Format 1 and Format 3 in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged. Its USE statements are counted per procedure division, the same division in both."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-9",
+    "to": [
+     "SR-14.9.49.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 2 USE BEFORE REPORTING: identifier-1 references a report group (qualified by report-name where needed)",
+     "the same identifier-1 in at most one USE BEFORE REPORTING per procedure division"
+    ],
+    "evidence-2002": [
+     "sentence 1 covered by pb365_report_group_qualified (S1 run at 2002: pass), pb365-report-group-ambiguous at 2002 -> COBOL1920, and probe sr9nrg.cob (WS item named) -> COBOL0897 at 2002",
+     "sentence 2 covered by probe sr9dup.cob -> COBOL0897 at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-sr9-gr8.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR9",
+      "quote": "The same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR9",
+      "quote": "The same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. Report groups (13.16 report description entries) are the same population in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-sr9-gr8.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. Identifier-1 must reference a report group of such an RD in both editions."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-10",
+    "to": [
+     "GR-14.9.49.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GENERATE/INITIATE/TERMINATE executed within the range of a BEFORE REPORTING declarative: EC-FLOW-REPORT set, statement unsuccessful, report state unchanged"
+    ],
+    "evidence-2002": [
+     "unsuccessful + state unchanged covered by pb326_flow_report_unconditional at --std 2002 (MATCH)",
+     "EC-FLOW-REPORT raise covered by probe gr10flow.cob at --std 2002: HANDLED=EC-FLOW-REPORT, LINE-COUNTER 00 before and after the nested GENERATE, N=1, one detail line in the report (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-gr10.log); the 2023 twin's pb326_ec_flow_report / cross_report are refused at 2002 (LINE SEQUENTIAL readback), so the probe is the 2002 evidence"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR10",
+      "quote": "the EC-FLOW-REPORT exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR10",
+      "quote": "the EC-FLOW-REPORT exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. EC-FLOW-REPORT is in the 2002 exception table with the same description and is Fatal in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/gr10flow.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule speaks of a declarative (USE) procedure, which is a declarative section in both editions; §2002:4 (entry 4.150) already covers one section ('one or more successive ... sections'), and §2023:3.145 only spells out the single paragraph/section case. Same units, scope unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. 'the state of the report' is the RD's state (counters, page, active) in both.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal termination) matched only on the words 'TERMINATE' and 'declarative'; this rule does not rest on them. Read §2002:14.5.12.1.1 through §2002:14.5.12.2 against §2023:14.6.13.1.1 through §2023:14.6.13.2. The 2002 differences are: no MERGE/SORT, fatal-EC-I-O or PERFORM WHEN steps in fatal processing (§2023:14.6.13.1.3 (items 2-4) are 2023-only), the 2002 non-fatal wording, and the incompatible-data text. EC-FLOW-REPORT is Fatal in the 2002 table (§2002:14.5.12.1.5); a GENERATE/INITIATE/TERMINATE is none of the 2023-only cases, so 2002 item 2 (declarative runs; normal completion terminates the run unit abnormally) and item 5 (checking off: implementor-defined) govern, as in 2023. The probe gr10flow.cob at --std 2002 resumes with RESUME, which per §2002:14.5.12.1.1 is not normal completion, and shows the raise, the unsuccessful GENERATE and the unchanged LINE-COUNTER; it witnesses the 2002 path."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "GENERATE, INITIATE, or TERMINATE during USE BEFORE REPORTING declarative",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "When any COBOL statement is executed that results in the execution of a declarative section, an implicit transfer of control to the declarative section occurs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "When normal run unit termination occurs, the runtime system performs the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "Automatic data and initial data is placed in the initial state every time",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-11",
+    "to": [
+     "GR-14.9.49.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 3 USE selection: the first exception condition in the statement's order of evaluation"
+    ],
+    "evidence-2002": [
+     "covered by pb3261_sender_first_order at --std 2002 (MATCH, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log) and pb370_move_first_condition (S1 run at 2002: pass)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR11",
+      "quote": "is the first one that occurs in the order of evaluation of the statement that causes the exception to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR11",
+      "quote": "is the first one that occurs in the order of evaluation of the statement that causes the exception to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. The rule is generic over whichever exception conditions the statement can raise; 2023's added exception-names (EC-FLOW-COMMIT etc.) widen the set but remove none that 2002 has.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log",
+    "widening": "2023 adds exception-names the rule also orders; 2002 cases unaffected"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-2",
+    "to": [
+     "GR-14.9.49.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "any USE procedure (formats 1-4) re-entered while active: EC-FLOW-USE set"
+    ],
+    "evidence-2002": [
+     "covered by pb368_flow_use_reentrancy (accept: [2002]; run at --std 2002 matches its golden modulo trailing spaces, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/pb368_flow_use_reentrancy-2002.stdout)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR2",
+      "quote": "the EC-FLOW-USE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR2",
+      "quote": "the EC-FLOW-USE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. EC-FLOW-USE is Fatal with the same description in both exception tables.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'procedure': 2002 4.150 'one or more successive paragraphs or sections in the procedure division' vs 2023 3.145 'paragraph, section, or ... that include the executable code'. The referent is the same (paragraphs/sections of a procedure division); the rule's scope in 2002 does not change and the evidence covers it."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-4",
+    "to": [
+     "GR-14.9.49.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Formats 1 and 2 in nested source elements: own qualifying declarative first, then GLOBAL ones outward"
+    ],
+    "evidence-2002": [
+     "Format 1 covered by pb369_global_file_use_selection at --std 2002 (MATCH)",
+     "Format 2 covered by pb369_global_report_use_selection at --std 2002 (MATCH) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR4",
+      "quote": "a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR4",
+      "quote": "a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. Both editions head the rule FORMATS 1 AND 2 and its a)/b) list is identical.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "GR4 defines which declarative is 'applicable', the word §2002:14.5.12.1.2 item 2 and §2002:14.5.12.1.3 item 2 use. 2023's fatal and nonfatal processing differs from §2002:14.5.12.1.2/1.3 only by additions with no 2002 counterpart (the PERFORM WHEN path, §2023:14.6.13.1.3; SORT/MERGE and fatal EC-I-O steps; APPLY COMMIT rollback); the 2002 sequence (conditional phrase, declarative, PROPAGATE, abnormal termination, implementor-defined when unchecked) is 2023's without them, and §2002:14.5.12.2 differs only by 2023's floating-point arms. 2023's PERFORM WHEN path, which takes precedence over a declarative, has no 2002 counterpart. Witnesses pb369 (formats 1 and 2) MATCH at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there are no specific rules, the exception condition is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is within imperative-statement-1 of a PERFORM statement that contains a WHEN phrase",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-34"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-8",
+    "to": [
+     "GR-14.9.49.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45 USE statement",
+    "clause-2023": "14.9.49 USE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 2: declarative invoked just before each production of the named report group"
+    ],
+    "evidence-2002": [
+     "covered by pb369_global_report_use_selection at --std 2002 (MATCH) and probe sr9ok.cob at --std 2002 (DE=7 / DB=8 / DE=7: each detail prints the value its own declarative set just before it, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-sr9-gr8.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR8",
+      "quote": "The declarative is invoked just before the named report group is produced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR8",
+      "quote": "The declarative is invoked just before the named report group is produced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats 1-4 compared phrase by phrase: identical (2023 renames class-name-1 to object-class-name-1 in format 4 only). The rule cannot reach a CD entry or a debugging line: no 2002 USE format names a cd-name, and USE FOR DEBUGGING is not a 2002 format. GR9's logical points a)-d) are the same in both editions (2023 rewords b) only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/sr9ok.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure; runtime element": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('declarative procedure') names the same units in 2002; scope and evidence unchanged. 'Runtime element': §2002:4 (4.167) 'The executable unit resulting from compiling a source element' vs §2023:3.159 'code and data produced by the compilation': the same element.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (4.163) 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the REPORT clause (13.18.46) names reports of the report section. The named report group belongs to the same report in both; no change.",
+     "pending-clause: §2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "Read §2002:14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2 (fatal and non-fatal processing, incompatible data); the 2023 text adds the PERFORM WHEN arm, the SORT/MERGE and I-O status arms and APPLY COMMIT, none writable in 2002. Format 2 USE BEFORE REPORTING is a report-writer declarative invoked before a report group, not an exception declarative; the rule does not rest on 14.5.12. No change. Read §2002:9.3.5: 2002 binds a method by name only (no method resolution signature or overloading, which 2023 9.3.6 adds). The rule matched only on 'is invoked' (a declarative), not a method invocation. No dependence."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': 2002 4.150 'one or more successive paragraphs or sections in the procedure division' vs 2023 3.145 'paragraph, section, or ... that include the executable code'. The referent is the same (paragraphs/sections of a procedure division); the rule's scope in 2002 does not change and the evidence covers it.",
+     "changed-definition-term 'runtime element': 2002 4.167 'executable unit resulting from compiling a source element' vs 2023 3.159 'code and data produced by the compilation of a source element': same referent, no scope change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If there is an applicable USE statement in the source unit that specifies the exception-name associated with the exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "If a method is found, that method is bound; otherwise, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.46.2-3",
+    "to": [
+     "SR-14.9.50.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VALIDATE identifier-1 whose own or subordinate entry has a VALIDATE-STATUS clause referencing identifier-1"
+    ],
+    "evidence-2002": [
+     "not shown: the VALIDATE-STATUS clause itself is refused at --std 2002 (COBOL1708, probe valvs.cob)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.2 SR3",
+      "quote": "shall not contain a VALIDATE-STATUS clause referencing identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.3 SR3",
+      "quote": "shall not contain a VALIDATE-STATUS clause referencing identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). Because the clause is refused wholesale, the rule's own check is never reached.",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.46.2-4",
+    "to": [
+     "SR-14.9.50.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VALIDATE identifier-1 naming a 66-level entry"
+    ],
+    "evidence-2002": [
+     "the prohibition itself is enforced at --std 2002 (COBOL4779, probe val66.cob); the statement it constrains is declined (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.2 SR4",
+      "quote": "Identifier-1 shall not reference a 66-level entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.3 SR4",
+      "quote": "Identifier-1 shall not reference a 66-level entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). The rule's own prohibition does fire at 2002, but the row's recorded verdict is DOCUMENTED-NON-SUPPORT under a 2023 licence, which does not carry.",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.46.2-5",
+    "to": [
+     "SR-14.9.50.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VALIDATE identifier-1 described with ANY LENGTH (contained program / function / method linkage)"
+    ],
+    "evidence-2002": [
+     "the prohibition itself is enforced at --std 2002 (COBOL4779, probe valany.cob); the statement is declined (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.2 SR5",
+      "quote": "Identifier-1 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.3 SR5",
+      "quote": "Identifier-1 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). Same as SR4: the own check fires, the DOCUMENTED-NON-SUPPORT verdict does not carry.",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-valany.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-1",
+    "to": [
+     "GR-14.9.50.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format validation of each elementary item of a GROUP-USAGE bit/national group; DEFAULT/DESTINATION/VALUE on such items"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR1",
+      "quote": "format validation is performed on each elementary item within the bit group or national group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR1",
+      "quote": "format validation is performed on each elementary item within the bit group or national group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-10",
+    "to": [
+     "GR-14.9.50.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 overlapping an item named in a DEFAULT clause"
+    ],
+    "evidence-2002": [
+     "not shown: the DEFAULT clause is refused at --std 2002 (COBOL1708)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR10",
+      "quote": "shall not contain or overlap any data item specified in a DEFAULT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR10",
+      "quote": "shall not contain or overlap any data item specified in a DEFAULT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-2",
+    "to": [
+     "GR-14.9.50.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "definition of 'the elements of the operand' (excluding index, object, pointer items)"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR2",
+      "quote": "are referred to in the following general rules as 'the elements of the operand'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR2",
+      "quote": "are referred to in the following general rules as 'the elements of the operand'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong.",
+     "changed-definition-term 'index': 2002 4.102 'a storage area or a register, the content of which refers to a particular element in a table' vs 2023 'conceptual data item ...': the class-index exclusion covers the same items; no scope change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-3",
+    "to": [
+     "GR-14.9.50.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "several identifier-1: one implicit VALIDATE each, in order; RESUME NEXT STATEMENT from a declarative resumes at the next implicit VALIDATE"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR3",
+      "quote": "processing resumes at the next implicit VALIDATE statement, if any",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR3",
+      "quote": "processing resumes at the next implicit VALIDATE statement, if any",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong.",
+     "changed-definition-term 'procedure': 2002 4.150 'one or more successive paragraphs or sections in the procedure division' vs 2023 3.145 'paragraph, section, or ... that include the executable code'. The referent is the same (paragraphs/sections of a procedure division); the rule's scope in 2002 does not change and the evidence covers it."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-5",
+    "to": [
+     "GR-14.9.50.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "internal indicators: invalid on format / content / relation, not processed; per occurrence"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (val1.cob: 'ABC' in PIC 9(3) validated with no effect; VALIDATE-STATUS refused, COBOL1708)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR5",
+      "quote": "designated invalid on format, invalid on content, and invalid on relation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR5",
+      "quote": "designated invalid on format, invalid on content, and invalid on relation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-7",
+    "to": [
+     "GR-14.9.50.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OCCURS under VALIDATE: subscripted identifier-1, per-occurrence processing, VARYING counters, DEPENDING evaluated at format stage"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR7",
+      "quote": "The effect of the OCCURS clause on the execution of the VALIDATE statement is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR7",
+      "quote": "The effect of the OCCURS clause on the execution of the VALIDATE statement is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong.",
+     "changed-definition-term 'subscript': 2002 4.179 vs 2023 'number used to refer to a specific element of a table, or ... the value ALL': same meaning ('subscript ALL' vs 'value ALL'); no scope change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-8",
+    "to": [
+     "GR-14.9.50.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 in a file-section record whose FD has RECORD VARYING: processed as space-filled/extended"
+    ],
+    "evidence-2002": [
+     "not shown: VALIDATE is inert at --std 2002 (COBOL1580)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR8",
+      "quote": "as though filled or extended on the right, as applicable, by spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR8",
+      "quote": "as though filled or extended on the right, as applicable, by spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.46.3-9",
+    "to": [
+     "GR-14.9.50.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.46 VALIDATE statement",
+    "clause-2023": "14.9.50 VALIDATE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 overlapping an item named in a DESTINATION clause"
+    ],
+    "evidence-2002": [
+     "not shown: the DESTINATION clause is refused at --std 2002 (COBOL1708)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.46.3 GR9",
+      "quote": "shall not contain or overlap any data item specified in a DESTINATION clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.50.4 GR9",
+      "quote": "shall not contain or overlap any data item specified in a DESTINATION clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.1",
+      "quote": "only when support for that language element is claimed by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes exactly one element optional, Annex A (communications facility, §2002:3.1); VALIDATE is clause 14.8.46, a normative element of clauses 6-16 that §2002:3.1 and §2002:3.1.1 require, and it is not in the 2002 B.3 processor-dependent list either. The 2023 DOCUMENTED-NON-SUPPORT rests on §2023:A.4.1/A.4.14 (VALIDATE an OPTIONAL element), a licence the 2002 text does not contain. At --std 2002 the compiler accepts VALIDATE inert with warning COBOL1580, whose own text cites §2023:4.2.7 / Annex A.4.14 as its licence, and refuses the validation clauses (VALIDATE-STATUS, DEFAULT, DESTINATION, CLASS, INVALID...) by name with COBOL1708. The 2002 requirement (perform the validation) is not met, so the 2023 verdict cannot carry. Format and rule words are otherwise identical (2023 adds message-tag to SR2 and a new SR6, neither in this pair). ",
+    "licence-2002": "none",
+    "needs": "2002 requires the VALIDATE statement (and its data-division clauses); the compiler declines it at --std 2002",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-validate.log",
+    "widening": null,
+    "flags-answered": [
+     "target-not-CONFORMS-OK: twin is DOCUMENTED-NON-SUPPORT under §2023:A.4.1/A.4.14; 2002 gives no licence (§2002:3.1 names only Annex A communications as optional); licence-2002 none, so DIFFERENT and compiler-at-2002 wrong."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-1",
+    "to": [
+     "SR-14.9.51.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "record-name-1 arm (both formats)",
+     "FILE file-name-1 arm (both formats)"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by pb347_record_name_identity (S1 run at 2002: pass)",
+     "FILE file-name-1 arm not shown: refused at --std 2002 with COBOL1706 (probe wrfile.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfile.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. DEFECT: wrfile.cob (OPEN OUTPUT; WRITE FILE OUTF FROM WS; read back) must compile and print READ=HELLO at --std 2002; observed: error COBOL1706 citing §2023:4.2.7 / Annex A.4.13, exit 65.",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfile.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-12",
+    "to": [
+     "SR-14.9.51.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "write file named by record-name-1",
+     "write file named by FILE file-name-1 (an FD with REPORT, or an SD)"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by pb1171-report-fd-record-entry (2023 row)",
+     "FILE arm not shown: WRITE FILE SRT / WRITE FILE RPTF draw only COBOL1706 at --std 2002, never the SR12 screen (wrfileadv.cob)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR12",
+      "quote": "shall not contain the REPORT clause and shall not be a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR12",
+      "quote": "shall not contain the REPORT clause and shall not be a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. The violating FILE-form programs are rejected at 2002, but by the decline, not by this rule; the arm has no witness.",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfileadv.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-13",
+    "to": [
+     "SR-14.9.51.3-13"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "record-name-1 arm",
+     "FILE file-name-1 arm on a LINAGE file"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by LinageConformanceTests.Sr13_MnemonicAdvancingOnLinageFile_IsRejected (2023 row; edition of that test not checked)",
+     "FILE arm not shown: WRITE FILE LINF FROM WS AFTER ADVANCING TOP-PAGE draws only COBOL1706 at --std 2002 (wrfileadv.cob)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR13",
+      "quote": "contains the LINAGE clause, mnemonic-name-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR13",
+      "quote": "contains the LINAGE clause, mnemonic-name-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. Violating FILE-form program rejected, but by the decline.",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfileadv.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-14",
+    "to": [
+     "SR-14.9.51.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADVANCING identifier-2 in a record-name-1 WRITE",
+     "ADVANCING identifier-2 in a FILE file-name-1 WRITE"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by pb1023_write_advancing_count (S1 run at 2002: pass) and probe wrfileadv.cob line 38 -> COBOL2365 at 2002",
+     "FILE arm not shown: WRITE FILE OUTF FROM WS AFTER ADVANCING WSA (PIC X) draws only COBOL1706 (wrfileadv.cob line 33)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR14",
+      "quote": "Identifier-2 shall reference an integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR14",
+      "quote": "Identifier-2 shall reference an integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. Violating FILE-form program rejected, but by the decline.",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfileadv.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-15",
+    "to": [
+     "SR-14.9.51.3-15"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADVANCING integer-1 in a record-name-1 WRITE",
+     "ADVANCING integer-1 in a FILE file-name-1 WRITE"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by pb1023_write_advancing_count (S1 run at 2002: pass)",
+     "FILE arm not shown: WRITE FILE OUTF FROM WS AFTER ADVANCING 1.5 draws only COBOL1706 (wrfileadv.cob line 34)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR15",
+      "quote": "Integer-1 shall be positive or zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR15",
+      "quote": "Integer-1 shall be positive or zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. Violating FILE-form program rejected, but by the decline.",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfileadv.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-16",
+    "to": [
+     "SR-14.9.51.3-16"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47 WRITE statement",
+    "clause-2023": "14.9.51 WRITE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADVANCING mnemonic-name-1 in a record-name-1 WRITE",
+     "ADVANCING mnemonic-name-1 in a FILE file-name-1 WRITE"
+    ],
+    "evidence-2002": [
+     "record-name-1 arm covered by pb862-write-advancing-device-mnemonic / FileIoDifferentialTests.WriteAdvancingC01_IsThePageAdvance (2023 row; not re-run at 2002)",
+     "FILE arm not shown: a legal WRITE FILE ... AFTER ADVANCING <C01 mnemonic> is refused with COBOL1706 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR16",
+      "quote": "the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR16",
+      "quote": "the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format writes the write-file operand as {record-name-1 | FILE file-name-1} in both formats, exactly as 2023. In 2023 the FILE phrase is Annex A.4.13, an OPTIONAL element the compiler does not claim, so the 2023 CONFORMS row's evidence covers the record-name-1 arm only (its notes say so: 'The FILE file-name-1 arm is Annex A.4.13 declined (COBOL1706) so only the record-name arm is reachable'). 2002 has no such licence (§2002:3.1: only Annex A communications is optional), so the FILE arm is required 2002 scope with no evidence through the 2023 row. Probe: at --std 2002 every WRITE FILE ... draws only COBOL1706 citing §2023:4.2.7 / A.4.13; the operand screens (SR13 COBOL0862, SR14/SR15 COBOL2365, SR12 COBOL2577/1692) never run on that form (wrfileadv.cob: five FILE-form statements draw COBOL1706 only, the record-name statement draws COBOL2365). Rule words otherwise identical; 2023 inserts SR17 (BEFORE and AFTER both, not with PAGE), a widening that renumbers later rules only. A conforming FILE-form program with a C01 mnemonic advance is refused at 2002 (same root as SR1).",
+    "needs": "2002 requires the WRITE FILE file-name-1 FROM form (Format 1 and 2 of §2002:14.8.47.1; only Annex A communications is optional in 2002); the compiler declines it at --std 2002 (COBOL1706), so the FILE arm of this rule needs its own 2002 witness once the form is accepted",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-wrfileadv.log",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-34",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.45.2-7",
+    "verdict": "UPHELD",
+    "reason": "Format 1 general format is phrase-for-phrase the same in both editions (USE [GLOBAL] AFTER STANDARD EXCEPTION|ERROR PROCEDURE ON file-name-1...|INPUT|OUTPUT|I-O|EXTEND). 2002 has no USE FOR DEBUGGING (grep of the 2002 text finds no 'FOR DEBUGGING' or DEBUG-ITEM) and no USE format names a cd-name, so no communication or debugging reach. The four open modes are the same list. The rule is purely syntactic and the reader's reject/accept probes at --std 2002 (COBOL0897) hold. 'procedure' definition change does not alter 'procedure division'.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR7",
+      "quote": "may each be specified only once in the declaratives portion of a given procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR7",
+      "quote": "may each be specified only once in the declaratives portion of a given procedure division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log"
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-8",
+    "verdict": "UPHELD",
+    "reason": "Same Format 1 and Format 3 in both editions; the phrase 'USE AFTER EXCEPTION statement' reads against identical formats. No cd-name operand anywhere in 2002 USE. Reader's accept and reject cases ran at --std 2002 as required.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR8",
+      "quote": "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR8",
+      "quote": "The same file-name shall not appear in more than one USE AFTER EXCEPTION statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-use-negatives.log"
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-9",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical. Report groups are report description entries in both editions; no report-writer form found that 2002 has and 2023 lacks that bears on naming a report group. Probes sr9nrg/sr9dup/pb365 ambiguous give COBOL0897/COBOL1920 at --std 2002 (log checked).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR9",
+      "quote": "The same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR9",
+      "quote": "The same identifier-1 shall not appear in more than one USE BEFORE REPORTING statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-sr9-gr8.log"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-10",
+    "verdict": "UPHELD",
+    "reason": "The rule raises EC-FLOW-REPORT itself (Fatal, same description in both tables); default checking is off in both editions; 2023's extra fatal-exception steps (exception-checking PERFORM, APPLY COMMIT) cannot occur in a 2002 program. No arithmetic or communication dependency. Reader's gr10flow probe at --std 2002 shows the handled exception, unchanged LINE-COUNTER and one detail line (log checked).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR10",
+      "quote": "the EC-FLOW-REPORT exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR10",
+      "quote": "the EC-FLOW-REPORT exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-gr10.log"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-11",
+    "verdict": "OVERTURNED",
+    "reason": "The rule picks the declarative by the FIRST exception in the statement's order of evaluation, so it defers to the rules that decide which exceptions a statement raises and in what order. In 2002 that includes statements under ARITHMETIC IS STANDARD (OPTIONS paragraph), where a value too large for a standard intermediate data item (32 digits, magnitude up to 9.99...E+999) sets EC-SIZE-OVERFLOW, and exponentiation is evaluated before division. 2023 removed standard arithmetic (E.2 item 21), so the 2023 row's evidence (pb3261, pb370) never exercises it. Probe gr11std.cob: COMPUTE X = 10 ** T + 1 / Z (T=1000, Z=0) with handlers for EC-SIZE-OVERFLOW and EC-SIZE-ZERO-DIVIDE. 2002 requires EC-SIZE-OVERFLOW to be the first exception. At --std 2002 the compiler selects EC-SIZE-ZERO-DIVIDE. gr11ovf.cob (10 ** T alone) shows no overflow is raised at all, only EC-SIZE-TRUNCATION on the store. The root is the known standard-intermediate defect (2002 8.8.1.3.1: 34-digit decimal used where 2002 sets 32 digits and a 1E+1000 ceiling); this is a rule it reaches.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR11",
+      "quote": "is the first one that occurs in the order of evaluation of the statement that causes the exception to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR11",
+      "quote": "is the first one that occurs in the order of evaluation of the statement that causes the exception to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "the EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exception condition is set to exist if the value is too large or too small",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "the following hierarchical order of execution is implied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD, COMPUTE X = 10 ** 1000 + 1 / 0 selects the EC-SIZE-ZERO-DIVIDE declarative where 2002 requires EC-SIZE-OVERFLOW first; blocked on the standard-intermediate-data-item defect",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-34/probe-gr11std.log (also gr11std.cob, gr11ovf.cob, probe-gr11ovf.log)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 applies to any statement in an active USE procedure that raises an exception which would re-enter that procedure. In 2002 that includes arithmetic expressions under ARITHMETIC IS STANDARD, whose overflow (EC-SIZE-OVERFLOW) is defined only by 2002 8.8.1.3.1 rule 2, a mode 2023 removed (E.2 item 21). pb368 covers re-entry only for exceptions 2023 also raises. Probe gr2std.cob: a USE AFTER EC EC-SIZE declarative is entered on 1 / Z, then evaluates IF 10 ** T > 0 (T=1000) under standard arithmetic. 2002 requires EC-SIZE-OVERFLOW, which would re-trigger the active EC-SIZE declarative, so EC-FLOW-USE is set (fatal, checking on through >>TURN EC-ALL). At --std 2002 the compiler raises nothing: it prints 'COMPARE DONE, NO EC-FLOW-USE'. Same root as GR11.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR2",
+      "quote": "the EC-FLOW-USE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR2",
+      "quote": "the EC-FLOW-USE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "the EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exception condition is set to exist if the value is too large or too small",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD, an overflowing expression inside an active EC-SIZE declarative does not set EC-FLOW-USE (no EC-SIZE-OVERFLOW raised); blocked on the standard-intermediate-data-item defect",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-34/probe-gr2std.log (gr2std.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same heading (FORMATS 1 AND 2) and the same a)/b) precedence in both editions. One lead checked and set aside: 2023 E.2 item 19a says earlier standards did not run INPUT/OUTPUT/I-O/EXTEND declaratives on an invalid key with no INVALID KEY phrase. That changes which Format 1 declaratives qualify (2002 9.1.13 and the READ rules), not GR4's precedence among the ones that qualify, and 2002 GR6 a)-e) are word-identical to 2023. pb369 file and report selection runs at --std 2002 MATCH. Whether a 2002 INPUT declarative is 'associated with the file connector' under 9.1.13 rule 3 belongs to that row.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR4",
+      "quote": "a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR4",
+      "quote": "a qualifying declarative with the GLOBAL attribute in the next inclusive directly containing source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "any declarative that specified INPUT, OUTPUT, I-O, or EXTEND would not have been executed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-cases-2002.log"
+   },
+   {
+    "rule-id": "2002-GR-14.8.45.3-8",
+    "verdict": "UPHELD",
+    "reason": "Format 2 identical. The GR9 logical points are the same (b reworded only: 'After any adding that is required to increment sum counters' vs 'After incrementing sum counters'). No arithmetic-mode dependency in when the declarative is invoked. sr9ok at --std 2002 gives DE=7/DB=8/DE=7, the same as at 2023 (log checked).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.3 GR8",
+      "quote": "The declarative is invoked just before the named report group is produced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR8",
+      "quote": "The declarative is invoked just before the named report group is produced",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-34/probe-sr9-gr8.log"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "985d1804dc3979cb73a6d48ad2d08559be79a3b35469e97463e642b770839498",
+  "read": "efd2a376078b7dec77e4c36732d4f75213c9e7dc863e28c053be483bbf979ea0",
+  "refute": "1647a1138d76c73b2651b8b1412c88e68d93b5362c2e5111a4494d12dec90dc4"
+ }
+}

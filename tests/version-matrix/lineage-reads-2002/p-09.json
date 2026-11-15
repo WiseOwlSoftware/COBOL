@@ -1,0 +1,1537 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-09 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-09",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-12.2.5.2-2",
+   "2002-SR-12.2.6.2-10",
+   "2002-SR-12.2.6.2-13",
+   "2002-SR-12.2.6.2-21",
+   "2002-SR-12.2.6.2-24",
+   "2002-SR-12.2.6.2-7",
+   "2002-SR-12.2.6.2-8",
+   "2002-SR-12.2.7.2-11",
+   "2002-SR-12.2.7.2-15",
+   "2002-SR-12.2.7.2-9",
+   "2002-SR-12.3.4.12.2-2",
+   "2002-SR-12.3.4.12.2-5",
+   "2002-SR-12.3.4.13.2-3",
+   "2002-SR-12.3.4.2-1",
+   "2002-SR-12.3.4.2-11",
+   "2002-SR-12.3.4.2-2",
+   "2002-SR-12.3.4.2-3",
+   "2002-SR-12.3.4.2-7",
+   "2002-SR-12.3.4.2-9",
+   "2002-SR-12.3.4.5.2-2",
+   "2002-SR-12.3.4.5.2-6",
+   "2002-SR-12.3.4.6.2-1",
+   "2002-SR-12.3.4.6.2-3",
+   "2002-SR-12.3.4.6.2-6",
+   "2002-SR-12.3.4.6.2-7"
+  ]
+ },
+ "read": {
+  "slice": "p-09",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.2.5.2-2",
+    "to": [
+     "SR-12.3.6.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5",
+    "clause-2023": "12.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.2 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.3 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE, IS alphabet-name-1 alphabet-name-2 form",
+     "OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE, FOR NATIONAL IS alphabet-name-2 form"
+    ],
+    "evidence-2002": [
+     "covered by alphabet-utf8-collating refused at 2002 (COBOL5989, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\negs\\alphabet-utf8-collating-2002.txt)",
+     "covered by probe pcs_nat.cob (alphanumeric alphabet as FOR NATIONAL: COBOL5989 at 2002) and pcs_nat_ok.cob (two-name form with a FOR NATIONAL literal alphabet collates Z before X at 2002)"
+    ],
+    "reason": "General format of OBJECT-COMPUTER identical in both (CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE, both FOR forms). What 'defines a national collating sequence' rests on the ALPHABET clause and its Table (2002 Table 7, 2023 Table 6): in both, UTF-8 and UTF-16 reference a coded character set only, UCS-4, NATIVE, LOCALE, code-name-2 and literal-phrase also a collating sequence. No communication or debugging reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\pcs_nat.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-10",
+    "to": [
+     "SR-12.3.7.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR10",
+      "quote": "Literal-4 and literal-9 shall be alphanumeric or national literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR10",
+      "quote": "Literal-4 and literal-9 shall be alphanumeric or national literals",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOCALE locale-name-1 IS literal-4",
+     "ORDER TABLE ordering-name-1 IS literal-9"
+    ],
+    "evidence-2002": [
+     "covered by probe lit4.cob (numeric literal-4 and literal-9: COBOL5987 each at 2002), lit4b.cob (boolean literal-4: COBOL5987 at 2002), lit4ok.cob (alphanumeric and national literal-4 accepted and run at 2002)",
+     "covered by probe lit4.cob (ORDER TABLE OT1 IS 5: COBOL5987 at 2002)"
+    ],
+    "reason": "Both clauses (LOCALE ... IS literal-4, ORDER TABLE ... IS literal-9) are printed identically in both editions. Literal classes are the same set in 2002 (alphanumeric, national, numeric, boolean). The 2023 witness is a unit test, so the 2002 evidence is the probes. 2023's SR11 adds the zero-length-literal ban, a different rule.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\lit4.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-13",
+    "to": [
+     "SR-12.3.7.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR13",
+      "quote": "neither the ALPHANUMERIC phrase nor the NATIONAL phrase, the ALPHANUMERIC phrase is implied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR13",
+      "quote": "neither the ALPHANUMERIC phrase nor the NATIONAL phrase, the ALPHANUMERIC phrase is implied",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SPECIAL-NAMES ALPHABET clause written without FOR ALPHANUMERIC / FOR NATIONAL (every alphanumeric-branch operand)"
+    ],
+    "evidence-2002": [
+     "covered by l1c30_alphabet_implied_alphanumeric (S1: already-2002, pass)"
+    ],
+    "reason": "alphabet-name-clause is printed identically in both editions (same two branches, same operands). The implied class feeds the same downstream rules (SR14b, PROGRAM COLLATING SEQUENCE SR1/SR2).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-21",
+    "to": [
+     "SR-12.3.7.3-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR21",
+      "quote": "Locale-name-2 shall be a locale-name defined by the LOCALE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR24",
+      "quote": "Locale-name-2 shall be a locale-name defined by the LOCALE clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALPHABET ... IS LOCALE locale-name-2, alphanumeric branch",
+     "ALPHABET ... FOR NATIONAL IS LOCALE locale-name-2"
+    ],
+    "evidence-2002": [
+     "covered by pb64t1-alphabet-locale-name-undeclared refused at 2002 (COBOL1664, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\negs\\pb64t1-alphabet-locale-name-undeclared-2002.txt); pb64t1_locale_declare and l1c30_alphabet_named_locale_format_order (S1: already-2002, pass)",
+     "covered by the same resolver (one ResolveLocaleName for both branches; pb64t1_locale_declare passes at 2002)"
+    ],
+    "reason": "LOCALE clause and both LOCALE [locale-name-2] alphabet alternatives identical in both editions. Only the rule number moved (2023 inserted currency rules).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-24",
+    "to": [
+     "SR-12.3.7.3-28"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR24",
+      "quote": "the associated currency symbol may be used only to define a numeric-edited item with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR28",
+      "quote": "the associated currency symbol may be used only to define a numeric-edited item with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR25",
+      "quote": "the clause CURRENCY SIGN '$' PICTURE SYMBOL '$' is implied for that source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "used as the default currency symbol in a picture character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR13d",
+      "quote": "A currency symbol is represented in character-string-1 either by the currency sign or by the currency symbol specified in a CURRENCY SIGN clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR2",
+      "quote": "When the usage of the item being edited is national, the value is the national character representation",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a written CURRENCY SIGN literal-7 of class alphanumeric: its symbol only in a USAGE DISPLAY numeric-edited PICTURE",
+     "a written literal-7 of class national: its symbol only in a USAGE NATIONAL numeric-edited PICTURE",
+     "NOT in scope at 2002: the default currency sign '$' with no CURRENCY SIGN clause for it (2002 has no implied clause, so no literal-7 exists)"
+    ],
+    "evidence-2002": [
+     "covered by pb1089-currency-symbol-literal7-class-usage refused at 2002 (NC1-NC4 COBOL2883, same as 2023)",
+     "covered by the same case at 2002 and pb1089_currency_literal7_class_pairings (S1: already-2002, pass)",
+     "the 2023 witness's NC5 arm (PIC $9.99 USAGE NATIONAL refused through SR25's implied alphanumeric '$') also fires at 2002; probe dollar_nat.cob: refused at 2002 with COBOL2883 citing 'the clause SR25 implies'"
+    ],
+    "reason": "Same words, but the 2023 sentence is read with 2023 SR25, which supplies an alphanumeric literal-7 for '$' whenever no CURRENCY SIGN clause names it, so in 2023 the prohibition reaches every default '$' picture. 2002 has no SR25: the default '$' is the COBOL currency sign (§2002:4, 4.51), a PICTURE may use it (13.16.38.3 GR13d), and on a national item its insertion characters are national (GR2). So the 2023 row is wider in a prohibiting direction, and its witness asserts a refusal at 2002 that the 2002 text does not support. The written-literal-7 scope holds at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\dollar_nat.cob",
+    "widening": null,
+    "class": "other",
+    "class-detail": "the 2023 rule is widened by a 2023-only rule (SR25 implied CURRENCY SIGN '$'), a prohibition the compiler applies at 2002",
+    "needs": "its own verdict: at --std 2002 the written-literal-7 arms are correct (pb1089 NC1-NC4), but PIC $9.99 USAGE NATIONAL with no CURRENCY SIGN clause is refused (COBOL2883), which is a defect; the pb1089 NC5 arm cannot be a 2002 witness",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\dollar_nat.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\dollar_nat-2002.log)",
+    "defect": {
+     "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\dollar_nat.cob (01 NC5 PIC $9.99 USAGE NATIONAL. with no SPECIAL-NAMES)",
+     "expected": "accepted at --std 2002: §2002:4 (4.51) makes '$' the default currency symbol, §2002:13.16.38.3 GR13d lets a PICTURE use it, GR2 makes its inserted characters national for a national item; §2002:12.2.6.2 SR24 restricts only the symbol of a written literal-7, and 2002 has no counterpart of §2023:12.3.7.3 SR25",
+     "observed": "--std 2002: error COBOL2883: data item 'NC5': the currency symbol of PICTURE $9.99 is defined by an alphanumeric literal-7 of a CURRENCY SIGN clause (the clause SR25 implies for '$' is alphanumeric) ... (ISO §2023:12.3.7.3 SR28)",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ScreenUsageAgainstPicture with the implied-'$' CurrencyDefinition (Binding/Model/CurrencyDefinition.cs; SpecialNamesBinder.Currency.cs#SwitchBindCurrency), not edition-gated"
+    }
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-7",
+    "to": [
+     "SR-12.3.7.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR7",
+      "quote": "Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR6",
+      "quote": "Mnemonic-name-2 may be specified only in the SEND and WRITE statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR5",
+      "quote": "When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SET statement: device mnemonic refused",
+     "WRITE ADVANCING: device mnemonic refused",
+     "SEND statement (communication facility, 2002 Annex A.2.6) BEFORE/AFTER ADVANCING mnemonic-name-1: device mnemonic refused",
+     "ACCEPT / DISPLAY with implementor's device restrictions"
+    ],
+    "evidence-2002": [
+     "covered by probe set_dev.cob (COBOL1757 at 2002)",
+     "covered by pb862-write-advancing-device-mnemonic refused at 2002 (COBOL2243)",
+     "not shown through the 2023 row; probe send_dev.cob: SEND OUT-CD FROM MSG WITH EMI BEFORE ADVANCING OUT-DEV (OUT-DEV = SYSOUT, a device) is refused at 2002 with COBOL6171 citing §2002:A.2.6.2 SR5 (control send_ctl.cob with ADVANCING 2 LINES compiles at 2002 with the COBOL0903 obsolete warning)",
+     "covered by l1-display-upon-input-only-device refused at 2002 (COBOL0817)"
+    ],
+    "reason": "The rule's words are identical, but in 2002 the set of statements it excludes mnemonic-name-3 from includes SEND, whose Format 2 ADVANCING phrase takes a mnemonic-name (§2002:A.2.6.1); the compiler implements SEND at 85 and 2002. The 2023 row's witnesses show SET and WRITE only; a device mnemonic in SEND ADVANCING is part of the 2002 scope with no evidence through the 2023 row. The compiler refuses it correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\send_dev.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a device mnemonic-name in SEND ... ADVANCING is correct (refused, COBOL6171) per send_dev.cob; a 2002 witness for that case",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\send_dev.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\send_dev-2002.log)"
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-8",
+    "to": [
+     "SR-12.3.7.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6",
+    "clause-2023": "12.3.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR8",
+      "quote": "The implementor shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR8",
+      "quote": "The implementor shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the implementor's list of switch-names, feature-names and device-names (documentation), and refusing a name outside it"
+    ],
+    "evidence-2002": [
+     "covered by pb862-unavailable-device-name refused at 2002 (COBOL2241) and pb862_implementor_names (S1: widened, pass at 2002); the table ImplementorNames is edition-independent (DOC-A.1-189/190/191)"
+    ],
+    "reason": "An implementor-documentation rule over the same three name kinds. In 2002 feature-names are also usable in SEND ADVANCING (via SR6), but SR8 obliges only that the names be specified, which the one table does whatever statements use them. No 2002-only name kind.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-11",
+    "to": [
+     "SR-12.3.8.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.7",
+    "clause-2023": "12.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR11",
+      "quote": "references to function-prototype-name-1 are to that function definition and this function-specifier is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR11",
+      "quote": "references to function-prototype-name-1 are to that function definition and this function-specifier is ignored",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REPOSITORY function-specifier Format 1 (user-defined) naming the function definition it is written in, with or without AS literal-3"
+    ],
+    "evidence-2002": [
+     "covered by pb1084_repository_self_function_specifier (S1: already-2002, pass)"
+    ],
+    "reason": "2002 prints the user-defined function-specifier as Format 1 of function-specifier (AS literal-3); 2023 renames it user-defined-function-specifier (AS literal-5). Same phrase, same operand; only the literal's ordinal changed, and this rule does not name it.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-15",
+    "to": [
+     "SR-12.3.8.3-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.7",
+    "clause-2023": "12.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR15",
+      "quote": "references to program-prototype-name-1 are to the named program definition and this program-specifier is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR15",
+      "quote": "references to program-prototype-name-1 are to the named program definition and this program-specifier is ignored",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REPOSITORY program-specifier naming its own program definition",
+     "program-specifier naming a containing program definition"
+    ],
+    "evidence-2002": [
+     "covered by l1c24_repository_self_program_specifier (S1: already-2002, pass)",
+     "covered by pb3121_containing_definition_scope (S1: already-2002, pass)"
+    ],
+    "reason": "program-specifier identical (AS literal-4 in 2002, literal-3 in 2023; the rule names neither). Nesting rules for program definitions unchanged.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-9",
+    "to": [
+     "SR-12.3.8.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.7",
+    "clause-2023": "12.3.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.2 SR9",
+      "quote": "there shall be information in the external repository for the interface interface-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.3 SR9",
+      "quote": "there shall be information in the external repository for the interface interface-name-2",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INTERFACE interface-name-2 AS literal-2 without EXPANDS",
+     "INTERFACE interface-name-2 without AS or EXPANDS"
+    ],
+    "evidence-2002": [
+     "covered by probe iface.cob (INTERFACE IF2 AS \"NOSUCH2\": COBOL5962 at 2002)",
+     "covered by probe iface.cob (INTERFACE NOSUCH-IF: COBOL5962 at 2002)"
+    ],
+    "reason": "interface-specifier identical in both editions. The 2023 witnesses are a wiseowl-tree case with a build step, a conformance-test and a unit test; none ran at 2002, so the probe is the 2002 evidence.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\iface.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: interface | of an object": "§2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The names of all the methods defined for the object, including inherited methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-09"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-2",
+    "to": [
+     "SR-12.4.5.12.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.12",
+    "clause-2023": "12.4.5.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR2",
+      "quote": "shall reference a data item of category alphanumeric or category national within a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR2",
+      "quote": "shall reference a data item of category alphanumeric or category national within a record description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECORD KEY data-name-1: category alphanumeric or national",
+     "data-name-1 within a record of this FD",
+     "record-key-name-1 SOURCE data-name-2: category and location, all of one category"
+    ],
+    "evidence-2002": [
+     "covered by pb743-record-key-numeric, pb743-record-key-alphabetic, pb850-record-key-alphanumeric-edited refused at 2002 (COBOL0863); probe rknat.cob (national prime key and alphanumeric group alternate accepted and run at 2002: FIRST G2=02 FS=00)",
+     "covered by pb699-record-key-outside-record refused at 2002 (COBOL0863)",
+     "covered by probe rkmix.cob (mixed-category SOURCE operands: COBOL0863 at 2002)"
+    ],
+    "reason": "RECORD KEY format identical (both key forms). The 2002 clause's SR1 is 'may be qualified' where 2023's is the OCCURS ban; neither touches this rule. Categories alphanumeric and national exist in both with the same members.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\rknat.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-5",
+    "to": [
+     "SR-12.4.5.12.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.12",
+    "clause-2023": "12.4.5.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR5",
+      "quote": "Record-key-name-1 has the class and category of data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR5",
+      "quote": "Record-key-name-1 has the class and category of data-name-2",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "record-key-name-1 of the prime key SOURCE form"
+    ],
+    "evidence-2002": [
+     "covered by pb1099_record_key_source (S1: already-2002, pass)"
+    ],
+    "reason": "Identical format and rule; the record-key-name SOURCE form exists in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.13.2-3",
+    "to": [
+     "SR-12.4.5.13.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.13",
+    "clause-2023": "12.4.5.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.2 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RELATIVE KEY data-name-1 in a record of the file's own FD"
+    ],
+    "evidence-2002": [
+     "covered by pb699-relative-key-in-record-entry-only refused at 2002 (COBOL0863)"
+    ],
+    "reason": "RELATIVE KEY format identical; the 2002 SR1 'may be qualified' vs 2023 SR1 OCCURS ban do not touch this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-1",
+    "to": [
+     "SR-12.4.5.2-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR1",
+      "quote": "The clauses that follow the SELECT clause may appear in any order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR1",
+      "quote": "The clauses that follow the SELECT clause may appear in any order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10",
+      "quote": "The PADDING CHARACTER clause is an obsolete element in this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.2 SR12",
+      "quote": "Format 3 shall be specified only for a sequential file or a report file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SELECT first, every format",
+     "the clauses of Formats 1-4 in any order",
+     "Format 3 (sequential): PADDING CHARACTER IS data-name-8/literal-2 in any position after SELECT (a 2002 clause, obsolete)"
+    ],
+    "evidence-2002": [
+     "covered by l1c11-select-not-first refused at 2002 (COBOL0001)",
+     "covered by l1c11_select_clause_any_order (S1: widened, pass at 2002)",
+     "not shown through the 2023 row (its any-order golden has no PADDING clause); probe pad1.cob: PADDING CHARACTER IS \"*\" before ORGANIZATION and ASSIGN, and PADDING CHARACTER IS PADC after ACCESS MODE, compile at 2002 (COBOL0903 obsolete warning) and run R1=ABCD FS=00"
+    ],
+    "reason": "Same words, but the 2002 Format 3 prints a PADDING CHARACTER clause that the 2023 format lacks, so the 2002 rule's 'clauses that follow' include it. The compiler accepts it in any order at 2002 (correct). Sibling found while probing (a different rule, filed as a defect below): PADDING CHARACTER on a non-sequential entry is not refused at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\pad1.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a PADDING CHARACTER clause in any position of a Format 3 entry is correct per pad1.cob; a 2002 witness for that case",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\pad1.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\pad1-2002.log)",
+    "defect-sibling": {
+     "rule": "2002-SR-12.3.4.2-12 (and -13)",
+     "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\padidx.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\padrel.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\padsd.cob",
+     "expected": "refusal: PADDING CHARACTER is printed only in Format 3 (§2002:12.3.4.1); §2002:12.3.4.2 SR12 'Format 3 shall be specified only for a sequential file or a report file' and SR13 'Format 4 shall be specified only for a sort-merge file' (both checked OK)",
+     "observed": "--std 2002: padidx (ORGANIZATION INDEXED + PADDING), padrel (RELATIVE + PADDING), padsd (SD + PADDING) each compile and run with only COBOL0903; the Format-3 sibling RECORD DELIMITER on an indexed file is refused (COBOL2912, rdidx.cob). At --std 85 padsd is refused (COBOL1900) but padidx/padrel compile.",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#EntryClauses (no PADDING CHARACTER row, FileFormats.Format3, so SequentialFormatMarker never names it)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-11",
+    "to": [
+     "SR-12.4.5.2-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR11",
+      "quote": "The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR10",
+      "quote": "The RELATIVE clause shall be specified if the DYNAMIC or RANDOM phrase of the ACCESS clause is specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 2 (relative) with ACCESS RANDOM or DYNAMIC and no RELATIVE KEY"
+    ],
+    "evidence-2002": [
+     "covered by pb699-relative-key-required-entry-only refused at 2002 (COBOL0863)"
+    ],
+    "reason": "Format 2 identical in both editions.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-2",
+    "to": [
+     "SR-12.4.5.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR2",
+      "quote": "A given file-name may be specified in only one SELECT clause within a factory, function, object, or program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR2",
+      "quote": "A given file-name may be specified in only one SELECT clause within a factory, function, object, or program",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "second SELECT of a file-name in one program/function/factory/object",
+     "same name in separate source units allowed"
+    ],
+    "evidence-2002": [
+     "covered by w73b-pb1077-select-twice refused at 2002 (COBOL2634)",
+     "covered by w73b_pb1077_select_scope_per_program (S1: widened, pass at 2002)"
+    ],
+    "reason": "Same list of source units; 2002 12.3.2 SR1 and 2023 12.4.3 SR1 place the input-output section identically (program, function, factory, instance).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-3",
+    "to": [
+     "SR-12.4.5.2-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR3",
+      "quote": "there shall be a file description entry or a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR3",
+      "quote": "there shall be a file description entry or a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SELECT with no FD or SD in the same source unit's file section"
+    ],
+    "evidence-2002": [
+     "covered by w73b-pb1077-select-without-fd refused at 2002 (COBOL2635); w73b_pb1077_select_scope_per_program passes at 2002"
+    ],
+    "reason": "The file section holds FD and SD entries in both; a CD is in the communication section and is not a file description, so no reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-7",
+    "to": [
+     "SR-12.4.5.2-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ASSIGN ... USING data-name-1 category",
+     "data-name-1 not in the file's own FD"
+    ],
+    "evidence-2002": [
+     "covered by pb324-assign-using-not-alphanumeric and pb850-assign-using-alphanumeric-edited refused at 2002 (COBOL1810); pb746_assign_using_2002 (S1: already-2002, pass)",
+     "covered by pb324-assign-using-in-own-record refused at 2002 (COBOL1811)"
+    ],
+    "reason": "ASSIGN clause identical in all four formats. 2002 SR8 'Data-name-1 may be qualified' was dropped in 2023 but is a separate permission (qualification is general in both). pb324_assign_using_dynamic is refused at 2002 only for its LINE SEQUENTIAL organization, not this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-9",
+    "to": [
+     "SR-12.4.5.2-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4",
+    "clause-2023": "12.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR9",
+      "quote": "Format 1 shall be specified only for an indexed file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR8",
+      "quote": "Format 1 shall be specified only for an indexed file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format-1-only clauses (RECORD KEY, ALTERNATE RECORD KEY, collating-sequence-clause, ORGANIZATION INDEXED) on a non-indexed file",
+     "Format 1 with an SD"
+    ],
+    "evidence-2002": [
+     "covered by pb742-record-key-on-sequential-file, pb742-record-key-no-organization-clause (COBOL0863) and pb742-collating-sequence-on-sequential-file (COBOL1582) refused at 2002",
+     "covered by pb742-indexed-format-on-sort-merge-entry refused at 2002 (COBOL1900)"
+    ],
+    "reason": "2002 Format 1 is the 2023 Format 1 minus SUPPRESS WHEN (a 2023 widening of the alternate-key clause); every Format-1-only clause of 2002 is screened at 2002.",
+    "probe": null,
+    "widening": "2023 adds SUPPRESS WHEN to Format 1's ALTERNATE RECORD KEY clause"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-2",
+    "to": [
+     "SR-12.4.5.6.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5",
+    "clause-2023": "12.4.5.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR2",
+      "quote": "shall be defined as a data item of category alphanumeric or national within a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR2",
+      "quote": "shall be defined as a data item of category alphanumeric or national within a record description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALTERNATE RECORD KEY data-name-1 category",
+     "data-name-1 within a record of this FD",
+     "SOURCE data-name-2 operands of one category"
+    ],
+    "evidence-2002": [
+     "covered by pb743-alternate-key-numeric and pb850-alternate-key-national-edited refused at 2002 (COBOL0863); rknat.cob alphanumeric group alternate accepted at 2002",
+     "covered by pb699-alternate-key-outside-record refused at 2002 (COBOL0863)",
+     "covered by probe rkmix.cob (ALTERNATE RECORD KEY AK SOURCE IS IX-N IX-A: COBOL0863 at 2002)"
+    ],
+    "reason": "2002 clause format is the 2023 one without SUPPRESS WHEN (a widening that does not touch this rule).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\rkmix.cob",
+    "widening": "2023 adds SUPPRESS WHEN literal-1 to the clause"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-6",
+    "to": [
+     "SR-12.4.5.6.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.5",
+    "clause-2023": "12.4.5.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR6",
+      "quote": "Record-key-name-1 has the class and category of data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR6",
+      "quote": "Record-key-name-1 has the class and category of data-name-2",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "record-key-name-1 of an ALTERNATE RECORD KEY SOURCE form"
+    ],
+    "evidence-2002": [
+     "covered by pb1099_record_key_source (S1: already-2002, pass)"
+    ],
+    "reason": "Identical. In 2023 the class also sizes SUPPRESS WHEN, which 2002 lacks; the 2002 consumers (key-level COLLATING SEQUENCE class, START) are a subset.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-1",
+    "to": [
+     "SR-12.4.5.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "file-level COLLATING SEQUENCE, IS alphabet-name-1 form and FOR ALPHANUMERIC form"
+    ],
+    "evidence-2002": [
+     "covered by pb1074-file-collating-alphabet-class refused at 2002 (3 x COBOL1583, same as 2023; includes the undeclared alphabet-name-1 arm)"
+    ],
+    "reason": "COLLATING SEQUENCE Format 1 and Format 2 printed identically in both editions; Table 7 (2002) / Table 6 (2023) agree on which alphabets define a collating sequence.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-3",
+    "to": [
+     "SR-12.4.5.7.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR3",
+      "quote": "Only one file-level format COLLATING SEQUENCE clause may be specified in one file control entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR3",
+      "quote": "Only one file-level format COLLATING SEQUENCE clause may be specified in one file control entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "two file-level COLLATING SEQUENCE clauses in one indexed entry"
+    ],
+    "evidence-2002": [
+     "covered by probe coll2.cob (COBOL1582 at 2002); the 2023 witness is a conformance-test"
+    ],
+    "reason": "Identical format; [ collating-sequence-clause ] ... appears in Format 1 of both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-09\\p\\coll2.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-6",
+    "to": [
+     "SR-12.4.5.7.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR6",
+      "quote": "alphabet-name-3 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR7",
+      "quote": "alphabet-name-3 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "key-level COLLATING SEQUENCE OF national key IS alphanumeric alphabet",
+     "OF alphanumeric key IS national alphabet"
+    ],
+    "evidence-2002": [
+     "covered by pb1074-file-collating-alphabet-class refused at 2002 (COBOL1583 on IX-KEY national with alphanumeric REV)",
+     "covered by pb1074-file-collating-alphabet-class at 2002 (same COBOL1583 set as 2023)"
+    ],
+    "reason": "Identical; 2023 inserts SR6 (no subscripting), a separate rule, which shifts the number.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-7",
+    "to": [
+     "SR-12.4.5.7.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.6",
+    "clause-2023": "12.4.5.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR7",
+      "quote": "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR8",
+      "quote": "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a key named in two key-level clauses",
+     "a key named twice in one clause (allowed)"
+    ],
+    "evidence-2002": [
+     "covered by pb703-collating-key-in-two-clauses refused at 2002 (COBOL1582)",
+     "covered by pb703_collating_key_named_twice (S1: already-2002, pass)"
+    ],
+    "reason": "Format 2 (key-level) printed identically, ellipsis on the brace group in both.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-09",
+  "cases": [
+   {
+    "rule-id": "2002-SR-12.2.5.2-2",
+    "verdict": "UPHELD",
+    "reason": "OBJECT-COMPUTER general format is printed the same in both (CHARACTER CLASSIFICATION and PROGRAM COLLATING SEQUENCE, both IS and FOR forms). 'Defines a national collating sequence' rests on 2002 Table 7 and ALPHABET GR7 a)-k), which match 2023 Table 6 row for row (UTF-8 and UTF-16 have no collating sequence in both). No data-name operand, no CD reach, no 2002-only alphabet operand.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-10",
+    "verdict": "UPHELD",
+    "reason": "LOCALE ... IS literal-4 and ORDER TABLE ... IS literal-9 carry the same ordinals in both formats. The literal kinds are the same set. 2002 8.8.3.3 GR3 and 2023 8.8.3.3 GR3 both let a concatenation expression stand for a literal, so that adds nothing on the 2002 side. Zero-length literals are a 2023-only widening, banned by a separate 2023 rule.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-13",
+    "verdict": "UPHELD",
+    "reason": "alphabet-name-clause is printed the same in both editions (same alphanumeric and national branch operands). The implied ALPHANUMERIC phrase feeds the same downstream rules (SR14b, Table 7/6, GR7a).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-21",
+    "verdict": "UPHELD",
+    "reason": "locale-name-2 in the ALPHABET clause's LOCALE [locale-name-2] alternative, in both branches, in both editions. The OBJECT-COMPUTER locale-phrase-2 operand of the same name is governed by that paragraph's own SR3, the same in both. Only the rule number moved.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.6.2-8",
+    "verdict": "UPHELD",
+    "reason": "The rule asks only for the implementor's list of switch-, feature- and device-names. In 2002, SR6 also lets a feature-name mnemonic be used in SEND, but which statements may use a name is SR6/SR7's concern. The list itself (C01, CSP; DOC-A.1-190) is one list at every edition, so the 2023 evidence holds. No 2002-only name kind.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-11",
+    "verdict": "UPHELD",
+    "reason": "The 2002 user-defined function-specifier (Format 1, AS literal-3) is the 2023 user-defined-function-specifier (AS literal-5). The rule names neither literal. The self-reference case is the same.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-15",
+    "verdict": "UPHELD",
+    "reason": "program-specifier is the same apart from the AS literal's ordinal, which the rule does not name. Containing program definitions mean the same in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.7.2-9",
+    "verdict": "UPHELD",
+    "reason": "Without EXPANDS, interface-specifier is INTERFACE interface-name-2 [AS literal-2] in both. class-name-4 vs object-class-name-4 is inside EXPANDS only. The external repository requirement is the same.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002, data-name-n in a general format includes subscription if needed (5.1.3), and 2014 Annex E.2 item 25 confirms that in 2002 it 'may be subscripted' unless a rule says otherwise. The 2002 RECORD KEY clause's own SR1 says only 'may be qualified'. So RECORD KEY IS K(1), for K a PIC X item under OCCURS in the FD record, is legal 2002, and SR2 governs it: an alphanumeric element is accepted, a numeric one is refused. 2023 SR1 removes every key subject to an OCCURS, so the 2023 verdict covers no subscripted key. Probe rk_sub.cob (alphanumeric element): refused at --std 2002 with COBOL2024, which cites §2023 clauses. That is WRONG against the 2002 text, a compiler defect (it rejects legal 2002 source). rk_sub_num.cob is refused too, but by COBOL2024 instead of SR2.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR2",
+      "quote": "Data-name-1 and data-name-2 shall reference a data item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall reference a data item of category alphanumeric or category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\rk_sub.cob (rk_sub-2002.txt, rk_sub_num-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.12.2-5",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as SR2. In 2002, SOURCE IS { data-name-2 } ... may name subscripted table elements (5.1.3; 2014 E.2 item 25), and SR5 gives record-key-name-1 the class and category of those elements. 2023 SR1 forbids any OCCURS, so the 2023 verdict says nothing about a key built from subscripted SOURCE parts. The compiler refuses every subscripted key operand at --std 2002 (COBOL2024; probe rk_sub.cob shows the mechanism), so this 2002 case is also a compiler defect.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.2 SR5",
+      "quote": "Record-key-name-1 has the class and category of data-name-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR5",
+      "quote": "Record-key-name-1 has the class and category of data-name-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\rk_sub.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.13.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "Two 2002-only reaches. (1) removed-form: 2002 SR1 says only 'may be qualified', so RELATIVE KEY IS RK(2) for a WS table element is legal 2002 (5.1.3; 2014 E.2 item 25), and SR3 decides it (WS: accept; RK under the file's own FD: refuse). 2023 SR1 forbids any OCCURS. Probes rel_sub.cob (WS) and rel_sub_fd.cob (FD) are both refused at --std 2002 with COBOL2024. The WS case is WRONG against 2002, a compiler defect. (2) communication-reach: in 2002, data-name-1 may be a CD user-record item or an implicit CD data-name (TEXT LENGTH is an unsigned 4-digit integer). SR3 does not forbid either, and the compiler accepts and runs both at 2002 (relkey_cd.cob, rel_tl.cob: correct).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.2 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR3",
+      "quote": "Data-name-1 shall not be defined in a record description entry subordinate to the associated file-name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "The TEXT LENGTH clause defines data-name-2 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\rel_sub.cob (also rel_sub_fd.cob, relkey_cd.cob, rel_tl.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-11",
+    "verdict": "UPHELD",
+    "reason": "Format 2 (relative) is printed the same in both. The rule needs only ACCESS DYNAMIC/RANDOM and the RELATIVE KEY clause being present, with no operand form at issue.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same list of source units (factory, function, object, program) and the same placement of the input-output section in both. The rule has no operand that can reach a CD.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-3",
+    "verdict": "UPHELD",
+    "reason": "The file section holds FD and SD entries in both. A CD is not a file description entry. Report files use an FD in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-7",
+    "verdict": "OVERTURNED",
+    "reason": "The words are the same, but in 2002 ASSIGN ... USING data-name-1 may reference a communication-section item: an item of a record under a CD, or an implicit CD data-name whose category is fixed only by Annex A (STATUS KEY is alphanumeric; TEXT LENGTH is a 4-digit integer). SR7's category test and its own-FD ban then govern a 2002-only operand that the 2023 row cannot show. Probes at --std 2002: assign_cd.cob (USING a CD-record PIC X(20)) is accepted and runs, and asg_tl.cob (USING TEXT LENGTH TL) is refused with COBOL1810 'category-numeric'. Both are correct. Needs a 2002 witness for the CD-operand cases.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry for file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry for file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "The STATUS KEY clause defines data-name-3 to be an elementary alphanumeric data item of 2 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR1",
+      "quote": "A CD entry shall appear only in the communication section.",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\assign_cd.cob (also asg_tl.cob, asg_sd1.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.2-9",
+    "verdict": "UPHELD",
+    "reason": "2002 Format 1 is the 2023 Format 1 without SUPPRESS WHEN, a 2023 widening. Every Format-1-only clause of 2002 (ALTERNATE RECORD KEY, collating-sequence-clause, INDEXED, RECORD KEY) is in 2023 Format 1. The rule is about which format may be used, not operand forms.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as RECORD KEY SR2. 2002 ALTERNATE RECORD KEY SR1 says only 'may be qualified', so ALTERNATE RECORD KEY IS A(2) (a subscripted PIC X element of the FD record) is legal 2002 (5.1.3; 2014 E.2 item 25), and SR2's category and location test governs it. 2023 SR1 forbids any OCCURS. Probe ak_sub.cob is refused at --std 2002 with COBOL2024, which cites §2023. That is WRONG against 2002, a compiler defect.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR2",
+      "quote": "Data-name-1 and data-name-2 shall be defined as a data item of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall be defined as a data item of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.5.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\ak_sub.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.5.2-6",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause. In 2002, record-key-name-1 SOURCE IS { data-name-2 } ... may concatenate subscripted table elements, whose class and category SR6 passes to the key. 2023 SR1 removes that case. The compiler refuses subscripted alternate-key operands at --std 2002 (ak_sub.cob), so this is a compiler defect too.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.2 SR6",
+      "quote": "Record-key-name-1 has the class and category of data-name-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR6",
+      "quote": "Record-key-name-1 has the class and category of data-name-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\ak_sub.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "File-level Format 1 is printed the same in both. alphabet-name-1 is not a data-name, and Tables 7/6 agree on which alphabets define an alphanumeric collating sequence.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-3",
+    "verdict": "UPHELD",
+    "reason": "[ collating-sequence-clause ] ... appears in Format 1 of both editions. The rule counts file-level clauses, which have no operand that can be subscripted.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-6",
+    "verdict": "OVERTURNED",
+    "reason": "The words are the same, but 2023 adds key-level SR6, which 2002 lacks: 'Data-name-1 and record-key-name-1 shall not be subscripted'. In 2002, COLLATING SEQUENCE OF data-name-1 names the key's data-name (SR4), and that may be a subscripted table element (5.1.3; 2014 E.2 item 25; the key clauses' SR1 says only 'may be qualified'). SR6's class-of-key test therefore governs a subscripted key reference in 2002 that the 2023 verdict cannot cover. Probe cs_sub.cob: --std 2002 refuses both the subscripted ALTERNATE RECORD KEY and COLLATING SEQUENCE OF AK-PART (1) with COBOL2024. That is WRONG against the 2002 text, a compiler defect.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR6",
+      "quote": "When the class of data-name-1 or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR7",
+      "quote": "When the class of data-name-1 or record-key-name-1 is national, alphabet-name-3 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR6",
+      "quote": "Data-name-1 and record-key-name-1 shall not be subscripted.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.6.2 SR4",
+      "quote": "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY clause or in a RECORD KEY clause in the file control entry.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\cs_sub.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.6.2-7",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as SR6. In 2002, data-name-1 in the key-level format may be subscripted. So 'specified in more than one COLLATING SEQUENCE clause' must be decided for a subscripted key, for example OF AK(1) in one clause and OF AK(1) again in another. That 2002-only case is removed in 2023 by the new SR6 ban on subscripting. The compiler refuses any subscripted key-level operand at --std 2002 (cs_sub.cob, COBOL2024), so this 2002 scope has no evidence and the refusal is a compiler defect.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6.2 SR7",
+      "quote": "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR8",
+      "quote": "Neither data-name-1 nor record-key-name-1 shall be specified in more than one COLLATING SEQUENCE clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR6",
+      "quote": "Data-name-1 and record-key-name-1 shall not be subscripted.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-09\\cs_sub.cob"
+   }
+  ],
+  "disputed-different": [],
+  "compiler-defects-found": [
+   {
+    "summary": "At --std 2002, COBOL2024 refuses a subscripted RECORD KEY, ALTERNATE RECORD KEY, RELATIVE KEY and key-level COLLATING SEQUENCE OF operand. It cites §2023:8.4.2.2.2 and the 2023 'shall not be subject to any OCCURS clauses' rules. 2002 has neither: its key clauses' SR1 says only 'may be qualified', and §2002:5.1.3 together with §2014:E.2 (item 25) make data-name-n subscriptable unless a rule forbids it.",
+    "programs": [
+     "rk_sub.cob",
+     "ak_sub.cob",
+     "rel_sub.cob",
+     "cs_sub.cob"
+    ],
+    "observed": "error COBOL2024 ... (ISO §2023:8.4.2.2.2 Format 1) ... shall not be subject to any OCCURS clauses; exit 65 at --std 2002",
+    "expected-2002": "rk_sub.cob, ak_sub.cob and rel_sub.cob are accepted; cs_sub.cob is accepted (AL1 NATIVE defines an alphanumeric collating sequence for an alphanumeric key). rel_sub_fd.cob is refused by §2002:12.3.4.13.2 SR3, and rk_sub_num.cob by §2002:12.3.4.12.2 SR2.",
+    "note": "p-01's refuter reported the same defect for the GRs of these clauses (2002-GR-12.3.4.12.3-3/-4, 12.3.4.3-5/-7, 12.3.4.5.3-1/2/3, 12.3.4.6.3-4)."
+   }
+  ]
+ },
+ "imported": {
+  "asked": "8b0269cca2ba48d62d96d5a5f9d427733ce5b69d8f6f4b110920d65a0e39b7b6",
+  "read": "28187ade3f36a88be294263420f732fa0d18b63ae215fa2e97b31e6acc3a302a",
+  "refute": "8b894adf640ca05684a92acbc5eb8e47edf3eff86bf9497ece34ec4dfe7e56a0"
+ }
+}

@@ -1,0 +1,1985 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-28 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-28",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.22.2-7",
+   "2002-GR-14.8.22.3-1",
+   "2002-GR-14.8.22.3-3",
+   "2002-GR-14.8.22.3-4",
+   "2002-GR-14.8.22.3-5",
+   "2002-GR-14.8.22.3-8",
+   "2002-GR-14.8.22.3-9",
+   "2002-SR-14.8.23.2-9",
+   "2002-GR-14.8.23.3-10",
+   "2002-GR-14.8.23.3-11",
+   "2002-GR-14.8.23.3-13",
+   "2002-GR-14.8.23.3-2",
+   "2002-GR-14.8.23.3-3",
+   "2002-GR-14.8.23.3-4",
+   "2002-GR-14.8.23.3-5",
+   "2002-GR-14.8.23.3-6",
+   "2002-GR-14.8.23.3-9",
+   "2002-SR-14.8.24.2-2",
+   "2002-SR-14.8.24.2-9",
+   "2002-GR-14.8.24.3-3",
+   "2002-GR-14.8.25.3-1",
+   "2002-GR-14.8.25.3-2",
+   "2002-SR-14.8.26.2-1",
+   "2002-GR-14.8.26.3-1",
+   "2002-GR-14.8.26.3-19"
+  ],
+  "flags": {
+   "2002-GR-14.8.22.3-1": {
+    "changed-definition-term": "runtime element"
+   },
+   "2002-GR-14.8.22.3-3": {
+    "normalized": "normalized",
+    "changed-definition-term": "procedure, runtime element",
+    "cross-reference": "14.3"
+   },
+   "2002-GR-14.8.22.3-4": {
+    "changed-definition-term": "boolean expression"
+   },
+   "2002-GR-14.8.22.3-5": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-14.8.23.3-10": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.23.3-11": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.23.3-13": {
+    "changed-definition-term": "character position"
+   },
+   "2002-GR-14.8.23.3-2": {
+    "changed-definition-term": "character position"
+   },
+   "2002-GR-14.8.23.3-9": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.24.3-3": {
+    "changed-definition-term": "de-editing"
+   },
+   "2002-GR-14.8.26.3-19": {
+    "changed-definition-term": "procedure"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-28",
+  "seed": null,
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28",
+  "witness-runs": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/witness-runs.json",
+  "citation-checks": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cites.json (every quotation below was run through cite.py --check; all OK)",
+  "defects": [
+   {
+    "id": "D1",
+    "summary": "At --std 2002 a communication-section CD field with an implicit description (TEXT LENGTH of an output CD, implicitly PICTURE 9(4)) is modelled with no PICTURE clause, so INVOKE ... RETURNING it and INVOKE ... USING BY REFERENCE it to a PIC 9(4) formal/returning item are refused COBOL0828 as non-conforming.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-ret-implicit.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-byref-implicit.cob"
+    ],
+    "expected": "compiles and prints 5=0042: the implicit description of the output CD is 'equivalent to' a record whose TEXT LENGTH entry is '02 data-name-2 PICTURE 9(4)' (§2002:A.1.2.3 GR16), so the receiving/argument item has the same PICTURE, USAGE and SIGN clauses as the method's PIC 9(4) item (§2002:14.7.2.2, §2002:14.7.1.2.1); identifier-3/identifier-4 may reference a communication-section item (§2002:14.8.22.2 SR9, SR11).",
+    "observed": "error COBOL0828: INVOKE \"GET42\" RETURNING 'OTL': the returning item (an elementary numeric item described with PICTURE 9(4) USAGE DISPLAY) and the receiving item (an elementary numeric item described with USAGE DISPLAY) are not described with the same clauses (ISO §2023:14.8.3.3); the BY REFERENCE program gives the same COBOL0828 for USING argument 'OTL'. A CD RECORD item PIC 9(4) (cd-invoke-args.cob, 4=0042) is accepted, so the defect is the implicit-field description. Sibling sweep needed: CALL USING/RETURNING and function arguments with CD implicit fields (MESSAGE COUNT, END KEY, STATUS KEY ...).",
+    "rows-reached": [
+     "2002-GR-14.8.22.3-8",
+     "2002-GR-14.8.22.3-3",
+     "2002-GR-14.8.22.3-4"
+    ]
+   },
+   {
+    "id": "D2",
+    "summary": "At --std 2002 the SELECT WHEN clause is refused (COBOL1705) citing the 2023 optional-element licence Annex A.4.8; 2002 makes SELECT WHEN a required element (only its effect outside CODE-SET/FORMAT processing is optional, B.1 item 139; the FORMAT clause representation is 'required', B.1 item 64). So MERGE GR2 b) and GR13 b) (multiple record descriptions with SELECT WHEN) cannot be exercised at 2002.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-select-when.cob"
+    ],
+    "expected": "compiles at --std 2002 (§2002:13.16.49.2 SR1 permits SELECT WHEN at the 01 level of a file-section record; §2002:14.8.23.3 GR13b applies its rules to select the description that decides the fill); no 2002 text makes it optional.",
+    "observed": "error COBOL1705: the SELECT WHEN clause on 'GN-NAT' ...: the FORMAT clause (ISO §2023:13.18.24) and the SELECT WHEN clause (ISO §2023:13.18.51) are the two items of Annex A.4.8, an OPTIONAL language element (§2023:4.2.7) for which this implementation claims NO support ... so the clause is refused (identical at --std 2023, where the licence exists). The FORMAT clause at --std 2002 is a sibling to check.",
+    "rows-reached": [
+     "2002-GR-14.8.23.3-2",
+     "2002-GR-14.8.23.3-13"
+    ]
+   }
+  ],
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.22.2-7",
+    "to": [
+     "SR-14.9.23.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR7",
+      "quote": "Identifier-2 may be specified only when identifier-1 is a universal object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR7",
+      "quote": "Identifier-2 may be specified only when identifier-1 is a universal object reference.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INVOKE identifier-1 identifier-2 with identifier-1 universal (legal) or typed / class-name-1 (refused), identifier-2 in file, working-storage, local-storage or linkage",
+     "identifier-2 a record item under a CD: 2002 INVOKE admits communication-section operands (SR9, SR11) and nothing restricts identifier-2's section"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.23-INVOKE/pb1136-invoke-identifier-2-typed-receiver.cob and pb1136-invoke-class-name-identifier-2.cob (refused COBOL0866 at 2002) and 8.3.3.5-National-literals/pb1136_invoke_selector_forms.cob (PASS at 2002)",
+     "CD: not shown by the 2023 row; probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob (universal U + CD identifier-2: 1=HI at 2002) and cd-invoke-sr7-neg.cob (typed O + CD identifier-2: refused COBOL0866 at 2002)"
+    ],
+    "reason": "General format identical except class-name-1 renamed object-class-name-1. The rule's condition is on identifier-1, but its subject identifier-2 can be a communication-section item in 2002, a case the 2023 row cannot witness. The compiler behaves correctly for it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-sr7-neg.cob",
+    "widening": null,
+    "needs": "a 2002 witness for INVOKE identifier-2 referencing a communication-section record item (cd-invoke-args.cob leg 1 and cd-invoke-sr7-neg.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob, cd-invoke-sr7-neg.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-1",
+    "to": [
+     "GR-14.9.23.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR1",
+      "quote": "is the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR1",
+      "quote": "is the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "an INVOKE executed by a program",
+     "by a method (including INVOKE SELF)",
+     "by a user-defined function"
+    ],
+    "evidence-2002": [
+     "the 2023 row's witness E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.4-CALL/pb36_module_name_invoke_activation.cob is refused at 2002 (COBOL1502: FUNCTION MODULE-NAME is 2023-only), so it shows nothing at 2002",
+     "all three activators: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/inv-activator.cob (P1 A-IN B A-OUT P2 F-IN B F-OUT R=7 P3 at 2002: control returns to each activating element)"
+    ],
+    "reason": "Definitional rule with no operands, so it cannot reach a CD. Format identical. The flagged term 'runtime element' is defined in 2002 (4) as 'the executable unit resulting from compiling a source element' and in 2023 (3.159) as code and data produced by compiling a source element: same extension. 'Activating runtime element' is defined identically (2002 4; 2023 3.4).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/inv-activator.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: runtime element": "Same referent: §2002:4 (4.167) 'The executable unit resulting from compiling a source element' and §2023:3.159 'element consisting of code and data produced by the compilation of a source element' name the same programs, functions and methods; GR1 itself names 'The instance of the program, function, or method that executes the INVOKE statement', and probe inv-activator.cob shows all three at --std 2002. The scope and the evidence are unchanged.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) 'A procedural entity defined by a method definition within, or inherited by, a class definition' and §2002:9.3.4 (the text 2023 9.3.4 keeps word for word: 'A method always possesses the recursive attribute and may call itself') describe the same thing. A method invoking INVOKE is in the scope in both, so nothing changes.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds by method-name only ('if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound'); 2023 9.3.6 adds signature matching. GR1 names the activating element, whichever method is bound, so it does not rest on the resolution text."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'runtime element': the 2002 definition covers the same elements (program, function, method). The scope does not change. The 2023 witness pb36 does not compile at 2002, so the KEPT record should take inv-activator.cob as its 2002 witness."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR1",
+      "quote": "The instance of the program, function, or method that executes the INVOKE statement is the activating runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.4",
+      "quote": "A method always possesses the recursive attribute and may call itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "that method is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-3",
+    "to": [
+     "GR-14.9.23.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR3",
+      "quote": "This correspondence is positional and not by name equivalence.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR3",
+      "quote": "This correspondence is positional and not by name equivalence.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.2.1",
+      "quote": "the definition of the formal parameter and the definition of the argument shall have the same BLANK WHEN ZERO, JUSTIFIED, PICTURE, USAGE, and SIGN clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "Use of the above clauses results in a record whose implicit description is equivalent to the following",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "positional correspondence of INVOKE USING arguments (identifier-3, identifier-5, literals, expressions, OMITTED) to formal parameters, operands in file, working-storage, local-storage, linkage",
+     "arguments that are communication-section items: CD record items and CD implicit fields (SR9)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.2-Procedure-division-structure/l1c22_positional_formals_oo_func.cob (PASS at 2002)",
+     "CD record item: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob (2=A:ABC B:0007, 3=XYZ at 2002)",
+     "CD implicit field: not shown; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-byref-implicit.cob is REFUSED COBOL0828 at 2002 (defect D1)"
+    ],
+    "reason": "Format identical (class-name-1 renamed). The normalized flag is only the apostrophe in method's. The cross-reference '14.3, Procedure division, general rules' is stale in both editions: 2002 14.3 is 'Procedures' and 2023 14.3 is 'Declaratives'. The intended text is 2002 14.1.3 GR2 (positional correspondence, conformance per 14.7), whose INVOKE content matches 2023 14.2.3. The terms 'procedure' and 'runtime element' have the same extension in both editions. In 2002 the arguments may be communication-section items, which the 2023 row cannot witness. The compiler handles a CD record item but refuses a CD implicit field (D1).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob",
+    "widening": null,
+    "needs": "a 2002 witness for INVOKE USING with communication-section arguments (cd-invoke-args.cob) and the D1 fix with cd-invoke-byref-implicit.cob as its witness",
+    "compiler-at-2002": "wrong for a CD implicit-field argument (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-byref-implicit.cob, defect D1); correct for a CD record item (cd-invoke-args.cob)",
+    "flags-answered": [
+     "normalized: the exact 2002 words differ from the 2023 words only in the apostrophe of method's; GR-14.9.23.4-3 is the pointer.",
+     "changed-definition-term 'procedure, runtime element': 2002 4 'procedure' = one or more successive paragraphs or sections, 'runtime element' = executable unit from a source element; the scope does not change.",
+     "cross-reference 14.3: 2002 14.3 is 'Procedures'; the effective target is 14.1.3 GR2, the same in substance as 2023 14.2.3. It adds the conformance rules 14.7, which is where D1 bites for CD implicit fields."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-4",
+    "to": [
+     "GR-14.9.23.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR4",
+      "quote": "is regarded as an identifier or literal rather than an arithmetic or boolean expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR4",
+      "quote": "is regarded as an identifier or literal rather than an arithmetic or boolean expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more boolean operands separated by boolean operators.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a single identifier or literal argument of INVOKE (BY CONTENT/BY VALUE/keyword-less) taken as an identifier or literal, not as an expression",
+     "a single identifier that references a communication-section item"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.23-INVOKE/pb46_invoke_by_content_expression.cob, 9.3.6-Method-invocation/pb1113_content_compute_move_regime.cob, 8.4.3.4-Inline-method-invocation/pb1051_method_by_value.cob, 14.9.4-CALL/pb613_gr8_one_reduction.cob, 14.9.4-CALL/pb3760_grouped_argument_before_boolean_argument.cob (PASS at 2002) and 14.9.23-INVOKE/pb3760_invoke_* (refused COBOL0828 at 2002 as at 2023)",
+     "CD record item: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob (keyword-less single identifiers MARG and WN pass as identifiers: 2=A:ABC B:0007)",
+     "CD implicit field as a single identifier: refused at 2002 through D1 (cd-invoke-byref-implicit.cob)"
+    ],
+    "reason": "Format identical. The flagged term 'boolean expression' has the same definition in both editions (2002 4; 2023 3.23). Its single-identifier arguments may be communication-section items in 2002, so part of the scope lies outside the 2023 row. The CD implicit-field case meets D1.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob",
+    "widening": null,
+    "needs": "a 2002 witness for a single-identifier INVOKE argument that is a communication-section item (cd-invoke-args.cob)",
+    "compiler-at-2002": "correct for CD record items (cd-invoke-args.cob); a CD implicit field is refused by D1 (cd-invoke-byref-implicit.cob)",
+    "flags-answered": [
+     "changed-definition-term 'boolean expression': 2002 'One or more boolean operands separated by boolean operators' is the 2023 definition. The scope does not change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-5",
+    "to": [
+     "GR-14.9.23.4-5"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR5",
+      "quote": "If identifier-1 is null, the EC-OO-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR5",
+      "quote": "If identifier-1 is null, the EC-OO-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "the state of an object reference indicating that it contains no reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INVOKE with a null object reference in working-storage, local-storage or linkage, or the predefined NULL: EC-OO-NULL (fatal in the 2002 table, as in 2023) and the INVOKE terminated",
+     "possibly a level-1 USAGE OBJECT REFERENCE record under a CD as identifier-1, if 2002 admits one"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.23-INVOKE/ec_oo_null_invoke.cob and pb1136_invoke_null_receiver.cob (PASS at 2002, with >>TURN and RESUME AT NEXT STATEMENT, whose 2002 rules 14.8.31.3 GR2 match 2023)",
+     "CD object reference: not shown; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-objref-null.cob is refused at declaration (COBOL0899: a pointer-class item in a CD's implicitly redefined record area)"
+    ],
+    "reason": "Format, the 'null' definition for object references, and EC-OO-NULL's fatality are the same in both editions. The only open question is the CD reach. 2002 forbids USAGE OBJECT REFERENCE only in the file section (13.16.58 SR14) and forbids explicit REDEFINES of class object (13.16.42 SR13). CD records implicitly redefine the record area (A.1.1.2), and the 2002 text never says whether an object reference may be one of them. The compiler refuses such a declaration. If 2002 admits it, the refusal is a data-description defect and GR5 needs a CD witness (DIFFERENT, communication-reach). If 2002 does not, the scope is exactly the 2023 row's and the verdict is SAME.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-objref-null.cob",
+    "widening": null,
+    "settle": "an adjudication of whether §2002:A.1.1.2 implicit redefinition counts as redefinition for §2002:13.16.42.2 SR13 / 13.16.58.2 SR13 (i.e. whether an object-reference record may follow a CD in 2002); the compiler's COBOL0899 cites only its own D-SLOT representation",
+    "compiler-at-2002": "correct for the non-CD scope; the CD case is not probed past the refused declaration",
+    "flags-answered": [
+     "changed-definition-term 'null': 2002 4 defines null for a pointer or an object reference; 2023 adds a message-tag sense (3.131), a 2023-only class. For an object reference the scope does not change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-8",
+    "to": [
+     "GR-14.9.23.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR8",
+      "quote": "If a RETURNING phrase is specified, the result of the activated method is placed into identifier-4.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR8",
+      "quote": "If a RETURNING phrase is specified, the result of the activated method is placed into identifier-4.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR11",
+      "quote": "Identifier-4 shall reference a data item defined in the file, working-storage, local-storage, or linkage section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.2.2",
+      "quote": "the receiving operand shall have the same BLANK WHEN ZERO, JUSTIFIED, PICTURE, USAGE, and SIGN clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "Use of the above clauses results in a record whose implicit description is equivalent to the following",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETURNING identifier-4 in file, working-storage, local-storage, linkage",
+     "RETURNING identifier-4 in the communication section (SR11 names it): a CD record item or a CD implicit field"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.23-INVOKE/oo_method_args.cob (PASS at 2002)",
+     "CD record item: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-args.cob (4=0042 at 2002)",
+     "CD implicit field (output CD TEXT LENGTH, implicitly PICTURE 9(4)): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-ret-implicit.cob REFUSED COBOL0828 at 2002 (defect D1)"
+    ],
+    "reason": "Format identical. 2002 SR11 expressly admits a communication-section identifier-4, which 2023 SR11 does not. The rule therefore governs a case the 2023 row cannot witness. For a CD implicit field the compiler refuses legal source.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-ret-implicit.cob",
+    "widening": null,
+    "needs": "a 2002 witness for RETURNING into a communication-section item (cd-invoke-args.cob leg 4), and the D1 fix, after which cd-invoke-ret-implicit.cob is the witness (expected 5=0042)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-invoke-ret-implicit.cob refused COBOL0828 ('the receiving item (an elementary numeric item described with USAGE DISPLAY)' has no PICTURE) where §2002:A.1.2.3 GR16 gives it PICTURE 9(4) and §2002:14.7.2.2 is met; correct for a CD record item (cd-invoke-args.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-9",
+    "to": [
+     "GR-14.9.23.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR9",
+      "quote": "the omitted-argument condition for that parameter shall be true in the invoked method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR9",
+      "quote": "the omitted-argument condition for that parameter shall be true in the invoked method",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BY REFERENCE OMITTED argument",
+     "omitted trailing arguments",
+     "the omitted-argument condition in the invoked method"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.2-Function-identifier/pb757_invoke_omitted.cob (PASS at 2002)"
+    ],
+    "reason": "Format identical, and OMITTED sits under BY REFERENCE in both. The rule governs omitted arguments, which have no data item, so it has no communication-section reach. The neighbouring GR10 exception was renamed (2002 EC-PROGRAM-ARG-OMITTED, 2023 EC-OO-ARG-OMITTED), but GR9 does not lean on it.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. GR9 speaks of 'the invoked method', the same entity.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). In 2002 the invoked method is the one of that name, so GR9's requirement (the omitted-argument condition true in it, for OMITTED and for omitted trailing arguments) applies to the same method a 2002 program can have; 2023's signature resolution only adds choices among overloads 2002 cannot declare. pb757_invoke_omitted passes at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "method: A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "that method is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR9",
+      "quote": "If an OMITTED phrase is specified or a trailing argument is omitted, the omitted-argument condition for that parameter shall be true in the invoked method",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-28"
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-9",
+    "to": [
+     "SR-14.9.24.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR9",
+      "quote": "shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR9",
+      "quote": "shall be described in a file description entry that is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE USING file-name-2/file-name-3 and GIVING file-name-4 that are report files (FD with REPORT clause) or sort-merge files (SD)"
+    ],
+    "evidence-2002": [
+     "USING report file: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.4.5-File-description/pb1171-sort-merge-report-file.cob (line 48 MERGE refused COBOL2577 at 2002)",
+     "GIVING report file: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-sr9-giving-rpt.cob (refused COBOL2577 at 2002)",
+     "USING sort-merge file: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-sr9-using-sd.cob (refused COBOL1757 at 2002)"
+    ],
+    "reason": "The MERGE general format is identical in both editions, and its operands are file-names, so the rule cannot reach a CD or a debugging line. 'Report file' and 'sort-merge file description entry' mean the same in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-sr9-giving-rpt.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so a 'report file' (FD with a REPORT clause) is excluded from MERGE USING/GIVING; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-10",
+    "to": [
+     "GR-14.9.24.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR10",
+      "quote": "During the execution of the output procedure, no statement may be executed manipulating the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR10",
+      "quote": "During the execution of the output procedure, no statement may be executed manipulating the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.3",
+      "quote": "The results of violating the formats or rules of standard COBOL are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:4.4",
+      "quote": "The results of violating the formats or rules of standard COBOL are undefined",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a constraint on the run unit: statements executed in a MERGE output procedure shall not manipulate file-name-2/3 or their record areas; no exception and no result is stated, and B.2 does not list it, so a violation is undefined (3.3)"
+    ],
+    "evidence-2002": [
+     "the 2023 row is definitional (docs/conformance/8/DRV-GR-14.9.24.4-10.md, resting on §2023:4.4); §2002:3.3 carries the same sentence",
+     "a violating path compiles at 2002: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-gr10-violation.cob (K=A1 K=B1 DONE)"
+    ],
+    "reason": "Format identical, and the rule is a user constraint in both editions. The undefined-violation sentence is word-identical (2002 3.3, 2023 4.4). The flagged term 'procedure' is defined with the same extension (2002 4; 2023 3.145).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-gr10-violation.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "The rule's input/output procedure is the procedure-name-1 [THRU procedure-name-2] range of SORT/MERGE in both editions; §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') names the same range that §2023:3.145 does. Scope unchanged. The MERGE output procedure whose execution GR10 constrains is that range in 2002 too."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-11",
+    "to": [
+     "GR-14.9.24.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR11",
+      "quote": "During the execution of any USE procedure implicitly invoked while executing the MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR11",
+      "quote": "During the execution of any USE procedure implicitly invoked while executing the MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.3",
+      "quote": "The results of violating the formats or rules of standard COBOL are undefined",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a constraint on the run unit for USE procedures invoked by the implicit OPEN/READ/WRITE/CLOSE of a MERGE; violation undefined (3.3)"
+    ],
+    "evidence-2002": [
+     "the 2023 row is definitional (docs/conformance/8/DRV-GR-14.9.24.4-11.md, on §2023:4.4); §2002:3.3 is the same sentence; the same no-diagnostic behaviour is shown for GR10 by merge-gr10-violation.cob"
+    ],
+    "reason": "Format identical, and the rule is a user constraint with no stated outcome in both editions. In 2002, USE procedures are invoked for the implicit I-O exactly as in 2023 (GR7, GR12 word-identical). 'Procedure' has the same extension.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('USE procedure') names the same units in 2002; scope and evidence unchanged.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds a method by name only (no method resolution signature or overloading, which 2023 9.3.6 adds). The rule matched only on 'implicitly invoked' (a USE procedure for MERGE's implicit I-O), not a method invocation. No dependence; evidence unchanged."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': same extension (2002 4 / 2023 3.145). The scope does not change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "If a method is found, that method is bound; otherwise, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-13",
+    "to": [
+     "GR-14.9.24.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "other-cause": "optional-element licence: the rule's b) case needs SELECT WHEN, which 2023 makes optional (Annex A.4.8) and the compiler declines under that licence; 2002 makes SELECT WHEN required, so b) is part of the 2002 scope and is refused at --std 2002",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR13b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR13b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.2 SR1",
+      "quote": "A SELECT WHEN clause may be specified only at the 01 level of a record description entry in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "SELECT WHEN clause (effect other than when processing CODE-SET and FORMAT clauses). This item is optional.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.2",
+      "quote": "A compilation group that uses elements that are optional, processor-dependent, or implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) GIVING file with one record description that is national or usage-national numeric/numeric-edited/boolean: national space fill",
+     "b) GIVING file with multiple record descriptions with SELECT WHEN: the selected description decides the fill",
+     "c) otherwise alphanumeric space fill"
+    ],
+    "evidence-2002": [
+     "a), c): covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill.cob (PASS at 2002, leg M1)",
+     "b): not shown; the witness says SELECT WHEN 'cannot arise' because the compiler declines it under 2023 A.4.8; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-select-when.cob is refused COBOL1705 at 2002 (defect D2)"
+    ],
+    "reason": "Format and the a) to c) enumeration are identical, and the 'character position' sense used is 2002's single definition (2023 3.29). The 2023 row CONFORMS only because b) cannot arise under the A.4.8 optional licence. In 2002 SELECT WHEN is a required element: B.1 item 139 makes only its effect outside CODE-SET/FORMAT processing optional, and no 2002 text lists SELECT WHEN as optional. So b) is in the 2002 scope and the compiler refuses it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-select-when.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for GR13 b) is a refusal of SELECT WHEN (COBOL1705 citing 2023 A.4.8); it needs SELECT WHEN support at --std 2002 (or a 2002 licence, which I did not find) and then a witness for b)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-select-when.cob refused COBOL1705 at --std 2002 (defect D2)",
+    "flags-answered": [
+     "changed-definition-term 'character position': 2002 4 has the one sense '... a single character -- either an alphanumeric character or a national character' = 2023 3.29 <storage>; the 2023 <location within an item> sense (3.30) is not what GR13 uses. The scope does not change. The real scope difference is b) (SELECT WHEN)."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-2",
+    "to": [
+     "GR-14.9.24.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "other-cause": "optional-element licence: b) needs SELECT WHEN, optional in 2023 (A.4.8) and declined by the compiler, required in 2002",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR2b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR2b",
+      "quote": "the rules of the SELECT WHEN clause are applied to the record to select its description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.49.2 SR1",
+      "quote": "A SELECT WHEN clause may be specified only at the 01 level of a record description entry in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) USING file with one national / usage-national record description: national space fill on release",
+     "b) USING file with multiple record descriptions with SELECT WHEN",
+     "c) otherwise alphanumeric space fill"
+    ],
+    "evidence-2002": [
+     "a), c): covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb1140_sort_merge_short_record_fill.cob (PASS at 2002)",
+     "b): not shown; SELECT WHEN refused at 2002 (merge-select-when.cob, COBOL1705, defect D2: the same declaration on a USING file is refused the same way)"
+    ],
+    "reason": "Same analysis as GR13, for the USING side: the a) to c) enumeration is identical, and the b) case rests on SELECT WHEN, which is required in 2002 and declined by the compiler under a 2023-only licence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/merge-select-when.cob",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 GR2 b) is unreachable because SELECT WHEN is refused (D2); SELECT WHEN support at 2002 and a b) witness",
+    "compiler-at-2002": "wrong (SELECT WHEN refused COBOL1705 at --std 2002, merge-select-when.cob; defect D2)",
+    "flags-answered": [
+     "changed-definition-term 'character position': the same storage sense in both (2002 4, 2023 3.29). The scope does not change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-3",
+    "to": [
+     "GR-14.9.24.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR3",
+      "quote": "The leftmost data-name is the major key, the next data-name is the next most significant key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR3",
+      "quote": "The leftmost data-name is the major key, the next data-name is the next most significant key",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "key significance left to right across KEY phrases; ASCENDING/DESCENDING order by the relation-condition comparison; transitivity of ASCENDING/DESCENDING; keys in the SD record (no CD reach)"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/l1c18_merge_key_order_ties.cob (PASS at 2002)"
+    ],
+    "reason": "Format identical. Key data items are SD record items in both editions. 2002 SR4 excludes boolean/object/pointer keys, and 2023 only adds exclusions for 2023-only data, so every 2002 key class is a 2023 key class compared by the same relation-condition rules.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 21684 has the same rule split by '## Page 551': page break only. Re-read §2002:14.8.23.3 GR3: unchanged.",
+     "deferral: the rules for ": "The deferral is 'according to the rules for comparison of operands in a relation condition', i.e. §2002:8.8.4.1.1. Key items are restricted by §2002:14.8.23.2 SR4c (not boolean, object or pointer), so the reached comparisons are numeric (algebraic value), alphanumeric/alphabetic and national (standard or locale-based on the collating sequence), whose 2002 text matches 2023 8.8.4.2.4-8.8.4.2.11 in substance; the 2002 witness l1c18 runs at 2002.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "Read §2002:8.8.4.1.1: numeric comparison is by algebraic value, and under standard arithmetic uses the 2002 standard intermediate item; a key data item has at most 31 digits so it converts exactly into the 32-digit item and PB5575's 34 digits cannot change any key order. Boolean expressions (§2002:8.8.2) and abbreviated combined conditions (§2002:8.8.4.2.4) are not used by key comparison (no boolean keys, SR4c). Scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR3",
+      "quote": "according to the rules for comparison of operands in a relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR4c",
+      "quote": "Key data items shall not be of the class boolean, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "a comparison is made with respect to the algebraic value of the operands regardless of the manner in which their usage is described",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.6",
+      "quote": "Locale-based comparison is used when the alphanumeric program collating sequence in effect is locale based",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-28"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-4",
+    "to": [
+     "GR-14.9.24.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR4",
+      "quote": "Follows the order of the associated input files as specified in the MERGE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR4",
+      "quote": "Follows the order of the associated input files as specified in the MERGE statement.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "return order of records with equal keys across USING files: input-file order, all of one file before the next"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/l1c18_merge_key_order_ties.cob (PASS at 2002); the unit and C# spill tests are runtime-level, with no edition switch"
+    ],
+    "reason": "Format identical, and the a) b) items are identical. The rule's only operands are files.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-5",
+    "to": [
+     "GR-14.9.24.4-5"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR5",
+      "quote": "the collating sequences established as the program collating sequences",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR5",
+      "quote": "the collating sequences established as the program collating sequences",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) MERGE COLLATING SEQUENCE alphabet-name-1/-2 (IS, FOR ALPHANUMERIC, FOR NATIONAL forms) for alphanumeric/alphabetic and national keys",
+     "b) otherwise the program collating sequences (2002 OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE alphabet-name-1/-2, native by default)"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb678_sort_national_key_collating.cob (PASS at 2002, includes the MERGE leg L8 with FOR NATIONAL) and pb678-sort-collating-for-forms-at-85.cob (accepted at 2002)"
+    ],
+    "reason": "The COLLATING SEQUENCE phrase in the MERGE format is identical. The 2002 program collating sequences have both an alphanumeric and a national sequence, native when unspecified (§2002:12.2.5.3 GR9-GR10, cite-checked), as in 2023.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; the category that class follows (§2002:8.5.2 Table 3, same rows as 2023 Table 2 less message-tag and function-pointer) is where 2002 differs: §2002:8.5.2.7 item 3 makes 'An elementary data item explicitly or implicitly described as usage national.' category national (PDF p.112 rendered: the item is there; 2023 8.5.2.10 dropped it), while §2002:8.5.2.9 makes a PIC 9 item category numeric. So a PIC 9 (or PIC 1) USAGE NATIONAL item is class numeric (boolean) or class national in 2002: the open reading kb/Work PB5625 Reading 2. GR5 is reached: it assigns the national collating sequence to 'key data items of class national', so under the national reading a PIC 9 USAGE NATIONAL key is ordered by the national (alphabet-name-2 or program) sequence, under the numeric reading it is compared algebraically (§2002:8.8.4.1.1.3) and GR5 does not govern it. The same clause's GR2a speaks of 'an elementary data item of usage national and of category numeric', which presupposes the numeric reading. Not settled here.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "8.8.2 (boolean expressions) and 8.8.4.2.4 (abbreviated combined relation conditions) have no role in a MERGE key comparison. 8.8.4.1.1 (relation conditions, renumbered 8.8.4.2.x in 2023) is used by GR3/GR4; GR5 only selects which collating sequence applies, and the 2002 alphanumeric/national comparison text it feeds (§2002:8.8.4.1.1.6 and 8.8.4.1.1.8: standard and locale-based comparison 'with respect to the collating sequence ... specified for the current national program collating sequence') reads as 2023's. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "an elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR5",
+      "quote": "the national collating sequence that applies to the comparison of key data items of class national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "For operands whose class is numeric, a comparison is made with respect to the algebraic value of the operands",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.8",
+      "quote": "Comparison is made with respect to the collating sequence of characters specified for the current national program collating sequence",
+      "check": "OK"
+     }
+    ],
+    "needs": "PB5625 Reading 2 decided: if a numeric/boolean USAGE NATIONAL item is class numeric/boolean in 2002 (the reading §2002:8.5.2.9, §2002:13.16.58.2 SR11, §2002:14.8.23.3 GR2a and §2002:13.16.22.3 GR4 presuppose), the row is SAME with probe None as its 2002 evidence; if class national (§2002:8.5.2.7 item 3), it is DIFFERENT and the compiler is wrong at 2002.",
+    "compiler-at-2002": "takes the numeric reading (correct if PB5625 decides numeric): probe: null; observed: not probed: under the numeric reading (the compiler's, as natnum-accept/natnum-refuse show for every other class test) GR5 does not reach a numeric key and the reader's pb678 witnesses cover its scope at 2002; under the national reading the expected key order needs PB5625's decision first",
+    "answer-probes": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-refuse.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/stdarith-args.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/stdarith-args.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/spec_p134.png"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-6",
+    "to": [
+     "GR-14.9.24.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR6",
+      "quote": "the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR6",
+      "quote": "the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "out-of-order USING records: EC-SORT-MERGE-SEQUENCE (Fatal in the 2002 exception table, as in 2023), files closed, result undefined"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/13.18.43-RECORD/pb1036_sort_merge_statement_ec.cob (PASS at 2002, with >>TURN)"
+    ],
+    "reason": "Format identical. EC-SORT-MERGE-SEQUENCE is Fatal in both tables, and default checking is off in both editions. 2002 B.2 item 28 lists the undefined result without the 2023 'unless enabled' qualifier, but the rule itself is word-identical, and an undefined result admits the 2023 behaviour.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-9",
+    "to": [
+     "GR-14.9.24.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR9",
+      "quote": "The compiler inserts a return mechanism after the last statement in the output procedure.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR9",
+      "quote": "The compiler inserts a return mechanism after the last statement in the output procedure.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "control passes to the OUTPUT PROCEDURE (THROUGH/THRU) and returns through the inserted mechanism to the statement after MERGE; RETURN statements request records"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.24-MERGE/pb1141_merge_using_close_after_output_procedure.cob, 14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program.cob (PASS at 2002) and pb3511_sort_merge_procedure_ends_at_last_paragraph.cob (output identical at 2002 except trailing spaces, as at 2023)"
+    ],
+    "reason": "Format identical. The flagged term 'procedure' has the same extension. 2002 SR1 lets a MERGE appear anywhere outside declaratives, so a nested MERGE in an output procedure is syntactically legal in 2002, but its outcome belongs to GR8 (EC-SORT-MERGE-ACTIVE), not this rule.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: procedure": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('output procedure') names the same units in 2002; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule rests on §2002:14.5.3 items 1 and 2 (implicit transfer to the output procedure and back from its last statement). For an output procedure the last statement of its last paragraph is the end of its range in both wordings, so the return point is the same; 14.5.2.1.2.1 and 14.5.10 are not relied on. Shown at 2002 by the reader's pb1141/pb3511 witnesses."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'procedure': same extension (2002 4 / 2023 3.145). The scope does not change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "implicit transfer of control occurs to any associated input or output procedures",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-2",
+    "to": [
+     "SR-14.9.25.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR2",
+      "quote": "If identifier-2 references a strongly-typed group item, identifier-1 shall be specified and be described as a group item of the same type.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR2",
+      "quote": "If identifier-2 references a strongly-typed group item, identifier-1 shall be specified and be described as a group item of the same type.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55.2 SR4",
+      "quote": "the subject of the entry shall not be implicitly or explicitly redefined in whole or in part",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MOVE to a strongly-typed group identifier-2 from identifier-1 / literal-1 in any section",
+     "identifier-1 a communication-section record (never of the strong type)",
+     "(a strongly-typed group under a CD is very likely excluded by 13.16.55.2 SR4, since CD records implicitly redefine the area; not probed)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.25-MOVE/typedef_strong_ok.cob, 14.8.2.2-Group-items/pb427_same_type_by_position.cob (PASS at 2002) and 14.9.25-MOVE/pb427-same-type-nonequivalent-declarations.cob (refused COBOL1533 at 2002)",
+     "CD identifier-1: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-strong-neg.cob (MOVE OUTREC TO SG refused COBOL1533 at 2002)"
+    ],
+    "reason": "Format 1 identical. In 2002 any MOVE identifier may be a communication-section item: CD record entries are ordinary data description entries (A.1.1.2), and the CD fields have implicit descriptions. So a CD sending operand to a strongly-typed receiver is in the 2002 scope, a case the 2023 row cannot witness. The compiler refuses it correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-strong-neg.cob",
+    "widening": null,
+    "needs": "a 2002 witness for a communication-section identifier-1 moved to a strongly-typed group (cd-move-strong-neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-strong-neg.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-9",
+    "to": [
+     "SR-14.9.25.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR9",
+      "quote": "The words CORR and CORRESPONDING are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR11",
+      "quote": "The words CORR and CORRESPONDING are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the spelling CORR versus CORRESPONDING in MOVE format 2"
+    ],
+    "evidence-2002": [
+     "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.25-MOVE/l1_move_corr_equivalence.cob (PASS at 2002)"
+    ],
+    "reason": "Format 2 identical. The rule governs only the keyword's spelling. It says nothing about the operands, so their sections (including a CD) do not enter it; that is the business of SR10, SR11 and 14.6.5.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on 'CORRESPONDING'. MOVE is not an arithmetic statement (§2002:14.6.6 lists ADD, COMPUTE, DIVIDE, MULTIPLY, SUBTRACT) and has no size error (§2002:14.6.4), so neither changed clause reaches it; the rule is a keyword equivalence and the pairing is §2002:14.6.5. Scope and the l1_move_corr_equivalence evidence at 2002 are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR9",
+      "quote": "The words CORR and CORRESPONDING are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-28"
+   },
+   {
+    "rule-id": "2002-GR-14.8.24.3-3",
+    "to": [
+     "GR-14.9.25.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.3 GR3",
+      "quote": "De-editing takes place only when the sending operand is a numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.4 GR5",
+      "quote": "De-editing takes place only when the sending operand is a numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The logical removal of all editing characters from a numeric-edited data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "numeric-edited sending to numeric / numeric-edited receiving: de-edited; to other categories: not de-edited; operands in any section",
+     "operands that are communication-section items (CD record items, CD implicit fields)"
+    ],
+    "evidence-2002": [
+     "non-CD: E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.6.13.2-Incompatible-data/pb66_float_edited_algebraic_and_checking.cob compiles and matches at 2002 (modulo trailing spaces); 13.18.40-PICTURE/pb66_float_edited_picture.cob is refused at 2002 (2023-only VALUE on a numeric-edited item)",
+     "CD: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob at 2002: D1=00123 (CD edited -> WS numeric), D2=1,234 (CD edited -> CD edited), D3=0567 (WS edited -> CD TEXT LENGTH), D4 copies characters into an alphanumeric item (no de-editing)"
+    ],
+    "reason": "Format 1 identical. The flagged term 'de-editing' has the same definition ('unedited numeric value' in 2002, 'numeric value' in 2023). In 2002 the operands may be communication-section items, which the 2023 row cannot witness. The compiler handles them correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob",
+    "widening": null,
+    "needs": "a 2002 witness for de-editing with communication-section operands (cd-move-mult.cob D1-D4)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob)",
+    "flags-answered": [
+     "changed-definition-term 'de-editing': the 2002 and 2023 definitions are the same operation. The scope does not change."
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.25.3-1",
+    "to": [
+     "GR-14.9.26.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.25",
+    "clause-2023": "14.9.26",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.3 GR1",
+      "quote": "The product of the multiplier and the multiplicand is stored as the new value of the data item referenced by identifier-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.4 GR1",
+      "quote": "The product of the multiplier and the multiplicand is stored as the new value of the data item referenced by identifier-2.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MULTIPLY format 1 under native arithmetic (the 2002 default), operands in any section",
+     "identifier-1 / identifier-2 communication-section items (CD record items, CD implicit fields)"
+    ],
+    "evidence-2002": [
+     "the 2023 row's case witness E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.26-MULTIPLY/pb1143_native_product_beyond_scaled_int128.cob is refused at 2002 (ROUNDED MODE, 2014+); WS format 1: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/mult-f1-ws.cob (A=0042 B=0010 C=-3.75 at 2002)",
+     "CD: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob (M1=0042 CD multiplicand; M2=0010 CD multiplier, CD TEXT LENGTH multiplicand)"
+    ],
+    "reason": "Format 1 identical, apart from 2023's rounded-phrase replacing ROUNDED (a widening). Native arithmetic is the 2002 default. In 2002 the operands may be communication-section items, which the 2023 row cannot witness, and the row's only case witness does not compile at 2002. Both probes show correct results. The 32-digit standard-arithmetic issue is GR3's, not this rule's.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/mult-f1-ws.cob",
+    "widening": "2023 rounded-phrase (ROUNDED MODE) widens the identifier-2 position; not a 2002 form",
+    "needs": "a 2002 witness for MULTIPLY format 1 (mult-f1-ws.cob, since pb1143 is refused at 2002) and for communication-section operands (cd-move-mult.cob M1, M2)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/mult-f1-ws.cob, cd-move-mult.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.25.3-2",
+    "to": [
+     "GR-14.9.26.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.25",
+    "clause-2023": "14.9.26",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.3 GR2",
+      "quote": "The product is stored as the new value of each data item referenced by identifier-3.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.4 GR2",
+      "quote": "The product is stored as the new value of each data item referenced by identifier-3.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MULTIPLY format 2 under native arithmetic, operands in any section",
+     "identifier-1/-2/-3 communication-section items"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.26-MULTIPLY/pb134_giving_sending_operands.cob (PASS at 2002); pb1143 refused at 2002 (ROUNDED MODE)",
+     "CD: not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob (M3=0035 E=  35: CD BY CD GIVING CD numeric and CD numeric-edited)"
+    ],
+    "reason": "Format 2 identical, apart from rounded-phrase (a 2023 widening). In 2002 the operands may be communication-section items, which the 2023 row cannot witness. The compiler handles them correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob",
+    "widening": "2023 rounded-phrase on identifier-3",
+    "needs": "a 2002 witness for MULTIPLY GIVING with communication-section operands (cd-move-mult.cob M3)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/cd-move-mult.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-1",
+    "to": [
+     "SR-14.9.27.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR1",
+      "quote": "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR1",
+      "quote": "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPEN INPUT of a report file",
+     "OPEN I-O of a report file"
+    ],
+    "evidence-2002": [
+     "INPUT: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.27-OPEN/pb318-open-report-file-input.cob (refused COBOL2371 at 2002); 14.9.21-INITIATE/pb326_ec_report_file_mode.cob is refused at 2002 (LINE SEQUENTIAL, 2023-only)",
+     "I-O: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-rpt-io.cob (refused COBOL2371 at 2002)"
+    ],
+    "reason": "The OPEN general format (modes, sharing-phrase, retry-phrase, NO REWIND) is identical. OPEN operands are file-names, so the rule cannot reach a CD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-rpt-io.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so OPEN INPUT or I-O of a report file is the same refusal; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-1",
+    "to": [
+     "GR-14.9.27.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR1",
+      "quote": "If it is open, the execution of the OPEN statement is unsuccessful and the I-O status associated with file-name-1 is set to '41'.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR2",
+      "quote": "If it is open, the execution of the OPEN statement is unsuccessful and the I-O status associated with file-name-1 is set to '41'.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.6",
+      "quote": "An OPEN statement is attempted for a file connector in an open mode.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPEN of a file connector already open: unsuccessful, I-O status 41 (2002 9.1.12.6 gives 41 the same meaning)"
+    ],
+    "evidence-2002": [
+     "the 2023 row's witness is a runtime unit test (FileStatusDisciplineTests.ReadGate_AlreadyOpen41DropsIt_DeleteIs43), with no edition switch; at --std 2002: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-41-resume.cob (A=00 then B=41)"
+    ],
+    "reason": "Format identical, and the operands are file-names. The rule rests on the uncatalogued 2002 I-O status clause, whose 41 entry (9.1.12.6) means the same as 2023's. 2002 GR18 (the I-O status update) is the 2023 GR1 moved, with no effect on this rule. The probe shows 41 at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-41-resume.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-19",
+    "to": [
+     "GR-14.9.27.4-20"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR19",
+      "quote": "processing resumes at the next implicit OPEN statement, if any",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR20",
+      "quote": "processing resumes at the next implicit OPEN statement, if any",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.31.3 GR2",
+      "quote": "control is transferred to an implicit CONTINUE statement that immediately follows the end of the statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "several file-names in one OPEN = separate OPENs in order, each with the group's open mode, sharing-phrase, retry-phrase and NO REWIND",
+     "a declarative executing RESUME AT NEXT STATEMENT during one implicit OPEN resumes at the next implicit OPEN"
+    ],
+    "evidence-2002": [
+     "grouping: covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.27-OPEN/pb316_open_group_scope.cob (PASS at 2002) and pb316-open-sharing-all-no-lockmode.cob (refused at 2002)",
+     "RESUME: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-41-resume.cob (OPEN INPUT FM FB FC with FM missing: DECL=35 then M=35 B=00 C=00 at 2002)"
+    ],
+    "reason": "Format identical, and the phrases (sharing, retry, NO REWIND) are the same in both editions. The 2002 RESUME statement (14.8.31.3 GR2) matches 2023's, apart from 2023's exception-checking PERFORM, a 2023-only form. The flagged term 'procedure' has the same extension. 2023 SR3 (exception-checking PERFORM) restricts only a 2023 form.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-28/open-41-resume.cob",
+    "widening": null,
+    "flags-answered": [
+     "changed-definition-term 'procedure': same extension (2002 4 / 2023 3.145); 'declarative procedure' means the same. The scope does not change."
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-28",
+  "reader-file": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/q-28-read.json",
+  "counts": {
+   "UPHELD": 10,
+   "OVERTURNED": 2,
+   "DOUBTFUL": 2
+  },
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.22.3-1",
+    "verdict": "UPHELD",
+    "reason": "GR1 is word-identical and has no operand: it names the activating runtime element (program, function or method executing the INVOKE). The INVOKE format differs only by the rename class-name-1 -> object-class-name-1. No CD or removed-form reach. 2002 requires CLASS-ID multiple inheritance (declined at every edition, COBOL0849), but a method of such a class is only context, not an operand of this rule. The reader's own probe shows all three activators at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR1",
+      "quote": "The instance of the program, function, or method that executes the INVOKE statement is the activating runtime element.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR1",
+      "quote": "The instance of the program, function, or method that executes the INVOKE statement is the activating runtime element.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-9",
+    "verdict": "UPHELD",
+    "reason": "Word-identical, and OMITTED sits under BY REFERENCE in both formats. An omitted argument has no data item, so it cannot reach a CD. The 2014 rename of the GR10 exception (EC-PROGRAM-ARG-OMITTED -> EC-OO-ARG-OMITTED) is GR10's, not GR9's. The witness pb757 passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR9",
+      "quote": "the omitted-argument condition for that parameter shall be true in the invoked method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR9",
+      "quote": "the omitted-argument condition for that parameter shall be true in the invoked method",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-9",
+    "verdict": "UPHELD",
+    "reason": "The MERGE format is identical. The refusal cases this prohibition governs (report-file and SD operands) are shown at 2002. A FORMAT-clause FD (required in 2002) is an operand SR9 PERMITS, and the compiler refuses it at 2002, but through the FORMAT clause (COBOL1705 at the FD), not through SR9. That defect belongs to the FORMAT rows. Same line as the p-12 refuter's RECORD SR4 decision.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR9",
+      "quote": "File-name-2, file-name-3, and file-name-4 shall be described in a file description entry that is not for a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR9",
+      "quote": "File-name-2, file-name-3, and file-name-4 shall be described in a file description entry that is not for a report file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-28/merge-format-using.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-10",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. This is a constraint on the user whose violation is undefined, and it requires nothing of the implementation, in both editions. 2002 SR1 still admits a MERGE in an output procedure (2023 E.2 item 20 notes that 2023 forbids it), but that case falls under GR8 (EC-SORT-MERGE-ACTIVE, undefined), not under this rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR10",
+      "quote": "During the execution of the output procedure, no statement may be executed manipulating the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR10",
+      "quote": "During the execution of the output procedure, no statement may be executed manipulating the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR8",
+      "quote": "If this rule is violated, the EC-SORT-MERGE-ACTIVE exception condition is set to exist and the results of the merge operation are undefined.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-11",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. A user constraint with an undefined outcome in both editions. Nothing for the implementation to witness.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR11",
+      "quote": "During the execution of any USE procedure implicitly invoked while executing the MERGE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR11",
+      "quote": "During the execution of any USE procedure implicitly invoked while executing the MERGE statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-3",
+    "verdict": "UPHELD",
+    "reason": "The format and the key rules are the same; 2023 SR4 only adds exclusions for 2023-only classes. The keys are SD-record items. FORMAT is an FD clause, and record-area data is in internal representation (2002 FORMAT GR1 NOTE), so the key comparison never meets a declined element. The 2002 ALPHABET operand table is the 2023 table, so no 2002-only alphabet form reaches the key comparison.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR3",
+      "quote": "The leftmost data-name is the major key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR3",
+      "quote": "The leftmost data-name is the major key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The data in the record area is visible to the runtime module in internal representation.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-4",
+    "verdict": "DOUBTFUL",
+    "class": null,
+    "reason": "Word-identical, and there is no CD reach. However, the rule's subject is 'the associated input files' (file-name-2/3), and in 2002 a USING file may be a FORMAT-clause FD: SR9 admits it, and GR7a opens it INPUT, which 2002 OPEN SR7 permits. FORMAT is required in 2002 and refused at --std 2002 (COBOL1705). Probe merge-format-using.cob is refused at 2002; the control without FORMAT prints A B at 2002. FORMAT changes only the physical representation (GR1 NOTE), not file identity or order, so the reach is incidental. Unlike OPEN, the MERGE clause never names FORMAT files. To settle: the coordinator rules once whether incidental reach to a declined 2002-required element (a FORMAT file as USING operand) makes a runtime file rule DIFFERENT, as CD reach does. If it does, OVERTURNED with the GR1 class.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR4",
+      "quote": "Follows the order of the associated input files as specified in the MERGE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR4",
+      "quote": "Follows the order of the associated input files as specified in the MERGE statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR7a",
+      "quote": "the initiation is performed as if an OPEN statement with the INPUT phrase and without a SHARING phrase is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "A.4.7, FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-28/merge-format-using.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-6",
+    "verdict": "DOUBTFUL",
+    "class": null,
+    "reason": "Word-identical. EC-SORT-MERGE-SEQUENCE and its default checking are the same in both editions. As with GR4, the rule's subject is 'the records in the file referenced by file-name-2 and file-name-3', which in 2002 may be a FORMAT-clause file (required, refused at --std 2002, probe merge-format-using.cob). To settle: the same coordinator ruling as GR4.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR6",
+      "quote": "If the records in the file referenced by file-name-2 and file-name-3 are not ordered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR6",
+      "quote": "If the records in the file referenced by file-name-2 and file-name-3 are not ordered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "A.4.7, FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-28/merge-format-using.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.23.3-9",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. A nested MERGE in an output procedure is legal under 2002 SR1, but it is governed by GR8 (undefined), not by the return mechanism. The witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.3 GR9",
+      "quote": "The compiler inserts a return mechanism after the last statement in the output procedure.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.4 GR9",
+      "quote": "The compiler inserts a return mechanism after the last statement in the output procedure.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.2 SR1",
+      "quote": "A MERGE statement may appear anywhere in the procedure division except in the declaratives portion.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-9",
+    "verdict": "UPHELD",
+    "reason": "The rule governs only how the keyword is spelled, so no operand reach is possible.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR9",
+      "quote": "The words CORR and CORRESPONDING are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR11",
+      "quote": "The words CORR and CORRESPONDING are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-1",
+    "verdict": "UPHELD",
+    "reason": "The OPEN format is identical. Report files are recognized at 2002, and INPUT and I-O on a report file are refused at 2002 (the reader's probes).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR1",
+      "quote": "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR1",
+      "quote": "The OPEN statement for a report file shall not contain the INPUT phrase or the I-O phrase.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-1",
+    "verdict": "OVERTURNED",
+    "class": "other (declined-element reach: the rule's file-name-1 may be an FD with the FORMAT clause, required in 2002 and refused at --std 2002 under the 2023-only licence A.4.8; the 2002 OPEN clause itself names FORMAT-file operands in SR7)",
+    "reason": "In 2002, OPEN GR1 governs every file connector named in an OPEN, including an FD with the FORMAT clause. 2002 OPEN SR7 restricts only the I-O phrase for such files, so OPEN OUTPUT/INPUT/EXTEND of a FORMAT file is in this clause's 2002 scope. 2002 has no optional licence for FORMAT (3.1.1; 2014 E.2 item 23 lists A.4.7 FORMAT and SELECT WHEN among the features 'required in the previous COBOL standard'). The 2023 CONFORMS rests on A.4.8, under which no FORMAT file exists. Probe: open-format-41.cob is refused COBOL1705 at both 2002 and 2023, while the identical program without FORMAT (open-noformat-control.cob) prints A=00 B=00 C=41 at 2002. needs: a 2002 witness for OPEN of a FORMAT file once FORMAT is supported at --std 2002 (sibling of reader defect D2). compiler-at-2002: wrong (refuses legal 2002 source).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR1",
+      "quote": "The file connector referenced by file-name-1 shall not be open.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR2",
+      "quote": "The file connector referenced by file-name-1 shall not be open.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.2 SR7",
+      "quote": "The I-O phase shall not be specified if the FORMAT clause is specified in the file description entry for file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "A.4.7, FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-28/open-format-41.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-19",
+    "verdict": "OVERTURNED",
+    "class": "other (declined-element reach: FORMAT-clause file-names, required in 2002, refused at --std 2002 under 2023 A.4.8; same cause as GR1)",
+    "reason": "In 2002, GR19 governs every multi-file OPEN, including one that names a FORMAT-clause FD (2002 SR7 shows the OPEN clause covers such operands). Probe open-format-41.cob (OPEN OUTPUT FF FG with FF a FORMAT file) is refused COBOL1705 at 2002. The control without FORMAT runs (A=00 B=00). The RESUME half is covered at 2002 (the reader's probe; RESUME is claimed, A.4.12). needs: a 2002 witness for a multi-file OPEN that includes a FORMAT file. compiler-at-2002: wrong (refuses legal 2002 source).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR19",
+      "quote": "the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR20",
+      "quote": "the result of executing this OPEN statement is the same as if a separate OPEN statement had been written for each file-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.26.2 SR7",
+      "quote": "The I-O phase shall not be specified if the FORMAT clause is specified in the file description entry for file-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR1",
+      "quote": "The FORMAT clause specifies that external media format is to be used for records written to the file.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "A.4.7, FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-28/open-format-41.cob"
+   }
+  ],
+  "disputed-different": [],
+  "notes": "The cause behind every overturn and doubt is the FORMAT clause. It is required in 2002 (3.1.1; 2014 E.2 item 23), the compiler refuses it at every edition (COBOL1705, A.4.8), and the reader recorded it only as a sibling of D2. Separately, CLASS-ID multiple inheritance (required in 2002, refused COBOL0849) reaches no SAME here as an operand."
+ },
+ "imported": {
+  "asked": "38f41f815c3474ed9634225b683787fdb4c49461db2c0e4db232b466a75fc3ea",
+  "read": "ebcbbc08a0453b5657a05411108786eb656eb84863f82dfc6b8daa9e2dc18a88",
+  "refute": "41139552f42f809279b5ec78976e7b04b432a4252cec3b43bfeb58cf50902fd3"
+ }
+}

@@ -1,0 +1,1823 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-35 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-35",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.47.2-17",
+   "2002-SR-14.8.47.2-18",
+   "2002-SR-14.8.47.2-19",
+   "2002-SR-14.8.47.2-2",
+   "2002-SR-14.8.47.2-20",
+   "2002-SR-14.8.47.2-21",
+   "2002-SR-14.8.47.2-3",
+   "2002-SR-14.8.47.2-5",
+   "2002-SR-14.8.47.2-6",
+   "2002-SR-14.8.47.2-7",
+   "2002-SR-14.8.47.2-8",
+   "2002-GR-14.8.47.3-1",
+   "2002-GR-14.8.47.3-14",
+   "2002-GR-14.8.47.3-16",
+   "2002-GR-14.8.47.3-17",
+   "2002-GR-14.8.47.3-18",
+   "2002-GR-14.8.47.3-19",
+   "2002-GR-14.8.47.3-2",
+   "2002-GR-14.8.47.3-20",
+   "2002-GR-14.8.47.3-22",
+   "2002-GR-14.8.47.3-26",
+   "2002-GR-14.8.47.3-27",
+   "2002-GR-14.8.47.3-28",
+   "2002-GR-14.8.47.3-30",
+   "2002-GR-14.8.47.3-32"
+  ],
+  "flags": {
+   "2002-SR-14.8.47.2-7": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.47.2-8": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.47.3-18": {
+    "changed-definition-term": "extend mode"
+   },
+   "2002-GR-14.8.47.3-2": {
+    "changed-definition-term": "output file"
+   },
+   "2002-GR-14.8.47.3-20": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.47.3-26": {
+    "changed-definition-term": "extend mode"
+   },
+   "2002-GR-14.8.47.3-27": {
+    "changed-definition-term": "extend mode"
+   },
+   "2002-GR-14.8.47.3-28": {
+    "changed-definition-term": "runtime element"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-35",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d (dc1f2dcce8) src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe",
+  "probe-dir": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35",
+  "probe-layout": "sources in src/<name>.cob, run with probe.sh at --std 2002 and 2023; each run's output in run/<name>.<std>/log.txt; conformance cases re-run with runcases.sh into run/<case>.2002/",
+  "clause-findings": [
+   "FORMAT ORDER (render of §2002 PDF page 580 = printed 558, probes-q-35/pages/spec_p580.png): 2002 Format 1 prints the AT END-OF-PAGE / NOT AT END-OF-PAGE phrases BEFORE [retry-phrase] and [WITH LOCK | WITH NO LOCK]; 2014 and 2023 print them AFTER. At --std 2002 the compiler accepts only the 2014/2023 order: `WRITE P-REC AFTER ADVANCING 1 LINE AT END-OF-PAGE ADD 1 TO N NOT AT END-OF-PAGE ADD 2 TO N WITH LOCK END-WRITE` on a LINAGE file with LOCK MODE MANUAL is refused 'error COBOL2269: unexpected WITH. The ADD statement ends before this token' (src/ord2002.cob), and `AT EOP ADD 3 TO N RETRY 2 TIMES WITH NO LOCK` is refused 'error COBOL0901: RETRY is a reserved word ... cannot be used as a user-defined word' (src/ord2002b.cob); the 2023 order compiles and runs at --std 2002 (src/ord2023.cob, N=2). DEFECT: legal 2002 source refused.",
+   "OPTIONAL STATUS: in 2002 the only optional element is Annex A, communications (§2002:3.1); WRITE FILE (2023 A.4.13) and the FORMAT clause (2023 A.4.8) are REQUIRED in 2002, and the compiler declines both at --std 2002 (COBOL1706 src/wfile.cob, COBOL1705 src/fmtw.cob). Same root as the p-12 and p-14 findings (2002-SR-13.3.5.2-4)."
+  ],
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.47.2-17",
+    "to": [
+     "SR-14.9.51.3-18"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.47 WRITE statement (14.8.47.1 Format 1, 14.8.47.2 SR17)",
+    "clause-2023": "14.9.51 WRITE statement (14.9.51.2 Format 1, 14.9.51.3 SR18)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format-1 WRITE with ADVANCING PAGE and the AT END-OF-PAGE phrase, no retry/lock phrase",
+     "the same with the END-OF-PAGE phrase placed before [retry-phrase] / WITH [NO] LOCK, the 2002 position",
+     "WRITE FILE file-name-1 FROM ... with ADVANCING PAGE and END-OF-PAGE (FILE phrase, required in 2002)"
+    ],
+    "evidence-2002": {
+     "no retry/lock phrase": "covered by cases/14.9.51-WRITE/pb578-write-advancing-page-at-and-not-eop at --std 2002 (COBOL0861), run/pb578-write-advancing-page-at-and-not-eop.2002",
+     "2002 position": "not shown: every WRITE with the END-OF-PAGE phrase before a retry or lock phrase is refused by the parser at --std 2002, legal or not (src/ord2002.cob COBOL2269, src/ord2002b.cob COBOL0901), so SR17 is never the reason",
+     "FILE form": "refused only by the COBOL1706 decline (see 2002-SR-14.8.47.2-7)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR17",
+      "quote": "The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a single WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR18",
+      "quote": "The phrases ADVANCING PAGE and END-OF-PAGE shall not both be specified in a single WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.1 Format 1",
+      "quote": "(diagram: AT END-OF-PAGE / NOT AT END-OF-PAGE, then [ retry-phrase ], then WITH LOCK / WITH NO LOCK)",
+      "check": "cite.py cannot quote a diagram; verified on the rendered PDF page 580 (printed 558), probes-q-35/pages/spec_p580.png"
+     }
+    ],
+    "reason": "Words identical, but SR17 is a rule about a Format-1 WRITE, and 2002's Format 1 places the END-OF-PAGE phrases before the retry and lock phrases (2014 and 2023 moved them after). A 2002 WRITE combining ADVANCING PAGE, an END-OF-PAGE phrase and WITH LOCK is in SR17's scope in the 2002 order only; the 2023 row's witnesses never write that order, and at --std 2002 the compiler's grammar refuses that order for every program, so nothing shows SR17 in it.",
+    "needs": "a 2002 witness for the 2002 phrase order (ADVANCING PAGE + AT END-OF-PAGE + WITH LOCK refused by SR17; ADVANCING PAGE + NOT AT END-OF-PAGE + WITH LOCK accepted), after the --std 2002 grammar accepts the 2002 order",
+    "compiler-at-2002": "wrong for the 2002 phrase order (legal 2002 Format 1 refused: src/ord2002.cob, src/ord2002b.cob, outputs run/ord2002.2002/log.txt, run/ord2002b.2002/log.txt); correct for SR17 in the order both editions share (pb578 COBOL0861)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-18",
+    "to": [
+     "SR-14.9.51.3-19"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.47.2 SR18",
+    "clause-2023": "14.9.51.3 SR19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "AT END-OF-PAGE or NOT AT END-OF-PAGE on a WRITE of a file without LINAGE (refuse)",
+     "the same phrases on a LINAGE file (accept), including the 2002 position before [retry-phrase] / WITH [NO] LOCK",
+     "the FILE-phrase form (WRITE FILE f FROM x AT EOP ...)"
+    ],
+    "evidence-2002": {
+     "no LINAGE": "covered by probe src/eopnolin.cob at --std 2002 (COBOL0860, NOT AT EOP alone)",
+     "LINAGE, 2002 position": "not shown: refused by the parser (src/ord2002.cob: LINAGE IS 2 LINES, AT END-OF-PAGE ... NOT AT END-OF-PAGE ... WITH LOCK -> COBOL2269)",
+     "FILE form": "refused only by the COBOL1706 decline"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR18",
+      "quote": "the LINAGE clause shall be specified in the file description entry associated with the write file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR19",
+      "quote": "the LINAGE clause shall be specified in the file description entry associated with the write file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format cause as SR17: the END-OF-PAGE phrases sit before the retry/lock phrases in 2002's Format 1. SR18 permits them on a LINAGE file in that position; the compiler refuses that position at --std 2002, and the 2023 row (LinageConformanceTests.Sr19_EopWithoutLinage_IsRejected) only shows the refusal side in the 2023 order.",
+    "needs": "a 2002 witness for a LINAGE file WRITE with AT/NOT AT END-OF-PAGE followed by WITH LOCK (accepted, runs) once the 2002 order parses; the refusal side is shown by src/eopnolin.cob",
+    "compiler-at-2002": "wrong (src/ord2002.cob refused, expected to compile and run: §2002:14.8.47.1 Format 1 order, §2002:14.8.47.2 SR18); correct for the no-LINAGE refusal (src/eopnolin.cob COBOL0860)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/eopnolin.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-19",
+    "to": [
+     "SR-14.9.51.3-20"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.47.2 SR19",
+    "clause-2023": "14.9.51.3 SR20",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END-OF-PAGE and EOP spellings in the AT and NOT AT phrases, Format 1",
+     "the same in the 2002 position before [retry-phrase] / WITH [NO] LOCK"
+    ],
+    "evidence-2002": {
+     "spelling, no retry/lock phrase": "covered by cases/14.9.51-WRITE/l1c37_write_eop_spelling at --std 2002 (golden MATCH, run/l1c37_write_eop_spelling.2002)",
+     "2002 position": "not shown: `AT EOP ADD 3 TO N RETRY 2 TIMES WITH NO LOCK` refused COBOL0901 (src/ord2002b.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR19",
+      "quote": "The words END-OF-PAGE and EOP are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR20",
+      "quote": "The words END-OF-PAGE and EOP are equivalent",
+      "check": "OK"
+     }
+    ],
+    "reason": "The equivalence is identical, but its phrases occupy a 2002-only position in Format 1 (before retry and lock); the compiler refuses that position at --std 2002 for both spellings, so the equivalence there has no evidence.",
+    "needs": "a 2002 witness writing EOP and END-OF-PAGE in the 2002 position (before RETRY / WITH LOCK), after the order defect is fixed",
+    "compiler-at-2002": "wrong for the 2002 position (src/ord2002b.cob, run/ord2002b.2002/log.txt); correct for the shared position (l1c37_write_eop_spelling)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002b.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-2",
+    "to": [
+     "SR-14.9.51.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.47.2 SR2 (with 14.8.47.1 Format 1, SR1)",
+    "clause-2023": "14.9.51.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a WRITE of a sequential-organization file must be a 2002 Format 1 statement: INVALID KEY / NOT INVALID KEY refused",
+     "2002 Format 1 statements accepted, including the END-OF-PAGE phrase before [retry-phrase] / WITH [NO] LOCK",
+     "the FILE-phrase form on a sequential file (the write file of SR1 includes file-name-1)"
+    ],
+    "evidence-2002": {
+     "INVALID KEY refused": "covered by cases/14.9.51-WRITE/write-invalid-key-sequential-org and write-not-invalid-key-sequential-org at --std 2002 (COBOL1720 each)",
+     "2002 Format 1 accepted": "not shown: the 2002 order is refused (src/ord2002.cob, src/ord2002b.cob)",
+     "FILE form": "not shown: WRITE FILE is declined COBOL1706 at --std 2002 (src/wfile.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR2",
+      "quote": "If the organization of the write file is sequential, format 1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR2",
+      "quote": "If the organization of the write file is sequential, format 1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "A format-selection rule means what its format admits. 'Format 1' in 2002 is not 2023's Format 1: the END-OF-PAGE phrases precede the retry and lock phrases. The restriction half (no INVALID KEY on a sequential file) is shown at 2002; the half that names which statements ARE format 1 reaches a 2002 order the compiler refuses, and the FILE-phrase form (required in 2002, declined).",
+    "needs": "a 2002 witness for a sequential-file WRITE in the 2002 Format 1 order (accepted), and for WRITE FILE on a sequential file once the FILE phrase is supported at --std 2002",
+    "compiler-at-2002": "wrong for the 2002 order and the FILE form (src/ord2002.cob, src/wfile.cob); correct for the INVALID KEY refusal",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-20",
+    "to": [
+     "SR-14.9.51.3-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.2 SR20 (with 13.16.25 GLOBAL clause)",
+    "clause-2023": "14.9.51.3 SR21 (with 13.18.27 GLOBAL clause)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "WRITE record-name-1 in a contained program where record-name-1 is defined in a containing program: its FD shall be GLOBAL",
+     "including a GLOBAL record under a non-GLOBAL EXTERNAL FD (2002's GLOBAL SR3 has no external-file exemption; 2023's GLOBAL SR3 added one, the WRITE rule did not)"
+    ],
+    "evidence-2002": {
+     "GLOBAL FD accepted / record-only GLOBAL refused": "covered by cases/13.18.27-GLOBAL/pb1193_global_record_under_local_fd (golden MATCH at --std 2002) and pb1193-write-global-record-local-fd (COBOL1757 at --std 2002)",
+     "EXTERNAL non-GLOBAL FD": "covered by probe src/glbext.cob (COBOL1757 at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR20",
+      "quote": "the file description entry for the file-name associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR21",
+      "quote": "the file description entry for the file-name associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Record-name-1 only (no FILE form, no CD: a CD record is not in the file section). The containing/contained program relationship and the GLOBAL entry list are the same in 2002 (methods excluded by 2002 GLOBAL SR4). Both twin cases behave at --std 2002, and the one 2002/2023 difference nearby (2023 GLOBAL SR3's external exemption) does not reach this rule: the EXTERNAL non-GLOBAL FD case is refused at 2002 as SR20 requires.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/glbext.cob",
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: relative-write-key-out-of-range-permanent-error": "The switch (DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, RelativeConnector.Write) decides only the status of a relative WRITE whose key is outside the file, 24 at 2002 (§2002:14.8.47.3 GR29b); this rule governs the GLOBAL clause on a containing program's FD and never meets it. The switch's 2002 arm itself holds: pb5125_relative_write_key_range_pre2014 run at --std 2002 this session MATCHes its .out (ABOVE=24 INVALID HIGH, ZERO=24 INVALID ZERO)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR29b",
+      "quote": "When an attempt is made to write beyond the externally defined boundaries of the file",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-35",
+    "flags": {
+     "behaviour-switch: relative-write-key-out-of-range-permanent-error": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-21",
+    "to": [
+     "SR-14.9.51.3-22"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.47.2 SR21",
+    "clause-2023": "14.9.51.3 SR22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "LOCK MODE AUTOMATIC + WITH LOCK or WITH NO LOCK on a WRITE, either format",
+     "the lock phrase after the END-OF-PAGE phrases (2002 Format 1 position)",
+     "the FILE-phrase form"
+    ],
+    "evidence-2002": {
+     "lock phrase without END-OF-PAGE": "covered by cases/14.9.51-WRITE/l1c37-write-auto-with-lock and l1c37-write-auto-with-no-lock at --std 2002 (COBOL5993 each)",
+     "2002 position": "refused, but by the parser, not by SR21 (src/ord2002auto.cob COBOL2269); the MANUAL-mode twin, legal, is refused the same way (src/ord2002.cob)",
+     "FILE form": "refused only by the COBOL1706 decline"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR21",
+      "quote": "neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR22",
+      "quote": "neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "The restriction is identical, and every 2002 form it forbids is in fact refused at --std 2002; but in the 2002 Format 1 order (lock phrase after the END-OF-PAGE phrases) the refusal is the parser's, which refuses the legal MANUAL-mode statement too, and the 2023 row's witnesses never write that order. Evidence for SR21 itself in the 2002 order is therefore absent.",
+    "needs": "a 2002 witness for AUTOMATIC + AT END-OF-PAGE ... WITH LOCK refused by SR21 (and the MANUAL twin accepted) once the 2002 order parses",
+    "compiler-at-2002": "correct outcome for the restriction; wrong for the 2002 order of the legal counterpart (src/ord2002.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002auto.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-3",
+    "to": [
+     "SR-14.9.51.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.2 SR3 (Format 2 identical in both editions)",
+    "clause-2023": "14.9.51.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relative/indexed WRITE record-name-1 with ADVANCING or END-OF-PAGE (refuse)",
+     "relative/indexed WRITE FILE file-name-1 FROM ... with ADVANCING or END-OF-PAGE (refuse), and without them (Format 2, accept)"
+    ],
+    "evidence-2002": {
+     "record-name form": "covered by cases/14.9.51-WRITE/pb909-write-advancing-indexed at --std 2002 (COBOL1720) and probe src/sr3file.cob line 19 (AT EOP on an indexed file, COBOL1720)",
+     "FILE form": "not shown through the row: refused only by COBOL1706 (src/sr3file.cob line 18); the legal Format-2 FILE form is refused too"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR3",
+      "quote": "If the organization of the write file is indexed or relative, format 2 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR3",
+      "quote": "If the organization of the write file is indexed or relative, format 2 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "FIFTH CAUSE, optional status (as p-14): the write file (SR1) includes file-name-1 of the FILE phrase, which 2023 makes optional (A.4.13) and this compiler declines, so the 2023 row's evidence is record-name only. In 2002 the FILE phrase is required (3.1: only Annex A is optional), so SR3's FILE-form leg is in scope and has no evidence; the restriction outcome holds only because the whole FILE phrase is refused.",
+    "needs": "a 2002 witness for WRITE FILE on a relative/indexed file (ADVANCING refused by SR3, plain Format 2 accepted) once WRITE FILE is supported at --std 2002",
+    "compiler-at-2002": "correct for the record-name form; the FILE form is the COBOL1706 defect reported under 2002-SR-14.8.47.2-7",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/sr3file.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-5",
+    "to": [
+     "SR-14.9.51.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.2 SR5",
+    "clause-2023": "14.9.51.3 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "record-name-1 shall be a logical record (level 01) of the file section, qualifiable",
+     "subordinate item, reference-modified record, record of no file refused"
+    ],
+    "evidence-2002": {
+     "subordinate item": "covered by cases/14.9.51-WRITE/pb347-write-subordinate-item at --std 2002 (COBOL1757)",
+     "reference-modified record": "covered by pb347-write-refmod-record at --std 2002 (COBOL1757)",
+     "record of no file": "covered by pb347-write-record-of-no-file at --std 2002 (COBOL1757)",
+     "logical record accepted": "every accepting WRITE case run at 2002 (e.g. l1c37_write_same_record_area MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR5",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division and may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR5",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division and may be qualified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Record-name-1 only; the file section holds the same entry kinds in both editions for this purpose (a CD record lives in the communication section, not the file section; SD and report FDs are excluded by SR12 in both). All three refusal witnesses refuse at --std 2002.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: relative-write-key-out-of-range-permanent-error": "The switch (DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, RelativeConnector.Write) chooses at run time between status 24 (the invalid key of a write 'beyond the externally defined boundaries of the file', §2002:14.8.47.3 GR29) and 2014+'s status 34 for a relative WRITE whose key is out of range; SR5 is a compile-time rule on what record-name-1 may name (§2002:14.8.47.2 SR5) and does not touch the key or the I-O status. Its behaviour at --std 2002 is shown by suite cases run now at 2002: pb347-write-record-of-no-file, -refmod-record, -subordinate-item refused COBOL1757, l1c37_write_same_record_area PASS (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt). Scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR5",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division and may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR29",
+      "quote": "beyond the externally defined boundaries of the file",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-35"
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-6",
+    "to": [
+     "SR-14.9.51.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "14.8.47.2 SR6 (defers to 14.8.24 MOVE statement)",
+    "clause-2023": "14.9.51.3 SR6 (defers to 14.9.25 MOVE statement)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "senders valid by 2002 MOVE rules (Table 17, MOVE SR5: only SPACE barred to numeric)",
+     "figurative QUOTE / HIGH-VALUE / LOW-VALUE / ALL literal to a numeric record (valid in 2002, refused in 2023)",
+     "identifier-1 under a CD (communication section, 2002 only)"
+    ],
+    "evidence-2002": {
+     "invalid sender refused": "covered by cases/14.9.32-RELEASE/pb348-write-from-invalid-move-sender at --std 2002 (COBOL0819)",
+     "figurative to numeric": "covered by probe src/wfig.cob only (2002: WRITE R1 FROM QUOTE and FROM ALL '7' compile and run, R1=\"\"\" and R1=777; 2023: COBOL0902)",
+     "CD sender": "covered by probes src/wcd.cob (2002: R1=456) and src/wcd_bad.cob (alphabetic CD item to numeric record: COBOL0819) only"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR6",
+      "quote": "identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR6",
+      "quote": "identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.24.2 SR5",
+      "quote": "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR5",
+      "quote": "the move of an alphanumeric figurative constant",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same deferral as RELEASE SR3 and REWRITE SR6 (p-16): the MOVE rules the sentence defers to admit, in 2002, figurative constants other than SPACE to a numeric record, which 2023 MOVE SR5 refuses; and identifier-1 may be a CD record item in 2002. The 2023 verdict cannot show either.",
+    "needs": "a 2002 witness for WRITE numeric-record FROM a non-SPACE figurative constant (accepted) and FROM a CD-record item",
+    "compiler-at-2002": "correct (src/wfig.cob, src/wcd.cob, src/wcd_bad.cob; outputs run/<name>.2002/log.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/wfig.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-7",
+    "to": [
+     "SR-14.9.51.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.2 SR7",
+    "clause-2023": "14.9.51.3 SR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "licence-2002": "none: §2002:3.1 makes only Annex A (communications) optional; WRITE FILE is not in §2002:B.3 (processor-dependent) either",
+    "scope-2002": [
+     "WRITE FILE file-name-1 shall carry FROM",
+     "FROM identifier-1 valid as a MOVE sender (any 2002 sender, CD items included)",
+     "FROM literal-1: alphanumeric, boolean or national, not a figurative constant"
+    ],
+    "evidence-2002": {
+     "all three": "not shown: every WRITE FILE is refused COBOL1706 at --std 2002, legal or not (src/wfile.cob, cases/13.4.5-File-description/a413-write-file-format-1 and wiseowl a413-write-file-format-2 at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR5",
+      "quote": "The result of execution of a WRITE statement with the FILE phrase is equivalent to the execution of the following in the order specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "target-not-CONFORMS-OK: the 2023 row is DOCUMENTED-NON-SUPPORT under 2023 Annex A.4.13 (WRITE FILE optional). 2002 has no such licence: its only optional element is Annex A, and WRITE FILE is in neither B.3 nor Annex A. So 2002 requires the FILE phrase and SR7's constraints on it, and the compiler declines it at --std 2002 with a message citing the 2023 annex.",
+    "needs": "2002 requires WRITE FILE file-name-1 FROM identifier-1/literal-1; the compiler declines it (COBOL1706) at --std 2002",
+    "compiler-at-2002": "wrong: src/wfile.cob (`WRITE FILE F FROM WX` and `WRITE FILE F FROM \"EFGH\"`, sequential F) at --std 2002 -> 'error COBOL1706: WRITE FILE F: the FILE phrase ... are the two items of Annex A.4.13, an OPTIONAL language element (§2023:4.2.7)', rc 65; expected: compiles, writes ABCD then EFGH (§2002:14.8.47.2 SR7, §2002:14.8.47.3 GR5, §2002:3.1). Output run/wfile.2002/log.txt. Same defect as p-14's 2002-SR-13.3.5.2-4",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 licence (A.4.13) has no 2002 counterpart; §2002:3.1 licenses only Annex A, so the decline is a 2002 defect, not a licensed non-support"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/wfile.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-8",
+    "to": [
+     "SR-14.9.51.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.2 SR8",
+    "clause-2023": "14.9.51.3 SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "licence-2002": "none (§2002:3.1: only Annex A is optional)",
+    "scope-2002": [
+     "WRITE FILE f FROM identifier-1 where identifier-1 (or a subordinate item) is USAGE OBJECT REFERENCE: refuse",
+     "WRITE FILE f FROM identifier-1 without object references: accept (the permitted side)"
+    ],
+    "evidence-2002": {
+     "refusal": "refused only by the COBOL1706 decline, never by SR8 (src/wfile_objref.cob: COBOL1724 for the level-05 object reference, which 2002's USAGE SR13 also forbids, plus COBOL1706)",
+     "permitted side": "not shown: refused COBOL1706 (src/wfile.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR8",
+      "quote": "shall not contain a data item described with a USAGE OBJECT REFERENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR8",
+      "quote": "shall not contain a data item described with a USAGE OBJECT REFERENCE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "target-not-CONFORMS-OK: as SR7, the rule governs only the FILE phrase, required in 2002 and declined at --std 2002 under a 2023-only licence. A strongly typed group carrying an object reference (the only legal shape, 2002 USAGE SR13) would be the witness; the compiler never reaches SR8 at 2002.",
+    "needs": "2002 requires WRITE FILE; the compiler declines it (COBOL1706) at --std 2002, so SR8's refusal is never its own",
+    "compiler-at-2002": "wrong (the decline, same defect as SR7): src/wfile_objref.cob and src/wfile.cob, outputs run/wfile_objref.2002/log.txt, run/wfile.2002/log.txt",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2023 A.4.13 licence has no 2002 counterpart (§2002:3.1); DIFFERENT, class other"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/wfile_objref.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-1",
+    "to": [
+     "GR-14.9.51.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR1",
+    "clause-2023": "14.9.51.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sequential access: open mode extend or output, else '48'",
+     "random/dynamic access: I-O or output, else '48'",
+     "FILE-phrase form: reaches this rule through GR5's equivalence (WRITE implicit-record-1 on the same file connector)"
+    ],
+    "evidence-2002": {
+     "sequential access": "covered by probe src/gr1.cob at --std 2002 (SEQ-INPUT 48, SEQ-EXTEND 00, REL-SEQ-IO 48)",
+     "random/dynamic": "covered by probe src/gr1.cob (REL-DYN-IO 00) and unit Table20WriteOpenModeTests (runtime, no edition arm)",
+     "FILE form": "carried by GR5 (not this row); see 2002-SR-14.8.47.2-7 for the decline"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR1",
+      "quote": "If the open mode is not as described, the execution of the WRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR3",
+      "quote": "If the open mode is not as described, the execution of the WRITE statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same open-mode rule and the same status '48'; the I-O status meaning is the same in 2002 9.1.12. The FILE form executes, per §2002:14.8.47.3 GR5, as WRITE implicit-record-1 on the same connector, so its open-mode check is this record-name check; the FILE form's own gap belongs to GR5/SR7. Probe outputs are identical at 2002 and 2023.",
+    "compiler-at-2002": "correct (src/gr1.cob, run/gr1.2002/log.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/gr1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-14",
+    "to": [
+     "GR-14.9.51.4-14"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.3 GR14 (with 13.16.22 FORMAT clause, 14.8.47.3 GR5)",
+    "clause-2023": "14.9.51.4 GR14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "WRITE record-name-1 of a RECORD IS VARYING file outside the bounds: '44'",
+     "WRITE FILE file-name-1 FROM literal-1 / identifier-1 outside the bounds: '44' (FILE phrase required in 2002)",
+     "a FORMAT-clause file, the record length 'after any changes made ... by the FORMAT clause' (FORMAT required in 2002)"
+    ],
+    "evidence-2002": {
+     "record-name form": "covered by cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1190_varying_advancing_bounds at --std 2002 (golden MATCH)",
+     "FILE form": "not shown: WRITE FILE declined COBOL1706 (src/wfile.cob)",
+     "FORMAT clause": "not shown: FORMAT declined COBOL1705 at --std 2002 (src/fmtw.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR14",
+      "quote": "after any changes made to the record length by the FORMAT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR14",
+      "quote": "after any changes made to the record length by the FORMAT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.8",
+      "quote": "FORMAT and SELECT WHEN file handling",
+      "check": "OK"
+     }
+    ],
+    "reason": "Optional-status cause twice over: the rule's own words name literal-1 and file-name-1 (the FILE phrase, 2023 A.4.13) and the FORMAT clause (2023 A.4.8); both are optional in 2023 and declined by this compiler, both are required in 2002 (only Annex A is optional). The 2023 row's witness is record-name only.",
+    "needs": "a 2002 witness for WRITE FILE FROM a too-long/too-short literal or identifier -> '44', and for a FORMAT-clause file, once both are supported at --std 2002",
+    "compiler-at-2002": "wrong (the two declines): src/wfile.cob -> COBOL1706, src/fmtw.cob (`FD F1 FORMAT CHARACTER DATA`, plain WRITE) -> 'error COBOL1705: ... Annex A.4.8, an OPTIONAL language element (§2023:4.2.7)'; expected: both compile and run at --std 2002 (§2002:3.1). Record-name form correct (pb1190)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/fmtw.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-16",
+    "to": [
+     "GR-14.9.51.4-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR16",
+    "clause-2023": "14.9.51.4 GR17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "successor relationship of a sequential file set by WRITE order at creation; changed only by appending (OPEN EXTEND)"
+    ],
+    "evidence-2002": {
+     "write order / extend": "covered by cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/l1_open_extend_position at --std 2002 (golden MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR16",
+      "quote": "The successor relationship of a sequential file is established by the order of execution of WRITE statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR17",
+      "quote": "The successor relationship of a sequential file is established by the order of execution of WRITE statements",
+      "check": "OK"
+     }
+    ],
+    "reason": "Self-contained runtime rule over sequential files; 2023 adds line sequential (a widening, not a 2002 case). No CD, debugging or optional-element reach (the FILE form executes as a record WRITE by GR5). The twin witness runs clean at --std 2002.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": "2023 sequential files include line sequential organization"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-17",
+    "to": [
+     "GR-14.9.51.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR17",
+    "clause-2023": "14.9.51.4 GR18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sequential file in extend mode: records appended; the first is the successor of the last existing record (record sequential fixed and RECORD VARYING; shared and unshared)"
+    ],
+    "evidence-2002": {
+     "extend append": "covered by l1_open_extend_position (golden MATCH at --std 2002) and cases/14.9.51-WRITE/pb713_shared_extend_open_2002 (golden MATCH at --std 2002)",
+     "line sequential legs of pb713_shared_extend_open_2023": "not 2002 cases (line sequential is 2023); that case is refused at 2002 by COBOL0900 as it should be"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR17",
+      "quote": "the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR18",
+      "quote": "the first record written after the execution of the OPEN statement with the EXTEND phrase is the successor of the last record",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same rule; the 2002-floor twin of the row's witness runs at --std 2002. 2023 widens only by line sequential.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": "line sequential files (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-18",
+    "to": [
+     "GR-14.9.51.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR18 (2002 B.2 item 69 records its undefined order)",
+    "clause-2023": "14.9.51.4 GR19",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "two or more sharing file connectors extending one sequential physical file: added records follow the existing ones, mutual order undefined (record sequential fixed and VARYING)"
+    ],
+    "evidence-2002": {
+     "shared extend": "covered by cases/14.9.51-WRITE/pb739_shared_extend_write_2002 at --std 2002 (output equals the golden except trailing spaces on three lines, which the harness ignores; adopt-2002 results.json: PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR18",
+      "quote": "the added records follow the records present in the physical file when it was opened",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR19",
+      "quote": "the added records follow the records present in the physical file when it was opened",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A mode of file processing in which records may be added at the end of a sequential file",
+      "check": "OK"
+     }
+    ],
+    "reason": "changed-definition-term 'extend mode': 2002 4.79 'records may be added at the end of a sequential file, but no records may be deleted, read, or updated' vs 2023 'records can be added at the end ...': the same mode in other words, so the rule's 2002 scope is the same. File sharing exists in 2002 (B.3 item 24, claimed). The 2002-floor witness runs at --std 2002.",
+    "flags-answered": [
+     "changed-definition-term (extend mode): only 'may' became 'can'; no change of scope or evidence"
+    ],
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": "line sequential files (2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-19",
+    "to": [
+     "GR-14.9.51.4-20"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR19",
+    "clause-2023": "14.9.51.4 GR20",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sequential WRITE beyond the externally defined boundary of the physical file: unsuccessful, '34'"
+    ],
+    "evidence-2002": {
+     "boundary": "covered by unit FileBoundaryTests.SequentialWrite_OnAFullMedium_Is34_AtTheWrite and WriteFailure_MediumExhaustionIs34_AnyOtherFailureIs30: runtime only, and the status is chosen with no edition arm (src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs ForWriteFailure, read in the pinned tree)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR19",
+      "quote": "When an attempt is made to write beyond the externally-defined boundaries of the physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR20",
+      "quote": "When an attempt is made to write beyond the externally-defined boundaries of the physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical runtime rule and status code; nothing in the WRITE format or the status table differs for it. The witness is a runtime unit test the edition cannot change. Not probed (a full medium cannot be made in a three-line program).",
+    "compiler-at-2002": "not probed (runtime path has no edition arm)",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-2",
+    "to": [
+     "GR-14.9.51.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR2",
+    "clause-2023": "14.9.51.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "after a WRITE the record area is not available unless the file is in a SAME RECORD AREA clause",
+     "the released record is available as a record of the other files of that SAME RECORD AREA clause"
+    ],
+    "evidence-2002": {
+     "SAME RECORD AREA": "covered by cases/14.9.51-WRITE/l1c37_write_same_record_area at --std 2002 (golden MATCH); the two pb1195 cases of the row are refused at 2002 for DYNAMIC LENGTH (a 2014 element, correctly), so they are not 2002 evidence"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR2",
+      "quote": "is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR4",
+      "quote": "is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A file that is opened in either the output mode or extend mode",
+      "check": "OK"
+     }
+    ],
+    "reason": "changed-definition-term 'output file': 2002 4.145 'opened in either the output mode or extend mode' and 2023 'opened such that it can only be written or extended' name the same files. SAME RECORD AREA governs FDs only in both editions. The record-name witness runs at --std 2002.",
+    "flags-answered": [
+     "changed-definition-term (output file): same set of files in other words; no change of scope or evidence"
+    ],
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-20",
+    "to": [
+     "GR-14.9.51.4-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR20",
+    "clause-2023": "14.9.51.4 GR24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 items 12-14, 17, 18 (reel/unit phrases dependent on a reel or mass storage device) and §2002:B.1 item 22 (CLOSE closing operations): the exact 2002 counterparts of the 2023 A.3 items 28-30, 33, 34 and A.1 item 24 the 2023 record cites",
+    "scope-2002": [
+     "a WRITE that reaches the end of a reel/unit of a multi-volume physical file: reel/unit swap"
+    ],
+    "evidence-2002": {
+     "reel/unit": "no syntax exists to decline: the trigger arises only on a multi-volume medium the implementation does not provide; unit CloseTable14Tests.Category_PlacesEverySupportedConnectorKind (runtime) pins every connector as non-unit or mass storage, and probe src/reel.cob at --std 2002 shows CLOSE F REEL completing with '07', the 2002 status for a physical file on a non-reel/unit medium"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR20",
+      "quote": "a reel/unit swap occurs and the current volume pointer is updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR24",
+      "quote": "a reel/unit swap occurs and the current volume pointer is updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The REEL/UNIT phrase of the CLOSE statement is dependent upon a reel or mass storage type of device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "CLOSE statement (closing operations). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "target-not-CONFORMS-OK: the 2023 DOCUMENTED-NON-SUPPORT rests on the processor-dependent reel/unit items and the CLOSE closing-operations item; 2002 has the same items in B.3 and B.1 under the same 3.1.5 licence, and its 9.1.12 status 07 names a non-reel/unit medium. The rule is a runtime consequence with no source form, so the brief's 'declines with a diagnostic' has nothing to attach to; what can be shown is that the medium is non-reel/unit at --std 2002 (reel.cob '07').",
+    "flags-answered": {
+     "behaviour-switch: relative-write-key-out-of-range-permanent-error": "The switch (DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, RelativeConnector.Write) decides only the status of a relative WRITE whose key is outside the file, 24 at 2002 (§2002:14.8.47.3 GR29b); this rule governs a reel/unit swap and never meets it. The switch's 2002 arm itself holds: pb5125_relative_write_key_range_pre2014 run at --std 2002 this session MATCHes its .out (ABOVE=24 INVALID HIGH, ZERO=24 INVALID ZERO)."
+    },
+    "compiler-at-2002": "correct (licensed non-support; src/reel.cob '07' at 2002 and 2023)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/reel.cob",
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR29b",
+      "quote": "When an attempt is made to write beyond the externally defined boundaries of the file",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-35",
+    "flags": {
+     "behaviour-switch: relative-write-key-out-of-range-permanent-error": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-22",
+    "to": [
+     "GR-14.9.51.4-26"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR22 (with 13.16.32 LINAGE clause)",
+    "clause-2023": "14.9.51.4 GR26 (with 13.18.34 LINAGE clause)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "LINAGE file: end-of-page condition at page overflow (a) and in the footing area (b), AFTER specified or implied and BEFORE",
+     "repositioning to the first writable line of the next logical page (top margin)"
+    ],
+    "evidence-2002": {
+     "a) and b), AFTER/BEFORE, margins": "covered by cases/13.18.34-LINAGE/pb686_linage_gr26_boundary and pb523_linage_margins_on_the_medium_85 at --std 2002 (golden MATCH each); pb523_linage_margins_on_the_medium itself is refused at 2002 for LINE SEQUENTIAL (a 2023 element, correctly)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR22",
+      "quote": "an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR26",
+      "quote": "an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body",
+      "check": "OK"
+     }
+    ],
+    "reason": "The LINAGE clause's general rules are word-identical in 2002 and 2023 (diff by probes-q-35/linage_diff.py: only syntax rules differ, 2023 adding a no-OCCURS rule); LINAGE is required in 2002 and claimed. The condition does not depend on the END-OF-PAGE phrase's position (the order defect is reported under SR17-SR19). 2023's BEFORE-and-AFTER pair is a widening the 2002 compiler gates (src/beforeafter2.cob COBOL0900 at 2002).",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": "2023 admits BEFORE and AFTER together (GR25e/f); 2002 does not, and --std 2002 refuses it"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-26",
+    "to": [
+     "GR-14.9.51.4-30"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.3 GR26",
+    "clause-2023": "14.9.51.4 GR30",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relative file in extend mode: first record highest RRN + 1, then consecutive; RRN moved to the RELATIVE KEY of the file-name associated with record-name-1",
+     "the same through WRITE FILE file-name-1 (the rule names 'file-name-1', which exists only in the FILE phrase)"
+    ],
+    "evidence-2002": {
+     "record-name form": "covered by l1_open_extend_position at --std 2002 (golden MATCH)",
+     "file-name-1 (FILE form)": "not shown: WRITE FILE declined COBOL1706 at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR26",
+      "quote": "If the RELATIVE KEY clause is specified for file-name-1 or the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR30",
+      "quote": "If the RELATIVE KEY clause is specified for file-name-1 or the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "changed-definition-term 'extend mode' answered below (no change). The rule's own words name file-name-1, the operand of the FILE phrase: required in 2002, optional in 2023 (A.4.13) and declined by the compiler, so the 2023 row covers only the record-name leg.",
+    "needs": "a 2002 witness for WRITE FILE on an extend-mode relative file setting the RELATIVE KEY, once WRITE FILE is supported at --std 2002; the record-name leg is shown",
+    "compiler-at-2002": "correct for the record-name leg; the FILE leg is the COBOL1706 defect (src/wfile.cob)",
+    "flags-answered": [
+     "changed-definition-term (extend mode): 2002 4.79 and 2023 differ only 'may'/'can'; both speak of a sequential file while both editions apply extend mode to relative files (this GR), so the scope is the same in both"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/wfile.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-27",
+    "to": [
+     "GR-14.9.51.4-31"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR27",
+    "clause-2023": "14.9.51.4 GR31",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "two or more sharing file connectors extending one relative file: relative key values ascending, not necessarily consecutive"
+    ],
+    "evidence-2002": {
+     "shared relative extend": "covered by cases/14.9.51-WRITE/pb739_shared_extend_write_2002 (its RELATIVE leg) at --std 2002 (golden equal except trailing spaces; adopt-2002 results.json PASS)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR27",
+      "quote": "the relative key values returned are ascending, but not necessarily consecutive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR31",
+      "quote": "the relative key values returned are ascending, but not necessarily consecutive",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; extend mode means the same in both (flag below); file sharing is a 2002 element; the 2002-floor witness covers the relative organization and runs at --std 2002. 'Relative key values returned' implies a RELATIVE KEY clause, whose file-name-1 FILE-form leg executes via GR5 as a record WRITE.",
+    "flags-answered": [
+     "changed-definition-term (extend mode): wording only ('may'/'can'); no change of scope or evidence"
+    ],
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-28",
+    "to": [
+     "GR-14.9.51.4-32"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR28",
+    "clause-2023": "14.9.51.4 GR32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relative file, I-O mode, random or dynamic access: the program sets the relative key before WRITE; the record is inserted at that number"
+    ],
+    "evidence-2002": {
+     "insert by key": "covered by cases/14.9.51-WRITE/l1c37_relative_io_insert at --std 2002 (golden MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR28",
+      "quote": "the value of the relative key data item shall be initialized by the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR32",
+      "quote": "the value of the relative key data item shall be initialized by the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     }
+    ],
+    "reason": "changed-definition-term 'runtime element': 2002 4.167 'The executable unit resulting from compiling a source element' vs 2023 'element consisting of code and data produced by the compilation of a source element': the same thing (the compiled program), and here it only says the program sets the key. Same rule; witness runs at --std 2002.",
+    "flags-answered": [
+     "changed-definition-term (runtime element): both mean the compiled source element; no change of scope or evidence"
+    ],
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-30",
+    "to": [
+     "GR-14.9.51.4-34"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR30",
+    "clause-2023": "14.9.51.4 GR34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed WRITE releases the record; it is then reachable by the prime key and every alternate key (split keys of the SOURCE phrase included, a 2002 element as in 2023)"
+    ],
+    "evidence-2002": {
+     "every key": "covered by cases/14.9.51-WRITE/l1_write_indexed_every_key at --std 2002 (golden MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR30",
+      "quote": "The operating environment utilizes the contents of the record keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR34",
+      "quote": "The operating environment utilizes the contents of the record keys",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; 2023 adds alternate-key suppression (GR41), a widening. The RECORD KEY / ALTERNATE RECORD KEY formats with record-key-name SOURCE exist in both. Witness runs at --std 2002.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": "2023 alternate record key suppression"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-32",
+    "to": [
+     "GR-14.9.51.4-36"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.47.3 GR32",
+    "clause-2023": "14.9.51.4 GR36",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexed WRITE whose prime key equals an existing record's: refused (invalid key '22', or '21' first in sequential access by GR37a)"
+    ],
+    "evidence-2002": {
+     "duplicate prime key": "covered by cases/14.9.51-WRITE/l1c37_indexed_dup_prime_key at --std 2002 (golden MATCH)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR32",
+      "quote": "The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR36",
+      "quote": "The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; the companion invalid-key rules (2002 GR37 / 2023 GR42) are word-identical in a-b. Witness runs at --std 2002.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-35",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.47.2-20",
+    "verdict": "UPHELD",
+    "reason": "Words name record-name-1 only, so the FILE leg is outside the rule. 2002 GLOBAL SR1 allows GLOBAL on level-1 entries of the file, working-storage, local-storage and linkage sections only (no CD records), SR3 forbids contained-program I-O on a non-GLOBAL FD with no external exemption, and SR4 excludes methods, so the 2002 scope is the containing/contained-program case the twin witnesses show at --std 2002 (pb1193 pair; reader's glbext.cob refused). The 2002 phrase-order defect does not touch the record-name operand this rule governs.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR20",
+      "quote": "the file description entry for the file-name associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR21",
+      "quote": "the file description entry for the file-name associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR1",
+      "quote": "A data description entry whose level-number is 1 that is specified in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.47.2-5",
+    "verdict": "UPHELD",
+    "reason": "Record-name-1 only; the 2002 file section holds FDs and SDs as in 2023 (no CD reach: CD records are in the communication section). The three refusal witnesses refuse at --std 2002. 2002 SR4's extra same-storage-area restriction (dropped in 2023) is a different rule, not reached by SR5.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.2 SR5",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division and may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR5",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division and may be qualified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "Open-mode rule stated of the write file and its connector. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. Probe wf2.cob: WRITE FILE S FROM WX on a sequential file opened INPUT (expected '48') is refused COBOL1706 at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR1",
+      "quote": "If the open mode is not as described, the execution of the WRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR3",
+      "quote": "If the open mode is not as described, the execution of the WRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-16",
+    "verdict": "OVERTURNED",
+    "reason": "Successor relationship set by the order of WRITE statements, every WRITE of a sequential file. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. Secondary leg: a 2002 Format 1 WRITE on a LINAGE file with the END-OF-PAGE phrase before [retry-phrase]/WITH LOCK (the 2002 order) cannot compile at --std 2002 (reader's ord2002.cob, COBOL2269).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR16",
+      "quote": "The successor relationship of a sequential file is established by the order of execution of WRITE statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR17",
+      "quote": "The successor relationship of a sequential file is established by the order of execution of WRITE statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-17",
+    "verdict": "OVERTURNED",
+    "reason": "Rule stated of the write file connector in extend mode. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. Secondary leg: the 2002 phrase order (END-OF-PAGE before retry/lock) on a LINAGE file opened EXTEND cannot compile at --std 2002 (ord2002.cob).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR17",
+      "quote": "When the organization of the write file connector is sequential and the open mode is extend",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR18",
+      "quote": "When the organization of the write file connector is sequential and the open mode is extend",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-18",
+    "verdict": "OVERTURNED",
+    "reason": "Shared extend: records added by WRITE through any sharing connector, WRITE FILE included. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. The changed-definition flag (extend mode) is answered as the reader did; it does not change this.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR18",
+      "quote": "the added records follow the records present in the physical file when it was opened",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR19",
+      "quote": "the added records follow the records present in the physical file when it was opened",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-19",
+    "verdict": "OVERTURNED",
+    "reason": "Status '34' set on the write file connector. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. The record-name evidence is itself only a runtime unit test with no 2002 run.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR19",
+      "quote": "the execution of the WRITE statement is unsuccessful and the I-O status value of the write file connector is set to '34'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR20",
+      "quote": "the execution of the WRITE statement is unsuccessful and the I-O status value of the write file connector is set to '34'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 says the released logical record is no longer in the record area, whatever WRITE released it. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. The FILE leg is not merely unwitnessed but differently specified: for WRITE FILE F FROM R1 with R1 a record of F, 2002 GR6 says identifier-1's area IS available after the WRITE, against GR2 for that same area, while 2023 resolves it (GR7: equivalent to WRITE record-name-1; GR9: provided identifier-1 is not one of the record descriptions). So the 2023 behaviour cannot stand for the 2002 one. Probe wf3.cob: refused COBOL1706 at 2002 (and 2023).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR2",
+      "quote": "is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR4",
+      "quote": "is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR6",
+      "quote": "the information in the area referenced by identifier-1 is available",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR9",
+      "quote": "provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR7",
+      "quote": "the result of execution of the WRITE statement is equivalent to the result of execution of WRITE record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002) plus a 2002 GR6 interaction that 2023 GR7/GR9 changed",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf3.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-20",
+    "verdict": "UPHELD",
+    "reason": "Same licence chain as the 2023 DOCUMENTED-NON-SUPPORT: 3.1.5 plus the B.3 reel/unit items (CLOSE REEL/UNIT, FOR REMOVAL, NO REWIND; OPEN NO REWIND, EXTEND). No B.3 item names the WRITE end-of-reel swap itself, but the 2023 A.3 list the 2023 record rests on does not either, so that reading would undo the 2023 record too; the rule has no source form to diagnose, and on the media the implementation provides the end of reel/unit is never recognized, so the rule is vacuous at both editions, FILE leg included. Reader's reel.cob shows '07' at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR20",
+      "quote": "a reel/unit swap occurs and the current volume pointer is updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR24",
+      "quote": "a reel/unit swap occurs and the current volume pointer is updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The REEL/UNIT phrase of the CLOSE statement is dependent upon a reel or mass storage type of device",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-22",
+    "verdict": "OVERTURNED",
+    "reason": "GR22 is the end-of-page condition that drives the AT END-OF-PAGE / NOT AT END-OF-PAGE phrases (GR23b, GR24). In 2002 Format 1 those phrases stand BEFORE [retry-phrase] and WITH [NO] LOCK; at --std 2002 the compiler refuses that order (reader's ord2002.cob COBOL2269, ord2002b.cob COBOL0901), so for a 2002 LINAGE-file WRITE in the 2002 order the condition and the transfer to imperative-statement-1 have no evidence; the twins pb686/pb523_85 use the order 2014/2023 share. The reader set this aside as order-independent, but it is the same form the reader counted DIFFERENT for SR17-SR19. Second leg: WRITE FILE on a LINAGE file (FILE required in 2002, declined COBOL1706).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR22",
+      "quote": "an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR26",
+      "quote": "an end-of-page condition occurs when the lines written by a WRITE statement do not fit within the current page body",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR23",
+      "quote": "If the END-OF-PAGE phrase is specified, control is transferred to imperative-statement-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form: the 2002 Format 1 phrase order (END-OF-PAGE before retry/lock), refused at --std 2002; plus the FILE-phrase optional-status leg",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-35/src/ord2002.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-27",
+    "verdict": "OVERTURNED",
+    "reason": "Shared relative extend; relative key values returned to any WRITE, WRITE FILE included. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR27",
+      "quote": "the relative key values returned are ascending, but not necessarily consecutive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR31",
+      "quote": "the relative key values returned are ascending, but not necessarily consecutive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-28",
+    "verdict": "OVERTURNED",
+    "reason": "Relative I-O random/dynamic insert by key, any WRITE of the file. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. Probe wf2.cob: WRITE FILE L FROM WX with LK=3 (random access) refused COBOL1706 at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR28",
+      "quote": "the value of the relative key data item shall be initialized by the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR32",
+      "quote": "the value of the relative key data item shall be initialized by the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-30",
+    "verdict": "OVERTURNED",
+    "reason": "Indexed release through the record keys, any WRITE of the file. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR30",
+      "quote": "The operating environment utilizes the contents of the record keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR34",
+      "quote": "The operating environment utilizes the contents of the record keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.47.3-32",
+    "verdict": "OVERTURNED",
+    "reason": "Duplicate prime key refused for any WRITE of an indexed file. The 2002 scope includes WRITE FILE file-name-1 FROM ...: the FILE phrase is in both 2002 formats (SR7), the write file and its connector are file-name-1's (SR1), and 2002 makes only Annex A (communications) optional (3.1), so the FILE phrase is required in 2002. At --std 2002 the compiler declines every WRITE FILE (COBOL1706, citing the 2023-only licence A.4.13), so this leg has no 2002 evidence and no compilable program; the 2023 row's witnesses are record-name only because 2023 licenses the decline. The reader's answer, that GR5's equivalence carries the record-name evidence to the FILE form, is a derivation, not evidence: GR5 itself is an unwitnessed 2002 requirement, and the reader applied the opposite reading to SR3, GR14 and GR26 (same write-file / file-name-1 reach). Same family as the q-12 refuter's CODE-SET GR1/GR2 overturns. Probe wf2.cob: two WRITE FILE X FROM WX (same key, expected '22' on the second) refused COBOL1706 at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.47.3 GR32",
+      "quote": "The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR36",
+      "quote": "The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR1",
+      "quote": "The write file is the file referenced by file-name-1 or by the file-name associated with record-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR7",
+      "quote": "If the FILE phrase is specified, the FROM phrase shall also be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.13",
+      "quote": "WRITE FILE file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "other: optional-status (FILE phrase required in 2002, declined at --std 2002 under 2023 A.4.13)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-35/src/wf2.cob"
+   }
+  ],
+  "disputed-different": [],
+  "probes": {
+   "wf2.cob": "run/wf2.2002/log.txt: four COBOL1706, rc=65",
+   "wf3.cob": "run/wf3.2002 and run/wf3.2023: COBOL1706, rc=65"
+  }
+ },
+ "imported": {
+  "asked": "5b69df2a7b6263d873c5089f5f733fb12dc3fdd3988cbb0ddfc7437d3d8269cb",
+  "read": "0a65cf4d925b2a56a187cb91fdd03939379a6d9b46fc8baca3c0d5486fbf31df",
+  "refute": "84d4fdd023298ca625a81f89c954aa9b4ec4d5a6184a38afff5e0236f11a1d68"
+ }
+}
