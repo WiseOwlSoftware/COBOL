@@ -1,4 +1,4 @@
-## A numeric or integer function is refused where an identifier stands at --std 85 (COBOL0900, PB5108)
+## Entry 3651 — 2026-11-14 21:52 PST — A numeric or integer function is refused where an identifier stands at --std 85 (COBOL0900, PB5108)
 
 At `--std 85`, `MOVE FUNCTION SQRT (4) TO N`, `DISPLAY FUNCTION LENGTH (W)`, `PERFORM FUNCTION INTEGER (2.5) TIMES`, `GO TO ... DEPENDING
 ON FUNCTION LENGTH (X)`, a PERFORM VARYING FROM or BY function and the sending operands of ADD, SUBTRACT, MULTIPLY and DIVIDE all
@@ -22,3 +22,4 @@ function's device picture for a DISPLAY operand), and two now accept from 2002: 
 `pb4075_wide_argument_consumers`.
 
 Not changed: the 1985 inventory rows stay unrecorded (kb/Work PB5094), so `closes_rows` is empty with its reason.
+
