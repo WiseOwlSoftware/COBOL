@@ -1,0 +1,18 @@
+01 IS GREATER THAN         TFF
+02 IS >                    TFF
+03 IS LESS THAN            FFT
+04 IS <                    FFT
+05 IS EQUAL TO             FTF
+06 IS =                    FTF
+07 IS NOT GREATER THAN     FTT
+08 IS NOT >                FTT
+09 IS NOT LESS THAN        TTF
+10 IS NOT <                TTF
+11 IS NOT EQUAL TO         TFT
+12 IS NOT =                TFT
+13 <                       FFT
+14 NOT <                   TTF
+15 > X AND NOT < 9 OR X    TTF
+16 NOT EQUAL X OR 5        TFT
+17 NOT > X AND 9           FTT
+18 = X OR NOT LESS 6 OR X  TTF
