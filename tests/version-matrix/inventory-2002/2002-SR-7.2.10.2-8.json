@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-8",
+ "rule-digest": "80bea5a0e341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev08_text_debugging_lines",
+ "notes": "§2002:7.2.10.2 SR8 admits any kind of source line in EVALUATE text, which at 2002 includes D, d and >>D debugging lines (§2002:6.1.2, 6.2.7): included WHEN and WHEN OTHER texts mixing them with source lines and a nested >>IF compile under WITH DEBUGGING MODE and omitted ones do not; --std 2002 run on the pinned build matched."
+}

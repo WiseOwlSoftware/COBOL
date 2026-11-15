@@ -29,19 +29,21 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   account 2 released it) with the campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
   restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
   one file per determination with an untracked rendered view). The loop was stopped on the afternoon of 2026-11-12 for a
-  Claude Code CLI update; the next attended session restarts it. The 2023 inventory is at ZERO GAP since 2026-11-05
-  (kb/Work A11 closed DOC-A.1-17); the 2002 inventory's count is held (kb/Work PB5256) and the 1985 inventory is described
-  next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
+  Claude Code CLI update; the next attended session restarts it. The 2023 inventory reached ZERO GAP on 2026-11-05
+  (kb/Work A11 closed DOC-A.1-17). **It reads 1 GAP since 2026-11-15, and that is not a regression in the compiler:**
+  `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or
+  more receivers edits it again, wrong at `--std 2023` too) already existed. The record was corrected to DIVERGES naming
+  PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it (1985 GAP 32 → 33). PB5678's fix closes both. The 2002
+  inventory's count is held (kb/Work PB5256) and the 1985 inventory is described next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch records-2002-reads-2 on
-  main 1d40b123ca):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,771 GAP** (2,169 before this
-  branch's 398 own verdicts from pointers; 2,562 before the first 2002 golden-lane landing), 834 adjudicated: CONFORMS 761,
-  DOCUMENTED-NON-SUPPORT 64, DIVERGES 8, PARTIAL 1, beside the 704 KEPT change records. The 2002 golden lane (gl2002, kb/Work
-  PB5597) gives each 2002 row a witness of its own at `--std 2002`; every one of the 1,528 unpaired 2002 rules is now read
-  (`tests/version-matrix/lineage-reads-2002/`, 125 slices), and an upheld SAME of one becomes its own verdict through
-  `audit_batch.py own-verdict-batch` (DESIGN-spec-conformance-review.md section 10.6).
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch records-2002-reads-2 with
+  PB5675 and main 1d13746fce merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **GAP_TBD GAP**
+  (2,562 before the first 2002 golden-lane landing), ADJ_TBD, beside the 704 KEPT change records. The 2002 golden lane
+  (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; every one of the 1,528 unpaired 2002
+  rules is now read (`tests/version-matrix/lineage-reads-2002/`, 125 slices), and an upheld SAME of one becomes its own
+  verdict through `audit_batch.py own-verdict-batch` (DESIGN-spec-conformance-review.md section 10.6).
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists

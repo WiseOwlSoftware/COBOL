@@ -96,8 +96,8 @@ public static class ClosedFormats
                 new("12.3.7.2", "", "SPECIAL-NAMES paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 
             // §2023:12.3.5.2 — the SOURCE-COMPUTER paragraph. PDF p314 / folio 284: `SOURCE-COMPUTER. [computer-name-1] .`
-            // and nothing else (the X3.23-1985 WITH DEBUGGING MODE clause is modelled so its deleted-2002 gate can
-            // name it). Closed by kb/Work PB830 — the residue was a `~DOT` token sink, not `genericClause`.
+            // and nothing else (the WITH DEBUGGING MODE clause, §2002:12.2.4.1, obsolete 2002 and removed 2014, is modelled so
+            // its edition gate can name it). Closed by kb/Work PB830 — the residue was a `~DOT` token sink, not `genericClause`.
             [typeof(Core.SourceComputerParagraphContext)] =
                 new("12.3.5.2", "", "SOURCE-COMPUTER paragraph", "clause", DiagnosticCatalog.ClosedFormatUnrecognizedClause),
 

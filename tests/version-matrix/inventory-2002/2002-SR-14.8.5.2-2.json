@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.5.2-2",
+ "rule-digest": "ba0f711fdd17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramName",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2can02_alnum_national_targets",
+ "notes": "§2002:14.8.5.2 SR2: literal-1 alphanumeric or national; g2can02 at --std 2002 CANCELs N\"G2CNL2S\" (callee reset, C=1) and an alphanumeric literal naming no program (GR7 no-op), output matched; g2can04 CANCEL 1234567 refused COBOL1627."
+}

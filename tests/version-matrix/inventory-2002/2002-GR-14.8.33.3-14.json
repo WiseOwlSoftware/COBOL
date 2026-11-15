@@ -3,6 +3,6 @@
  "rule-digest": "98fb4dbdf3bd",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteRecordSequential; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RewriteLine",
- "test-ref": "conformance:cases/14.9.35-REWRITE/l1m8_rewrite_unsuccessful_no_update; conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb1168_rs_rewrite_size_gr16",
- "notes": "Own verdict from the read lineage-reads-2002/t-distant.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.35.4-14, witnessed at 2002 by the cases test-ref names. The read: 2002 says 'as indicated in other general rules' where 2023 lists the rule numbers and adds a transfer-of-control sentence; the requirement is the same. The pointer's witnesses run clean at --std 2002 (the third, pb1168_ls_rewrite_gr17, is LINE SEQUENTIAL and is rightly refused at 2002). Their accept lists should be widened to 2002 so the harness runs them there. Cited: §2002:14.8.33.3 GR14."
+ "test-ref": "conformance:cases/14.9.35-REWRITE/l1m8_rewrite_unsuccessful_no_update",
+ "notes": "§2002:14.8.33.3 GR14: an unsuccessful REWRITE updates nothing and leaves the record area; with the 2002 statuses '49' GR2, '43' GR4, '23' GR20, '21' GR21, '23' GR22, '22' GR24 c the widened l1m8 (accept [2002, 2023]) ran at --std 2002 equal to its .out."
 }

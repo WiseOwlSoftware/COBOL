@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.31.2-1",
+ "rule-digest": "ad9b8d7f1d9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindResume",
+ "test-ref": "conformance:cases/14.8.31@2002-RESUME-STATEMENT/g2rsm01_resume_in_declarative_2002; conformance:cases/14.8.31@2002-RESUME-STATEMENT/g2rsm02-resume-outside-declarative-2002",
+ "notes": "§2002:14.8.31.2 SR1: RESUME only in a declarative; at --std 2002 G2RSM01 (RESUME in a USE AFTER EXCEPTION declarative) runs DECL / AFTER per §2002:14.8.31.3 GR2, and G2RSM02 (RESUME in the nondeclarative portion) is refused COBOL0712 at the RESUME line."
+}

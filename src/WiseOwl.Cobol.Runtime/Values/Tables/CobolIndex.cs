@@ -96,6 +96,11 @@ public static class CobolIndex
     public static bool TryAmountReal(double v, SetAmountRule rule, string detail, out long value)
         => Land(SetAmount.Land(v, out Int128 whole), whole, rule, detail, out value);
 
+    /// <summary>The STANDARD-DECIMAL lane of <see cref="TryAmount(System.Int128,int,SetAmountRule,string,out long)"/>
+    /// (kb/Work PB5619): the amount arrived as an SDIDI value and the integrality test runs on its own exponent.</summary>
+    public static bool TryAmountDec(CobolDec v, SetAmountRule rule, string detail, out long value)
+        => Land(SetAmount.Land(v, out Int128 whole), whole, rule, detail, out value);
+
     /// <summary>Map <see cref="SetAmount"/>'s carrier-neutral landing onto THIS format's exception conditions —
     /// the only part of the four rules that differs between them (kb/Work PB465). <c>false</c> is "the execution
     /// of the SET statement is unsuccessful", so the caller stores nothing and every receiving operand is

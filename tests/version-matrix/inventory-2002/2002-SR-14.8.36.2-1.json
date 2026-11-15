@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.36.2-1",
+ "rule-digest": "8468f9a95ac1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenDeclarativePlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSortMergeProcedures",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/g2-sort-placement-permitted; conformance:cases/14.9.40-SORT/pb1139-sort-in-declarative",
+ "notes": "§2002:14.8.36.2 SR1 bars only a format 1 SORT from the declaratives. At --std 2002 a table SORT in a declarative and a file SORT written (not executed) in another SORT's input and output procedures compile and run (DECL ABC / AFTER ABC / OUT=A / OUT=B / DONE, matching the derivation), and pb1139-sort-in-declarative is refused COBOL2700 at 2002. GateSortMergeProcedures applies the procedure-placement refusal at 2023 only."
+}

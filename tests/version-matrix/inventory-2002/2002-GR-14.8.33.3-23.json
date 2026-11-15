@@ -3,6 +3,6 @@
  "rule-digest": "43377f9b0ca5",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Fill; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#DecodeFrame; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Replace; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#KeySuppressionOf",
- "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order; conformance:cases/14.9.30-READ/pb2693_dup_orders_survive_close",
- "notes": "Own verdict from the read lineage-reads-2002/t-distant.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.35.4-24, witnessed at 2002 by the cases test-ref names. The read: The 2002 rule is the 2023 rule's first part word for word; 2023 adds the SUPPRESS WHEN arm (2002 has no key suppression). The non-suppression witness runs clean at --std 2002. Cited: §2002:14.8.33.3 GR23."
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw08_alt_key_order",
+ "notes": "§2002:14.8.33.3 GR23 with §2002:14.8.29.3 GR23/GR29: a changed duplicate alternate key puts the record last in its new set (A1 02 03 01, lowest prime key last), an unchanged key keeps its order (A2 01 02 03; no-key-change REWRITE keeps both); g2rw08 at --std 2002 equal to the ten derived lines."
 }

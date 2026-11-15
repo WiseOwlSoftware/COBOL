@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-3",
+ "rule-digest": "b2b8d32e23ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#SubscriptNamesIndex",
+ "test-ref": "conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-varying-cd; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-varying-cd-noninteger; conformance:cases/14.8.34@2002-SEARCH-STATEMENT/g2-search-varying-cd-self-subscript",
+ "notes": "§2002:14.8.34.2 SR3 admits an integer or usage-index identifier-2 and forbids one subscripted by identifier-1's first index-name; with operands in a record under an output CD (§2002:A.1.2.2 SR9) the --std 2002 run prints C-FOUND B CN=02 / W-FOUND Z CN=03 / X-FOUND C CX=3 as derived from GR3b1/GR3b2, and a PIC 9V9 or CK(CI) identifier-2 is refused COBOL2325."
+}

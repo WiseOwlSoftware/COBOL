@@ -3,6 +3,6 @@
  "rule-digest": "c301cdcf0344",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#Set; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
- "test-ref": "conformance:cases/14.9.29-RAISE/pb867_raise_checking_not_enabled; conformance:cases/8.4.3.6-EXCEPTION-OBJECT/gl2m2_exception_object_identity",
- "notes": "Own verdict from the read lineage-reads-2002/t-distant.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.29.4-1, witnessed at 2002 by the cases test-ref names. The read: The 2002 rule is the first sentence of the 2023 rule word for word; the general formats are identical (RAISE EXCEPTION exception-name-1 | identifier-1), and 2002 states the checking gate in the same words (14.5.12.1: raised only if checking is enabled; by default not enabled). 2023 adds a continuation sentence and NOTE that restate 2002's GR3a. Two of the pointer row's witnesses are accept [2002] and ran clean at --std 2002. Cited: §2002:14.8.28.3 GR1."
+ "test-ref": "conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai01_raise_object_and_name",
+ "notes": "§2002:14.8.28.3 GR1: RAISE EXCEPTION of a turned-on EC-USER name that has a USE raises it, so DU runs and EXCEPTION-STATUS names it, and EXCEPTION-OBJECT goes from OA to null. g2rai01 lines DECL-H and N2 matched the derivation at --std 2002."
 }

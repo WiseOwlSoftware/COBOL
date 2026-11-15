@@ -1485,7 +1485,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// intermediate consumer has no capacity check downstream, so a value past the carrier RAISES EC-SIZE-OVERFLOW
     /// here rather than becoming the low-order digits a STORE may take (kb/Work PB77/PB69/PB65/PB3019).</para>
     /// <para>NOTE — ALLOCATE's NATIVE-FLOAT lane does NOT come through here, and that is not an oversight:
-    /// <c>CobolPtr.AllocateReal</c> fuses GR1's <c>Math.Ceiling</c> with GR2's ≤ 0 ⇒ NULL and with the
+    /// <c>CobolPtr.AllocateReal</c> (and its SDIDI twin <c>AllocateDec</c>, kb/Work PB5619) fuses GR1's ceiling with GR2's ≤ 0 ⇒ NULL and with the
     /// storage-not-available outcomes that only the ALLOCATE statement defines, so a NaN or an over-wide request
     /// answers "not available" instead of raising (kb/Work PB151). Routing it through a checked emitter-side
     /// landing would trade that defined outcome for a size-error condition. The ROUNDING RULE is still written
@@ -1720,6 +1720,20 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         if (SdidiOf(x) is not { } dec) return x;
         int ws = rcv.WorkingScale(ReceiverContext.SdidiLandingScaleFloor);
         return new NumX(RuntimeApi.DecToUnscaledIntermediate(dec, ws.ToString(), CobolRounding.Truncation), ws);
+    }
+
+    /// <summary>⛔ THE LANDING OF A SET-FAMILY AMOUNT (kb/Work PB5619): the value on the carrier the integrality and range rules
+    /// need, never narrowed first. The same funnels as <see cref="Landed"/> (the unsigned-wide read, a float under a standard
+    /// mode converted in), but an SDIDI value STAYS an SDIDI (<see cref="NumXCarrier.Sdidi"/>): <see cref="Landed"/> lowers it
+    /// to <c>Int128</c> at a fixed working scale, which truncates a fraction the rule asks about (§2002:14.8.35.3 GR16:
+    /// "If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception") and overflows on an
+    /// integer the range rule rejects (GR17). The consumers dispatch on <see cref="NumX.Carrier"/> and call the runtime's
+    /// <c>SetAmount.Land</c> overload for it: <c>SetEmitter.LandAmount</c>, <c>PtrEmitter.EmitSetPointerUpDown</c>,
+    /// <c>KeyedIoEmitter</c>'s START WITH LENGTH.</summary>
+    public NumX LandedAmount(NumX x)
+    {
+        x = DeU(x);
+        return SdidiOf(x) is { } dec ? new NumX(dec, 0, Dec: true) : x;
     }
 
     /// <summary>⛔ THE ONE QUESTION "IS THIS RENDERED INTERMEDIATE AN SDIDI VALUE?" that <see cref="Landed"/> and a consumer
