@@ -13,7 +13,7 @@ from standard_streams import ensure_utf8
 
 gate_mod = selftest_cases.subject(__file__)   # scripts/gate.py
 from gate_audits import AUDITS, TOOLING_ONLY
-from gate_verdict import GREEN_READING, NOT_RUN_CAUSES, VERDICT, read_verdict
+from gate_verdict import ENVIRONMENT, GREEN_READING, NOT_RUN, NOT_RUN_CAUSES, VERDICT, Reading, read_verdict
 Gate = gate_mod.Gate
 from gate_host import Host
 from gate_legs import Legs
@@ -59,6 +59,20 @@ def case_01_host_whose_tools_not_toolchain_env_s(expect):
         o.verdict == NOT_RUN_CAUSES["toolchain"].verdict and o.exit_code == 2 and h.toolchain_checked
         and "jdk 23.0.2 (toolchain.env 27.0.1)" in o.line and h.events == [] and not o.runs
         and not read_verdict(o.line[len(VERDICT):]).branch_carried, o.line)
+
+
+def case_01a_host_that_could_not_read_a_tool_s_version(expect):
+    root, sink, gate, said = fixtures.world()
+    o, h = gate("toolchain-unread", plant={"toolchain-unread"})
+    expect("a host that could not read a tool's version just now (its probe did not answer) is NOT RUN "
+        "[toolchain-unread], its own ENVIRONMENT cause: it names the tool and what happened, says the tool is not shown "
+        "to be missing, and gives no install advice; nothing runs, exit 2 (kb/Work PB5616)",
+        o.verdict == NOT_RUN_CAUSES["toolchain-unread"].verdict != NOT_RUN_CAUSES["toolchain"].verdict
+        and o.exit_code == 2 and h.toolchain_checked and h.events == [] and not o.runs
+        and "dotnet-sdk did not answer within 60 s" in o.line and "NOT shown to be missing" in o.line
+        and "Install" not in o.line and "absent" not in o.line
+        and read_verdict(o.line[len(VERDICT):]) == Reading(NOT_RUN, NOT_RUN_CAUSES["toolchain-unread"])
+        and NOT_RUN_CAUSES["toolchain-unread"].carried == ENVIRONMENT, o.line)
 
 
 def case_02_gate_names_toolchain_ran_under_verdict_line(expect):

@@ -68,8 +68,8 @@ class PassCarry:
                 # ⛔ AND UNDER THIS HOST'S TOOLCHAIN (kb/Work PB5218): a GREEN measured under other tools is no answer here,
                 # the rule a target's key has (its toolchain facet). Asked once, only when a record qualifies.
                 if tools is None:
-                    matched, tools = self.host.toolchain()
-                    tools = tools if matched else ""
+                    host_tools = self.host.toolchain()
+                    tools = host_tools.tools if host_tools.matched else ""
                 if tools and rec.get("toolchain") == tools:
                     return p, rec
         return None
@@ -178,8 +178,9 @@ class PassCarry:
             return Rederived(None, found, [f"it was re-derived already ({rec['rederived'].get('at')})"])
         if rec.get("tree_end") == rec["tree"] and rec.get("keys"):
             return Rederived(None, found, ["nothing to re-derive: the record already says its tree_end and its keys"])
-        matched, tools = self.host.toolchain()
-        if not matched or tools != rec.get("toolchain"):
+        host_tools = self.host.toolchain()
+        tools = host_tools.tools
+        if not host_tools.matched or tools != rec.get("toolchain"):
             refusals.append(f"the toolchain it recorded ({rec.get('toolchain')}) is not this host's ({tools})")
         hosts = {r.get("asm"): r for r in rec.get("runs") or [] if isinstance(r, dict)}
         ends: list[float] = []

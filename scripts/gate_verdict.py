@@ -80,7 +80,13 @@ NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
                                          "start, or while the gate queued)"),
     NotRunCause("interpreter", ENVIRONMENT, "no runnable Python (or one without PyYAML) on the host"),
     NotRunCause("toolchain", ENVIRONMENT, "a tool the gate runs reports a version other than toolchain.env's, or is "
-                                          "absent (scripts/toolchain.py check --scope gate, kb/Work PB4007)"),
+                                          "absent: not on PATH (scripts/toolchain.py check --scope gate, kb/Work "
+                                          "PB4007); installing the manifest's version clears it"),
+    NotRunCause("toolchain-unread", ENVIRONMENT, "a tool the gate runs is on PATH but its version could not be read "
+                                                 "just now: its version command did not answer within the probe's "
+                                                 "limit, could not start, or answered no version (scripts/toolchain.py "
+                                                 "Probe, kb/Work PB5616); the tool is not shown to be missing, and no "
+                                                 "install clears it"),
     NotRunCause("host", ENVIRONMENT, "the host is not Linux and has no WSL to run the Linux gate on"),
     NotRunCause("sdk", ENVIRONMENT, "no .NET SDK in the Linux environment"),
     NotRunCause("disk", ENVIRONMENT, "the Linux filesystem the gate clones onto has too few free inodes or too little "

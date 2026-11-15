@@ -119,6 +119,21 @@ class _Live:
             return bool(self.stopped)
 
 
+@dataclass(frozen=True)
+class HostTools:
+    """What `Host.toolchain` found: `tools`, the toolchain the gate runs under when every tool the gate runs reports
+    toolchain.env's version (`cause` None), else each failure, with `cause` the tag of the NOT RUN cause that stops the
+    gate (gate_verdict.NOT_RUN_CAUSES): `toolchain` when a tool is absent (not on PATH) or reports another version, or
+    the manifest cannot be read; `toolchain-unread` when nothing is shown absent or of another version but a tool's
+    version could not be read just now (it did not answer, could not start, or answered no version: kb/Work PB5616)."""
+    cause: str | None
+    tools: str
+
+    @property
+    def matched(self) -> bool:
+        return self.cause is None
+
+
 class Host:
     """The real machine: git, the build, the listings, the test hosts."""
 
@@ -250,16 +265,20 @@ class Host:
         except (subprocess.CalledProcessError, OSError):
             return None
 
-    def toolchain(self) -> tuple[bool, str]:
-        """This host's tools against toolchain.env (kb/Work PB4007; scripts/toolchain.py): (True, the toolchain the gate
-        runs under) when every tool the gate runs reports the manifest's version, else (False, each mismatch). CI runs
-        exactly those versions, so a gate under any other toolchain measures something CI will not run."""
+    def toolchain(self) -> HostTools:
+        """This host's tools against toolchain.env (kb/Work PB4007; scripts/toolchain.py; HostTools). CI runs exactly
+        the manifest's versions, so a gate under any other toolchain, or one it cannot read, measures something CI may
+        not run."""
         try:
             manifest = toolchain.load()
         except (OSError, ValueError) as e:
-            return False, f"toolchain.env cannot be read: {e}"
-        _, bad = toolchain.compare(manifest, "gate")
-        return (not bad), ("; ".join(bad) if bad else toolchain.summary(manifest, "gate"))
+            return HostTools("toolchain", f"toolchain.env cannot be read: {e}")
+        found = toolchain.compare(manifest, "gate")
+        if found.bad:
+            return HostTools("toolchain", "; ".join(found.bad + found.unread))
+        if found.unread:
+            return HostTools("toolchain-unread", "; ".join(found.unread))
+        return HostTools(None, toolchain.summary(manifest, "gate"))
 
     def measured_tree(self) -> str | None:
         """THE TREE A GATE MEASURES (kb/Work PB3536): the git tree id of the WORKING TREE — every tracked file as it is on

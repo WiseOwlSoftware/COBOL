@@ -297,27 +297,87 @@ def load(path: Path = MANIFEST) -> dict[str, str]:
     return parse(path.read_text(encoding="utf-8"))
 
 
-def installed(tool: Tool, run: Callable[[tuple[str, ...]], str | None]) -> str | None:
-    """The version `tool` reports on this host, or None when it is absent or reports none."""
+#: How long a tool's version command may take to answer before the probe records that it did not (kb/Work PB5616: the
+#: limit is recorded with the outcome, never raised or retried on a guess).
+PROBE_LIMIT_S = 60
+
+
+@dataclasses.dataclass(frozen=True)
+class Answered:
+    """The version command ran and ended: its output (stdout and stderr together) and its exit code."""
+    text: str
+    exit_code: int
+
+
+@dataclasses.dataclass(frozen=True)
+class NotOnPath:
+    """The tool's command is not on PATH (`shutil.which` found nothing): the tool is absent from this host."""
+
+
+@dataclasses.dataclass(frozen=True)
+class TimedOut:
+    """The version command did not end within `limit_s` seconds."""
+    limit_s: int
+
+
+@dataclasses.dataclass(frozen=True)
+class NoStart:
+    """The version command was found on PATH but could not be run: the error the OS or subprocess raised."""
+    error: str
+
+
+#: WHAT RUNNING A TOOL'S VERSION COMMAND DID (kb/Work PB5616). Before it, `_run` answered None for four different facts,
+#: and the check called every one of them "absent": a `dotnet --version` that did not answer on a loaded host told the
+#: operator to install an SDK that was installed, and the record kept nothing that said which fact it was.
+Probe = Answered | NotOnPath | TimedOut | NoStart
+
+
+@dataclasses.dataclass(frozen=True)
+class Reported:
+    """What a tool reported on this host: its `version`, or None with the `fact` that says why none was read. `unread`
+    is True when the host could not run the tool just now (it did not answer, could not start, or answered something
+    that is not a version): the version is unknown, and the tool is NOT shown to be missing or of another version.
+    A tool that is not on PATH is absent (`unread` False)."""
+    version: str | None
+    fact: str | None = None
+    unread: bool = False
+
+
+def installed(tool: Tool, run: Callable[[tuple[str, ...]], Probe]) -> Reported:
+    """The version `tool` reports on this host, or the fact of why none was read (Reported)."""
     if tool.command is None:
-        return platform.python_version()
-    out = run(tool.command)
-    m = re.search(tool.pattern, out or "", re.M)
-    return m.group(1) if m else None
+        return Reported(platform.python_version())
+    probe = run(tool.command)
+    match probe:
+        case NotOnPath():
+            return Reported(None, "absent (not on PATH)")
+        case TimedOut(limit_s=limit):
+            return Reported(None, f"did not answer within {limit} s", True)
+        case NoStart(error=error):
+            return Reported(None, f"could not start: {error}", True)
+        case Answered(text=text, exit_code=code):
+            m = re.search(tool.pattern, text, re.M)
+            if m:
+                return Reported(m.group(1))
+            shown = text[:200].replace("\r", "\\r").replace("\n", "\\n")
+            return Reported(None, f'answered no version: "{shown}", exit {code}', True)
+    raise TypeError(f"{tool.name}: the probe answered {probe!r}, which is no Probe")
 
 
-def _run(command: tuple[str, ...]) -> str | None:
+def _run(command: tuple[str, ...]) -> Probe:
     exe = shutil.which(command[0])
     if exe is None:
-        return None
+        return NotOnPath()
     try:
         # From the repository root: `dotnet --version` answers the SDK global.json selects there, which is the one the
         # build uses (elsewhere it answers the newest installed, a preview among them).
-        p = subprocess.run([exe, *command[1:]], capture_output=True, text=True, timeout=60, encoding="utf-8",
-                           errors="replace", cwd=REPO)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    return p.stdout + p.stderr
+        p = subprocess.run([exe, *command[1:]], capture_output=True, text=True, timeout=PROBE_LIMIT_S,
+                           encoding="utf-8", errors="replace", cwd=REPO)
+    except subprocess.TimeoutExpired:
+        return TimedOut(PROBE_LIMIT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        return NoStart(f"{type(e).__name__}: {e}")
+    return Answered(p.stdout + p.stderr, p.returncode)
 
 
 def held(scope: str, system: str = platform.system()) -> list[Tool]:
@@ -350,21 +410,35 @@ def _image_moved(tool: Tool, got: str, want: str, manifest: dict[str, str],
                        f"{release.git}), which `bump` follows; no change of the manifest follows this image")
 
 
-def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]], str | None] = _run,
+@dataclasses.dataclass(frozen=True)
+class Comparison:
+    """What `compare` found: the `lines` `check` prints; `bad`, each tool that is absent (not on PATH) or reports
+    another version than the manifest's, which installing the manifest's version clears; and `unread`, each tool whose
+    version the host could not read just now (Reported.unread: it did not answer, could not start, or answered no
+    version), which is not shown to be missing and which no install clears (kb/Work PB5616). Either fails a check."""
+    lines: list[str]
+    bad: list[str]
+    unread: list[str]
+
+
+def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]], Probe] = _run,
             system: str = platform.system(),
-            fetch: Callable[[str], str] | None = None) -> tuple[list[str], list[str]]:
-    """(the lines `check` prints, the mismatches): each tool of `scope` on `system`, the version it reports and the
-    manifest's. In the `ci` scope a runner image's own tool (git) that differs is a GitHub warning line, never a
-    mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red. The image
-    scope reads the image's newest release (`fetch`, the network by default) for a git that differs, and only warns when
-    the manifest names that release's git and the job ran on another image (_image_moved)."""
-    lines, bad = [], []
+            fetch: Callable[[str], str] | None = None) -> Comparison:
+    """Each tool of `scope` on `system`, the version it reports (or why none was read) and the manifest's (Comparison).
+    In the `ci` scope a runner image's own tool (git) that differs or is absent is a GitHub warning line, never a
+    mismatch: the image moved under the job, and the nightly `images` job's `image` scope is where it is red; one whose
+    version was unread still fails, since an unresolved version never passes. The image scope reads the image's newest
+    release (`fetch`, the network by default) for a git that differs, and only warns when the manifest names that
+    release's git and the job ran on another image (_image_moved)."""
+    lines, bad, unread = [], [], []
     for tool in held(scope, system):
-        want, got = manifest[tool.key], installed(tool, run)
-        state = "OK" if got == want else ("ABSENT" if got is None else "MISMATCH")
+        want, reported = manifest[tool.key], installed(tool, run)
+        got = reported.version
+        state = ("OK" if got == want else "UNREAD" if reported.unread else "ABSENT" if got is None else "MISMATCH")
+        shown = got or reported.fact
         why = None
-        if state != "OK" and scope == "ci" and tool.source == IMAGE:
-            lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {got or 'absent'}, toolchain.env "
+        if state in ("ABSENT", "MISMATCH") and scope == "ci" and tool.source == IMAGE:
+            lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {shown}, toolchain.env "
                          f"names {want}: the image moved; the nightly `images` job is red while the image's newest "
                          "release carries it, until `toolchain.py bump` follows it (kb/Work PB4007, PB5458)")
             state = "IMAGE"
@@ -373,11 +447,13 @@ def compare(manifest: dict[str, str], scope: str, run: Callable[[tuple[str, ...]
             if state == "ROLLOUT":
                 lines.append(f"::warning title=toolchain::the runner image's {tool.name} is {got}, toolchain.env names "
                              f"{want}: {why} (kb/Work PB5458)")
-        lines.append(f"  {state:8} {tool.name} {got or '(none)'}"
+        lines.append(f"  {state:8} {tool.name} {shown}"
                      + ("" if state == "OK" else f" — toolchain.env names {want}") + (f"; {why}" if why else ""))
         if state in ("ABSENT", "MISMATCH"):
-            bad.append(f"{tool.name} {got or 'absent'} (toolchain.env {want})")
-    return lines, bad
+            bad.append(f"{tool.name} {shown} (toolchain.env {want})")
+        elif state == "UNREAD":
+            unread.append(f"{tool.name} {shown} (toolchain.env {want})")
+    return Comparison(lines, bad, unread)
 
 
 def summary(manifest: dict[str, str], scope: str, system: str = platform.system()) -> str:
@@ -406,20 +482,37 @@ def installer_problems(text: str) -> list[str]:
                                     f"install-tool rows are `{' '.join(want)}`: change both together"]
 
 
+#: `check`'s exit codes: 0 every tool reports the manifest's version; 1 a tool is absent or reports another version
+#: (install the manifest's), or an installer problem; EXIT_UNREAD, nothing is shown absent or of another version but a
+#: tool's version could not be read just now (kb/Work PB5616): linux-gate.sh reads it as NOT RUN [toolchain-unread].
+EXIT_UNREAD = 3
+
+#: What a tool whose version was unread means, said wherever it is reported (the check, the gate, the readiness check).
+UNREAD_ADVICE = ("the host could not run it just now, so its version is unread; it is NOT shown to be missing or of "
+                 "another version, so install nothing: the line names what happened, and a recurrence is root-caused "
+                 "from it (kb/Work PB5616)")
+
+
 def check(scope: str, manifest: dict[str, str] | None = None,
-          run: Callable[[tuple[str, ...]], str | None] = _run, system: str = platform.system(),
+          run: Callable[[tuple[str, ...]], Probe] = _run, system: str = platform.system(),
           installer: str | None = None, fetch: Callable[[str], str] | None = None) -> tuple[int, str]:
     """(exit code, report): 0 GREEN when every tool of `scope` on `system` reports the manifest's version (in the image
     scope, or differs only because the job ran on an image other than its newest release) and the installer lists
-    exactly TOOLS' install-tool rows, else 1 RED naming each."""
+    exactly TOOLS' install-tool rows; else RED naming each, exit 1 when anything is absent, of another version or an
+    installer problem, EXIT_UNREAD when the only failures are versions the host could not read just now."""
     manifest = manifest if manifest is not None else load()
-    lines, bad = compare(manifest, scope, run, system, fetch)
-    bad += installer_problems(installer if installer is not None else INSTALLER.read_text(encoding="utf-8"))
-    verdict = (f"{VERDICT}GREEN — {scope}: {summary(manifest, scope, system)} ===" if not bad else
-               f"{VERDICT}RED — {scope}: {'; '.join(bad)}; install the manifest's version (winget on the Windows dev "
-               "box, scripts/wsl/setup-wsl.sh in WSL), or move toolchain.env to the installed one if it is the newer "
-               "release (`python scripts/toolchain.py latest`) ===")
-    return (0 if not bad else 1), "\n".join([*lines, verdict])
+    found = compare(manifest, scope, run, system, fetch)
+    bad = found.bad + installer_problems(installer if installer is not None else INSTALLER.read_text(encoding="utf-8"))
+    if not bad and not found.unread:
+        return 0, "\n".join([*found.lines, f"{VERDICT}GREEN — {scope}: {summary(manifest, scope, system)} ==="])
+    said = []
+    if bad:
+        said.append(f"{'; '.join(bad)}; install the manifest's version (winget on the Windows dev box, "
+                    "scripts/wsl/setup-wsl.sh in WSL), or move toolchain.env to the installed one if it is the newer "
+                    "release (`python scripts/toolchain.py latest`)")
+    if found.unread:
+        said.append(f"{'; '.join(found.unread)}: {UNREAD_ADVICE}")
+    return (1 if bad else EXIT_UNREAD), "\n".join([*found.lines, f"{VERDICT}RED — {scope}: {'; '.join(said)} ==="])
 
 
 def fetch_url(url: str) -> str:
@@ -570,10 +663,10 @@ def self_test() -> int:
                "jq": "jq-1.8.2\n", "uv": "uv 0.13.6 (329bf9448 2026-10-26 x86_64-pc-windows-msvc)\n",
                "semgrep": "A new version is available\n1.182.1\n"}
 
-    def run(command: tuple[str, ...]) -> str | None:
-        return outputs.get(command[0])
+    def run(command: tuple[str, ...]) -> Probe:
+        return Answered(outputs[command[0]], 0) if command[0] in outputs else NotOnPath()
 
-    reported = {t.name: installed(t, run) for t in TOOLS}
+    reported = {t.name: installed(t, run).version for t in TOOLS}
     expect("each tool's own report gives its version (git without Git for Windows' revision)",
            reported == {"dotnet-sdk": "10.0.403", "python": platform.python_version(), "jdk": "27.0.1", "pwsh": "7.6.9",
                         "git-linux": "2.56.0", "git-windows": "2.56.0", "gh": "2.103.3", "jq": "1.8.2", "uv": "0.13.6",
@@ -584,11 +677,71 @@ def self_test() -> int:
     expect("check GREEN when every tool reports the manifest's version, naming this OS's toolchain",
            code == 0 and f"{VERDICT}GREEN — ci: dotnet-sdk 10.0.403, python" in report and "uv" not in report
            and "git-windows 2.56.0" in report and "git-linux" not in report)
-    code, report = check("gate", {**fixed, "JDK_VERSION": "27.0.2"}, lambda c: None if c[0] == "gh" else run(c), "Linux",
+    code, report = check("gate", {**fixed, "JDK_VERSION": "27.0.2"}, lambda c: NotOnPath() if c[0] == "gh" else run(c), "Linux",
                          installer)
     expect("check RED naming a mismatched and an absent tool",
-           code == 1 and "jdk 27.0.1 (toolchain.env 27.0.2)" in report and "gh absent (toolchain.env 2.103.3)" in report
-           and "MISMATCH jdk 27.0.1" in report)
+           code == 1 and "jdk 27.0.1 (toolchain.env 27.0.2)" in report
+           and "gh absent (not on PATH) (toolchain.env 2.103.3)" in report and "MISMATCH jdk 27.0.1" in report)
+
+    # kb/Work PB5616: each thing a probe can do is its own fact, and only "not on PATH" is "absent". A probe that did not
+    # answer, could not start, or answered no version still fails the check (an unresolved version never passes), under
+    # its own name and with its own exit code, and never with the advice to install the tool.
+    outcomes = {"timeout": (TimedOut(PROBE_LIMIT_S), f"dotnet-sdk did not answer within {PROBE_LIMIT_S} s"),
+                "no-start": (NoStart("PermissionError: [WinError 5] Access is denied"),
+                             "dotnet-sdk could not start: PermissionError: [WinError 5] Access is denied"),
+                "no-version": (Answered("The command could not be loaded\r\n" + "x" * 300, 145),
+                               'dotnet-sdk answered no version: "The command could not be loaded\\r\\n'
+                               + "x" * 167 + '", exit 145'),
+                "absent": (NotOnPath(), "dotnet-sdk absent (not on PATH)")}
+    for name, (probe, line) in outcomes.items():
+        code, report = check("gate", fixed, lambda c, probe=probe: probe if c[0] == "dotnet" else run(c), "Linux",
+                             installer)
+        state = "ABSENT  " if name == "absent" else "UNREAD  "
+        expect(f"a dotnet probe outcome '{name}' is the check line `{line}`, RED with exit "
+               f"{1 if name == 'absent' else EXIT_UNREAD}, and only 'absent' advises an install",
+               f"  {state} {line} — toolchain.env names 10.0.403" in report.splitlines()
+               and f"{line} (toolchain.env 10.0.403)" in report
+               and code == (1 if name == "absent" else EXIT_UNREAD)
+               and ("install the manifest's version" in report) == (name == "absent")
+               and ("install nothing" in report) == (name != "absent")
+               and (name == "absent" or "absent" not in report))
+    expect("a good answer from a failing exit still gives its version, and is OK",
+           installed(TOOLS[0], lambda c: Answered("10.0.403\n", 1)) == Reported("10.0.403"))
+    code, report = check("gate", fixed, lambda c: (TimedOut(PROBE_LIMIT_S) if c[0] == "dotnet" else NotOnPath()
+                                                   if c[0] == "gh" else run(c)), "Linux", installer)
+    expect("an absent tool beside an unread one is exit 1 with both named, the install advice only for the absent one",
+           code == 1 and "gh absent (not on PATH) (toolchain.env 2.103.3); install the manifest's version" in report
+           and f"dotnet-sdk did not answer within {PROBE_LIMIT_S} s (toolchain.env 10.0.403): {UNREAD_ADVICE}" in report)
+
+    # The real probe (_run), its process start planted: each outcome of subprocess.run becomes its own Probe, and a
+    # `dotnet --version` that times out is reported as that, never as an SDK that is absent (the 2026-11-15 08:38Z
+    # NOT RUN [toolchain] that called an installed SDK absent; run 000004-20261115T083827Z).
+    def planted(which, outcome):
+        real_which, real_run = shutil.which, subprocess.run
+
+        def fake_run(argv, **kw):
+            if isinstance(outcome, BaseException):
+                raise outcome
+            return subprocess.CompletedProcess(argv, outcome[1], outcome[0], "")
+        shutil.which, subprocess.run = (lambda name: which), fake_run
+        try:
+            return _run(("dotnet", "--version")), check("gate", fixed, _run, "Linux", installer)
+        finally:
+            shutil.which, subprocess.run = real_which, real_run
+    exe = "C:/dotnet/dotnet.exe"
+    probes = {"not on PATH": planted(None, ("", 0)),
+              "timed out": planted(exe, subprocess.TimeoutExpired(["dotnet"], PROBE_LIMIT_S)),
+              "failed to start": planted(exe, OSError(8, "Exec format error")),
+              "answered no version": planted(exe, ("no SDKs were found\n", 1)),
+              "answered": planted(exe, ("10.0.403\n", 0))}
+    got = [p for p, _ in probes.values()]
+    expect(f"_run turns each outcome of the process into its own Probe: {got}",
+           got == [NotOnPath(), TimedOut(PROBE_LIMIT_S), NoStart("OSError: [Errno 8] Exec format error"),
+                   Answered("no SDKs were found\n", 1), Answered("10.0.403\n", 0)])
+    timed_out = probes["timed out"][1][1]
+    expect("a dotnet --version that timed out is reported as not answering within the limit, never as absent",
+           f"dotnet-sdk did not answer within {PROBE_LIMIT_S} s" in timed_out and "dotnet-sdk absent" not in timed_out
+           and "install nothing" in timed_out)
 
     # An image whose git moved under a CI job: a warning there, never a failure; red in the image scope and on a host.
     moved = {**fixed, "GIT_LINUX_VERSION": "2.55.0"}
@@ -706,8 +859,8 @@ def self_test() -> int:
     answers[windows] = readme
 
     # The nightly `images` job (`check --scope image`) reads the same release `latest` does (kb/Work PB5458).
-    def on_image(git: str) -> Callable[[tuple[str, ...]], str | None]:
-        return lambda c: f"git version {git}\n" if c[0] == "git" else run(c)
+    def on_image(git: str) -> Callable[[tuple[str, ...]], Probe]:
+        return lambda c: Answered(f"git version {git}\n", 0) if c[0] == "git" else run(c)
 
     def unreachable(url: str) -> str:
         raise OSError(f"offline: {url}")

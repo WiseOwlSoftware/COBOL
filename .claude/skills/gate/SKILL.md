@@ -164,7 +164,9 @@ re-run). Here, additionally:
   FAILED`, `BUSY` (exit 3: another gate holds
   this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
   2: it measured nothing; the cause's class is `gate_verdict.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
-  `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
+  `[interpreter]` `[toolchain]` `[toolchain-unread]` is no defect of yours (`[toolchain-unread]`: a tool's version
+  command did not answer, could not start or answered no version; install nothing, and file a recurrence against
+  kb/Work PB5616 with its record), BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every host's full log and trx (`Conformance.trx`, `Unit.trx`, `Characterization.trx`), each listing, the first-classes
   file and `verdict.json` (timings, first red, slot, per-assembly wall and effective concurrency).

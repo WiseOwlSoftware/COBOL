@@ -145,20 +145,28 @@ def permission_mode_line(payload: dict | None, default_mode: str | None) -> tupl
 
 def toolchain_line(run=None) -> tuple[str, str, str]:
     """(status, what, detail) for every tool of toolchain.env on this host (scripts/toolchain.py check --scope host):
-    OK when each reports the manifest's version, else ASK-OWNER naming each mismatch, since installing or upgrading a
-    tool (winget on the Windows dev box) is the owner's machine to change."""
+    OK when each reports the manifest's version; ASK-OWNER naming each tool that is absent or of another version, since
+    installing or upgrading a tool (winget on the Windows dev box) is the owner's machine to change; UNREAD naming each
+    tool whose version the host could not read just now (toolchain.Reported.unread, kb/Work PB5616), which is no
+    install for the owner to make and must not be reported as one."""
     import toolchain   # scripts/, on the path above
     try:
         manifest = toolchain.load()
     except (OSError, ValueError) as exc:
         return "ASK-OWNER", "toolchain (toolchain.env)", f"the manifest cannot be read: {exc}"
-    _, bad = toolchain.compare(manifest, "host", *([run] if run else []))
-    if not bad:
+    found = toolchain.compare(manifest, "host", *([run] if run else []))
+    if not found.bad and not found.unread:
         return "OK", "toolchain (toolchain.env)", toolchain.summary(manifest, "host")
-    return ("ASK-OWNER", "toolchain (toolchain.env)",
-            f"{'; '.join(bad)} — the gate refuses this host (NOT RUN [toolchain]) while a tool it runs differs: ask the "
-            "owner to install the manifest's versions (winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL), "
-            "or move toolchain.env forward if the installed one is a newer release (`python scripts/toolchain.py latest`)")
+    said = []
+    if found.bad:
+        said.append(f"{'; '.join(found.bad)} — the gate refuses this host (NOT RUN [toolchain]) while a tool it runs "
+                    "differs: ask the owner to install the manifest's versions (winget on the Windows dev box, "
+                    "scripts/wsl/setup-wsl.sh in WSL), or move toolchain.env forward if the installed one is a newer "
+                    "release (`python scripts/toolchain.py latest`)")
+    if found.unread:
+        said.append(f"{'; '.join(found.unread)} — {toolchain.UNREAD_ADVICE}; the gate stops NOT RUN "
+                    "[toolchain-unread] while a tool it runs is unread")
+    return ("ASK-OWNER" if found.bad else "UNREAD"), "toolchain (toolchain.env)", " · ".join(said)
 
 
 def check(payload: dict | None = None):
@@ -259,9 +267,13 @@ def check(payload: dict | None = None):
             f"prune what it flags, then touch {(acct.config_dir / account.SKILL_REVIEW_STAMP).as_posix()}")
 
     asks = sum(1 for l in out if "ASK-OWNER" in l)
+    unread = sum(1 for l in out if l.lstrip().startswith("UNREAD"))
     head = ("TOOLING (kb/Work R49) — every line is checked, not assumed. "
             + (f"⛔ {asks} ASK-OWNER line(s): ask the owner about EACH at the start of this session "
-               "(AskUserQuestion, one bare question each) — never skip one silently.\n" if asks else "all ready.\n"))
+               "(AskUserQuestion, one bare question each) — never skip one silently. " if asks else "")
+            + (f"⛔ {unread} UNREAD line(s): a fact this check needs could not be read just now; the line says what "
+               "happened (kb/Work PB5616). " if unread else "")
+            + ("\n" if asks or unread else "all ready.\n"))
     return head + "\n".join(out) + "\n"
 
 
@@ -374,16 +386,22 @@ def self_test() -> int:
     # kb/Work PB4007: a tool reporting another version than toolchain.env's, or none, is ASK-OWNER naming it.
     import toolchain
     manifest = toolchain.load()
-    status, _, detail = toolchain_line(lambda command: None)
-    if status != "ASK-OWNER" or "absent (toolchain.env" not in detail or "NOT RUN [toolchain]" not in detail:
+    status, _, detail = toolchain_line(lambda command: toolchain.NotOnPath())
+    if status != "ASK-OWNER" or "absent (not on PATH) (toolchain.env" not in detail or "NOT RUN [toolchain]" not in detail:
         fails.append(f"a host with no tools is not ASK-OWNER naming each: {status} — {detail}")
+    # kb/Work PB5616: a tool that did not answer is no install to ask the owner for; it is named as what happened.
+    status, _, detail = toolchain_line(lambda command: toolchain.TimedOut(toolchain.PROBE_LIMIT_S))
+    if (status != "UNREAD" or f"did not answer within {toolchain.PROBE_LIMIT_S} s" not in detail or "absent" in detail
+            or "NOT RUN [toolchain-unread]" not in detail or "install the manifest" in detail):
+        fails.append(f"a host whose tools did not answer is not UNREAD naming what happened: {status} — {detail}")
     # git's manifest line is this OS's (GIT_LINUX_VERSION or GIT_WINDOWS_VERSION): the one row `host` holds here.
     git = next(t.key for t in toolchain.held("host") if t.command and t.command[0] == "git")
     reports = {"dotnet": manifest["DOTNET_SDK_VERSION"], "java": f'java version "{manifest["JDK_VERSION"]}"',
                "pwsh": f"PowerShell {manifest['PWSH_VERSION']}", "git": f"git version {manifest[git]}",
                "gh": f"gh version {manifest['GH_VERSION']}", "jq": f"jq-{manifest['JQ_VERSION']}",
                "uv": f"uv {manifest['UV_VERSION']}", "semgrep": manifest["SEMGREP_VERSION"]}
-    status, _, detail = toolchain_line(lambda command: reports.get(command[0]))
+    status, _, detail = toolchain_line(lambda command: toolchain.Answered(reports[command[0]], 0)
+                                       if command[0] in reports else toolchain.NotOnPath())
     python_matches = toolchain.platform.python_version() == manifest["PYTHON_VERSION"]
     if (status == "OK") != python_matches:
         fails.append(f"a host whose tools all report the manifest's versions is not OK: {status} — {detail}")

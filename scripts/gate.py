@@ -83,7 +83,8 @@ It is GREEN only when every host is green and every population is exact.
 
 Exit codes: 0 GREEN (reused or run) · 1 RED (or the build failed) · 2 NOT RUN [<cause>] (the population could not be
 listed, the driver failed, the gate's process DIED with no verdict (`--await`, or the follower): BRANCH, the tree's own
-code; the toolchain is not toolchain.env's: ENVIRONMENT; NOT_RUN_CAUSES classifies every cause once) · 3 BUSY (another
+code; the toolchain is not toolchain.env's, or a tool's version could not be read: ENVIRONMENT; NOT_RUN_CAUSES
+classifies every cause once) · 3 BUSY (another
 gate holds this worktree's gate lock: nothing ran and nothing is red; wait for it and re-run, or `--await` its run,
 kb/Work PB3527) · 4 PENDING (`--await`: no verdict within `--wait-s`). `read_verdict` is the ONE reader of a verdict
 line's text (GREEN, BUSY, NOT RUN with its cause, or RED); enqueue.py's landing reads through it, and so does `--await`
@@ -295,12 +296,24 @@ class Gate:
         # audits start with the lane and run beside the slot wait, the build and the test hosts.
         # ⛔ FIRST, THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a gate under any other
         # measures what CI will not run (#734 was GREEN here on Python 3.14 and RED in CI's 3.12). Nothing runs on it.
-        matched, tools = self.host.toolchain()
-        if not matched:
+        # A tool whose version the host could not read just now (it did not answer, could not start, or answered no
+        # version) is its own cause, never "absent": the gate must not tell the operator to install a tool that is
+        # installed, and the line keeps what happened so a recurrence is root-caused from its record (kb/Work PB5616).
+        host_tools = self.host.toolchain()
+        cause, tools = host_tools.cause, host_tools.tools
+        if cause == "toolchain":
             return self._finish(out, run, NOT_RUN_CAUSES["toolchain"].verdict,
                                 f"this host's tools are not toolchain.env's: {tools}. Install the manifest's versions "
                                 "(winget on the Windows dev box, scripts/wsl/setup-wsl.sh in WSL; `python "
                                 f"scripts/toolchain.py check --scope host` lists them); nothing ran (run {run.name})", 2)
+        if cause == "toolchain-unread":
+            return self._finish(out, run, NOT_RUN_CAUSES["toolchain-unread"].verdict,
+                                f"this host could not read a tool's version just now: {tools}. The tool is NOT shown "
+                                "to be missing or of another version, so install nothing: this line is the record of "
+                                "what happened, and a recurrence is root-caused from it (kb/Work PB5616); nothing ran "
+                                f"(run {run.name})", 2)
+        if cause is not None:
+            raise ValueError(f"Host.toolchain answered the cause {cause!r}, which the gate does not stop on")
         out.toolchain = tools
         self.say(f"build-local: toolchain (toolchain.env) {tools}")
         lane = self.host.lane(out.base, out.tree)
