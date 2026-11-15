@@ -18,7 +18,7 @@
  "expectDiagnostic": "COBOL0902",
  "expectDiagnosticBelow": "COBOL0900",
  "vcr": "VCR row 28 (Annex E.2 item 21 removal) + the §2023:7.3 facility's 2002 introduction",
- "source": "       >>FLAG-NATIVE-ARITHMETIC STANDARD-BINARY\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725FN.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n",
+ "source": "       >>FLAG-NATIVE-ARITHMETIC ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB725FN.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n           STOP RUN.\n",
  "directivePlacement": {
   "rule": "betweenClauses",
   "citation": "§2002:7.2.12.2 SR1",
