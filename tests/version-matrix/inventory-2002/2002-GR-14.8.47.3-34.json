@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-34",
+ "rule-digest": "ae5934a81473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR34: sequential access, a key below the last one written is '21' (W3); in extend mode a key not above the highest in the file at OPEN (X1) or written through the connector (X3) is '21'; INVALID KEY runs each time."
+}

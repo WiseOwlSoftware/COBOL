@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-4",
+ "rule-digest": "2b2bead3f260",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_relative_write_rewrite_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR4 with GR3: WRITE record-name-1 FROM SPACE is the MOVE of one alphanumeric space, which fills the six-character record (S1)."
+}

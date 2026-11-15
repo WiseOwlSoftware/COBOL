@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-22",
+ "rule-digest": "4541e90fedf4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.33.3 GR22: dynamic access, a REWRITE of a prime key no record has is '23' and takes INVALID KEY (R1)."
+}

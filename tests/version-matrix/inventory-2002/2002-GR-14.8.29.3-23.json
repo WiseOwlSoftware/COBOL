@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-23",
+ "rule-digest": "9b3918c32fa3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadPrevious",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.29.3 GR23: duplicates of an alternate key written 05, 09, 01 are made available by READ NEXT in that order (AK lines) and by READ PREVIOUS in the reverse order (AP lines), status 02 while a further duplicate follows."
+}

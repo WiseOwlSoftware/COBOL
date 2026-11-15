@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-24",
+ "rule-digest": "d2228be59894",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.33.3 GR24 a) '21' (S1), b) '23' (R1), c) an alternate key without DUPLICATES equal to another record's is '22' (R2); the update does not take place (R2-FILE reads the record unchanged) and the record area keeps what the program moved to it."
+}

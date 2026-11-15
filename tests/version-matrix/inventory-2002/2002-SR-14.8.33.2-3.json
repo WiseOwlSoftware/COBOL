@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-3",
+ "rule-digest": "0e9236bbd25c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-sequential-org; conformance:cases/14.9.35-REWRITE/rewrite-invalid-key-relative-sequential",
+ "notes": "kb/Work PB5579: §2002:14.8.33.2 SR3, both arms (sequential organization; relative organization with sequential access): an INVALID KEY phrase on such a REWRITE is refused COBOL1720 at COBOL-2002 as at every edition; the two refusals' refuse-at lists 2002."
+}

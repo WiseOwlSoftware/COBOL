@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-7",
+ "rule-digest": "d35a2596f7ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5579_relative_write_rewrite_2002; unit:CobolFileLockTests.WriteShared_WithLock_LocksTheWrittenRecord_AndSingleLockingReleasesItOnTheNextWrite",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR7: LOCK MODE AUTOMATIC (single record locking), connector A's READ locks record 1, connector B's READ is '51'; after A's WRITE of record 5 the lock is released and B reads record 1 '00'."
+}
