@@ -1233,9 +1233,8 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // ambiguity (kb/Work PB3767) or nothing.
         // At COBOL-85 that section rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced wherever the
         // reference is written, so it is the clause's data-name, and the clause's own rules judge it (kb/Work PB5310).
-        if (survivors.Count == 0 && !inReportSection
-            && ReportSection.SumCounterOperand85(name, quals, $"{clauseFace} '{written}'") is { } counter) return counter;
-        if (ReportSection.ReportEntryReferenceRefused(survivors, $"{clauseFace} '{written}'", name, quals, inReportSection)) return null;
+        if (ReportSection.ReportItemOperandRefused(survivors, $"{clauseFace} '{written}'", name, quals, out var counter, inReportSection)) return null;
+        if (counter is not null) return counter;
         if (survivors.Count > 1) return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
         // A name declared as something other than a data item is not undefined (kb/Work PB1906): the one query of what
         // it is, the same the procedure division's unidentified reference asks. A refused declaration was reported.

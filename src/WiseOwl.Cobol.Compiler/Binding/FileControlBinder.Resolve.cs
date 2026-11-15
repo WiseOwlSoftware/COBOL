@@ -66,11 +66,17 @@ public sealed partial class FileControlBinder
                 // leaves standing unless a report entry of a NEARER source element hides the data items (kb/Work
                 // PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 3) a)); a key item of the file's own
                 // record is never hidden.
-                if (inFile.Count == 0 && cands.Count != 1
-                    && _host.ReportSection.ReportEntryReferenceRefused(cands, $"{face} '{written}'", keyName, quals))
+                // At COBOL-85 a sum counter is not refused here: §1985:XIII.3.9.3 SR10d makes it a data-name wherever it is written, so
+                // it is the key's operand and SR2's own row ("within a record description entry associated with the file-name",
+                // §1985:IX.2.7.3 SR2 / §1985:IX.2.5.3 SR2) reports it outside this file's records (kb/Work PB5361).
+                if (inFile.Count == 0 && cands.Count != 1)
                 {
-                    refusedKeys.Add(keyName);
-                    return null;
+                    if (_host.ReportSection.ReportItemOperandRefused(cands, $"{face} '{written}'", keyName, quals, out var counter))
+                    {
+                        refusedKeys.Add(keyName);
+                        return null;
+                    }
+                    if (counter is not null) return counter;
                 }
                 var hit = _host.UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face, written, out bool ambiguous);
                 if (ambiguous && hit is null) refusedKeys.Add(keyName);
@@ -308,7 +314,7 @@ public sealed partial class FileControlBinder
                 Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                     $"LINAGE clause operand '{name}' is {fault}; data-name-1, data-name-2, data-name-3, and "
                     + "data-name-4 shall reference elementary unsigned numeric integer data items "
-                    + "(ISO §2023:13.18.34.3 SR2)");
+                    + $"({LinageClauseRules.Operand.CitationAt(Edition, "ISO §2023:13.18.34.3 SR2")})");
         }
         // SR3 — both operands are literals, so the relation is known now and is a syntax rule.
         if (lin.Body.Literal is int page && lin.Footing is { Literal: int footing } foot && footing > page)
@@ -316,7 +322,7 @@ public sealed partial class FileControlBinder
             using var _ = Edition.At(foot.At);
             Edition.Error(DiagnosticCatalog.LinageClauseOperandRule,
                 $"LINAGE clause: FOOTING AT {footing} is greater than the page size {page}; integer-2 shall not be "
-                + "greater than integer-1 (ISO §2023:13.18.34.3 SR3)");
+                + $"greater than integer-1 ({LinageClauseRules.Footing.CitationAt(Edition, "ISO §2023:13.18.34.3 SR3")})");
         }
     }
 
@@ -362,9 +368,11 @@ public sealed partial class FileControlBinder
         // data items (kb/Work PB3767's order, kept by the lookup itself since PB4196, ISO §2023:8.4.6.2.1 3) a)). The subject is the head of the refusal, so it
         // names the phrase as written, never `ASSIGN … USING` (kb/Work PB4160: a head that elides the statement renders
         // `ASSIGN . USING` on the console).
+        DataItem? counter = null;
         if (candidates.Count != 1
-            && _host.ReportSection.ReportEntryReferenceRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers)) return;
-        DataItem? item = _host.UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out bool ambiguous);
+            && _host.ReportSection.ReportItemOperandRefused(candidates, $"ASSIGN USING '{written}'", dynName, file.AssignUsingQualifiers, out counter)) return;
+        bool ambiguous = false;
+        DataItem? item = counter ?? _host.UniqueOrReportAmbiguous(candidates, "ASSIGN USING", written, out ambiguous);
         if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {

@@ -233,7 +233,7 @@ public sealed class ReportItemReferenceTests
             Assert.Contains("ReportEntryReferenceRefused(", File.ReadAllText(Path.Combine(root, rel)));
 
         string dataBinder = Path.Combine(root, "Binding", "DataBinder.cs");
-        Assert.Contains("ReportEntryReferenceRefused(",
+        Assert.Contains("ReportItemOperandRefused(",
             MethodText(dataBinder, "internal DataItem? ResolveClauseOperand("));   // FILE STATUS / RELATIVE KEY / LINAGE / APPLY COMMIT
         string fileResolve = Path.Combine(root, "Binding", "FileControlBinder.Resolve.cs");   // the file binder's post-build half (kb/Work PB2296 M7)
         foreach (string arm in new[]
@@ -241,7 +241,7 @@ public sealed class ReportItemReferenceTests
                      "private void ResolveAssignUsing(",          // ASSIGN … USING (kb/Work PB3768)
                      "DataItem? InRecords(",                      // RECORD KEY / ALTERNATE RECORD KEY (kb/Work PB3768's sibling)
                  })
-            Assert.Contains("ReportEntryReferenceRefused(", MethodText(fileResolve, arm));
+            Assert.Contains("ReportItemOperandRefused(", MethodText(fileResolve, arm));   // the one ask that carries the COBOL-85 edge (kb/Work PB5361)
 
         var reporters = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
             .Where(f => !f.Contains("Generated", StringComparison.Ordinal) && !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
