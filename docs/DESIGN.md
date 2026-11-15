@@ -56,6 +56,7 @@ C# mapping with worked examples + hard problems + edge cases + ISO citations):
 | tooling | The differential fuzz and its morning triage (the harness, the night wrapper, `scripts/fuzz_triage.py`, the triage Workflow, and the filing of GnuCOBOL-side defects as `upstream` notes; kb/Work PB3972) | `docs/rearchitecture/DESIGN-differential-fuzz.md` |
 | §8/§9 | The communication facility of COBOL-85 and 2002 (ISO/IEC 1989:2002 Annex A): the COMMUNICATION SECTION, its statements and WiseOwl COBOL's message control system, a paged store with a socket bell (kb/Work PB4677, PB4734-PB4738) | `docs/rearchitecture/DESIGN-communication-facility.md` |
 | §8/§9 | The asynchronous messaging facility of COBOL 2023 (§2023:14.9.38 SEND, §2023:14.9.31 RECEIVE, USAGE MESSAGE-TAG): the language, the message-tag type, binding, code generation and its peer transport over AF_UNIX sockets (kb/Work PB4700, PB4739-PB4745) | `docs/rearchitecture/DESIGN-message-control.md` |
+| §8/§9 | The VALIDATE facility of COBOL 2002 and later (§2002:14.8.46 and the validation clauses): bind-time expansion into a per-element plan, the five stages, the internal indicator, VALIDATE-STATUS (kb/Work PB5577; DESIGN, not yet built) | `docs/rearchitecture/DESIGN-validate-facility.md` |
 | §17 | Project organization & rename | `docs/PROJECT_ORG_DESIGN.md` |
 
 This SSOT stays authoritative for the **locked invariants (§1)**, the **cross-cutting consistency (§14)**, the
