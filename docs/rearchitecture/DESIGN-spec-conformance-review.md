@@ -1826,7 +1826,9 @@ none), `no-edition` and `uncommitted`. The plan counts rows by state and by reas
 writes each row's own program. With `--apply --compiler EXE --scratch DIR` it adds the
 edition to each widenable case's header (`accept` and the flag's `at`, a flagged case's control with it; the method of the
 S1 measurement, kb/Work PB5574) or refusal entry, PROVING FIRST AND WRITING LAST (review R2-1): each candidate's band is
-widened in memory, checked by the generator's own `check_cases` and given its manifest entries by `entry_for`
+widened in memory, checked by the generator's own `check_cases` (which holds every refusal that depends on the
+editions a case is placed at, `check_editions`: free form and a run-time expectation before 2002, kb/Work PB5730) and
+given its manifest entries by `entry_for`
 (`Witnesses.entries`), and run at the edition by the suite's runner (`run.py`) on a manifest in the scratch, which must be
 empty at the start; a run that exits outside 0 and 1 (the statuses on which it ran every test and wrote its results)
 proves nothing it was to judge; a refusal test must be refused with its expected diagnostic. Only then is the proof
@@ -1871,7 +1873,8 @@ that runs at 85, never as new KEPT records. The 1,373 KEPT records its own audit
 records; each closes only on a witness of its own, which `witness-batch` found for 570 of them (every target witnessed
 at 85); 232 have a witness for some targets and 571 for none, so they are GAP (measured 2026-11-15: 1985 from 32 GAP to
 835, the count becoming true). The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
-terms is still owed, so 835 is a lower bound.
+terms is still owed, so 835 is a lower bound. The widening of the stored rows (kb/Work PB5730, 2026-11-15) proved 74
+suite cases at 85 and `witness-batch` then closed 64 rows (835 to 771 GAP; 634 KEPT records with their own witness).
 
 **Measured on 2026-11-15** at the head of review round 2 (all 69 slices then written, the `t-*` slices included; 1,720
 rules): kept before the evidence check 300; refused 632, every one for a flag the screen raises and the slice never asked

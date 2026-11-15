@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.21.4-5",
  "rule-digest": "a9932aabb5ff",
+ "test-ref": "conformance:cases/14.9.28-PERFORM/pb432_varying_brace_group; conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match; conformance:cases/14.5.3.2-Explicit-scope-termination/l1c31_scope_termination",
  "next": {
   "kind": "KEPT",
   "to": [

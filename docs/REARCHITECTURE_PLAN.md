@@ -63,7 +63,12 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
-  verdicts, never as new KEPT records (its word-identical pairing is empty).
+  verdicts, never as new KEPT records (its word-identical pairing is empty). **The 1985 widening (kb/Work PB5730):**
+  `widen` now plans the stored KEPT rows too; of the 803 it planned 483 widenable and 320 needing a witness of their
+  own, proved 74 of 365 candidate cases at 85 and wrote them, and `witness-batch` closed **64 rows: 1985 from 835 to
+  771 GAP** (738 inherited without an own-edition witness; 634 of the 1,373 KEPT records now carry their own). Of the
+  291 cases not proven, 258 use a later construct and 33 the generator refuses (a run-time expectation before 2002); none
+  is a suspected defect. The 739 rows still owed are the witness lane's (320 held, 419 in `remaining-1985.json`).
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's
