@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-7",
+ "rule-digest": "01cee4790bf1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvoke",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv01-cd-identifier-2-and-single-identifier-args; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv02-cd-identifier-2-typed-receiver",
+ "notes": "Same text as the 2023 twin. At --std 2002, INVOKE U MNAME and INVOKE U MNATL, with U universal and identifier-2 a record item under a CD entry (no 2002 rule restricts identifier-2's section), run GREET (1=HI, 2=HI), and INVOKE O MNAME with typed O is refused COBOL0866 at its line (§2002:14.8.22.2 SR7)."
+}

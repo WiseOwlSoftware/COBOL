@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.10.3-17",
+ "rule-digest": "80c3b6f1d26d",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportDisplayScreen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundDisplay; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#displayStatement",
+ "test-ref": "conformance:wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-exception",
+ "notes": "§2002:14.8.10.3 GR17 governs the screen format (FORMAT 2), which §2002:B.3 makes processor-dependent and §2002:3.1.5 lets an implementation leave unimplemented with a compile-time diagnostic; DISPLAY screen-name ON EXCEPTION ... NOT ON EXCEPTION is declined at --std 2002 with COBOL1707 at the DISPLAY (a42-display-screen-exception, run now). Licence (the 2002 read's licence-2002): §2002:B.3 with §2002:3.1.5. Re-run by the golden-2002-3 integrator on main 63ab0c4ece: rc 65, COBOL1707 at the DISPLAY."
+}

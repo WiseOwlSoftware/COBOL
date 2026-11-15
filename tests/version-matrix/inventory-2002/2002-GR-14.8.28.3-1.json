@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.28.3-1",
+ "rule-digest": "c301cdcf0344",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#Set; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#BindRaise",
+ "test-ref": "conformance:cases/14.8.28@2002-RAISE-STATEMENT/g2rai01_raise_object_and_name",
+ "notes": "§2002:14.8.28.3 GR1: RAISE EXCEPTION of a turned-on EC-USER name that has a USE raises it, so DU runs and EXCEPTION-STATUS names it, and EXCEPTION-OBJECT goes from OA to null. g2rai01 lines DECL-H and N2 matched the derivation at --std 2002."
+}

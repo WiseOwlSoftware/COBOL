@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.33.2-6",
+ "rule-digest": "9b663a6699cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Rewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw03_from_sender_validity",
+ "notes": "§2002:14.8.33.2 SR6 defers to the 2002 MOVE validity rules (§2002:14.8.24.2 SR5, SR8 table 17, table 18): REWRITE of a 9(5) record FROM ALL \"7\", a CD record numeric item and an alphanumeric item is accepted with 77777/00456/00123, HIGH-VALUE/LOW-VALUE/QUOTE compile; FROM SPACE and FROM an alphabetic CD item are refused COBOL0819 (g2rw04, g2rw05). --std 2002 output equal to the derivation."
+}

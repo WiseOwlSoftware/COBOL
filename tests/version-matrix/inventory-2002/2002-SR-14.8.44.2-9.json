@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.44.2-9",
+ "rule-digest": "9da4fc1dc5f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#UnstringInto; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringIntoTarget",
+ "test-ref": "conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/g2_unstring_receiving_operands",
+ "notes": "§2002:14.8.44.2 SR9: identifier-4 receives the data and identifier-5 the delimiter, in working storage (U1-U3: [ABC ][,][03], [DE  ][;][02], [FGH ][ ][03]) and in an input CD record (C1: [AB  ][,][02][CDE ][03]). Matched at --std 2002 on the dc1f2dcce8 build."
+}
