@@ -53,12 +53,12 @@ public sealed class DeclinedFacilityAnnexDriftTests
     /// <summary>The population assertion (feedback_verdict_evidence_invariant). A decline band that parsed to
     /// nothing — a renamed heading, a descriptor set that lost its annex argument — would make every obligation
     /// below vacuously green, which is exactly the failure this class exists to stop. Eleven descriptors carried
-    /// the datum when it was introduced; the floor is deliberately below that so ADDING one is never a red, while
-    /// LOSING the band still is.</summary>
+    /// the datum before COBOL1705 retired and ten remain (kb/Work PB5578: the optional module A.4.8 is claimed); the floor is deliberately below that so ADDING one is never a red,
+    /// while LOSING the band still is.</summary>
     [Fact]
     public void TheDeclinedBand_AndBothRegisters_AreNonEmpty()
     {
-        Assert.True(Declined().Count >= 11,
+        Assert.True(Declined().Count >= 8,
             $"only {Declined().Count} descriptor(s) carry a DeclinedAnnex — the declined band has lost its annex "
             + "datum and every check in this class would pass without looking at anything");
         Assert.NotEmpty(CodesUnder("A3"));
