@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.2-4",
+ "rule-digest": "873249b01de0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/FlagDirective.cs#FlagDirectiveLine",
+ "test-ref": "conformance:cases/7.2.11@2002-FLAG-85/pb5600-flag85-trailing-text; conformance:cases/7.2.12@2002-FLAG-NATIVE-ARITHMETIC/pb5600-flag-native-arithmetic-option-word",
+ "notes": "§2002:7.2.2 SR4: a free-form directive may be followed only by space characters and an optional inline comment. The same operand check serves both reference formats (CompilerDirectiveLine.TryParse splits off the inline comment; the format's own parse refuses any other trailing word). kb/Work PB5600: `>>FLAG-85 ALL ON JUNK` and `>>FLAG-NATIVE-ARITHMETIC ALL ON` were accepted in silence and are refused (COBOL1622) at 2002 and 2014."
+}
