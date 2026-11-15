@@ -897,7 +897,21 @@ internal static class FileControlKeyRules
     private static readonly FileControlKeyRule[] Rules85 =
         [.. Rules.Where(r => Rules1985.All(n => n.Supersedes != r.RuleId)), .. Rules1985];
 
-    private static readonly FileControlKeyRule[] Rules02 = [.. Rules, .. Rules2002];
+    /// <summary>⛔ THE 2023 ROWS COBOL-2002's TEXT DOES NOT PRINT (kb/Work PB5602): the OCCURS bans of the three key clauses. §2002:12.3.4.12.2 SR1,
+    /// §2002:12.3.4.5.2 SR1 and §2002:12.3.4.13.2 SR1 each say only "may be qualified" — a data-name-n at COBOL-2002 includes
+    /// subscription if needed (§2002:5.1.3) — so the key names the occurrence its integer-literal subscripts select, and an
+    /// unsubscripted table element is §2002:8.4.1.2.2 SR5's omitted subscript, which <c>DataBinder.ScreenOperandOccurrence</c> screens
+    /// once the operand resolves. The 2014 text added the ban (§2014:12.4.4.11.2 SR1 "shall not be subscripted"). The pair is the row's
+    /// 2023 id and the 2002 clause whose syntax rules lack it, for <c>FileControlKeyRuleDriftTests</c>.</summary>
+    internal static readonly (string RuleId, string Clause2002)[] Absent2002 =
+    [
+        ("SR-12.4.5.12.3-1", "12.3.4.12.2"),
+        ("SR-12.4.5.6.3-1", "12.3.4.5.2"),
+        ("SR-12.4.5.13.3-1", "12.3.4.13.2"),
+    ];
+
+    private static readonly FileControlKeyRule[] Rules02 =
+        [.. Rules.Where(r => Absent2002.All(a => a.RuleId != r.RuleId)), .. Rules2002];
 
     /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<EntryClause> EntryClauseCatalog => EntryClauses;

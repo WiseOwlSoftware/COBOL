@@ -339,6 +339,11 @@ public sealed class FileModel
     /// (kb/Work PB489, the shape measured on the LINAGE clause).</summary>
     public IReadOnlyList<string> FileStatusQualifiers { get; set; } = [];
 
+    /// <summary>The integer-literal subscripts written on the FILE STATUS data-name, outermost table level first — COBOL-2002 only
+    /// (§2002:5.1.3: data-name-n "including qualification and subscription if needed"; §2002:12.3.4.7.2 SR1 says only "may be
+    /// qualified"); empty at every other edition, which refuses the subscript (kb/Work PB5602).</summary>
+    public IReadOnlyList<int> FileStatusSubscripts { get; set; } = [];
+
     /// <summary>The source position of the FILE STATUS clause's data-name — where its post-build resolution
     /// reports (the operand resolves only once the data forest is indexed).</summary>
     public WiseOwl.Cobol.Editions.DiagnosticCursor FileStatusAt { get; set; }
@@ -522,6 +527,21 @@ public sealed class FileModel
     /// <summary>The RELATIVE KEY data-name's IN/OF qualifier words, innermost first (ISO §2023:8.4.2.2) — see
     /// <see cref="FileStatusQualifiers"/> for why a clause operand keeps them (kb/Work PB489).</summary>
     public IReadOnlyList<string> RelativeKeyQualifiers { get; set; } = [];
+
+    /// <summary>The integer-literal subscripts written on the RELATIVE KEY data-name, outermost table level first — COBOL-2002
+    /// only (§2002:5.1.3; §2002:12.3.4.13.2 SR1 "may be qualified"); see <see cref="FileStatusSubscripts"/> (kb/Work PB5602).</summary>
+    public IReadOnlyList<int> RelativeKeySubscripts { get; set; } = [];
+
+    /// <summary>The "corresponding external data item" identity (§2023:14.8.4.2) of the item the FILE STATUS clause names: the item's
+    /// <see cref="DataItem.ExternalItemIdentity"/> and, at COBOL-2002, the occurrence its subscripts select (kb/Work PB5602) —
+    /// <c>FS(1)</c> and <c>FS(2)</c> of one external table are two items. Null when the clause names no external item.</summary>
+    public string? FileStatusExternalIdentity => OccurrenceIdentity(FileStatusItem, FileStatusSubscripts);
+
+    /// <summary>The external identity of the RELATIVE KEY item, as <see cref="FileStatusExternalIdentity"/> reads FILE STATUS.</summary>
+    public string? RelativeKeyExternalIdentity => OccurrenceIdentity(RelativeKeyItem, RelativeKeySubscripts);
+
+    private static string? OccurrenceIdentity(DataItem? item, IReadOnlyList<int> subscripts) =>
+        item?.ExternalItemIdentity() is { } id ? subscripts.Count == 0 ? id : $"{id}({string.Join(",", subscripts)})" : null;
 
     /// <summary>The source position of the RELATIVE KEY clause's data-name-1 — where §2023:12.4.5.13.3's three syntax
     /// rules report (screened post-build, once the operand resolves).</summary>

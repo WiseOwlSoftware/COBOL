@@ -31,6 +31,8 @@ public sealed partial class FileControlBinder
             if (file.FileStatusName is { } sn)
             {
                 file.FileStatusItem = _host.ResolveClauseOperand(sn, file.FileStatusQualifiers, "FILE STATUS", file.FileStatusAt);
+                ScreenClauseOperandOccurrence(file.FileStatusItem, file.FileStatusSubscripts, "FILE STATUS", sn, file.FileStatusQualifiers,
+                    file.FileStatusAt, v => file.FileStatusItem = v);
                 ScreenFileStatusItem(file);   // §2023:12.4.5.8.3 — the clause's own syntax rules over the resolved item
             }
             // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
@@ -110,7 +112,11 @@ public sealed partial class FileControlBinder
             }
             ResolveFileCollating(file);   // §2023:12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl)
+            {
                 file.RelativeKeyItem = _host.ResolveClauseOperand(rl, file.RelativeKeyQualifiers, "RELATIVE KEY", file.RelativeKeyAt);
+                ScreenClauseOperandOccurrence(file.RelativeKeyItem, file.RelativeKeySubscripts, "RELATIVE KEY", rl, file.RelativeKeyQualifiers,
+                    file.RelativeKeyAt, v => file.RelativeKeyItem = v);
+            }
             if (file.Padding is { DataName: { } pn } pad)
             {
                 pad.Item = _host.ResolveClauseOperand(pn, pad.Qualifiers, "PADDING CHARACTER", pad.At);
@@ -139,6 +145,26 @@ public sealed partial class FileControlBinder
         ResolveValueOfDataNames();   // §1985:VII.3.9.3 SR1, SR2 (kb/Work PB5070)
         ResolveApplyCommit();   // §2023:12.4.6.3.3 — its identifiers, and SR9's FILE STATUS / LINAGE / RECORD items resolved above
     }
+
+    /// <summary>⛔ THE WRITTEN SUBSCRIPTS OF A RESOLVED FILE-CLAUSE OPERAND, SCREENED (kb/Work PB5602): COBOL-2002's data-name-n
+    /// is a user-defined word "including qualification and subscription if needed" (§2002:5.1.3), so the operand names the
+    /// occurrence its literal subscripts select, and the rules of §2002:8.4.1.2.2 SR2/SR3/SR5 and §2002:8.4.1.2.3 GR2 are asked of
+    /// it once, by <see cref="DataBinder.ScreenOperandOccurrence"/>. A refusal makes the clause resolve to no item
+    /// (<paramref name="clear"/>), so the rules judging the item stay silent and the refusal is the one verdict. Only an
+    /// edition that admits the subscript asks (the others refused it at capture and reach the item as before).</summary>
+    private void ScreenClauseOperandOccurrence(DataItem? item, IReadOnlyList<int> subscripts, string face, string name,
+        IReadOnlyList<string> quals, Editions.DiagnosticCursor at, Action<DataItem?> clear)
+    {
+        if (item is null || !DataBinder.AdmitsSubscriptedDataName(Edition)) return;
+        using var _ = Edition.At(at);
+        if (!DataBinder.ScreenOperandOccurrence(item, subscripts, face, DataBinder.WrittenQualified(name, quals) + WrittenSubscripts(subscripts),
+                Edition))
+            clear(null);
+    }
+
+    /// <summary>The subscripts as written, <c>(2, 1)</c>, for a diagnostic; empty for none.</summary>
+    private static string WrittenSubscripts(IReadOnlyList<int> subscripts) =>
+        subscripts.Count == 0 ? "" : $"({string.Join(", ", subscripts)})";
 
     /// <summary>Screen the FILE STATUS clause's data-name-1 against the clause's own syntax rules (ISO §2023:12.4.5.8.3) —
     /// the FILE-CONTROL twin of <see cref="ResolveLinage"/>'s operand screen, run post-build for the same reason: an
@@ -170,8 +196,10 @@ public sealed partial class FileControlBinder
         if (file.FileStatusItem is not { } item) return;   // unresolved — reported by the resolution, one verdict
         using var _ = Edition.At(file.FileStatusAt);
         string face = DataBinder.WrittenQualified(file.FileStatusName!, file.FileStatusQualifiers);
+        // §2002:12.3.4.7.2 prints no such rule (SR1 "may be qualified", SR2 the two-character item): a COBOL-2002 FILE STATUS names the
+        // occurrence its subscripts select (kb/Work PB5602), judged by DataBinder.ScreenOperandOccurrence.
         string? fault =
-            RecordLayout.IsSubjectToOccurs(item)
+            RecordLayout.IsSubjectToOccurs(item) && !DataBinder.AdmitsSubscriptedDataName(Edition)
                 ? "is subject to an OCCURS clause; data-name-1 shall not be subject to any OCCURS clauses "
                   + "(ISO §2023:12.4.5.8.3 SR1)"
             : SubjectToBased(item)

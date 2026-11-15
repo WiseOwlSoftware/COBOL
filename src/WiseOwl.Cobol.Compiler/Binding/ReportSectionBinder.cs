@@ -3639,7 +3639,15 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                             Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
                                 + "resolve to a data item (ISO §2023:8.4.2.1)");
                     }
-                    else if (ctl.Item is { } ctlItem && ControlOperandShapeViolation(ctlItem) is { } shape)
+                    // COBOL-2002 names an OCCURS item by its subscripted reference (§2002:8.4.1.2.2 SR5), so its SR3-equivalent
+                    // is the written subscripts' own rules (kb/Work PB5602); the later editions' "subject to an OCCURS clause" is
+                    // ControlOperandShapeViolation's first arm.
+                    else if (ctl.Item is { } occItem && DataBinder.AdmitsSubscriptedDataName(Edition) && !op.SubscriptRefused
+                             && !DataBinder.ScreenOperandOccurrence(occItem, op.Subscripts, $"RD '{model.Name}': CONTROL operand",
+                                 op.ToString(), Edition))
+                    { /* reported by the screen */ }
+                    else if (ctl.Item is { } ctlItem
+                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: DataBinder.AdmitsSubscriptedDataName(Edition)) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
                     // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
@@ -4724,10 +4732,32 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     {
         var (name, quals) = DataBinder.KeyReference(dref);
         var sfx = RefModBinder.ReadOperandSuffixes(dref);
+        IReadOnlyList<int> subscripts = [];
+        bool subscriptRefused = false;
         if (sfx.Subscripts > 0)
-            Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
-                + "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
-                + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+        {
+            // ⛔ COBOL-2002 ADMITS THE SUBSCRIPT (kb/Work PB5602): §2002:13.16.15.2 SR3 says only "Data-name-1 may be
+            // qualified", and §2002:5.1.3 makes a data-name-n operand a user-defined word "including qualification and
+            // subscription if needed"; §2014:13.18.16.2 SR3 ("shall not be subscripted") and §2023:13.18.16.3 SR3 took it away.
+            // The same written reference names the level in a TYPE CH/CF operand and a RESET ON operand (§2002:13.16.55.2 SR10),
+            // so all three admit it here, once. The prior control is one data item (GR3), so each subscript is an integer literal.
+            if (DataBinder.AdmitsSubscriptedDataName(Edition))
+            {
+                if (sfx.Subscript.NonLiteral)
+                {
+                    subscriptRefused = true;
+                    Edition.Error(DiagnosticCatalog.ClauseOperandSubscriptNotLiteral,
+                        $"{where} '{DataBinder.WrittenText(dref)}': the subscript is not an integer literal. The control operand "
+                        + "is one data item whose prior control is saved and compared at each GENERATE, so its occurrence is fixed "
+                        + "when the program is compiled (ISO §2002:13.16.15.3 GR3).");
+                }
+                else subscripts = sfx.Subscript.Values;
+            }
+            else
+                Edition.Error(code, $"{where} '{DataBinder.WrittenText(dref)}' is subscripted. A control operand may not be subject "
+                    + "to an OCCURS clause (ISO §2023:13.18.16.3 SR3), and a subscript may be written only for an item that "
+                    + "has one (§2023:8.4.2.3.3 SR2), so a subscripted control operand is never legal.");
+        }
         if (sfx.RefMods > 1)
             Edition.Error(DiagnosticCatalog.RefModOfRefMod, $"{where} '{DataBinder.WrittenText(dref)}' carries {sfx.RefMods} reference "
                 + "modifications; a reference-modified item cannot itself be reference-modified (ISO §2023:8.4.3.3.3 "
@@ -4744,7 +4774,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             Edition.Error(DiagnosticCatalog.IntegerOperandBeyondLimit,
                 WiseOwl.Cobol.Validation.IntegerOperandRules.BeyondLimitMessage(where,
                     $"the reference-modification of '{DataBinder.WrittenText(dref)}', a leftmost-position or length that"));
-        return new ReportControlRef(name, quals, sfx.Start, sfx.Length);
+        return new ReportControlRef(name, quals, subscripts, sfx.Start, sfx.Length, subscriptRefused);
     }
 
     /// <summary>⛔ THE ONE SHAPE SCREEN FOR A CONTROL OPERAND — the syntax rules over data-name-1, one arm per
@@ -4766,12 +4796,12 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// them (§2023:8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group, so the table entry
     /// itself is never one). Measured: both compiled clean and reached ReportWriterEmitter's runtime loud. This is
     /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
-    private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item)
+    private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item, bool occursAdmitted)
     {
         // "Subject to an OCCURS clause" is §2023:8.4.2.3.3 SR2's question under another name, so it is asked through
         // THE one walk (DataItem.SubscriptLevels, outermost first — kb/Work PB877); the message names the
         // INNERMOST level, which is the one the hand-written self→parent loop used to report.
-        if (item.SubscriptLevels() is [.., var innermost])
+        if (!occursAdmitted && item.SubscriptLevels() is [.., var innermost])
             return (DiagnosticCatalog.ReportControlOperandShape,
                 $"is subject to the OCCURS clause on '{innermost.CobolName ?? innermost.ClrName}': data-name-1 shall "
                 + "not be subject to any OCCURS clauses (ISO §2023:13.18.16.3 SR3)");

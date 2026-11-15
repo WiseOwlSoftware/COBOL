@@ -116,7 +116,7 @@ public sealed partial class FileControlBinder
                 // resolved the first same-named declaration in order (kb/Work PB489).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                 {
-                    (file.FileStatusName, file.FileStatusQualifiers) = _host.ClauseDataName(fs, "FILE STATUS");
+                    (file.FileStatusName, file.FileStatusQualifiers, file.FileStatusSubscripts) = _host.ClauseDataNameSubscripted(fs, "FILE STATUS");
                     using var __ = Edition.At(fs);
                     file.FileStatusAt = Edition.Cursor;   // where its post-build resolution reports
                 }
@@ -166,7 +166,7 @@ public sealed partial class FileControlBinder
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                 {
-                    (file.RelativeKeyName, file.RelativeKeyQualifiers) = _host.ClauseDataName(rlk, "RELATIVE KEY");   // ISO §2023:12.4.5.13.3 SR3 — outside the record
+                    (file.RelativeKeyName, file.RelativeKeyQualifiers, file.RelativeKeySubscripts) = _host.ClauseDataNameSubscripted(rlk, "RELATIVE KEY");   // ISO §2023:12.4.5.13.3 SR3 — outside the record
                     using var __ = Edition.At(rlk);
                     file.RelativeKeyAt = Edition.Cursor;   // §2023:12.4.5.13.3 reports here, from ResolveFiles
                 }

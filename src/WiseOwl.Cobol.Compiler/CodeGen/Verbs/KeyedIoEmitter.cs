@@ -279,7 +279,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // §2023:14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
                 // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
                 if (rd.Kind != ReadKind.Random && file.Organization == FileOrganization.Relative
-                    && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
+                    && places.RelativeKeyOf(file) is { } rkPlace)
                     arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
             }
             if (tooLong is null) SuccessSteps();
@@ -374,7 +374,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // §2023:14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
-            && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
+            && places.RelativeKeyOf(file) is { } rkPlace)
             using (w.Block($"if ({IoStatusClass.Successful(st)})"))
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
@@ -581,7 +581,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// typed field — §2023:12.4.5.13; the item is OUTSIDE the record, SR3), or null when the file has none.</summary>
     private string? Rrn(FileModel file)
     {
-        if (file.RelativeKeyItem is not { } rk || places.Of(rk) is not { } place) return null;
+        if (places.RelativeKeyOf(file) is not { } place) return null;
         return RuntimeApi.HostInt64(NumericRenderer.Align(num.FieldNum(place), 0));
     }
 }

@@ -343,8 +343,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
     /// relative file with no RELATIVE KEY clause (optional for sequential access).</summary>
     private void EmitRelativeKeyStore(FileModel file)
     {
-        if (file.Organization == FileOrganization.Relative && file.RelativeKeyItem is { } rk
-            && places.Of(rk) is { } rkPlace)
+        if (file.Organization == FileOrganization.Relative && places.RelativeKeyOf(file) is { } rkPlace)
             arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(FileKeyExpr(file)), 0), CobolRounding.Truncation);
     }
 
@@ -400,7 +399,7 @@ internal sealed class SortEmitter(EmitContext ctx, PlaceTable places, DispatchSt
             if (rn is not null)
             {
                 w.Line($"{rn}++;   // GR15 b) — the n-th record returned is relative record n");
-                if (output.RelativeKeyItem is { } rkn && places.Of(rkn) is { } rknPlace)
+                if (places.RelativeKeyOf(output) is { } rknPlace)
                     arith.StoreArith(rknPlace, new NumX(rn, 0), CobolRounding.Truncation);
                 w.Line($"{RuntimeApi.FileSetRelativeKey(f, rn)};");
             }

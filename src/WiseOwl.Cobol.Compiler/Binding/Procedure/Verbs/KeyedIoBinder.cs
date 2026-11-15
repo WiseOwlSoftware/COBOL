@@ -419,7 +419,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 ctx.Edition.Error(DiagnosticCatalog.IoStatementOperandRule, $"START on '{name}': data-name-1 shall be the RELATIVE KEY "
                     + $"item '{file.RelativeKeyItem?.CobolName ?? "(none)"}' (ISO §2023:14.9.41.3 SR5)");
             bool operandImplied = operand is null;
-            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveItem(rk) : null;
+            operand ??= file.RelativeKeyItem is { } rk ? ctx.Refs.Places.ResolveOccurrence(rk, file.RelativeKeySubscripts) : null;
             // ⛔ GR8's SUBSTITUTION HAS NO OPERAND, SO THE STATEMENT HAS NO MEANING (kb/Work PB236, row
             // GR-14.9.41.4-8). §2023:14.9.41.4 GR8: "If the KEY phrase is omitted, the START statement behaves as
             // though KEY IS EQUAL TO data-name-1 had been specified, where data-name-1 is the name of the key

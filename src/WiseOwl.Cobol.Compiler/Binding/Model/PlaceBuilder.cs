@@ -249,6 +249,13 @@ internal sealed class PlaceBuilder(IPlaceFacts facts)
     /// item has no built place.</summary>
     internal Place? ResolveItemAt(DataItem item, IReadOnlyList<Position> indexExprs) => PlaceForItem(item, indexExprs);
 
+    /// <summary>The <see cref="Place"/> of the occurrence an integer-literal subscript list selects (kb/Work PB5602): the item's own
+    /// place for an empty list (<see cref="ResolveItem"/>), else <see cref="ResolveItemAt"/> at those constants. The one
+    /// constructor of a COBOL-2002 clause operand's place, written <c>K(2)</c> where a general format prints data-name-n.</summary>
+    internal Place? ResolveOccurrence(DataItem item, IReadOnlyList<int> subscripts) =>
+        subscripts.Count == 0 ? ResolveItem(item)
+            : ResolveItemAt(item, [.. subscripts.Select(n => (Position)new PositionConstant(n))]);
+
     /// <summary>⛔ THE ONE RESOLUTION OF AN FD/SD's RECORD AREA (kb/Work PB355). ISO §2023:13.18.33.4 GR3 — "Multiple
     /// level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area" — so
     /// the area is ONE place, and it is the LARGEST description's view (<see cref="FileModel.AreaRecord"/>): a
