@@ -17,6 +17,15 @@ group's wall time is the slowest shard's. The day's verdict is the WORST spread 
 A spread above THRESHOLD is OVER: the division no longer matches the cost of the work (a class grew, a class was added)
 and the weights file is regenerated; this command exits 1 so the nightly run is red, and it files nothing itself.
 
+STALE (kb/Work PB5552). Beside the spread the line reports the worst UNWEIGHTED work of the measured (run, OS): the
+seconds its shards spent in test classes the weights file does not name (each shard's trx read by `class_seconds`, the
+reader `generate` keys the weights by) over the mean shard's class seconds, and the heaviest such class. The deal meets
+those classes blind, at `default_seconds`, after every named class, so a heavy new class lands whole on one shard. Above
+UNWEIGHTED_LIMIT the file is STALE and the command exits 1, naming the remedy. The share grows with each class a landing
+adds, while the spread is shared runners' wall clock, so STALE reddens on the cause days before OVER does on the effect:
+
+    === SHARD SPREAD: 1.22x WITHIN (<= 1.50x) (...; unweighted work 0.25 of a mean shard (> 0.10; run 123, Windows: 112 class(es) the weights file does not name, 253 s, the heaviest N.CommunicationCcvsTests 118 s): STALE, regenerate it (shard_weights.py generate)) ===
+
 WHEN THE REPORT IS LIVE. OVER names the weights file as the remedy, so the report measures only while the merge group
 shards by that file: `tests/_shared/test-weights.json` exists AND build-and-test.yml names `WISEOWL_COBOL_SHARD` (the
 weighted-shard matrix, PB4328 and PB4329). Before then the shards are the name split's, whose spread no regeneration can
@@ -38,8 +47,8 @@ out, and the verdict line names it. A window that read shard runs and measured n
 one shard, is UNMEASURED (exit 2), however the assemblies were covered across runs, and so is a run whose
 `test-results-*` artifacts hold no trx (review R1-1: a report that measured nothing is never a green). A weights file that names an assembly no shard of the window ran at all is
 UNMEASURED (exit 2): the file deals load to an assembly that no longer runs, which a regeneration repairs, and a report
-that called every run partial would never measure again. A shard's assemblies are the test assembly keys of its trx's
-test definitions (`codeBase`, keyed as `generate` keys them).
+that called every run partial would never measure again. A shard's assemblies are the test assembly keys of the classes its
+trx ran (`class_seconds`, the reader `generate` keys the weights by).
 
 Only a merge-group run whose conclusion is `success` is read: a red run's shards were
 cut short or retried, so their times are not the work's. A run with no `test-results-*` artifact (an inert change skips
@@ -71,13 +80,20 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Callable, NamedTuple, TypeVar
+from types import MappingProxyType
+from typing import Callable, Mapping, NamedTuple, TypeVar
 
 from standard_streams import ensure_utf8  # (scripts/, this file's own directory)
 from test_population import UnreadableTrx, trx_root  # THE one trx reader, which names a file it cannot read (kb/Work PB3661)
 
 #: The spread above which the division is OVER (PIPELINE-REVIEW section 3.1: "above 1.5 times is a kb/Work note").
 THRESHOLD = 1.5
+#: The UNWEIGHTED work above which the weights file is STALE (kb/Work PB5552): the seconds one OS's shards of one run
+#: spent in test classes the file does not name, over the mean shard's class seconds. The deal gives each such class
+#: `default_seconds` whatever it costs and deals them after every named class, so this is the most the deal's
+#: blindness can add to one shard, as a share of a shard. At 0.10 the file is regenerated before that blindness alone
+#: can move the spread by a tenth (the red of 2026-11-14 measured 0.18 to 0.25, a 92 s class dealt at 0.1 s among them).
+UNWEIGHTED_LIMIT = 0.10
 
 #: The artifact prefix every test job's results carry: `test-results-<OS>-<job>`.
 ARTIFACT_PREFIX = "test-results-"
@@ -134,32 +150,29 @@ def trx_times(trx: Path) -> float:
     return (finish - start).total_seconds()
 
 
-def trx_assemblies(trx: Path) -> frozenset[str]:
-    """The test assembly keys (`WiseOwl.Cobol.Tests.<key>.dll` -> `<key>`) of one trx's test definitions: the assemblies
-    its shard ran. The trx of an assembly the deal gave the shard no class of defines no test and names none."""
-    keys = set()
-    for method in trx_root(trx).iter(f"{_TRX_NS}TestMethod"):
-        m = TEST_ASSEMBLY.search(method.get("codeBase", ""))
-        if m is not None:
-            keys.add(m["key"])
-    return frozenset(keys)
-
-
 class Shard(NamedTuple):
-    """One shard of one run: the sum of its trx files' wall seconds, and the test assemblies they ran."""
+    """One shard of one run: the sum of its trx files' wall seconds, the test assemblies they ran, and the seconds of
+    each (assembly, class) they ran (`class_seconds`, the one reader `generate` keys its weights by, so the report and
+    the weights name a class alike). The trx of an assembly the deal gave the shard no class of has no result and
+    names no assembly."""
     wall: float
     assemblies: frozenset[str]
+    seconds: Mapping[tuple[str, str], float] = MappingProxyType({})
 
 
 def shard_walls(run_dir: Path) -> dict[str, Shard]:
-    """One run's shards: artifact directory name -> its wall and assemblies. A `test-results-*` directory holding no trx
-    (an upload that carried only logs) is left out, since it has no time to divide."""
+    """One run's shards: artifact directory name -> its wall, assemblies and class seconds. A `test-results-*` directory
+    holding no trx (an upload that carried only logs) is left out, since it has no time to divide."""
     walls: dict[str, Shard] = {}
     for artifact in sorted(p for p in run_dir.iterdir() if p.is_dir() and p.name.startswith(ARTIFACT_PREFIX)):
         trxs = sorted(artifact.rglob("*.trx"))
         if trxs:
-            walls[artifact.name] = Shard(sum(trx_times(t) for t in trxs),
-                                         frozenset().union(*(trx_assemblies(t) for t in trxs)))
+            seconds: dict[tuple[str, str], float] = {}
+            for trx in trxs:
+                for key, value in class_seconds(trx).items():
+                    seconds[key] = seconds.get(key, 0.0) + value
+            walls[artifact.name] = Shard(sum(trx_times(t) for t in trxs), frozenset(a for a, _ in seconds),
+                                         MappingProxyType(seconds))
     return walls
 
 
@@ -168,11 +181,45 @@ def os_of(shard: str) -> str:
     return shard.removeprefix(ARTIFACT_PREFIX).split("-", 1)[0]
 
 
-def spreads(walls: dict[str, Shard], dealt: frozenset[str]) -> tuple[list[tuple[float, str, str, float, int]], list[str]]:
-    """Per OS with at least two shards that together ran every `dealt` assembly: (slowest wall / mean wall, OS, slowest
-    shard, mean wall, shard count); and each OS left out as PARTIAL, spelled `<OS> ran <assemblies>`. One shard cannot
-    be unevenly divided, so an OS with one has no spread; an OS that ran a subset of the dealt assemblies ran a share of
-    a deal balanced over all of them, whose spread no regeneration changes (kb/Work PB5468)."""
+class Weights(NamedTuple):
+    """What a weights file deals: the assemblies it names (the population a spread is measured over) and the (assembly,
+    class) pairs it weighs; the deal meets every other class blind, at `default_seconds`."""
+    assemblies: frozenset[str]
+    classes: frozenset[tuple[str, str]]
+
+
+class Unweighted(NamedTuple):
+    """The work of one (run, OS) the deal was blind to: `share` is the seconds of the classes the weights file does not
+    name over the mean shard's class seconds; `classes` and `seconds` their count and sum; `heaviest` the costliest."""
+    share: float
+    classes: int
+    seconds: float
+    heaviest: tuple[str, float] | None
+
+
+def unweighted(shards: Mapping[str, Shard], weighed: frozenset[tuple[str, str]]) -> Unweighted:
+    """The work `shards` (one OS of one run) spent in classes `weighed` does not name, over the mean shard's class
+    seconds (UNWEIGHTED_LIMIT, kb/Work PB5552). Shards with no class seconds have no work to weigh: share 0."""
+    blind: dict[tuple[str, str], float] = {}
+    total = 0.0
+    for shard in shards.values():
+        for key, value in shard.seconds.items():
+            total += value
+            if key not in weighed:
+                blind[key] = blind.get(key, 0.0) + value
+    heaviest = max(blind.items(), key=lambda e: (e[1], e[0]), default=None)
+    seconds = sum(blind.values())
+    return Unweighted(seconds / (total / len(shards)) if total > 0 else 0.0, len(blind), seconds,
+                      (heaviest[0][1], heaviest[1]) if heaviest else None)
+
+
+def spreads(walls: dict[str, Shard], weights: Weights) -> tuple[list[tuple[float, str, str, float, int, Unweighted]], list[str]]:
+    """Per OS with at least two shards that together ran every assembly `weights` deals: (slowest wall / mean wall, OS,
+    slowest shard, mean wall, shard count, the work the deal was blind to); and each OS left out as PARTIAL, spelled
+    `<OS> ran <assemblies>`. One shard cannot be unevenly divided, so an OS with one has no spread; an OS that ran a
+    subset of the dealt assemblies ran a share of a deal balanced over all of them, whose spread no regeneration
+    changes (kb/Work PB5468)."""
+    dealt = weights.assemblies
     grouped: dict[str, dict[str, Shard]] = {}
     for name, shard in walls.items():
         grouped.setdefault(os_of(name), {})[name] = shard
@@ -186,18 +233,24 @@ def spreads(walls: dict[str, Shard], dealt: frozenset[str]) -> tuple[list[tuple[
             continue
         mean = sum(s.wall for s in shards.values()) / len(shards)
         slowest = max(shards, key=lambda k: shards[k].wall)
-        found.append((shards[slowest].wall / mean if mean > 0 else 1.0, os_name, slowest, mean, len(shards)))
+        found.append((shards[slowest].wall / mean if mean > 0 else 1.0, os_name, slowest, mean, len(shards),
+                      unweighted(shards, weights.classes)))
     return found, partial
 
 
-def verdict(runs: dict[str, dict[str, Shard]], hours: int, dealt: frozenset[str], threshold: float = THRESHOLD,
-            cap: int | None = None) -> tuple[str, int]:
-    """The verdict line and exit code for `runs` (run id -> shards) over the `dealt` assemblies (the weights file's).
+def verdict(runs: dict[str, dict[str, Shard]], hours: int, weights: Weights, threshold: float = THRESHOLD,
+            cap: int | None = None, unweighted_limit: float = UNWEIGHTED_LIMIT) -> tuple[str, int]:
+    """The verdict line and exit code for `runs` (run id -> shards) over the population `weights` deals.
     The worst spread of any OS of any run that ran every dealt assembly decides; an OS that ran a subset is PARTIAL,
-    left out and named in the line. No run is NOT MEASURED (exit 0); runs of which no (run, OS) was measured (every one
-    partial or of one shard) are UNMEASURED (exit 2): a report that read shards and measured nothing is never a green. `cap` is MAX_RUNS when it limited the read: the line then says the newest `cap` runs
-    were read, not the whole window. Raises ValueError when a dealt assembly ran in no shard of the window: the weights
-    file deals load to an assembly that no longer runs, and every run would otherwise be partial forever."""
+    left out and named in the line. The worst UNWEIGHTED work of the measured (run, OS) is reported beside it, and above
+    `unweighted_limit` the weights file is STALE (exit 1, kb/Work PB5552): the population has outgrown it, which
+    `generate` repairs, and the report says so before the spread crosses the threshold on that blindness. No run is NOT
+    MEASURED (exit 0); runs of which no (run, OS) was measured (every one partial or of one shard) are UNMEASURED
+    (exit 2): a report that read shards and measured nothing is never a green. `cap` is MAX_RUNS when it limited the
+    read: the line then says the newest `cap` runs were read, not the whole window. Raises ValueError when a dealt
+    assembly ran in no shard of the window: the weights file deals load to an assembly that no longer runs, and every
+    run would otherwise be partial forever."""
+    dealt = weights.assemblies
     window = (f"in the last {hours} h" if cap is None or len(runs) < cap
               else f"(the newest {cap} of the last {hours} h)")
     ran_anywhere = frozenset().union(*(s.assemblies for walls in runs.values() for s in walls.values()))
@@ -206,7 +259,7 @@ def verdict(runs: dict[str, dict[str, Shard]], hours: int, dealt: frozenset[str]
                          f"{len(runs)} run(s) {window} ran: regenerate it (shard_weights.py generate)")
     candidates, partial = [], []
     for rid, walls in runs.items():
-        found, left_out = spreads(walls, dealt)
+        found, left_out = spreads(walls, weights)
         candidates += [(s, rid, rest) for s, *rest in found]
         partial += [f"run {rid} {p}" for p in left_out]
     partial_note = (f"; {len(partial)} partial (run, OS) left out, a subset of the dealt {'+'.join(sorted(dealt))}: "
@@ -219,23 +272,33 @@ def verdict(runs: dict[str, dict[str, Shard]], hours: int, dealt: frozenset[str]
         # shards and measured nothing fails loudly (kb/Work PB5468 R1-1), however the assemblies were covered.
         return (f"=== SHARD SPREAD: UNMEASURED -- {len(runs)} shard run(s) {window}, and no (run, OS) with two or more "
                 f"shards ran every dealt assembly, so no spread was measured{partial_note} ===", 2)
-    worst, run_id, (os_name, slowest, mean, count) = max(candidates, key=lambda c: c[0])
+    worst, run_id, (os_name, slowest, mean, count, _) = max(candidates, key=lambda c: c[0])
     state = "OVER" if worst > threshold else "WITHIN"
     cmp = ">" if worst > threshold else "<="
+    _, blind_run, (blind_os, *_, gap) = max(candidates, key=lambda c: c[2][-1].share)
+    stale = gap.share > unweighted_limit
+    heaviest = f", the heaviest {gap.heaviest[0]} {gap.heaviest[1]:.0f} s" if gap.heaviest else ""
+    stale_note = (f"; unweighted work {gap.share:.2f} of a mean shard ({'>' if stale else '<='} {unweighted_limit:.2f}; "
+                  f"run {blind_run}, {blind_os}: {gap.classes} class(es) the weights file does not name, "
+                  f"{gap.seconds:.0f} s{heaviest})" + (": STALE, regenerate it (shard_weights.py generate)" if stale else ""))
     return (f"=== SHARD SPREAD: {worst:.2f}x {state} ({cmp} {threshold:.2f}x) (run {run_id}, {os_name}: slowest {slowest} "
             f"{runs[run_id][slowest].wall:.0f} s, mean {mean:.0f} s over {count} shards; {len(runs)} run(s) {window}"
-            f"{partial_note}) ===", 1 if worst > threshold else 0)
+            f"{stale_note}{partial_note}) ===", 1 if worst > threshold or stale else 0)
 
 
-def dealt_assemblies(repo: Path = REPO_ROOT) -> frozenset[str]:
-    """The assemblies the weights file deals (its `assemblies` keys): the population a shard spread is measured over.
-    Raises OSError or ValueError for a file that cannot be read or names none: a report with no population is
-    UNMEASURED, never a spread over whatever ran."""
+def read_weights(repo: Path = REPO_ROOT) -> Weights:
+    """What the weights file deals: its `assemblies` keys (the population a shard spread is measured over) and the
+    (assembly, class) pairs it weighs. Raises OSError or ValueError for a file that cannot be read, names no assembly or
+    holds an assembly that is not an object: a report with no population is UNMEASURED, never a spread over whatever
+    ran."""
     path = repo / WEIGHTS_FILE
     assemblies = json.loads(path.read_text(encoding="utf-8")).get("assemblies")
     if not isinstance(assemblies, dict) or not assemblies:
         raise ValueError(f"{path}: names no assembly to deal")
-    return frozenset(assemblies)
+    if not all(isinstance(members, dict) for members in assemblies.values()):
+        raise ValueError(f"{path}: an assembly's weights are not an object of class weights")
+    return Weights(frozenset(assemblies),
+                   frozenset((assembly, cls) for assembly, members in assemblies.items() for cls in members))
 
 
 def _gh(args: list[str]) -> str:
@@ -415,10 +478,10 @@ def report(from_dir: Path | None, hours: int, threshold: float, max_runs: int = 
         return (f"=== SHARD SPREAD: NOT MEASURED -- the merge group does not shard by {WEIGHTS_FILE} yet (PB4328, PB4329): "
                 "its spread is the name split's, which no regeneration changes ===", 0)
     try:
-        dealt = dealt_assemblies(repo)
+        weights = read_weights(repo)
         if from_dir is not None:
-            return verdict(gather(from_dir), hours, dealt, threshold)
-        return verdict(measure_window(hours, max_runs, gh, now), hours, dealt, threshold, max_runs)
+            return verdict(gather(from_dir), hours, weights, threshold)
+        return verdict(measure_window(hours, max_runs, gh, now), hours, weights, threshold, max_runs)
     except (GhError, ValueError, UnreadableTrx, OSError) as error:
         return f"=== SHARD SPREAD: UNMEASURED -- {error} ===", 2
 
@@ -427,19 +490,25 @@ def report(from_dir: Path | None, hours: int, threshold: float, max_runs: int = 
 
 _TRX = ('<?xml version="1.0" encoding="UTF-8"?><TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">'
         '<Times creation="{start}" queuing="{start}" start="{start}" finish="{finish}" />'
-        '<TestDefinitions>{units}</TestDefinitions></TestRun>')
+        '<Results>{results}</Results><TestDefinitions>{units}</TestDefinitions></TestRun>')
 
 
-def _write_trx(path: Path, seconds: int, assemblies: tuple[str, ...] = ("Unit",)) -> None:
+def _write_trx(path: Path, seconds: int, assemblies: tuple[str, ...] = ("Unit",),
+               tests: tuple[tuple[str, str, int], ...] | None = None) -> None:
     """A trx whose run took `seconds`, its times spelled as .NET writes them (seven fractional digits, an offset), with
-    one test definition of each of `assemblies` (none: the trx of an assembly the deal gave the shard no class of)."""
+    one test definition and one result of each of `tests` (assembly, class, seconds); by default a zero-second test of
+    class `N.C<i>` of each of `assemblies` (none: the trx of an assembly the deal gave the shard no class of)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     start = datetime.datetime(2026, 10, 31, 4, 0, 0, tzinfo=datetime.timezone.utc)
     finish = start + datetime.timedelta(seconds=seconds)
     fmt = lambda t: t.strftime("%Y-%m-%dT%H:%M:%S") + ".1234567+00:00"  # noqa: E731
+    tests = tests if tests is not None else tuple((a, f"N.C{i}", 0) for i, a in enumerate(assemblies))
     units = "".join(f'<UnitTest name="T{i}" id="id{i}"><TestMethod codeBase="D:\\a\\bin\\WiseOwl.Cobol.Tests.{a}.dll" '
-                    f'className="N.C{i}" name="M" /></UnitTest>' for i, a in enumerate(assemblies))
-    path.write_text(_TRX.format(start=fmt(start), finish=fmt(finish), units=units), encoding="utf-8", newline="\n")
+                    f'className="{cls}" name="M" /></UnitTest>' for i, (a, cls, _) in enumerate(tests))
+    results = "".join(f'<UnitTestResult testId="id{i}" testName="T{i}" duration="00:00:{s:02d}" outcome="Passed" />'
+                      for i, (_, _, s) in enumerate(tests))
+    path.write_text(_TRX.format(start=fmt(start), finish=fmt(finish), units=units, results=results),
+                    encoding="utf-8", newline="\n")
 
 
 def _write_class_trx(path: Path, results: list[tuple[str, str, str]]) -> None:
@@ -477,12 +546,15 @@ def self_test() -> int:
         _write_trx(root / "3" / "test-results-Linux-a" / "x.trx", 100)
         _write_trx(root / "3" / "test-results-Linux-b" / "x.trx", 110)
 
-        unit = frozenset({"Unit"})
+        unit = Weights(frozenset({"Unit"}), frozenset())
+        c0 = {("Unit", "N.C0"): 0.0}
         check("trx_times reads .NET's seven-digit fractions", trx_times(root / "1" / "test-results-Linux-a" / "x.trx"), 100.0)
         check("shard_walls", shard_walls(root / "1"),
-              {"test-results-Linux-a": Shard(100.0, unit), "test-results-Linux-b": Shard(100.0, unit),
-               "test-results-Linux-c": Shard(400.0, unit), "test-results-Windows-a": Shard(150.0, unit),
-               "test-results-Windows-b": Shard(150.0, unit)})
+              {"test-results-Linux-a": Shard(100.0, unit.assemblies, c0),
+               "test-results-Linux-b": Shard(100.0, unit.assemblies, c0),
+               "test-results-Linux-c": Shard(400.0, unit.assemblies, c0),
+               "test-results-Windows-a": Shard(150.0, unit.assemblies, c0),
+               "test-results-Windows-b": Shard(150.0, unit.assemblies, c0)})
         runs = gather(root)
         check("gather leaves out the inert run", sorted(runs), ["1", "3"])
         check("os_of", os_of("test-results-Windows-conformance-rest"), "Windows")
@@ -498,14 +570,14 @@ def self_test() -> int:
         check("exactly the threshold is WITHIN, not OVER", (code, "WITHIN" in line), (0, True))
         line, code = verdict({}, 24, unit)
         check("no shard run is NOT MEASURED and exits 0", (code, "NOT MEASURED" in line), (0, True))
-        line, code = verdict({"9": {"test-results-Linux-only": Shard(50.0, unit)}}, 24, unit)
+        line, code = verdict({"9": {"test-results-Linux-only": Shard(50.0, unit.assemblies)}}, 24, unit)
         check("one shard of an OS has no spread, and a window that read shards and measured none is UNMEASURED",
               (code, "UNMEASURED" in line, "no spread was measured" in line), (2, True, True))
 
         # THE POPULATION (kb/Work PB5468): the spread is measured over the assemblies the weights deal, never a subset.
         # Run 43430492045 of 2026-11-13 as it ran: Windows ran Unit alone (the store held Conformance's and
         # Characterization's passes, PB5235), its shards' walls the deal's Unit share; Linux ran every assembly.
-        three = frozenset({"Characterization", "Conformance", "Unit"})
+        three = Weights(frozenset({"Characterization", "Conformance", "Unit"}), frozenset())
         everything = ("Characterization", "Conformance", "Unit")
         replay = Path(scratch) / "replay"
         for k, wall in enumerate((78, 81, 71, 162, 79, 101, 117), 1):
@@ -531,25 +603,58 @@ def self_test() -> int:
                "run 7 Windows ran Characterization+Conformance" in line), (2, True, True, True, True))
         split = {"test-results-Linux-a": Shard(100.0, frozenset({"Unit"})),
                  "test-results-Linux-b": Shard(100.0, frozenset({"Conformance"}))}
-        line, code = verdict({"5": split}, 24, frozenset({"Conformance", "Unit"}))
+        line, code = verdict({"5": split}, 24, Weights(frozenset({"Conformance", "Unit"}), frozenset()))
         check("an OS's assemblies are the union of its shards' (each shard runs its classes of each assembly)",
               (code, "1.00x WITHIN" in line, "partial" in line), (0, True, False))
         try:
-            verdict(replayed, 24, three | {"Retired"})
+            verdict(replayed, 24, Weights(three.assemblies | {"Retired"}, frozenset()))
             check("a dealt assembly no shard of the window ran is refused", "accepted", "ValueError")
         except ValueError as error:
             check("a dealt assembly no shard of the window ran is refused, naming it and the remedy",
                   ("deals Retired" in str(error), "generate" in str(error)), (True, True))
         empty = replay / "e" / "test-results-Linux-shard-1" / "Characterization.trx"
         _write_trx(empty, 1, ())
-        check("the trx of an assembly the deal gave the shard nothing of names no assembly", trx_assemblies(empty), frozenset())
+        check("the trx of an assembly the deal gave the shard nothing of names no assembly",
+              shard_walls(replay / "e")["test-results-Linux-shard-1"].assemblies, frozenset())
+
+        # STALE (kb/Work PB5552): the population outgrew the weights. Two shards of an even 100 s wall each (spread
+        # 1.00x); 20 s of their 180 class seconds are a class the file does not name, 0.22 of the mean shard's 90 s.
+        # The deal meets that class blind, so the report says so before the spread does, names it and the remedy.
+        grown = Path(scratch) / "grown"
+        _write_trx(grown / "51" / "test-results-Linux-shard-1" / "Unit.trx", 100, tests=(("Unit", "N.Old", 50),
+                                                                                          ("Unit", "N.Old2", 40)))
+        _write_trx(grown / "51" / "test-results-Linux-shard-2" / "Unit.trx", 100, tests=(("Unit", "N.Old3", 50),
+                                                                                          ("Unit", "N.New", 20),
+                                                                                          ("Unit", "N.Older", 20)))
+        _write_trx(grown / "52" / "test-results-Windows-shard-1" / "Unit.trx", 100, tests=(("Unit", "N.Huge", 59),))
+        _write_trx(grown / "52" / "test-results-Windows-shard-2" / "Unit.trx", 100, tests=())
+        weighed = Weights(frozenset({"Unit"}), frozenset({("Unit", "N.Old"), ("Unit", "N.Old2"), ("Unit", "N.Old3"),
+                                                          ("Unit", "N.Older")}))
+        grew = gather(grown)
+        check("a class's seconds are read per shard as generate reads them", grew["51"]["test-results-Linux-shard-2"].seconds,
+              {("Unit", "N.Old3"): 50.0, ("Unit", "N.New"): 20.0, ("Unit", "N.Older"): 20.0})
+        line, code = verdict({"51": grew["51"]}, 24, weighed)
+        check("unweighted work above the limit is STALE (exit 1) though the spread is WITHIN, naming the class and remedy",
+              (code, "1.00x WITHIN" in line, "unweighted work 0.22 of a mean shard (> 0.10; run 51, Linux: 1 class(es)" in line,
+               "the heaviest N.New 20 s" in line, "STALE, regenerate it (shard_weights.py generate)" in line),
+              (1, True, True, True, True))
+        line, code = verdict({"51": grew["51"]}, 24, Weights(weighed.assemblies, weighed.classes | {("Unit", "N.New")}))
+        check("the same shards over weights that name the class are WITHIN and not STALE",
+              (code, "unweighted work 0.00 of a mean shard (<= 0.10" in line, "STALE" in line), (0, True, False))
+        line, code = verdict({"51": grew["51"]}, 24, weighed, unweighted_limit=20 / 90)
+        check("unweighted work exactly at the limit is not STALE", (code, "STALE" in line), (0, False))
+        line, code = verdict(grew, 24, weighed)
+        check("the worst unweighted (run, OS) of the window is the one named (Windows: 59 s of a 29.5 s mean shard)",
+              (code, "unweighted work 2.00 of a mean shard (> 0.10; run 52, Windows" in line, "N.Huge 59 s" in line),
+              (1, True, True))
 
         # report --from-dir, over the weights file of the repository it is given; the failure arms: an unreadable trx,
         # a missing directory and a weights file that names no assembly are UNMEASURED, exit 2.
         dealt_repo = Path(scratch) / "dealt-repo"
         (dealt_repo / WEIGHTS_FILE).parent.mkdir(parents=True)
         (dealt_repo / WEIGHTS_FILE).write_text('{"assemblies": {"Unit": {"N.A": 1.0}}}', encoding="utf-8", newline="\n")
-        check("dealt_assemblies reads the weights file's assemblies", dealt_assemblies(dealt_repo), unit)
+        check("read_weights reads the weights file's assemblies and the classes it weighs", read_weights(dealt_repo),
+              Weights(frozenset({"Unit"}), frozenset({("Unit", "N.A")})))
         check("report --from-dir", report(root, 24, THRESHOLD, repo=dealt_repo)[1], 1)
         (root / "4" / "test-results-Linux-bad").mkdir(parents=True)
         bad = root / "4" / "test-results-Linux-bad" / "x.trx"
@@ -595,7 +700,7 @@ def self_test() -> int:
         runs = measure_window(24, 8, fake_gh, now)
         check("measure_window reads the window's runs", sorted(runs), ["11", "14", "15"])
         check("measure_window reads each run's shard walls", runs["11"],
-              {"test-results-Linux-a": Shard(10.0, unit), "test-results-Linux-b": Shard(40.0, unit)})
+              {"test-results-Linux-a": Shard(10.0, unit.assemblies, c0), "test-results-Linux-b": Shard(40.0, unit.assemblies, c0)})
         check("measure_window asks for the merge group's successful runs of the workflow",
               ("--workflow" in calls[0] and WORKFLOW in calls[0] and EVENT in calls[0] and "success" in calls[0]), True)
         check("measure_window downloads only the shard artifacts", calls[1][:4], ["run", "download", "11", "--pattern"])
