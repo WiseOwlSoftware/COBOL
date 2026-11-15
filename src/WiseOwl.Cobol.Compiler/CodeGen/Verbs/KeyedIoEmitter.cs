@@ -555,9 +555,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             // less than or equal to the length of the associated key, the I-O status value … is set to '23'". The
             // former int cast of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1 before the connector's
             // bound test ran, so both positioned with '00'. The lanes are LandAmount's (SetEmitter): the exact
-            // scaled Int128 with its scale, or the native double — the fraction and the magnitude both survive.
+            // scaled Int128 with its scale, the SDIDI value, or the native double — the fraction and the magnitude both survive.
             string len = sta.Length is { } le
-                ? StartLength(num.Landed(NumericRenderer.DeU(num.Render(le, ReceiverContext.None)), ReceiverContext.None), natBytes)
+                ? StartLength(num.LandedAmount(num.Render(le, ReceiverContext.None)), natBytes)
                 : RuntimeApi.StartKeyLengthWidth(sta.NamedKey?.ByteWidth ?? sta.Operand!.Item.ByteWidth);
             string areaImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // THE ONE record-area channel, the WHOLE area (kb/Work PB327, PB5217)
             string? areaExtents = places.RecordArea(file) is { } extentArea
@@ -571,9 +571,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     }
 
     /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane
-    /// (<c>Landed</c>/<c>DeU</c>): the native double, or the scaled <c>Int128</c> with its scale (kb/Work PB357).</summary>
+    /// (<c>LandedAmount</c>): the native double, the SDIDI value, or the scaled <c>Int128</c> with its scale (kb/Work PB357).</summary>
     private static string StartLength(NumX x, int unitWidth) =>
         x.Real ? RuntimeApi.StartKeyLengthReal(x.Expr, unitWidth)
+        : x.Dec ? RuntimeApi.StartKeyLengthDec(x.Expr, unitWidth)
         : RuntimeApi.StartKeyLengthScaled(x.Expr, $"{x.Scale}", unitWidth);
 
     // ── Shared keyed emission helpers ──────────────────────────────────────────────────────────────────────────

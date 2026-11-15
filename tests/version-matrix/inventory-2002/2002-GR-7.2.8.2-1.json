@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.8.2-1",
+ "rule-digest": "ffb9495415cb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#Entries; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#call-convention-directive-2002; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ExternalizedName",
+ "test-ref": "conformance:cases/7.2.8@2002-CALL-CONVENTION-DIRECTIVE/g2cc01_default_cobol_on_overflow",
+ "notes": "§2002:7.2.8.2 GR1 makes COBOL the default convention, under which (GR2a, §2002:8.1.2.1 GR3a) a CALL/CANCEL/ADDRESS OF PROGRAM literal is a case-insensitive COBOL word; with no directive, five spellings of G2CC01S in 2002 format-1 CALL ... ON OVERFLOW, CANCEL and a program pointer reach one program (SUB-COUNT=1,2,1,2) and an absent program takes ON OVERFLOW; --std 2002 run on the pinned build matched."
+}
