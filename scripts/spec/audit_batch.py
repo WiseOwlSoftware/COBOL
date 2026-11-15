@@ -68,10 +68,9 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
                                                                                    # record (KEPT, CHANGED, REMOVED;
                                                                                    # record_verdicts.py --edition 1985)
                                                                                    # no adjudication outranks
-    python scripts/spec/audit_batch.py change-batch --edition 2002 --out FILE [--exclusions FILE]
-                                                                                   # THE RULE STAGE (no audit run): a KEPT
-                                                                                   # record per candidate pair no trigger of
-                                                                                   # lineage_screen.py marks (kb/Work PB5589)
+                                                                                   # (any older edition; a record for a
+                                                                                   # pair lineage_screen.py flags answers
+                                                                                   # each flag, kb/Work PB5589)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -679,6 +678,7 @@ def change_of(adjudicated: dict[str, Any]) -> dict[str, Any]:
     words = "; ".join(f'{ed}: "{differs[ed]}"' for ed in ("1985", "2023") if differs.get(ed))   # the words, as written
     reason = (f"{words}. {adjudicated['reason']}" if words else adjudicated["reason"]).strip()
     return {"kind": adjudicated["verdict"], "to": adjudicated["rules_2023"], **({"reason": reason} if reason else {}),
+            **({"answers": adjudicated["answers"]} if adjudicated.get("answers") else {}),   # the read's answer to each flag
             **({"source": adjudicated["source"]} if "source" in adjudicated else {})}   # a seeded decision's own
 
 
@@ -730,8 +730,7 @@ def change_records(ed: Edition, disp: dict[str, dict[str, Any]], source: str,
                    held: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     """THE ONE WRITER of an older edition's change records, for every edition `ed` (kb/Work PB5589): every DECIDED change
     record of `disp` (each rule's `change`: for an audit run, the chained kind, KEPT, for a CARRIES rule, and the
-    adjudicate pass's decision once its check upheld it; for the rule stage, `lineage_screen.rule_stage`'s KEPT records)
-    as record_verdicts records of `ed`'s change record
+    adjudicate pass's decision once its check upheld it) as record_verdicts records of `ed`'s change record
     (the schema's `next`): into the 2023 rules it names, its reason only when it states one (one stored form,
     lineage.next_errors), the run as its source, or a seeded decision's own (kb/Work PB4993, PB4995;
     DESIGN-spec-conformance-review.md section 10.2). A contested or unadjudicated rule is the fleet's, and not in it; nor
@@ -739,7 +738,8 @@ def change_records(ed: Edition, disp: dict[str, dict[str, Any]], source: str,
     audit's detection, so re-running the batch never reverts one (kb/Work PB5008)."""
     held = held or {}
     return [{"rule-id": rid, "next": {"kind": c["kind"], "edition": ed.next_held, "to": c["to"], "bridge": ed.bridged,
-                                      **({"reason": c["reason"]} if c.get("reason") else {}), "source": own}}
+                                      **({"reason": c["reason"]} if c.get("reason") else {}),
+                                      **({"answers": c["answers"]} if c.get("answers") else {}), "source": own}}
             for rid, d in sorted(disp.items())
             if (c := d.get("change")) and (own := c.get("source", source))
             and (held.get(rid, {}).get("next") or {}).get("source", own) == own]
@@ -1182,7 +1182,8 @@ def seed(state: pathlib.Path, upstream: pathlib.Path, decisions: pathlib.Path, i
         nxt = r["next"]
         write_atomic(p.answer_file(up_items[r["rule-id"]][0]), json.dumps(
             {"id": r["rule-id"], "answer": {"verdict": nxt["kind"], "rules_2023": nxt["to"], "differs": {},
-                                            "reason": nxt.get("reason", ""), "source": nxt["source"]}},
+                                            "reason": nxt.get("reason", ""), "source": nxt["source"],
+                                            **({"answers": nxt["answers"]} if nxt.get("answers") else {})}},
             indent=1, ensure_ascii=False))
     kinds = collections.Counter(r["next"]["kind"] for r in records)
     print(f"seed: {state} holds {len(records)} decision(s) {dict(sorted(kinds.items()))} from {decisions}; it reads "
@@ -1199,33 +1200,30 @@ def canary_proven(p: Pass, st: dict[str, Any]) -> bool:
 # -- command line ---------------------------------------------------------------------------------------------------------
 
 def change_batch(a: argparse.Namespace) -> int:
-    """`change-batch`: the edition's decided change records as one record_verdicts batch, from the audit run `--state`, or,
-    with none, from the rule stage (every candidate pair no trigger marks, `lineage_screen.rule_stage`)."""
+    """`change-batch`: an audit run's decided change records of the older edition `--edition` as one record_verdicts batch.
+    A record follows only from a decision of a read (kb/Work PB5589: two blind samples proved a script cannot decide that
+    two editions' identical words state one requirement), so the command without `--state` is refused by name. A record for
+    a pair the edition's lineage screen flags (lineage_screen.py) stands only when its decision answers each flag by the
+    trigger's name (`next.answers`); a batch that holds one that does not is refused whole, naming each."""
+    if not a.state:
+        raise SystemExit(f"{TOOL}: change-batch --edition {a.edition} needs --state, the audit run whose decisions it "
+                         "writes: a change record follows only from a read decision, never from a screen or a pairing")
     ed = edition(a.edition)
     if ed.next_held is None:
         raise SystemExit(f"{TOOL}: change-batch --edition {a.edition}: the newest held edition has no change records")
+    import lineage_screen  # noqa: PLC0415  (the flags a decision answers)
+    state = pathlib.Path(a.state)
     held = read_store(inventory_dir(ed, pathlib.Path(a.repo)))
-    excluded: dict[str, dict[str, str]] = {}
-    if a.state:
-        state = pathlib.Path(a.state)
-        label = state.name
-        records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
-    else:
-        import lineage_screen  # noqa: PLC0415  (the rule stage: the screen, its triggers and its source)
-        if a.source:
-            raise SystemExit(f"{TOOL}: the rule stage's records carry their own source ({lineage_screen.RULE_STAGE_SOURCE})")
-        label = f"rule-stage-{a.edition}"
-        disp, excluded = lineage_screen.rule_stage(lineage_screen.Screen.of(a.edition))
-        records = change_records(ed, disp, lineage_screen.RULE_STAGE_SOURCE, held)
-        if a.exclusions:
-            write_atomic(pathlib.Path(a.exclusions), json.dumps(excluded, indent=1, ensure_ascii=False, sort_keys=True) + "\n")
+    records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
+    if refused := lineage_screen.unanswered(records, lineage_screen.committed(a.edition)):
+        raise SystemExit(f"{TOOL}: change-batch --edition {a.edition}: {len(refused)} record(s) leave a flag of the lineage "
+                         "screen unanswered; nothing is written:\n  " + "\n  ".join(refused))
     out = pathlib.Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    write_atomic(out, json.dumps({"batch": f"lineage-change:{label}", "records": records}, indent=1,
+    write_atomic(out, json.dumps({"batch": f"lineage-change:{state.name}", "records": records}, indent=1,
                                  ensure_ascii=False) + "\n")
     kinds = collections.Counter(r["next"]["kind"] for r in records)
-    print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}"
-          + (f"; refused {len(excluded)} pair(s)" if not a.state else "") + "\n"
+    print(f"change-batch: {len(records)} change record(s) {dict(sorted(kinds.items()))} -> {out}\n"
           f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
     return 0
 
@@ -1275,13 +1273,10 @@ def build_parser() -> argparse.ArgumentParser:
     sd.add_argument("--decisions", required=True, help="the record_verdicts batch file of the decisions to check")
     sd.add_argument("--inherit", default="route,map,verify",
                     help="the passes the new run reads from the upstream run, comma-separated (default: route,map,verify)")
-    cb = sub.add_parser("change-batch", help="write every decided change record as a record_verdicts batch: an audit "
-                                             "run's (--state), or the rule stage's (no --state)")
+    cb = sub.add_parser("change-batch", help="write an audit run's decided change records as a record_verdicts batch")
     cb.add_argument("--edition", type=int, required=True, help="the older held edition whose change records are written")
-    cb.add_argument("--state", help="the audit run whose decided records are written; without it, the rule stage's KEPT "
-                                    "records (lineage_screen.rule_stage)")
+    cb.add_argument("--state", help="the audit run whose decided records are written (required: refused by name without)")
     cb.add_argument("--out", required=True, help="the batch file to write")
-    cb.add_argument("--exclusions", help="the rule stage: also write every pair it refuses, with each trigger's reason")
     cb.add_argument("--source", help="an audit run's next.source (default: audit-<edition>/<the state directory's name>)")
     cb.add_argument("--repo", default=str(spec_pdf.REPO),
                     help="the repository whose store's adjudications outrank the run's records")

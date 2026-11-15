@@ -353,6 +353,28 @@ def main() -> int:
         code, out = run(["change-batch", "--edition", "1985", *base, "--out", str(kept)], fake)
         check("change-batch writes no record while no SAME is upheld and nothing is adjudicated (kb/Work PB4993)",
               code == 0 and json.loads(kept.read_text(encoding="utf-8"))["records"] == [])
+        for year in ("2002", "1985"):
+            stateless = root / f"stateless-{year}.json"
+            code, out = run(["change-batch", "--edition", year, "--out", str(stateless)], fake)
+            check(f"change-batch --edition {year} with no --state is refused by name, and writes nothing: a record "
+                  "follows only from a read decision (kb/Work PB5589)",
+                  isinstance(code, str) and "needs --state" in code and not stateless.exists())
+        import lineage_screen  # noqa: PLC0415  (the flags a decision answers)
+        flagged = {"marks": {"2002-GR-1.1.3-1": {"band-formats": "band-formats [1, 2] against [[1]]"}}}
+        rec = {"rule-id": "2002-GR-1.1.3-1", "next": {"kind": "KEPT", "to": ["GR-1.1.3-1"], "source": "a read"}}
+        check("a record for a flagged pair whose decision answers no flag is refused, by rule and trigger; one that "
+              "answers it stands; an answer to a trigger that flags nothing is refused (kb/Work PB5589)",
+              len(lineage_screen.unanswered([rec], flagged)) == 1 and "band-formats" in lineage_screen.unanswered([rec], flagged)[0]
+              and lineage_screen.unanswered([{**rec, "next": {**rec["next"], "answers": {
+                  "band-formats": "the 2002 rule governs format 1 alone, as its counterpart does"}}}], flagged) == []
+              and len(lineage_screen.unanswered([{**rec, "rule-id": "2002-GR-9.9.3-1", "next": {**rec["next"], "answers": {
+                  "band-formats": "x y z"}}}], flagged)) == 1
+              and lineage_screen.unanswered([rec], None) == [])
+        carried = A.change_records(inventory_schema.edition(2002), {"2002-GR-1.1.3-1": {"change": A.change_of(
+            {"verdict": "KEPT", "rules_2023": ["GR-1.1.3-1"], "reason": "", "answers": {"deferral": "it names GR-2"}})}},
+            "a read")
+        check("a decision's answers travel from the adjudication into the change record the writer writes",
+              carried[0]["next"].get("answers") == {"deferral": "it names GR-2"})
         planted = {"1985-SR-VI.5.8.3-1": {"disposition": A.CARRIES, "rules_2023": ["SR-13.18.38.3-1"],
                                           "change": {"kind": "KEPT", "to": ["SR-13.18.38.3-1"]}},
                    "1985-SR-VI.5.8.3-2": {"disposition": A.DISPUTED, "rules_2023": ["SR-13.18.38.3-1"], "contested": True},
