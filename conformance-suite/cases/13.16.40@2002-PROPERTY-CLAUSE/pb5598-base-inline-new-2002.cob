@@ -1,0 +1,39 @@
+*>--- conformance-case
+*> id: pb5598-base-inline-new-2002
+*> rules: [2002-SR-8.4.2.9.2-5, 2002-GR-13.16.40.3-1]
+*> accept: [2002]
+*> source-format: free
+*> portable: unverified
+*>---
+*> kb/Work PB5598 - the inline invocation of BASE's New. The
+*> ACTIVE-CLASS ban on an inline invocation's returning item
+*> (2023 8.4.3.4.3 SR4) is a 2014 addition; 2002 8.4.2.4.2 SR4
+*> bans only ANY LENGTH. So at 2002 the inline class-name :: "NEW"
+*> is legal and creates an object, and the program prints CREATED.
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB5598N.
+ENVIRONMENT DIVISION.
+CONFIGURATION SECTION.
+REPOSITORY.
+    CLASS PB5598NC.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 B USAGE OBJECT REFERENCE PB5598NC.
+PROCEDURE DIVISION.
+MAIN.
+    SET B TO PB5598NC :: "NEW".
+    IF B = NULL DISPLAY "NULL" ELSE DISPLAY "CREATED" END-IF.
+    STOP RUN.
+END PROGRAM PB5598N.
+
+IDENTIFICATION DIVISION.
+CLASS-ID. PB5598NC INHERITS FROM BASE.
+ENVIRONMENT DIVISION.
+CONFIGURATION SECTION.
+REPOSITORY.
+    CLASS BASE.
+IDENTIFICATION DIVISION.
+OBJECT.
+PROCEDURE DIVISION.
+END OBJECT.
+END CLASS PB5598NC.

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.6.2-6",
+ "rule-digest": "0f9c9171ff67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/pb5598-active-class-property-2002",
+ "notes": "2002 asks only the USING/RETURNING shape of a GET method; the ACTIVE-CLASS returning-item ban is 2014 text and is applied at Has(2014) only (kb/Work PB5598). The golden's GET PROPERTY SELFREF returns an ACTIVE-CLASS item and compiles at 2002; the refused twin shows COBOL2790 at 2014 and 2023."
+}

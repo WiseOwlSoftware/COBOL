@@ -93,7 +93,8 @@ public sealed class RefModCategoryDriftTests
             string text = File.ReadAllText(f);
             // (?<![.0-9]) keeps §2023:8.8.4.2.4 — a real clause — from matching. The clause is absent from 2023 alone: ISO/IEC
             // 1989:2002 and the 2014 text number the inline method invocation 8.4.2.4, so a citation that names another edition
-            // (`§2002:8.4.2.4`, the kb/Work PB4887 form scripts/spec/cite.py checks in its own edition) is no offender (kb/Work PB5603).
+            // (`§2002:8.4.2.4`, the kb/Work PB4887 form scripts/spec/cite.py checks in its own edition) is no offender (kb/Work PB5598,
+            // PB5603).
             foreach (Match m in Regex.Matches(text, @"(?<![.0-9])(?<!§(?!2023)[0-9]{4}:)8\.4\.2\.4(?![0-9])"))
             {
                 // The deliberate references that NAME the bad citation in order to warn about it are exempt:
