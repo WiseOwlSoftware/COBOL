@@ -12,7 +12,7 @@ import lane_classification  # noqa: E402  — THE classification of a change no 
 import threading
 import time
 
-from gate_host import FIRST_CLASSES, Host, ONLY_CASES
+from gate_host import FIRST_CLASSES, Host, HostTools, ONLY_CASES
 
 
 class FakeHost(Host):
@@ -76,12 +76,15 @@ class FakeHost(Host):
             raise OSError("planted: the growth directory is read-only")
         self.growth.append((run.name, tests_s, conformance))
 
-    def toolchain(self) -> tuple[bool, str]:
-        """The planted host's tools: toolchain.env's, unless the arm plants `toolchain` (a JDK of another version)."""
+    def toolchain(self) -> HostTools:
+        """The planted host's tools: toolchain.env's, unless the arm plants `toolchain` (a JDK of another version) or
+        `toolchain-unread` (a `dotnet --version` that did not answer within the probe's limit, kb/Work PB5616)."""
         self.toolchain_checked = True
         if "toolchain" in self.plant:
-            return False, "jdk 23.0.2 (toolchain.env 27.0.1)"
-        return True, self.tools
+            return HostTools("toolchain", "jdk 23.0.2 (toolchain.env 27.0.1)")
+        if "toolchain-unread" in self.plant:
+            return HostTools("toolchain-unread", "dotnet-sdk did not answer within 60 s (toolchain.env 10.0.403)")
+        return HostTools(None, self.tools)
 
     def fetch_bounce_results(self) -> str:
         return "build-local: ci bounce: none (a planted host asks GitHub nothing)"

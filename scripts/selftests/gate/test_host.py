@@ -12,9 +12,11 @@ from gate_host import Host
 
 
 def case_00_real_host_reads_toolchain(expect):
-    matched, tools = Host(gate_mod.REPO).toolchain()
-    expect("the real host's toolchain read answers (matched, the versions it found) from toolchain.env without raising",
-           isinstance(matched, bool) and isinstance(tools, str) and bool(tools), repr((matched, tools)))
+    found = Host(gate_mod.REPO).toolchain()
+    expect("the real host's toolchain read answers (the NOT RUN cause or None, the versions it found) from "
+           "toolchain.env without raising",
+           found.cause in (None, "toolchain", "toolchain-unread") and found.matched == (found.cause is None)
+           and isinstance(found.tools, str) and bool(found.tools), repr(found))
 
 
 def case_01_real_host_names_its_lock_and_default_audits(expect):

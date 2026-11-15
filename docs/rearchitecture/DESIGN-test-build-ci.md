@@ -180,9 +180,16 @@ On the hosts, `scripts/wsl/setup-wsl.sh` and `scripts/cloud/setup-env.sh` instal
 uv; semgrep runs on its own uv-managed CPython, `SEMGREP_PYTHON_VERSION`, until upstream ships a cp315 wheel). The
 Windows dev box installs with winget. The gate holds every host to the manifest: before its audits, `gate.py`
 runs `toolchain.check --scope gate`, stops `NOT RUN [toolchain]` (an ENVIRONMENT cause) on any mismatch, and names the
-toolchain it ran under in its verdict line and its record. `scripts/python-resolve.sh` and `.ps1` accept exactly
+toolchain it ran under in its verdict line and its record. The probe keeps what happened (kb/Work PB5616): `toolchain._run`
+answers a `Probe` (answered, with its output and exit code; not on PATH; did not answer within `PROBE_LIMIT_S`, 60 s;
+could not start, with the OS error), and only "not on PATH" is ABSENT. A tool on PATH whose version could not be read
+(it did not answer, could not start, or answered no version) is UNREAD: it still fails the check (exit 3,
+`EXIT_UNREAD`; an unresolved version never passes), the line names what happened (`dotnet-sdk did not answer within
+60 s`, `dotnet-sdk could not start: <error>`, `dotnet-sdk answered no version: "<first 200 characters>", exit <code>`),
+and the gate stops `NOT RUN [toolchain-unread]`, its own ENVIRONMENT cause, which gives no install advice: the tool is
+not shown to be missing. `scripts/python-resolve.sh` and `.ps1` accept exactly
 `PYTHON_VERSION`. The SessionStart readiness check (`scripts/hooks/tooling_check.py`) prints the same comparison for
-every tool, ASK-OWNER on a mismatch. Identical holds at every commit; LATEST holds within a day. `nightly.yml`'s `latest` job
+every tool, ASK-OWNER on a mismatch or an absent tool, UNREAD on a tool whose version was unread. Identical holds at every commit; LATEST holds within a day. `nightly.yml`'s `latest` job
 runs `python scripts/toolchain.py latest` every day. It asks each publisher for its newest stable release (the newest
 SDK of the .NET release index's GA channel of the manifest's major; actions/python-versions' stable list, so the target
 is one setup-python can install; Oracle's current releases; GitHub's `releases/latest`; for each runner image's git,
@@ -899,7 +906,8 @@ longest first by the committed weights file. The growth trigger of kb/Work/PB432
   `assembly_wall_s`,
   `effective_concurrency` and each population's counts.
 - **A gate that measured nothing ends `NOT RUN [<cause>]`**, never GREEN and never RED. `gate_verdict.NOT_RUN_CAUSES` is the ONE table
-  of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`, `disk`, `tree`,
+  of causes, each with a class: ENVIRONMENT (the host, not the tree: `settings`, `interpreter`, `toolchain`,
+  `toolchain-unread`, `disk`, `tree`,
   `launch`, `run`, `merge-blocked`, `host`, `sdk`) or BRANCH (the tree's own scripts or merged tree: `driver`,
   `merge-failed`, `population`, `arguments`, `verdict`, `unclassified`). The landing judges a NOT RUN by its class (§3.17.2
   step 3), and a NOT RUN verdict naming no known cause is `unclassified`.
