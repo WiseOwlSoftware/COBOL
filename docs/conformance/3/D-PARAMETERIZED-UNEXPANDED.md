@@ -21,6 +21,6 @@
   instance without EXPANDS; it is not, because the next paragraph identifies an instance by "the same actual
   parameters", so an instance without actual parameters is not a thing the clause describes. GnuCOBOL and IBM
   Enterprise COBOL have no parameterized interfaces or classes, so CLAUDE.md rule 1's precedence offers nothing below the
-  ISO text. Refusals: COBOL0859 (USE AFTER EXCEPTION OBJECT) and COBOL0813 (USAGE OBJECT REFERENCE); their text cites
+  ISO text. Refusals: COBOL0859 (USE AFTER EXCEPTION OBJECT), COBOL0813 (USAGE OBJECT REFERENCE) and COBOL0823 (INVOKE, whose wording does not yet state this ground: kb/Work PB5676); their text cites
   2023 rules at every edition, a PB4950 instance. The owner may overturn this determination; overturning it means
   implementing the unexpanded reference at 2002 (and at 2014 if its text matches).
