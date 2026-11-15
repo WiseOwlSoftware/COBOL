@@ -114,6 +114,7 @@ public static class Constructs
     public const string FloatingDebuggingIndicator2002 = "floating-debugging-indicator-2002";
     public const string FloatingLiteralContinuation2002 = "floating-literal-continuation-2002";
     public const string FloatingPointLiteral2002 = "floating-point-literal-2002";
+    public const string FormatClause2002 = "format-clause-2002";
     public const string Free2002 = "free-2002";
     public const string FromLiteral2002 = "from-literal-2002";
     public const string FunctionDefinition2002 = "function-definition-2002";
@@ -257,6 +258,7 @@ public static class Constructs
     public const string SecondsPastMidnight2014 = "seconds-past-midnight-2014";
     public const string SegmentLimitRemoved2002 = "segment-limit-removed-2002";
     public const string SegmentNumbersRemoved2002 = "segment-numbers-removed-2002";
+    public const string SelectWhenClause2002 = "select-when-clause-2002";
     public const string SetAddress2002 = "set-address-2002";
     public const string SetArithmeticExpression2002 = "set-arithmetic-expression-2002";
     public const string SetConditionFalse2002 = "set-condition-false-2002";

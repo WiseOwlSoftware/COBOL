@@ -330,6 +330,15 @@ public static class CobolFile
     /// <see cref="FileRegistry.RegisterCodeSet"/>.</summary>
     public static void RegisterCodeSet(string name, char[] toNative) => _reg.RegisterCodeSet(name, toNative);
 
+    /// <summary>Declare a file's record format (<see cref="FileRegistry.RegisterRecordFormat"/>).</summary>
+    public static void RegisterRecordFormat(string name, RecordFormat format) => _reg.RegisterRecordFormat(name, format);
+
+    /// <summary>Whether the record description entry a file's SELECT WHEN clauses select for an image is national (<see cref="FileRegistry.SelectedRecordIsNational"/>).</summary>
+    public static bool SelectedRecordIsNational(string name, string internalImage) => _reg.SelectedRecordIsNational(name, internalImage);
+
+    /// <summary>Declare a file's SELECT WHEN selector (<see cref="FileRegistry.RegisterRecordSelector"/>).</summary>
+    public static void RegisterRecordSelector(string name, Func<string, int> selector) => _reg.RegisterRecordSelector(name, selector);
+
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§2023:12.4.5.15/§2023:12.4.5.9). A null
     /// <paramref name="sharing"/> means the file control entry writes no SHARING clause — a LOCK MODE clause is not
     /// a sharing specification (§2023:9.1.15) — so each OPEN gives the connector the

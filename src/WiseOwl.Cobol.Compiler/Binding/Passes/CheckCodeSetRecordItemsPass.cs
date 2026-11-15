@@ -76,7 +76,11 @@ internal sealed class CheckCodeSetRecordItemsPass : IBindPass
             // entries the program WROTE: the implied record an FD without any receives (§2023:14.9.30.4 GR6) is not one,
             // so a file with none has nothing to screen and CODE-SET naming either alphabet (or both, which
             // §2023:13.18.13.4 GR4's second sentence expressly contemplates) is legal (kb/Work PB1219).
-            foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
+            // §2023:13.18.13.3 SR3 reads "If there are record description entries associated with the file and no SELECT WHEN clauses are
+            // specified": with them the alphabets convert the items of the SELECTED record description entry, each by its own usage
+            // (GR4), so no entry need be all one usage (kb/Work PB5578).
+            if (!file.HasSelectWhen)
+                foreach (var rec in file.WrittenRecords) CheckCodeSetRecordItem(binder, rec, wantNational);
             if (binder.Edition.DialectLevel < 2002) CheckCodeSetReportItems(binder, file, wantNational);
         }
     }

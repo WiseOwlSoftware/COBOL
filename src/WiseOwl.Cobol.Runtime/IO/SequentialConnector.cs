@@ -1419,6 +1419,69 @@ public sealed partial class SequentialConnector : FileConnector
     private bool RecordAreaOutsideLineCharacterSet(ReadOnlySpan<char> recordArea, bool national) =>
         _lineSequential && LineSequentialCharacterSet.HasCharacterOutside(recordArea, national, CodeSet);
 
+    // ── FORMAT and SELECT WHEN (ISO §2023:13.18.24, §2023:13.18.51; ISO/IEC 1989:2002 §2002:13.16.22, §2002:13.16.49) ──────────────────
+
+    /// <summary>The file's record format — the translation of each record between the record area and the medium, item by item
+    /// over the SELECTED record description entry (<see cref="RecordFormat"/>) — or null for a file with neither a FORMAT clause
+    /// nor SELECT WHEN clauses that its CODE-SET clause needs (that file's CODE-SET converts a record whole,
+    /// <see cref="FileConnector.CodeSet"/>). Set at registration. ⛔ THE TWO BOUNDARIES: a record is translated to the medium form at
+    /// the top of each statement that writes one (<see cref="ExternalRecord"/>), so every rule below it — the bounds of the RECORD
+    /// clause, the line character set, the framing — is about the record ON THE MEDIUM, and from it at the one place a record is
+    /// read (<see cref="InternalRecord"/>).</summary>
+    internal RecordFormat? Format { get; set; }
+
+    /// <summary>The length ON THE MEDIUM of the record the last READ delivered, for a file with a <see cref="Format"/>: the RECORD clause bounds the record
+    /// on the medium, so the '04' of a record outside its bounds (§2023:14.9.30.4 GR14) is asked of this length.</summary>
+    private int _lastExternalLength = -1;
+
+    /// <summary>A record the <see cref="Format"/> could not translate, carried from <see cref="InternalRecord"/> to the READ that
+    /// reports it as its I-O status.</summary>
+    private sealed class RecordFormatRefusal(string status) : Exception
+    {
+        public string Status { get; } = status;
+    }
+
+    /// <summary>Translate the record a WRITE is about to put on the medium (ISO §2023:13.18.24.4 GR8; §2023:13.18.51.4 GR3).
+    /// The image becomes the external record at its own length — the RECORD clause bounds the length AFTER the FORMAT clause's
+    /// changes (§2023:14.9.51.4 GR14) — so the DEPENDING length, which counts the record area's bytes, no longer applies, and the
+    /// extent table of a variable-length group, which describes the record area, has no external twin. Returns the unsuccessful
+    /// statement's status, or null.</summary>
+    private string? ExternalRecord(ref string image, ref int length, ref bool national, ref RecordExtents? extents)
+    {
+        var failure = Format!.ToExternal(image, out string external);
+        if (failure is not RecordFormat.Failure.None) return RefusalStatus(failure);
+        // A fixed-length file's record is as long as its records are (§2023:13.18.43.4 GR6) and the fill is the medium's space, so it is made HERE,
+        // while the record is still the one the alphabet converts.
+        image = IsVarying ? external : Format.PadToWidth(external, RecordWidth, national);
+        length = -1;
+        national = false;   // the external image is characters: a national item crosses the medium as its byte pairs
+        extents = null;
+        return null;
+    }
+
+    /// <summary>The record area's form of a record just read from the medium (ISO §2023:13.18.24.4 GR9; §2023:13.18.51.4 GR3): itself
+    /// for a file with no <see cref="Format"/>; a record no entry is selected for, or one this implementation did not write,
+    /// is the READ's refusal (<see cref="RecordFormatRefusal"/>).</summary>
+    private string InternalRecord(string external)
+    {
+        if (Format is not { } format) return external;
+        _lastExternalLength = external.Length;
+        var failure = format.ToInternal(external, out string image);
+        return failure is RecordFormat.Failure.None ? image : throw new RecordFormatRefusal(RefusalStatus(failure));
+    }
+
+    /// <summary>The I-O status of a record the <see cref="Format"/> could not translate: 45 when no record description entry is
+    /// selected (§2023:9.1.13.7 item 5), the status of a character the file's coded character set has no code for
+    /// (§2023:14.9.51.4 GR23 for a line sequential file, §2023:9.1.13.11 for the others — the whole-record CODE-SET's own
+    /// answers), and the permanent error (§2023:9.1.13.6 item 1) for an item whose value has no external text or whose external
+    /// text is no value.</summary>
+    private string RefusalStatus(RecordFormat.Failure failure) => failure switch
+    {
+        RecordFormat.Failure.NoRecordSelected => FileStatusCode.RecordIdentificationFailure,
+        RecordFormat.Failure.CharacterWithoutImage => _lineSequential ? FileStatusCode.LineRecordInvalidChar : FileStatusCode.CharacterWithoutByteImage,
+        _ => FileStatusCode.PermanentError,
+    };
+
     // ── WRITE ────────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Plain <c>WRITE record</c> (ISO §2023:14.9.51): line-sequential writes the trimmed image as a line;
@@ -1469,6 +1532,7 @@ public sealed partial class SequentialConnector : FileConnector
         // AFTER write. A line sequential file takes the same path (it used to have a third, hand-placed arm).
         if (SupportsVerticalPositioning(page))
             return WriteAdvancingRecord(image, length, 1, before: false, page, national, extents);
+        if (Format is not null && ExternalRecord(ref image, ref length, ref national, ref extents) is { } untranslated) return Status = untranslated;
         // ⛔ GR14's size rule is stated BEFORE GR23, and the record's content ('91') is no general rule at all, so
         // '44' is tested first (DOC-A.1-104; kb/Work PB2751, the sequential sibling of the keyed reorder): a record
         // both too short and holding a character outside the set is a size violation.
@@ -1583,6 +1647,7 @@ public sealed partial class SequentialConnector : FileConnector
         if (!IsOpen || _writer is null && !_fileRemoved) return Status = FileStatusCode.WriteNotOpenForOutput;   // a file a ROLLBACK removed is created again (JournalAppend)
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_linagePageBroken) return LinageViolationStatus();   // §2023:13.18.34.4 GR6 b) 2's latch — see Write()
+        if (Format is not null && ExternalRecord(ref image, ref length, ref national, ref extents) is { } untranslated) return Status = untranslated;
         // The ONE length decision (kb/Work PB1190): what the '91' test asks of, GR14's bound, and the characters
         // presented are all the record at §2023:13.18.43.4 GR13's length — the plain arm's rule, now this arm's too.
         // GR14's '44' first, as on the plain arm (DOC-A.1-104; kb/Work PB2751).
@@ -1735,6 +1800,7 @@ public sealed partial class SequentialConnector : FileConnector
     {
         try { return ReadRecord(previous, out image); }
         catch (IOException) { image = BlankRecordArea(); return ReadFailed(); }   // '30' — see ReadFailed
+        catch (RecordFormatRefusal refused) { image = BlankRecordArea(); return ReadUnsuccessful(refused.Status); }   // '45' / '30' — see InternalRecord
     }
 
     /// <summary>⛔ THE READ-SIDE MEDIUM BOUNDARY'S ONE CATCH SHAPE (kb/Work PB1512) — the twin of the write side's
@@ -1796,13 +1862,14 @@ public sealed partial class SequentialConnector : FileConnector
             // character IN THE RECORD (NOTE 3) — a subsequent READ continues the remainder up to the line delimiter.
             // _lineRemainder models that FPI: service a pending remainder before reading a new physical line.
             string? line;
+            string? onMedium = null;   // a FORMAT file's line as it stands on the medium: the line character set is about THAT text, not the record area's
             if (_lineRemainder is not null)
             {
                 line = _lineRemainder;
                 _lineRemainder = null;
                 _lastReadLinePartial = true;   // a served remainder is only PART of its physical line (§2023:14.9.35 GR17a)
             }
-            else if (NextFrame(out _, out _) is { } physical) line = physical;
+            else if (NextFrame(out _, out _) is { } physical) { onMedium = physical; line = InternalRecord(physical); }   // FORMAT: the record area's form (§2023:13.18.24.4 GR9)
             else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
             // The bound is the maximum size the RECORD DESCRIPTIONS specify (GR15's own words), which is the
             // record area's width except for a variable-length record (MaxRecordSize — kb/Work PB981).
@@ -1827,10 +1894,11 @@ public sealed partial class SequentialConnector : FileConnector
             // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
             // RecordWidth wide, so the fitted image is the same subject as before.
             string delivered = lineTooLong ? CurrentRecord : line;
-            lineBadChar = RecordAreaOutsideLineCharacterSet(delivered.Length > RecordWidth ? delivered : image, NationalRecordArea);
+            lineBadChar = RecordAreaOutsideLineCharacterSet(Format is not null ? onMedium ?? "" : delivered.Length > RecordWidth ? delivered : image, NationalRecordArea && Format is null);
         }
-        else if (NextFrame(out _, out RecordExtents? extents) is { } data)
+        else if (NextFrame(out _, out RecordExtents? extents) is { } physicalRecord)
         {
+            string data = InternalRecord(physicalRecord);   // FORMAT / SELECT WHEN: the record area's form (§2023:13.18.24.4 GR9; §2023:13.18.51.4 GR3)
             NoteRecordRead(data, extents);
             image = Fit(data);   // §2023:14.9.30.4 GR14/GR15 fill — national-aware (kb/Work PB327)
             // A VARYING record outside the file's min/max is §2023:14.9.30.4 GR14's '04' (§2023:9.1.13.2 item 3): its
@@ -1843,7 +1911,7 @@ public sealed partial class SequentialConnector : FileConnector
             // final record is the '04'. A file written under another record length is not detected here — no
             // boundary exists on the medium to detect it by; RecordLayoutNotice reports the arithmetic case at
             // OPEN.
-            shortLong = RecordLengthConflicts(data.Length);
+            shortLong = RecordLengthConflicts(Format is null ? data.Length : _lastExternalLength);   // the RECORD clause bounds the record on the MEDIUM (§2023:14.9.51.4 GR14)
         }
         else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
         _readOrdinal++;   // the record just made available is ordinal N+1 (§2023:9.1.16 lock identity)
@@ -1929,7 +1997,7 @@ public sealed partial class SequentialConnector : FileConnector
             // than the character window for a variable-length group, whose dynamic members lie outside it (D-FRA;
             // kb/Work PB1563 — RecordWidth called a whole 9-character line of a 3-character fixed run "partial", and
             // the REWRITE of a record the READ delivered in full was '44').
-            _lastReadLinePartial = record.Length > MaxRecordSize;
+            _lastReadLinePartial = Format is null && record.Length > MaxRecordSize;   // a FORMAT record is translated whole (RecordFormat); its length on the medium is not the record area's
             return record;
         }
         // The block start is the LOGICAL offset (characters consumed so far — 1:1 with bytes under Latin1),
@@ -2078,6 +2146,8 @@ public sealed partial class SequentialConnector : FileConnector
     {
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §2023:14.9.35.4 GR3 / §2023:14.9.10.4 GR1
         if (!PrevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
+        // A file with a FORMAT clause is never opened I-O (§2023:14.9.27.3 SR9: "The I-O phrase shall not be specified if the FORMAT clause is specified"), so
+        // no REWRITE reaches it: the rewrite arms below translate nothing.
         // §2023:13.18.43.4 GR13 — the number of bytes in the record: data-name-1's content (a), else the bytes in the
         // record (b/c), which the compiler passes for a fixed-length file. −1 is the image's own length.
         int len = length >= 0 ? length : IsVarying ? image.Length : RecordWidth;

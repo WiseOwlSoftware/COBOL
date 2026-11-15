@@ -1828,8 +1828,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// conjuncts are reported when both fail — every rule a statement violates is reported (kb/Work PB352).</item>
     /// </list>
     /// The rules that pair the TAPE PHRASE with the mode (SR5/SR6) are <see cref="CheckOpenTapePhrase"/>'s; SR8 is
-    /// <see cref="CheckOpenSharingAllOther"/>'s; SR9 (I-O with a FORMAT clause) is discharged by the FORMAT
-    /// clause's documented non-support (Annex A.4.8). The X3.23-1985 multiple file reel rules (§1985:VII.4.3.3 SR2,
+    /// <see cref="CheckOpenSharingAllOther"/>'s; SR9 (<i>"The I-O phrase shall not be specified if the FORMAT clause is specified in the file
+    /// description entry for file-name-1"</i>, §2023:14.9.27.3 SR9; §2002:14.8.26.2 SR7) is the third screen below. The X3.23-1985 multiple file reel rules (§1985:VII.4.3.3 SR2,
     /// §1985:VII.4.3.4 GR20 d) read the file's <see cref="FileModel.MultipleFileReels"/>. Pure: false when a rule was violated and reported; the
     /// statement still binds (a screen, not a branch — the compile has already failed).</summary>
     public bool CheckOpenModeForFile(FileModel file, BoundOpenMode mode)
@@ -1840,6 +1840,13 @@ internal sealed class StatementValidation(DataBinder data)
             data.Edition.Error(DiagnosticCatalog.OpenReportFileMode,
                 $"OPEN {OpenModeFace(mode)} '{file.CobolName}' — a report file shall not be opened INPUT or I-O "
                 + "(ISO §2023:14.9.27.3 SR1; §2023:13.18.46.3 SR3)");
+            ok = false;
+        }
+        if (file.Format is not null && mode is BoundOpenMode.IO)
+        {
+            data.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
+                $"OPEN I-O '{file.CobolName}' — the file description entry specifies a FORMAT clause, and the I-O phrase shall not be specified for such a file "
+                + $"({(data.Edition.DialectLevel < 2014 ? "ISO §2002:14.8.26.2 SR7" : data.Edition.DialectLevel < 2023 ? "ISO §2014:14.9.26.2 SR7" : "ISO §2023:14.9.27.3 SR9")})");
             ok = false;
         }
         if (mode is BoundOpenMode.Extend && file.AccessMode is not FileAccessMode.Sequential)

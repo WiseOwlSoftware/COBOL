@@ -1827,6 +1827,31 @@ public sealed class FileRegistry
         if (_files.TryGetValue(name, out var c)) c.CodeSet = new CodeSetConversion(toNative);
     }
 
+    /// <summary>Declare the file's record format (§2023:13.18.24 FORMAT clause; §2023:13.18.51 SELECT WHEN clause): the
+    /// translation of each record between the record area and the medium, item by item over the selected record description
+    /// entry. A file with a record format carries its CODE-SET alphabet in it (<see cref="RecordFormat"/>), never in
+    /// <see cref="FileConnector.CodeSet"/>, which converts a record whole. Only a sequential connector has records to translate:
+    /// FORMAT belongs to the sequential file description entry (§2023:13.4.5.2 Format 1) and a record that SELECT WHEN selects
+    /// for the CODE-SET clause is a sequential file's too.</summary>
+    public void RegisterRecordFormat(string name, RecordFormat format)
+    {
+        if (_files.TryGetValue(name, out var c))
+            (c as SequentialConnector ?? throw new InvalidOperationException($"file '{name}' is not sequential: a FORMAT or SELECT WHEN record translation is the sequential file description entry's (ISO §2023:13.4.5.2)"))
+                .Format = format;
+    }
+
+    /// <summary>Whether the record description entry the file's SELECT WHEN clauses select for <paramref name="internalImage"/> is described as national
+    /// (<see cref="RecordFormat.SelectedIsNational"/>): the space a short record of a SORT or MERGE transfer is filled with.</summary>
+    public bool SelectedRecordIsNational(string name, string internalImage) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector { Format: { } format } && format.SelectedIsNational(internalImage);
+
+    /// <summary>Declare the SELECT WHEN selector of the file's record format (§2023:13.18.51.4 GR3): the compiled evaluation of the
+    /// clauses' conditions over an internal image, in the order the record description entries are written.</summary>
+    public void RegisterRecordSelector(string name, Func<string, int> selector)
+    {
+        if (_files.TryGetValue(name, out var c) && c is SequentialConnector { Format: { } format }) format.Select = selector;
+    }
+
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§2023:14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,

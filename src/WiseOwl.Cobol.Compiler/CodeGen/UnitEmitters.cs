@@ -106,6 +106,7 @@ internal sealed class UnitEmitters
         Communication.Debug = Debug;
         KeyedIo.Debug = Debug;
         SeqIo.Debug = Debug;
+        SeqIo.Cond = Cond;
         ControlFlow.Debug = Debug;
         Call.Debug = Debug;
         Evaluate.Debug = Debug;

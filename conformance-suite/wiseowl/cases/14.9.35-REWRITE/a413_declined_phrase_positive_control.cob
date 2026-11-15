@@ -8,7 +8,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> THE POSITIVE CONTROL for the Annex A.4.8 / A.4.13 declines (COBOL1705 / COBOL1706).
+*> THE POSITIVE CONTROL for the Annex A.4.13 decline (COBOL1706; the Annex A.4.8 decline, COBOL1705, ended when kb/Work PB5578 implemented the FORMAT and SELECT WHEN clauses).
 *>
 *> A refusal gate is only evidence if it also proves what it did NOT take down. A.4.1 NOTE 1 is the reason
 *> there is anything left to prove: "The higher-level constructs or cross-referenced topics are not
@@ -23,7 +23,7 @@
 *> the word from 2002 and pb5159-rewrite-record-word-at-85 its refusal at 85.
 *>
 *> Placed in the 85 corpus deliberately: every construct here is X3.23-1985 surface, so a green run at
-*> --std 85 also proves the two new declines are keyed to the DECLINED spellings and not to the verbs.
+*> --std 85 also proves the decline is keyed to the DECLINED spelling and not to the verbs.
 IDENTIFICATION DIVISION.
 PROGRAM-ID. A413PC9AL.
 ENVIRONMENT DIVISION.

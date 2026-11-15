@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.22.3-10",
+ "rule-digest": "a59569cf354a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToExternal; src/WiseOwl.Cobol.Runtime/IO/RecordFormat.cs#ToInternal; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ExternalRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#InternalRecord",
+ "test-ref": "conformance:wiseowl/cases/13.16.22@2002-FORMAT-CLAUSE/format_external_representation",
+ "notes": "kb/Work PB5578: the FORMAT and SELECT WHEN clauses (Annex A.4.8) are provided (docs/conformance/5/A.4.8.md). §2002:13.16.22.3 GR10: specified in docs/conformance/7/DOC-A.1-84.md."
+}
