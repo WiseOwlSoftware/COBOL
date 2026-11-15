@@ -86,13 +86,21 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         AddUnnamedParagraph(sentences, section, used);
     }
 
-    /// <summary>The ONE pc a declarative section with ZERO paragraphs owns (§2023:14.9.49.3 SR1: "zero, one, or more
-    /// procedural paragraphs" — the section is still SELECTED, §2023:14.9.49.4 GR3, so it needs a pc to dispatch to). It
-    /// is a paragraph-name-OMITTED paragraph with no sentences: like <see cref="AddAnonymousParagraph"/> it is named
-    /// nowhere (kb/Work PB990 — it used to be registered under the SECTION's own name, so every such section declared
-    /// a paragraph its source never wrote, and <c>PERFORM</c> of the section was ambiguous with it).</summary>
-    public void AddEmptyAnonymousParagraph(SectionInfo section, HashSet<string> used) =>
+    /// <summary>The ONE pc a section with ZERO paragraphs owns where its execution must be a point the dispatcher can
+    /// see: a declarative section (§2023:14.9.49.3 SR1: "zero, one, or more procedural paragraphs" — the section is still
+    /// SELECTED, §2023:14.9.49.4 GR3, so it needs a pc to dispatch to), and any section of a program that compiles a USE FOR
+    /// DEBUGGING section (§1985:XV.3.2.4 GR3 a: the debugging section runs "Immediately before each execution of the named
+    /// procedure", and PERFORM of an empty section and the fall-through into it each execute it, kb/Work PB5568). It is a
+    /// paragraph-name-OMITTED paragraph with no sentences: like <see cref="AddAnonymousParagraph"/> it is named nowhere
+    /// (kb/Work PB990 — it used to be registered under the SECTION's own name, so every such section declared a paragraph
+    /// its source never wrote, and <c>PERFORM</c> of the section was ambiguous with it). Its DEBUG-LINE is the section header's
+    /// line: the section has no first statement to identify, and §1985:XV.3.2.4 GR12 leaves the identification to the
+    /// implementor.</summary>
+    public void AddEmptyAnonymousParagraph(SectionInfo section, HashSet<string> used)
+    {
         AddUnnamedParagraph([], section, used);
+        _paraLine[^1] = section.HeaderLine;
+    }
 
     private void AddUnnamedParagraph(Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
@@ -180,7 +188,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             AddAnonymousParagraph(section.sentence(), info, used);
             foreach (var p in section.paragraphDefinition())
                 AddParagraph(p.paragraphName().procedureName(), p.sentence(), info, used);
-            info.CloseAt(_paras.Count - 1);   // zero paragraphs ⇒ the range stays EMPTY (§2023:14.4.2)
+            // Zero paragraphs ⇒ the range stays EMPTY (§2023:14.4.2) — unless a debugging section is compiled, when the empty
+            // section is a procedure a debug trigger can name and so owns its pc (kb/Work PB5568). The declaratives were
+            // collected first, so _pendingDebug is complete here.
+            if (_paras.Count == info.StartPc && _pendingDebug.Count > 0) AddEmptyAnonymousParagraph(info, used);
+            info.CloseAt(_paras.Count - 1);
             (ctx.CurrentMethodScope?.Sections ?? _sections).Declare(info.Name, info);
         }
     }
@@ -839,7 +851,6 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 + "not be specified in any USE FOR DEBUGGING statement.\"");
             return;
         }
-        if (named.IsSection && named.Range.IsEmpty) return;   // a section of no paragraphs is never executed: no trigger point
         int pc = named.Range.Start;
         if (_debugSubjects.Any(s => s.SubjectPc == pc && s.IsSection == named.IsSection))
         {
