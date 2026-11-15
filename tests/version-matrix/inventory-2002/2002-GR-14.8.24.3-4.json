@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.24.3-4",
+ "rule-digest": "703cf35fa0ec",
+ "verdict": "DIVERGES",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#FigurativeToNumericImageStore",
+ "notes": "kb/Work PB5351 and PB5677: at --std 2002 (golden-2002-2 re-probe on main 63ab0c4ece, repro g2mvd1.cob) with LOW-VALUE = \"5\", MOVE LOW-VALUE and MOVE ALL \"5\" to PIC 9(3)V99 and ZZ9.99 print 55555/[555555] and 55555/[555.55], where GR4's integer of the receiver's digit count derives 55500/[555.00] for both."
+}

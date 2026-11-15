@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-5",
+ "rule-digest": "001cf8858672",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MarkFillImageStorage; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#FigurativeRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#FigurativeSenderOf; src/WiseOwl.Cobol.Runtime/Control/ActivationRelations.cs#MoveViolation; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#Sr5ReceiverOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#GateFigurativeEdition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateMove; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov11_space_to_numeric; conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov12_spaces_to_numeric_edited",
+ "notes": "§2002:14.8.24.2 SR5 prohibits SPACE to a numeric or numeric-edited item; g2mov11 (SPACE to 9(3)) and g2mov12 (SPACES to ZZ9.99) are refused with COBOL0819 at the MOVE line at --std 2002, and g2mov13 line 7 shows the other figuratives still admitted at 2002."
+}

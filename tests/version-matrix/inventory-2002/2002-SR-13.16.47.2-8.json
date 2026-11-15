@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.47.2-8",
+ "rule-digest": "590ab428d07e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-77-group; conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/g2-same-as-77-elementary",
+ "notes": "§2002:13.16.47.2 SR8 \"If the subject of the entry is a level 77 item, data-name-1 shall reference an elementary item.\": 77 X SAME AS a level 1 group is refused COBOL1555 at --std 2002 and 77 E2 SAME AS an elementary PIC X(3) runs \"[ABC] 3\", both as derived (pinned build dc1f2dcce8)."
+}

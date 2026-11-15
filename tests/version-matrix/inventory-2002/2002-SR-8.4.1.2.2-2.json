@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-2",
+ "rule-digest": "8a31dbf61c30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#IsTableElement; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#CannotBeSubscripted; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenSubscriptArity; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantLength",
+ "test-ref": "conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-cd-table-element; conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-cd-record-non-table; conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-cd-condition-non-table; conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-cd-entry-name-non-table",
+ "notes": "§2002:8.4.1.2.2 SR2 within the communication section: subscripts on CD table elements and on DESTINATION TABLE items (§2002:A.1.2.2 SR12) print the derived output, and S1(2), S1-ONE(2) and TL(1) are each refused with COBOL2096 at --std 2002."
+}

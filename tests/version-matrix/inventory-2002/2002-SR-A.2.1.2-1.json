@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.2.1.2-1",
+ "rule-digest": "2f70477fd0f7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CommunicationBinder.cs#AcceptRule",
+ "test-ref": "conformance:cases/A.2.1@2002-ACCEPT-MESSAGE-COUNT-STATEMENT/2002-SR-A_2_1_2-1",
+ "notes": "Per §2002:A.2.1.2 SR1 ACCEPT MESSAGE COUNT of an output CD is refused; at --std 2002 the pinned build refuses line 24 with COBOL6170 quoting the 2002 rule and accepts the input-CD statement on line 23."
+}

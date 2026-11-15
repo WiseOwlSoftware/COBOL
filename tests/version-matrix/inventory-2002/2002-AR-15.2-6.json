@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.2-6",
+ "rule-digest": "805afc7feed6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindTrim",
+ "test-ref": "conformance:cases/15.2@2002-ARGUMENTS/g2-arg-keyword-locale",
+ "notes": "§2002:15.2 AR6: the 2002 keywords ANYCASE and LOCALE of NUMVAL-C/TEST-NUMVAL-C; ANYCASE makes \"USD\" match \"usd\" (1234.50, TEST 00) and its absence errs at position 1 (§2002:15.55.2 AR3, 15.76.3 RV1), and LOCALE with and without a locale-name evaluates a digits-only string. The --std 2002 run of g2-arg-keyword-locale matched the derived .out."
+}

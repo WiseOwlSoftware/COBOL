@@ -28,4 +28,4 @@
   its own pass and counts BC=2, AB=0 there, a divergence from the standard on a case with no overlap, which this
   compiler does not follow because the standard controls). Measured against GnuCOBOL 3.2: D2, D3, D5 and the
   reference-modified case agree. Pinned by `conformance:cases/14.9.22-INSPECT/pb1907_inspect_tally_overlap` (D1-D5, RM, and controls C1
-  and C2: C1 a statement that overlaps nothing, C2 one the compiler cannot prove disjoint although it is).
+  and C2: C1 a statement that overlaps nothing, C2 one the compiler cannot prove disjoint although it is), and at 2002 by `conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-tally-counter-overlap`.
