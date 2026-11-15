@@ -53,6 +53,7 @@ internal static class BindPipeline
         new CheckValueLiteralClassesPass(),
         new CheckCommunicationRecordsPass(),
         new ResolveFilesPass(),
+        new ResolveRecordFormatPass(),
         new GateFileRecordByteSurfacePass(),
         new ResolveReportsPass(),
         new CallBindExternalAndGlobalPass(program),

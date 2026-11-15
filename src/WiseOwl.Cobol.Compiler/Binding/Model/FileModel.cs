@@ -515,6 +515,26 @@ public sealed class FileModel
     /// (kb/Work PB536). This property is the only thing that travels between the two.</para></summary>
     public bool? CodeSetRecordClass { get; set; }
 
+    /// <summary>The kinds of data item the FD's FORMAT clause (ISO §2023:13.18.24; ISO/IEC 1989:2002 §13.16.22) selects for formatting
+    /// — BIT, CHARACTER and NUMERIC, any combination (§2023:5.2.6.4's choice indicators) — or null without the clause. The runtime's
+    /// <see cref="WiseOwl.Cobol.Runtime.IO.RecordFormat"/> performs the formatting; the emitter registers this beside the
+    /// record plans.</summary>
+    public WiseOwl.Cobol.Runtime.IO.RecordFormatKinds? Format { get; set; }
+
+    /// <summary>Where the FORMAT clause is written (the screens of its syntax rules report there).</summary>
+    public WiseOwl.Cobol.Editions.DiagnosticCursor FormatAt { get; set; }
+
+    /// <summary>Whether a record's medium form differs from its record-area form by the SELECTED record description entry: a FORMAT
+    /// clause (§2023:13.18.24.4 GR8, GR9), or SELECT WHEN clauses over a CODE-SET clause (§2023:13.18.13.4 GR4 — the alphabets then
+    /// convert item by item and not the record whole; §2023:13.18.51.4 GR1 — the clauses are evaluated "if the associated file
+    /// description entry also contains a CODE-SET clause or FORMAT clause"). Such a file registers a <c>RecordFormat</c> with a plan
+    /// for each record description entry, and its CODE-SET alphabet travels inside it.</summary>
+    public bool TranslatesByRecord => HasFd && !IsSortMerge && Format is not null || CodeSetRecordClass is not null && HasSelectWhen;
+
+    /// <summary>Whether any record description entry the program wrote carries a SELECT WHEN clause (§2023:13.18.51.3 SR2 makes it all
+    /// of them or none).</summary>
+    public bool HasSelectWhen => WrittenRecords.Any(r => r.SelectWhen is not null);
+
     /// <summary>The RELATIVE KEY data-name as written (ISO §2023:12.4.5.13), resolved post-build; the item lives OUTSIDE
     /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
     public string? RelativeKeyName { get; set; }
