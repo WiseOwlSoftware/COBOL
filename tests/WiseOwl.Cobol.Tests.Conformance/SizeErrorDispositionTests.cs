@@ -391,6 +391,38 @@ public sealed class SizeErrorDispositionTests
         Assert.Contains("A=002 R=001", stdout);
     }
 
+    /// <summary>kb/Work PB5501 — A COBOL-85 CONDITION WHOSE ARITHMETIC EXPRESSION RAISES A SIZE ERROR CONTINUES THE PROGRAM
+    /// (§1985:B.2.2 item 45: "the program will continue"), and the leaf (a relation or a sign condition, its own NOT inside) is
+    /// FALSE (the determination, DOC-A.1-70); a logical NOT outside it inverts that. Each row ended the run unit
+    /// (EC-SIZE-ZERO-DIVIDE, fatal) before PB5501.</summary>
+    [Theory]
+    [InlineData("IF B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF B / Z NOT > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF 1 < B / Z DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF NOT B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")]
+    [InlineData("IF B / Z IS POSITIVE DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF B / Z IS NOT POSITIVE DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]
+    [InlineData("IF Z ** 0 = 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "F")]       // §1985:VI.6.2.3 GR5a
+    [InlineData("IF B / Z > 1 OR B = 5 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")] // a sibling leaf is untouched
+    [InlineData("IF B / 1 > 1 DISPLAY \"T\" ELSE DISPLAY \"F\".", "T")]          // control: no size error, the true value
+    public void Cobol85_SizeErrorInACondition_ContinuesWithTheLeafFalse(string body, string verdict)
+    {
+        var (exit, stdout, stderr) = Run(Prog85(body), dialectLevel: 85);
+        Assert.Equal(0, exit);
+        Assert.Equal($"BEFORE\n{verdict}\nAFTER", stdout.Replace("\r\n", "\n").Trim());
+        Assert.DoesNotContain("EC-SIZE", stderr);
+    }
+
+    /// <summary>The same condition from 2002 on: a fatal exception condition (§2023:14.7.5), so the run unit ends.</summary>
+    [Fact]
+    public void Cobol2002_SizeErrorInACondition_StaysFatal()
+    {
+        var (exit, stdout, stderr) = Run(Prog85("IF B / Z > 1 DISPLAY \"T\" ELSE DISPLAY \"F\"."), dialectLevel: 2002);
+        Assert.Equal(1, exit);
+        Assert.DoesNotContain("AFTER", stdout);
+        Assert.Contains("EC-SIZE-ZERO-DIVIDE", stderr);
+    }
+
     private static string Prog85(string body) => $$"""
                IDENTIFICATION DIVISION.
                PROGRAM-ID. PB5484SZ.
