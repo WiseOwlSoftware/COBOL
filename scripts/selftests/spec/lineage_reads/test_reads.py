@@ -439,17 +439,17 @@ def case_11_a_rule_that_grants_a_form_needs_an_accepted_case(expect):
 
 def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_record(expect):
     ids = {n: f"2002-GR-4.1.3-{i}" for i, n in enumerate(
-        ("ok", "half", "refusal", "overturned", "doubtful", "declined", "bare", "disagree", "late"), 1)}
+        ("ok", "half", "refusal", "overturned", "doubtful", "declined", "bare", "disagree", "late", "unrefuted"), 1)}
     two = {**F.read(ids["half"]), "to": ["GR-8.1-1", "GR-8.1-2"]}
     mixed = {**F.read(ids["disagree"]), "to": ["GR-8.1-1", "GR-8.1-3"]}
     s = R.normal_slice("u-01", F.record("u-01", [
         F.read(ids["ok"]), two, F.read(ids["refusal"]), F.read(ids["overturned"]), F.read(ids["doubtful"]),
         F.read(ids["declined"], **{"licence-2002": "none"}), F.read(ids["bare"], citations="§2023:1.1 GR1"), mixed,
-        F.read(ids["late"])],
+        F.read(ids["late"]), F.read(ids["unrefuted"])],
         [F.refute(ids[n]) for n in ("ok", "half", "refusal", "declined", "bare", "disagree", "late")]
         + [F.refute(ids["overturned"], "OVERTURNED", **{"compiler-at-2002": "wrong: prints 3"}),
            F.refute(ids["doubtful"], "DOUBTFUL")]))
-    twins = {F.twin(ids[n]): ["2002", "2023"] for n in ("ok", "overturned", "doubtful", "bare")}
+    twins = {F.twin(ids[n]): ["2002", "2023"] for n in ("ok", "overturned", "doubtful", "bare", "unrefuted")}
     w = F.witnesses(accepted=twins | {"GR-8.1-1": ["2002"], "GR-8.1-2": ["2023"], "GR-8.1-3": ["2002"],
                                       F.twin(ids["late"]): ["2023"]},
                     diagnosed={F.twin(ids["refusal"]): ["2002"], F.twin(ids["declined"]): ["2002"]},
@@ -469,6 +469,9 @@ def case_12_an_own_verdict_from_a_pointer_is_written_and_audited_like_a_kept_rec
     expect("an OVERTURNED SAME of an unpaired rule is its refuter's work item, never an own verdict (a defect here)",
            got["overturned"].work == R.DEFECT)
     expect.equal("a SAME its refuter calls DOUBTFUL is undecided, never an own verdict", got["doubtful"].work, R.UNDECIDED)
+    expect("an unpaired SAME with NO REFUTER RECORD is refused for it, never own-verdict work (kb/Work PB5699: the "
+           "refuter is read before the pairing)",
+           got["unrefuted"].work is None and got["unrefuted"].refused == ((R.NO_REFUTER, "no refuter has attacked the SAME"),))
     expect("a DOCUMENTED-NON-SUPPORT pointer with no 2002 licence blocks the own verdict",
            R.NO_LICENCE in [r for r, _ in got["declined"].refused])
     expect("a read citing nothing of its own edition blocks the own verdict",
