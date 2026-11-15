@@ -89,3 +89,12 @@ REFERENCE leg pins the maximum. The held draft `g2_class_zero_length` (8.8.4.1.3
 and witnesses 2002-GR-8.8.4.1.3.3-1. At --std 2002 it prints its expected output, and the same source BY REFERENCE prints
 `S0-ALPHA=T`, so the leg can fail. `record_verdicts.py --edition 2002` re-recorded both rows CONFORMS. At the merged head
 the 2002 inventory is 2,277 GAP, CONFORMS 319, DIVERGES 7, PARTIAL 1.
+
+**Merged with PB5606 (landed on main).** The queue bounced pull request #1710 DIRTY a third time. Main had landed PB5606,
+and the one conflict was the store record of 2002-SR-13.16.47.2-7, which both sides added: this branch recorded it DIVERGES
+(SAME AS naming a communication-section record compiled at --std 2002), and main's fix recorded it CONFORMS, since
+`ExpandSameAsEntry` now refuses a communication-section target (COBOL1556) and two goldens witness it
+(`pb5606-same-as-section-list`, `pb5606-same-as-communication-item`). The defect this branch's record named is fixed, so
+the row takes main's record, re-applied with `record_verdicts.py --edition 2002` (it wrote nothing: the record was already
+main's). No other DIVERGES record of this branch names PB5606 or PB5640. At the merged head the 2002 inventory is 2,274 GAP,
+CONFORMS 322, DIVERGES 6, PARTIAL 1.

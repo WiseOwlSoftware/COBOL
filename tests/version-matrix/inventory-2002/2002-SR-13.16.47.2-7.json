@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-SR-13.16.47.2-7",
  "rule-digest": "00fdc5435c02",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAs",
- "notes": "kb/Work PB5606: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) SAME AS naming a COMMUNICATION SECTION record compiles and runs at --std 2002."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ExpandSameAsEntry",
+ "test-ref": "conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/pb5606-same-as-section-list; conformance:cases/13.16.47@2002-SAME-AS-CLAUSE/pb5606-same-as-communication-item",
+ "notes": "Same text as the 2023 twin (an elementary item or a level 1 group item, in the file, working-storage, local-storage or linkage section; a level-66 alias is neither). COBOL 2002's communication section is the fifth data section the list omits: ExpandSameAsEntry refuses a target whose root's DataItem.Section is EntrySection.Communication (COBOL1556, citing §2002:13.16.47.2 SR7), so a CD record item or the CD's own interface area is no SAME AS target, while a working-storage target copied into a CD record is legal (pb5606-same-as-section-list). kb/Work PB5606."
 }
