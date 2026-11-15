@@ -1,4 +1,4 @@
-## The 2002 read of the first 974 word-identical rules files 18 defect notes
+## Entry 3662 — 2026-11-15 00:06 PST — The 2002 read of the first 974 word-identical rules files 18 defect notes
 
 **What was read.** The first 974 2002 rules that are word-identical to the 2023 text were read against the pinned compiler at `--std 2002` (readers p-01..p-19, refuters q-01..q-20; the files are under `E:/COBOL-coord/scratch/op-20261114/read-2002/out`). The extraction found 141 defect cases. They fall into 19 new groups, 2 extensions of open notes, 4 groups on facilities the owner decides, and 2 groups dropped. This change touches only `kb/Work/` and this entry.
 
@@ -30,3 +30,4 @@
 **Owner-decision notes extended (status and kind unchanged).** PB5577 (VALIDATE: six rows; a bare VALIDATE is accepted with warning COBOL1580 and validates nothing, a wrong answer), PB5578 (FORMAT and SELECT WHEN: four rows; the refused SELECT WHEN also draws a misleading cascading COBOL1672 with CODE-SET), PB5579 (WRITE FILE and REWRITE FILE: two rows), PB5580 (multiple class inheritance: three rows).
 
 **Dropped.** Fixed on main already: the ODO object of a RECORD KEY (PB5445; rows also in PB5582). Not a defect: RESUME AT NEXT STATEMENT after EC-SORT-MERGE-RELEASE ending the SORT, because §2002:14.8.36.3 GR16 terminates the SORT when a USE procedure does not complete normally. Two further groups needed no new note: the CURSOR/CRT STATUS and SCREEN SECTION refusals are already in PB5581, and the cases the refuters upheld with the compiler outcome right.
+
