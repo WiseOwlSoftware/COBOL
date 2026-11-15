@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-7.2.14.2-1",
  "rule-digest": "9381c74a5774",
+ "test-ref": "conformance:cases/7.3.17-LEAP-SECOND/pb65-leap-second-within-unit",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

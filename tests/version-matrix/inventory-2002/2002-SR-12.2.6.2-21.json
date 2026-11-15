@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-12.2.6.2-21",
  "rule-digest": "222ee8d0051f",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare; conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_alphabet_named_locale_format_order",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-X.2.5.2",
  "rule-digest": "6ab38046adab",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988-function-definition-85; conformance:cases/10.6-COBOL-compilation-group/pb1507-end-function-closes-program",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

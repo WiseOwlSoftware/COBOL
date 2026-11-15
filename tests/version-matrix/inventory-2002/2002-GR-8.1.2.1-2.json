@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-8.1.2.1-2",
  "rule-digest": "4d3f702a3823",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-7.2.9.3-7",
  "rule-digest": "5a1703223cf0",
+ "test-ref": "conformance:cases/7.3.11-DEFINE/l1c06_define_literal_categories",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

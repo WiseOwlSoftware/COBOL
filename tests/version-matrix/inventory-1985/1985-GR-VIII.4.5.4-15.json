@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.4.5.4-15",
  "rule-digest": "f040ccd62555",
+ "test-ref": "conformance:cases/14.9.30-READ/pb370_read_relative_invalid_key",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

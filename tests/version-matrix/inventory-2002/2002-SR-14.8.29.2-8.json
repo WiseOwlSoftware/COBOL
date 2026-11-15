@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.29.2-8",
  "rule-digest": "68152f3c36d8",
+ "test-ref": "conformance:cases/14.9.30-READ/pb340_advancing_on_lock_relative; conformance:cases/14.9.30-READ/pb340_advancing_on_lock_indexed",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.20.3-3",
  "rule-digest": "5338d2d582e7",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb511_external_as_name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

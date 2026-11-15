@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IX.2.7.3-4",
  "rule-digest": "eaa2bfc7ac20",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb1025-indexed-key-beyond-minimum",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-3",
  "rule-digest": "2ff7680eb4ba",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_receiving_operands",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

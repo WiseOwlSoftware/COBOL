@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.3.8.4.4-1",
  "rule-digest": "f29e4830989f",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb297_figurative_refmod_relation",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

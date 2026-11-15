@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.39.2",
  "rule-digest": "2d62dcfba533",
+ "test-ref": "conformance:cases/15.82-SIN/l1-sin-two-arguments",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

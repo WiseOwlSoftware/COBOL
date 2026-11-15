@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-8.4.3.2-1",
  "rule-digest": "edc1938682d5",
+ "test-ref": "conformance:cases/8.4.4-Condition-name/pb390_procedure_and_condition_operands",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

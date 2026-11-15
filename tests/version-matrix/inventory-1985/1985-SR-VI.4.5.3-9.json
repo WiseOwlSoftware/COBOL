@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-9",
  "rule-digest": "8efe32eda783",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb110-symbolic-sr16; conformance:cases/12.3.7-SPECIAL-NAMES/pb1557-symbolic-ordinal-too-long",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

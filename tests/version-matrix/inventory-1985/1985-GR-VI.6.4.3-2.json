@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.4.3-2",
  "rule-digest": "3d1fb73019ef",
+ "test-ref": "conformance:cases/14.7.6-CORRESPONDING/pb391_corresponding_rule2_table16_85; conformance:cases/14.7.6-CORRESPONDING/l1c04_corr_arith_numeric_pairs",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.52.3-10",
  "rule-digest": "c66b199ee1a9",
+ "test-ref": "conformance:cases/13.8.6.2.3-Report-Items/pb1271_report_sum_counter_occurrences",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

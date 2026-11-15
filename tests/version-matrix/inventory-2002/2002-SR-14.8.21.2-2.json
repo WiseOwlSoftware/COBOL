@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.21.2-2",
  "rule-digest": "dbf4bda6c6db",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb856_inspect_national_identifier_operands; conformance:cases/14.9.22-INSPECT/pb3665_inspect_function_usage_controls; conformance:cases/14.9.22-INSPECT/pb3665_inspect_omitted_keyword_function_controls",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

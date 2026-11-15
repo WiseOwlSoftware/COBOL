@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.5.6.3-4",
  "rule-digest": "684d0af88b92",
+ "test-ref": "conformance:cases/13.16-Data-description/pb518_clause_placement_legal",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

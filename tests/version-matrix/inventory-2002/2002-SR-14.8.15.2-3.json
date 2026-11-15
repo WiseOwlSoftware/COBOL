@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.15.2-3",
  "rule-digest": "674c0c99ede8",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/pb369-contained-report-file-not-global; conformance:cases/14.9.16-GENERATE/pb369-contained-generate-non-global-report",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

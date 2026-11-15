@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.15.2-3",
  "rule-digest": "b646ae0e10a6",
+ "test-ref": "conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

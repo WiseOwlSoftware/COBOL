@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.20.3-2",
  "rule-digest": "5bf79201b988",
+ "test-ref": "conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-alphanumeric-literal; conformance:cases/14.9.26-MULTIPLY/l1c19-multiply-alphanumeric-literal-2",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

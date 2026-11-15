@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-VI.6.19.3-1",
  "rule-digest": "79b96182ceca",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb428-inline-method-invocation-below-2002; conformance:cases/8.4.3.1-Identifier/pb429_page_counter_receiving",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.31.2-2",
  "rule-digest": "c3d99945530f",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1160-resume-in-when-in-global-declarative",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

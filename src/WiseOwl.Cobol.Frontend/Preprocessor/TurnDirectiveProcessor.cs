@@ -182,11 +182,13 @@ public static class TurnDirectiveProcessor
                 // A non-EC word after an exception-name is a file-name (SR1) — unless it duplicates a compiler-directive
                 // word (§2023:8.12), which SR1's second sentence interprets as that directive word: ON, OFF, WITH, LOCATION,
                 // ALL… can never be file-name-1, so the directive matches no format (kb/Work PB1365).
-                if (CompilerDirectiveWords.IsReserved(w))
+                if (CompilerDirectiveWords.IsReserved(w, dialectLevel))
                 {
                     diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.TurnDirectiveMalformed.Code,
                         $">>TURN: '{w}' duplicates a compiler-directive word, so it is interpreted as that directive "
-                        + "word and not as file-name-1, and the directive matches no format (ISO §2023:7.3.25.3 SR1; §2023:8.12)",
+                        + "word and not as file-name-1, and the directive matches no format (ISO "
+                        + $"{CompilerDirectiveWords.Citation(dialectLevel, CompilerDirectiveWords.Site.TurnFileName)}; "
+                        + $"{CompilerDirectiveWords.TableCitation(dialectLevel)})",
                         loc, default);
                     return null;
                 }

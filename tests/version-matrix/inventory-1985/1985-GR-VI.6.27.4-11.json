@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-11",
  "rule-digest": "8598c82ef83b",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/l1c35_unstring_multichar_delimiter",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
