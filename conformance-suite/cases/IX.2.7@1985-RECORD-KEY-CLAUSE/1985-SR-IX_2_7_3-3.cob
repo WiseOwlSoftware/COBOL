@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: 1985-SR-IX_2_7_3-3
-      *> rules: [1985-SR-IX.2.7.3-3]
+      *> rules: [1985-SR-IX.2.7.3-3, 2002-SR-12.3.4.12.2-3]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -8,10 +8,11 @@
       *> must not reference a group item that contains a variable
       *> occurrence data item, and line 9 below names the group IG, which
       *> holds an OCCURS DEPENDING ON table. WiseOwl refuses it at 85
-      *> with COBOL0863 (kb/Work PB5445); a compiler that accepts it
-      *> fails. FileControlKeyRules screens only the 2023 reading
-      *> (a dynamic-length item) at 2002 and later, which this
-      *> program meets, so the refusal is 85's alone.
+      *> and 2002 with COBOL0863 (kb/Work PB5445); a compiler that accepts
+      *> it fails. COBOL-2002 states the same refusal as §2002:12.3.4.12.2 SR3:
+      *> a group holding a variable-table OCCURS is a variable-length data
+      *> item (§2002:13.16.36.3 GR8). 2014 and 2023 narrow that term, so
+      *> the program translates there.
 000100 IDENTIFICATION DIVISION.
 000200 PROGRAM-ID. RKODO.
 000300 ENVIRONMENT DIVISION.

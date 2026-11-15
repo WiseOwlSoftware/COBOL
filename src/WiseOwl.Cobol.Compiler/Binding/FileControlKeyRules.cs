@@ -258,7 +258,8 @@ internal sealed record FileControlKeyRule(
 /// RECORD KEY, ALTERNATE RECORD KEY and RELATIVE KEY clauses and their syntax rules all predate COBOL-85 — so
 /// the table needs no edition column and the negatives reject at every edition. A rule COBOL-85 states DIFFERENTLY is
 /// a row of its own in <see cref="Rules1985"/>, in force below COBOL-2002 only (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3:
-/// a group holding an OCCURS DEPENDING ON table, kb/Work PB5445). A rule that arrived with a later
+/// a group holding an OCCURS DEPENDING ON table, kb/Work PB5445), and COBOL-2002's wider "variable-length data item" is
+/// <see cref="Rules2002"/>, in force at 2002 alone. A rule that arrived with a later
 /// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.
 /// The one edition arm is the SORT-MERGE entry's: below COBOL-2002 it is SELECT and ASSIGN only (§1985:XI.2.3.3 SR2),
 /// one rule that answers every clause the SD rows would, so <see cref="Screen"/> asks it instead of them there
@@ -798,13 +799,52 @@ internal static class FileControlKeyRules
                 + "(a table with OCCURS DEPENDING ON); it must not be (ANSI §1985:IX.2.5.3 SR3)"),
     ];
 
+    /// <summary>⛔ THE 2002 READING OF THE SAME RULE (kb/Work PB5445, review R1-1). COBOL-2002 words the rule as the 2023 text does
+    /// — "Data-name-1 and data-name-2 shall not reference a variable-length data item" (§2002:12.3.4.12.2 SR3 for the RECORD KEY,
+    /// §2002:12.3.4.5.2 SR3 for the ALTERNATE RECORD KEY) — but defines the term wider: an alphanumeric group item "that has an
+    /// entry subordinate to it that specifies the variable-table format of the OCCURS clause is a variable-length data item"
+    /// (§2002:13.16.36.3 GR8), where §2014:8.5.1.8 narrows it to a dynamic-capacity table or a dynamic-length elementary item.
+    /// So at COBOL-2002 alone a group holding an OCCURS DEPENDING ON table is refused, and <see cref="Rules"/>' IsDynamicLength
+    /// test (which a 2002 program cannot meet) is no screen of it. Re-derived from <c>specs/ISO_COBOL_2002.md</c> by
+    /// <c>FileControlKeyRuleDriftTests</c>.</summary>
+    private static readonly FileControlKeyRule[] Rules2002 =
+    [
+        new("2002-SR-12.3.4.12.2-3", "12.3.4.12.2", "§2002:12.3.4.12.2 SR3",
+            "shall not reference a variable-length data item",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Item is { IsGroup: true } g && DataItem.HasOdoBeneath(g),
+            (_, op) => $"{op.ClauseFace} {op.Written} is a group item that contains a variable-table OCCURS clause "
+                + "(OCCURS DEPENDING ON), so it is a variable-length data item and shall not be referenced "
+                + "(§2002:12.3.4.12.2 SR3 and §2002:13.16.36.3 GR8)"),
+        new("2002-SR-12.3.4.5.2-3", "12.3.4.5.2", "§2002:12.3.4.5.2 SR3",
+            "shall not reference a variable-length data item",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.Item is { IsGroup: true } g && DataItem.HasOdoBeneath(g),
+            (_, op) => $"{op.ClauseFace} {op.Written} is a group item that contains a variable-table OCCURS clause "
+                + "(OCCURS DEPENDING ON), so it is a variable-length data item and shall not be referenced "
+                + "(§2002:12.3.4.5.2 SR3 and §2002:13.16.36.3 GR8)"),
+    ];
+
     /// <summary>The COBOL-85 rows, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<FileControlKeyRule> Catalog1985 => Rules1985;
 
-    /// <summary>The rows in force at <paramref name="edition"/>: the 2023 table everywhere, plus the 1985 rows below COBOL-2002.</summary>
-    private static FileControlKeyRule[] RulesFor(EditionContext edition) => edition.DialectLevel < 2002 ? Rules85 : Rules;
+    /// <summary>The COBOL-2002 rows, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
+    internal static IReadOnlyList<FileControlKeyRule> Catalog2002 => Rules2002;
+
+    /// <summary>The rows in force at <paramref name="edition"/>: the 2023 table everywhere, plus the 1985 rows below COBOL-2002
+    /// and the 2002 rows at COBOL-2002 alone (2014 and 2023 define "variable-length data item" without a group of ODO).</summary>
+    private static FileControlKeyRule[] RulesFor(EditionContext edition) => edition.DialectLevel switch
+    {
+        < 2002 => Rules85,
+        2002 => Rules02,
+        _ => Rules,
+    };
 
     private static readonly FileControlKeyRule[] Rules85 = [.. Rules, .. Rules1985];
+
+    private static readonly FileControlKeyRule[] Rules02 = [.. Rules, .. Rules2002];
 
     /// <summary>The table, for <c>FileControlKeyRuleDriftTests</c> — the only reason it is not private.</summary>
     internal static IReadOnlyList<EntryClause> EntryClauseCatalog => EntryClauses;

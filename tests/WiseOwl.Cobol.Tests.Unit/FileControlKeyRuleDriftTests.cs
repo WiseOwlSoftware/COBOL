@@ -388,6 +388,37 @@ public sealed class FileControlKeyRuleDriftTests
         }
     }
 
+    /// <summary>⛔ THE 2002 ROWS ARE RE-DERIVED FROM <c>specs/ISO_COBOL_2002.md</c> (kb/Work PB5445, review R1-1): each row's
+    /// quoted sentence is the NUMBERED syntax rule its id names, inside the "Syntax rules" subsection of the clause it cites, and
+    /// the message ships both its own citation and the general rule (§2002:13.16.36.3 GR8) that makes a group holding an
+    /// OCCURS DEPENDING ON table a variable-length data item.</summary>
+    [Fact]
+    public void Every2002Row_QuotesItsOwnNumberedRuleOfTheClauseItCites()
+    {
+        var lines = File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md"));
+        Assert.NotEmpty(FileControlKeyRules.Catalog2002);
+        foreach (var rule in FileControlKeyRules.Catalog2002)
+        {
+            var m = Regex.Match(rule.RuleId, @"^2002-SR-(?<clause>[0-9.]+)-(?<n>\d+)$");
+            Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 2002 inventory's 2002-SR-<clause>-<n> shape.");
+            Assert.Equal(rule.Clause, m.Groups["clause"].Value);
+            Assert.Equal($"§2002:{rule.Clause} SR{m.Groups["n"].Value}", rule.Citation);
+            int at = Array.FindIndex(lines, l => l.Trim() == $"###### {rule.Clause} Syntax rules");
+            Assert.True(at >= 0, $"§2002:{rule.Clause} has no Syntax rules subsection.");
+            string numbered = m.Groups["n"].Value + "\\) ";
+            bool found = false;
+            for (int j = at + 1; j < lines.Length && !lines[j].StartsWith('#'); j++)
+                if (lines[j].StartsWith(numbered, StringComparison.Ordinal) && Norm(lines[j]).Contains(Norm(rule.RuleText)))
+                    found = true;
+            Assert.True(found, $"§2002:{rule.Clause} has no numbered syntax rule {m.Groups["n"].Value} containing \"{rule.RuleText}\".");
+            var file = new FileModel { CobolName = "F", SelectName = "F", AssignTarget = "F" };
+            var item = new DataItem { Level = 5, CobolName = "K", ClrName = "K" };
+            string message = rule.Message(file, new FileKeyOperand(rule.Role, "KEY", "K", item, default));
+            Assert.Contains(rule.Citation, message);
+            Assert.Contains("§2002:13.16.36.3 GR8", message);
+        }
+    }
+
     /// <summary>⛔ PROVE THE SET ARITHMETIC CAN FAIL before the rows are trusted: <see cref="FileKinds"/>'s
     /// members shall be the one-hot bits <c>FileControlKeyRules.KindOf</c> computes from a
     /// <see cref="FileOrganization"/>, or a row's set would silently miss the kind it names. Every organization

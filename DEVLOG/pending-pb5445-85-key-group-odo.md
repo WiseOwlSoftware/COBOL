@@ -8,8 +8,8 @@ dynamic-length elementary item, a different rule.
 
 Fix shape: a second catalog, `FileControlKeyRules.Rules1985`, two rows (prime and alternate key) that refuse a key whose item
 is a group with `DataItem.HasOdoBeneath`, reported as COBOL0863 under an `ANSI §1985:` citation. `Screen` asks
-`RulesFor(edition)`: the 2023 table everywhere, plus the 1985 rows below COBOL-2002. No new diagnostic code (COBOL7285 to
-COBOL7287 returned). At 2002 and 2023 the same programs still translate, as the standards there do not state the rule.
+`RulesFor(edition)`: the 2023 table everywhere, plus the 1985 rows below COBOL-2002 and the 2002 rows at 2002. No new diagnostic code (COBOL7285 to
+COBOL7287 returned). Review round 1 (R1-1) found that COBOL-2002 states the same refusal (§2002:12.3.4.12.2 SR3 and §2002:12.3.4.5.2 SR3, with §2002:13.16.36.3 GR8 making a group holding a variable-table OCCURS a variable-length data item), so the fix also adds `Rules2002`, two rows in force at 2002 alone; the same programs translate at 2014 and 2023, which narrow the term (§2014:8.5.1.8). The goldens now refuse at 85 and 2002 and cite the 2002 rule ids, and `FileControlKeyRuleDriftTests.Every2002Row_QuotesItsOwnNumberedRuleOfTheClauseItCites` re-derives the rows from `specs/ISO_COBOL_2002.md`.
 
 Goldens: `1985-SR-IX_2_7_3-3` and `1985-SR-IX_2_5_3-3` (a refusal at 85 each, with their `wiseowl/diagnostics` records);
 `FileControlKeyRuleDriftTests.Every1985Row_QuotesItsOwnNumberedRuleOfTheClauseItCites` re-derives each 1985 row from

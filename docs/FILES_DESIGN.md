@@ -1284,7 +1284,7 @@ file KINDS it is screened over (`FileKinds` — one flag per §2023:12.4.5.10.3 
 CLAUSE it is stated about (`FileKeyRole`, whose `Entry` member is the rule stated about the entry itself), three
 predicates (precondition · violation · message) and an optional diagnostic code. `FileControlBinder.ResolveFiles` calls `Screen(file, Edition)` once per declared
 file, after the keys resolve. A rule COBOL-85 states differently is a row of the companion `Rules1985` catalog, screened only
-below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445). One-report-per-file is then a consequence of *where* the screen runs, not a set it
+below COBOL-2002 (§1985:IX.2.7.3 SR3 and §1985:IX.2.5.3 SR3, a key naming a group that holds an OCCURS DEPENDING ON table, kb/Work PB5445); COBOL-2002's wider "variable-length data item" (§2002:13.16.36.3 GR8) is the `Rules2002` catalog, screened at 2002 alone. One-report-per-file is then a consequence of *where* the screen runs, not a set it
 has to carry, and the diagnostic is positioned at the offending CLAUSE (`FileModel.RecordKeyAt` /
 `AlternateKeyClause.At` / `RelativeKeyAt`) or, for an absent clause, at the entry (`FileModel.EntryAt`).
 An absent clause is modelled as an operand with a null name, so a rule that requires a clause BECAUSE OF something
