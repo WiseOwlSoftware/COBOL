@@ -410,10 +410,10 @@ public sealed class FileModel
     /// resolved list, so the two are not index-aligned in exactly the case a syntax rule has to talk about.</summary>
     public List<AlternateKeyClause> AlternateKeyNames { get; } = [];
 
-    /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).
+    /// <summary>The resolved alternate keys, in declaration order (the CLAUSE index: the connector's key index is the emitter's <c>ConnectorKeyIndex</c>, which orders the keys by their physical descriptors).
     /// <c>Suppress</c> is the §2023:12.4.5.6.4 GR6 key suppression value sized to the key (null = no SUPPRESS WHEN
     /// phrase, or an operand §2023:12.4.5.6.3 SR7 refused).</summary>
-    public List<(RecordKey Key, bool Duplicates, KeySuppression? Suppress)> AlternateKeys { get; } = [];
+    public List<(RecordKey Key, bool Duplicates, KeySuppression? Suppress, AlternateKeyClause Clause)> AlternateKeys { get; } = [];
 
     /// <summary>The SOURCE-form keys of this file that a reference <paramref name="recordKeyName"/>
     /// <paramref name="qualifiers"/> names — the ONE answer to ISO §2023:14.9.30.3 SR11 / §2023:14.9.41.3 SR7 / §2023:12.4.5.7.3
