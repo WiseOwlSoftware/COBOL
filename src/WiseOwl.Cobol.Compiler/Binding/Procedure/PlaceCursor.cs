@@ -43,6 +43,31 @@ internal abstract record PlaceCursor(DataItem Item)
     public virtual PlaceCursor? DynamicElement(Position oneBasedIndex) =>
         StoragePath is { } table ? new DynElementCursor(table.Add(new DynTableSegment(oneBasedIndex)), Item) : null;
 
+    /// <summary>⛔ THE ONE READER OF THE OCCURRENCE NUMBERS A RESOLVED PLACE'S OWN REFERENCE PINS, outermost table first (ISO §2023:13.18.63.3 SR20: "one
+    /// subscript … for each OCCURS clause for the subject of the entry or superordinate to that entry, specified in the same order as a subscripted
+    /// reference to the subject of the entry would be specified" — the order the access path lays its table segments down in). The switch asks the
+    /// UNDECORATED place (kb/Work PB393): a reference modifier, an ODO extent or a group-image view decorates WHERE the members are read, never where they
+    /// live. Null for a storage form with no structural path (the Tier-B window cursor), which the caller decides on. INITIALIZE keys a Format-2 VALUE
+    /// plan by these and VALIDATE addresses a REDEFINES view by them (<c>PlaceBuilder.PlaceForItem</c>).</summary>
+    public static IReadOnlyList<Position>? OccurrencePositions(Place place)
+    {
+        AccessPath? path = place.Undecorated switch
+        {
+            MemberPlace mp => mp.Path,
+            DynTablePlace dp => dp.Path,
+            _ => null,
+        };
+        if (path is null) return null;
+        var positions = new List<Position>();
+        foreach (var segment in path.Segments)
+            switch (segment)
+            {
+                case FixedTableSegment f: positions.Add(f.OneBasedIndex); break;
+                case DynTableSegment d: positions.Add(d.OneBasedIndex); break;
+            }
+        return positions;
+    }
+
     /// <summary>The cursor over a resolved group place, or null for a storage form no cursor is built over.
     /// ⛔ THE SWITCH IS OVER THE STORAGE FORM, SO IT ASKS <see cref="Place.Undecorated"/> (kb/Work PB393): an
     /// <c>OdoGroupPlace</c> answers §2023:13.18.38.4 GR8 about the group's EXTENT and a bit/national group's image

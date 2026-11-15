@@ -33,33 +33,25 @@ public sealed class DeclinedFacilityTests
                                            PROCEDURE DIVISION.
                                        """;
 
-    /// <summary>ISO §2023:14.9.50, Annex A.4.14 item 9 — the VALIDATE STATEMENT is recognized and NAMED. It is
-    /// accepted-inert with a Warning rather than refused, which is the posture PHASE-13 Wave H landed and
-    /// <c>docs/CONFORMANCE.md</c> §4 item 3 documents; the assertion here is that the WARNING IS ACTUALLY
-    /// EMITTED, once per site, and that the compile still SUCCEEDS.
-    /// <para>This is the covering witness for the seventeen §2023:14.9.50 rows (SR-14.9.50.3-1..-6,
-    /// GR-14.9.50.4-1..-10, FMT-14.9.50.2) and for the rules that describe what a SUPPORTED clause does inside a
-    /// VALIDATE statement and therefore cannot fire at all — GR-13.18.40.4-15/-19 (PICTURE "takes effect during
-    /// the format validation stage"), GR-13.18.44.4-3 (REDEFINES under a VALIDATE operand), GR-13.18.60.4-3
-    /// (USAGE compatibility checking) and DOC-A.1-86 (the Annex A.1 "Format validation" documentation item,
-    /// which A.1's own preamble makes not-required when the feature is not implemented).</para></summary>
+    /// <summary>ISO §2023:14.9.50 / ISO/IEC 1989:2002 §14.8.46 — the VALIDATE STATEMENT is implemented (kb/Work PB5577), so it compiles with NO
+    /// facility warning at the editions that have it: the retired COBOL1580 ("accepted but performs no validation") would be a false statement
+    /// beside a statement that validates. The runtime half is <c>conformance:cases/14.9.50-VALIDATE</c>.</summary>
     [Theory]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    public void ValidateStatement_DrawsTheNamedNonSupportWarning_AndStillCompiles(int edition)
+    public void ValidateStatement_CompilesCleanWithoutAFacilityWarning(int edition)
     {
         var (ok, errors, warnings) = EditionHarness.CompileFull(
             Prologue + "\n           VALIDATE WS-REC.\n           STOP RUN.\n", edition);
-        Assert.True(ok, "the VALIDATE statement is accepted-inert (§2023:4.2.6 ¶3), never a compile error: "
+        Assert.True(ok, "the VALIDATE statement is provided (kb/Work PB5577), never a compile error: "
             + string.Join("\n", errors));
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOL1580");
+        Assert.Empty(warnings);
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL. At <c>--std 85</c> VALIDATE is a USER-DEFINED WORD
-    /// (§2023:8.9 reserves it "added 2002"), so the statement arm must NOT fire and no COBOL1580 may appear — the
-    /// same fact <c>conformance:cases/_unassigned/user-word-validate</c> pins from the other side. Without this leg the
-    /// theory above would pass just as well against a compiler that warned unconditionally.</summary>
+    /// (§2023:8.9 reserves it "added 2002"), so the statement arm must NOT fire and the program compiles with no diagnostic — the
+    /// same fact <c>conformance:cases/_unassigned/user-word-validate</c> pins from the other side.</summary>
     [Fact]
     public void ValidateAt85_IsAUserWord_AndDrawsNoFacilityWarning()
     {
@@ -76,7 +68,7 @@ public sealed class DeclinedFacilityTests
 
                """, 85);
         Assert.True(ok, "VALIDATE is a legal user-defined word at COBOL-85 (ISO §2023:8.9)");
-        EditionHarness.AssertNoDiagnostic(warnings, "COBOL1580");
+        Assert.Empty(warnings);
     }
 
     /// <summary>ISO §2023:14.9.7 / §2023:14.9.36, Annex A.4.3 items 4 and 5 — the COMMIT and ROLLBACK STATEMENTS are the

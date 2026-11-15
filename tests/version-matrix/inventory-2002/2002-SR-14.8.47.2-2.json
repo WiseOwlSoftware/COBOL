@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-2",
+ "rule-digest": "83d07cbd269a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#retryLockPhrases; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateRetryLockPlace",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/pb5620_write_eop_before_lock_2002",
+ "notes": "kb/Work PB5620: the 2002 Format 1 (sequential) prints the END-OF-PAGE phrases before [ retry-phrase ] and WITH LOCK / WITH NO LOCK (§2002:14.8.47.1, rendered PDF page 580). writeStatement parses the one retryLockPhrases element in either place, so a sequential-file WRITE in the 2002 order compiles and runs at --std 2002 (it was COBOL2269); VersionConformancePass.ParseArm.GateRetryLockPlace refuses that place from 2014 (COBOL0902, §2014:E.2 item 29) and the 2014 place at 2002 (COBOL0900). The INVALID KEY half of SR2 stays COBOL1720 (write-invalid-key-sequential-org)."
+}

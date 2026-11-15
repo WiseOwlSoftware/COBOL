@@ -542,8 +542,8 @@ text.
 sub-form D12 keeps staged; `RAISE identifier` itself binds to `BoundRaiseObject` and fills the
 `ExceptionState.ExceptionObject` slot). A Format 3 USE cannot be GLOBAL (the `__IoCheckEc` note above). The
 exception-checking PERFORM WHEN is implemented (D12), and so is `>>PROPAGATE` ("Automatic propagation" above).
-VALIDATE/EC-VALIDATE is not a later wave: Annex A.4.14 is declined, the statement compiles inert with the
-COBOL1580 warning, and no EC-VALIDATE condition is raised (docs/CONFORMANCE.md §4 item 3). *(The national `-N` twins are LIVE — P10 Step 11:
+VALIDATE/EC-VALIDATE is built in stages (docs/rearchitecture/DESIGN-validate-facility.md; docs/CONFORMANCE.md §4 item 3): the statement raises
+EC-VALIDATE-FORMAT from its stage five, and the other names are raised as their stages land. *(The national `-N` twins are LIVE — P10 Step 11:
 `EcFunctions.FileN`/`LocationN` (§2023:15.29/§2023:15.31) = the base renderings through the ONE `CobolIntrinsics.NationalOf`
 repertoire translator, result category National; golden `exception_file_n`, matrix row `exception-file-n-2002`,
 85-window negative.)*
@@ -1240,5 +1240,5 @@ done).
 - SETTLED (§18.16): EC checking ships OFF by default (NIST-faithful, fast, §2023:7.3.25.4 GR1), enabled only by >>TURN/phrases; the conformance corpus drives the EC-on paths.
 - SETTLED (§18.16): an unhandled fatal EC terminates the run unit with a diagnostic + a nonzero exit (the ISO §2023:14.6.13.1.3 implementor choice).
 - `>>PROPAGATE` and the exception-checking PERFORM WHEN (§2023:14.9.28) are COBOL-2023 constructs (VCR row 79), diagnosed at --std=85|2002|2014 (G1) and implemented at 2023: "Automatic propagation" above and D12.
-- SETTLED (§18.17): VALIDATE / EC-VALIDATE is declined (Annex A.4.14, docs/CONFORMANCE.md §4 item 3): the statement compiles inert with the COBOL1580 warning, and it is flagged obsolete (2023 Table 13; VCR row 125).
+- SETTLED (§18.17): VALIDATE / EC-VALIDATE is implemented in stages (docs/rearchitecture/DESIGN-validate-facility.md; docs/CONFORMANCE.md §4 item 3), and flagged obsolete (2023 Table 13; VCR row 125).
 - Program collating sequence for alphanumeric comparisons / HIGH-VALUE/LOW-VALUE remap is designed but deferred until the WiseOwl.Cobol collating subsystem lands; the API seam CobolString.Compare(a,b,weights?) is fixed now — confirm that seam is acceptable so call sites never change.
