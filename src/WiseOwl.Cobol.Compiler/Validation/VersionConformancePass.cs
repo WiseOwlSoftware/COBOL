@@ -2721,7 +2721,47 @@ internal sealed class VersionConformancePass
         public override object? VisitWriteStatement(CobolParserCore.WriteStatementContext ctx)
         {
             GateFilePhrase(ctx.FILE(), "WRITE");
+            GateRetryLockPlace(ctx);
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>WHERE A WRITE'S <c>[ retry-phrase ] [ WITH LOCK | WITH NO LOCK ]</c> PAIR STANDS (kb/Work PB5620) — asked
+        /// here, from the written order alone, for every WRITE. The 2002 Format 1 prints the pair AFTER the END-OF-PAGE
+        /// phrases (§2002:14.8.47.1, rendered PDF page 580); the 2014 and 2023 Format 1 print it BEFORE them
+        /// (§2014:14.9.47.1, §2023:14.9.51.2); and Format 2 prints it before INVALID KEY at every edition. The grammar
+        /// parses the pair in either place as ONE element (<c>writeStatement</c>'s two alternatives), so this method
+        /// is the one reader of which place was written:
+        /// <list type="bullet">
+        /// <item>after an END-OF-PAGE phrase: the 2002 place, <c>write-lock-phrases-after-end-of-page-2002</c> (COBOL0902
+        /// from 2014, an error strict and a warning under --permissive with the meaning kept);</item>
+        /// <item>before an END-OF-PAGE phrase: the 2014 place, <c>write-lock-phrases-before-end-of-page-2014</c> (COBOL0900
+        /// below 2014);</item>
+        /// <item>after conditional phrases none of which is an END-OF-PAGE phrase (INVALID KEY): no edition prints the
+        /// pair there, so §2023:5.2.1's sequence rule refuses it at every edition (COBOL2987).</item>
+        /// </list>
+        /// A WRITE with no conditional phrase writes the pair in a place every edition prints, and the 1985 edition,
+        /// which prints neither phrase, refuses the pair itself (<see cref="VisitRetryPhrase"/>,
+        /// <see cref="VisitRecordLockPhrase"/>); the place rows still name their own edges there.</summary>
+        private void GateRetryLockPlace(CobolParserCore.WriteStatementContext ctx)
+        {
+            if (ctx.retryLockPhrases() is not { } pair || ctx.conditionalPhrases() is not { } phrases
+                || phrases.conditionalPhrase().Length == 0)
+                return;
+            bool afterPhrases = pair.Start.TokenIndex > phrases.Start.TokenIndex;
+            bool endOfPage = ConditionalPhrases.HasFamily(phrases, ConditionalPhraseFamily.EndOfPage);
+            using var _ = Sink.At(pair);
+            string written = $"the phrase '{WrittenSource.Of(pair)}'";
+            if (afterPhrases && endOfPage)
+                _p.Check(Constructs.WriteLockPhrasesAfterEndOfPage2002, written);
+            else if (endOfPage)
+                _p.Check(Constructs.WriteLockPhrasesBeforeEndOfPage2014, written);
+            else if (afterPhrases)
+                _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.FormatElementOutOfOrder.Code, EditionSeverity.Error,
+                    DiagnosticCatalog.FormatElementOutOfOrder.Id,
+                    $"WRITE: '{WrittenSource.Of(pair)}' is written after the INVALID KEY phrases, but every edition's Format 2 "
+                    + "prints the retry phrase and the WITH LOCK phrase before them (§2002:14.8.47.1, §2023:14.9.51.2), and no "
+                    + "rule of that format frees the order, so the elements shall be written in the sequence the format "
+                    + "gives (§2023:5.2.1)", "WRITE", DiagnosticCatalog.FormatElementOutOfOrder.IsoSection));
         }
 
         private void GateFilePhrase(Antlr4.Runtime.Tree.ITerminalNode? file, string verb)
@@ -3001,7 +3041,7 @@ internal sealed class VersionConformancePass
         /// recognition, and a READ writing more than one reports the introduction once per phrase.</summary>
         public override object? VisitRecordLockPhrase(CobolParserCore.RecordLockPhraseContext ctx)
         {
-            string verb = ctx.Parent switch
+            string verb = (ctx.Parent is CobolParserCore.RetryLockPhrasesContext pair ? pair.Parent : ctx.Parent) switch
             {
                 CobolParserCore.WriteStatementContext => "WRITE",
                 CobolParserCore.RewriteStatementContext => "REWRITE",
