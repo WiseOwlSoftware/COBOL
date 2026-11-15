@@ -110,7 +110,7 @@ internal static class EcNameResolution
     /// two mechanisms for "a declined module's exception-names", which is the anti-pattern
     /// (feedback_one_mechanism_per_job). Folded in as one row, carrying its OWN descriptor: the screen
     /// module is refused under COBOL1707 (its statement surface's code, so the negative witnesses keep
-    /// naming the construct) while the A.4.14 and A.4.3 families are refused under COBOL1710. The
+    /// naming the construct) while the A.4.14 (VALIDATE, kb/Work PB5577) and A.4.3 families have left the table, implemented. The
     /// descriptor also carries whether <c>--permissive</c> moves the refusal, so the row is the only place
     /// a module's posture is written down.
     /// <para>EC-MCS WAS A ROW HERE UNTIL kb/Work PB4744 implemented the asynchronous messaging facility (Annex A.3 item 4, DESIGN-message-control.md): its names are
@@ -127,13 +127,6 @@ internal static class EcNameResolution
         // surface and this is its procedure surface (kb/Work PB260).
         new("EC-SCREEN", DiagnosticCatalog.ScreenStatementUnsupported, "the screen handling module",
             "ISO Annex A.4.2 item 10; §2023:14.9.1 / §2023:14.9.11 / §2023:14.9.39", "docs/CONFORMANCE.md §4 item 4"),
-        // Annex A.4.14 item 10 — "EC-VALIDATE exception conditions in the RAISING phrase of the EXIT and GOBACK
-        // statements, the RAISING phrase of the procedure division header, the USE statement, the WHEN phrase of
-        // the PERFORM statement, the RAISE statement, and the TURN compiler directive", i.e. every site this
-        // funnel serves. Covers the level-2 EC-VALIDATE and all five level-3 names (§2023:14.6.13.1.6 Table 13, whose
-        // NOTE records the whole family as obsolete).
-        new("EC-VALIDATE", DiagnosticCatalog.DeclinedModuleExceptionName, "the VALIDATE facility", "ISO Annex A.4.14 item 10; §2023:14.9.50",
-            "docs/CONFORMANCE.md §4 item 3"),
     ];
 
     /// <summary>The declined module owning <paramref name="name"/>, or null. Prefix-matched so a family's
@@ -158,9 +151,8 @@ internal static class EcNameResolution
     /// COBOL-2002 word limit rejects it first), so no edition guard is needed. One advisory per spelling —
     /// the same name legitimately appears at TURN + RAISE + USE in one program.</summary>
     /// <returns><see langword="false"/> when the name was REFUSED (a declined module whose row's descriptor
-    /// <see cref="EditionContext.Refuses"/> it: EC-SCREEN always, EC-VALIDATE
-    /// names unless the compile is <c>--permissive</c>) — every caller must treat that as an unresolved name. An
-    /// accepted row (the PermissiveInert rows under <c>--permissive</c>) is named and returns
+    /// <see cref="EditionContext.Refuses"/> it: EC-SCREEN always) — every caller must treat that as an unresolved name. An
+    /// accepted row (a Warning row, or a PermissiveInert Error row under <c>--permissive</c>) is named and returns
     /// <see langword="true"/>.</returns>
     public static bool Advise(EditionContext edition, EcInfo info, string where = "exception-name")
     {

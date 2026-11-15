@@ -39,6 +39,7 @@ internal static class LocalNames
     private static string Stem(StatementLocalRole role) => role switch
     {
         StatementLocalRole.InitializeOccurrence => "__ini",
+        StatementLocalRole.ValidateOccurrence => "__val",
         StatementLocalRole.ElementMoveOccurrence => "__vlm",
         StatementLocalRole.CorrespondingSendingAnchor or StatementLocalRole.CorrespondingReceivingAnchor => "__corr",
         StatementLocalRole.TableAllIndices => "__all",

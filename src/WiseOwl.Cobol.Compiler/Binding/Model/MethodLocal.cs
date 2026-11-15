@@ -21,6 +21,10 @@ public enum StatementLocalRole
     /// item is a possible receiving-operand"); the ordinal is the unit's INITIALIZE loop serial.</summary>
     InitializeOccurrence,
 
+    /// <summary>A VALIDATE per-occurrence loop counter (ISO §2023:14.9.50.4 GR7 b: "each occurrence of the data item to be processed independently of the
+    /// other occurrences at all five stages"); the ordinal is the unit's VALIDATE loop serial.</summary>
+    ValidateOccurrence,
+
     /// <summary>The element loop counter of a variable-length group MOVE's corresponding tables (ISO §2023:14.6.9.2:
     /// "Correspondingly numbered elements are moved according to the rules of the MOVE statement"); the ordinal is the
     /// unit's element-loop serial.</summary>

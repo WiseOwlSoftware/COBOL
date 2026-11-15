@@ -32,6 +32,7 @@ internal sealed class UnitEmitters
     public AcceptDisplayEmitter AcceptDisplay { get; }
     public EvaluateEmitter Evaluate { get; }
     public InitializeEmitter Initialize { get; }
+    public ValidateEmitter Validate { get; }
     public CorrespondingEmitter Corresponding { get; }
     public InspectEmitter Inspect { get; }
     public StringEmitter Strings { get; }
@@ -71,6 +72,7 @@ internal sealed class UnitEmitters
         AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num, Move);
         Evaluate = new EvaluateEmitter(Ctx, Cond);
         Initialize = new InitializeEmitter(Ctx, Move, Debug);
+        Validate = new ValidateEmitter(Ctx, Cond, Ec);   // the VALIDATE statement (kb/Work PB5577)
         Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith, Ec);
         Inspect = new InspectEmitter(Ctx, Num, Arith);
         Strings = new StringEmitter(Ctx, Num, Arith, Ec, Move, Brackets);
