@@ -31,6 +31,17 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// positions).</summary>
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
+    /// <summary>⛔ THE ONE HOME OF THE EXCESS ARM OF THE DIGIT CAPACITY (kb/Work PB5529): the descriptor a count of
+    /// <paramref name="digits"/> digit positions earns when it passes <see cref="MaxDigits"/> — more than 31 is
+    /// <see cref="Diagnostics.DiagnosticCatalog.DigitCapacityOver31"/> at every edition, 19–31 at COBOL-85 is
+    /// <see cref="Diagnostics.DiagnosticCatalog.DigitCapacityOver18Pre2002"/> — and null when the count fits. A PICTURE's digit
+    /// positions (<c>EditionContext.CheckDigitCapacity</c>) and a numeric literal's digits (<c>LiteralScreen</c>) are two
+    /// subjects of the one capacity, each wording its own message under the descriptor this returns.</summary>
+    public Diagnostics.DiagnosticDescriptor? DigitCapacityExcess(int digits) =>
+        digits <= MaxDigits ? null
+        : digits > 31 ? Diagnostics.DiagnosticCatalog.DigitCapacityOver31
+        : Diagnostics.DiagnosticCatalog.DigitCapacityOver18Pre2002;
+
     /// <summary>Where a REPLACE statement's effect ends (kb/Work PB5277): at the end of the separately compiled program at
     /// COBOL-85 (§1985:XII.3.4 GR3, "until the next occurrence of the statement or the end of the separately compiled
     /// program"), at the end of the compilation group from 2002 (§2002:7.1.3.3 GR5; §2023:7.2.4.4 GR5), a group of one or more
