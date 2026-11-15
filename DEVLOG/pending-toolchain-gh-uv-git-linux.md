@@ -12,10 +12,10 @@ byte-identical copy in `scripts/cloud/setup-env.sh`:
 Left alone on purpose: .NET 11.0 (SDK 11.0.100) is GA. `bump` does not write it, and `latest` reports it as a warning,
 not a red: moving to it changes `global.json` and every TargetFramework, the owner's decision (kb/Work PB1754).
 
-The Windows dev box and WSL were updated to the new manifest in the same change (winget for gh and uv on Windows,
-`scripts/wsl/setup-wsl.sh` in WSL), with no fleet in flight: the orchestrator loop was stopped first, because a gate
-started on a branch whose manifest differs from the host stops NOT RUN [toolchain] (kb/Work PB5459, still open: the
-procedure itself is not yet a loop unit).
+This change carries the hosts' update: winget for gh and uv on the Windows dev box, `scripts/wsl/setup-wsl.sh` in WSL,
+and in WSL the git-core PPA's git 2.56.1 (`sudo apt-get install git`, which needs the owner's password). The update runs
+with no fleet in flight, because a gate started on a branch whose manifest differs from the host stops
+NOT RUN [toolchain] (kb/Work PB5459, still open: the procedure itself is not yet a loop unit).
 
 Evidence: `python scripts/toolchain.py bump` printed `=== TOOLCHAIN: BUMPED — 1 tool(s) ... ===` (git-linux 2.56.0 to
 2.56.1) on 2026-11-14; `python scripts/toolchain.py latest` then printed `=== TOOLCHAIN: LATEST — every tool is at its
