@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.3-4",
+ "rule-digest": "c8fd46e31bb1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FlagState.cs#IsOnAt",
+ "test-ref": "conformance:cases/7.2.11@2002-FLAG-85/pb5600-flag85-options-and-defaults; conformance:cases/7.2.12@2002-FLAG-NATIVE-ARITHMETIC/pb5600-flag-native-arithmetic-onoff; unit:Flag85DirectiveTests.Fold_OffByDefault_OnAfterTheDirective_AllOffResets",
+ "notes": "§2002:7.2.3 GR4: a directive applies to all the text that follows and is independent of execution flow. Every directive of the 2002 set now holds its state by source line: FLAG-85 and FLAG-NATIVE-ARITHMETIC were consumed with no state before kb/Work PB5600 and are folded by FlagState from the line after the directive, so a construct on a later line is flagged however control reaches it."
+}

@@ -67,7 +67,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     /// <summary>Where a METHOD's operands resolve: the OBJECT or FACTORY forest that holds the method, its resolver,
     /// and the method's own §2023:11.7.4 GR5 name scope, which shadows that forest's names while the method's body is
     /// walked.</summary>
-    private sealed record MethodNameScope(DataBinder Data, ReferenceResolver Refs, OoMethodDataScope Scope);
+    private sealed record MethodNameScope(DataBinder Data, ReferenceResolver Refs, OoMethodDataScope Scope, OptionsModel? Options);
     // The current unit's USE-declarative open modes (FLAG-14 d I-O-DECLARATIVE), read from the bound model: whether
     // it has ANY open-mode declarative (USE … ON INPUT/OUTPUT/I-O/EXTEND — the INVALID-KEY rule) and whether it has
     // an INPUT / I-O one (the AT-END rule). Reset per unit in VisitProgramUnit (a nested unit does not inherit).
@@ -143,7 +143,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         foreach (var cls in group.Classes)
             foreach (var (data, refs) in new[] { group.Session.Binders.ObjectOf(cls), group.Session.Binders.FactoryOf(cls) })
                 foreach (var m in data.Oo.BoundMethods)
-                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope);
+                    if (m.Origin is OoSymbolOrigin.Source) methodScopes[group.Session.Sources.Of(m)] = new MethodNameScope(data, refs, m.DataScope, m.MethodOptions);
 
         // The binder's record of the function activations and property references that look like data references
         // (DataBindState.ActivationSites) — every forest of the group, class and program alike.
@@ -211,6 +211,8 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         var saved = (_currentData, _currentRefs);
         (_currentData, _currentRefs) = (method.Data, method.Refs);
         using var scope = method.Data.Procedure.ActiveMethodScope.Enter(method.Scope);
+        // The method's own OPTIONS paragraph governs ITS body (§2023:11.9.4 GR1): FLAG-NATIVE-ARITHMETIC reads the arithmetic mode it names.
+        using var options = method.Options is { } own ? method.Data.Procedure.Options.Push(own) : (Scoped<OptionsModel>.RestoreScope?)null;
         try { return VisitElement(ctx); }
         finally { (_currentData, _currentRefs) = saved; }
     }
@@ -254,6 +256,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitFunctionCall(CobolParserCore.FunctionCallContext ctx)
     {
         NoteActivation();
+        FlagFunctionCall85(ctx);
         return base.VisitChildren(ctx);
     }
 
@@ -274,6 +277,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     public override object? VisitDataReference(CobolParserCore.DataReferenceContext ctx)
     {
         if (IsActivation(ctx)) NoteActivation();
+        FlagZeroLengthReference(ctx);   // FLAG-85 k ZERO-LENGTH
         return base.VisitChildren(ctx);
     }
 
@@ -289,11 +293,10 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     {
         if (!_flag.IsOnAt(line, option)) return;
         var info = FlagOptions.Info(option);
-        bool f02 = info.Directive == FlagDirective.Flag02;
-        string code = (f02 ? DiagnosticCatalog.Flag02Warning : DiagnosticCatalog.Flag14Warning).Code;
-        string constructId = $"flag-{(f02 ? "02" : "14")}-{info.Word.ToLowerInvariant()}";
-        _sink.Report(new EditionDiagnostic(code, EditionSeverity.Warning, constructId,
-            $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)} {info.Word}",
+        _sink.Report(new EditionDiagnostic(FlagDirectiveLine.WarningCode(info.Directive), EditionSeverity.Warning,
+            FlagDirectiveLine.ConstructId(info),
+            $"{info.Change} — flagged by >>{FlagDirectiveLine.DirectiveWord(info.Directive)}"
+            + (info.Word == FlagDirectiveLine.DirectiveWord(info.Directive) ? "" : " " + info.Word),
             where, info.Citation));
     }
 
@@ -320,6 +323,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
         // it is a random (keyed) read → INVALID-KEY-capable: flag it lacking INVALID KEY when any open-mode
         // declarative is present. A file that does not resolve stays unflagged (no organization ⇒ neither branch fires).
         var file = FileByName(ctx.fileName()?.GetText());
+        FlagReadZeroLength(file, ctx.Start.Line);   // FLAG-85 k ZERO-LENGTH
         bool sequential = ctx.readDirection() is not null || file?.AccessMode == FileAccessMode.Sequential;
         if (sequential)
         {
@@ -558,6 +562,7 @@ internal sealed partial class FlagConformancePass : CursorFollowingVisitor   // 
     //    item is subordinate to it. Resolved in the CURRENT unit's scope (VisitUnit). ──
     public override object? VisitMoveStatement(CobolParserCore.MoveStatementContext ctx)
     {
+        FlagMove85(ctx);   // FLAG-85 b CORRESPONDING, c DE-EDITING, f MOVE
         var (send, recvs) = MoveOperands(ctx);
         if (send is not null && ResolveItem(send) is { } sendItem)
             foreach (var recv in recvs)
