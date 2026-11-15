@@ -1224,7 +1224,7 @@ internal sealed class StatementValidation(DataBinder data)
         // rather than restating the rule. identifier-1 is reported in preference to a record: it is the operand
         // the programmer chose, and a record-name they may not have written.
         DataItem? badRecord = file.Records.FirstOrDefault(r => !AdmitsIntoRecord(r));
-        bool badReceiver = !AdmitsIntoOperand(receiver);
+        bool badReceiver = !AdmitsIntoOperand(receiver, data.Edition.Edition);
         if (badRecord is null && !badReceiver) return true;
 
         string why = badReceiver
@@ -1245,14 +1245,14 @@ internal sealed class StatementValidation(DataBinder data)
     /// §2023:13.18.45.4 GR2 — the FIRST alternative arm b) admits, not the elementary one — and is admitted without
     /// reading the entry behind it; the alias is a group item, NOT a composed elementary view (kb/Work PB430; the same
     /// reading <c>MoveTable16.OperandItem</c> takes of the alias for SR9, kb/Work PB907). A REFERENCE-MODIFIED receiver
-    /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place)"/>
+    /// is read through its VIEW's category, the ONE reader <see cref="ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)"/>
     /// (kb/Work PB5211): §2023:8.4.3.3.4 GR6 and §1985:IV.4.3.8.4.4 GR5 give the unique data item "the same class and
     /// category as that defined for" identifier-1 and rewrite only the edited and numeric categories to alphanumeric
     /// (national under a national usage), so <c>READ F INTO WS-NUM(1:4)</c> is admitted while
     /// <c>READ F INTO WS-ALPHA(1:4)</c> over a category-alphabetic item draws the refusal its unsliced twin draws.
     /// A blanket "every reference-modified place is alphanumeric" admitted the alphabetic slice.</summary>
-    private static bool AdmitsIntoOperand(Place p) =>
-        p is RenamesPlace || ItemCategory.IsAlphanumericOrNational(p);
+    private static bool AdmitsIntoOperand(Place p, EditionInfo edition) =>
+        p is RenamesPlace || ItemCategory.IsAlphanumericOrNational(p, edition);
 
     /// <summary>Arm b) applied to ONE record-name — "an alphanumeric group item or an elementary item of category
     /// alphanumeric or category national", which is exactly <see cref="ItemCategory.IsAlphanumericOrNational"/>:

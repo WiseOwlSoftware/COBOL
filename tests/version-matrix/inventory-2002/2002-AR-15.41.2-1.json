@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.41.2-1",
+ "rule-digest": "db56e53e38e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Editions/EditionInfo.cs#AlphabeticIsAlphanumeric",
+ "test-ref": "conformance:cases/15.41@2002-LOCALE-DATE-FUNCTION/pb5615-locale-date-alphabetic-argument-2002",
+ "notes": "§2002:15.41.2 AR1 'Argument-1 shall be of class alphanumeric or national and shall be 8 character positions in length.' with §2002:8.5.2.1: at --std 2002 FUNCTION LOCALE-DATE(D FR) over D PIC A(8) VALUE '20260819' compiles (COBOL1627 before kb/Work PB5615) and formats the date 19/08/2026 in fr-FR (DESIGN-locale-facility DETERMINATION L10). IntrinsicArgumentRules.Violation takes the edition: a position whose class set holds alphanumeric admits class alphabetic when EditionInfo.AlphabeticIsAlphanumeric. From 2014 the argument is refused (§2014:E.2): pb5615-locale-date-alphabetic-argument-refused."
+}

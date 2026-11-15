@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.Binding.Model;
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding;
@@ -1416,8 +1417,12 @@ internal static class IntrinsicArgumentRules
     /// class-alphanumeric one (§2023:8.3.3.6.4 GR4, "depending on context"), while SPACE passes only the second.
     /// For every operand with a fixed class the set is a singleton and the intersection IS the old equality, so
     /// no previously-screened shape changes verdict.
+    /// <para>⛔ THE EDITION AXIS (kb/Work PB5615). At COBOL-2002 an alphabetic operand "may be specified wherever an elementary
+    /// alphanumeric data item is permitted as an operand" (§2002:8.5.2.1), so a position whose set holds class alphanumeric
+    /// admits class alphabetic there (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>), the one place the edition enters
+    /// the class screen; §2023:15.3 prints no such sentence.</para>
     /// </remarks>
-    public static string? Violation(ArgRule rule, BoundOperand op)
+    public static string? Violation(ArgRule rule, BoundOperand op, EditionInfo edition)
     {
         char kind = rule.Kind;
         // §2023:15.3 TYPE 6 IS "INTEGER", AND INTEGER IS NOT A CLASS (fix-queue PB40) — so the class test below
@@ -1440,7 +1445,9 @@ internal static class IntrinsicArgumentRules
                 : null;
         }
 
-        if (Admissible(kind) is not { } ok || candidates.Any(ok.Contains)) return null;
+        if (Admissible(kind) is not { } ok) return null;
+        bool alphabeticStandsAsAlphanumeric = edition.AlphabeticIsAlphanumeric && ok.Contains(CobolClass.Alphanumeric);
+        if (candidates.Any(c => ok.Contains(c) || (alphabeticStandsAsAlphanumeric && c == CobolClass.Alphabetic))) return null;
 
         string wanted = ok.Length == 1
             ? Name(ok[0])

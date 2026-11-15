@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Editions;
 using WiseOwl.Cobol.Runtime;
 
 namespace WiseOwl.Cobol.Binding.Model;
@@ -257,7 +258,7 @@ public static class ItemCategory
 
     /// <summary>ONE walk for both predicates — the two rules differ only in whether category national is in the
     /// admitted set, and writing the walk twice is how the alphabetic and group arms would come to disagree.</summary>
-    private static bool Admits(DataItem item, bool national) => Admits(Table16Operand.Of(item), item, national);
+    private static bool Admits(DataItem item, bool national) => Admits(Table16Operand.Of(item), item, national, alphabeticAsAlphanumeric: false);
 
     /// <summary>⛔ THE PLACE FORM OF <see cref="IsAlphanumericOrNational(DataItem)"/> — what a rule worded "shall be
     /// of category alphanumeric or national" asks of an operand that may be REFERENCE-MODIFIED (kb/Work PB1417).
@@ -265,9 +266,14 @@ public static class ItemCategory
     /// that defined for identifier-1" with the lettered rewrites, so <c>GRP(7:6)</c> over an alphanumeric GROUP is an
     /// elementary alphanumeric item and a view over a numeric or numeric-edited item is alphanumeric or national —
     /// which only <see cref="Table16Operand.Of(Place)"/>, the ONE reader of that rule, can answer. Asking the INNER
-    /// item instead answers "group" for the slice of a group and refuses it as legal source.</summary>
-    public static bool IsAlphanumericOrNational(Place place) =>
-        Admits(Table16Operand.Of(place), place.Item, national: true);
+    /// item instead answers "group" for the slice of a group and refuses it as legal source.
+    /// <para>⛔ THE EDITION AXIS (kb/Work PB5615). At COBOL-2002 "An alphabetic data item may be specified wherever an elementary
+    /// alphanumeric data item is permitted as an operand. Where an alphabetic data item is not expressly permitted, the
+    /// alphabetic data item is treated as though it were an alphanumeric data item" (§2002:8.5.2.1), so a rule worded "category
+    /// alphanumeric" admits a PIC A item there (<see cref="EditionInfo.AlphabeticIsAlphanumeric"/>); §2023:8.5.2.1 has no such
+    /// sentence. The <i>operand</i> screens of statements ask this overload with their edition, never a copy of the walk.</para></summary>
+    public static bool IsAlphanumericOrNational(Place place, EditionInfo edition) =>
+        Admits(Table16Operand.Of(place), place.Item, national: true, edition.AlphabeticIsAlphanumeric);
 
     /// <summary>⛔ THE ONE READER OF "DOES THIS REFERENCE DENOTE AN ELEMENTARY ITEM?" (kb/Work PB5216). A rule worded "shall
     /// reference an elementary item" is asked of the REFERENCE, not of the item behind it: a reference-modified
@@ -277,13 +283,15 @@ public static class ItemCategory
     /// group. Every other reference is as elementary as the item it names.</summary>
     public static bool IsElementaryReference(Place place) => place is RefModPlace || !IsGroupItem(place.Item);
 
-    private static bool Admits(Table16Operand operand, DataItem item, bool national) => operand switch
+    private static bool Admits(Table16Operand operand, DataItem item, bool national, bool alphabeticAsAlphanumeric) => operand switch
     {
         // §2023:13.18.29.4 GR3's group arm, in its ONE spelling — never `item.IsGroup` alone (see IsAlphanumericGroup).
         { Category: PicCategory.Group } => IsAlphanumericGroup(item),
         // §2023:8.5.2.1 Table 2: alphanumeric-edited (§2023:8.5.2.4) and national-edited (§2023:8.5.2.11) are categories of their
         // own, so a rule naming the plain category admits neither (kb/Work PB850).
         { Category: PicCategory.Alphanumeric, IsAlphabetic: false, IsEdited: false } => true,
+        // §2002:8.5.2.1 — an alphabetic item is "treated as though it were an alphanumeric data item" (kb/Work PB5615).
+        { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => alphabeticAsAlphanumeric,
         { Category: PicCategory.National, IsEdited: false } => national,
         _ => false,
     };

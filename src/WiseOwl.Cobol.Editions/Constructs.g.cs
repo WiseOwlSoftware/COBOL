@@ -271,6 +271,7 @@ public static class Constructs
     public const string SetObjectReference2002 = "set-object-reference-2002";
     public const string SetProgramPointer2002 = "set-program-pointer-2002";
     public const string SetSaveLocale2002 = "set-save-locale-2002";
+    public const string SetUpDownIndexAmount2002 = "set-up-down-index-amount-2002";
     public const string SignGroupNondisplaySubordinate2002 = "sign-group-nondisplay-subordinate-2002";
     public const string SignGroupUnsignedSubordinates2002 = "sign-group-unsigned-subordinates-2002";
     public const string SmallestAlgebraic2023 = "smallest-algebraic-2023";

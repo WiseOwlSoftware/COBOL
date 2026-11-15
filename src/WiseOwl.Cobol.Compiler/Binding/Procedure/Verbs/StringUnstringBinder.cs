@@ -520,7 +520,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// an EditMask — there is no *Edited enum member for them) is category alphanumeric-edited/national-edited,
     /// NOT the category alphanumeric/national SR2 names (kb/Work PB155's sweep — the old screen passed
     /// them).</summary>
-    private static string? UnstringSenderCategory(BoundOperand source) => source switch
+    private string? UnstringSenderCategory(BoundOperand source) => source switch
     {
         BoundFieldOperand f => Sr2OffendingCategory(f.Place),
         // ⛔ THE LITERAL ARMS OF §2023:14.9.48.3 SR1 (kb/Work PB1181): "Literal-1 and literal-2 shall be literals of the
@@ -565,7 +565,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <para>A GROUP has no PICTURE and answers by its GROUP-USAGE: an ordinary group is "an alphanumeric group
     /// item" (§2023:13.18.29.4 GR3) and a national group is category national (GR2), both admitted; a BIT group is
     /// class and category BOOLEAN (GR1a) and is not.</para>
-    /// <para>⛔ ELEMENTARY OPERANDS ASK THE ONE CATEGORY PREDICATE, <see cref="ItemCategory.IsAlphanumericOrNational(Place)"/>
+    /// <para>⛔ ELEMENTARY OPERANDS ASK THE ONE CATEGORY PREDICATE, <see cref="ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)"/>
     /// (kb/Work PB2586). Category ALPHABETIC (PIC A) is a category of its own in §2023:8.5.2.1 Table 2, and SR2 names
     /// only alphanumeric and national, so a PIC A sender, delimiter or DELIMITER IN receiver offends — this screen
     /// used to match <c>PicCategory.Alphanumeric</c> directly, which the storage model also uses for PIC A (one
@@ -576,7 +576,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// slice of a numeric or numeric-edited item is category alphanumeric (or national) and is a LEGAL operand,
     /// which the old screen, reading the inner item, refused. SR4's identifier-4 is a different rule and keeps
     /// category alphabetic (<see cref="UnstringReceiverAllowed"/>).</para></summary>
-    private static string? Sr2OffendingCategory(Place place) => place.Item.Pic switch
+    private string? Sr2OffendingCategory(Place place) => place.Item.Pic switch
     {
         // ⛔ A STRONGLY-TYPED GROUP is none of the three (kb/Work PB244): §2023:8.5.2.1 — "Both the class and the category
         // of a strongly-typed group item are the type-name specified in the TYPE clause", and only the groups that
@@ -587,7 +587,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
             $"'{StrongTypeModel.TypeAnchor(place.Item)?.TypeName ?? place.Item.CobolName}' — the type-name of a strongly-typed group item (§2023:8.5.2.1)",
         null => place.Item.GroupUsage is GroupUsage.Bit ? "boolean (a bit group, §2023:13.18.29.4 GR1 a)" : null,
         // Every other category offends, named in §2023:8.5.2.1 Table 2's words through the ONE spelling (kb/Work PB850).
-        _ => ItemCategory.IsAlphanumericOrNational(place) ? null : ItemCategory.CategoryName(place),
+        _ => ItemCategory.IsAlphanumericOrNational(place, ctx.Edition.Edition) ? null : ItemCategory.CategoryName(place),
     };
 
     /// <summary>A STRING / UNSTRING syntax-rule violation: reported at BIND (COBOL1651 — the compile fails) and
