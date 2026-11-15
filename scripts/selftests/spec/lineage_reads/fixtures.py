@@ -51,7 +51,7 @@ def lineage(rids, kinds=None, unpaired=()):
     unless `kinds` says otherwise; the repository's evidence table."""
     rids = list(rids)
     k = {r: r.split("-")[1] for r in rids} | (kinds or {})
-    return R.Lineage(k, {r: (twin(r),) for r in rids if r not in unpaired}, R.EvidenceTable.load())
+    return R.Lineage(k, {r: (twin(r),) for r in rids if r not in unpaired}, R.EvidenceTable.load(), {})
 
 
 def completed(code=0, stdout=""):

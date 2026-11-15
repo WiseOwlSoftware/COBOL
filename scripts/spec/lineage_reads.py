@@ -135,8 +135,7 @@ class Read:
     #: trigger -> each (detail the answer names, or None when it names none; the answer): a trigger whose flag named
     #: several terms may be answered once per term
     answers: dict[str, list[tuple[str | None, str]]]
-    #: The read's `licence-2002`: the citation of the older text that permits declining the facility, or None (absent,
-    #: or the brief's `none`).
+    #: The read's `licence-2002` as written (None when absent or empty): `licence_problem` decides whether it is one.
     licence: str | None = None
 
 
@@ -240,7 +239,7 @@ def normal_read(slice_name: str, case: Any) -> Read:
     return Read(rid, slice_name, tuple(to), verdict, _text(case, "reason", slice_name, rid),
                 _text(case, "probe", slice_name, rid, required=False), _judgment(case, slice_name, rid),
                 _flag_answers(case, slice_name, rid),
-                None if licence is None or not licence.strip() or licence.strip().lower().startswith("none") else licence)
+                licence.strip() if licence and licence.strip() else None)
 
 
 def normal_refute(slice_name: str, case: Any) -> Refute:
@@ -444,6 +443,11 @@ class CaseInfo:
     refusal: pathlib.Path | None = None
     expect: str = ""
     source_format: str = "fixed"
+    #: Is the case's band the COMMITTED tree's (review R2-1)? A case file or refusal entry changed and not committed is a
+    #: band no gate has run, so it is no witness: on a committed tree every band ran green in the gate before it landed.
+    committed: bool = True
+    #: The generator's own `Case`, for `Witnesses.entries` (None for a planted one).
+    case: Any = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -455,6 +459,15 @@ class EvidenceTable:
     other rule needs a case that RUNS and passes at the edition."""
     diagnosed: frozenset[str]
     declined: str
+    #: `needs-accepting-case`: the patterns that mark a diagnosed kind's rule text as GRANTING a form ("may be
+    #: specified", "is optional", "in any order"), which no refusal of a forbidden form can witness (review R2-3). A text
+    #: heuristic that fails closed: a match sends the rule to an accepted case.
+    grants: tuple[re.Pattern[str], ...] = ()
+
+    def diagnosable(self, kind: str, text: str) -> bool:
+        """Can a DIAGNOSIS witness a rule of catalog `kind` whose text is `text`? Only a diagnosed kind that grants
+        nothing the patterns see."""
+        return kind in self.diagnosed and not any(p.search(text) for p in self.grants)
 
     @classmethod
     def load(cls, path: pathlib.Path = EVIDENCE_TABLE, kinds: Iterable[str] | None = None) -> "EvidenceTable":
@@ -466,7 +479,11 @@ class EvidenceTable:
             raise SystemExit(f"{TOOL}: {path.name}: {stray} are no rule kind of the catalog ({sorted(set(kinds))})")
         if not isinstance(doc.get("declined-verdict"), str) or not doc["declined-verdict"]:
             raise SystemExit(f"{TOOL}: {path.name}: declined-verdict names the verdict of a declined facility")
-        return cls(frozenset(diagnosed), doc["declined-verdict"])
+        grants = doc.get("needs-accepting-case")
+        if not isinstance(grants, list) or not all(isinstance(g, dict) and g.get("pattern") and (g.get("why") or "").strip()
+                                                     for g in grants):
+            raise SystemExit(f"{TOOL}: {path.name}: needs-accepting-case lists each pattern with its why")
+        return cls(frozenset(diagnosed), doc["declined-verdict"], tuple(re.compile(g["pattern"], re.I) for g in grants))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -477,14 +494,55 @@ class Lineage:
     kinds: dict[str, str]
     pairs: dict[str, tuple[str, ...]]
     table: EvidenceTable
+    texts: dict[str, str] = dataclasses.field(default_factory=dict)
+
+    def diagnosable(self, rid: str) -> bool:
+        return self.table.diagnosable(self.kinds.get(rid, ""), self.texts.get(rid, ""))
 
     @classmethod
     def of(cls, ed: Edition) -> "Lineage":
         import lineage  # noqa: PLC0415  (the candidate pairing's file)
-        kinds = {r["id"]: r["kind"] for r in ed.rules()}
+        rules = ed.rules()
+        kinds = {r["id"]: r["kind"] for r in rules}
         pairs = {p["rule-id"]: tuple(p["to"]) for p in
-                 json.loads(lineage.candidates_path(ed.year).read_text(encoding="utf-8"))["pairs"]}
-        return cls(kinds, pairs, EvidenceTable.load(kinds=kinds.values()))
+                 json.loads(lineage.candidates_path(ed.year).read_text(encoding="utf-8"))["pairs"]} if ed.next_held else {}
+        return cls(kinds, pairs, EvidenceTable.load(kinds=kinds.values()), {r["id"]: r.get("text", "") for r in rules})
+
+
+def licence_problem(ed: Edition, licence: str | None) -> str | None:
+    """Why the read's `licence-<year>` is no licence (None when it is one), review R2-2: it must OPEN with a citation of
+    the row's own edition, and every citation in it must parse (citation.py, the one parser), be of that edition and name
+    a unit of its text (cite.resolve, the one checker, on the structure: a licence quotes nothing it must hold). The
+    forms the reads write (`none`, `not needed: ...`, a sentence) are no licence, never guessed into one."""
+    import cite  # noqa: PLC0415  (THE checker of a citation)
+    import citation  # noqa: PLC0415  (THE citation format)
+    if licence is None:
+        return "the read states none"
+    found = list(citation.scan(licence))
+    if not found or found[0].start != 0:
+        return f"{licence[:120]!r} does not open with a citation of {ed.year}"
+    for c in found:
+        if c.error:
+            return f"{licence[c.start:c.end]!r}: {c.error}"
+        if c.edition != ed.year:
+            return f"{licence[c.start:c.end]!r} cites {c.edition}, not the row's own edition {ed.year}"
+        if not (v := cite.resolve(c)).ok:
+            return f"{licence[c.start:c.end]!r}: {v.message}"
+    return None
+
+
+def uncommitted(repo: pathlib.Path = REPO) -> set[str]:
+    """The suite's files the working tree changes or adds against HEAD (repository-relative POSIX paths): bands no gate
+    has proven (review R2-1). git's own status, read once."""
+    r = subprocess.run(["git", "-C", str(repo), "status", "--porcelain=v1", "-z", "--untracked-files=all", "--",
+                        "conformance-suite"], capture_output=True, text=True, encoding="utf-8")
+    if r.returncode != 0:
+        raise SystemExit(f"{TOOL}: git status failed, so no band can be told committed: {r.stderr.strip()}")
+    out = set()
+    for item in r.stdout.split("\0"):
+        if len(item) > 3:
+            out.add(item[3:])
+    return out
 
 
 class Witnesses:
@@ -496,6 +554,8 @@ class Witnesses:
     def __init__(self, cases: dict[str, CaseInfo], refs: dict[str, list[str]], bands: dict[str, list[str]],
                  verdicts: dict[str, str] | None = None):
         self.cases, self.refs, self.bands, self.verdicts = cases, refs, bands, verdicts or {}
+        #: (the generator module, its inputs): what `entries` builds manifest entries with; None for planted witnesses.
+        self.generator: tuple[Any, Any] | None = None
 
     @classmethod
     def of(cls, newer: int) -> "Witnesses":
@@ -505,59 +565,101 @@ class Witnesses:
         inputs, _problems = g.repository_inputs()
         reader = g.Reader(g.SUITE, inputs)
         reader.read_tree()
+        dirty = uncommitted()
         cases = {}
         for c in reader.cases:
             key = pathlib.PurePath(c.path).with_suffix("").as_posix()
             at = tuple(c.flag.at) if c.flag is not None else ()
             refusal = inputs.diagnostics.get(c.test_id)
             refuse_at = tuple(str(e) for e in refusal["refuse-at"]) if refusal else ()
+            sidecar = g.SUITE / g.sidecar_path(g.DIAGNOSTICS_DIR, c.test_id) if refusal else None
+            files = [g.SUITE / c.path] + ([sidecar] if sidecar else [])
             cases[key] = CaseInfo(key, g.SUITE / c.path, tuple(dict.fromkeys((*c.accept, *at, *refuse_at))),
-                                  tuple(c.accept), at, tuple(c.rules), c.control, refuse_at,
-                                  g.SUITE / g.sidecar_path(g.DIAGNOSTICS_DIR, c.test_id) if refusal else None,
-                                  refusal["expect"] if refusal else "", c.source_format)
+                                  tuple(c.accept), at, tuple(c.rules), c.control, refuse_at, sidecar,
+                                  refusal["expect"] if refusal else "", c.source_format,
+                                  not any(f.relative_to(REPO).as_posix() in dirty for f in files), c)
         schema = inventory_schema.load_schema()
         rows = inventory_view.inventory(newer, schema)
         refs = {r["rule-id"]: schema.split(r.get("test-ref", "") or "", schema.test_ref_sep) for r in rows}
         bands = {r["rule-id"]: schema.split(r.get("editions", "") or "", schema.editions_sep) for r in rows}
-        return cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
+        out = cls(cases, refs, bands, {r["rule-id"]: r.get("verdict") or "" for r in rows})
+        out.generator = (g, inputs)
+        return out
+
+    def entries(self, keys: Iterable[str], sp: str) -> tuple[dict[str, list[dict[str, Any]]], dict[str, str]]:
+        """Each case of `keys` with the edition `sp` added to its band IN MEMORY (its `accept`, its flag's `at`, a flagged
+        case's control with it), checked by the generator's own `check_cases` and given its manifest entries by the
+        generator's own `entry_for`: the cases the generator accepts there with their entries (the case's, then its
+        control's), and why each other is refused. The tracked suite is not touched (review R2-1)."""
+        if self.generator is None:
+            raise SystemExit(f"{TOOL}: these witnesses were not read from the suite: no manifest entry can be made")
+        g, inputs = self.generator
+        order = inputs.editions
+        widened, controls = {}, {}
+        for k in keys:
+            c = self.cases[k].case
+            flag = dataclasses.replace(c.flag, at=tuple(add_edition(c.flag.at, sp, order))) if c.flag else None
+            widened[k] = dataclasses.replace(c, accept=tuple(add_edition(c.accept, sp, order)) if c.accept else c.accept,
+                                             flag=flag)
+            if flag and c.control and (ctl := self.cases.get(f"{k.rsplit('/', 1)[0]}/{c.control}")):
+                controls[k] = ctl.case if sp in ctl.accept else dataclasses.replace(
+                    ctl.case, accept=tuple(add_edition(ctl.case.accept, sp, order)))
+        reader = g.Reader(g.SUITE, inputs)
+        reader.cases = [*widened.values(), *{id(c): c for c in controls.values()}.values()]
+        g.check_cases(reader)
+        why: dict[str, list[str]] = {}
+        for x in reader.refusals:
+            why.setdefault(x.path, []).append(x.message)
+        entries, refused = {}, {}
+        for k, c in widened.items():
+            parts = [c] + ([controls[k]] if k in controls else [])
+            if msgs := [m for p in parts for m in why.get(pathlib.PurePath(p.path).as_posix(), [])]:
+                refused[k] = msgs[0]
+            else:
+                entries[k] = [g.entry_for(p, sp, inputs) for p in parts]
+        return entries, refused
 
     def suite_cases(self, rule: str) -> list[str]:
         """The keys of the conformance-suite cases the rule's test-ref names (`conformance:<key>`), in its order."""
         return [ref.partition(":")[2].strip() for ref in self.refs.get(rule, []) if ref.partition(":")[0] == "conformance"]
 
     def at(self, rule: str, spelling: str) -> list[str]:
-        """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind."""
-        return [k for k in self.suite_cases(rule) if k in self.cases and spelling in self.cases[k].runs]
+        """The rule's suite witnesses that run at the edition spelled `spelling`, of any kind, in the COMMITTED tree."""
+        return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
+                and spelling in self.cases[k].runs]
 
     def accepted_at(self, rule: str, spelling: str) -> list[str]:
-        """The rule's suite witnesses ACCEPTED at the edition: a program that runs there and whose output is compared."""
-        return [k for k in self.suite_cases(rule) if k in self.cases and spelling in self.cases[k].accept]
+        """The rule's suite witnesses ACCEPTED at the edition, in the COMMITTED tree: a program that runs there and whose
+        output the gate compares."""
+        return [k for k in self.suite_cases(rule) if k in self.cases and self.cases[k].committed
+                and spelling in self.cases[k].accept]
 
-    def evidence(self, ed: Edition, rule_kind: str, to: Iterable[str], licence: str | None,
+    def evidence(self, ed: Edition, diagnosable: bool, to: Iterable[str], licence: str | None,
                  table: EvidenceTable) -> list[tuple[str, str]]:
-        """Why each rule of `to` has no witness at `ed` of the kind the older rule (catalog `rule_kind`) needs (review
-        R1-1): a case accepted there always is; a diagnosis there only for a kind the table's `diagnosed` names, or for
-        a declined facility with the read's `licence` stated. Empty when the evidence is at the row's own edition."""
+        """Why each rule of `to` has no witness at `ed` of the kind the older rule needs (review R1-1): a case accepted
+        there always is; a diagnosis there only when the rule is `diagnosable` (`EvidenceTable.diagnosable`: a diagnosed
+        kind granting no form), or for a declined facility whose read states a licence `licence_problem` accepts.
+        Empty when the evidence is at the row's own edition."""
         sp, out = ed.spelling, []
         for t in to:
             if self.accepted_at(t, sp):
                 continue
             diagnoses = self.at(t, sp)
-            if diagnoses and rule_kind in table.diagnosed:
+            if diagnoses and diagnosable:
                 continue
             if diagnoses and self.verdicts.get(t) == table.declined:
-                if licence is None:
-                    out.append((NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline: "
-                                            f"the read states no {ed.year} licence (licence-{ed.year}) to decline it"))
+                if why := licence_problem(ed, licence):
+                    out.append((NO_LICENCE, f"{t} is {table.declined} and only a diagnosis at {sp} shows the decline; "
+                                            f"licence-{ed.year}: {why}"))
                 continue
             out.append((NO_OWN_WITNESS, f"{t}: no conformance-suite case runs and passes at {sp}" + (
-                f" (only a diagnosis, which shows a {rule_kind} rule nothing)" if diagnoses else "")))
+                " (only a diagnosis, which witnesses no rule that grants a form or states a behaviour)" if diagnoses else "")))
         return out
 
-    def missing(self, ed: Edition, to: Iterable[str], rule_kind: str, table: EvidenceTable,
+    def missing(self, ed: Edition, to: Iterable[str], diagnosable: bool, table: EvidenceTable,
                 licence: str | None = None) -> list[str]:
         """The rules of `to` lacking own-edition evidence (`evidence`), by id."""
-        return [d.split(" ", 1)[0].rstrip(":") for _r, d in self.evidence(ed, rule_kind, to, licence, table)]
+        return [d.split(" ", 1)[0].rstrip(":") for _r, d in self.evidence(ed, diagnosable, to, licence, table)]
 
 
 def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None, lin: Lineage,
@@ -572,7 +674,7 @@ def kept_problems(ed: Edition, rid: str, to: Iterable[str], licence: str | None,
     elif sorted(want) != sorted(to):
         out.append((NOT_THE_PAIRING, f"the read carries into {sorted(to)}, the pairing into {sorted(want)}"))
     if ed.own_evidence and w is not None:
-        out += w.evidence(ed, lin.kinds.get(rid, ""), to, licence, lin.table)
+        out += w.evidence(ed, lin.diagnosable(rid), to, licence, lin.table)
     return out
 
 
@@ -692,6 +794,8 @@ def summary(decisions: list[Decision]) -> dict[str, Any]:
 
 #: What a suite case of a kept-but-unwitnessed row can do at the edition (`widen_plan`).
 RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-refusal", "band", "no-edition", "missing"
+#: A case whose file the working tree changes: neither a witness nor a candidate until it is committed and gated.
+UNCOMMITTED = "uncommitted"
 #: What a widening that does not hold leaves: the row needs a witness of its own at the edition.
 NEEDS_OWN = "needs an own witness"
 
@@ -703,6 +807,8 @@ def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str
     no case."""
     if c is None:
         return MISSING
+    if not c.committed:
+        return UNCOMMITTED
     if sp in c.runs:
         return RUNS
     if not c.runs:
@@ -725,14 +831,14 @@ def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineag
         if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
             continue
         kind = lin.kinds.get(d.rule_id, "")
-        lacking = [t for t in d.to if w.evidence(ed, kind, [t], None, lin.table)]
+        lacking = [t for t in d.to if w.evidence(ed, lin.diagnosable(d.rule_id), [t], None, lin.table)]
         per_rule, helps = {}, {}
         for t in lacking:
             ks = w.suite_cases(t)
             for k in ks:
                 c = w.cases.get(k)
                 cases.setdefault(k, {"status": case_status(c, sp, w.bands), "rules": list(c.rules) if c else []})
-            diagnosis_counts = kind in lin.table.diagnosed or w.verdicts.get(t) == lin.table.declined
+            diagnosis_counts = lin.diagnosable(d.rule_id) or w.verdicts.get(t) == lin.table.declined
             helps[t] = any(cases[k]["status"] == WIDEN and (w.cases[k].accept or diagnosis_counts)
                            or cases[k]["status"] == WIDEN_REFUSAL and diagnosis_counts for k in ks)
             per_rule[t] = ks
@@ -803,88 +909,100 @@ def revert(path: pathlib.Path, edits: list[tuple[str, str]]) -> None:
 
 #: The exit statuses of conformance-suite/harness/run.py that mean it ran every test and wrote its results: 0 (no
 #: verdict worse than PASS) and 1 (a verdict worse: each test's is in the results). Any other (2, a usage error; a
-#: crash) means the results are not this run's, and every case it was to judge is reverted (review R1-3).
+#: crash) means the results are not this run's, and no case it was to judge is proven (review R1-3).
 RUN_RAN = (0, 1)
+#: The run's two records in its scratch (review R2-1): what it PROVED (written once every proof is in) and what it has
+#: WRITTEN to the tracked tree since (each case added after its files are written).
+PROOF, APPLIED = "proof.json", "applied.json"
+
+
+def prove(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Path, scratch: pathlib.Path,
+          run: Any = subprocess.run) -> dict[str, str]:
+    """PROVE FIRST, WITHOUT TOUCHING THE TRACKED SUITE (review R2-1): each `WIDEN` case of `plan` (a flagged one with its
+    control), its band widened IN MEMORY, through the generator's own check and manifest entry (`Witnesses.entries`),
+    run at the edition by the suite's runner (run.py, on a manifest written into `scratch`); each `WIDEN_REFUSAL` case
+    compiled at the edition. Returns why each case is NOT proven, by key ("" for one that is): a case the generator
+    refuses there, one whose verdict in this run's results is not PASS, every one when run.py exits outside `RUN_RAN`
+    or writes no results, a refusal test not refused with its expected diagnostic."""
+    sp = ed.spelling
+    accepted = [k for k, c in sorted(plan["cases"].items()) if c["status"] == WIDEN]
+    out: dict[str, str] = {}
+    entries, refused = w.entries(accepted, sp) if accepted else ({}, {})
+    out.update({k: f"the generator refuses it at {sp}: {why}" for k, why in refused.items()})
+    if entries:
+        suites = scratch / "run-suites" / sp
+        suites.mkdir(parents=True)
+        (suites / "manifest.json").write_text(json.dumps({"edition": sp, "generator": "lineage_reads.prove",
+                                                          "tests": [e for es in entries.values() for e in es]}, indent=1),
+                                              encoding="utf-8", newline="\n")
+        results = scratch / "results"          # made by this run only: the scratch was empty
+        r = run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set", f"cobol={compiler}",
+                 "--suites", str(scratch / "run-suites"), "--editions", sp, "--out", str(results)], cwd=REPO, check=False)
+        file = results / "results.json"
+        verdicts: dict[str, str] = {}
+        if r.returncode in RUN_RAN and file.is_file():
+            verdicts = {t["id"]: t["verdict"] for t in json.loads(file.read_text(encoding="utf-8"))["tests"]
+                        if t.get("edition") == sp}
+        for k, es in entries.items():
+            bad = [f"{e['id']}: {verdicts.get(e['id'])}" for e in es if verdicts.get(e["id"]) != "PASS"]
+            out[k] = (f"the harness's verdict at {sp} is not PASS ({'; '.join(bad)})" if verdicts else
+                      f"the harness exited {r.returncode} and wrote no results of this run") if bad else ""
+    for k in [k for k, c in sorted(plan["cases"].items()) if c["status"] == WIDEN_REFUSAL]:
+        out[k] = refused_at(w.cases[k], sp, compiler, scratch, run) or ""
+    return out
+
+
+def _write(w: Witnesses, k: str, sp: str, order: list[str]) -> None:
+    """Write one PROVEN widening into the tracked tree: idempotent (a band that names the edition is left alone), so a
+    run killed half way is finished by running it again."""
+    info = w.cases[k]
+    if info.accept or info.flag_at:
+        widen_case(info.path, sp, order)
+        if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")) \
+                and sp not in ctl.accept:
+            widen_case(ctl.path, sp, order)
+    else:
+        widen_refusal(info.refusal, sp, order)
 
 
 def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Path, scratch: pathlib.Path,
-                run: Any = subprocess.run) -> dict[str, Any]:
-    """Widen every `WIDEN` and `WIDEN_REFUSAL` case of `plan` to `ed` (a flagged case's control with it), and KEEP only a
-    case run at the edition IN THIS INVOCATION that passed there: the generator must accept the tree; an accepted or
-    flagged case must PASS in the results the harness (run.py) writes now, into a directory this call makes fresh, from
-    a run that exited 0 or 1 (`RUN_RAN`); a refusal test must be refused, with its expected diagnostic, by its
-    compilation now. Every other case, and EVERY case when anything fails or raises on the way, is restored and listed
-    as needing an own witness: the tree ends fully consistent (the kept widenings all proven) or untouched, never in
-    between (review R1-3). `run` is subprocess.run, a parameter so the self-test plants the harness."""
+                run: Any = subprocess.run, on_write: Any = None) -> dict[str, Any]:
+    """Widen to `ed` only what is PROVEN at it, and write it LAST (review R2-1). In a fresh `scratch` it proves every
+    candidate without touching the tracked suite (`prove`), writes the proof (`PROOF`) and then writes each proven
+    widening into the tree, recording each in `APPLIED` once its files are written. A kill before the writes leaves the
+    tree untouched; a kill during them leaves only PROVEN widenings, and running `--apply` again with the same scratch
+    reads the proof and finishes the writes, saying so (each write is idempotent). Everything not proven is listed as
+    needing an own witness and never written. `run` is subprocess.run and `on_write` a hook after each case's write,
+    parameters so the self-test plants the harness and a kill."""
     order = inventory_schema.load_schema().editions
     sp = ed.spelling
-    if scratch.exists() and any(scratch.iterdir()):
-        raise SystemExit(f"{TOOL}: widen --apply needs an empty --scratch, so no result it reads is an earlier run's")
-    widened: dict[str, list[tuple[pathlib.Path, list[tuple[str, str]]]]] = {}
-    reverted: dict[str, str] = {}
-
-    def undo(k: str, why: str) -> None:
-        for path, edits in reversed(widened.pop(k)):
-            revert(path, edits)
-        reverted[k] = f"{NEEDS_OWN}: {why}"
-
-    try:
-        for k, c in sorted(plan["cases"].items()):
-            info = w.cases.get(k)
-            if c["status"] == WIDEN:
-                widened[k] = [(info.path, widen_case(info.path, sp, order))]
-                if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")) \
-                        and sp not in ctl.accept:
-                    widened[k].append((ctl.path, widen_case(ctl.path, sp, order)))
-            elif c["status"] == WIDEN_REFUSAL:
-                widened[k] = [(info.refusal, widen_refusal(info.refusal, sp, order))]
-        gen = scratch / "suites"
-
-        def generate() -> Any:
-            return run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
-                       capture_output=True, text=True, encoding="utf-8", cwd=REPO)
-
-        g = generate()
-        refused = {m.group(1) for m in re.finditer(r"REFUSED\s+((?:wiseowl/)?cases/[^:]+?)\.(?:cob|cbl):", g.stdout or "")}
-        if stray := sorted(refused - set(widened)):
-            raise SystemExit(f"{TOOL}: the generator refuses cases this run did not widen: {stray[:5]}")
-        for k in sorted(refused):
-            undo(k, f"the generator refuses it at {sp}")
-        if refused:
-            g = generate()
-        if g.returncode != 0:
-            raise SystemExit(f"{TOOL}: generate.py refuses the tree:\n{(g.stdout or '')[-2000:]}")
-        accepted = [k for k in widened if plan["cases"][k]["status"] == WIDEN]
-        if accepted:
-            manifest = json.loads((gen / "wiseowl" / "manifest.json").read_text(encoding="utf-8"))
-            ids = {pathlib.PurePath(k).name for k in accepted}
-            suites = scratch / "run-suites" / sp
-            suites.mkdir(parents=True)
-            (suites / "manifest.json").write_text(json.dumps(
-                {"edition": sp, "generator": manifest["generator"],
-                 "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1),
-                encoding="utf-8", newline="\n")
-            results = scratch / "results"          # made by this run only: the scratch was empty
-            r = run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
-                     f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", sp, "--out", str(results)],
-                    cwd=REPO, check=False)
-            file = results / "results.json"
-            verdicts: dict[str, str] = {}
-            if r.returncode in RUN_RAN and file.is_file():
-                verdicts = {t["id"]: t["verdict"] for t in json.loads(file.read_text(encoding="utf-8"))["tests"]
-                            if t.get("edition") == sp}
-            for k in accepted:
-                if (v := verdicts.get(pathlib.PurePath(k).name)) != "PASS":
-                    undo(k, f"the harness's verdict at {sp} is {v}" if verdicts else
-                         f"the harness exited {r.returncode} and wrote no results of this run")
-        for k in [k for k in widened if plan["cases"][k]["status"] == WIDEN_REFUSAL]:
-            if why := refused_at(w.cases[k], sp, compiler, scratch, run):
-                undo(k, why)
-    except BaseException:
-        for k in list(widened):
-            undo(k, "the widening stopped before it was proven")
-        raise
-    return {"widened": sorted(widened), "reverted": reverted}
+    proof_file, applied_file = scratch / PROOF, scratch / APPLIED
+    resumed = proof_file.is_file()
+    if resumed:
+        proof = json.loads(proof_file.read_text(encoding="utf-8"))
+        if proof.get("edition") != ed.year:
+            raise SystemExit(f"{TOOL}: {proof_file} proves widenings to {proof.get('edition')}, not {ed.year}")
+    else:
+        if scratch.exists() and any(scratch.iterdir()):
+            raise SystemExit(f"{TOOL}: widen --apply needs an empty --scratch, or one holding an unfinished run's "
+                             f"{PROOF}, so no result it reads is an earlier run's")
+        scratch.mkdir(parents=True, exist_ok=True)
+        why = prove(plan, w, ed, compiler, scratch, run)
+        proof = {"edition": ed.year, "proven": sorted(k for k, v in why.items() if not v),
+                 "not-proven": {k: v for k, v in sorted(why.items()) if v}}
+        proof_file.write_text(json.dumps(proof, indent=1) + "\n", encoding="utf-8", newline="\n")
+    applied = set(json.loads(applied_file.read_text(encoding="utf-8"))) if applied_file.is_file() else set()
+    finished = [k for k in proof["proven"] if k in applied]
+    for k in proof["proven"]:
+        if k in applied:
+            continue
+        _write(w, k, sp, order)
+        applied.add(k)
+        applied_file.write_text(json.dumps(sorted(applied)) + "\n", encoding="utf-8", newline="\n")
+        if on_write is not None:
+            on_write(k)
+    return {"widened": proof["proven"], "reverted": {k: f"{NEEDS_OWN}: {v}" for k, v in proof["not-proven"].items()},
+            "resumed": resumed, "already-written": finished}
 
 
 def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path, run: Any = subprocess.run) -> str | None:
@@ -975,11 +1093,11 @@ def own_edition(year: int, out: pathlib.Path) -> int:
     witness at the edition."""
     ed = edition(year)
     w = Witnesses.of(ed.next_held)
-    lin = Lineage(kinds={r["id"]: r["kind"] for r in ed.rules()}, pairs={}, table=EvidenceTable.load())
+    lin = Lineage.of(ed)
     rows = [r for r in inventory_view.inventory(year) if (r.get("next") or {}).get("kind") == KEPT]
 
     def lacking(r: dict[str, Any]) -> list[str]:
-        return w.missing(ed, r["next"]["to"], lin.kinds.get(r["rule-id"], ""), lin.table)
+        return w.missing(ed, r["next"]["to"], lin.diagnosable(r["rule-id"]), lin.table)
 
     some = [r["rule-id"] for r in rows if len(lacking(r)) < len(r["next"]["to"])]
     every = [r["rule-id"] for r in rows if not lacking(r)]
@@ -1025,7 +1143,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"widen {a.edition}{'' if a.apply else ' (dry run: nothing edited)'}: rows {plan['counts']['rows']}; cases "
               f"{plan['counts']['cases']} -> {a.out}")
         if a.apply:
-            print(f"  widened {len(plan['applied']['widened'])}, reverted {len(plan['applied']['reverted'])}")
+            got = plan["applied"]
+            print(f"  {'resumed an unfinished run: ' if got['resumed'] else ''}proven and written {len(got['widened'])} "
+                  f"({len(got['already-written'])} written before), not proven {len(got['reverted'])} (never written)")
         return 0
     if a.check is None:
         ap.print_help()

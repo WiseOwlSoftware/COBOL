@@ -1776,8 +1776,16 @@ none of correct, wrong or not probed is kept as written and its row listed `unin
    `wiseowl/diagnostics/` `refuse-at`) shows only that a program is refused: it witnesses a rule only when the catalog's
    `kind` of the older rule is one the evidence table (`scripts/spec/data/lineage-evidence-kinds.json`, data: SR and FMT,
    checked against the catalog's kinds) names as diagnosed, or when the target's verdict is DOCUMENTED-NON-SUPPORT (the
-   facility is declined) and the read states its `licence-2002`, the older text's citation that permits declining it;
-   without one the row is refused `no 2002 licence stated`. A general, argument or returned-value rule witnessed only by a
+   facility is declined) and the read states its `licence-2002`, the older text's citation that permits declining it:
+   the value must OPEN with a citation of the row's own edition, and every citation in it must parse (`citation.py`,
+   the one parser), be of that edition and name a unit of its text (`cite.resolve`, the one checker; review R2-2,
+   `lineage_reads.licence_problem`); `none`, `not needed: ...`, a sentence or another edition's citation is no licence,
+   and the row is refused `no 2002 licence stated` with the offending text. A diagnosed kind's rule whose text GRANTS a
+   form ("may be specified", "is optional", "in any order", "is permitted", "can be": the table's
+   `needs-accepting-case`, review R2-3) needs an ACCEPTED case too: no refusal of a forbidden form shows a permitted one
+   accepted. This is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a prohibition
+   worded with one of the words (other than "may not") is over-refused, never over-kept; it misses a grant no sentence of
+   the rule states (a form only its general format shows). A general, argument or returned-value rule witnessed only by a
    refusal is refused `no own-edition witness` (the review found 160 of 222 kept records resting on refusals alone, three
    of them behaviour rules such as START with no KEY). A unit or C# test is no witness at an older edition: it does not
    run there. One function holds 3 and 4 (`lineage_reads.kept_problems`), shared by the import, the writer and the audit.
@@ -1799,13 +1807,17 @@ edition (`case_status`: `widen`, a case accepted or flagged elsewhere; `widen-re
 row `widenable` (a widening gives every lacking target a witness of the right kind: a refusal or a flag helps only a
 diagnosed kind or a declined facility) or `needs-own-witness`. With `--apply --compiler EXE --scratch DIR` it adds the
 edition to each widenable case's header (`accept` and the flag's `at`, a flagged case's control with it; the method of the
-S1 measurement, kb/Work PB5574) or refusal entry, and keeps a widening only for a case run at the edition IN THAT
-INVOCATION that passed (review R1-3): the generator must accept the tree; an accepted or flagged case must PASS in the
-results `run.py` writes into the scratch, which must be empty at the start (no earlier run's results are read), from a run
-that exited 0 or 1 (the statuses on which it ran every test and wrote its results; any other means no results of this
-run, and every case it was to judge is restored); a refusal test must be refused with its expected diagnostic. Every other
-case is restored and listed as needing an own witness, and any failure on the way restores every widening, so the tree
-ends either with only proven widenings or untouched. The widened cases land in their own branch, whose gate is the
+S1 measurement, kb/Work PB5574) or refusal entry, PROVING FIRST AND WRITING LAST (review R2-1): each candidate's band is
+widened in memory, checked by the generator's own `check_cases` and given its manifest entries by `entry_for`
+(`Witnesses.entries`), and run at the edition by the suite's runner (`run.py`) on a manifest in the scratch, which must be
+empty at the start; a run that exits outside 0 and 1 (the statuses on which it ran every test and wrote its results)
+proves nothing it was to judge; a refusal test must be refused with its expected diagnostic. Only then is the proof
+written (`proof.json`) and each proven widening written into the tree, each recorded in `applied.json` once its files
+are written. A kill before the writes leaves the tree untouched; a kill during them leaves only proven widenings, and
+`--apply` with the same scratch reads the proof and finishes the writes, saying so (each write is idempotent). And a
+band is evidence only in the COMMITTED tree: a case file or refusal entry the working tree changes is no witness
+(`lineage_reads.uncommitted`, git's status), because every committed band ran green in the gate before it landed and an
+uncommitted one ran nowhere. The widened cases land in their own branch, whose gate is the
 proof; only then are the KEPT records written.
 
 **The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job):
@@ -1819,13 +1831,13 @@ kind the rule needs. A later change that narrows a witness's band, or rewrites a
 before the own-edition rule existed, the schema names no `own-edition-evidence`, and `lineage_reads.py own-edition
 --edition 1985 --out FILE` measures the stored records against the rule without changing them.
 
-**Measured on 2026-11-15** at the head of review round 1 (all 69 slices then written, the `t-*` slices included; 1,720
+**Measured on 2026-11-15** at the head of review round 2 (all 69 slices then written, the `t-*` slices included; 1,720
 rules): kept before the evidence check 300; refused 632, every one for a flag the screen raises and the slice never asked
 (`flag unanswered`); work items 788 (`needs-own-witness` 407, `defect` 217, `undecided` 108, `own-verdict-from-pointer` 55,
-`uninterpretable` 1). `change-batch` on that run writes 219 KEPT records and refuses 713 alone (a flag unanswered 632; no
-own-edition witness of the kind the rule needs 327; a record counted under each reason it has). Of the 219, 94 are
-syntax rules witnessed by a refusal or a flag at 2002, 62 rest on cases accepted at 2002, and 63 carry into declined
-facilities whose read states its 2002 licence. `record_verdicts.py --edition 2002 --dry-run` accepts all 219 (GAP 3,297 to
-3,079). Of the 81 rows refused only for their evidence, `widen` finds 60 widenable and 21 that need a witness of their
-own. 1985, held to the same kinds: of 1,373 stored KEPT records, 835 have a witness of the kind the rule needs at 85 for at
-least one target and 616 for every target; 538 have none.
+`uninterpretable` 1). `change-batch` on that run writes 204 KEPT records and refuses 728 alone (a flag unanswered 632; the
+targets or the evidence 361; a record counted under each reason it has). The grant patterns took 15 of the 94 syntax rules
+that a refusal alone had witnessed; the licence check refused none of the kept declined facilities (every licence they
+state opens with a checked 2002 citation; the 107 values that begin `none` or `not needed` are refused). `record_verdicts.py
+--edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
+finds 66 widenable and 30 that need a witness of their own. 1985, held to the same kinds: of 1,373 stored KEPT records,
+802 have a witness of the kind the rule needs at 85 for at least one target and 570 for every target; 571 have none.

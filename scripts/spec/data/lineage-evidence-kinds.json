@@ -1,17 +1,28 @@
 {
  "$comment": [
-  "WHAT A DIAGNOSIS WITNESSES (kb/Work PB5597, branch review R1-1; DESIGN-spec-conformance-review.md section 10.6),",
+  "WHAT A DIAGNOSIS WITNESSES (kb/Work PB5597, branch review R1-1, R2-3; DESIGN-spec-conformance-review.md section 10.6),",
   "read by lineage_reads.EvidenceTable. A conformance-suite case that a compiler is to REFUSE at an edition (a refusal",
   "test's wiseowl/diagnostics refuse-at, a flagged case's flag at) shows a diagnosis, nothing else. It witnesses an older",
   "rule only where what the rule asks of a compiler IS a diagnosis: the rule's catalog `kind` is a key of",
-  "`diagnosed-kinds`, or the next-edition rule it carries into is `declined-verdict` (the compiler declines the",
-  "facility, and the read states the older text's licence to decline it, licence-<year>). Every other rule (a general",
-  "rule, an argument or returned-value rule, an implementor-defined item) needs a case ACCEPTED at the edition: a program",
-  "that runs there and whose output the gate compares. The keys are the catalog's own `kind`s, checked against it at load."
+  "`diagnosed-kinds` and its text matches none of `needs-accepting-case` (a rule that GRANTS a form, which only a program",
+  "the compiler accepts can witness), or the next-edition rule it carries into is `declined-verdict` (the compiler",
+  "declines the facility, and the read states the older text's licence to decline it, licence-<year>). Every other rule",
+  "needs a case ACCEPTED at the edition. The keys are the catalog's own `kind`s, checked against it at load.",
+  "`needs-accepting-case` is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a",
+  "prohibition worded with one of these words (\"may not\" is excluded; \"only ... may\" is not) is over-refused, never",
+  "over-kept. It can miss a grant worded otherwise (a form a general format shows and no sentence states); each pattern",
+  "has a planted case in scripts/selftests/spec/lineage_reads/test_reads.py."
  ],
  "diagnosed-kinds": {
   "SR": "a syntax rule states what a conforming program may write: a program can violate it, and the compiler satisfies it by diagnosing the violation",
   "FMT": "a general format states the syntax a program may write: a program outside it is diagnosed"
  },
+ "needs-accepting-case": [
+  {"pattern": "\\bmay\\b(?!\\s+not\\b)", "why": "\"may be specified\", \"may appear\": a permission, which a refusal of another form does not show"},
+  {"pattern": "\\b(?:is|are)\\s+optional\\b", "why": "an optional element: a program omitting it must be accepted"},
+  {"pattern": "\\bin\\s+any\\s+order\\b", "why": "an order left free: every order must be accepted"},
+  {"pattern": "\\b(?:is|are)\\s+(?:permitted|allowed)\\b", "why": "a permission stated outright"},
+  {"pattern": "\\bcan\\s+be\\b", "why": "\"can be specified\": a permission in other words"}
+ ],
  "declined-verdict": "DOCUMENTED-NON-SUPPORT"
 }

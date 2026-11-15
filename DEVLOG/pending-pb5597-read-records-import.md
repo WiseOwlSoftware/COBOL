@@ -24,13 +24,19 @@ carries exactly the candidate pairing's targets, and a SAME for an unpaired rule
 in that run and restores everything on any failure. A rule read twice is refused before any write, and `load` verifies
 each record's digests. The gate's hang of `pb739_shared_extend_write_2023` is filed as kb/Work PB5626.
 
+**Review round 2.** `widen --apply` proves each candidate on an in-memory band through the generator's own check and the
+suite's runner, and writes only the proven widenings, last, so a killed run leaves nothing unproven and a re-run
+finishes it. An uncommitted band is no witness. A `licence-2002` must open with a 2002 citation that the citation
+checker resolves. A syntax rule whose text grants a form needs an accepted case (a pattern list in the evidence table
+that fails closed).
+
 **Measured (dry runs: no 2002 record is written).** The import read 69 slices covering 1,720 rules. Before the evidence
 check, 300 rules would be kept. 632 were refused because a screen flag is unanswered. 788 became work items: 407
 needs-own-witness, 217 defect, 108 undecided, 55 own-verdict-from-pointer and 1 uninterpretable. `change-batch` wrote
-219 KEPT records and refused 713, and `record_verdicts.py --edition 2002 --dry-run` accepted all 219 (GAP 3,297 to
-3,079). Of the 81 rows refused only for their evidence, `widen` found 60 widenable and 21 that need their own witness.
-For 1985, 835 of the 1,373 stored KEPT records have a witness of the kind the rule needs at 85 for at least one target,
-and 538 have none.
+204 KEPT records and refused 728, and `record_verdicts.py --edition 2002 --dry-run` accepted all 204 (GAP 3,297 to
+3,094). Of the 96 rows refused only for their evidence, `widen` found 66 widenable and 30 that need their own witness.
+For 1985, 802 of the 1,373 stored KEPT records have a witness of the kind the rule needs at 85 for at least one target,
+and 571 have none.
 
 **Not done.** The real import, the band widening and the 2002 records are the records worker's. So are the answers
 to the 632 rows whose screen flags their slices never asked, and the own verdicts of the 55 unpaired SAME reads. 1985's state rules and records

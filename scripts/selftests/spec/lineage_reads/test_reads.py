@@ -4,7 +4,11 @@ section 10.6): the one normalization and its loud refusals, what a read becomes 
 refuter upheld, every screen flag answered for its detail, the pairing's targets, a witness at the row's own edition of
 the kind the rule needs; a work item for every other verdict), the import's durable records, the audit of stored
 records, and the band widening's plan, edits and transaction."""
+import dataclasses
 import json
+import pathlib
+import shutil
+import subprocess
 import sys
 
 import fixtures as F
@@ -28,8 +32,8 @@ def case_00_the_one_normalization_reads_every_shape_and_refuses_what_it_cannot(e
                                                          ("class", "the same sense")]})
     expect("a string citation, the compiler's judgment and the licence are read",
            r.compiler == R.Judgment("correct", "correct (probe p.cob)") and r.licence == "§2002:B.3 item 1")
-    expect("a licence the brief writes `none` is no licence",
-           R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"licence-2002": "none"})).licence is None)
+    expect("a licence is kept as written; the brief's `none` is no licence (licence_problem)",
+           R.licence_problem(ED, R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"licence-2002": "none"})).licence))
     m = R.normal_read("q-01", F.read("2002-GR-1.1.3-1", **{"flags-answered": {"normalized: a b": "x", "ambiguous": "y"}}))
     expect.equal("a map of flags-answered: its key's detail, or none", m.answers,
                  {"normalized": [("a b", "x")], "ambiguous": [(None, "y")]})
@@ -263,7 +267,8 @@ def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
 
 
 def _planted_widening(root):
-    """Two accepted cases (p passes at 2002, q fails) and a refusal test, on files in `root`; the plan widens all three."""
+    """Two accepted cases (p passes at 2002, q fails) and a refusal test, on files in `root`; the plan widens all three.
+    The witnesses' `entries` is planted (the generator's own is exercised by the dry runs)."""
     text = "      *>--- WiseOwl test\n      *> id: {0}\n      *> accept: [2023]\n      *>---\n"
     cases = {}
     for name in ("p", "q"):
@@ -275,23 +280,19 @@ def _planted_widening(root):
                                     root / "r.json", "COBOL0900")
     plan = {"cases": {"cases/X/p": {"status": R.WIDEN}, "cases/X/q": {"status": R.WIDEN},
                       "cases/X/r": {"status": R.WIDEN_REFUSAL}}}
+    w = R.Witnesses(cases, {}, {})
+    w.entries = lambda keys, sp: ({k: [{"id": k.rsplit("/", 1)[1]}] for k in keys}, {})
     files = {p.name: p.read_text(encoding="utf-8") for p in root.iterdir()}
-    return R.Witnesses(cases, {}, {}), plan, files
+    return w, plan, files
 
 
-def _harness(results, code=1, refusal_out="error COBOL0900 here", manifest_ids=("p", "q")):
-    """A planted subprocess.run: the generator writes the wiseowl manifest; run.py exits `code` writing `results`
-    (None: writes nothing); the compiler refuses with `refusal_out`."""
+def _harness(results, code=1, refusal_out="error COBOL0900 here"):
+    """A planted subprocess.run: run.py exits `code` writing `results` (None: writes nothing); the compiler refuses
+    with `refusal_out`."""
     def run(cmd, **kw):
-        if cmd[1].endswith("generate.py"):
-            out = __import__("pathlib").Path(cmd[cmd.index("--out") + 1]) / "wiseowl"
-            out.mkdir(parents=True, exist_ok=True)
-            (out / "manifest.json").write_text(json.dumps({"generator": "g", "editions": {"2002": [
-                {"id": i} for i in manifest_ids]}}), encoding="utf-8", newline="\n")
-            return F.completed(0, "=== GREEN ===")
         if cmd[1].endswith("run.py"):
             if results is not None:
-                out = __import__("pathlib").Path(cmd[cmd.index("--out") + 1])
+                out = pathlib.Path(cmd[cmd.index("--out") + 1])
                 out.mkdir(parents=True, exist_ok=True)
                 (out / "results.json").write_text(json.dumps({"tests": [{"edition": "2002", "id": i, "verdict": v}
                                                                         for i, v in results.items()]}),
@@ -301,47 +302,139 @@ def _harness(results, code=1, refusal_out="error COBOL0900 here", manifest_ids=(
     return run
 
 
-def case_07_the_widening_keeps_only_what_passed_in_this_run(expect):
-    ed = ED
+def _tree(d):
+    return {p.name: p.read_text(encoding="utf-8") for p in d.iterdir() if p.is_file()}
+
+
+def case_07_the_widening_proves_first_and_writes_last(expect):
     d = scratch_dir("lineage-reads-apply")
     w, plan, files = _planted_widening(d)
-    got = R.widen_apply(plan, w, ed, d / "cobol", d / "scratch-1", _harness({"p": "PASS", "q": "FAIL"}))
-    expect.equal("R1-3: a case that PASSED at the edition in this run keeps its widening; one that failed, and nothing "
-                 "else, is restored and listed as needing an own witness", (got["widened"], sorted(got["reverted"])),
-                 (["cases/X/p", "cases/X/r"], ["cases/X/q"]))
-    expect("its file is byte-identical again, the kept ones widened",
+    seen = {}
+
+    def watching(results):
+        inner = _harness(results)
+
+        def run(cmd, **kw):
+            seen.setdefault("tree-while-proving", _tree(d))
+            return inner(cmd, **kw)
+        return run
+
+    got = R.widen_apply(plan, w, ED, d / "cobol", d / "scratch-1", watching({"p": "PASS", "q": "FAIL"}))
+    expect("R2-1: while the cases are proved the tracked files are untouched (the proof runs on in-memory bands)",
+           seen["tree-while-proving"] == files)
+    expect.equal("a case that PASSED at the edition is written; one that failed is never written and is listed as "
+                 "needing an own witness", (got["widened"], sorted(got["reverted"])), (["cases/X/p", "cases/X/r"],
+                                                                                       ["cases/X/q"]))
+    expect("q's file is untouched, p's widened, and the proof and the applied record are in the scratch",
            (d / "q.cob").read_text(encoding="utf-8") == files["q.cob"] and "2002" in (d / "p.cob").read_text(encoding="utf-8")
-           and R.NEEDS_OWN in got["reverted"]["cases/X/q"])
+           and (d / "scratch-1" / R.PROOF).is_file() and (d / "scratch-1" / R.APPLIED).is_file())
     for p, t in files.items():
         (d / p).write_text(t, encoding="utf-8", newline="")
-    got = R.widen_apply(plan, w, ed, d / "cobol", d / "scratch-2", _harness(None, code=2))
-    expect("R1-3: a runner that exits 2 and writes no results restores every case it was to judge",
-           got["widened"] == ["cases/X/r"] and sorted(got["reverted"]) == ["cases/X/p", "cases/X/q"])
+    got = R.widen_apply(plan, w, ED, d / "cobol", d / "scratch-2", _harness(None, code=2))
+    expect("R1-3: a runner that exits 2 and writes no results proves nothing it was to judge: nothing of it is written",
+           got["widened"] == ["cases/X/r"] and sorted(got["reverted"]) == ["cases/X/p", "cases/X/q"]
+           and (d / "p.cob").read_text(encoding="utf-8") == files["p.cob"])
     for p, t in files.items():
         (d / p).write_text(t, encoding="utf-8", newline="")
     stale = d / "scratch-3"
     (stale / "results").mkdir(parents=True)
     (stale / "results" / "results.json").write_text('{"tests": []}', encoding="utf-8", newline="\n")
-    expect("R1-3: a scratch holding an earlier run's results is refused before anything is widened",
-           F.raises(lambda: R.widen_apply(plan, w, ed, d / "cobol", stale, _harness({"p": "PASS"})), "empty --scratch")
-           and {p.name: p.read_text(encoding="utf-8") for p in d.iterdir() if p.is_file()} == files)
-
-    def broken(cmd, **kw):
-        if cmd[1].endswith("run.py"):
-            raise OSError("the runner could not start")
-        return _harness({})(cmd, **kw)
-
-    try:
-        R.widen_apply(plan, w, ed, d / "cobol", d / "scratch-4", broken)
-        raised = False
-    except OSError:
-        raised = True
-    expect("R1-3: a failure on the way restores EVERY widening: the tree is untouched, never half widened",
-           raised and {p.name: p.read_text(encoding="utf-8") for p in d.iterdir() if p.is_file()} == files)
-    got = R.widen_apply(plan, w, ed, d / "cobol", d / "scratch-5", _harness({"p": "PASS", "q": "PASS"},
+    expect("a scratch holding an earlier run's results (and no proof) is refused before anything is run or written",
+           F.raises(lambda: R.widen_apply(plan, w, ED, d / "cobol", stale, _harness({"p": "PASS"})), "empty --scratch")
+           and _tree(d) == files)
+    got = R.widen_apply(plan, w, ED, d / "cobol", d / "scratch-5", _harness({"p": "PASS", "q": "PASS"},
                                                                              refusal_out="error COBOL0001 elsewhere"))
-    expect("a refusal test refused without its expected diagnostic is restored",
+    expect("a refusal test refused without its expected diagnostic is not written",
            "cases/X/r" in got["reverted"] and (d / "r.json").read_text(encoding="utf-8") == files["r.json"])
+
+
+#: The child a KILL is planted in (review R2-1): it plants the widening in argv[1] and dies (os._exit, no cleanup can
+#: run) at the point argv[2] names: while run.py proves (`prove`) or after the first proven case is written (`write`).
+KILLED_CHILD = r"""
+import json, os, pathlib, sys, types
+sys.path[:0] = [sys.argv[3], sys.argv[4]]
+import lineage_reads as R
+root, where = pathlib.Path(sys.argv[1]), sys.argv[2]
+text = "      *>--- WiseOwl test\n      *> id: {0}\n      *> accept: [2023]\n      *>---\n"
+cases = {}
+for name in ("p", "q"):
+    cases[f"cases/X/{name}"] = R.CaseInfo(f"cases/X/{name}", root / f"{name}.cob", ("2023",), ("2023",), (), ("GR-1",), None)
+w = R.Witnesses(cases, {}, {})
+w.entries = lambda keys, sp: ({k: [{"id": k.rsplit("/", 1)[1]}] for k in keys}, {})
+plan = {"cases": {k: {"status": R.WIDEN} for k in cases}}
+def run(cmd, **kw):
+    if where == "prove":
+        os._exit(9)
+    out = pathlib.Path(cmd[cmd.index("--out") + 1]); out.mkdir(parents=True, exist_ok=True)
+    (out / "results.json").write_text(json.dumps({"tests": [{"edition": "2002", "id": i, "verdict": "PASS"} for i in "pq"]}),
+                                      encoding="utf-8", newline="\n")
+    return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+R.widen_apply(plan, w, R.edition(2002), root / "cobol", root / "scratch", run, on_write=lambda k: os._exit(9))
+"""
+
+
+def case_08_a_killed_widening_leaves_no_unproven_band(expect):
+    d = scratch_dir("lineage-reads-kill")
+    text = "      *>--- WiseOwl test\n      *> id: {0}\n      *> accept: [2023]\n      *>---\n"
+    for name in ("p", "q"):
+        (d / f"{name}.cob").write_text(text.format(name), encoding="utf-8", newline="")
+    files = _tree(d)
+    here = pathlib.Path(R.__file__).resolve().parent
+    killed = subprocess.run([sys.executable, "-c", KILLED_CHILD, str(d), "prove", str(here), str(here.parent)],
+                            capture_output=True, text=True)
+    expect("R2-1: a run killed (os._exit) while it proves leaves the tracked tree untouched",
+           killed.returncode == 9 and _tree(d) == files)
+    shutil.rmtree(d / "scratch")
+    killed = subprocess.run([sys.executable, "-c", KILLED_CHILD, str(d), "write", str(here), str(here.parent)],
+                            capture_output=True, text=True)
+    written = [n for n in ("p.cob", "q.cob") if (d / n).read_text(encoding="utf-8") != files[n]]
+    expect("R2-1: a run killed after its first write leaves only a PROVEN widening, recorded in the scratch",
+           killed.returncode == 9 and written == ["p.cob"]
+           and json.loads((d / "scratch" / R.APPLIED).read_text(encoding="utf-8")) == ["cases/X/p"])
+    w = R.Witnesses({f"cases/X/{n}": R.CaseInfo(f"cases/X/{n}", d / f"{n}.cob", ("2023",), ("2023",), (), ("GR-1",), None)
+                     for n in "pq"}, {}, {})
+    got = R.widen_apply({"cases": {}}, w, ED, d / "cobol", d / "scratch", _harness({}))
+    expect("re-running --apply with that scratch reads the proof and FINISHES the writes, saying so",
+           got["resumed"] and got["already-written"] == ["cases/X/p"] and got["widened"] == ["cases/X/p", "cases/X/q"]
+           and all("2002" in (d / n).read_text(encoding="utf-8") for n in ("p.cob", "q.cob")))
+
+
+def case_09_an_uncommitted_band_is_no_witness(expect):
+    w = F.witnesses({"GR-1.1.3-1": ["2002"]})
+    w.cases["cases/X/GR-1.1.3-1"] = dataclasses.replace(w.cases["cases/X/GR-1.1.3-1"], committed=False)
+    expect("R2-1: a case whose band the working tree changed and no gate ran is no witness, even accepted at 2002",
+           w.accepted_at("GR-1.1.3-1", "2002") == [] and w.at("GR-1.1.3-1", "2002") == []
+           and R.case_status(w.cases["cases/X/GR-1.1.3-1"], "2002", {}) == R.UNCOMMITTED)
+
+
+def case_10_a_licence_is_a_checked_citation_of_the_rows_own_edition(expect):
+    for label, text, ok in (("a citation of the 2002 text, then its gloss", "§2002:3.1.5 with §2002:B.3 item 1 (gloss)", True),
+                            ("the brief's none", "none", False),
+                            ("a sentence that names a citation later", "not needed: §2002:3.1 would license it", False),
+                            ("words that are no citation", "see above", False),
+                            ("a citation of another edition", "§2023:4.2.10", False),
+                            ("a clause the 2002 text does not have", "§2002:99.99.99", False),
+                            ("absent", None, False)):
+        got = R.licence_problem(ED, text)
+        expect(f"R2-2: {label} -> {'a licence' if ok else 'refused, with why'}", (got is None) == ok and (ok or bool(got)))
+
+
+def case_11_a_rule_that_grants_a_form_needs_an_accepted_case(expect):
+    t = R.EvidenceTable.load()
+    for text in ("The phrases may appear in any order.", "The FILLER clause is optional.", "They are written in any order.",
+                 "A literal is permitted here.", "The clause can be specified once."):
+        expect(f"R2-3: {text!r} grants a form: a refusal does not witness it", not t.diagnosable("SR", text))
+    expect("a prohibition (\"may not\", \"shall not\") is diagnosable by a refusal",
+           t.diagnosable("SR", "Identifier-1 may not be reference modified.")
+           and t.diagnosable("SR", "The clause shall not be specified twice."))
+    expect("a general rule is never diagnosable", not t.diagnosable("GR", "The clause shall not be specified twice."))
+    sr = "2002-SR-2.1.2-9"
+    s = R.normal_slice("p-01", F.record("p-01", [F.read(sr)], [F.refute(sr)]))
+    lin = F.lineage([sr])
+    lin = dataclasses.replace(lin, texts={sr: "The clauses may be written in any order."})
+    got = R.decide(ED, [s], None, F.witnesses(diagnosed={F.twin(sr): ["2002"]}), lin)[0]
+    expect("a granting syntax rule witnessed only by a refusal at 2002 is refused: no own-edition witness",
+           [r for r, _ in got.refused] == [R.NO_OWN_WITNESS])
 
 
 if __name__ == "__main__":
