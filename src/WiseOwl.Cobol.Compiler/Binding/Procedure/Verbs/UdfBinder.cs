@@ -260,7 +260,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             // leftmost position — the SAME proof CALL's §2023:14.9.4.3 SR6 asks, so it is the same method.
             if (!formal.ByValue && operand is BoundFieldOperand { Place: var bitPlace } && BitLayout.IsBitItem(bitPlace.Item))
                 host.Params.ScreenBitAlignment(bitPlace, DiagnosticCatalog.FunctionBitAlignment,
-                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}", "§2023:8.4.3.2.3 SR14");
+                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}", BitAlignmentStatement.Function);
             host.Params.CheckArgument(formal.Item, arg, i + 1, site);
             callArgs.Add(arg);
         }
