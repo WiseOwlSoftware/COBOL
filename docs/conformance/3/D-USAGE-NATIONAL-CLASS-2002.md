@@ -16,3 +16,5 @@
   or category national, such an item does not qualify; where a rule speaks of usage national as a representation
   ("class numeric with usage national"), it does. The refusals of such an item where class national is required
   (COBOL1546, COBOL1627) follow this reading. Each 2002 inventory row it decides closes only on its own witness.
+  Pinned by `g2dof02-argument-numeric-national`, `g2ldt03-argument-numeric-national`, `g2min01-argument-same-class`,
+  `g2st02-start-numeric-national-at-national-key` and `g2str01-operand-usage-class`, each at `--std 2002`.

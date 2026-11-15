@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.21.2-1",
+ "rule-digest": "3adbe244a01f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckRepertoireArgs",
+ "test-ref": "conformance:cases/15.21@2002-DISPLAY-OF-FUNCTION/g2dof01-argument-class-national",
+ "notes": "§2002:15.21.2 AR1 with §2002:8.5.2 Table 3 and 8.5.2.7: national, national-edited, numeric-edited USAGE NATIONAL, a GROUP-USAGE NATIONAL group, a national literal and a national function are accepted and converted (ABC, X Y, ' 12.5', GHI, LIT, FN); PIC 999 USAGE NATIONAL (class numeric, PB5625 reading B) and an alphanumeric literal are refused COBOL1546 (g2dof02, g2dof03). Pinned build at --std 2002 matched."
+}

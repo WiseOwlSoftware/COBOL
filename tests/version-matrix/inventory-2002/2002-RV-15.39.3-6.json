@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.39.3-6",
+ "rule-digest": "0088797b3c1f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#Characters; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindLengthFold",
+ "test-ref": "conformance:cases/15.39@2002-LENGTH-FUNCTION/g2-length-boolean-and-fractional-positions",
+ "notes": "§2002:15.39.3 RV6 with RV3 and §2002:8.5.1.5.3: an alphanumeric level-05 group of 10 or 3 bits (its filler lies at level 05 outside it) has LENGTH 2 and 1, rounded up, beside an integral 8-bit control of 1; the pinned --std 2002 run matched."
+}

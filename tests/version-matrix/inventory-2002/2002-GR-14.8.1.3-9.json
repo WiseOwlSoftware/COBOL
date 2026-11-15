@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-9",
+ "rule-digest": "d4c3b64f0645",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Day",
+ "test-ref": "conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2acp01_chronological_items",
+ "notes": "§2002:14.8.1.3 GR9: DAY is a 5-digit YYDDD, DDD 001-366; the golden derives DDD from INTEGER-OF-DATE (§2002:15.36.3 RV1) and checks DAY = MOD(YYYY,100)*1000 + DDD. It also checks YYDDD then 2 spaces in X(7), which pins the 5-digit width. Matched at --std 2002."
+}

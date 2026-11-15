@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.19.3-2",
+ "rule-digest": "a60bd50a7801",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger",
+ "test-ref": "conformance:cases/15.19@2002-DAY-OF-INTEGER-FUNCTION/g2-day-of-integer-julian-form",
+ "notes": "§2002:15.19.3 RV2 fixes the YYYYDDD form and §2002:15.4 the origin (integer date 1 = January 1, 1601) and ISO 8601 leap years; the nine derived values (1601001 .. 9999365, century years 1700 and 2000) and the 2000/060 split all matched at --std 2002."
+}

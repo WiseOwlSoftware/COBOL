@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.39.2-1",
+ "rule-digest": "d4fa8a36ed9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Sr1Offence",
+ "test-ref": "conformance:cases/14.8.39@2002-STRING-STATEMENT/g2str01-operand-usage-class",
+ "notes": "§2002:14.8.39.2 SR1: alphanumeric and boolean literals, usage-display identifiers (a CD record item among them), all-national operands (numeric-edited USAGE NATIONAL included) and PIC 9 USAGE NATIONAL beside alphanumeric operands (usage national, class numeric: PB5625 reading B) are accepted and concatenate as GR3/GR7 give; PACKED-DECIMAL, a numeric literal, and an alphanumeric or class-numeric operand among national ones are refused (COBOL1626, COBOL2306). Pinned build at --std 2002 matched."
+}

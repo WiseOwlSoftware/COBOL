@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-A.1.2.3-4",
+ "rule-digest": "0d90bda3cfb9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#AcceptMessageCount; src/WiseOwl.Cobol.Runtime/Communication/MessageDefinitions.cs#McsNames",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-GR-A_1_2_3-4",
+ "notes": "§2002:A.1.2.3 GR4: data-name-1..4 hold queue and sub-queue names formed as system-names (hyphen and underscore, §2002:8.3.1.1) and defined to the MCS. The four-level structure PAY_Q/HOUR_LY/WEEK-1/DAY_2 gives ACCEPT MESSAGE COUNT 00 000002 (§2002:A.2.1.3 GR1), an undefined sub-queue or queue gives 20 with the count unchanged (§2002:A.1.2.4 Table A.1), and RECEIVE returns M1. A --std 2002 run in a fresh directory matched the derived .out."
+}
