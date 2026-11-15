@@ -16,7 +16,7 @@ own where its kind owes one, and a code location where the verdict requires one.
 stored own verdict whose notes name its read to the KEPT standing. `widen` plans the own verdicts that only their
 evidence blocks, through the same `--apply`. Design section 10.6 states all of it.
 
-**A defect found and fixed.** `decide` asked the pairing before the refuter. So every unpaired SAME was counted
+**A defect found and fixed (kb/Work PB5699).** `decide` asked the pairing before the refuter. So every unpaired SAME was counted
 `own-verdict-from-pointer` whatever its refuter said. In the operator's dry run that was 133 OVERTURNED or DOUBTFUL reads
 (and 63 with no refute yet). The refuter is now read first, as for a paired rule.
 
