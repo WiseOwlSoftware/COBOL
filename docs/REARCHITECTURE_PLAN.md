@@ -36,8 +36,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
 - **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-3 with
-  golden-2002-2's landing merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,084 GAP** (2,562
-  before the first 2002 golden-lane landing), 524 adjudicated: CONFORMS 511, DIVERGES 11, PARTIAL 1,
+  golden-2002-2's landing and main b929de103f merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,081 GAP** (2,562
+  before the first 2002 golden-lane landing), 527 adjudicated: CONFORMS 514, DIVERGES 11, PARTIAL 1,
   DOCUMENTED-NON-SUPPORT 1. The 2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at
   `--std 2002`; 50 of its 85 input files are integrated so far.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
