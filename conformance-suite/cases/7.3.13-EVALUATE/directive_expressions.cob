@@ -7,14 +7,14 @@
 *>---
       *> ISO §2023:7.3.6 / §2023:7.3.7 / §2023:7.3.8 (ledger C2) — compile-time EXPRESSION evaluation in conditional-compilation
       *> directives. >>DEFINE now EVALUATES a MULTI-TOKEN arithmetic operand (was silently bound to its first
-      *> token) and a boolean-expression operand; >>IF (a constant-conditional-expression) and >>EVALUATE select
-      *> the surviving source lines by the evaluated values. LVL = 2*3+1 = 7; FLG = "1100" B-OR "0011" = "1111".
+      *> token) and a boolean-literal operand (a boolean EXPRESSION operand is a 2023 DEFINE format, kb/Work PB5601); >>IF (a constant-conditional-expression) and >>EVALUATE select
+      *> the surviving source lines by the evaluated values. LVL = 2*3+1 = 7; FLG = B"1111".
        IDENTIFICATION DIVISION.
        PROGRAM-ID. CCEXPR.
        PROCEDURE DIVISION.
        MAIN.
       >>DEFINE LVL AS 2 * 3 + 1
-      >>DEFINE FLG AS B"1100" B-OR B"0011"
+      >>DEFINE FLG AS B"1111"
       >>IF LVL = 7
            DISPLAY "LVL-IS-7".
       >>ELSE

@@ -68,6 +68,9 @@ AUDITS = (
     ("LINE ENDINGS", ["scripts/line_endings.py", "--check"]),
     # kb/Work PB735, PB2878: a byte-level fact about the committed tree, an audit so that no test reads every path.
     ("CONFLICT MARKERS", ["scripts/conflict_markers.py", "--check"]),
+    # kb/Work PB5694: no two tracked paths (or directories above them) differ only in letter case, which a case-insensitive
+    # checkout folds into one and Linux keeps apart. A fact about the committed tree's names, an audit like CONFLICT MARKERS.
+    ("CASE COLLISIONS", ["scripts/case_collisions.py", "--check"]),
     # kb/Work PB5396, PB3694: the public-API baselines list no symbol twice (RS0025 fails the Release build on one) and every
     # Unshipped one is in ordinal order, the one order that lets plain git merge two branches' new symbols; the module's `--write`
     # is the fixer. A byte-level fact about the committed tree, an audit like CONFLICT MARKERS.

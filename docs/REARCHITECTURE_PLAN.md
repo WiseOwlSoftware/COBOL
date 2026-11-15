@@ -29,9 +29,12 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   account 2 released it) with the campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
   restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
   one file per determination with an untracked rendered view). The loop was stopped on the afternoon of 2026-11-12 for a
-  Claude Code CLI update; the next attended session restarts it. The 2023 inventory is at ZERO GAP since 2026-11-05
-  (kb/Work A11 closed DOC-A.1-17); the 2002 inventory's count is held (kb/Work PB5256) and the 1985 inventory is described
-  next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
+  Claude Code CLI update; the next attended session restarts it. The 2023 inventory reached ZERO GAP on 2026-11-05
+  (kb/Work A11 closed DOC-A.1-17). **It reads 1 GAP since 2026-11-15, and that is not a regression in the compiler:**
+  `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or
+  more receivers edits it again, wrong at `--std 2023` too) already existed. The record was corrected to DIVERGES naming
+  PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it (1985 GAP 32 → 33). PB5678's fix closes both. The 2002
+  inventory's count is held (kb/Work PB5256) and the 1985 inventory is described next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
