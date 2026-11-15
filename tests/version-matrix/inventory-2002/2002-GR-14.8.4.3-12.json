@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.4.3-12",
+ "rule-digest": "c98418a8ba36",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#OmittedReferenceRaise; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#RootGuard; src/WiseOwl.Cobol.Runtime/Control/OmittedFormal.cs#Raise",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/pb5623-returning-omitted-formal-2002",
+ "notes": "§2002:14.8.4.3 GR12: a reference to a formal whose omitted-argument condition is true raises EC-PROGRAM-ARG-OMITTED, except as an argument or in the omitted-argument condition. Every reference rendered through the formal's access path is guarded (OmittedFormalGuard), and the one reference with no access in the CALL's own scope, RETURNING identifier-3 (GR3 a: identified at the beginning of the CALL), now raises at the CALL (CallEmitter.EmitCall, PlaceRenderer.OmittedReferenceRaise), because the delivery of the result runs inside the activated program, whose checking scope the raise no longer shared. The golden runs a whole formal and a subordinate of a group formal as RETURNING (each raises, N=02, the activated program never runs), the same formal as an argument (exempt), and a CALL with every argument supplied (nothing raised). kb/Work PB5623."
+}

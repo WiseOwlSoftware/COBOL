@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-2",
+ "rule-digest": "0b1823d26e0c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+ "test-ref": "conformance:cases/14.8.44@2002-UNSTRING-STATEMENT/pb5621-unstring-any-length-variable-occurrence-2002",
+ "notes": "§2002:14.8.44.3 GR2: a zero-length identifier-1 ends the UNSTRING at once. The golden reaches it with an ANY LENGTH formal bound BY CONTENT to an OCCURS DEPENDING group whose DEPENDING ON item is 0: §2002:13.16.2.3 GR1 a) makes the formal zero-length, and §2002:14.7.1.1 makes an OCCURS DEPENDING group passed by content take the length its OCCURS clause gives a sending item (BY REFERENCE it takes the maximum, 5, which the third leg shows). Receivers, pointer and tally are untouched (P=01 T=0). kb/Work PB5621 re-probed: the reported maximum length for a by-reference argument is the standard's rule, not a defect."
+}
