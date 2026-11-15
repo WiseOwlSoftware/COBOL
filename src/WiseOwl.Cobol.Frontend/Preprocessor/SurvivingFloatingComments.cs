@@ -30,7 +30,7 @@ internal static class SurvivingFloatingComments
     {
         if (gates.FixedFormReadsFloatingComments) return;
         string source = text.Text;
-        int pos = 0, line = 1, counted = 0;   // the line of the text the lexer reads, counted up to the last indicator
+        int pos = 0;
         while (TextWordScanner.TryNext(source, ref pos, out var word))
         {
             if (word.Kind != TextWordKind.CharacterString) continue;
@@ -38,11 +38,9 @@ internal static class SurvivingFloatingComments
             if (at < 0) continue;
             int indicator = word.Start + at;
             var span = text.PointAt(indicator).Spans[0];
-            for (; counted < indicator; counted++)
-                if (source[counted] == '\n') line++;
             // the line's start is preceded by an implied space
             bool unseparated = indicator > 0 && !CobolSpace.IsSeparator(source[indicator - 1]);
-            gates.NoteSurvivingFloatingComment(new(line, span.Origin.File, span.Origin.Line, span.SourceColumn, unseparated));
+            gates.NoteSurvivingFloatingComment(new(text.LineIndexAt(indicator) + 1, span.Origin.File, span.Origin.Line, span.SourceColumn, unseparated));
         }
     }
 }

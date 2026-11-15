@@ -83,6 +83,13 @@ public sealed class ReferenceFormatDiagnostics(int dialectLevel, bool permissive
         diagnostics.MoveTail(reported, placeAt);
     }
 
+    /// <summary>Whether <see cref="ReportSurvivingFloatingComments"/> will report an ERROR for the same <paramref name="commentTextLines"/>:
+    /// a noted <c>*&gt;</c> exists only where the edition has no such indicator (row <c>floating-comment-indicator-2002</c>
+    /// NotYetIntroduced, always an error), so any one that is program text is. Asked before the lex and parse finish, whose
+    /// word-character screen runs only for a compilation the binder will not see (kb/Work PB3845).</summary>
+    internal bool HasProgramTextFloatingComment(IReadOnlySet<int> commentTextLines)
+        => _survivingFloatingComments.Any(c => !commentTextLines.Contains(c.TextLine));
+
     /// <summary>A floating literal continuation indicator (§2023:6.2.3.1, §2023:6.5 4)) — introduced with the floating
     /// indicators at COBOL-2002 (row <c>floating-literal-continuation-2002</c>). Gated once per compilation, at its
     /// first use, in either reference format.</summary>

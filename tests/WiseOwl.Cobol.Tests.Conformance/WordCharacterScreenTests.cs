@@ -67,6 +67,23 @@ public sealed class WordCharacterScreenTests
             Assert.True(ok, all);
     }
 
+    /// <summary>The COBOL-85 gate for a surviving <c>*&gt;</c> (kb/Work PB5588) reports after the lex and parse, yet its error is
+    /// one the binder will not run beside, so the screen above runs for the compilation like for any prior error: the
+    /// underscore of <c>W_A</c> (§2023:8.3.2.1) is named beside the floating comment's COBOL0900 (review R1-1).</summary>
+    [Fact]
+    public void ASurvivingFloatingComment_DoesNotHideTheScreen()
+    {
+        // sequence numbers in columns 1-6, so the layout reads as fixed form (the harness detects the format)
+        string source = string.Join(Environment.NewLine,
+            "000100 IDENTIFICATION DIVISION.", "000200 PROGRAM-ID. PB5588S.", "000300 DATA DIVISION.",
+            "000400 WORKING-STORAGE SECTION.", "000500 01  W_A PIC 9 VALUE 1.", "000600 PROCEDURE DIVISION.",
+            "000700 MAIN-P.", "000800     DISPLAY W_A *> floating", "000900     STOP RUN.") + Environment.NewLine;
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        Assert.False(ok);
+        Assert.Equal(2, errors.Count(e => e.Contains("COBOL0900")));
+        Assert.Contains(errors, e => e.Contains("underscore"));
+    }
+
     /// <summary>One diagnostic per distinct word, however often the program spells it (the length ceiling's posture).</summary>
     [Fact]
     public void ADistinctWord_IsReportedOnce()
@@ -279,7 +296,7 @@ public sealed class WordCharacterScreenTests
     {
         string word = "CAFÉ" + Euro;
         string source = Program(word, word, parses);
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         var codes = errors
             .Select(e => e.Contains("COBOL0900") ? "COBOL0900" : e.Contains("COBOL2773") ? "COBOL2773" : e.Contains(ParseError) ? ParseError : "other")
@@ -359,7 +376,7 @@ public sealed class WordCharacterScreenTests
                 MOVE "A" TO MY_NAME;DISPLAY MY_NAME.
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2631"));
         Assert.Contains(errors, e => e.Contains("COBOL0900") && e.Contains("MY_NAME"));
@@ -443,7 +460,7 @@ public sealed class WordCharacterScreenTests
                 MOVE 1 TO _CNT.
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 85);
+        var (ok, errors, warns) = EditionHarness.CompileFull(source, 85);
         Assert.False(ok);
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_PARA'"));
         Assert.Contains(errors, e => e.Contains("COBOL2773") && e.Contains("'_CNT'"));

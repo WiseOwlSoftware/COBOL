@@ -646,12 +646,6 @@ public sealed class CopyProcessor(
     /// <summary>The disposition of one resolved COPY statement.</summary>
     internal enum CopyOutcome { Found, NotFound, Circular }
 
-    /// <summary>The result of resolving ONE COPY statement (non-recursive): the text to splice and, when
-    /// <see cref="CopyOutcome.Found"/>, the copybook's path (so the caller removes it from the include set after
-    /// recursing). <see cref="Text"/> is the copybook's NormalizeCopybook+ApplyReplacements text (Found) or the
-    /// comment fallback (NotFound/Circular).</summary>
-    /// <param name="Mapped">The incorporated library text with its origins (the copybook's path and physical lines,
-    /// after normalization and COPY … REPLACING — kb/Work PB82); null for the not-found / circular comment lines.</param>
     /// <summary>The start of the one-line comment the compiler writes in place of a COPY statement that brought in no library
     /// text (not found, circular, unreadable, unparsable). It is the compiler's own note, not source text: U+FDD2 is a Unicode
     /// NONCHARACTER, reserved for process-internal use and never in interchanged text (as
@@ -660,6 +654,12 @@ public sealed class CopyProcessor(
     /// <c>*&gt;</c> was a floating comment the COBOL-85 gate refused as the 2002 indicator (kb/Work PB5588).</summary>
     internal static readonly string NotePrefix = CobolSourceText.CommentIndicator + (char)0xFDD2 + "COPY ";
 
+    /// <summary>The result of resolving ONE COPY statement (non-recursive): the text to splice and, when
+    /// <see cref="CopyOutcome.Found"/>, the copybook's path (so the caller removes it from the include set after
+    /// recursing). <see cref="Text"/> is the copybook's NormalizeCopybook+ApplyReplacements text (Found) or the
+    /// comment fallback (NotFound/Circular).</summary>
+    /// <param name="Mapped">The incorporated library text with its origins (the copybook's path and physical lines,
+    /// after normalization and COPY … REPLACING — kb/Work PB82); null for the not-found / circular comment lines.</param>
     internal readonly record struct OneCopyResult(CopyOutcome Outcome, string Text, string? CopybookPath, MappedText? Mapped = null);
 
     /// <summary>Parse and resolve ONE COPY statement whose keyword is at <paramref name="copyIdx"/> — parse it

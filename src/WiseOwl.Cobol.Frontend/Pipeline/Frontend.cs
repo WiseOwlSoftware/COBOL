@@ -125,7 +125,7 @@ public sealed class Frontend
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
             int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
-            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
+            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas, referenceFormatGates);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
@@ -450,7 +450,8 @@ public sealed class Frontend
     /// can use it (<see cref="Parse"/>'s §2023:14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParse(
-        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
+        string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts,
+        ReferenceFormatDiagnostics gates)
     {
         // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
         // hold the lex and parse stages' own. An error of either keeps the binder from running.
@@ -472,7 +473,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts);
+            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts, gates);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -488,7 +489,7 @@ public sealed class Frontend
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
     private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParseOnce(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
-        bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
+        bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts, ReferenceFormatDiagnostics gates)
     {
         // FIRST: a fixed-form debugging line is source or comment per its unit's WITH DEBUGGING MODE clause (kb/Work PB1705);
         // every reader after this one sees only the lines that are source. A line inside an open PICTURE or subscript
@@ -522,6 +523,9 @@ public sealed class Frontend
             sourceDebuggingLines.Add(sourceRegionLine);
             text = DebuggingLineRewriter.WithCarrierBlanked(text, sourceRegionLine);
         }
+        // The COBOL-85 `*>` gate reports after this stage (Parse), yet its error keeps the binder from running like any prior
+        // error, so the word-character screen below must know of it now (kb/Work PB5588, review R1-1).
+        priorErrors |= gates.HasProgramTextFloatingComment(commentLines);
         // Only the LAST lexer's errors describe the text the parse reads (kb/Work PB4233): an earlier one lexed a debugging
         // line's carrier this loop has since blanked.
         lexErrors.ReportInto(diagnostics, sourcePath, LineMap);
