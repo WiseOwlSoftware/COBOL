@@ -50,4 +50,11 @@ on this MCS. 2002-GR-12.3.4.8.3-2: the processor supports record locking, so the
 LEAP-SECOND OFF cannot be told from ON. 2002-GR-7.2.15.2-2 to -5: no source listing is produced. Each needs a 2002
 derivation or the registrar's decision, not a test. The writers deferred nothing.
 
-**Gate and oracle.** These are in the report of golden-2002-1.
+**Gate and oracle.** The first gate was RED on CITATIONS: in one golden's header comment, a `§2002:` citation was
+split across two lines. Rejoining it fixed the audit. The second gate: `=== BUILD-LOCAL GATE: GREEN — Conformance
+25,654/25,654 ran · Unit 40,812/40,812 ran · RepoDrift 175/175 ran · Characterization 37/37 ran` (run
+000002-20261115T134333Z). Conformance.trx holds a Passed 2002 result for each of the 201 new cases: 90
+`SuiteTest_IsNoWorseThanItsVerdictAllows` (the 91st under a truncated name) and 110
+`WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic`. `compare_oracle.py` reports `DIFFERENT — 201 of 20268 cases
+differ`: every one is an ADDED line naming exactly the new cases at 2002, with no CSHARP, DIAGNOSTICS or REMOVED
+line.
