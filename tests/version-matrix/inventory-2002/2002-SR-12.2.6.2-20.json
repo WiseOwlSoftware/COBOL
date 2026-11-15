@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-20",
+ "rule-digest": "718c1e6783e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencyStringAdmitted",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/pb5595-currency-hexadecimal-string-digits-2014",
+ "notes": "§2002:12.2.6.2 SR20: with PICTURE SYMBOL literal-7 has at least one nonspace character and may not contain the digits 0 through 9 or + - , . *. CurrencyStringAdmitted asks both at every edition; the hexadecimal exemption (the NOTE of §2014:12.3.6.2 SR19) applies from 2014 only, so at 2002 X\"3132\" (the digits 12) is refused COBOL0890 (refusal pb5595-currency-hexadecimal-string-digits-2002, kb/Work PB5595 review R1-1)."
+}

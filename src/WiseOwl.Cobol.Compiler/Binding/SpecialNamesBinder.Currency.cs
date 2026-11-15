@@ -198,11 +198,16 @@ public sealed partial class SpecialNamesBinder
         }
         // SR23 b is a compile-time limitation on the characters of a currency string, which SR19's NOTE 1 says
         // does not reach "the alphanumeric or national characters represented by hexadecimal literals used as
-        // currency strings" — their content is the runtime coded character set's, used exactly as written.
-        if (!literal7.Hexadecimal && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
+        // currency strings" — their content is the runtime coded character set's, used exactly as written. ⛔ That NOTE
+        // first appears in the 2014 text (§2014:12.3.6.2 SR19); §2002:12.2.6.2 SR20 b) has no such exemption and refuses
+        // the digits and + - , . * of a literal-7 whatever its form (kb/Work PB5595), so below 2014 a hexadecimal
+        // literal's decoded characters are checked like any other's.
+        bool exempt = literal7.Hexadecimal && Edition.DialectLevel >= 2014;
+        if (!exempt && literal7.Text.Any(c => char.IsAsciiDigit(c) || c is '+' or '-' or ',' or '.' or '*'))
         {
             Edition.Error(DiagnosticCatalog.CurrencySignLiteralRule, $"CURRENCY SIGN \"{literal7.Text}\": a currency string may not contain the "
-                + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO §2023:12.3.7.3 r23b)");
+                + "digits 0 through 9 or the characters '+' '-' ',' '.' '*' (ISO "
+                + (Edition.DialectLevel < 2014 ? "§2002:12.2.6.2 SR20b" : "§2023:12.3.7.3 r23b") + ")");
             return false;
         }
         return true;

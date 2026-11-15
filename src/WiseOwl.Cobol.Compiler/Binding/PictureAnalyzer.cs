@@ -915,8 +915,9 @@ public static class PictureAnalyzer
     /// symbols A, B, P, S, V, X, Z, CR, and DB are equivalent to their uppercase representations in a PICTURE
     /// character-string. All other lowercase letters are not equivalent to their corresponding uppercase representations."
     /// (§1985:VI.5.9.3 SR3) — so under CURRENCY SIGN IS "W" the letter w is no symbol, and the SR2 whitelist refuses it.
-    /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) keeps the
-    /// implementor's equivalence, the invariant uppercase mapping at every edition (docs/CONFORMANCE.md DOC-A.1-43).</summary>
+    /// SR3 is about the letters of the COBOL character set; a character outside it (a currency symbol such as é) folds by
+    /// <see cref="CurrencySymbolEquivalence.Fold"/>: the invariant uppercase mapping from 2014, itself below (a character such as
+    /// U+017F is no basic letter, §2002:8.1.2.1 GR3; docs/CONFORMANCE.md DOC-A.1-43; kb/Work PB5647).</summary>
     internal static string FoldPictureCase(string picture, int dialectLevel)
     {
         return string.Create(picture.Length, (picture, dialectLevel), static (span, state) =>
