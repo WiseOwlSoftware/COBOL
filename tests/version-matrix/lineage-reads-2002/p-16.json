@@ -1,0 +1,1576 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-16 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-16",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.3.2-1",
+   "2002-SR-14.8.3.2-2",
+   "2002-SR-14.8.3.2-3",
+   "2002-SR-14.8.30.2-1",
+   "2002-SR-14.8.30.2-3",
+   "2002-SR-14.8.32.2-2",
+   "2002-SR-14.8.32.2-5",
+   "2002-SR-14.8.33.2-4",
+   "2002-SR-14.8.33.2-6",
+   "2002-SR-14.8.34.2-2",
+   "2002-SR-14.8.34.2-5",
+   "2002-SR-14.8.34.2-9",
+   "2002-SR-14.8.35.2-17",
+   "2002-SR-14.8.35.2-18",
+   "2002-SR-14.8.35.2-20",
+   "2002-SR-14.8.35.2-24",
+   "2002-SR-14.8.35.2-26",
+   "2002-SR-14.8.35.2-27",
+   "2002-SR-14.8.35.2-7",
+   "2002-SR-14.8.36.2-10",
+   "2002-SR-14.8.36.2-12",
+   "2002-SR-14.8.36.2-15",
+   "2002-SR-14.8.36.2-3",
+   "2002-SR-14.8.36.2-4",
+   "2002-SR-14.8.36.2-5"
+  ]
+ },
+ "read": {
+  "slice": "p-16",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.3.2-1",
+    "to": [
+     "SR-14.9.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.3",
+    "clause-2023": "14.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR1",
+      "quote": "The data item referenced by data-name-1 shall be described with the BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR1",
+      "quote": "The data item referenced by data-name-1 shall be described with the BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical (arithmetic-expression-1 CHARACTERS | data-name-1, INITIALIZED, RETURNING). 'based data item'/'based entry' defined identically (2002 4.14/4.15, 2023 3.14/3.15). BASED entries live only in working-storage, local-storage and linkage in 2002 (13.14.2 SR15), so no CD reach. 2023 changes only GR8/GR9 (OPTIONS INITIALIZE), not this rule. Twin witness allocate-non-based refused at 2002 (COBOL0869).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "ALLOCATE data-name-1 (a level-1/77 BASED entry in WS/LS/linkage)"
+    ],
+    "evidence-2002": {
+     "ALLOCATE of a non-BASED data-name-1 refused": "covered by conformance:cases/14.9.3-ALLOCATE/allocate-non-based at --std 2002 (COBOL0869)",
+     "ALLOCATE of a BASED item accepted": "covered by conformance:cases/14.9.3-ALLOCATE/pointer_alloc (accept 2002, golden match)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-2",
+    "to": [
+     "SR-14.9.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.3",
+    "clause-2023": "14.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR2",
+      "quote": "If data-name-1 is specified, the RETURNING phrase may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR2",
+      "quote": "If data-name-1 is specified, the RETURNING phrase may be omitted",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format, same two arms; a phrase-presence rule with no operand class, no list, no section reach. Both halves witnessed at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "ALLOCATE data-name-1 without RETURNING (permitted)",
+     "ALLOCATE ... CHARACTERS without RETURNING (refused)"
+    ],
+    "evidence-2002": {
+     "CHARACTERS without RETURNING refused": "covered by conformance:cases/_unassigned/allocate-chars-no-returning at --std 2002 (COBOL0869)",
+     "data-name-1 without RETURNING accepted": "covered by conformance:cases/14.9.3-ALLOCATE/pointer_alloc (accept 2002, golden match)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-3",
+    "to": [
+     "SR-14.9.3.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.3",
+    "clause-2023": "14.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR3",
+      "quote": "Data-name-2 shall reference a data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR3",
+      "quote": "Data-name-2 shall reference a data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format and words identical. But in 2002 data-name-2 may be a USAGE POINTER level-01 record under an output CD (A.1.2.2 SR9, 13.16.58.2 SR13), a case the 2023 row cannot show. The working-storage cases hold at 2002 (twin negatives refused). The CD case cannot be compiled at 2002: the declaration itself is refused COBOL0899. DEFECT (compiler-at-2002 wrong): a USAGE POINTER or PROGRAM-POINTER level-01 record under an output CD is legal 2002 (A.1.2.2 SR9 puts no restriction on output-CD records; 13.16.58.2 SR13 asks only level 1; no section limit) but is refused COBOL0899 'a shared record area of that shape is recognized but not yet implemented' (probes cdptr.cob, cdpp.cob; the same record under an FD compiles and runs, fdptr.cob -> BX=WXYZ). Code site: ClassifyRedefinesClassesPass.cs implicit-area arm (RedefinitionKind.ImplicitCommunicationRecord); PB981 gave FD/SD pointer records the out-of-line path (FileModel.IsOutOfLineRecord) and the CD record area was left out: a sibling of PB981.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob",
+    "widening": null,
+    "scope-2002": [
+     "data-name-2 in WS/LS/linkage/file section",
+     "data-name-2 a USAGE POINTER record under an output CD"
+    ],
+    "evidence-2002": {
+     "non-pointer RETURNING refused": "covered by l1-allocate-returning-numeric and l1-allocate-returning-program-pointer at --std 2002 (COBOL0869)",
+     "pointer under an output CD": "not shown: declaration refused COBOL0899 (cdptr.cob)"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for ALLOCATE ... RETURNING a data-pointer declared under an output CD, after the CD-pointer-record defect is fixed",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob: COBOL0899 on the CD pointer record)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.30.2-1",
+    "to": [
+     "SR-14.9.32.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.30",
+    "clause-2023": "14.9.32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.2 SR1",
+      "quote": "Record-name-1 shall be the name of a logical record in a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.3 SR1",
+      "quote": "Record-name-1 shall be the name of a logical record in a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (RELEASE record-name-1 [FROM identifier-1|literal-1]). Record-name-1 is an SD record, never a CD entry. 2023 drops the 'same storage area' sentence from SR2 and adds SR4 (zero-length literal); neither touches SR1. All twin witnesses behave at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "RELEASE record-name-1 of an SD (qualified or not)"
+    ],
+    "evidence-2002": {
+     "FD record / subordinate item / ref-modified record refused": "covered by pb236-release-record-not-sd, pb347-release-subordinate-item, pb347-release-refmod-record at --std 2002",
+     "SD record accepted": "covered by pb347_record_name_identity and l1_release_from_sender_available (golden match at --std 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.30.2-3",
+    "to": [
+     "SR-14.9.32.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.30",
+    "clause-2023": "14.9.32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.2 SR3",
+      "quote": "shall be valid as a sending operand in a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.3 SR3",
+      "quote": "shall be valid as a sending operand in a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.24.2 SR5",
+      "quote": "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR5",
+      "quote": "the move of an alphanumeric figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words, but the rule defers to the MOVE statement's rules, which differ: 2002 MOVE SR5 forbids only SPACE to a numeric or numeric-edited receiver, so RELEASE num-rec FROM QUOTE / HIGH-VALUE / ALL 'x' is valid 2002; 2023 SR5 prohibits every alphanumeric figurative to numeric except ALL digits to integer. A 2023 verdict cannot show the 2002-valid figurative senders. Also identifier-1 may be a CD record item in 2002 (A.1.1.2). Compiler at 2002 is correct: pb348_release_from_figurative_image_2002 runs (QUOTE into PIC 9(3)), pb348-release-from-quote-numeric-removed-2023 compiles and runs at 2002 and is refused COBOL0902 at 2023; cdrel.cob RELEASE FROM a CD item gives R=[ABCD].",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdrel.cob",
+    "widening": null,
+    "scope-2002": [
+     "identifier-1/literal-1 senders by 2002 Table 17",
+     "figurative QUOTE/HIGH-VALUE/LOW-VALUE/ALL literal to a numeric record (valid 2002)",
+     "identifier-1 under a CD"
+    ],
+    "evidence-2002": {
+     "invalid MOVE sender refused": "covered by pb348-release-from-invalid-move-sender at --std 2002 (COBOL0819)",
+     "FROM equivalence": "covered by pb348_from_into_move_rules_2002 (golden match)",
+     "figurative to numeric accepted": "covered by pb348_release_from_figurative_image_2002 (golden match at 2002), not in the row's test-ref",
+     "CD sender": "covered by probe cdrel.cob"
+    },
+    "class": "deferral",
+    "needs": "a 2002 witness for a figurative-constant sender to a numeric record (conformance:cases/14.9.32-RELEASE/pb348_release_from_figurative_image_2002 already is one, tagged GR-14.9.32.4-4: add it to this row) and for a CD-record sender",
+    "compiler-at-2002": "correct (pb348_release_from_figurative_image_2002 golden match at 2002; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdrel.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.32.2-2",
+    "to": [
+     "SR-14.9.34.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.32",
+    "clause-2023": "14.9.34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.2 SR2",
+      "quote": "File-name-1 shall be described by a sort-merge file description entry in the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.3 SR1",
+      "quote": "File-name-1 shall be described by a sort-merge file description entry in the data division",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical. 2023 drops 2002 SR1 (same storage area) and renumbers; this rule is unchanged. File-name-1 is a file, no CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "RETURN file-name-1 of a SORT or MERGE"
+    ],
+    "evidence-2002": {
+     "FD file refused": "covered by pb236-return-file-not-sd at --std 2002 (COBOL1757)",
+     "SD file accepted": "covered by pb64t1_sort_locale_snapshot (accept 2002, golden match)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.32.2-5",
+    "to": [
+     "SR-14.9.34.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.32",
+    "clause-2023": "14.9.34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.2 SR5",
+      "quote": "The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.3 SR4",
+      "quote": "The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (AT END required, NOT AT END optional, END-RETURN). The twin witness is a conformance-test (not run at 2002 here); probe cdrel.cob writes NOT AT END before AT END at --std 2002 and runs, printing R=[ABCD].",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdrel.cob",
+    "widening": null,
+    "scope-2002": [
+     "RETURN with NOT AT END written before AT END"
+    ],
+    "evidence-2002": {
+     "reversed order accepted and executed": "covered by probe cdrel.cob at --std 2002 (the 2023 twin's conformance-test SortMergeDifferentialTests.Return_ReversedAtEndPhrases_SpecPinned not run at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-4",
+    "to": [
+     "SR-14.9.35.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33",
+    "clause-2023": "14.9.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR4",
+      "quote": "the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR3",
+      "quote": "the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (2023 adds only SR5, APPLY COMMIT). Record-name-1 is a file-section record; no CD. Both twin witnesses behave at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "REWRITE record-name-1 of a containing program's FD from a contained program"
+    ],
+    "evidence-2002": {
+     "local FD refused": "covered by pb1193-rewrite-global-record-local-fd at --std 2002",
+     "GLOBAL FD accepted": "covered by pb1193_global_record_under_local_fd (golden match at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-6",
+    "to": [
+     "SR-14.9.35.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.33",
+    "clause-2023": "14.9.35",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR6",
+      "quote": "identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR6",
+      "quote": "identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.24.2 SR5",
+      "quote": "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR5",
+      "quote": "the move of an alphanumeric figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same deferral as RELEASE SR3: 2002 MOVE validity admits HIGH-VALUE, LOW-VALUE, QUOTE and any ALL literal to a numeric record; 2023 SR5 does not. identifier-1 may also be a CD record item in 2002. Compiler correct: rwfig.cob at 2002 REWRITE R1 FROM HIGH-VALUE gives HV-OK and FROM ALL '7' gives 77777; at 2023 HIGH-VALUE is refused COBOL0902. cdrw.cob REWRITE FROM a CD item gives R1=456 and an alphabetic CD sender is refused COBOL0819.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\rwfig.cob",
+    "widening": null,
+    "scope-2002": [
+     "senders valid by 2002 Table 17 and MOVE SR5",
+     "figurative non-SPACE to a numeric record",
+     "identifier-1 under a CD"
+    ],
+    "evidence-2002": {
+     "invalid sender refused": "covered by l1c25-rewrite-from-invalid-move-sender at --std 2002 (COBOL0819)",
+     "figurative to numeric": "covered by probe rwfig.cob only",
+     "CD sender": "covered by probe cdrw.cob only"
+    },
+    "class": "deferral",
+    "needs": "a 2002 witness for REWRITE record FROM a figurative constant to a numeric record, and from a CD-record item",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\rwfig.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdrw.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-2",
+    "to": [
+     "SR-14.9.37.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34",
+    "clause-2023": "14.9.37",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR2",
+      "quote": "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR4",
+      "quote": "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats identical in both editions; NEXT SENTENCE archaic in both (2002 NOTE, 2023 F.1). A phrase rule, no operand reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "Format 1 and Format 2 with END-SEARCH and NEXT SENTENCE"
+    ],
+    "evidence-2002": {
+     "both formats refused": "covered by pb444-search-end-search-next-sentence and pb444-search-all-end-search-next-sentence at --std 2002",
+     "NEXT SENTENCE without END-SEARCH accepted": "covered by pb444_search_next_sentence (golden match at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-5",
+    "to": [
+     "SR-14.9.37.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.34",
+    "clause-2023": "14.9.37",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR5",
+      "quote": "The OCCURS clause associated with identifier-1 shall contain the KEY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR7",
+      "quote": "The OCCURS clause associated with identifier-1 shall contain the KEY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical. In 2002 identifier-1 may be a table in a record description entry under an output CD (A.1.1.2: those entries are ordinary 13.14 entries, OCCURS/KEY/INDEXED allowed); 2023 has no CD. Compiler correct at 2002: cdneg.cob SEARCH ALL on a CD table without KEY is refused COBOL1964; cd88.cob SEARCH ALL on a CD table with KEY finds 'FOUND B'.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob",
+    "widening": null,
+    "scope-2002": [
+     "SEARCH ALL of a WS/LS/linkage/file table",
+     "SEARCH ALL of a table under an output CD"
+    ],
+    "evidence-2002": {
+     "no KEY refused": "covered by pb445-search-all-no-key-phrase at --std 2002 (COBOL1964)",
+     "legal": "covered by pb445_search_all_format2_legal (golden match at 2002)",
+     "CD table": "covered by probes cdneg.cob, cd88.cob only"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SEARCH ALL of a table declared under an output CD",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cd88.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-9",
+    "to": [
+     "SR-14.9.37.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.34",
+    "clause-2023": "14.9.37",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR9",
+      "quote": "all preceding data-names in that KEY phrase or their associated condition-names shall also be referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR11",
+      "quote": "all preceding data-names in that KEY phrase or their associated condition-names shall also be referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR1",
+      "quote": "Identifier-1 shall not be subscripted or reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical; 2002 SR1 forbids subscripting identifier-1, so the twin witness pb443_search_identifier_1 is correctly refused at 2002 (COBOL0900) and the other witnesses carry the 2002 non-CD scope. As SR5: in 2002 the table may be under an output CD. Compiler correct: cdneg.cob WHEN K2(CJ) without the preceding key K1 on a CD table refused COBOL1965.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob",
+    "widening": null,
+    "scope-2002": [
+     "Format 2 KEY references on an unsubscripted identifier-1",
+     "the same on a table under an output CD"
+    ],
+    "evidence-2002": {
+     "data-name skip refused": "covered by pb445-search-all-skips-preceding-key at --std 2002",
+     "condition-name skip refused": "covered by pb443-search-all-condition-name-skips-preceding-key at --std 2002",
+     "legal": "covered by pb445_search_all_format2_legal (golden match at 2002)",
+     "pb443_search_identifier_1": "refused at 2002 COBOL0900, correctly (2002 SR1)",
+     "CD table": "covered by probe cdneg.cob only"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SEARCH ALL skipping a preceding key of a table under an output CD",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-17",
+    "to": [
+     "SR-14.9.39.3-17"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR17",
+      "quote": "Identifier-5 shall reference a data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR17",
+      "quote": "Identifier-5 shall reference a data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 7 identical. Formats 7, 8/9 and 10/11/12 are word-identical between the editions (2023 renumbers by inserting Format 8 function-pointer). In 2002 the operand may also be a pointer record under an output CD (A.1.2.2 SR9, 13.16.58.2 SR13), which the 2023 row cannot show; at 2002 that declaration is refused. DEFECT (compiler-at-2002 wrong): a USAGE POINTER or PROGRAM-POINTER level-01 record under an output CD is legal 2002 (A.1.2.2 SR9 puts no restriction on output-CD records; 13.16.58.2 SR13 asks only level 1; no section limit) but is refused COBOL0899 'a shared record area of that shape is recognized but not yet implemented' (probes cdptr.cob, cdpp.cob; the same record under an FD compiles and runs, fdptr.cob -> BX=WXYZ). Code site: ClassifyRedefinesClassesPass.cs implicit-area arm (RedefinitionKind.ImplicitCommunicationRecord); PB981 gave FD/SD pointer records the out-of-line path (FileModel.IsOutOfLineRecord) and the CD record area was left out: a sibling of PB981.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob",
+    "widening": null,
+    "scope-2002": [
+     "identifier-5/identifier-6 in WS/LS/linkage/file",
+     "identifier-5/6 a pointer record under an output CD"
+    ],
+    "evidence-2002": {
+     "non-pointer receivers/senders refused": "covered by pb456-set-pointer-sender-numeric-receiver, pb456-set-pointer-sender-not-a-pointer, pb449-set-mixed-pointer-receivers, pb450-set-format7-second-receiver-not-pointer at --std 2002",
+     "legal": "covered by pb456_set_sender_selected_formats, pb450_set_format7_receiving_list, pb4231_set_address_of_function_sender (golden match at 2002)",
+     "CD pointer": "not shown: refused COBOL0899"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SET identifier-5 TO identifier-6 with a data-pointer under an output CD, after the defect is fixed",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob: COBOL0899)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-18",
+    "to": [
+     "SR-14.9.39.3-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR18",
+      "quote": "Data-name-1 shall be a based data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR18",
+      "quote": "Data-name-1 shall be a based data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 7 identical; 'based data item' defined identically; BASED entries only in WS/LS/linkage (2002 13.14.2 SR15), so no CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "SET ADDRESS OF data-name-1 for a BASED entry in WS/LS/linkage, including method-local"
+    ],
+    "evidence-2002": {
+     "non-BASED refused": "covered by set-address-non-based at --std 2002 (COBOL0869)",
+     "BASED accepted": "covered by pb450_set_format7_receiving_list and oo_based_class_data (golden match at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-20",
+    "to": [
+     "SR-14.9.39.3-21"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR20",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR21",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 8 = 2023 Format 9, identical. Formats 7, 8/9 and 10/11/12 are word-identical between the editions (2023 renumbers by inserting Format 8 function-pointer). In 2002 the operand may also be a pointer record under an output CD (A.1.2.2 SR9, 13.16.58.2 SR13), which the 2023 row cannot show; at 2002 that declaration is refused. DEFECT (compiler-at-2002 wrong): a USAGE POINTER or PROGRAM-POINTER level-01 record under an output CD is legal 2002 (A.1.2.2 SR9 puts no restriction on output-CD records; 13.16.58.2 SR13 asks only level 1; no section limit) but is refused COBOL0899 'a shared record area of that shape is recognized but not yet implemented' (probes cdptr.cob, cdpp.cob; the same record under an FD compiles and runs, fdptr.cob -> BX=WXYZ). Code site: ClassifyRedefinesClassesPass.cs implicit-area arm (RedefinitionKind.ImplicitCommunicationRecord); PB981 gave FD/SD pointer records the out-of-line path (FileModel.IsOutOfLineRecord) and the CD record area was left out: a sibling of PB981.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdpp.cob",
+    "widening": null,
+    "scope-2002": [
+     "identifier-7/8 in WS/LS/linkage/file",
+     "identifier-7/8 a program-pointer record under an output CD"
+    ],
+    "evidence-2002": {
+     "non-program-pointer receiver refused": "covered by pb449-set-mixed-program-pointer-receivers at --std 2002",
+     "legal": "covered by program_pointer (golden match at 2002)",
+     "CD program-pointer": "not shown: refused COBOL0899 (cdpp.cob)"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SET of a program-pointer declared under an output CD, after the defect is fixed",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdpp.cob: COBOL0899 on 01 CPP USAGE PROGRAM-POINTER under CD)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-24",
+    "to": [
+     "SR-14.9.39.3-25"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR24",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR25",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 10 = 2023 Format 11, identical. A phrase rule, no operand class. Negative twin refused at 2002; setloc.cob at 2002 accepts SET LOCALE USER-DEFAULT TO locale-name and TO identifier-10.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\setloc.cob",
+    "widening": null,
+    "scope-2002": [
+     "SET LOCALE USER-DEFAULT TO USER-DEFAULT/SYSTEM-DEFAULT (refused)",
+     "TO identifier-10 / locale-name-1 (accepted)"
+    ],
+    "evidence-2002": {
+     "refused": "covered by pb64t1-set-locale-user-default-source at --std 2002 (COBOL1667)",
+     "accepted": "covered by probe setloc.cob"
+    },
+    "flags-answered": {
+     "band-formats: band-formats [10] against [[11]]": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: pb64t1-set-locale-user-default-source refused COBOL1667 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/pb64t1-set-locale-user-default-source-2002.txt); setloc.cob accepts SET LOCALE USER-DEFAULT TO LOC-C and TO LP and prints DONE (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/setloc-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR24",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR25",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET { identifier-12 } … TO identifier-13",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR25",
+      "quote": "Locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR26",
+      "quote": "Locale-name-1 shall be specified in the LOCALE clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-26",
+    "to": [
+     "SR-14.9.39.3-27"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR26",
+      "quote": "Identifier-10 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR27",
+      "quote": "Identifier-10 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 10 = 2023 Format 11. Formats 7, 8/9 and 10/11/12 are word-identical between the editions (2023 renumbers by inserting Format 8 function-pointer). In 2002 the operand may also be a pointer record under an output CD (A.1.2.2 SR9, 13.16.58.2 SR13), which the 2023 row cannot show; at 2002 that declaration is refused. DEFECT (compiler-at-2002 wrong): a USAGE POINTER or PROGRAM-POINTER level-01 record under an output CD is legal 2002 (A.1.2.2 SR9 puts no restriction on output-CD records; 13.16.58.2 SR13 asks only level 1; no section limit) but is refused COBOL0899 'a shared record area of that shape is recognized but not yet implemented' (probes cdptr.cob, cdpp.cob; the same record under an FD compiles and runs, fdptr.cob -> BX=WXYZ). Code site: ClassifyRedefinesClassesPass.cs implicit-area arm (RedefinitionKind.ImplicitCommunicationRecord); PB981 gave FD/SD pointer records the out-of-line path (FileModel.IsOutOfLineRecord) and the CD record area was left out: a sibling of PB981.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob",
+    "widening": null,
+    "scope-2002": [
+     "identifier-10 in WS/LS/linkage/file",
+     "identifier-10 a pointer record under an output CD"
+    ],
+    "evidence-2002": {
+     "numeric identifier-10 refused": "covered by pb64t1-set-locale-pointer-sr27 at --std 2002 (COBOL1668)",
+     "pointer accepted": "covered by probe setloc.cob",
+     "CD pointer": "not shown: refused COBOL0899"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SET LOCALE ... TO a data-pointer under an output CD, after the defect is fixed",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob: COBOL0899)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-27",
+    "to": [
+     "SR-14.9.39.3-28"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR27",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR28",
+      "quote": "Identifier-11 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 11 = 2023 Format 12. Formats 7, 8/9 and 10/11/12 are word-identical between the editions (2023 renumbers by inserting Format 8 function-pointer). In 2002 the operand may also be a pointer record under an output CD (A.1.2.2 SR9, 13.16.58.2 SR13), which the 2023 row cannot show; at 2002 that declaration is refused. DEFECT (compiler-at-2002 wrong): a USAGE POINTER or PROGRAM-POINTER level-01 record under an output CD is legal 2002 (A.1.2.2 SR9 puts no restriction on output-CD records; 13.16.58.2 SR13 asks only level 1; no section limit) but is refused COBOL0899 'a shared record area of that shape is recognized but not yet implemented' (probes cdptr.cob, cdpp.cob; the same record under an FD compiles and runs, fdptr.cob -> BX=WXYZ). Code site: ClassifyRedefinesClassesPass.cs implicit-area arm (RedefinitionKind.ImplicitCommunicationRecord); PB981 gave FD/SD pointer records the out-of-line path (FileModel.IsOutOfLineRecord) and the CD record area was left out: a sibling of PB981.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob",
+    "widening": null,
+    "scope-2002": [
+     "identifier-11 in WS/LS/linkage/file",
+     "identifier-11 a pointer record under an output CD"
+    ],
+    "evidence-2002": {
+     "non-pointer refused": "covered by pb64t1-set-locale-pointer-sr28 at --std 2002 (COBOL1668)",
+     "pointer accepted": "covered by probe setloc.cob",
+     "CD pointer": "not shown: refused COBOL0899"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SET identifier-11 TO LOCALE with identifier-11 under an output CD, after the defect is fixed",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdptr.cob: COBOL0899)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-7",
+    "to": [
+     "SR-14.9.39.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35",
+    "clause-2023": "14.9.39",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR7",
+      "quote": "the FALSE phrase shall be specified in the VALUE clause of the data description entry for condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR7",
+      "quote": "the FALSE phrase shall be specified in the VALUE clause of the data description entry for condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 4 identical. The rule governs the VALUE clause of condition-name-1's entry, which in 2002 may be a level-88 under a record of a CD (the first sample's cause (a) for 88 entries). Compiler correct at 2002: cd88.cob SET C-ON TO FALSE on a CD condition-name gives B=N; cdneg.cob without WHEN SET TO FALSE refused COBOL2049.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cd88.cob",
+    "widening": null,
+    "scope-2002": [
+     "condition-names in WS/LS/linkage/file",
+     "condition-names in a CD record"
+    ],
+    "evidence-2002": {
+     "no FALSE phrase refused": "covered by pb555-set-false-no-phrase at --std 2002 (COBOL2049)",
+     "legal": "covered by pb555_value_false_phrase, pb455_set_false_group_length (golden match at 2002)",
+     "CD": "covered by probes cd88.cob, cdneg.cob only"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SET condition-name TO FALSE where the condition-name is under a CD record",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cd88.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-10",
+    "to": [
+     "SR-14.9.40.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR10",
+      "quote": "No pair of file-names in the same SORT statement may be specified in the same SAME SORT AREA",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR10",
+      "quote": "No pair of file-names in the same SORT statement may be specified in the same SAME SORT AREA",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical; the SAME clause (2002 12.3.6, 2023 12.4.6.4) has the same three formats and syntax rules 1-10. File-names only, no CD. pb1139_same_clauses_legal reported status 35 under my harness only because its input files were absent; with empty input files it ran clean at 2002 (as at 85).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "SORT file-names in one SAME SORT/SORT-MERGE AREA clause",
+     "GIVING files in one SAME AREA clause"
+    ],
+    "evidence-2002": {
+     "refused": "covered by pb1139-sort-same-sort-area, pb1139-sort-giving-same-area at --std 2002 (COBOL1757)",
+     "legal": "covered by pb1139_same_clauses_legal at --std 2002 (empty output = golden, given its input files)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-12",
+    "to": [
+     "SR-14.9.40.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR12",
+      "quote": "If file-name-2 references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR12",
+      "quote": "If file-name-2 references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical; organizations and access modes the same. File-names only.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "SORT USING a relative or indexed file"
+    ],
+    "evidence-2002": {
+     "random refused": "covered by pb994-sort-using-random-access at --std 2002",
+     "legal": "covered by pb994_sort_merge_keyed_using_giving (golden match at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-15",
+    "to": [
+     "SR-14.9.40.3-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR15",
+      "quote": "The KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR15",
+      "quote": "The KEY phrase may be omitted only if the description of the table referenced by data-name-2 contains a KEY phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical. In 2002 data-name-2 may be a table in a record under an output CD. Compiler correct at 2002: cdsort.cob SORT of a CD table with OCCURS KEY and no SORT KEY gives SORTED=ABC; cdneg.cob SORT of a CD table with no KEY anywhere is refused COBOL1757. (With more than one record under the CD the table SORT warns COBOL1756 'not implemented', the tracked PB1175 family of REDEFINES views.)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdsort.cob",
+    "widening": null,
+    "scope-2002": [
+     "table SORT in WS/LS/linkage/file",
+     "table SORT of a table under an output CD"
+    ],
+    "evidence-2002": {
+     "no KEY anywhere refused": "covered by pb846-sort-table-no-key-anywhere at --std 2002",
+     "legal": "covered by pb846_sort_table_occurs_keys (golden match at 2002)",
+     "CD table": "covered by probes cdsort.cob, cdneg.cob only"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SORT of a table under an output CD with the KEY phrase omitted",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdsort.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\cdneg.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-3",
+    "to": [
+     "SR-14.9.40.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR3",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "reason": "COLLATING SEQUENCE phrase identical in both formats. The ALPHABET clause national branch (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase) and the table of which operands reference a collating sequence (2002 Table 7, 2023 Table 6: UTF-8/UTF-16 none) are the same. Twin negatives refused at 2002; sortnat.cob at 2002 sorts with NATIVE and UCS-4 national alphabets.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\sortnat.cob",
+    "widening": null,
+    "scope-2002": [
+     "alphabet-name-2 in SORT formats 1 and 2"
+    ],
+    "evidence-2002": {
+     "alphanumeric alphabet / UTF-8 refused": "covered by l1c29-sort-collating-slot2-alphanumeric, l1c29-sort-collating-national-utf8 at --std 2002 (COBOL5989)",
+     "NATIVE/UCS-4 accepted": "covered by probe sortnat.cob"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-4",
+    "to": [
+     "SR-14.9.40.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR4",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR4",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical; file-name only.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "SORT file-name-1"
+    ],
+    "evidence-2002": {
+     "FD refused": "covered by l1c29-sort-file-not-sd at --std 2002 (COBOL1757)",
+     "SD accepted": "covered by every 2002 SORT golden, e.g. pb64t1_sort_locale_snapshot"
+    }
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-5",
+    "to": [
+     "SR-14.9.40.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR5",
+      "quote": "the file description entry for file-name-2 shall describe neither records smaller than the smallest record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR5",
+      "quote": "the file description entry for file-name-2 shall describe neither records smaller than the smallest record",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical; USING files only. Variable/fixed record description via RECORD clause the same in kind.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-16\\twins-2002.json",
+    "widening": null,
+    "scope-2002": [
+     "SORT USING with fixed or variable records"
+    ],
+    "evidence-2002": {
+     "too large refused": "covered by pb995-sort-record-size-using-giving at --std 2002",
+     "legal": "covered by pb995_sort_merge_record_size_ranges (golden match at 2002)"
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-16",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "ALLOCATE general format is word-identical in both editions (arithmetic-expression-1 CHARACTERS | data-name-1, INITIALIZED, RETURNING data-name-2). The rule restricts data-name-1 to a BASED entry, and BASED is confined to WS/LS/linkage at level 1 or 77 in both (2002 13.14.2 SR15 = 2023 13.16.3 SR16; 8.6.4 = 8.6.5 word-identical), so no CD record, no file-section or debugging-line reach. Attacked the TYPE route: 2002 TYPE GR1 copies BASED from a typedef (it is not in the excluded list), but an inherited BASED is 'as though coded' and therefore still subject to SR15, so a TYPE entry under a CD cannot become a based entry. 2023 changes only GR8/GR9 (OPTIONS INITIALIZE), which this rule does not touch. No 2002-only form or operand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR1",
+      "quote": "The data item referenced by data-name-1 shall be described with the BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR1",
+      "quote": "The data item referenced by data-name-1 shall be described with the BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR16",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55.3 GR1",
+      "quote": "excluding the level-number, name, alignment, and the GLOBAL, SELECT WHEN, and TYPEDEF clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Phrase-presence rule over an identical format with the same two arms; it names no operand class, so the CD reach of data-name-2 is SR3's question (the reader's DIFFERENT row), not this rule's. No list membership, no deferral, no 2002-only phrase.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.2 SR2",
+      "quote": "If data-name-1 is specified, the RETURNING phrase may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.3 SR2",
+      "quote": "If data-name-1 is specified, the RETURNING phrase may be omitted",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.30.2-1",
+    "verdict": "UPHELD",
+    "reason": "RELEASE format identical. Record-name-1 must be a record of an SD, which lives only in the file section; CD records are never SD records. 2002 SR2's same-storage sentence (dropped in 2023) and 2023's new SR4 (zero-length literal) concern identifier-1/literal-1, not record-name-1. Qualification rules are not changed for this case.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.30.2 SR1",
+      "quote": "Record-name-1 shall be the name of a logical record in a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.32.3 SR1",
+      "quote": "Record-name-1 shall be the name of a logical record in a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.32.2-2",
+    "verdict": "UPHELD",
+    "reason": "RETURN format identical. File-name-1 is a file-name described by an SD; no CD, debugging-line or removed-form reach. 2023 deletes 2002 SR1 (identifier-1 storage overlap) and renumbers; this rule's words and scope are unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.2 SR2",
+      "quote": "File-name-1 shall be described by a sort-merge file description entry in the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.3 SR1",
+      "quote": "File-name-1 shall be described by a sort-merge file description entry in the data division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.32.2-5",
+    "verdict": "UPHELD",
+    "reason": "Phrase-order rule over an identical format (AT END required, NOT AT END optional, END-RETURN). Its content is the order of two phrases, independent of what imperative statements they hold, so a 2002-only statement inside an imperative does not change it. The GR3 rewording (control-transfer prose) is a general rule, not this one.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.32.2 SR5",
+      "quote": "The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.34.3 SR4",
+      "quote": "The AT END phrase and the NOT AT END phrase, when specified, may be written in reversed order",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.33.2-4",
+    "verdict": "UPHELD",
+    "reason": "REWRITE format identical (record-name-1 | FILE file-name-1, FROM, retry, LOCK, INVALID KEY). Record-name-1 is a file-section record (2002 SR2), never a CD entry. The GLOBAL clause entry list is word-identical in both (constant, level-1 in file/WS/LS/linkage, screen, FD, RD) and 2002 GLOBAL SR3 states the same FD-level requirement, so the 'record GLOBAL under a local FD' case resolves the same way in both. 2023's added SR4/SR5 (automatic locking, APPLY COMMIT) do not touch this rule.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.2 SR4",
+      "quote": "the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.3 SR3",
+      "quote": "the file description entry for the file associated with record-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.2 SR2",
+      "quote": "Record-name-1 is the name of a logical record in the file section of the data division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-2",
+    "verdict": "UPHELD",
+    "reason": "Both SEARCH formats compared line by line: word-identical, with NEXT SENTENCE in both formats and archaic in both (2002 NOTE, 2023 NOTE 1/F.1). The rule is about two phrases' co-occurrence, not about identifier-1, so the CD-table reach found for SR5/SR9 does not apply.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR2",
+      "quote": "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR4",
+      "quote": "If the END-SEARCH phrase is specified, the NEXT SENTENCE phrase shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-18",
+    "verdict": "UPHELD",
+    "reason": "Format 7 identical (ADDRESS OF data-name-1 | identifier-5 ... TO identifier-6). 'Based data item' rests on 8.6.4 (2002) = 8.6.5 (2023), word-identical, and based entries are confined to WS/LS/linkage in both (2002 13.14.2 SR15, 2023 13.16.3 SR16); the TYPE route cannot carry BASED into a CD (see ALLOCATE SR1). 2023's inserted Format 8 (function-pointer) renumbers formats but does not alter Format 7.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR18",
+      "quote": "Data-name-1 shall be a based data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR18",
+      "quote": "Data-name-1 shall be a based data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.4",
+      "quote": "A based entry is a data description entry in the working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.6.5",
+      "quote": "A based entry is a data description entry in the working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-24",
+    "verdict": "UPHELD",
+    "reason": "2002 Format 10 and 2023 Format 11 diagrams are identical (LC_ categories with choice indicators, or USER-DEFAULT; TO identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT). The rule restricts which TO alternative may follow USER-DEFAULT; whether identifier-10 may be a CD pointer is SR26's question (reader's DIFFERENT row), not this rule's.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR24",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR25",
+      "quote": "If USER-DEFAULT is specified as the first operand, identifier-10 or locale-name-1 shall be specified in the TO phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-10",
+    "verdict": "UPHELD",
+    "reason": "SORT Format 1 identical. The SAME clause it leans on has the same three formats and SR1-SR10 word-identical (2002 12.3.6 vs 2023 12.4.6.4); 2023 only adds SR11 and GR3 for APPLY COMMIT, which is 2023-only. File-names only, no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR10",
+      "quote": "No pair of file-names in the same SORT statement may be specified in the same SAME SORT AREA",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR10",
+      "quote": "No pair of file-names in the same SORT statement may be specified in the same SAME SORT AREA",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.6.2 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-12",
+    "verdict": "UPHELD",
+    "reason": "SORT Format 1 USING identical; organizations (sequential, relative, indexed) and access modes (sequential, random, dynamic) are the same set in both. File-names only.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR12",
+      "quote": "If file-name-2 references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR12",
+      "quote": "If file-name-2 references a relative or an indexed file, its access mode shall be sequential or dynamic",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-3",
+    "verdict": "UPHELD",
+    "reason": "COLLATING SEQUENCE phrase identical in both SORT formats. The ALPHABET clause's national branch in 2002 already has LOCALE [locale-name-2], NATIVE, UCS-4, UTF-8, UTF-16, code-name-2 and literal-phrase, the same alternatives as 2023, so 'an alphabet that defines a national collating sequence' ranges over the same set. The rule is about the alphabet, not about data-name-2, so the CD-table reach of Format 2 (SR15, reader's DIFFERENT) does not attach to it.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR3",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR2",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-4",
+    "verdict": "UPHELD",
+    "reason": "SORT Format 1 identical; file-name-1 is a file-name of an SD. No CD, debugging-line or removed-form reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR4",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR4",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-5",
+    "verdict": "UPHELD",
+    "reason": "SORT Format 1 USING identical. The rule leans on the RECORD clause's fixed/variable determination: the three RECORD formats are the same (2023 adds only the BYTES synonym), the implicit-RECORD GR5 is word-identical, and record size GR3 differs only in naming 'variable-length data item' (2002) vs 'occurs-depending table' (2023); in 2002 the only variable-length data items a file record can hold are occurs-depending tables (no dynamic-length items in 2002), so the record sizes compared are the same. File-names only.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR5",
+      "quote": "the file description entry for file-name-2 shall describe neither records smaller than the smallest record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR5",
+      "quote": "the file description entry for file-name-2 shall describe neither records smaller than the smallest record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any variable-length data item subordinate to the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any occurs-depending table subordinate to the record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "d7b29cfda5509d0dfeb797e8f3eab649c9ebb138e3b8e02be4f826990c7232ec",
+  "read": "704f60527bc1bef494f6538938ba91e848b25c2cb64ccda113d0d5dded116ec5",
+  "refute": "b92603f6ae607d06a63f28ee4a3b0089c2c7b0c8f1d2ac68d75029bbaae48de6"
+ }
+}

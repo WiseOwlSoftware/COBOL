@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-8.4.2.8.2-7",
+ "rule-digest": "ec8e1219657a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.8.3-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class object / category object reference is the same pair. Scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "2002 4.141 object reference 'An explicitly- or implicitly-defined data item that contains a reference to an object'; 2023 9.3.2 says the same (implicitly-defined includes the predefined references). SELF and SUPER are implicit object references in both. No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.8.3-7": "ec8e1219657a"
+  }
+ }
+}

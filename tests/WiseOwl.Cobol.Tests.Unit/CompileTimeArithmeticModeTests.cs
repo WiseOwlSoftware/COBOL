@@ -8,12 +8,13 @@ using Xunit;
 namespace WiseOwl.Cobol.Tests.Unit;
 
 /// <summary>
-/// kb/Work PB1592 — the compile-time arithmetic MODE is the edition's (ISO §2023:7.3.6.3 GR2 + Annex E.2 items 6 and 21):
-/// at 2002 and 2014 the previous standards PRESCRIBED standard arithmetic ("The previous COBOL Standard required the
-/// use of an arithmetic mode that is no longer supported", E.2 6); the one mode 2023 removed is Standard Arithmetic,
-/// E.2 21), which WiseOwl COBOL runs on the SDIDI decimal engine (34 digits, decimal128 range, §2023:8.8.1.5.2) with the
-/// standard-decimal default intermediate rounding NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a); from 2023 the mode is
-/// the documented System.Decimal one (docs/CONFORMANCE.md DOC-A.1-29). Every expected value below is derived from
+/// kb/Work PB1592, PB5575 — the compile-time arithmetic MODE is the edition's: 2002 PRESCRIBES standard arithmetic
+/// (§2002:7.2.5.2 GR1), a 32-digit standard intermediate data item whose every result is TRUNCATED to 32 significant
+/// digits (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) in the range 10^-999 through 10^1000 - 10^968
+/// (§2002:8.8.1.3.1.1); 2014 says "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time"
+/// (§2014:7.3.5.2 GR1), the SDIDI decimal engine (34 digits, decimal128 range, §2023:8.8.1.5.2) with the standard-decimal
+/// default intermediate rounding NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a); from 2023 the mode is the documented
+/// System.Decimal one (§2023:7.3.6.3 GR2; docs/CONFORMANCE.md DOC-A.1-29). Every expected value below is derived from
 /// those rules by hand, then §2023:7.3.6.3 GR3 (truncate the final result to its integer part), never read off the
 /// compiler.
 /// </summary>
@@ -24,14 +25,17 @@ public sealed class CompileTimeArithmeticModeTests
 
     /// <summary>The ONE selection, read through the ONE per-edition behaviour register.</summary>
     [Theory]
-    [InlineData(2002, false)]
-    [InlineData(2014, false)]
-    [InlineData(2023, true)]
-    public void Selection_IsStandardArithmeticBelow2023(int edition, bool implementorDefined)
+    [InlineData(2002, false, false)]
+    [InlineData(2014, false, true)]
+    [InlineData(2023, true, true)]
+    public void Selection_IsTheEditionsMode(int edition, bool implementorDefined, bool standardDecimal)
     {
         Assert.Equal(implementorDefined,
             DialectBehaviors.IsActive(DialectBehavior.CompileTimeArithmeticImplementorDefined, edition));
-        Assert.Same(implementorDefined ? CompileTimeArithmetic.SystemDecimal : CompileTimeArithmetic.Standard,
+        Assert.Equal(standardDecimal,
+            DialectBehaviors.IsActive(DialectBehavior.CompileTimeArithmeticIsStandardDecimal, edition));
+        Assert.Same(implementorDefined ? CompileTimeArithmetic.SystemDecimal
+                : standardDecimal ? CompileTimeArithmetic.StandardDecimal : CompileTimeArithmetic.Standard2002,
             CompileTimeArithmetic.For(EditionInfo.Of(edition)));
     }
 
@@ -66,12 +70,9 @@ public sealed class CompileTimeArithmeticModeTests
         Assert.False(r.Value.WasSingleLiteral);
     }
 
-    /// <summary>Division ROUNDS in both modes, so these agree: 2/3 = 0.666…667 (34 digits, away from zero) ×3 =
-    /// 2.000…0001 → 34 digits 2.000…000 → 2; 100/7 = 14.2857…1429 ×7 = 100.000…0003 → 100; 1/3 ×3 = 0.999…999 → 0.
-    /// (A truncating division would give 1, 99 and 0.)</summary>
+    /// <summary>Expressions every mode agrees on. 1/3 = 0.333…3 (32 digits truncated; 34 rounded) x3 = 0.999…9 → 0;
+    /// -7/2 = -3.5 exactly → -3.</summary>
     [Theory]
-    [InlineData("2 / 3 * 3", "2")]
-    [InlineData("100 / 7 * 7", "100")]
     [InlineData("1 / 3 * 3", "0")]
     [InlineData("-7 / 2", "-3")]
     public void ModeIndependentValues_AgreeAtEveryEdition(string expr, string expected)
@@ -84,18 +85,90 @@ public sealed class CompileTimeArithmeticModeTests
         }
     }
 
+    /// <summary>Division TRUNCATES to 32 digits at 2002 (§2002:8.8.1.3.5) and ROUNDS to 34 from 2014. 2/3 = 0.66…6 (32 sixes)
+    /// x3 = 1.99…98 (33 digits) → 1.99…9 (32 digits) → 1 at 2002; 0.66…67 (34 digits) x3 = 2.000…01 → 2.000…0 → 2 at 2014 and
+    /// 2023. 100/7 = 14.28…14 (32 digits) x7 = 99.99…98 → 99 at 2002; 14.28…1429 x7 = 100.000…03 → 100 later.</summary>
+    [Theory]
+    [InlineData("2 / 3 * 3", 2002, "1")]
+    [InlineData("2 / 3 * 3", 2014, "2")]
+    [InlineData("2 / 3 * 3", 2023, "2")]
+    [InlineData("100 / 7 * 7", 2002, "99")]
+    [InlineData("100 / 7 * 7", 2014, "100")]
+    [InlineData("100 / 7 * 7", 2023, "100")]
+    public void Division_TruncatesAt2002AndRoundsAfter(string expr, int edition, string expected)
+    {
+        var (r, diag) = Eval(expr, edition);
+        Assert.Empty(diag.Reports);
+        Assert.Equal(expected, r!.Value.Literal);
+    }
+
+    /// <summary>§2002:8.8.1.3.2 / §2002:8.8.1.3.4: each result is cut to 32 digits, so a value one digit past them is lost.
+    /// 10^30 x 100 + 9 = 10^32 + 9 has 33 digits, truncated to 10^32; less 10^32 is 0 at 2002 where the
+    /// 34-digit engines keep the 9 (the note's repro, kb/Work PB5575).</summary>
+    [Theory]
+    [InlineData(2002, "0")]
+    [InlineData(2014, "9")]
+    public void SumPastThirtyTwoDigits_IsTruncatedAt2002(int edition, string expected)
+    {
+        var (r, diag) = Eval("1000000000000000000000000000000 * 100 + 9 - 1000000000000000000000000000000 * 100", edition);
+        Assert.Empty(diag.Reports);
+        Assert.Equal(expected, r!.Value.Literal);
+    }
+
+    /// <summary>A difference that borrows past the 32nd digit is still TRUNCATED toward zero (§2002:8.8.1.3.3 via §2002:8.8.1.3.2):
+    /// 10^30 x 10^30 - 1 is 60 nines exactly, cut to 32 nines, and 32 nines x 10^28 / 10^30 has the integer part 30 nines. A
+    /// rounding engine, or a truncation that forgot the borrow, reaches 10^60 and 10^30 (31 digits), as 2014's 34-digit
+    /// away-from-zero engine does.</summary>
+    [Theory]
+    [InlineData(2002, "999999999999999999999999999999")]
+    [InlineData(2014, "1000000000000000000000000000000")]
+    public void DifferenceBorrowingPastThirtyTwoDigits_IsTruncatedTowardZero(int edition, string expected)
+    {
+        const string e = "(1000000000000000000000000000000 * 1000000000000000000000000000000 - 1) / 1000000000000000000000000000000";
+        var (r, diag) = Eval(e, edition);
+        Assert.Empty(diag.Reports);
+        Assert.Equal(expected, r!.Value.Literal);
+    }
+
     /// <summary>The standard-decimal default intermediate rounding is NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a),
-    /// observed at a TIE. 1000000000000000000000000000001 × 10005 = 10005000000000000000000000000010005 exactly —
+    /// observed at a TIE. 1000000000000000000000000000001 x 10005 = 10005000000000000000000000000010005 exactly -
     /// 35 digits, so the 34-digit SDIDI drops a final 5 with nothing after it: away from zero keeps
-    /// …0010010, nearest-even would keep …0010000. Subtracting the exact 10^30 × 10005 exposes the choice:
-    /// 10010 (away) where nearest-even gives 10000. (At 2023 the 31-digit operand is outside System.Decimal.)</summary>
-    [Fact]
-    public void StandardArithmetic_RoundsATieAwayFromZero()
+    /// …0010010, nearest-even would keep …0010000. Subtracting the exact 10^30 x 10005 exposes the choice:
+    /// 10010 (away) where nearest-even gives 10000. At 2002 the 35-digit product is truncated to 32 digits, dropping
+    /// "005": 10000 (§2002:8.8.1.3.4). (At 2023 the 31-digit operand is outside System.Decimal.)</summary>
+    [Theory]
+    [InlineData(2002, "10000")]
+    [InlineData(2014, "10010")]
+    public void IntermediateRounding_IsTruncationAt2002AndAwayFromZeroAfter(int edition, string expected)
     {
         const string expr = "1000000000000000000000000000001 * 10005 - 1000000000000000000000000000000 * 10005";
-        var (r, diag) = Eval(expr, 2002);
+        var (r, diag) = Eval(expr, edition);
         Assert.Empty(diag.Reports);
-        Assert.Equal("10010", r!.Value.Literal);
+        Assert.Equal(expected, r!.Value.Literal);
+    }
+
+    /// <summary>§2002:8.8.1.3.1.1: the magnitude is at most 10^1000 - 10^968, and "Underflow is treated as a SIZE ERROR and is
+    /// not rounded to zero" (§2002:8.8.1.3.1 r2). Thirty-three 31-digit factors give about 10^1023: refused with the
+    /// 2002 range named; thirty-one give about 10^961 and stay in range. Thirty-three divisors give about 10^-1023.</summary>
+    [Theory]
+    [InlineData(33, '*', false)]
+    [InlineData(31, '*', true)]
+    [InlineData(33, '/', false)]
+    [InlineData(31, '/', true)]
+    public void Range_At2002_IsTen999Through10To1000(int operands, char op, bool inRange)
+    {
+        const string Nines = "9999999999999999999999999999999";
+        string expr = op == '*' ? string.Join(" * ", Enumerable.Repeat(Nines, operands))
+            : "1 " + string.Concat(Enumerable.Repeat(" / " + Nines, operands));
+        var (r, diag) = Eval(expr, 2002);
+        bool rangeRefused = diag.Reports.Any(x => x.Message.Contains("10^1000 - 10^968", StringComparison.Ordinal));
+        Assert.Equal(!inRange, rangeRefused);
+        if (rangeRefused)
+        {
+            Assert.Null(r);
+            Assert.Contains(diag.Reports, x => x.Code == CtDiagCode.ArithmeticRule
+                                               && x.Message.Contains("§2002:8.8.1.3.1.1", StringComparison.Ordinal));
+        }
     }
 
     /// <summary>§2023:7.3.6.3 GR3 makes the final result "an integer numeric literal", and a fixed-point numeric literal

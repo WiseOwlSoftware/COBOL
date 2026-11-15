@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.1.2-4",
+ "rule-digest": "2689f480bf0a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.2.2-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. 'A method may specify parameters and a returning item' is in both 9.3.4 texts, so the method definitions RETURNING may appear in are the same."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 (Method invocation) binds an invocation by method-name up the inheritance hierarchy at runtime; 2023 renumbers it 9.3.6 and adds parametric polymorphism (signature resolution, 2023 9.3.5). SR4 only says which headers may carry RETURNING and does not rest on invocation resolution (2023's signature resolution is an addition that does not change where RETURNING may be written). Witness l1c22_returning_three_arms at --std 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-23.json",
+  "digests": {
+   "SR-14.2.2-4": "2689f480bf0a"
+  }
+ }
+}

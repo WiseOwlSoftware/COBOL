@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1186_suppress_named_group_85
       *> rules: [GR-14.9.45.4-1, GR-14.9.45.4-2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

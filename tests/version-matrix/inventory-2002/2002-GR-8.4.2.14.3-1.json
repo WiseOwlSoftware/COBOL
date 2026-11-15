@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-8.4.2.14.3-1",
+ "rule-digest": "6bb35429ea48",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.15.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class and category numeric are the same; the rule describes implicit items. Scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "2002 4.163 report 'A printed output described in the report section'; 2023 defines a report through the RD/REPORT clause (13.18.46). Same entity: one counter pair per RD. No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "GR-8.4.3.15.4-1": "6bb35429ea48"
+  }
+ }
+}

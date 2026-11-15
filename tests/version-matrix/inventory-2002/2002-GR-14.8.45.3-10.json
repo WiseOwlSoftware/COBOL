@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.45.3-10",
+ "rule-digest": "2a3b464ff9b0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.49.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule speaks of a declarative (USE) procedure, which is a declarative section in both editions; §2002:4 (entry 4.150) already covers one section ('one or more successive ... sections'), and §2023:3.145 only spells out the single paragraph/section case. Same units, scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. 'the state of the report' is the RD's state (counters, page, active) in both."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal termination) matched only on the words 'TERMINATE' and 'declarative'; this rule does not rest on them. Read §2002:14.5.12.1.1 through §2002:14.5.12.2 against §2023:14.6.13.1.1 through §2023:14.6.13.2. The 2002 differences are: no MERGE/SORT, fatal-EC-I-O or PERFORM WHEN steps in fatal processing (§2023:14.6.13.1.3 (items 2-4) are 2023-only), the 2002 non-fatal wording, and the incompatible-data text. EC-FLOW-REPORT is Fatal in the 2002 table (§2002:14.5.12.1.5); a GENERATE/INITIATE/TERMINATE is none of the 2023-only cases, so 2002 item 2 (declarative runs; normal completion terminates the run unit abnormally) and item 5 (checking off: implementor-defined) govern, as in 2023. The probe gr10flow.cob at --std 2002 resumes with RESUME, which per §2002:14.5.12.1.1 is not normal completion, and shows the raise, the unsuccessful GENERATE and the unchanged LINE-COUNTER; it witnesses the 2002 path."
+   }
+  },
+  "source": "lineage-reads-2002/q-34.json",
+  "digests": {
+   "GR-14.9.49.4-10": "2a3b464ff9b0"
+  }
+ }
+}

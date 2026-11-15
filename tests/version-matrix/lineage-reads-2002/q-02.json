@@ -1,0 +1,2130 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-02 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-02",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-7.2.9.3-7",
+   "2002-SR-7.2.10.2-1",
+   "2002-SR-7.2.10.2-10",
+   "2002-SR-7.2.10.2-11",
+   "2002-SR-7.2.10.2-12",
+   "2002-SR-7.2.10.2-13",
+   "2002-SR-7.2.10.2-2",
+   "2002-SR-7.2.10.2-3",
+   "2002-SR-7.2.10.2-4",
+   "2002-SR-7.2.10.2-5",
+   "2002-SR-7.2.10.2-6",
+   "2002-SR-7.2.10.2-7",
+   "2002-SR-7.2.10.2-8",
+   "2002-GR-7.2.10.3-1",
+   "2002-GR-7.2.10.3-2",
+   "2002-GR-7.2.10.3-4",
+   "2002-GR-7.2.10.3-5",
+   "2002-GR-7.2.10.3-7",
+   "2002-GR-7.2.10.3-9",
+   "2002-SR-7.2.13.2-1",
+   "2002-SR-7.2.13.2-2",
+   "2002-SR-7.2.13.2-3",
+   "2002-SR-7.2.13.2-4",
+   "2002-SR-7.2.13.2-5",
+   "2002-SR-7.2.13.2-6"
+  ],
+  "flags": {
+   "2002-SR-7.2.10.2-11": {
+    "changed-definition-term": "boolean expression"
+   },
+   "2002-GR-7.2.10.3-5": {
+    "ambiguous": "2 targets"
+   },
+   "2002-GR-7.2.10.3-9": {
+    "ambiguous": "2 targets"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-02",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.9.3-7",
+    "to": [
+     "GR-7.3.11.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR7",
+      "quote": "If literal-1 is specified, compilation-variable-name-1 references literal-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR8",
+      "quote": "If literal-1 is specified, compilation-variable-name-1 references literal-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "DEFINE format: 2002 operand is arithmetic-expression-1 | literal-1 | PARAMETER [OVERRIDE] | OFF; 2023 adds boolean-expression-1 (widening, not literal-1). Literal categories (numeric fixed-point, alphanumeric incl. hexadecimal, national, boolean) are the same; floating-point barred by 7.2.2 SR10 in both. A DEFINE cannot be on a 2002 debugging line (7.2.2 SR8 d), so no debugging reach; no CD reach.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_basic.cob",
+    "widening": "2023 adds boolean-expression-1 to the DEFINE format (its own GR7); GR8 itself unchanged",
+    "scope-2002": [
+     "literal-1 numeric fixed-point (integer and fraction)",
+     "literal-1 alphanumeric",
+     "literal-1 national",
+     "literal-1 boolean"
+    ],
+    "evidence-2002": {
+     "numeric": "covered by probe eval_basic.cob at --std 2002 (DEF-NUM-OK, DEF-FRAC-OK)",
+     "alphanumeric": "covered by eval_basic.cob (DEF-ALNUM-OK)",
+     "national": "covered by eval_basic.cob (DEF-NAT-OK)",
+     "boolean": "covered by eval_basic.cob (DEF-BOOL-OK)"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A single numeric literal operand of DEFINE is a literal, not an arithmetic expression (§2002:7.2.9.3 GR5), so literal-1 never enters the arithmetic mode the switch selects. Re-run now at --std 2002: eval_basic.cob prints DEF-NUM-OK, DEF-ALNUM-OK, DEF-BOOL-OK, DEF-NAT-OK and DEF-FRAC-OK (1.5 kept, where an arithmetic expression would be truncated to its integer part by §2002:7.2.5.2 GR2) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR5",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-1",
+    "to": [
+     "SR-7.3.13.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR1",
+      "quote": "operand-1 refers to literal-1, arithmetic-expression-1, or boolean-expression-1 in format 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR1",
+      "quote": "operand-1 refers to literal-1, arithmetic-expression-1, or boolean-expression-1 in format 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Descriptive naming rule over an identical general format. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_basic.cob",
+    "widening": null,
+    "scope-2002": [
+     "format 1 operands literal/arithmetic/boolean",
+     "format 2 TRUE / constant-conditional-expression"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by eval_basic.cob at --std 2002",
+     "format 2": "covered by eval_basic.cob (F2-OK, GR9-OTHER-OK)"
+    },
+    "from-slice": "q-02",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). SR1 is descriptive (it names operands/subjects); the evaluation mode of an arithmetic-expression operand is §2002:7.2.5's, not this rule's. eval_basic.cob re-run now at --std 2002 prints every leg OK (rerun.log).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. SR1 only names operand-1/2/3; it states no evaluation. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-10",
+    "to": [
+     "SR-7.3.13.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR10",
+      "quote": "Literal-1, arithmetic-expression-1, and boolean-expression-1 are selection subjects.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR10",
+      "quote": "Literal-1, arithmetic-expression-1, and boolean-expression-1 are selection subjects.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Definitional; format 1 operand set identical. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_basic.cob",
+    "widening": null,
+    "scope-2002": [
+     "format 1 subjects literal/arith/boolean; WHEN operands are objects"
+    ],
+    "evidence-2002": {
+     "all": "covered by eval_basic.cob at --std 2002"
+    },
+    "from-slice": "q-02",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). SR10 is descriptive (it names operands/subjects); the evaluation mode of an arithmetic-expression operand is §2002:7.2.5's, not this rule's. eval_basic.cob re-run now at --std 2002 prints every leg OK (rerun.log).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. SR10 only says which operands are selection subjects and objects. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-11",
+    "to": [
+     "SR-7.3.13.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR11",
+      "quote": "All operands of one EVALUATE directive shall be of the same category.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR11",
+      "quote": "All operands of one EVALUATE directive shall be of the same category.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "boolean expression: One or more boolean operands separated by boolean operators.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.23",
+      "quote": "expression consisting of one or more boolean operands separated by boolean operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Literal categories numeric/alphanumeric/national/boolean same in both; compile-time boolean expressions in 2002 are B-NOT/B-AND/B-OR/B-XOR over boolean literals, a subset of 2023's (2023 adds B-SHIFT-*). Category assignment for this rule identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_*.cob",
+    "widening": "2023 boolean expressions also admit shift operators",
+    "scope-2002": [
+     "numeric vs alphanumeric",
+     "boolean vs numeric",
+     "alphanumeric vs national",
+     "boolean expression category boolean"
+    ],
+    "evidence-2002": {
+     "mixes": "covered by n_sr11_numalnum, n_sr11_boolnum, n_sr11_alnat at --std 2002 (COBOL1619 each)",
+     "boolean expr": "eval_basic.cob BOOLEXPR-OK"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The category of an operand is fixed by its form (§2002:7.2.10.2 SR11: an arithmetic expression is numeric, a boolean expression boolean), not by the mode that evaluates it, so the switch cannot change which programs the rule refuses. Re-run now at --std 2002: n_sr11_numalnum, n_sr11_boolnum, n_sr11_alnat refused (COBOL1619); eval_basic.cob prints BOOLEXPR-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log).",
+     "definition-changed: boolean expression": "§2002:4 (4.22) 'One or more boolean operands separated by boolean operators' and §2023:3.23 say the same; 2023's boolean operators also include the shift operators (§2023:8.8.2), a widening only. At 2002 a boolean operand of >>EVALUATE is formed by §2002:7.2.6.1 SR1 of boolean literals and is category boolean by SR11 itself, so the programs the rule governs are unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "The rule assigns categories; §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 (arithmetic) change how an arithmetic expression is evaluated, not its category; §2002:8.8.2 (read: 2023's text less shifts) changes no category; §2002:8.8.4.1.1 and 8.8.4.2.4 (relation and abbreviated combined conditions) are format-2 matters, not this format-1 rule. No dependency."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR11",
+      "quote": "an arithmetic expression is of category numeric and a boolean expression is of category boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "boolean expression: One or more boolean operands separated by boolean operators.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-12",
+    "to": [
+     "SR-7.3.13.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR12",
+      "quote": "If the THROUGH phrase is specified, all selection subjects and selection objects shall be of category numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR12",
+      "quote": "If the THROUGH phrase is specified, all selection subjects and selection objects shall be of category numeric.",
+      "check": "OK"
+     }
+    ],
+    "reason": "THROUGH appears only in format 1 with literal-3/arithmetic-expression-3 in both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_*.cob",
+    "widening": null,
+    "scope-2002": [
+     "alphanumeric THRU refused",
+     "boolean THRU refused",
+     "numeric THRU accepted"
+    ],
+    "evidence-2002": {
+     "alnum": "n_sr12_alnum_thru at 2002 COBOL1619",
+     "boolean": "n_sr12_bool_thru at 2002 COBOL1619",
+     "numeric": "eval_basic THRU-OK, THRU-ARITH-OK"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The rule is a category check; an arithmetic expression is of category numeric whatever mode evaluates it (§2002:7.2.10.2 SR11), so the switch cannot change which programs it refuses. Re-run now at --std 2002: n_sr12_alnum_thru.cob and n_sr12_bool_thru.cob refused (COBOL1619), eval_basic.cob THRU-OK, THRU-ARITH-OK (small values, identical in either mode) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR12",
+      "quote": "all selection subjects and selection objects shall be of category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR11",
+      "quote": "an arithmetic expression is of category numeric and a boolean expression is of category boolean",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-13",
+    "to": [
+     "SR-7.3.13.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR13",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR13",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same keyword pair in the same format position.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_ok_thru_kw.cob",
+    "widening": null,
+    "scope-2002": [
+     "THRU and THROUGH in >>WHEN"
+    ],
+    "evidence-2002": {
+     "both": "n_ok_thru_kw.cob at 2002 prints THRU-EQ-OK THROUGH-EQ-OK"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A keyword equivalence; no arithmetic involved. Re-run now at --std 2002: n_ok_thru_kw.cob prints THRU-EQ-OK, THROUGH-EQ-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR13",
+      "quote": "The words THROUGH and THRU are equivalent",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-2",
+    "to": [
+     "SR-7.3.13.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR2",
+      "quote": "EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR2",
+      "quote": "EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr2_split.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr2_split.cob, n_sr2_text_on_eval.cob: both refused at 2002 (COBOL1619)",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr2_split.cob and n_sr2_text_on_eval.cob refused (COBOL1619), n_ok_inline_comment.cob and eval_basic.cob accepted (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR2",
+      "quote": "EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-3",
+    "to": [
+     "SR-7.3.13.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR3",
+      "quote": "shall begin on a new line and shall be specified entirely on that line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR3",
+      "quote": "shall begin on a new line and shall be specified entirely on that line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr3_text_on_when.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr3_text_on_when.cob, n_sr3_thru_split.cob: both refused at 2002 (COBOL1619)",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr3_text_on_when.cob and n_sr3_thru_split.cob refused (COBOL1619), n_ok_inline_comment.cob and eval_basic.cob accepted (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-4",
+    "to": [
+     "SR-7.3.13.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR4",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR4",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr3_text_on_when.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr3_text_on_when.cob: text-1 on the >>WHEN line refused at 2002",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr3_text_on_when.cob (text-1 on the >>WHEN line) refused (COBOL1619); eval_basic.cob accepted (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-5",
+    "to": [
+     "SR-7.3.13.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR5",
+      "quote": "WHEN OTHER shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR5",
+      "quote": "WHEN OTHER shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr5_text_on_other.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr5_text_on_other.cob: refused at 2002 (COBOL2649)",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr5_text_on_other.cob refused (COBOL2649); eval_basic.cob prints GR5-OTHER-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-6",
+    "to": [
+     "SR-7.3.13.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR6",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR6",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr5_text_on_other.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr5_text_on_other.cob: text-2 on the WHEN OTHER line refused at 2002 (COBOL2649 names SR6)",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr5_text_on_other.cob (text-2 on the >>WHEN OTHER line) refused (COBOL2649); eval_basic.cob prints GR5-OTHER-LINE2 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-7",
+    "to": [
+     "SR-7.3.13.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR7",
+      "quote": "END-EVALUATE shall be specified on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR7",
+      "quote": "END-EVALUATE shall be specified on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format. A directive line cannot be a 2002 debugging line (7.2.2 SR8 d), and a debugging line (D indicator, or >>D first on its line) always begins a line, so the debugging-line kind adds no case here. No CD reach. General formats 1 and 2 (2002 7.2.10.1 vs 2023 7.3.13.2) phrase-for-phrase identical; all 16 SRs and 10 GRs in the same order (2023 rewords SR9 and GR6/GR10 only).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_sr7_text_on_end.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the EVALUATE/WHEN/WHEN OTHER/END-EVALUATE line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_sr7_text_on_end.cob, n_sr7_end_notnewline.cob: both refused at 2002 (COBOL1911, COBOL2691)",
+     "conforming placement": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>EVALUATE phrases and of text-1/text-2 is decided on the directive lines before any operand is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_sr7_text_on_end.cob refused (COBOL1911), n_sr7_end_notnewline.cob refused (COBOL2691) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-8",
+    "to": [
+     "SR-7.3.13.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR8",
+      "quote": "Text-1 and text-2 may be any kind of source lines, including compiler directives.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR8",
+      "quote": "Text-1 and text-2 may be any kind of source lines, including compiler directives.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 'any kind of source lines' includes debugging lines (fixed D/d indicator and floating >>D), which 2023 does not have; the 2023 row's tests cannot contain one. So SR8 also permits text-1/text-2 made of debugging lines, which then become compiled lines or comments by WITH DEBUGGING MODE after text manipulation.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\dbg_cc_on.cob",
+    "widening": null,
+    "scope-2002": [
+     "text-1/text-2: ordinary source lines, multiple lines, nested directives",
+     "text-1/text-2 containing fixed-form debugging lines",
+     "text-1/text-2 containing floating >>D debugging lines"
+    ],
+    "evidence-2002": {
+     "ordinary/nested": "covered by twin test gl2m2_evaldir_directives_in_text (editions 2002,2014,2023) and eval_basic.cob at 2002",
+     "fixed D lines": "probe dbg_cc_on.cob / dbg_cc_off.cob at 2002: D lines in included WHEN text compiled with DEBUGGING MODE, comments without; omitted WHEN text dropped",
+     ">>D lines": "probe dbg_float_cc.cob at 2002: EV-W1-FLOAT-D printed, WHEN OTHER omitted"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for debugging lines (D and >>D) in EVALUATE text-1/text-2",
+    "compiler-at-2002": "correct (dbg_cc_on.cob, dbg_cc_off.cob, dbg_float_cc.cob)"
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-1",
+    "to": [
+     "GR-7.3.13.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR1",
+      "quote": "subject to the matching and replacing rules of the COPY statement and the REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR1",
+      "quote": "subject to the matching and replacing rules of the COPY statement and the REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.2 SR9",
+      "quote": "Text-1 and text-2 shall be one of the following formats of identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR10c",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR8c",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule defers to the COPY and REPLACE matching rules, which differ: 2002 COPY REPLACING also has the text-1 (identifier), literal-3 and word-1 operand forms, and both 2002 COPY and REPLACE match text-words on debugging lines as if the indicator were absent. So in 2002 text words of EVALUATE text, including those on D/>>D lines, are replaced by word-form and literal-form REPLACING operands; the 2023 row cannot show either.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\copy_cc_gr1.cob",
+    "widening": null,
+    "scope-2002": [
+     "text words in text-1/text-2 under COPY REPLACING pseudo-text",
+     "under COPY REPLACING word-1/literal-3/text-1 forms",
+     "text words on debugging lines in text-1/text-2",
+     "under REPLACE",
+     "directive lines in text not replaced"
+    ],
+    "evidence-2002": {
+     "pseudo-text and REPLACE": "covered by twin l1c07_evaldir_copy_replace (editions 2002,2014,2023)",
+     "word-1 and literal-3 forms": "probe copy_cc_gr1.cob at 2002: OLDLIT BY \"NEW-LIT\" and OLDWD BY NEWWD replaced inside >>EVALUATE and >>IF text",
+     "debugging lines": "copy_cc_gr1.cob (D line inside WHEN text replaced, printed NEW-LIT) and dbg_other_on.cob (REPLACE acts on a D line in WHEN OTHER text)",
+     "text-1 identifier form": "not shown"
+    },
+    "class": "deferral",
+    "needs": "a 2002 witness for COPY REPLACING word-1/literal-3/text-1 forms and for debugging-line text words inside EVALUATE text",
+    "compiler-at-2002": "correct (copy_cc_gr1.cob, dbg_other_on.cob); identifier text-1 form not probed"
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-2",
+    "to": [
+     "GR-7.3.13.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR2",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR2",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "A single numeric literal is never evaluated, so the 2002/2023 arithmetic-mode difference (7.2.5 standard vs 7.3.6 implementor-defined) does not reach it. Probe: EVALUATE 1.5 matches WHEN 1.5, not WHEN 1, while 1.5 + 0 truncates to 1.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_basic.cob",
+    "widening": null,
+    "scope-2002": [
+     "subject or object that is a single numeric literal (incl. a fraction)"
+    ],
+    "evidence-2002": {
+     "all": "eval_basic.cob at 2002: GR2-OK, ARITH-TRUNC-OK"
+    },
+    "from-slice": "q-02",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). The rule is that a lone numeric literal is NOT an arithmetic expression, so neither the switch's mode nor §2002:7.2.5.2 GR2's truncation is applied to it. eval_basic.cob re-run now at --std 2002: GR2-OK (EVALUATE 1.5 matches WHEN 1.5) and ARITH-TRUNC-OK (1.5 + 0 truncates to 1, the Standard-mode expression path) (rerun.log).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. A single literal is not converted to a standard intermediate item because GR2 keeps it a literal; a 2002 literal has at most 31 digits, so the 32/31 versus 34 digit gap (PB5575) cannot reach it. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR2",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "Any operand of an arithmetic expression that is not already contained in a standard intermediate data item shall be converted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-4",
+    "to": [
+     "GR-7.3.13.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR4",
+      "quote": "a TRUE result is returned if the selection subject is equal to literal-2, arithmetic-expression-2, or boolean-expression-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR4",
+      "quote": "a TRUE result is returned if the selection subject is equal to literal-2, arithmetic-expression-2, or boolean-expression-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR2",
+      "quote": "The implementor shall define and document which mode of arithmetic is to be used when evaluating compile-time arithmetic.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "The values compared are, for arithmetic operands, computed by 2002 standard arithmetic (32 significant digits, truncation); 2023 makes the mode implementor-defined (the compiler uses System.Decimal at 2023), so the 2023 row says nothing about the 2002 values. Also the included/omitted text-1 lines may be 2002 debugging lines.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_std32.cob",
+    "widening": null,
+    "scope-2002": [
+     "literal equality",
+     "arithmetic-expression subject/object under standard arithmetic",
+     "boolean equality",
+     "THROUGH range",
+     "inclusion/omission of text-1 lines incl. debugging lines"
+    ],
+    "evidence-2002": {
+     "literal/boolean/range": "twin directive_expressions (editions 2002,2014,2023) and eval_basic.cob at 2002",
+     "standard arithmetic": "probe eval_std32.cob at 2002: WRONG (see compiler-at-2002)",
+     "debugging lines": "dbg_cc_on.cob / dbg_cc_off.cob at 2002, correct"
+    },
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for an arithmetic subject whose exact value needs more than 32 digits is 34-digit evaluation (wrong); plus a 2002 witness for debugging lines in text-1",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_std32.cob, free form): '>>EVALUATE 9999999999999999999999999999999 * 99 - 9899999999999999999999999999999 * 100' with >>WHEN 0 / >>WHEN 1. 2002 standard arithmetic truncates the product to 32 significant digits (989999999999999999999999999999900), so the subject is 0 and WHEN 0 is TRUE (§2002:7.2.5.2 GR1, §2002:8.8.1.3.4). Observed at --std 2002: 'ONE (more than 32 digits kept)'. This is the known 34-digit standard-arithmetic defect reaching this rule; at 2023 the same source is refused (COBOL1619, System.Decimal range)."
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-5",
+    "to": [
+     "GR-7.3.13.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR5",
+      "quote": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR5",
+      "quote": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR5 (FORMAT 1) and GR9 (FORMAT 2) carry the same words; the pointer for this format 1 rule is GR-7.3.13.4-5 (same band). The rule includes all lines of text-2, and in 2002 those lines may be debugging lines (SR8), which stay debugging lines and are compiled or commented by DEBUGGING MODE afterwards; the 2023 row cannot hold one.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\dbg_other_on.cob",
+    "widening": null,
+    "scope-2002": [
+     "format 1 no WHEN TRUE: WHEN OTHER text-2 included, text-1 omitted",
+     "text-2 lines that are debugging lines"
+    ],
+    "evidence-2002": {
+     "ordinary lines": "twin GR-7.3.13.4-5 test (editions 2002,2014,2023) and eval_basic.cob at 2002 (GR5-OTHER-OK)",
+     "debugging lines": "dbg_other_on.cob / dbg_other_off.cob at 2002: D line in WHEN OTHER compiled with DEBUGGING MODE, comment without; WHEN-1 lines omitted"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for debugging lines in format 1 WHEN OTHER text-2",
+    "compiler-at-2002": "correct (dbg_other_on.cob, dbg_other_off.cob)",
+    "flags-answered": [
+     "ambiguous (2 targets): the 2002 text has identical GR5 (FORMAT 1) and GR9 (FORMAT 2); GR-7.3.13.4-5 is the pointer to code and tests for this one; the other target is the other format's rule"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-9",
+    "to": [
+     "GR-7.3.13.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR9",
+      "quote": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR9",
+      "quote": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR5 (FORMAT 1) and GR9 (FORMAT 2) carry the same words; the pointer for this format 2 rule is GR-7.3.13.4-9 (same band). The rule includes all lines of text-2, and in 2002 those lines may be debugging lines (SR8), which stay debugging lines and are compiled or commented by DEBUGGING MODE afterwards; the 2023 row cannot hold one.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\dbg_other_on.cob",
+    "widening": null,
+    "scope-2002": [
+     "format 2 no WHEN TRUE: WHEN OTHER text-2 included, text-1 omitted",
+     "text-2 lines that are debugging lines"
+    ],
+    "evidence-2002": {
+     "ordinary lines": "twin GR-7.3.13.4-9 test (editions 2002,2014,2023) and eval_basic.cob at 2002 (GR9-OTHER-OK)",
+     "debugging lines": "dbg_other_on.cob / dbg_other_off.cob at 2002: D line in WHEN OTHER compiled with DEBUGGING MODE, comment without; WHEN-1 lines omitted"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for debugging lines in format 2 WHEN OTHER text-2",
+    "compiler-at-2002": "correct (dbg_other_on.cob, dbg_other_off.cob)",
+    "flags-answered": [
+     "ambiguous (2 targets): the 2002 text has identical GR5 (FORMAT 1) and GR9 (FORMAT 2); GR-7.3.13.4-9 is the pointer to code and tests for this one; the other target is the other format's rule"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-7",
+    "to": [
+     "GR-7.3.13.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR7",
+      "quote": "a character by character comparison for equality based on the binary value of each character's encoding is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR7",
+      "quote": "a character by character comparison for equality based on the binary value of each character's encoding is used",
+      "check": "OK"
+     }
+    ],
+    "reason": "Alphanumeric and national literal classes identical; comparison is binary, no collating sequence, in both. The rule is about comparison only.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\eval_basic.cob",
+    "widening": null,
+    "scope-2002": [
+     "alphanumeric literal: unequal length not equal, case-sensitive",
+     "national literal"
+    ],
+    "evidence-2002": {
+     "all": "eval_basic.cob at 2002: GR7-OK, GR7-NAT-OK (\"AB \" and \"ab\" not matched, N\"ABC\" not matched)"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). An alphanumeric or national literal subject is compared by binary encoding, with no arithmetic operation, so the switch cannot reach it. Re-run now at --std 2002: eval_basic.cob prints GR7-OK and GR7-NAT-OK ('AB ' against 'ab', and N'ABC', not matched) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log).",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 (4.26 and 4.29) define a character as a code value of a coded character set; 4.27 (screen item) and 4.28 (COBOL character repertoire) do not apply to a literal's content. GR7 compares 'each character's encoding', the coded-character-set sense, which 2023 uses undefined with the same meaning; the literals and comparisons the rule governs are unchanged.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "GR7 states its own comparison (binary encoding, no collating sequence, unequal lengths not equal), so it does not rest on §2002:8.8.4.1.1's alphanumeric and national comparison (collating sequence, padding); §2002:8.8.2 concerns boolean operands, not this alphanumeric or national case; §2002:8.8.4.2.4 does not apply to a format-1 >>EVALUATE. No dependency."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.3 GR7",
+      "quote": "If the literals are of unequal length they are not equal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-1",
+    "to": [
+     "SR-7.3.16.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR1",
+      "quote": "IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR1",
+      "quote": "IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format; a directive line cannot be a 2002 debugging line (7.2.2 SR8 d) and a debugging line always begins a line, so no extra case. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_if1_text_on_if.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the IF/ELSE/END-IF line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_if1_text_on_if.cob, n_if1_split.cob: both refused at 2002 (COBOL1619)",
+     "conforming": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>IF/>>ELSE/>>END-IF lines and of text-1/text-2 is decided on the directive lines before the condition is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_if1_text_on_if.cob and n_if1_split.cob refused (COBOL1619); n_ok_inline_comment.cob prints IFCOMMENT-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.13.2 SR1",
+      "quote": "IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-2",
+    "to": [
+     "SR-7.3.16.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR2",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR2",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format; a directive line cannot be a 2002 debugging line (7.2.2 SR8 d) and a debugging line always begins a line, so no extra case. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_if1_text_on_if.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the IF/ELSE/END-IF line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_if1_text_on_if.cob: text-1 on the >>IF line refused at 2002",
+     "conforming": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>IF/>>ELSE/>>END-IF lines and of text-1/text-2 is decided on the directive lines before the condition is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_if1_text_on_if.cob (text-1 on the >>IF line) refused (COBOL1619); eval_basic.cob prints IF-T1-L1, IF-T1-MULTILINE (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-3",
+    "to": [
+     "SR-7.3.16.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR3",
+      "quote": "ELSE shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR3",
+      "quote": "ELSE shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format; a directive line cannot be a 2002 debugging line (7.2.2 SR8 d) and a debugging line always begins a line, so no extra case. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_if3_text_on_else.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the IF/ELSE/END-IF line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_if3_text_on_else.cob: refused at 2002 (COBOL1911)",
+     "conforming": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>IF/>>ELSE/>>END-IF lines and of text-1/text-2 is decided on the directive lines before the condition is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_if3_text_on_else.cob refused (COBOL1911) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-4",
+    "to": [
+     "SR-7.3.16.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR4",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR4",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format; a directive line cannot be a 2002 debugging line (7.2.2 SR8 d) and a debugging line always begins a line, so no extra case. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_if3_text_on_else.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the IF/ELSE/END-IF line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_if3_text_on_else.cob: text-2 on the >>ELSE line refused at 2002",
+     "conforming": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>IF/>>ELSE/>>END-IF lines and of text-1/text-2 is decided on the directive lines before the condition is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_if3_text_on_else.cob (text-2 on the >>ELSE line) refused (COBOL1911); eval_basic.cob prints IF2-T2-NESTED-OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-evalbasic-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-5",
+    "to": [
+     "SR-7.3.16.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR5",
+      "quote": "END-IF shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR5",
+      "quote": "END-IF shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     }
+    ],
+    "reason": "Line-placement rule over an identical format; a directive line cannot be a 2002 debugging line (7.2.2 SR8 d) and a debugging line always begins a line, so no extra case. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\n_if5_text_on_endif.cob",
+    "widening": null,
+    "scope-2002": [
+     "placement of the IF/ELSE/END-IF line or of text-1/text-2"
+    ],
+    "evidence-2002": {
+     "violation": "n_if5_text_on_endif.cob, n_if5_endif_notnewline.cob: both refused at 2002 (COBOL1911, COBOL2691)",
+     "conforming": "eval_basic.cob, n_ok_inline_comment.cob accepted at 2002"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Line placement of the >>IF/>>ELSE/>>END-IF lines and of text-1/text-2 is decided on the directive lines before the condition is evaluated, so no arithmetic operation enters it and the switch cannot change it. Re-run now at --std 2002: n_if5_text_on_endif.cob refused (COBOL1911), n_if5_endif_notnewline.cob refused (COBOL2691) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q02-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-6",
+    "to": [
+     "SR-7.3.16.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.13.2",
+    "clause-2023": "7.3.16.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR6",
+      "quote": "Text-1 and text-2 may be any kind of source lines, including compiler directives.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR6",
+      "quote": "Text-1 and text-2 may be any kind of source lines, including compiler directives.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line may be written as any line in a source unit after the SOURCE-COMPUTER paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "As EVALUATE SR8: 'any kind of source lines' in 2002 includes fixed and floating debugging lines, absent from 2023, so IF text-1/text-2 made of debugging lines is a 2002-only case of this permission. General format (2002 7.2.13.1 vs 2023 7.3.16.2) identical; SR1-SR7 and GR1-GR3 word-identical.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\dbg_cc_on.cob",
+    "widening": null,
+    "scope-2002": [
+     "ordinary/multi-line/nested-directive text",
+     "fixed D debugging lines in text-1/text-2",
+     "floating >>D lines in text-1/text-2"
+    ],
+    "evidence-2002": {
+     "ordinary/nested": "twin l1c13_if_directive_multiline_texts (editions 2002,2014,2023) and eval_basic.cob at 2002",
+     "D lines": "dbg_cc_on.cob / dbg_cc_off.cob at 2002: IF-T1-DLINE and IF2-T2-DLINE only with DEBUGGING MODE; false-path D lines omitted",
+     ">>D lines": "dbg_float_cc.cob at 2002: IF-T1-FLOAT-D printed, ELSE line omitted"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for debugging lines (D and >>D) in IF text-1/text-2",
+    "compiler-at-2002": "correct (dbg_cc_on.cob, dbg_cc_off.cob, dbg_float_cc.cob)"
+   }
+  ],
+  "side-leads": [
+   {
+    "lead": "DEFINE with a boolean expression accepted silently at --std 2002, also under --flag-extensions",
+    "rule": "2002 DEFINE general format (7.2.9.1; not one of this slice's 25 rows)",
+    "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-02\\define_boolexpr.cob",
+    "expected": "2002 DEFINE takes arithmetic-expression-1 | literal-1 | PARAMETER only, and a compile-time boolean expression is confined to EVALUATE and constant conditional expressions; accepting the 2023 form is a nonstandard extension that the warning mechanism must flag",
+    "citations": [
+     {
+      "cite": "§2002:7.2.6",
+      "quote": "A compile-time boolean expression may be specified in the EVALUATE directive and in a constant conditional expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.8",
+      "quote": "An implementation shall provide a warning mechanism that optionally can be invoked by the user at compile time to indicate use of a nonstandard extension",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.3 SR4",
+      "quote": "Boolean-expression-1 shall be formed in accordance with 7.3.7",
+      "check": "OK"
+     }
+    ],
+    "observed": "--std 2002 (with and without --flag-extensions): no diagnostic, prints DEFINE-BOOLEXPR-ACCEPTED"
+   }
+  ],
+  "notes": "Floating >>D obsolescence warning COBOL0903 at 2002 still says 'the 2002 text is not in the repository' (specs/ISO_COBOL_2002.md exists): stale diagnostic text, not a behaviour defect."
+ },
+ "refute": {
+  "slice": "q-02",
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.9.3-7",
+    "verdict": "UPHELD",
+    "reason": "DEFINE general format (2002 7.2.9.1 vs 2023 7.3.11.2): 2002 has arithmetic-expression-1 | literal-1 | PARAMETER [OVERRIDE] | OFF; 2023 has the same plus boolean-expression-1 (a widening, its own GR7). No 2002-only form. The literal-1 forms the rule leans on are the same in both: four categories, the same B/BX, N/NX, X and plain formats, and the same directive literal bar (concatenation, figurative constant, floating-point; 2002 7.2.2 SR10 = 2023 7.3.3 SR10). 2023 only widens (zero-length literals, 8191 vs 160 positions). The rule governs what the name references; the use sites (GR1 directives, defined condition, constant entry FROM) are other rules. Attack on reach: in 2002 a constant entry FROM may sit under a CD (13.1.1 COMMUNICATION SECTION format admits constant-entry). Probed: the CONSTANT FROM value is correct at --std 2002 in WORKING-STORAGE for alphanumeric, hex-alphanumeric, numeric (12.5), national (def_const.cob) and under a CD (def_const_cd.cob, CA=ABC). No difference found.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR7",
+      "quote": "If literal-1 is specified, compilation-variable-name-1 references literal-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR8",
+      "quote": "If literal-1 is specified, compilation-variable-name-1 references literal-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR10",
+      "quote": "A literal in a compiler directive shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR10",
+      "quote": "A literal in a compiler directive shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2",
+      "quote": "Each literal possesses a class and category: alphanumeric, boolean, national, or numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.1",
+      "quote": "Each literal possesses a class and category: alphanumeric, boolean, national, or numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.9.3 GR1",
+      "quote": "as if literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\def_const.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\def_const_cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-1",
+    "verdict": "UPHELD",
+    "reason": "Descriptive naming rule. I compared the 2002 7.2.10.1 and 2023 7.3.13.2 general formats operand by operand. Both have Format 1 with literal/arith/boolean subjects, WHEN literal/arith/boolean objects, an optional THROUGH|THRU literal-3/arith-3, [text-1]..., an optional WHEN OTHER [text-2] and END-EVALUATE. Both have Format 2 with EVALUATE TRUE and WHEN constant-conditional-expression-1. Neither edition has a form the other lacks.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR1",
+      "quote": "operand-1 refers to literal-1, arithmetic-expression-1, or boolean-expression-1 in format 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR1",
+      "quote": "operand-1 refers to literal-1, arithmetic-expression-1, or boolean-expression-1 in format 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-10",
+    "verdict": "UPHELD",
+    "reason": "This rule is definitional over the identical format 1 operand set. It reaches no CD and no debugging line: it names operands, not lines.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR10",
+      "quote": "Literal-1, arithmetic-expression-1, and boolean-expression-1 are selection subjects.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR10",
+      "quote": "Literal-1, arithmetic-expression-1, and boolean-expression-1 are selection subjects.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-11",
+    "verdict": "UPHELD",
+    "reason": "The category set is the same four in both editions (8.3.1.2 / 8.3.3.1), and the rule itself fixes the category of expressions. 2023's boolean shift operators only widen. Extra probe at both editions: a compilation variable of category alphanumeric (\"1\") as subject with a numeric WHEN object is refused at 2002 and 2023 (COBOL1619 SR11). The reader's literal mixes are refused too.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR11",
+      "quote": "All operands of one EVALUATE directive shall be of the same category.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR11",
+      "quote": "All operands of one EVALUATE directive shall be of the same category.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2",
+      "quote": "Each literal possesses a class and category: alphanumeric, boolean, national, or numeric.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr11_cv_mix.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-12",
+    "verdict": "UPHELD",
+    "reason": "THROUGH appears only in format 1, with literal-3 or arithmetic-expression-3, in both editions. Extra probes at both editions: a national THRU range (n_sr12_nat_thru.cob) and an alphanumeric compilation-variable subject with an alphanumeric THRU range (n_sr12_cv_thru.cob). Both are refused (COBOL1619 SR12) at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR12",
+      "quote": "all selection subjects and selection objects shall be of category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR12",
+      "quote": "all selection subjects and selection objects shall be of category numeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr12_nat_thru.cob; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr12_cv_thru.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-13",
+    "verdict": "UPHELD",
+    "reason": "Both formats offer the same THROUGH/THRU choice in the same position. The 2002 diagram's bracket drawing differs in the transcription, but the rule itself states the equivalence.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR13",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR13",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-2",
+    "verdict": "UPHELD",
+    "reason": "I attacked the meaning of 'line'. Logical conversion is word-identical in 2002 6.4 and 2023 6.5: continuation lines are concatenated before conditional compilation, so 'that line' is the same logical line in both. 2002's one extra conversion step (a fixed D line becomes a '>>D ' free-form line) cannot carry a directive (2002 7.2.2 SR8 d). The trailing-text bar is the same (7.2.2 SR3/SR4 = 7.3.3 SR3/SR4). No CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR2",
+      "quote": "EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR2",
+      "quote": "EVALUATE operand-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.4",
+      "quote": "Continued and continuation lines in fixed format and in free format are concatenated to remove continuation indicators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.5",
+      "quote": "Continued and continuation lines in fixed format and in free format are concatenated to remove continuation indicators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same analysis as SR2. Extra probe for the 2002-only case, a floating >>D debugging line written on the >>WHEN line (n_sr4_dbg_on_when.cob, WITH DEBUGGING MODE): refused at --std 2002 (COBOL1619). That is correct: 2002 6.1.2.1 SR7 and 7.2.2 SR4 forbid it.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR3",
+      "quote": ">>WHEN operand-2 [THROUGH operand-3] shall begin on a new line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR3",
+      "quote": ">>WHEN operand-2 [THROUGH operand-3] shall begin on a new line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2.1 SR7",
+      "quote": "A floating debugging indicator may be preceded on a line only by zero or more space characters.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR4",
+      "quote": "a compiler directive may be followed only by space characters and an optional inline comment",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr4_dbg_on_when.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-4",
+    "verdict": "UPHELD",
+    "reason": "In 2002, text-1 may be debugging lines (the SR8 DIFFERENT). A debugging line always begins a line: a fixed D line by its indicator, a floating >>D because 6.1.2.1 SR7 lets only spaces precede it. So the 2002-only text kind adds no case where this rule could be broken that the compiler misses. Probe: text-1 written as '>>D DISPLAY' on the >>WHEN line is refused at --std 2002 (COBOL1619).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR4",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR4",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2.1 SR7",
+      "quote": "A floating debugging indicator may be preceded on a line only by zero or more space characters.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr4_dbg_on_when.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-5",
+    "verdict": "UPHELD",
+    "reason": "The same line analysis as SR2 applies. Probe: '>>WHEN OTHER >>D DISPLAY ...' is refused at --std 2002 (COBOL2649).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR5",
+      "quote": ">>WHEN OTHER shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR5",
+      "quote": ">>WHEN OTHER shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr6_dbg_on_other.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-6",
+    "verdict": "UPHELD",
+    "reason": "Same as SR4, for text-2 written as a debugging line on the WHEN OTHER line. Probe n_sr6_dbg_on_other.cob: refused at --std 2002 (COBOL2649, which names SR5 and SR6).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR6",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR6",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2.1 SR7",
+      "quote": "A floating debugging indicator may be preceded on a line only by zero or more space characters.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_sr6_dbg_on_other.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-7",
+    "verdict": "UPHELD",
+    "reason": "Same line analysis as SR2. No 2002-only form of END-EVALUATE exists.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR7",
+      "quote": ">>END-EVALUATE shall be specified on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR7",
+      "quote": ">>END-EVALUATE shall be specified on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-2",
+    "verdict": "UPHELD",
+    "reason": "A single numeric literal is never evaluated, so neither the arithmetic-mode difference nor the integer truncation (2002 7.2.5.2 GR2 = 2023 7.3.6.3 GR3) reaches it. The 31-digit numeric literal limit is the same in both editions. Extra probes at both editions: the signed literal -1.5 matches WHEN -1.5 and not WHEN -1; a 31-digit fraction (0.000...001) is kept; a fractional THRU bound (4.5 THRU 5.5) holds. All gave identical output at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR2",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR2",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part of the value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR3",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part of the value",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\ok_gr2_signed.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-7",
+    "verdict": "UPHELD",
+    "reason": "The alphanumeric and national literal forms (plain and hex) are the same, and the compile-time value is defined identically: the compile-time coded character set for usage DISPLAY, 2002 8.3.1.2.1.3 GR3 = 2023 8.3.3.2.4 GR3a. 2023 only adds zero-length literals and longer limits. Probe at both editions: a compilation variable \"Ab\" does not match \"AB\", and the outcome is identical at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR7",
+      "quote": "If literal-1 is an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR7",
+      "quote": "If literal-1 is an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR3",
+      "quote": "represented in the computer’s compile-time coded character set defined by the implementor for usage DISPLAY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR3a",
+      "quote": "represented in the computer's compile-time coded character set defined by the implementor for usage DISPLAY",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\ok_gr7_cv.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-1",
+    "verdict": "UPHELD",
+    "reason": "The IF general format (2002 7.2.13.1 vs 2023 7.3.16.2) is the same: >>IF constant-conditional-expression-1 [text-1], optional >>ELSE [text-2], >>END-IF. The same line analysis as EVALUATE SR2 applies. Probe: '>>IF 1 = 1 >>D DISPLAY ...' is refused at --std 2002 (COBOL1619).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR1",
+      "quote": "IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR1",
+      "quote": "IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_if2_dbg_on_if.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same as EVALUATE SR4. Text-1 made of a debugging line on the >>IF line is refused at --std 2002 (n_if2_dbg_on_if.cob, COBOL1619).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR2",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR2",
+      "quote": "Text-1 shall begin on a new line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_if2_dbg_on_if.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-3",
+    "verdict": "UPHELD",
+    "reason": "Same line analysis as EVALUATE SR2. Probe: '>>ELSE >>D DISPLAY ...' is refused at --std 2002 (COBOL1911).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR3",
+      "quote": "ELSE shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR3",
+      "quote": "ELSE shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_if4_dbg_on_else.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-4",
+    "verdict": "UPHELD",
+    "reason": "Same as EVALUATE SR6. Text-2 made of a debugging line on the >>ELSE line is refused at --std 2002 (n_if4_dbg_on_else.cob, COBOL1911).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR4",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR4",
+      "quote": "Text-2 shall begin on a new line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-02\\n_if4_dbg_on_else.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.2.13.2-5",
+    "verdict": "UPHELD",
+    "reason": "Same line analysis as EVALUATE SR2. No 2002-only form of END-IF exists.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.2 SR5",
+      "quote": "END-IF shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.16.3 SR5",
+      "quote": "END-IF shall begin on a new line and shall be specified entirely on that line.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "notes": "Every --std 2002 diagnostic in these probes cites §2023 clauses (e.g. 'ISO §2023:7.3.13.3 SR12'), not the 2002 rule. This is a diagnostic-text matter, not a behaviour difference. None of the reader's six DIFFERENT rows is plainly wrong."
+ },
+ "imported": {
+  "asked": "92fd626299ecc0e1eaf90337fa9e17bfce108859760d554b15a9db83b1972e48",
+  "read": "12d1a1ea403180a8e32d560fe61a2f8f98610fe82431fbba0e48f93c01908110",
+  "refute": "6da4b28b853e500b236a07971a756cfafb0441e56935d6fa80454c0c09a00807"
+ }
+}

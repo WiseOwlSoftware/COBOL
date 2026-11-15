@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-20",
+ "rule-digest": "6dc1bd6ab1b9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.4.3-23"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "The screen matched these clauses on the word 'corresponding' (14.6.4 size error and 14.6.6 arithmetic statements, whose trigger includes the CORRESPONDING phrase); here the word is only 'the corresponding formal parameter' of the procedure division header. The rule rests on nothing in §2002:14.6.4 or 14.6.6: no arithmetic statement, size error or CORRESPONDING phrase is involved, so no change of scope or evidence."
+   },
+   "band-formats": {
+    "flag": "band-formats [3] against [[2]]",
+    "answer": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+   }
+  },
+  "source": "lineage-reads-2002/q-24.json",
+  "digests": {
+   "SR-14.9.4.3-23": "6dc1bd6ab1b9"
+  }
+ }
+}

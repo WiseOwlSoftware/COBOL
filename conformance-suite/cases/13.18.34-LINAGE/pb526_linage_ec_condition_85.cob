@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb526_linage_ec_condition_85
       *> rules: [GR-13.18.34.4-3, GR-13.18.34.4-6, DOC-A.1-110]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

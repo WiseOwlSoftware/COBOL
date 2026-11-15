@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-8.4.2.8.3-1",
+ "rule-digest": "4ca41aab5dfb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.8.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. SELF and SUPER are used inside such methods; unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). Both editions send SUPER through the restricted search of the SELF/SUPER clause (§2002:9.3.5 \"the invocation will resolve to a method by using a restricted search, as specified in 8.4.2.8, SELF and SUPER\"); GR1's identity (both reference the invoking object) does not depend on resolution; l1c28_self_super_invoking_object passes at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "GR-8.4.3.8.4-1": "4ca41aab5dfb"
+  }
+ }
+}

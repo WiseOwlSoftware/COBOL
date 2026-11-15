@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-14",
+ "rule-digest": "e16a975e44ee",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-14"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged. Its USE statements are counted per procedure division, the same division in both."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "SR-14.9.49.3-14": "e16a975e44ee"
+  }
+ }
+}

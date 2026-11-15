@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-RV-15.51.3-3",
+ "rule-digest": "3dbb65e90802",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.63.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "type | for type declaration (newer: 8.5.3)",
+    "answer": "The rule's 'type' is 'the type of the function' (an intrinsic-function type of §2002:15.1), not the type that §2002:4 defines for a type declaration ('A template that contains all the characteristics of a data item and its subordinates', the same words as §2023:8.5.3.1); the dropped definition cannot change which programs the rule governs."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.8 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:15.1 differs from 2023 by saying, for alphanumeric and national functions, 'The number of character positions in this data item is specified in the function definition'; RV3 is that specification for MIN, so the 2002 text supports rather than changes it. An alphanumeric or national MIN computes no arithmetic result, so §2002:8.8.1.x is not involved; §2002:8.5.3/8.5.4/14.5.8 are reached only through the word 'type'. Evidence at --std 2002 (minf.cob, pb59_operand_category_total, cdargs.cob) stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-41.json",
+  "digests": {
+   "RV-15.63.4-3": "3dbb65e90802"
+  }
+ }
+}

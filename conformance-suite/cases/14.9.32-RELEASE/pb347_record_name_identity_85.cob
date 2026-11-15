@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb347_record_name_identity_85
       *> rules: [SR-14.9.32.3-1, SR-14.9.51.3-5, FMT-14.9.32.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

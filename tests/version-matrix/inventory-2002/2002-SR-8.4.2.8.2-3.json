@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-8.4.2.8.2-3",
+ "rule-digest": "524f7603f502",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.8.3-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "invocation",
+    "answer": "§2002:4 (entry 4.123) 'The request to execute a named method on a given object' and §2023:3.121 are the same words; 2002's 4.113 entry is only a cross-reference to it. The term names the same act in both editions, so the rule's scope is unchanged. SR3's 'invoke a method with the INVOKE statement or an inline invocation of a method' therefore names the same constructs."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (entry 4.121) defines method as a procedural entity of a class definition; 2023 drops the entry and relies on 9.3.4, whose text is word for word §2002:9.3.4. The same source elements are methods in both editions, so the rule governs the same programs."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "§2002:9.3.5 differs from §2023:9.3.6 only in method RESOLUTION: 2023 adds signature matching and overload steps, 2002 binds by method-name alone. This rule restricts where a name may be written at compile time and does not rest on how an invocation is resolved; scope and evidence unchanged. §2002:9.3.5 itself sends SUPER's restricted search to 8.4.2.8, the clause this rule is in; the three permitted contexts are the ones 9.3.5 lists (INVOKE, inline invocation, object property)."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.8.3-3": "524f7603f502"
+  }
+ }
+}

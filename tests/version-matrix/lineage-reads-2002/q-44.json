@@ -1,0 +1,2335 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-44 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-44",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-AR-15.81.2-1",
+   "2002-AR-15.81.2-2",
+   "2002-AR-15.81.2-3",
+   "2002-AR-15.81.2-4",
+   "2002-AR-15.81.2-5",
+   "2002-AR-15.81.2-6",
+   "2002-RV-15.81.3-1",
+   "2002-RV-15.81.3-2",
+   "2002-GR-16.1.1.1-2",
+   "2002-GR-16.1.2.1-1",
+   "2002-DOC-B.1-25",
+   "2002-DOC-B.1-36",
+   "2002-DOC-B.1-37",
+   "2002-DOC-B.1-38",
+   "2002-DOC-B.1-47",
+   "2002-DOC-B.1-48",
+   "2002-DOC-B.1-59",
+   "2002-DOC-B.1-70",
+   "2002-DOC-B.1-91",
+   "2002-DOC-B.1-92",
+   "2002-DOC-B.1-93"
+  ],
+  "flags": {
+   "2002-RV-15.81.3-2": {
+    "normalized": "normalized"
+   },
+   "2002-GR-16.1.1.1-2": {
+    "changed-definition-term": "null, runtime element"
+   },
+   "2002-GR-16.1.2.1-1": {
+    "normalized": "normalized"
+   },
+   "2002-DOC-B.1-25": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "cross-reference": "9.2.7"
+   },
+   "2002-DOC-B.1-36": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "cross-reference": "9.2.3"
+   },
+   "2002-DOC-B.1-37": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "cross-reference": "9.2.4"
+   },
+   "2002-DOC-B.1-38": {
+    "normalized": "normalized",
+    "cross-reference": "8.5.1"
+   },
+   "2002-DOC-B.1-47": {
+    "cross-reference": "8.13"
+   },
+   "2002-DOC-B.1-48": {
+    "normalized": "normalized",
+    "cross-reference": "8.13"
+   },
+   "2002-DOC-B.1-59": {
+    "cross-reference": "9.1.6"
+   },
+   "2002-DOC-B.1-70": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']",
+    "cross-reference": "9.2.2"
+   },
+   "2002-DOC-B.1-91": {
+    "cross-reference": "8.2"
+   },
+   "2002-DOC-B.1-92": {
+    "cross-reference": "8.2"
+   },
+   "2002-DOC-B.1-93": {
+    "normalized": "normalized",
+    "changed-definition-term": "runtime module",
+    "cross-reference": "8.2"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-44",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.81.2-1",
+    "to": [
+     "AR-15.100.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of every YEAR-TO-YYYY reference: integer type and the [0,99] domain (EC-ARGUMENT-FUNCTION when violated)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/pb248_year_to_yyyy_arg1_domain at --std 2002 (golden MATCH, probe-cases.log)",
+     "float-carrier type half covered by conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item at --std 2002 (COBOL1627, as at 2023)",
+     "arm values covered by conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR1",
+      "quote": "Argument-1 shall be a nonnegative integer that is less than 100",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR1",
+      "quote": "Argument-1 shall be a nonnegative integer that is less than 100",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-2",
+    "to": [
+     "AR-15.100.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-2 when written: integer (a scaled or floating-point item is not)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/pb58-yeartoyyyy-frac at --std 2002 (COBOL1627, as at 2023)",
+     "covered by conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item at --std 2002 (COBOL1627)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR2",
+      "quote": "Argument-2 shall be an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR2",
+      "quote": "Argument-2 shall be an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-3",
+    "to": [
+     "AR-15.100.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the one-argument reference: argument-2 defaults to 50"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window at --std 2002 (golden MATCH)",
+     "unit:CobolDateWindowingTests is runtime-only (edition-independent)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). The default 50 for argument-2 involves values below 10000, so 32- vs 34-digit evaluation cannot change it. Confirmed under ARITHMETIC IS STANDARD at --std 2002: YEAR-TO-YYYY(N1 + 4) = 2005 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-4",
+    "to": [
+     "AR-15.100.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-3 when written: integer, domain (1600, 10000)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.23.3-Argument-rules/pb65_date_windowing at --std 2002 (golden MATCH)",
+     "integer half covered by conformance:cases/15.90.3-Argument-rule/pb248-integer-arg-float-item at --std 2002 (COBOL1627)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR4",
+      "quote": "Argument-3 shall be an integer greater than 1600 and less than 10000",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR4",
+      "quote": "Argument-3 shall be an integer greater than 1600 and less than 10000",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-5",
+    "to": [
+     "AR-15.100.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the one- and two-argument references: argument-3 defaults to NUMVAL(CURRENT-DATE(1:4))"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/pb119_windowing_float_args at --std 2002 (golden MATCH)",
+     "covered by conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR5",
+      "quote": "If argument-3 is omitted, the function shall be evaluated as though the following were specified for argument-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR5",
+      "quote": "If argument-3 is omitted, the function shall be evaluated as though the following were specified for argument-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). The argument-3 default (the current year) is a 4-digit integer; 8.8.1.x does not reach it. Under ARITHMETIC IS STANDARD at --std 2002 the one-argument and three-argument forms both give 2005 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-6",
+    "to": [
+     "AR-15.100.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the resolved sum argument-2 + argument-3 in (1699, 10000), EC-ARGUMENT-FUNCTION when violated"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window at --std 2002 (golden MATCH, both bounds)",
+     "covered by conformance:cases/15.23.3-Argument-rules/pb65_date_windowing at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR6",
+      "quote": "The sum of the values of argument-2 and argument-3 shall be less than 10000 and greater than 1699",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR6",
+      "quote": "The sum of the values of argument-2 and argument-3 shall be less than 10000 and greater than 1699",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). The bound on argument-2 + argument-3 (1700..9999) is on 4-digit integers, far inside 31 digits, so neither the 32-digit truncation of §2002:8.8.1.3.2 nor PB5575 can move a value across the bound. Under ARITHMETIC IS STANDARD at --std 2002, YEAR-TO-YYYY(5 N1 * 50 2002) = 2005 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.81.3-1",
+    "to": [
+     "RV-15.100.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "maximum-year = argument-2 + argument-3 over the resolved arguments, every arity"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/15.100.3-Arguments-rule/l1_year_to_yyyy_defaults_and_sum_window at --std 2002 (MATCH)",
+     "covered by conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window at --std 2002 (MATCH, signed NOTE-1 case)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.3 RV1",
+      "quote": "Maximum-year is calculated as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.4 RV1",
+      "quote": "Maximum-year is calculated as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.4.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). maximum-year = argument-2 + argument-3 sums 4-digit integers, far inside 31 digits, so neither the 32-digit rules nor PB5575 can move it. Under ARITHMETIC IS STANDARD at --std 2002 YEAR-TO-YYYY(5 N1 * 50 2002) = 2005 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.81.3-2",
+    "to": [
+     "RV-15.100.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.81 YEAR-TO-YYYY function",
+    "clause-2023": "15.100 YEAR-TO-YYYY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the returned value: arm a) when MOD(maximum-year,100) >= argument-1, arm b) otherwise; NOTE 1/2 informative"
+    ],
+    "evidence-2002": [
+     "both arms covered by conformance:cases/15.23.4-Returned-value-rule/intrinsics_date_window at --std 2002 (MATCH: NOTE-1 pair 2004/1898 and the 2049 straddle)",
+     "unit:CobolDateWindowingTests.YearToYyyy_SpecNote1_Examples is runtime-only (edition-independent)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.81.3 RV2",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.4 RV2",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.4.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions: FUNCTION YEAR-TO-YYYY ( argument-1 [ argument-2 [ argument-3 ] ] ) (§2002:15.81.1 = §2023:15.100.2); the six argument rules and two returned-value rules are word-identical and in the same order. Terms: 'integer' is argument type 5 of §2002:15.2, word-identical to type 6 of §2023:15.3. The violation consequence is the same in both: §2002:15.2 sets EC-ARGUMENT-FUNCTION (Fatal in both tables) and leaves the result implementor-defined with checking off; 2023 only ADDS 'or for the returned value' (a widening outside this rule). No communication-section, debugging-line, removed-form or enumeration reach: an intrinsic function argument rule. The equivalent-arithmetic-expression rule is §2002:15.3.1 (native/standard) vs §2023:15.4.1 (native/standard-binary/standard-decimal); all values here are integers below 10000, so the 32-digit standard-arithmetic defect at 2002 does not reach these rules. Evidence: the twin's conformance witnesses run at --std 2002 with golden MATCH (probe-cases.log), and the negative witnesses draw the same COBOL1627 at 2002 as at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "normalized: normalized": "Exact words compared: 2002 prints an en dash '–' for minus in arm b) and NOTE 1's (–15), 2023 a hyphen-minus; the expressions are the same arithmetic, pointer RV-15.100.4-2.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "This rule does depend on the mode of arithmetic: §2002:15.3.1 'The returned value of numeric and integer functions depends on the mode of arithmetic in effect', and under STANDARD the expression is evaluated in a standard intermediate data item (§2002:8.8.1.3.1). Probed now at --std 2002 under ARITHMETIC IS STANDARD (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-19/yty-std.cob): (4,23,1995)=2004, (98,-15,2008)=1898, (49,50,1999)=2049, (50,50,1999)=1950, each the expression's value; native is shown by intrinsics_date_window. The values are below 10^4, so the 32- vs 34-digit defect (PB5575) cannot reach them. §2002:15/15.1 list YEAR-TO-YYYY's integer type as 2023 does."
+    },
+    "flags-answered-earlier": [
+     "normalized: the 2002 text differs from 2023 only in typography (en dash '–' for minus in arm b and in NOTE 1's (–15), curly quotes); the exact 2002 words are the 2023 rule's, and RV-15.100.4-2 is the pointer to CobolDate.cs#YearToYyyyAt and its tests."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "The returned value of numeric and integer functions depends on the mode of arithmetic in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.81.3 RV2",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-44"
+   },
+   {
+    "rule-id": "2002-GR-16.1.1.1-2",
+    "to": [
+     "GR-16.2.1.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "16.1 BASE class (16.1.1 New, 16.1.2 FactoryObject)",
+    "clause-2023": "16.2 BASE class (16.2.1 New, 16.2.2 FactoryObject)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every invocation of BASE's factory method New (INVOKE class-name \"New\", inline New): on resource exhaustion the returned reference is NULL and EC-OO-RESOURCE (Fatal) is raised in the invoking element"
+    ],
+    "evidence-2002": [
+     "runtime half covered by unit:StandardClassBaseNewResourceTests (runtime BASE__FACTORY.__New; the runtime has no edition)",
+     "statement-guard half covered by probe ooresource-on.cob/ooresource-off.cob at --std 2002: '>>TURN EC-OO-RESOURCE CHECKING ON' emits 'ExceptionState.OoResourceChecking = true;' and none without it; the generated C# at 2002 equals 2023's modulo namespace and edition stamp (probe-ooresource.log), so unit:OoResourceStatementGuardTests (DialectLevel 2023) carries"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:16.1.1.1 GR2",
+      "quote": "the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:16.2.1.2 GR2",
+      "quote": "the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "the state of an object reference indicating that it contains no reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.132",
+      "quote": "state of an object reference indicating that it contains no valid reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     }
+    ],
+    "reason": "The BASE interface text is identical in both (BaseFactoryInterface's New returning an ACTIVE-CLASS object reference; 2023's 'Interface-id. Interface.' is a transcription slip for BaseInterface). EC-OO-RESOURCE is Fatal in both exception tables (2023 drops 'or expand the object' from its description, a change outside New). The rule depends on 2002's exception-condition clause 14.5.12.1 for 'propagated back' (uncatalogued): the implementation raises at the INVOKE in the invoking element, the same code at both editions. No CD, debugging, removed-form or enumeration reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-ooresource.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: runtime element": "Same referent: §2002:4 (4.167) 'The executable unit resulting from compiling a source element' and §2023:3.159 'element consisting of code and data produced by the compilation of a source element' name the same programs, functions and methods; 'the runtime element that invoked the New method' is the same invoking program, method or function. The scope and the evidence are unchanged.",
+     "definition-dropped: method (newer: 9.3.4); null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)": "§2002:4 defines null as 'the state of an object reference indicating that it contains no reference' and object reference as 'An explicitly- or implicitly-defined data item that contains a reference to an object'; method is 4.121. 2023 now defines these in 3.132 and 9.3.2/9.3.4. The NULL returned reference and the New factory method are the same things in both, so the scope does not change.",
+     "pending-clause: §2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "9.3.5 (resolution by name; 2023 adds signature matching) does not touch what GR2 requires on resource exhaustion. In 14.5.12.1.2 the 2002 fatal procedure for a statement with no conditional phrase is: declarative then abnormal termination ('If execution of the declarative completes normally the execution of the run unit is terminated abnormally'), PROPAGATE, abnormal termination, or implementor-defined when checking is off. 2023 inserts only SORT/MERGE, fatal EC-I-O and PERFORM WHEN steps, none of which applies to an INVOKE or an inline New. EC-OO-RESOURCE is Fatal in §2002:14.5.12.1.5, so 14.5.12.1.3 (non-fatal) does not reach it, and 14.5.12.2 concerns only EC-DATA-INCOMPATIBLE. The reader's 2002 evidence carries."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'null': §2002:4 'the state of an object reference indicating that it contains no reference' vs §2023:3.132 '... no valid reference'; the same NULL object reference, scope unchanged.",
+     "changed-definition-term 'runtime element': §2002:4 'The executable unit resulting from compiling a source element' vs §2023:3.159 'element consisting of code and data produced by the compilation of a source element'; the same referent (the invoking program/method/function), scope and evidence unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The executable unit resulting from compiling a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.159",
+      "quote": "element consisting of code and data produced by the compilation of a source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "the state of an object reference indicating that it contains no reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-OO-RESOURCE | Fatal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If a non-fatal exception condition other than an exception object is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:16.1.1.1 GR2",
+      "quote": "the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-16.1.2.1-1",
+    "to": [
+     "GR-16.2.2.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "16.1 BASE class (16.1.1 New, 16.1.2 FactoryObject)",
+    "clause-2023": "16.2 BASE class (16.2.1 New, 16.2.2 FactoryObject)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "BASE's instance method FactoryObject invoked on any instance object (typed, BASE-typed or universal reference, SELF in an inherited method): returns the factory of the object's runtime class"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/16.2.1-New-method/pb1548_standard_class_base at --std 2002 (golden MATCH, probe-cases.log)",
+     "unit:StandardClassBaseNewResourceTests.New_CreatesTheFactorysClass_AndFactoryObjectReturnsThatFactory is runtime-only"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:16.1.2.1 GR1",
+      "quote": "the FactoryObject method determines the class of the object and returns a reference to the factory object associated with that class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:16.2.2.2 GR1",
+      "quote": "the FactoryObject method determines the class of the object and returns a reference to the factory object associated with that class",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and identical BaseInterface declaration (outFactory usage object reference factory of active-class). Terms 'instance object', 'factory object' unchanged. The witness runs clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases.log",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "The rule's 'class of the object' is the object-orientation sense (§2002:4 4.33 = §2023:3.32), not class of a data item. Scope unchanged.",
+     "definition-dropped: method (newer: 9.3.4)": "2002 4.121 method matches 2023 9.3.4 (procedural entity of a class); FactoryObject is the same BASE instance method in both. No change.",
+     "normalized: normalized": "Exact words compared: the normative sentence is identical; the differences are curly vs straight quotes around \"someFactoryMethodName\"/\"FactoryObject\" and a transcription backslash after aFactoryObject, all inside the NOTE. No change in requirement; GR-16.2.2.2-1 is the right pointer.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds by method-name alone; 2023 9.3.6 requires 'an exact match between the method invocation and the method resolution signature' (overloading). FactoryObject takes no parameters and returns one object reference, so name binding and exact-match binding pick the same method; pb1548_standard_class_base matches its golden at --std 2002. No change."
+    },
+    "reader-flags-answered": [
+     "normalized: the difference is curly vs straight quotes and a stray transcription backslash in the NOTE's example; the exact words are the 2023 rule's, and GR-16.2.2.2-1 is the pointer to BASE.cs#FACTORYOBJECT."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.32",
+      "quote": "entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-25",
+    "to": [
+     "DOC-A.1-27"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (9.2.7 Color number)",
+    "clause-2023": "A.1 item (9.2.7 Color number)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's mapping of color numbers 0-7 (FOREGROUND-COLOR / BACKGROUND-COLOR of screen items) onto other attributes on a monochrome terminal"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: a42-screen-foreground-color and a42-screen-background-color draw COBOL1560 (probe-screen.log), so no color is ever mapped"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Color number (for a monochrome terminal, the mapping of the color attributes onto other attributes). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Color number (for a monochrome terminal, the mapping of the color attributes onto other attributes). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.2.7",
+      "quote": "For a monochrome terminal, the color attributes are mapped onto other attributes by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The rendition of the monochromatic, polychromatic or other attributes specified by the following clauses is dependent upon a terminal device capable of supporting them",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (screen section, CURSOR, CRT STATUS) and item 2 (color attributes); the §2002:B.1 preamble withdraws the item",
+    "reason": "2002 LICENSES the non-support, on its own ground: screen handling is not an optional module in 2002 (§2002:3.1 makes only Annex A communications optional) but it is PROCESSOR-DEPENDENT: §2002:B.3 item 1 lists the CURSOR and CRT STATUS clauses, the screen section and the screen formats of ACCEPT and DISPLAY, item 2 the color attributes, and §2002:3.1.5 says elements of an unclaimed processor-dependent element 'need not be implemented'; the B.1 preamble then withdraws a required item of an unimplemented processor-dependent feature. §2002:3.1.5 also requires a compile-time warning on such use and the absence documented: at --std 2002 every probed shape (SCREEN SECTION with FOREGROUND-/BACKGROUND-COLOR, SPECIAL-NAMES CRT STATUS, CURSOR) draws COBOL1560, exactly as at 2023 (probe-screen.log), and docs/CONFORMANCE.md section 5 records screen handling Not claimed. Observation (not a conformance defect): COBOL1560's text at --std 2002 names 2023's licence ('OPTIONAL screen handling module', Annex A.4.2) where 2002's ground is B.3 item 1. Cross-reference 9.2.7: the 2002 text of §9.2.7 is the 2023 text (read in full).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-screen.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 9.2.7": "I read §2002:9.2.7. The sentence 'For a monochrome terminal, the color attributes are mapped onto other attributes by the implementor' and the color numbers 0-7 are the same as 2023's. The diff shows only table layout and 'may' against 'can' in the NOTE, so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+    },
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: twin DOCUMENTED-NON-SUPPORT under §2023 A.4.2 (optional module); 2002's own licence is processor-dependence (§2002:3.1.5 + B.3 item 1), and the compiler declines with COBOL1560 at --std 2002, so SAME.",
+     "cross-reference 9.2.7: read in 2002; identical to 2023's 9.2.7; the scope is unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.2.7",
+      "quote": "For a monochrome terminal, the color attributes are mapped onto other attributes by the implementor",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-36",
+    "to": [
+     "DOC-A.1-41"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (9.2.3 CRT status)",
+    "clause-2023": "A.1 item (9.2.3 CRT status)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the 9xxx CRT status values an ACCEPT screen statement sets (through SPECIAL-NAMES CRT STATUS)"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: a42-special-names-crt-status draws COBOL1560 (probe-screen.log); the item is optional in 2002 in any case"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CRT status 9xxx (the value of xxx for unsuccessful completion with implementor-defined conditions). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "CRT status 9xxx (the value of xxx for unsuccessful completion with implementor-defined conditions). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.2.3",
+      "quote": "An implementor-defined condition exists. The numeric value xxx is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (screen section, CURSOR, CRT STATUS); the §2002:B.1 preamble withdraws the item",
+    "reason": "2002 LICENSES the non-support, on its own ground: screen handling is not an optional module in 2002 (§2002:3.1 makes only Annex A communications optional) but it is PROCESSOR-DEPENDENT: §2002:B.3 item 1 lists the CURSOR and CRT STATUS clauses, the screen section and the screen formats of ACCEPT and DISPLAY, item 2 the color attributes, and §2002:3.1.5 says elements of an unclaimed processor-dependent element 'need not be implemented'; the B.1 preamble then withdraws a required item of an unimplemented processor-dependent feature. §2002:3.1.5 also requires a compile-time warning on such use and the absence documented: at --std 2002 every probed shape (SCREEN SECTION with FOREGROUND-/BACKGROUND-COLOR, SPECIAL-NAMES CRT STATUS, CURSOR) draws COBOL1560, exactly as at 2023 (probe-screen.log), and docs/CONFORMANCE.md section 5 records screen handling Not claimed. Observation (not a conformance defect): COBOL1560's text at --std 2002 names 2023's licence ('OPTIONAL screen handling module', Annex A.4.2) where 2002's ground is B.3 item 1. Cross-reference 9.2.3: the 2002 text of §9.2.3 is the 2023 text (read in full).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-screen.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 9.2.3": "I read §2002:9.2.3. The CRT status values (0000, 1xxx, 2xxx, 8000, 8001, 9xxx) and the 9xxx sentence ('An implementor-defined condition exists. The numeric value xxx is defined by the implementor') are the same as 2023's. 2023 drops only 2002's introductory four-condition summary, which restates the same list. Scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+    },
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: twin DOCUMENTED-NON-SUPPORT under §2023 A.4.2 (optional module); 2002's own licence is processor-dependence (§2002:3.1.5 + B.3 item 1), and the compiler declines with COBOL1560 at --std 2002, so SAME.",
+     "cross-reference 9.2.3: read in 2002; identical to 2023's 9.2.3; the scope is unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.2.3",
+      "quote": "An implementor-defined condition exists. The numeric value xxx is defined by the implementor",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-37",
+    "to": [
+     "DOC-A.1-45"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (9.2.4 Cursor)",
+    "clause-2023": "A.1 item (9.2.4 Cursor)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "cursor-moving keys during an ACCEPT screen statement (cursor placed per SPECIAL-NAMES CURSOR)"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: a42-special-names-cursor draws COBOL1560 (probe-screen.log); the item is optional in 2002 in any case"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Cursor (the cursor movement if keys are defined that change the cursor position). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Cursor (the cursor movement if keys are defined that change the cursor position). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.2.4",
+      "quote": "The implementor shall specify any keys that change the position of the cursor and the associated cursor movement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (screen section, CURSOR, CRT STATUS); the §2002:B.1 preamble withdraws the item",
+    "reason": "2002 LICENSES the non-support, on its own ground: screen handling is not an optional module in 2002 (§2002:3.1 makes only Annex A communications optional) but it is PROCESSOR-DEPENDENT: §2002:B.3 item 1 lists the CURSOR and CRT STATUS clauses, the screen section and the screen formats of ACCEPT and DISPLAY, item 2 the color attributes, and §2002:3.1.5 says elements of an unclaimed processor-dependent element 'need not be implemented'; the B.1 preamble then withdraws a required item of an unimplemented processor-dependent feature. §2002:3.1.5 also requires a compile-time warning on such use and the absence documented: at --std 2002 every probed shape (SCREEN SECTION with FOREGROUND-/BACKGROUND-COLOR, SPECIAL-NAMES CRT STATUS, CURSOR) draws COBOL1560, exactly as at 2023 (probe-screen.log), and docs/CONFORMANCE.md section 5 records screen handling Not claimed. Observation (not a conformance defect): COBOL1560's text at --std 2002 names 2023's licence ('OPTIONAL screen handling module', Annex A.4.2) where 2002's ground is B.3 item 1. Cross-reference 9.2.4: the 2002 text of §9.2.4 is the 2023 text (read in full).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-screen.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 9.2.4": "I read §2002:9.2.4. It is word for word §2023:9.2.4, including 'The implementor shall specify any keys that change the position of the cursor', so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+    },
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: twin DOCUMENTED-NON-SUPPORT under §2023 A.4.2 (optional module); 2002's own licence is processor-dependence (§2002:3.1.5 + B.3 item 1), and the compiler declines with COBOL1560 at --std 2002, so SAME.",
+     "cross-reference 9.2.4: read in 2002; identical to 2023's 9.2.4; the scope is unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.2.4",
+      "quote": "The implementor shall specify any keys that change the position of the cursor",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-70",
+    "to": [
+     "DOC-A.1-91"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (9.2.2 Function keys)",
+    "clause-2023": "A.1 item (9.2.2 Function keys)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "function-key numbers returned to an ACCEPT screen statement (reported through CRT status 1xxx/2xxx) and their enabling"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: function keys report only through CRT STATUS / ACCEPT screen, refused COBOL1560 (a42-special-names-crt-status, probe-screen.log); optional in 2002 in any case"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Function keys (context-dependent keys, function number, and method for enabling and disabling). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Function keys (context-dependent keys, function number, and method for enabling and disabling). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.2.2",
+      "quote": "The implementor shall specify the method, if one exists, for enabling and disabling function keys and context-dependent function keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 (screen section, CURSOR, CRT STATUS); the §2002:B.1 preamble withdraws the item",
+    "reason": "2002 LICENSES the non-support, on its own ground: screen handling is not an optional module in 2002 (§2002:3.1 makes only Annex A communications optional) but it is PROCESSOR-DEPENDENT: §2002:B.3 item 1 lists the CURSOR and CRT STATUS clauses, the screen section and the screen formats of ACCEPT and DISPLAY, item 2 the color attributes, and §2002:3.1.5 says elements of an unclaimed processor-dependent element 'need not be implemented'; the B.1 preamble then withdraws a required item of an unimplemented processor-dependent feature. §2002:3.1.5 also requires a compile-time warning on such use and the absence documented: at --std 2002 every probed shape (SCREEN SECTION with FOREGROUND-/BACKGROUND-COLOR, SPECIAL-NAMES CRT STATUS, CURSOR) draws COBOL1560, exactly as at 2023 (probe-screen.log), and docs/CONFORMANCE.md section 5 records screen handling Not claimed. Observation (not a conformance defect): COBOL1560's text at --std 2002 names 2023's licence ('OPTIONAL screen handling module', Annex A.4.2) where 2002's ground is B.3 item 1. Cross-reference 9.2.2: the 2002 text of §9.2.2 is the 2023 text (read in full).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-screen.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 9.2.2": "I read §2002:9.2.2. A word diff with §2023:9.2.2 is empty apart from the heading level, including 'The implementor shall specify the method, if one exists, for enabling and disabling function keys', so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes.",
+     "definition-dropped: method (newer: 9.3.4)": "Here 'method' is plain English: the manner of enabling and disabling keys. It is not the object-orientation term that §2002:4 defines as 'A procedural entity defined by a method definition'. No method definition or invocation is involved, so the definition does not touch the item.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 Method invocation is flagged only because the word 'method' matched. The item does not depend on method invocation in any way, so its requirement does not rest on that clause's 2002 text."
+    },
+    "reader-flags-answered": [
+     "target-not-CONFORMS-OK: twin DOCUMENTED-NON-SUPPORT under §2023 A.4.2 (optional module); 2002's own licence is processor-dependence (§2002:3.1.5 + B.3 item 1), and the compiler declines with COBOL1560 at --std 2002, so SAME.",
+     "cross-reference 9.2.2: read in 2002; identical to 2023's 9.2.2; the scope is unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.2.2",
+      "quote": "The implementor shall specify the method, if one exists, for enabling and disabling function keys",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-38",
+    "to": [
+     "DOC-A.1-46"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.5.1 Computer independent data description)",
+    "clause-2023": "A.1 item (8.5.1.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the complete specification of the storage representation of every 2002 usage: DISPLAY, NATIONAL, BINARY/COMPUTATIONAL, BINARY-CHAR/-SHORT/-LONG/-DOUBLE, PACKED-DECIMAL, FLOAT-SHORT/-LONG/-EXTENDED, INDEX, POINTER, FUNCTION-POINTER, PROGRAM-POINTER, OBJECT REFERENCE, BIT"
+    ],
+    "evidence-2002": [
+     "covered by docs/conformance/7/DOC-A.1-46.md, which specifies a fixed representation for each of those usages (the 2023-only usages are extra)",
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/pb547_redefines_national_view_of_wide_character and pb547_redefines_binary_and_bit_views_of_wide_character at --std 2002 (golden MATCH, probe-cases-doc.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Data storage (possible representations when implementation provides multiple ways of storing data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Data storage (possible representations when implementation provides multiple ways of storing data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.1",
+      "quote": "Each implementor shall provide a complete specification of the possible representations on the computer for which COBOL is implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.1",
+      "quote": "except when specific reference is made to other standards defining such representations",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.5.1 and §2023:8.5.1.1 differ by one clause: 2023 adds 'except when specific reference is made to other standards defining such representations' (for its IEEE usages FLOAT-BINARY-*/FLOAT-DECIMAL-*, absent from 2002). So 2002 demands a complete specification for EVERY usage with no exception; the DOC-A.1-46 page gives one for every 2002 usage (FLOAT-SHORT/LONG/EXTENDED are specified as IEEE binary32/binary64 explicitly, not by deferral), so the 2002 requirement is met by the same evidence. 2002 usages are a subset of 2023's; none removed.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases-doc.log",
+    "widening": "2023 adds usages (FLOAT-BINARY-*, FLOAT-DECIMAL-*) and the other-standards exception; neither is 2002 scope",
+    "flags-answered": {
+     "cross-reference: 8.5.1": "I read §2002:8.5.1: 'Each implementor shall provide a complete specification of the possible representations', with no exception for representations defined by other standards (2023 adds that exception). The 2002 requirement is therefore at least as strict, and the DOC-A.1-46 page specifies every 2002 usage directly, so the evidence covers it and the scope is unchanged.",
+     "normalized: normalized": "The curly apostrophe in the 2002 'implementor’s' is the only difference. The words are otherwise exact, and DOC-A.1-46 is the pointer."
+    },
+    "reader-flags-answered": [
+     "normalized: curly vs straight apostrophe in 'implementor's'; exact words otherwise the 2023 item's; DOC-A.1-46 is the pointer.",
+     "cross-reference 8.5.1: read in 2002; the only change is 2023's added exception, which 2002 lacks and the evidence does not rely on."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.5.1",
+      "quote": "Each implementor shall provide a complete specification of the possible representations",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-47",
+    "to": [
+     "DOC-A.1-66"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.13 External repository)",
+    "clause-2023": "A.1 item (8.13)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a user mechanism to choose whether a compilation updates the external repository",
+     "a user mechanism to choose whether differences from the repository are flagged"
+    ],
+    "evidence-2002": [
+     "update on/off covered by probe-repository-2002.log steps 6-7 (--repository-update off -> COBOL5968 at the caller) at --std 2002",
+     "check on/off covered by probe-repository-2002.log steps 4-5 (COBOL5969 on; silent with --repository-check off) at --std 2002",
+     "binding through the default repository covered by wiseowl/cases/12.3.8-REPOSITORY/pb2103_prototype_group_split_across_units at --std 2002 (MATCH, probe-repository-cases.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "External repository (mechanism for specifying whether checking and updating occur)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "External repository (mechanism for specifying whether checking and updating occur)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "whether to flag differences in prototypes and definitions in the compilation group from the information in the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.13",
+      "quote": "The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.13 and §2023:8.13 carry the same information list (the 13 dashes, ending 'any other information that the implementor requires') and the same two mechanism sentences; 2023 only rewords the opening paragraph and points at 12.3.8 for 12.2.7. The mechanisms are CLI options, edition-independent: probe-repository-2002.log at --std 2002 shows check against the entry (COBOL1688 on a mismatched CALL, 'CALLEE 0042' on a matching one), check on flags a changed signature (COBOL5969), check off is silent, update off leaves an entry a later compile cannot bind (COBOL5968).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-repository-2002.log",
+    "widening": null,
+    "flags-answered-reader": [
+     "cross-reference 8.13: read in 2002; same list and same mechanism sentences; scope unchanged."
+    ],
+    "flags-answered": {
+     "cross-reference: 8.13": "Read §2002:8.13 whole: the same thirteen information items as §2023:8.13, ending 'any other information that the implementor requires', the same signature definition and the same two mechanism sentences (update; flag differences). 2002 adds an opening sentence naming the source units the repository holds and points at 12.2.7 where 2023 points at 12.3.8; neither changes the two mechanisms this item documents. The mechanisms are edition-independent CLI options, shown at --std 2002 in probe-repository-2002.log (COBOL5969 with check on; COBOL5968 with update off)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.13",
+      "quote": "The implementor shall provide a mechanism that allows the user to specify whether to update the external repository when a compilation unit is compiled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "whether to flag differences in prototypes and definitions in the compilation group from the information in the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "External repository (mechanism for specifying whether checking and updating occur)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-44"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-48",
+    "to": [
+     "DOC-A.1-67"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.13 External repository)",
+    "clause-2023": "A.1 item (8.13)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "any information the implementation records in the external repository beyond the 8.13 list, documented if provided"
+    ],
+    "evidence-2002": [
+     "the record written at --std 2002 is the same CobolRepositoryAttribute as at 2023 (ooresource-on/pb1548 .g.cs: same fields, Edition = 2002)",
+     "the word recorded beside the externalized name covered by wiseowl/cases/12.3.8-REPOSITORY/pb2103_function_word_in_repository at --std 2002 (MATCH, probe-repository-cases.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "External repository information (other information beyond the required information)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "External repository information (other information beyond the required information)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "any other information that the implementor requires",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.13",
+      "quote": "any other information that the implementor requires",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.13 and §2023:8.13 carry the same information list (the 13 dashes, ending 'any other information that the implementor requires') and the same two mechanism sentences; 2023 only rewords the opening paragraph and points at 12.3.8 for 12.2.7. The mechanisms are CLI options, edition-independent: probe-repository-2002.log at --std 2002 shows check against the entry (COBOL1688 on a mismatched CALL, 'CALLEE 0042' on a matching one), check on flags a changed signature (COBOL5969), check off is silent, update off leaves an entry a later compile cannot bind (COBOL5968). LEAD against the twin row (edition-neutral, so it does not make 2002 differ): docs/conformance/7/DOC-A.1-67.md says 'nothing else beyond §2023:8.13 is recorded or compared', but CobolRepositoryAttribute also records CompilerVersion and Edition ('Named in diagnostics, never compared', src/WiseOwl.Cobol.Runtime/Repository/CobolRepositoryAttribute.cs) and HasSignatures; the generated record at --std 2002 carries 'Edition = 2002'. The documentation of the provided extra information is incomplete in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-repository-cases.log",
+    "widening": null,
+    "flags-answered-reader": [
+     "normalized: curly vs straight apostrophe; exact words otherwise; DOC-A.1-67 is the pointer.",
+     "cross-reference 8.13: read in 2002; the 'any other information' dash is identical."
+    ],
+    "flags-answered": {
+     "cross-reference: 8.13": "Read §2002:8.13 whole: the same thirteen information items as §2023:8.13, ending 'any other information that the implementor requires', the same signature definition and the same two mechanism sentences (update; flag differences). 2002 adds an opening sentence naming the source units the repository holds and points at 12.2.7 where 2023 points at 12.3.8; neither changes the open-ended 'any other information' item this row documents.",
+     "normalized: normalized": "Exact words compared: 2002 B.1 item 48 and 2023 A.1 item 67 differ only in the apostrophe of 'implementor's' (curly in the 2002 transcription, straight in 2023); the requirement is the same and DOC-A.1-67 is the right pointer."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.13",
+      "quote": "any other information that the implementor requires",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "External repository information (other information beyond the required information)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-44"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-59",
+    "to": [
+     "DOC-A.1-78"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (9.1.6 Fixed file attributes)",
+    "clause-2023": "A.1 item (9.1.6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's statement whether file sharing (SHARING clause / OPEN SHARING phrase) is a fixed attribute of the physical file"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1c11_sharing_not_fixed_attribute at --std 2002 (golden MATCH, probe-cases-doc.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Fixed file attribute (whether the ability to share a file is a fixed file attribute)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Fixed file attribute (whether the ability to share a file is a fixed file attribute)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "The implementor shall specify whether the ability to share a physical file is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.6",
+      "quote": "The implementor shall specify whether the ability to share a physical file is a fixed file attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The SHARING clause in the file control entry and the SHARING phrase on the OPEN statement are dependent on the capabilities of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "§9.1.6 differs between the editions only in its list of OTHER fixed attributes (2002 names the padding character, 2023 drops it and adds the SUPPRESS WHEN attribute); the sentence this item rests on is identical. Sharing is processor-dependent in 2002 (B.3 item 24) and the compiler claims it, so the item is in scope and answered 'no' by the same witness, which runs clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-cases-doc.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 9.1.6": "I read §2002:9.1.6. A word diff with §2023:9.1.6 shows only the list of OTHER fixed attributes: 2002 has 'the padding character', and 2023 drops it and adds 'SUPPRESS WHEN attribute'. The sentence the item rests on ('The implementor shall specify whether the ability to share a physical file is a fixed file attribute') is identical, so the scope is unchanged."
+    },
+    "reader-flags-answered": [
+     "cross-reference 9.1.6: read in 2002; the padding-character difference is in the list of other attributes, not in the sharing sentence; scope unchanged."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "The implementor shall specify whether the ability to share a physical file is a fixed file attribute",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-91",
+    "to": [
+     "DOC-A.1-118"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.2 Locales)",
+    "clause-2023": "A.1 item (8.2.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "how the user default and system default locales are defined; at least one of each provided"
+    ],
+    "evidence-2002": [
+     "covered by probe a118loc.cob (DefaultLocaleDeterminationTests' program) at --std 2002 under the test's four environments: output equals the test's expected strings, rc 0 with neither variable under invariant globalization (probe-locale.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Locale specification (how user and system defaults defined; at least one user and one system default)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Locale specification (how user and system defaults defined; at least one user and one system default)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "The implementor shall specify the manner in which the system default locale is defined and shall provide at least one system default locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "The implementor shall specify the manner in which the user default locale is defined and shall provide at least one user default locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.2.1",
+      "quote": "The implementor shall specify the manner in which the user default locale is defined and shall provide at least one user default locale",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.2 against §2023:8.2.1: the same table of locale categories, the same user/system default sentences, the same SET semantics and the same non-COBOL-switch sentence. 2023 changes the referenced POSIX standard (9945-2:1993 -> 9945:2009 Clause 7, both with 'logically-equivalent functionality' latitude) and ADDS: an implementor-defined default when the environment supplies none, 'The capability of setting the system default locale from COBOL is not provided', the 14.6.6 pointer, EC-LOCALE-MISSING/-INVALID, the national-collation and LC_MESSAGES/LC_NUMERIC sentences; none narrows these items. The compiled module at --std 2002 is the 2023 module modulo namespace and edition stamp (a118loc-2002.g.cs vs a118loc-2023.g.cs), and the locale determination is runtime (LocaleState), edition-independent.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-locale.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 8.2": "I read all of §2002:8.2. The two default-locale sentences ('The implementor shall specify the manner in which the user default locale is defined', and its system-default twin) are word for word §2023:8.2.1's. A correction to the reader: EC-LOCALE-MISSING/-INVALID, the national-collation sentence, the LC_MESSAGES/LC_NUMERIC sentence and the no-system-default-setting NOTE are already in 2002. 2023 adds only 'If the operating environment does not supply a default locale, it is implementor-defined' and turns that NOTE into text. Neither narrows the item, so scope and evidence are unchanged."
+    },
+    "reader-flags-answered": [
+     "cross-reference 8.2: read in 2002; the two default-locale sentences are identical; 2023's additions do not narrow the item."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "The implementor shall specify the manner in which the user default locale is defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "If the locale is not found during an operation requiring a locale, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-92",
+    "to": [
+     "DOC-A.1-119"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.2 Locales)",
+    "clause-2023": "A.1 item (8.2.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the manner in which locales (the six categories plus LC_ALL) are implemented; logically equivalent to the POSIX locale model"
+    ],
+    "evidence-2002": [
+     "runtime facility covered by unit:LocaleStateTests (runtime-only, edition-independent)",
+     "compile side at 2002 identical to 2023 (a118loc .g.cs diff, probe-locale.log run)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Locale specification (manner of implementation)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Locale specification (manner of implementation)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "The format and implementation of locales may differ from ISO/IEC 9945-2:1993 provided that logically-equivalent functionality is supported",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.2.1",
+      "quote": "The format and implementation of locales may differ from those specifications provided that logically-equivalent functionality is supported",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.2 against §2023:8.2.1: the same table of locale categories, the same user/system default sentences, the same SET semantics and the same non-COBOL-switch sentence. 2023 changes the referenced POSIX standard (9945-2:1993 -> 9945:2009 Clause 7, both with 'logically-equivalent functionality' latitude) and ADDS: an implementor-defined default when the environment supplies none, 'The capability of setting the system default locale from COBOL is not provided', the 14.6.6 pointer, EC-LOCALE-MISSING/-INVALID, the national-collation and LC_MESSAGES/LC_NUMERIC sentences; none narrows these items. The compiled module at --std 2002 is the 2023 module modulo namespace and edition stamp (a118loc-2002.g.cs vs a118loc-2023.g.cs), and the locale determination is runtime (LocaleState), edition-independent. The referenced POSIX edition differs (9945-2:1993 vs 9945:2009 Clause 7), but the locale categories COBOL names are the same six in both tables, and both texts admit any logically-equivalent implementation.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-locale.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 8.2": "I read §2002:8.2. The locale-category table has the same six categories plus LC_ALL, and the latitude 'provided that logically-equivalent functionality is supported' is in both editions. The only difference is the POSIX edition (9945-2:1993 against 9945:2009 Clause 7), which the latitude absorbs, so scope and evidence are unchanged."
+    },
+    "reader-flags-answered": [
+     "cross-reference 8.2: read in 2002; the 'logically-equivalent functionality' latitude is in both; the POSIX edition change does not change the six categories."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "provided that logically-equivalent functionality is supported",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-DOC-B.1-93",
+    "to": [
+     "DOC-A.1-120"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item (8.2 Locales)",
+    "clause-2023": "A.1 item (8.2.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "whether, and for which categories, a locale switch by a non-COBOL runtime module is utilized by COBOL (conditional on supporting activation of non-COBOL runtime modules)"
+    ],
+    "evidence-2002": [
+     "covered by conformance-test:DefaultLocaleDeterminationTests.AHostCultureSwitchDuringARunUnit_IsNotUtilized_ButTheNextRunUnitStartsFromIt: its COBOL module compiled at --std 2002 is the 2023 module modulo namespace/edition stamp (a118loc .g.cs diff), and the switch behaviour is the runtime's LocaleState, so the host test's evidence carries; the host was not rebuilt against the 2002 module"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.2.1",
+      "quote": "It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.2",
+      "quote": "No requirement is placed on an implementation to support this interaction",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The result of compiling a compilation unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.160",
+      "quote": "runtime element consisting of one or more runtime elements that result from the compilation of a compilation unit",
+      "check": "OK"
+     }
+    ],
+    "reason": "§2002:8.2 against §2023:8.2.1: the same table of locale categories, the same user/system default sentences, the same SET semantics and the same non-COBOL-switch sentence. 2023 changes the referenced POSIX standard (9945-2:1993 -> 9945:2009 Clause 7, both with 'logically-equivalent functionality' latitude) and ADDS: an implementor-defined default when the environment supplies none, 'The capability of setting the system default locale from COBOL is not provided', the 14.6.6 pointer, EC-LOCALE-MISSING/-INVALID, the national-collation and LC_MESSAGES/LC_NUMERIC sentences; none narrows these items. The compiled module at --std 2002 is the 2023 module modulo namespace and edition stamp (a118loc-2002.g.cs vs a118loc-2023.g.cs), and the locale determination is runtime (LocaleState), edition-independent.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-44/probe-locale.log",
+    "widening": null,
+    "flags-answered": {
+     "cross-reference: 8.2": "I read §2002:8.2. The non-COBOL-switch sentence ('It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL') is identical in §2023:8.2.1, so the scope is unchanged.",
+     "definition-changed: runtime module": "§2002:4 defines runtime module as 'The result of compiling a compilation unit'; §2023:3.160 calls it a runtime element resulting from that compilation. The referent is the same, so a non-COBOL runtime module means the same in both editions and the item's condition and scope do not change.",
+     "normalized: normalized": "The only difference is the curly apostrophe in the 2002 'implementor’s' against the straight one in 2023. The words are otherwise exact, the requirement is unchanged, and DOC-A.1-120 is the right pointer."
+    },
+    "reader-flags-answered": [
+     "normalized: curly vs straight apostrophe; exact words otherwise; DOC-A.1-120 is the pointer.",
+     "changed-definition-term 'runtime module': §2002:4 'The result of compiling a compilation unit' vs §2023:3.160 'runtime element consisting of one or more runtime elements that result from the compilation of a compilation unit'; the same referent (a non-COBOL module is one not produced by COBOL), so the condition and scope are unchanged; §2002:3.1.2 keeps the interaction optional as 2023 does.",
+     "cross-reference 8.2: read in 2002; the non-COBOL-switch sentence is identical."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The result of compiling a compilation unit",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-44",
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.81.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "argument-1 (1 + 1/1E30/1000): The 2002 word 'integer' in an argument rule rests on §2002:5.4 GR3b: under ARITHMETIC IS STANDARD the argument is an integer iff its 2002 standard intermediate data item (32 significant digits; addition and division are the exact result TRUNCATED to 32 digits) has only zeros right of the point. 2023 has no ARITHMETIC IS STANDARD (E.2 item 21 removed Standard Arithmetic; its 5.5 GR3b names the 2023 modes), so the 2023 verdict says nothing about this 2002 scope. The reader's dismissal ('all values here are integers below 10000') is wrong: the argument is any arithmetic expression. Witness: under ARITHMETIC IS STANDARD, (X + 1 / 1000000000000000000000000000000 / 1000) is exactly X at 2002 (1E-30 and 1E-33 are exact quotients; X + 1E-33 truncates to 32 digits = X), so the expression ALWAYS yields an integer and the program is conforming 2002 source. Probe at --std 2002: COBOL1627 'its value is never an integer' citing §2023:15.3/15.100.3, i.e. the compiler folds with more than 32 digits (the known 32-vs-34-digit standard-arithmetic defect reaches this rule); the control YEAR-TO-YYYY (1 50 2000) under STANDARD at 2002 runs and prints +000002001. compiler-at-2002: wrong (rejects legal 2002 source).",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR1",
+      "quote": "Argument-1 shall be a nonnegative integer that is less than 100",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR1",
+      "quote": "Argument-1 shall be a nonnegative integer that is less than 100",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.4",
+      "quote": "If standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:5.5",
+      "quote": "If any mode of standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item whose form corresponds to the form of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-44/probe-yty-std.log",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD the compiler rejects (COBOL1627) a YEAR-TO-YYYY argument-1 (1 + 1/1E30/1000) expression that 2002's 32-digit standard arithmetic makes an integer",
+    "compiler-at-2002": "wrong"
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "argument-2 (50 + 1/1E30/1000): The 2002 word 'integer' in an argument rule rests on §2002:5.4 GR3b: under ARITHMETIC IS STANDARD the argument is an integer iff its 2002 standard intermediate data item (32 significant digits; addition and division are the exact result TRUNCATED to 32 digits) has only zeros right of the point. 2023 has no ARITHMETIC IS STANDARD (E.2 item 21 removed Standard Arithmetic; its 5.5 GR3b names the 2023 modes), so the 2023 verdict says nothing about this 2002 scope. The reader's dismissal ('all values here are integers below 10000') is wrong: the argument is any arithmetic expression. Witness: under ARITHMETIC IS STANDARD, (X + 1 / 1000000000000000000000000000000 / 1000) is exactly X at 2002 (1E-30 and 1E-33 are exact quotients; X + 1E-33 truncates to 32 digits = X), so the expression ALWAYS yields an integer and the program is conforming 2002 source. Probe at --std 2002: COBOL1627 'its value is never an integer' citing §2023:15.3/15.100.3, i.e. the compiler folds with more than 32 digits (the known 32-vs-34-digit standard-arithmetic defect reaches this rule); the control YEAR-TO-YYYY (1 50 2000) under STANDARD at 2002 runs and prints +000002001. compiler-at-2002: wrong (rejects legal 2002 source).",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR2",
+      "quote": "Argument-2 shall be an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR2",
+      "quote": "Argument-2 shall be an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.4",
+      "quote": "If standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:5.5",
+      "quote": "If any mode of standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item whose form corresponds to the form of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-44/probe-yty-std.log",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD the compiler rejects (COBOL1627) a YEAR-TO-YYYY argument-2 (50 + 1/1E30/1000) expression that 2002's 32-digit standard arithmetic makes an integer",
+    "compiler-at-2002": "wrong"
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-3",
+    "verdict": "UPHELD",
+    "reason": "Default-50 rule; word-identical, no integer test or arithmetic-precision dependency; the reader's MATCH at 2002 stands and the STANDARD-mode control at 2002 (YEAR-TO-YYYY (1 50 2000) = 2001) is correct.",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-4",
+    "verdict": "OVERTURNED",
+    "reason": "argument-3 (2000 + 1/1E30/1000): The 2002 word 'integer' in an argument rule rests on §2002:5.4 GR3b: under ARITHMETIC IS STANDARD the argument is an integer iff its 2002 standard intermediate data item (32 significant digits; addition and division are the exact result TRUNCATED to 32 digits) has only zeros right of the point. 2023 has no ARITHMETIC IS STANDARD (E.2 item 21 removed Standard Arithmetic; its 5.5 GR3b names the 2023 modes), so the 2023 verdict says nothing about this 2002 scope. The reader's dismissal ('all values here are integers below 10000') is wrong: the argument is any arithmetic expression. Witness: under ARITHMETIC IS STANDARD, (X + 1 / 1000000000000000000000000000000 / 1000) is exactly X at 2002 (1E-30 and 1E-33 are exact quotients; X + 1E-33 truncates to 32 digits = X), so the expression ALWAYS yields an integer and the program is conforming 2002 source. Probe at --std 2002: COBOL1627 'its value is never an integer' citing §2023:15.3/15.100.3, i.e. the compiler folds with more than 32 digits (the known 32-vs-34-digit standard-arithmetic defect reaches this rule); the control YEAR-TO-YYYY (1 50 2000) under STANDARD at 2002 runs and prints +000002001. compiler-at-2002: wrong (rejects legal 2002 source).",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR4",
+      "quote": "Argument-3 shall be an integer greater than 1600 and less than 10000",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR4",
+      "quote": "Argument-3 shall be an integer greater than 1600 and less than 10000",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.4",
+      "quote": "If standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:5.5",
+      "quote": "If any mode of standard arithmetic is in effect, the operand shall be equal to a standard intermediate data item whose form corresponds to the form of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-44/probe-yty-std.log",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD the compiler rejects (COBOL1627) a YEAR-TO-YYYY argument-3 (2000 + 1/1E30/1000) expression that 2002's 32-digit standard arithmetic makes an integer",
+    "compiler-at-2002": "wrong"
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-5",
+    "verdict": "UPHELD",
+    "reason": "Default NUMVAL(CURRENT-DATE(1:4)) identical in both texts; NUMVAL of a 4-digit year is exact in every arithmetic mode; no 2002-only form reached.",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR5",
+      "quote": "If argument-3 is omitted, the function shall be evaluated as though the following were specified for argument-3",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.81.2-6",
+    "verdict": "OVERTURNED",
+    "reason": "The answer's claim that a small-valued argument cannot feel the 32- vs 34-digit difference is false: the rule governs an argument that may be an arithmetic expression, and under ARITHMETIC IS STANDARD at 2002 every operation is truncated to 32 significant digits (§2002:8.8.1.3.1.1, §2002:8.8.1.3.2), so an expression whose intermediate has 33-34 digits yields a different small argument value at 2002 than the compiler's 34-digit evaluation (PB5575). With BIG = 10**30 (PIC 9(31)): YEAR-TO-YYYY(5 BIG*1000 + 55 - BIG*1000 1645): 2002 argument-2 = 50, sum 1695, violating AR6, so EC-ARGUMENT-FUNCTION (control y2y0.cob YEAR-TO-YYYY(5 50 1645): fatal). Observed at --std 2002 (y2y.2002.txt): 'Y2Y= 000001605' (argument-2 taken as 55, sum 1700 accepted). The 2023 twin's evidence (34-digit standard-decimal) cannot show this 2002 case; DIFFERENT, needs PB5575.",
+    "citations": [
+     {
+      "cite": "§2002:15.81.2 AR6",
+      "quote": "The sum of the values of argument-2 and argument-3 shall be less than 10000 and greater than 1699",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.1.5.2",
+      "quote": "with a maximum precision of 34 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "If the evaluation of an argument results in an incorrect value for that argument according to the rules specified in the function definition",
+      "check": "OK"
+     }
+    ],
+    "class": "other (pending-clause: 2002 standard arithmetic 32-digit truncation, PB5575)",
+    "needs": "PB5575",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-22/y2y.cob",
+    "compiler-at-2002": "wrong: program y2y.cob; expected EC-ARGUMENT-FUNCTION fatal per §2002:15.81.2 AR6 with §2002:8.8.1.3.2; observed Y2Y= 000001605 (y2y.2002.txt); control y2y0.cob -> fatal (y2y0.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.81.3-1",
+    "verdict": "UPHELD",
+    "reason": "maximum-year = arg2 + arg3 over bounded integers: exact under 2002 standard arithmetic (STANDARD-mode control at --std 2002 returns +000002001, the correct value) and under native; texts identical.",
+    "citations": [
+     {
+      "cite": "§2002:15.81.3 RV1",
+      "quote": "Maximum-year is calculated as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-44/probe-yty-std.log"
+   },
+   {
+    "rule-id": "2002-RV-15.81.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "Flag keys match the input slice exactly (set compare). Rule text equals the 2023 twin after markup normalization (catalog compare, cmp.py). The answer to the pending-clause flag says 'The values are below 10^4, so the 32- vs 34-digit defect (PB5575) cannot reach them'. False: argument-1 may be an arithmetic expression, evaluated under ARITHMETIC IS STANDARD in 32-digit standard intermediate items (§2002:8.8.1.3, §2002:8.8.1.3.2), and RV2's returned value is the equivalent arithmetic expression of that argument-1 (§2002:15.3.1). With BIG = 10**30: YEAR-TO-YYYY(BIG*1000 + 4 - BIG*1000, 23, 1995): 10**33 + 4 has 34 significant digits and is truncated to 10**33, so argument-1 is 0 and RV2 a) gives 2000 (control YEAR-TO-YYYY(0,23,1995) = 2000 in the same run). Observed at --std 2002: 'EXPR 2004' (the 34-digit value). The 2023 twin's evidence (34-digit standard-decimal) cannot show this 2002 case. Same mechanism as a-22's AR-15.81.2-6 overturn.",
+    "citations": [
+     {
+      "cite": "§2002:15.81.3 RV2",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.4 RV2",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "The returned value of numeric and integer functions depends on the mode of arithmetic in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.1.5.2",
+      "quote": "with a maximum precision of 34 decimal digits",
+      "check": "OK"
+     }
+    ],
+    "class": "other (pending-clause: 2002 standard arithmetic 32-digit truncation, PB5575)",
+    "needs": "PB5575",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-19/p/yty32.cob",
+    "compiler-at-2002": "wrong: program yty32.cob (ARITHMETIC IS STANDARD); expected EXPR 2000 per §2002:15.81.3 RV2 with §2002:8.8.1.3.2; observed EXPR 2004 (yty32.2002.txt); control ZERO 2000 in the same run"
+   },
+   {
+    "rule-id": "2002-GR-16.1.1.1-2",
+    "verdict": "UPHELD",
+    "reason": "GR2 word-identical; EC-OO-RESOURCE Fatal in both. The deferred fatal-processing chain §2002:14.5.12.1.2 (conditional phrase, declarative, PROPAGATE ON, terminate, unchecked implementor-defined) is a subset of §2023:14.6.13.1.3, whose added steps (SORT/MERGE, EC-I-O, PERFORM WHEN) cannot apply to a 2002 INVOKE of New. No CD or removed-form reach.",
+    "citations": [
+     {
+      "cite": "§2002:16.1.1.1 GR2",
+      "quote": "is propagated back to the runtime element that invoked the New method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-16.1.2.1-1",
+    "verdict": "UPHELD",
+    "reason": "FactoryObject rule and BaseInterface declaration identical; the witness runs at 2002 with MATCH.",
+    "citations": [
+     {
+      "cite": "§2002:16.1.2.1 GR1",
+      "quote": "the FactoryObject method determines the class of the object and returns a reference to the factory object associated with that class",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-25",
+    "verdict": "UPHELD",
+    "reason": "Color number: 2002's own licence verified in its text: §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, B.3 item 1 (and item 2 for colors) lists the screen facilities, and the B.1 preamble withdraws the item; 3.1.5's compile-time warning and documented absence are met by COBOL1560 at --std 2002 (probe-screen.log) and docs/CONFORMANCE.md. The item reaches no 2002 facility outside the screen section and screen ACCEPT/DISPLAY.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The rendition of the monochromatic, polychromatic or other attributes specified by the following clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-36",
+    "verdict": "UPHELD",
+    "reason": "CRT status 9xxx: 2002's own licence verified in its text: §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, B.3 item 1 (and item 2 for colors) lists the screen facilities, and the B.1 preamble withdraws the item; 3.1.5's compile-time warning and documented absence are met by COBOL1560 at --std 2002 (probe-screen.log) and docs/CONFORMANCE.md. The item reaches no 2002 facility outside the screen section and screen ACCEPT/DISPLAY.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-37",
+    "verdict": "UPHELD",
+    "reason": "Cursor: 2002's own licence verified in its text: §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, B.3 item 1 (and item 2 for colors) lists the screen facilities, and the B.1 preamble withdraws the item; 3.1.5's compile-time warning and documented absence are met by COBOL1560 at --std 2002 (probe-screen.log) and docs/CONFORMANCE.md. The item reaches no 2002 facility outside the screen section and screen ACCEPT/DISPLAY.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-70",
+    "verdict": "UPHELD",
+    "reason": "Function keys: 2002's own licence verified in its text: §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, B.3 item 1 (and item 2 for colors) lists the screen facilities, and the B.1 preamble withdraws the item; 3.1.5's compile-time warning and documented absence are met by COBOL1560 at --std 2002 (probe-screen.log) and docs/CONFORMANCE.md. The item reaches no 2002 facility outside the screen section and screen ACCEPT/DISPLAY.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-38",
+    "verdict": "UPHELD",
+    "reason": "§2002:8.5.1's sentence equals 2023's minus the other-standards exception; every 2002 usage (BIT, boolean DISPLAY/NATIONAL, FLOAT-SHORT/LONG/EXTENDED, the pointers, OBJECT REFERENCE, INDEX, BINARY-*) has a fixed representation in DOC-A.1-46 (NATIONAL's two bytes per position also covers boolean-national, present in both editions). CD records use the same usages. No 2002-only usage found.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.1",
+      "quote": "Each implementor shall provide a complete specification of the possible representations",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-47",
+    "verdict": "UPHELD",
+    "reason": "§2002:8.13 and §2023:8.13 compared line by line: same 13-item list, same signature sentence, same two mechanism sentences; the options are CLI-level and the reader probed them at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.13",
+      "quote": "any other information that the implementor requires",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-48",
+    "verdict": "UPHELD",
+    "reason": "Same 'any other information' dash in both; the reader's documentation lead (CompilerVersion/Edition/HasSignatures unlisted in DOC-A.1-67) is edition-neutral.",
+    "citations": [
+     {
+      "cite": "§2002:8.13",
+      "quote": "any other information that the implementor requires",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-59",
+    "verdict": "UPHELD",
+    "reason": "§9.1.6 compared: only the list of other attributes differs (2002 padding character; 2023 SUPPRESS WHEN); the sharing sentence is identical and the witness runs at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:9.1.6",
+      "quote": "The implementor shall specify whether the ability to share a physical file is a fixed file attribute",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-91",
+    "verdict": "UPHELD",
+    "reason": "§2002:8.2 read whole against §2023:8.2.1: same table, same SET USER-DEFAULT / SYSTEM-DEFAULT / locale-name semantics (including setting the user default by SET), same non-COBOL switch sentence; 'setting the system default locale from COBOL is not provided' is a NOTE in 2002 and normative in 2023, and EC-LOCALE-MISSING/-INVALID and the national-collation sentence are already in 2002. Nothing 2002 requires is missing from 2023.",
+    "citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "The SET statement provides the capability of establishing any locale as the current runtime locale",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-92",
+    "verdict": "UPHELD",
+    "reason": "§2002:8.2 read whole against §2023:8.2.1: same table, same SET USER-DEFAULT / SYSTEM-DEFAULT / locale-name semantics (including setting the user default by SET), same non-COBOL switch sentence; 'setting the system default locale from COBOL is not provided' is a NOTE in 2002 and normative in 2023, and EC-LOCALE-MISSING/-INVALID and the national-collation sentence are already in 2002. Nothing 2002 requires is missing from 2023. The POSIX reference changes but both texts admit any logically-equivalent implementation.",
+    "citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "The format and implementation of locales may differ from ISO/IEC 9945-2:1993 provided that logically-equivalent functionality is supported",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-93",
+    "verdict": "UPHELD",
+    "reason": "§2002:8.2 read whole against §2023:8.2.1: same table, same SET USER-DEFAULT / SYSTEM-DEFAULT / locale-name semantics (including setting the user default by SET), same non-COBOL switch sentence; 'setting the system default locale from COBOL is not provided' is a NOTE in 2002 and normative in 2023, and EC-LOCALE-MISSING/-INVALID and the national-collation sentence are already in 2002. Nothing 2002 requires is missing from 2023.",
+    "citations": [
+     {
+      "cite": "§2002:8.2",
+      "quote": "It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "e4de3dd85b5b9ce5adff0d3c621baba19b8c39f75ac4a5da9dccf3a0d6e26ad1",
+  "read": "9dcc06a5ba08ec666563c9cfda1f8abab311a75b391c5545d0132d669248ef38",
+  "refute": "5645ad7252e186ad4d9ea2a4d6d040539b9fc77cf2900bf182c70687c06b6b4f"
+ }
+}

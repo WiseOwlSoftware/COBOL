@@ -1,0 +1,1951 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-06 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-06",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-8.8.3.3-3",
+   "2002-SR-8.8.4.2.4.2-1",
+   "2002-SR-10.5.2-2",
+   "2002-GR-10.5.3-1",
+   "2002-SR-10.6.2-1",
+   "2002-SR-10.6.2-5",
+   "2002-SR-10.6.2-6",
+   "2002-SR-10.6.2-7",
+   "2002-SR-10.6.2-8",
+   "2002-SR-10.6.2-9",
+   "2002-GR-10.6.3-1",
+   "2002-SR-11.2.2-6",
+   "2002-SR-11.2.2-8",
+   "2002-GR-11.2.3-5",
+   "2002-SR-11.3.2-2",
+   "2002-GR-11.3.3-1",
+   "2002-SR-11.5.2-5",
+   "2002-GR-11.5.3-2",
+   "2002-SR-11.6.2-2",
+   "2002-SR-11.6.2-8",
+   "2002-GR-11.6.3-1",
+   "2002-GR-11.6.3-2",
+   "2002-GR-11.6.3-3",
+   "2002-GR-11.6.3-4",
+   "2002-GR-11.6.3-5"
+  ],
+  "flags": {
+   "2002-GR-8.8.3.3-3": {
+    "band-lacks-2002": "bands ['2023']"
+   },
+   "2002-SR-10.5.2-2": {
+    "changed-definition-term": "program prototype definition"
+   },
+   "2002-GR-10.5.3-1": {
+    "changed-definition-term": "program prototype definition",
+    "cross-reference": "8.13"
+   },
+   "2002-SR-10.6.2-1": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-GR-10.6.3-1": {
+    "changed-definition-term": "source unit"
+   },
+   "2002-SR-11.2.2-8": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-11.2.3-5": {
+    "cross-reference": "9.3.12"
+   },
+   "2002-GR-11.3.3-1": {
+    "cross-reference": "9.3.11"
+   },
+   "2002-GR-11.5.3-2": {
+    "cross-reference": "9.3.10"
+   },
+   "2002-GR-11.6.3-1": {
+    "not-in-2014": "normalized text not found in specs/ISO_COBOL_2014.md"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-06",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe",
+  "probe-root": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/",
+  "suite-runs-at-2002": "I compiled and ran these at --std 2002 with the pinned compiler, and each matched its .out: pb894_program_prototype_2002, pb988_end_markers, pb1505_final_method_through_intermediates, pb759_parameterized_class, oo_implements_repeated, pb1502_interface_inherits_legal, l1p5_interface_inherits_multiple, oo_property_methods, oo_override_final, oo_hello, literal_concat, and l1c08_end_marker_closes_unit (at 85 and at 2002). Each of these refusal tests gave its expected diagnostic at --std 2002: pb1391-abbrev-* (4), pb894-program-prototype-signature, l1c09-factory-implements-nonconforming-method, pb1502-interface-inherits-conflicting-prototypes, l1m7-method-prototype-override, l1c18-method-prototype-final, oo-inherits-same-base-twice, pb988-end-* (7). The programs were run from E:/COBOL/conformance-suite and their outputs are under probes-q-06/suite/.",
+  "defects": [
+   {
+    "id": "D1",
+    "summary": "At --std 2002, the compiler refuses multiple class inheritance (an INHERITS clause of CLASS-ID that names two or more distinct classes) with COBOL0849. The diagnostic cites the 2023 optional-element licence (§2023:4.2.7, Annex A.4.10 item 1). The 2002 standard has no such licence. Its 3.1 makes only Annex A, the communications facility, optional, and B.3 lists no OO item. 2002 11.2.1 admits { class-name-2 } ..., and 9.3.9 says a subclass inherits from one or more classes.",
+    "program": "probes-q-06/mi/diamond.cob: Q6DA defines M1 FINAL; Q6DB and Q6DC each INHERIT FROM Q6DA; Q6DD INHERITS FROM Q6DB Q6DC; the main program invokes D \"M1\". Also probes-q-06/mi/mi_override.cob (Q6MD INHERITS FROM Q6MB Q6MC with METHOD-ID. MB OVERRIDE).",
+    "expected": "Accepted. The program runs and prints A-M1-FINAL. §2002:11.2.2 SR6: 'If the same method is inherited from one superclass through two or more intermediate superclasses, it may be specified with the FINAL clause' (OK). §2002:9.3.9: 'inherits from one or more classes, known as superclasses' (OK). §2002:3.1: 'shall provide the normative elements specified in 6, Reference format through 16, Standard classes' (OK).",
+    "observed": "diamond.cob(47,42): error COBOL0849: class 'Q6DD': INHERITS FROM 2 base classes (Q6DB, Q6DC): Multiple inheritance ... is an OPTIONAL element (§2023:4.2.7; Annex A.4.10 item 1) whose support WiseOwl COBOL does not claim ... exit 65. The same refusal occurs at --std 2023, where it is licensed. mi_override.cob gives the same COBOL0849.",
+    "rows-reached": [
+     "2002-SR-11.2.2-6",
+     "2002-SR-11.2.2-8",
+     "2002-GR-11.6.3-2",
+     "2002-GR-11.6.3-3 (only the refusal's reason; the outcome there is correct)"
+    ]
+   }
+  ],
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.8.3.3-3",
+    "to": [
+     "GR-8.8.3.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "8.8.3 Concatenation expressions",
+    "clause-2023": "8.8.3 Concatenation expressions",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a concatenation expression in every position where 2002 admits a literal of the same class (alphanumeric, national, boolean): VALUE clauses (working-storage, local-storage, condition-names), procedure-statement operands, the ASSIGN literal, CALL literal",
+     "the VALUE clause of a record entry under a CD in the communication section (2002 13.16.61.3 GR4 and Annex A), a position 2002 has and 2023 does not"
+    ],
+    "evidence-2002": {
+     "ordinary literal positions": "covered by literal_concat (accept [2002]), run now at --std 2002: MATCH",
+     "ASSIGN and CALL literal slots": "covered by probes-q-06/concat/assign.cob at --std 2002 (R=ABCD, IN-SUB!). pb1078 runs at 2023 only.",
+     "communication-section VALUE": "covered by probes-q-06/concat/cd.cob at --std 2002 (CDQ=QUEUE1, the same as the plain-literal control cd2.cob). The 2023 row does not show it."
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.3 GR3",
+      "quote": "may be used anywhere a literal of that class may be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.3 GR3",
+      "quote": "may be used anywhere a literal of that class may be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format and SR1 match. SR2 to SR4 differ (160 positions in 2002, 8,191 in 2023), but those are separate rules. GR2 in 2023 adds a zero-length case. GR3's 'anywhere a literal of that class may be used' reaches every 2002 literal position. One of those positions is the VALUE clause of a communication-section record entry, which 2023 lacks. The compiler supports the CD at --std 2002 (it warns COBOL0903) and folds the concatenation there correctly. The 2023 row's evidence does not cover that position, and the row's band is '2023' only.",
+    "needs": "Its own verdict: the compiler at --std 2002 accepts a concatenation expression as the VALUE literal of a CD record entry and gives it the concatenated value (probes-q-06/concat/cd.cob). Also, the target row's band omits 2002 even though the rule is word-identical there.",
+    "compiler-at-2002": "correct (probes-q-06/concat/cd.cob, assign.cob)",
+    "flags-answered": [
+     "band-lacks-2002 (bands ['2023']): the target row is banded 2023 only, but the 2002 rule is word-identical. Its witness literal_concat is accept [2002] and runs clean at 2002. pb1078 (ASSIGN) is 2023-only, so the ASSIGN slot comes from probe assign.cob. This flag does not change the scope; it moves the evidence to the probes."
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/concat/cd.cob",
+    "widening": "2023 raises the length limits (separate SRs) and adds zero-length literals"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.2.4.2-1",
+    "to": [
+     "SR-8.8.4.12.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.2.4 Abbreviated combined relation conditions",
+    "clause-2023": "8.8.4.12 Abbreviated combined relation conditions",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relation-condition-1 of an abbreviated combined relation condition (connectives AND and OR) in any conditional expression; 'boolean relation condition' means a relation with operands of class boolean"
+    ],
+    "evidence-2002": {
+     "refusal": "covered by the 4 pb1391-abbrev-* refusal tests (refuse-at includes 2002), run now at 2002: each gives COBOL2723. Also probes-q-06/abbrev/abbrev.cob is refused.",
+     "full statement accepted": "covered by probes-q-06/abbrev/full.cob at 2002 (FULL-OK). pb1391_boolean_relations_stated_in_full fails at 2002 only because it uses <>, which 2002 does not have."
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.3 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "The definition of a boolean relation condition is the same in both editions. The 2002 format has only AND and OR and lets NOT precede a simple operator; 2023 adds XOR and EXCLUSIVE-OR. Neither difference changes what relation-condition-1 may be. The rule cannot reach a CD entry or a debugging line.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/abbrev/full.cob",
+    "widening": "2023 adds the XOR and EXCLUSIVE-OR connectives",
+    "flags-answered": {
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "Read §2002:8.8.2 (a boolean expression: a boolean identifier, boolean literal, ZERO, ALL boolean literal, B-NOT / binary boolean operators, parentheses), §2002:8.8.4.1.1 (a relation 'involving operands of class boolean is a boolean relation condition'; format 2 is boolean-expression-1 [NOT] =/EQUAL boolean-expression-2) and §2002:8.8.4.2.4 (format: AND/OR only, NOT; SR1-SR3). The rule's term is defined the same way, and the scope includes a boolean-expression subject: the suite's three refusal cases (boolean identifier, boolean literal, and B1 B-AND B2 as relation-condition-1) each draw COBOL2723 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/abbrev.2002.txt; the <> case also draws COBOL0900 for <>, a 2014 operator, and still COBOL2723). No change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "A boolean expression may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/abbrev.2002.txt"
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-2",
+    "to": [
+     "SR-10.6.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.5 COBOL compilation group",
+    "clause-2023": "10.6 COBOL compilation group",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a program definition and a program prototype definition with the same externalized name in one compilation group; their signatures, as defined in 2002 8.13"
+    ],
+    "evidence-2002": {
+     "mismatch refused": "covered by pb894-program-prototype-signature (refuse-at 2002), run now: COBOL1513",
+     "match accepted": "covered by pb894_program_prototype_2002 (accept [2002]), run now: MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR2",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR2",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "expected to be received by a particular subprogram",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.148",
+      "quote": "expected to be received by a particular called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "This information about a source unit, excluding the externalized name of the source unit, is called its signature",
+      "check": "OK"
+     }
+    ],
+    "reason": "The formats match. The definition of signature (8.13) lists the same items in both editions. The 2002 SR5 list of prototype restrictions is narrower than 2023's c), but that is a separate rule.",
+    "flags-answered": {
+     "definition-changed: program prototype definition": "§2002:4 (4.153) 'expected to be received by a particular subprogram' vs §2023:3.148 'a particular called program': the same PROGRAM-ID ... IS PROTOTYPE element; the rule's scope (a program definition and a program prototype definition of the same externalized name, signatures per §2002:8.13) does not change and the reader's 2002 evidence stands."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'program prototype definition': 2002 says 'subprogram' where 2023 says 'called program'. This is a wording change only; it does not change the rule's scope or its evidence."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A definition that specifies the rules governing the class of the parameters expected to be received by a particular subprogram",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-10.5.3-1",
+    "to": [
+     "GR-10.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.5 COBOL compilation group",
+    "clause-2023": "10.6 COBOL compilation group",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "compiling a program prototype alone publishes its signature for a later compilation",
+     "compiling a function prototype alone does the same",
+     "the user's update-repository switch (8.13)"
+    ],
+    "evidence-2002": {
+     "program prototype": "covered by probes-q-06/repo/R6P.cob at 2002: the caller R6CX is refused (COBOL1688, PIC X(10) vs 9(4)) and R6CA binds",
+     "function prototype": "covered by probes-q-06/repo/R6F.cob plus R6FM at 2002: binds with update on; COBOL5968 with --repository-update off",
+     "note": "the twin's C# tests (ExternalRepositoryResolutionTests) compile at DialectLevel 2014, so the evidence at 2002 comes from these probes"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.5.3 GR1",
+      "quote": "generates information required for the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.3 GR1",
+      "quote": "generates information required for the external repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "This information about a source unit, excluding the externalized name of the source unit, is called its signature",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 text of 8.13 lists the same information items, the same signature definition and the same two implementor mechanisms as 2023. The only change is the pointer to REPOSITORY (12.2.7 in 2002, 12.3.8 in 2023).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/repo/",
+    "widening": null,
+    "flags-answered-reader": [
+     "changed-definition-term 'program prototype definition': a wording change only (see 2002-SR-10.5.2-2).",
+     "cross-reference 8.13: I read it in 2002. The content matches 2023, so the scope does not change."
+    ],
+    "flags-answered": {
+     "cross-reference: 8.13": "Read §2002:8.13 whole: the same thirteen information items as §2023:8.13, ending 'any other information that the implementor requires', the same signature definition and the same two mechanism sentences (update; flag differences). 2002 adds an opening sentence naming the source units the repository holds and points at 12.2.7 where 2023 points at 12.3.8; neither changes what compiling a prototype must publish.",
+     "definition-changed: program prototype definition": "2002: '... expected to be received by a particular subprogram ...' (§2002:4); 2023: '... by a particular called program ...' (§2023:3.148). 2002 never defines 'subprogram' and uses it for a called program, so the same definitions are prototypes in both editions and the rule's scope is unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:10.5.3 GR1",
+      "quote": "generates information required for the external repository, as specified in 8.13, External repository",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.13",
+      "quote": "This information about a source unit, excluding the externalized name of the source unit, is called its signature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A definition that specifies the rules governing the class of the parameters expected to be received by a particular subprogram",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.148",
+      "quote": "definition that specifies the rules governing the class of the parameters expected to be received by a particular called program",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-1",
+    "to": [
+     "SR-10.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every source unit (program, function, class, factory, object, method, interface, and prototypes) that contains, is contained in, or precedes another source unit"
+    ],
+    "evidence-2002": {
+     "missing marker on a container": "covered by pb988-end-program-missing-container (refuse-at 2002), run now",
+     "missing marker on a preceding unit": "covered by pb988-end-program-missing-precedes (refuse-at 2002), run now",
+     "accepted": "covered by pb988_end_markers (accept [2002]), run now: MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR1",
+      "quote": "An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR1",
+      "quote": "An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker",
+      "check": "OK"
+     }
+    ],
+    "reason": "The end-marker formats are identical apart from the rename class-name to object-class-name. The 2002 definition of source unit says what 2023's says, with containment stated inline where 2023 puts it in a note.",
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. 'contains, is contained in, or precedes another source unit' reaches the same units. The scope and the evidence do not change."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': the 2002 text includes contained source units in the definition, and 2023 says the same in Note 1. The scope does not change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-5",
+    "to": [
+     "SR-10.7.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END METHOD method-name-1 for a method definition or method prototype; method-name-1 omitted for a GET or SET PROPERTY method"
+    ],
+    "evidence-2002": {
+     "mismatch": "covered by pb988-end-method-interface-mismatch (refuse-at 2002), run now",
+     "property omits the name": "covered by pb988-end-method-names-property-method (refuse-at 2002), run now",
+     "legal": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR5",
+      "quote": "If the PROPERTY phrase is specified in the METHOD-ID paragraph, method-name-1 shall be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR5",
+      "quote": "If the PROPERTY phrase is specified in the METHOD-ID paragraph, method-name-1 shall be omitted",
+      "check": "OK"
+     }
+    ],
+    "reason": "The METHOD-ID formats are identical in both editions, including GET and SET PROPERTY.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: property": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; the rule turns on the PROPERTY phrase of METHOD-ID, identical in both; no change.",
+     "pending-clause: §2002:9.3.5 (changed), §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "Read §2002:9.3.5 (binding by name, no resolution signature), 14.6.4 and 14.6.6 (size error, arithmetic). END METHOD method-name-1 must match the METHOD-ID name and is omitted for a PROPERTY method; it matched on 'method' and 'corresponding METHOD-ID' and rests on neither binding nor arithmetic. No change; pb988 cases at 2002 stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "If a method is found, that method is bound; otherwise, the EC-OO-METHOD exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "The size error condition may occur as a result of the execution of an ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-6",
+    "to": [
+     "SR-10.7.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END INTERFACE interface-name-1 against the INTERFACE-ID name"
+    ],
+    "evidence-2002": {
+     "mismatch": "covered by probes-q-06/oo/endintf.cob at 2002: COBOL2793 (the twin's OoSpineTests run at the default edition)",
+     "legal": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR6",
+      "quote": "Interface-name-1 shall be identical to the interface-name declared",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR6",
+      "quote": "Interface-name-1 shall be identical to the interface-name declared",
+      "check": "OK"
+     }
+    ],
+    "reason": "The INTERFACE-ID formats are identical in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/oo/endintf.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding INTERFACE-ID paragraph' that the end marker closes), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:10.6.2 SR6",
+      "quote": "declared in the corresponding INTERFACE-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-7",
+    "to": [
+     "SR-10.7.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END FUNCTION user-function-name-1 against the FUNCTION-ID name (format 1)"
+    ],
+    "evidence-2002": {
+     "mismatch": "covered by pb988-end-function-name-mismatch (refuse-at 2002), run now",
+     "legal": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR7",
+      "quote": "User-function-name-1 shall be identical to the user-function-name declared",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR7",
+      "quote": "User-function-name-1 shall be identical to the user-function-name declared",
+      "check": "OK"
+     }
+    ],
+    "reason": "FUNCTION-ID format 1 is identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding FUNCTION-ID paragraph' that the end marker closes), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-8",
+    "to": [
+     "SR-10.7.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END PROGRAM program-prototype-name-1 against PROGRAM-ID ... IS PROTOTYPE"
+    ],
+    "evidence-2002": {
+     "mismatch": "covered by pb988-end-program-prototype-name-mismatch (refuse-at 2002), run now",
+     "legal": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR8",
+      "quote": "Program-prototype-name-1 shall be identical to the program-prototype-name declared",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR8",
+      "quote": "Program-prototype-name-1 shall be identical to the program-prototype-name declared",
+      "check": "OK"
+     }
+    ],
+    "reason": "The program-prototype format in 10.5.1 (2002) is the same as in 10.6.1 (2023).",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding PROGRAM-ID paragraph' that the end marker closes), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-9",
+    "to": [
+     "SR-10.7.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "END FUNCTION function-prototype-name-1 against FUNCTION-ID ... IS PROTOTYPE"
+    ],
+    "evidence-2002": {
+     "mismatch": "covered by pb988-end-function-prototype-name-mismatch (refuse-at 2002), run now",
+     "legal": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR9",
+      "quote": "Function-prototype-name-1 shall be identical to the function-prototype-name declared",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR9",
+      "quote": "Function-prototype-name-1 shall be identical to the function-prototype-name declared",
+      "check": "OK"
+     }
+    ],
+    "reason": "FUNCTION-ID format 2 is identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding FUNCTION-ID paragraph' that the end marker closes), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-GR-10.6.3-1",
+    "to": [
+     "GR-10.7.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6 End markers",
+    "clause-2023": "10.7 End markers",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "each of the nine end-marker forms ends its source unit"
+    ],
+    "evidence-2002": {
+     "closes unit": "covered by l1c08_end_marker_closes_unit, run now at --std 2002 and at 85: MATCH",
+     "all forms": "covered by pb988_end_markers at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:10.6.3 GR1",
+      "quote": "An end marker indicates the end of the specified source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.4 GR1",
+      "quote": "An end marker indicates the end of the specified source unit",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format and the definition of source unit are the same in both editions.",
+    "flags-answered": {
+     "definition-changed: source unit": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. Each of the nine end markers ends the same unit, and l1c08 and pb988 run clean at --std 2002. The scope and the evidence do not change."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term 'source unit': no change in scope (see 2002-SR-10.6.2-1)."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A sequence of statements beginning with an identification division and finishing with an end marker or the end of the compilation group, including any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.165",
+      "quote": "Any source units contained within a source unit are part of the containing source unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-6",
+    "to": [
+     "SR-11.3.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.2 CLASS-ID paragraph",
+    "clause-2023": "11.3 CLASS-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "first sentence: a class that inherits two or more different same-named methods (possible only with multiple class inheritance, which 2002 requires); none of them may be FINAL",
+     "second sentence: the same FINAL method inherited from one superclass through two or more intermediate superclasses (the diamond: 2002 Annex informative text) is legal",
+     "the single-inheritance chain case"
+    ],
+    "evidence-2002": {
+     "chain": "covered by pb1505_final_method_through_intermediates at 2002, MATCH",
+     "first sentence": "not shown. probes-q-06/mi/mi_two_final.cob is refused, but by COBOL0849 (multiple inheritance declined), not by this rule",
+     "diamond": "not shown. probes-q-06/mi/diamond.cob is a LEGAL 2002 program, and the compiler refuses it with COBOL0849 at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR6",
+      "quote": "If the same method is inherited from one superclass through two or more intermediate superclasses, it may be specified with the FINAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR6",
+      "quote": "If two or more different methods with the same name are inherited, none of them may be specified with the FINAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes, known as superclasses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 row's evidence rests on the claim that the first sentence is unsatisfiable because multiple class inheritance is declined under the 2023 optional item A.4.10. 2002 has no such optional item: 3.1 makes only Annex A optional, and B.3 lists no OO element. So in 2002 both sentences govern multiple-inheritance classes, and the compiler refuses every such class at --std 2002. That refusal is a compiler defect (D1). This is a fifth cause: the edition's optional-feature licence differs.",
+    "needs": "Its own verdict. At --std 2002 the compiler refuses the legal diamond (probes-q-06/mi/diamond.cob, COBOL0849) and refuses the first-sentence violation only through COBOL0849. A 2002 witness for both sentences under multiple inheritance requires fixing D1.",
+    "compiler-at-2002": "wrong (probes-q-06/mi/diamond.cob; defect D1)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/mi/diamond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-8",
+    "to": [
+     "SR-11.3.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.2 CLASS-ID paragraph",
+    "clause-2023": "11.3 CLASS-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the INHERITS clause of CLASS-ID, which in 2002 admits one or more class-name-2 (multiple inheritance is required); the same name written twice must be refused, and distinct names are legal"
+    ],
+    "evidence-2002": {
+     "duplicate refused": "covered by oo-inherits-same-base-twice (refuse-at 2002), run now with the SR7 message",
+     "distinct names legal": "not shown; the compiler refuses them (probes-q-06/mi/diamond.cob, COBOL0849)"
+    },
+    "licence-2002": "none. §2002:3.1 'An implementation may optionally provide the elements specified in Annex A, Communications facility' (OK) is the only optional licence. The 2002 B.3 processor-dependent list has no OO item.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR8",
+      "quote": "A given class name shall not appear more than once in an INHERITS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR7",
+      "quote": "A given class name shall not appear more than once in an INHERITS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "the optional or processor-dependent language elements for which support is claimed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes, known as superclasses",
+      "check": "OK"
+     }
+    ],
+    "reason": "The target row is DOCUMENTED-NON-SUPPORT under 2023 Annex A.4.10 item 1. 2002 gives no licence to decline multiple class inheritance. The duplicate-name refusal itself works at 2002, but the INHERITS clause this rule governs is refused for every multi-name use.",
+    "needs": "2002 requires multiple class inheritance (INHERITS FROM with two or more distinct class-names); the compiler declines it at --std 2002 with COBOL0849",
+    "compiler-at-2002": "wrong (probes-q-06/mi/diamond.cob; defect D1)",
+    "flags-answered": [
+     "target-not-CONFORMS-OK (DOCUMENTED-NON-SUPPORT): 2002 does not license the non-support. The verdict is DIFFERENT, and the compiler is wrong at 2002."
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/mi/diamond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-5",
+    "to": [
+     "GR-11.3.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2 CLASS-ID paragraph",
+    "clause-2023": "11.3 CLASS-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CLASS-ID ... USING parameter-name-1: a parameterized class, expanded through the REPOSITORY class-specifier EXPANDS (2002 12.2.7)"
+    ],
+    "evidence-2002": {
+     "parameterized class": "covered by pb759_parameterized_class (accept [2002]), run now: MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.2.3 GR5",
+      "quote": "See 9.3.12, Parameterized classes, for details of the behavior of a parameterized class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.4 GR5",
+      "quote": "See 9.3.12, Parameterized classes, for details of the behavior of a parameterized class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.12",
+      "quote": "An expansion of a parameterized class is treated in all respects the same as if it were a class that is not a parameterized class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.12",
+      "quote": "An expansion of a parameterized class is treated in all respects the same as if it were a class that is not a parameterized class",
+      "check": "OK"
+     }
+    ],
+    "reason": "9.3.12 is the same in both editions. 2002 says 'specified in the REPOSITORY paragraph', 2023 says 'in an EXPANDS phrase', and 2002's class-specifier has the same EXPANDS ... USING form. The only other change is the rename to object-class-name.",
+    "flags-answered": {
+     "cross-reference: 9.3.12": "I read §2002:9.3.12. 'An expansion of a parameterized class is treated in all respects the same as if it were a class that is not a parameterized class' is identical. The diff shows only class-name against object-class-name, and 2002's 'specified in the REPOSITORY paragraph' against 2023's 'in an EXPANDS phrase'; the 2002 REPOSITORY class-specifier is where EXPANDS ... USING is written. The behaviour is the same, and pb759 runs at 2002.",
+     "definition-changed: class | of a data item": "The rule's 'class' is the object-orientation class (§2002:4: 'The entity that defines common behavior and implementation for zero, one, or more objects'). The class-of-a-data-item definition does not reach it."
+    },
+    "probe": null,
+    "widening": "2023 adds SR9 (no duplicate parameter-name), a separate rule",
+    "reader-flags-answered": [
+     "cross-reference 9.3.12: I read it in 2002; it says the same, so the scope does not change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.3.12",
+      "quote": "An expansion of a parameterized class is treated in all respects the same as if it were a class that is not a parameterized class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The entity that defines common behavior and implementation for zero, one, or more objects",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.3.2-2",
+    "to": [
+     "SR-11.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.3 FACTORY paragraph",
+    "clause-2023": "11.4 FACTORY paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FACTORY IMPLEMENTS: the factory interface must conform to each implemented interface under 2002 9.3.7.1.2 (ANY LENGTH, BWZ, JUSTIFIED, PICTURE, SIGN, USAGE, object-reference rules, RETURNING, OPTIONAL, RAISING, entry convention)"
+    ],
+    "evidence-2002": {
+     "nonconforming refused": "covered by l1c09-factory-implements-nonconforming-method (refuse-at 2002), run now",
+     "conforming accepted": "covered by oo_implements_repeated at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.3.2 SR2",
+      "quote": "the factory interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.3 SR2",
+      "quote": "the factory interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "has the same ANY LENGTH, BLANK WHEN ZERO, JUSTIFIED, PICTURE, SIGN, and USAGE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.8.2.3",
+      "quote": "has the same ALIGNED, ANY LENGTH, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED, PICTURE, SIGN, and USAGE clauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "Every 2002 conformance condition appears in 2023. 2023 adds only conditions on features 2002 lacks (ALIGNED, DYNAMIC LENGTH, variable-length groups). In 2002 the factory interface can also include methods inherited through multiple inheritance, but that case falls under D1 and not under this conformance check.",
+    "probe": null,
+    "widening": "2023 conformance also compares ALIGNED, DYNAMIC LENGTH and variable-length groups"
+   },
+   {
+    "rule-id": "2002-GR-11.3.3-1",
+    "to": [
+     "GR-11.4.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.3 FACTORY paragraph",
+    "clause-2023": "11.4 FACTORY paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FACTORY IMPLEMENTS interface-name-1 ...: the factory object implements those interfaces per 2002 9.3.11"
+    ],
+    "evidence-2002": {
+     "implements": "covered by oo_implements_repeated (accept [2002]), run now: MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.3.3 GR1",
+      "quote": "implemented by the factory object of the containing class according to 9.3.11, Interface implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.4 GR1",
+      "quote": "implemented by the factory object of the containing class according to 9.3.11, Interface implementation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications defined for the implemented interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.11",
+      "quote": "The implementing class shall implement all the method specifications defined for the implemented interface definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format and 9.3.11 are word-identical in both editions.",
+    "flags-answered": [
+     "cross-reference 9.3.11: I read it in 2002; it is identical to 2023, so the scope does not change."
+    ],
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-5",
+    "to": [
+     "SR-11.6.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5 INTERFACE-ID paragraph",
+    "clause-2023": "11.6 INTERFACE-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an interface that inherits a method-name from more than one interface (multiple interface inheritance; supported) must conform to all inherited interfaces under 9.3.7.1.2"
+    ],
+    "evidence-2002": {
+     "conflict refused": "covered by pb1502-interface-inherits-conflicting-prototypes (refuse-at 2002), run now: COBOL2762",
+     "legal": "covered by pb1502_interface_inherits_legal and l1p5_interface_inherits_multiple at 2002, MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.5.2 SR5",
+      "quote": "this interface conforms to all inherited interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.3 SR5",
+      "quote": "this interface conforms to all inherited interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.2",
+      "quote": "has the same ANY LENGTH, BLANK WHEN ZERO, JUSTIFIED, PICTURE, SIGN, and USAGE clauses",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format is identical. The compiler implements multiple interface inheritance, unlike multiple class inheritance. Conformance in 2023 is a superset of 2002's (see 2002-SR-11.3.2-2).",
+    "probe": null,
+    "widening": "2023 adds SR6 and SR7 (no duplicate names) and extends conformance to ALIGNED and DYNAMIC LENGTH",
+    "flags-answered": {
+     "definition-changed: interface | of an object": "§2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged. SR5's 'this interface conforms' uses the construct and the conformance relation of §2002:9.3.7.1.2, which the reader compared item by item.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5 (binding by name, no overloading in 2002). SR5 concerns a method-name inherited from several interfaces and their conformance (§2002:9.3.7.1.2), not the binding of an invocation; with one prototype per name the requirement is the same, and the 2002 runs (COBOL2762 refusal, MATCH legal) show it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.5.2 SR5",
+      "quote": "this interface conforms to all inherited interfaces",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-2",
+    "to": [
+     "GR-11.6.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5 INTERFACE-ID paragraph",
+    "clause-2023": "11.6 INTERFACE-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INTERFACE-ID INHERITS FROM interface-name-2 ...: the inheriting interface has all inherited method specifications per 9.3.10"
+    ],
+    "evidence-2002": {
+     "multiple inheritance of interfaces": "covered by l1p5_interface_inherits_multiple (accept [2002]), run now: MATCH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.5.3 GR2",
+      "quote": "inherited by interface-name-1 according to 9.3.10, Interface inheritance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.4 GR2",
+      "quote": "inherited by interface-name-1 according to 9.3.10, Interface inheritance",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.10",
+      "quote": "The inheriting interface shall always conform to each of the inherited interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.10",
+      "quote": "The inheriting interface shall always conform to each of the inherited interfaces",
+      "check": "OK"
+     }
+    ],
+    "reason": "9.3.10 is word-identical in both editions, and so is the format.",
+    "flags-answered": {
+     "cross-reference: 9.3.10": "I read §2002:9.3.10. A word diff with §2023:9.3.10 is empty apart from the heading level ('The inheriting interface shall always conform to each of the inherited interfaces'), so the scope is unchanged.",
+     "definition-changed: interface | of an object": "§2002:4 defines interface of an object as 'The names of all the methods defined for the object, including inherited methods', with parameters, returned value and exceptions. 2023 differs only in 'may be raised' against 'can be raised' and in layout. The rule names interfaces as language constructs, and the conformance they imply is the same, so the scope does not change."
+    },
+    "probe": null,
+    "widening": null,
+    "reader-flags-answered": [
+     "cross-reference 9.3.10: I read it in 2002; it is identical, so the scope does not change."
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:9.3.10",
+      "quote": "The inheriting interface shall always conform to each of the inherited interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The names of all the methods defined for the object, including inherited methods",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-2",
+    "to": [
+     "SR-11.7.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OVERRIDE on a METHOD-ID inside an interface definition (a method prototype)"
+    ],
+    "evidence-2002": {
+     "refused": "covered by l1m7-method-prototype-override (refuse-at 2002), run now: COBOL4212"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR2",
+      "quote": "The OVERRIDE phrase shall not be specified in a method prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR2",
+      "quote": "The OVERRIDE phrase shall not be specified in a method prototype",
+      "check": "OK"
+     }
+    ],
+    "reason": "The METHOD-ID format is identical in both editions, and 'method prototype' means the same thing (2002 10.5.1 NOTE).",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. The rule speaks of a method prototype (§2002:9.3.6: 'Method definitions within an interface definition define method prototypes'), unchanged, so the programs it governs (OVERRIDE on a METHOD-ID in an interface) are the same.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 (Method invocation) binds an invocation by method-name up the inheritance hierarchy at runtime; 2023 renumbers it 9.3.6 and adds parametric polymorphism (signature resolution, 2023 9.3.5). The rule is a compile-time prohibition of OVERRIDE in a method prototype and rests on no invocation or resolution text, so the 2002 difference does not reach it; the refusal at --std 2002 stands as evidence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "The method implementation that is bound to the invocation depends on the class, at runtime, of the object on which the method is invoked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.6",
+      "quote": "Method definitions within an interface definition define method prototypes",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-8",
+    "to": [
+     "SR-11.7.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FINAL on a METHOD-ID inside an interface definition"
+    ],
+    "evidence-2002": {
+     "refused": "covered by l1c18-method-prototype-final (refuse-at 2002), run now: COBOL4212"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR8",
+      "quote": "The FINAL clause shall not be specified in a method prototype",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR8",
+      "quote": "The FINAL clause shall not be specified in a method prototype",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format is identical in both editions.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 defines method as 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 drops the entry and describes methods at §2023:9.3.4, whose text is word for word §2002:9.3.4. The rule speaks of a method prototype (§2002:9.3.6: 'Method definitions within an interface definition define method prototypes'), unchanged, so the programs it governs (FINAL on a METHOD-ID in an interface) are the same.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 (Method invocation) binds an invocation by method-name up the inheritance hierarchy at runtime; 2023 renumbers it 9.3.6 and adds parametric polymorphism (signature resolution, 2023 9.3.5). The rule is a compile-time prohibition of FINAL in a method prototype and rests on no invocation or resolution text, so the 2002 difference does not reach it; the refusal at --std 2002 stands as evidence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.4",
+      "quote": "The procedural code in an object is placed in methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "The method implementation that is bound to the invocation depends on the class, at runtime, of the object on which the method is invoked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.6",
+      "quote": "Method definitions within an interface definition define method prototypes",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-1",
+    "to": [
+     "GR-11.7.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) a GET or SET PROPERTY method gets an implementor-defined name",
+     "b) otherwise the name is method-name-1, and AS literal-1 is the externalized name"
+    ],
+    "evidence-2002": {
+     "property": "covered by oo_property_methods (accept [2002]), run now: MATCH",
+     "AS literal externalized": "covered by probes-q-06/oo/as_name.cob at 2002 (INVOKE O \"Q6MDX\" runs IN-Q6MD). as_name_word.cob shows INVOKE \"Q6MD\" refused (COBOL0825). pb303 fails at 2002 only because it uses FUNCTION MODULE-NAME, which 2002 lacks."
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR1",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR1",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "The format is identical in both editions. 2023 SR1 bans zero-length literals, which 2002 does not have.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/oo/as_name.cob",
+    "widening": null,
+    "flags-answered-reader": [
+     "not-in-2014: the 2014 text does not matter to the 2002 scope. The evidence at 2002 comes from oo_property_methods and the as_name probe."
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 10027 has the same rule split by '## Page 240': page break only. Re-read §2002:11.6.3 GR1: unchanged.",
+     "definition-changed: property": "§2002:4 (4.140) object property: 'A name that may be used to qualify an object reference to get a value from or pass a value to an object'; 2023 says 'can be used'. Same concept; a) still covers GET/SET PROPERTY methods, shown by oo_property_methods at 2002.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) method: 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes methods in 9.3.4 instead. Same entity; GR1 names the method a method definition declares in both.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: 2002 binds by method-name alone ('if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound'); 2023 9.3.6 adds signature matching (overloading). GR1 fixes the name; with one method per name the two resolutions bind the same method, so the witness as_name.cob (INVOKE by the externalized literal at 2002) shows the 2002 behaviour. Overload resolution is not part of GR1."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:11.6.3 GR1",
+      "quote": "If the PROPERTY clause is specified, the name is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-2",
+    "to": [
+     "GR-11.7.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OVERRIDE in a subclass of one superclass, overriding the inherited method of the same NAME (2002 SR3/SR4: by name; there is no parametric polymorphism)",
+     "OVERRIDE in a subclass of two or more superclasses (multiple inheritance, required in 2002)"
+    ],
+    "evidence-2002": {
+     "single inheritance": "covered by oo_override_final (accept [2002]), run now: MATCH. The compiler resolves by method NAME alone (docs/conformance/5/A.4.10.md), which is the 2002 rule.",
+     "multiple inheritance": "not shown; probes-q-06/mi/mi_override.cob is legal 2002 and is refused with COBOL0849"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR2",
+      "quote": "The OVERRIDE phrase indicates that this method overrides the inherited method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR2",
+      "quote": "The OVERRIDE phrase indicates that this method overrides the inherited method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR3",
+      "quote": "there shall be a method with the same name as the method declared by this method definition defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR3",
+      "quote": "there shall be a method with the same method resolution signature as the method declared by this method definition defined in a superclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.5.3",
+      "quote": "Parametric polymorphism is an optional feature in this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "'The inherited method' means the same-named method in 2002 and the method with the same method resolution signature in 2023. Because the compiler's signature is the name alone, the single-inheritance evidence holds at 2002. The 2002 scope also includes overriding in a multiple-inheritance subclass, which the compiler refuses at 2002 (D1).",
+    "needs": "Its own verdict. The compiler at --std 2002 refuses OVERRIDE in a legal multiple-inheritance subclass (probes-q-06/mi/mi_override.cob, COBOL0849). A witness requires fixing D1.",
+    "compiler-at-2002": "wrong (probes-q-06/mi/mi_override.cob; defect D1)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/mi/mi_override.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-3",
+    "to": [
+     "GR-11.7.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a FINAL method may not be overridden (by NAME in 2002) in any subclass, including a subclass with several superclasses and a diamond, where the same FINAL method arriving by two paths is not an override (SR6)"
+    ],
+    "evidence-2002": {
+     "single-inheritance override refused": "covered by probes-q-06/oo/final_override.cob at 2002: COBOL0839 (the twin's OoSpineTests run at the default edition), and by oo_override_final at 2002, MATCH",
+     "multiple-inheritance subclasses": "not shown. The compiler refuses every such subclass with COBOL0849, so no FINAL override is ever accepted, but the legal diamond is also refused (see 2002-SR-11.2.2-6)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR3",
+      "quote": "The FINAL clause indicates that this method shall not be overridden in any subclasses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR3",
+      "quote": "The FINAL clause indicates that this method shall not be overridden in any subclasses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR4",
+      "quote": "no inherited method shall have the same name as the method declared by this method definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 'overridden' is by name, and that is how the compiler resolves, so the single-inheritance evidence holds. 'Any subclasses' in 2002 includes multiple-inheritance subclasses, and the 2023 row does not cover them. For this prohibition alone, the observed outcome at 2002 (refusal) is the required one, even though the reason given (COBOL0849) is wrong.",
+    "needs": "A 2002 witness for a FINAL method under a multiple-inheritance subclass. This depends on D1; the prohibition's outcome is already correct.",
+    "compiler-at-2002": "correct for the prohibition (probes-q-06/oo/final_override.cob, mi/mi_two_final.cob refused); the legal half is wrong under D1, counted at 2002-SR-11.2.2-6",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/oo/final_override.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-4",
+    "to": [
+     "GR-11.7.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an INVOKE of the method on an object of its defining class"
+    ],
+    "evidence-2002": {
+     "invoke": "covered by oo_hello (accept [2002]), run now: MATCH; also probes-q-06/oo/as_name.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR4",
+      "quote": "may be referenced in the invocation of a method for an object of the class in which this method is defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR4",
+      "quote": "may be referenced in the invocation of a method for an object of the class in which this method is defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule names only the defining class, so inheritance and overloading are outside it.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; invocation": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.123) invocation 'The request to execute a named method on a given object' is word for word 2023 3.121.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements.",
+     "pending-clause: §2002:9.3.5 (changed)": "This rule does rest on invocation: read §2002:9.3.5, which binds the method with the invoked method-name defined in the class of the object (2023 9.3.6 adds signature matching). GR4 names only an object of the defining class, where both editions bind the one method of that name; the 2002 witness oo_hello (accept includes 2002, MATCH) shows it, and inheritance and overloading lie outside GR4."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The request to execute a named method on a given object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.3 GR4",
+      "quote": "may be referenced in the invocation of a method for an object of the class in which this method is defined",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-5",
+    "to": [
+     "GR-11.7.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6 METHOD-ID paragraph",
+    "clause-2023": "11.7 METHOD-ID paragraph",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a data-name declared both in the method's data division (local-storage or linkage; 2002 13.4 forbids working-storage in a method) and in the containing object definition"
+    ],
+    "evidence-2002": {
+     "shadowing": "covered by probes-q-06/oo/as_name.cob at 2002: the method SHADOW prints W=METH-W and the method OBJW prints W=OBJ-W (the twin's unit test SymbolTableTests runs below the edition level)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.6.3 GR5",
+      "quote": "The declaration in the containing object definition is inaccessible to this method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.4 GR5",
+      "quote": "The declaration in the containing object definition is inaccessible to this method",
+      "check": "OK"
+     }
+    ],
+    "reason": "The text is identical, and the restriction on working-storage in a method is the same in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-06/oo/as_name.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 'method: A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4 instead of its definitions clause. GR5 governs names declared in a method definition; the set of methods is the same.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 binds a method by name only (\"if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound\"); 2023 9.3.6 adds signature matching (overloading). GR5 is a name-scope rule inside the method body and does not depend on how an invocation is bound; the shadowing probe as_name.cob runs at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "method: A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.6",
+      "quote": "that method is an exact match between the method invocation and the method resolution signature",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-06"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-06",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.8.4.2.4.2-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "The definition of a boolean relation condition and the rules for comparing boolean operands are word-identical in the two editions. The 2002 format's extra '[NOT] simple-relational-operator' arm and 2002 SR3 (NOT NOT) concern the abbreviated objects, not relation-condition-1. The rule cannot reach a CD entry or a debugging line. The reader's probes at 2002 show the refusal and show the full form accepted.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.3 SR1",
+      "quote": "Relation-condition-1 shall not be a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The 8.13 information list that defines a signature is the same, item for item, in both editions. A 2002 program definition may hold a communication section, but a signature covers only parameters, the returning item, exceptions, the entry convention and items like them, and none of these can be a CD. 2002 SR5c allows a prototype fewer SPECIAL-NAMES clauses than 2023 does. That is a narrower rule in 2002, and 2023 conformance implies it."
+   },
+   {
+    "rule-id": "2002-GR-10.5.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "8.13 reads the same in both editions except for the clause number it gives for REPOSITORY. The reader's repository probes ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The end-marker format is identical apart from the rename to object-class-name. The 2002 definition of source unit (4.173) states containment inline. Every kind of source unit in the 2002 compilation-group format exists in 2023. The pb988 refusal tests ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The METHOD-ID formats are identical, including GET/SET PROPERTY and [OVERRIDE] [IS FINAL]. The witnesses ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-6",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The INTERFACE-ID format and its end-marker arm are identical. The reader's endintf.cob probe ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-7",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "FUNCTION-ID format 1 is identical in both editions. The pb988 refusal ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The program-prototype format is identical (2002 10.5.1, 2023 10.6.1)."
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-9",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The function-prototype format is identical."
+   },
+   {
+    "rule-id": "2002-GR-10.6.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The rule is identical and so is the definition of source unit. The witnesses ran at 2002."
+   },
+   {
+    "rule-id": "2002-GR-11.2.3-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "9.3.12 and the clause on conformance for parameterized classes (2002 9.3.7.1.3, 2023 9.3.8.2.4) are word-identical. Where 2002 says 'REPOSITORY paragraph', 2023 says 'EXPANDS phrase', and the 2002 class-specifier has the same EXPANDS form. The 2023 optional list (A.4.10) does not include parameterized classes. pb759 ran at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:9.3.12",
+      "quote": "An expansion of a parameterized class is treated in all respects the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.12",
+      "quote": "An expansion of a parameterized class is treated in all respects the same",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.3.2-2",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "The rule tests whether 'the factory interface of this class' conforms. In 2002 that interface includes inherited methods (9.3.7.1.1), and a 2002 class inherits from 'one or more classes' and has all of their methods (9.3.9). So the 2002 scope includes a class with two or more superclasses whose factory interface, assembled from both, is checked against FACTORY IMPLEMENTS. The 2023 twin's verdict covers single-inheritance classes only, because the compiler declines multiple class inheritance under 2023's optional-element licence (A.4.10 item 1). 2002 has no such licence (the reader's D1). The class is 'other': an optional-element licence that exists only in 2023. My probes: in si_factory_impl.cob the implemented method is inherited from one superclass's factory, and at 2002 it runs and prints FA-FACTORY-SPEAKS. mi_factory_impl.cob is the same program with INHERITS FROM R6FA R6FB, and at 2002 it gets COBOL0849. The reader marked GR-11.6.3-2 and GR-11.6.3-3 DIFFERENT for the same reach. Needs: a 2002 verdict on factory conformance under multiple inheritance, after D1 is fixed.",
+    "citations": [
+     {
+      "cite": "§2002:11.3.2 SR2",
+      "quote": "the factory interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.3 SR2",
+      "quote": "the factory interface of this class conforms to all implemented interfaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7.1.1",
+      "quote": "for each method supported by the object, including inherited methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.8.2.2",
+      "quote": "for each method supported by the object, including inherited methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes, known as superclasses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "The subclass has all the methods defined for the inherited class definition or definitions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.2.1",
+      "quote": "INHERITS FROM { class-name-2 }",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-06/mi_factory_impl.cob (control si_factory_impl.cob; outputs at both editions in refute-q-06/probe-results.txt)"
+   },
+   {
+    "rule-id": "2002-GR-11.3.3-1",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "The rule defers to 9.3.11, which requires that 'the interface of the factory object of the implementing class' conform to the implemented interfaces. In 2002 that interface includes the methods of every superclass (9.3.9, 'one or more classes'). So the 2002 scope includes a multiple-inheritance class whose factory implements an interface through a method from its second superclass. The 2023 evidence, oo_implements_repeated, uses single inheritance and cannot show that case: the compiler declines multiple class inheritance under 2023's licence A.4.10 item 1, which 2002 lacks. The probe pair is the one given for SR-11.3.2-2: single inheritance runs at 2002, and multiple inheritance gets COBOL0849. Needs: a 2002 witness for a multiple-inheritance factory that implements an interface, after D1 is fixed.",
+    "citations": [
+     {
+      "cite": "§2002:11.3.3 GR1",
+      "quote": "implemented by the factory object of the containing class according to 9.3.11",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.4 GR1",
+      "quote": "implemented by the factory object of the containing class according to 9.3.11",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.11",
+      "quote": "The interface of the factory object of the implementing class shall conform to the interfaces to be implemented by the factory object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.11",
+      "quote": "The interface of the factory object of the implementing class shall conform to the interfaces to be implemented by the factory object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes, known as superclasses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-06/mi_factory_impl.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "Multiple interface inheritance is optional in 2023 (A.4.10 item 2), but the compiler implements it, and l1p5 and pb1502 ran at 2002. 2002 conformance condition 10 (entry convention) became the lead sentence of the 2023 text; only its informative NOTE is gone. Every other 2002 condition is in 2023.",
+    "citations": [
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: INTERFACE-ID paragraph, INHERITS phrase",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-11.5.3-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "9.3.10 is identical. Multiple interface inheritance is supported, and its witness ran at 2002."
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "In both editions method prototypes exist only in interface definitions (10.5.1 NOTE), and the METHOD-ID format is identical."
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "As for SR-11.6.2-2."
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The format is identical, and 2002 has no zero-length literal. Both arms are witnessed at 2002."
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-4",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "citations": [],
+    "reason": "The rule names only an object of the defining class, so neither inheritance nor resolution by signature enters into it."
+   },
+   {
+    "rule-id": "2002-GR-11.6.3-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "probe": null,
+    "reason": "I tested whether the rule reaches the communication section. 2002 10.5.2 SR4 bars a communication section only in a method, but Annex A confines the communications facility to program definitions, so no cd-name can be declared in a containing object definition. Names of inherited data items are not visible in the inheriting class (9.3.9).",
+    "citations": [
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility may be used only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section",
+      "check": "OK"
+     }
+    ]
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "cffeb938d987b7c0237d10f49064750a60e087f3a61cff8594a1c87aeb54afad",
+  "read": "7fd39bc0933f2b5a369780a5eb155bb1155a1c4c79c6fd34a657eef688166ba9",
+  "refute": "bb5a880f840095f39e128c3a579666671eb665e0296b3787155156db100670d2"
+ }
+}

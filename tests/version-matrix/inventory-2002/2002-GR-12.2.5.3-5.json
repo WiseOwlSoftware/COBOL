@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-5",
+ "rule-digest": "3832c6395052",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined); national character (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR5's 'character classification' is a locale's LC_CTYPE classification, not one of the dropped entries; the ten cases the reader listed are unchanged. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.1.1 (changed, undecided)",
+    "answer": "Not dependent: GR5 takes the classification from the current locale (§2002:12.2.5.3 GR5), and 8.1.1's differing text (2023's single coded values for figurative constants and editing characters, and the currency prohibition) does not bear on classification; the evidence is runs at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-5": "3832c6395052"
+  }
+ }
+}

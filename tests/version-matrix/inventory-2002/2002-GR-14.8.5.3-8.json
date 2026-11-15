@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.5.3-8",
+ "rule-digest": "feb33d5f235e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.5.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "external data",
+    "answer": "§2002:4 (4.81) external data matches 2023 3.79 but for may/can; the external records a 2002 program can describe (EXTERNAL file and working-storage records, §2002:13.16.20.2 SR1) are a subset of 2023's, and the 2002 run of l1_cancel_external_unchanged covers the working-storage case."
+   }
+  },
+  "source": "lineage-reads-2002/q-25.json",
+  "digests": {
+   "GR-14.9.5.4-8": "feb33d5f235e"
+  }
+ }
+}

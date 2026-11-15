@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c30_stop_run_from_called_program
       *> rules: [GR-14.9.42.4-6]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

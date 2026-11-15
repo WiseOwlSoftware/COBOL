@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-8.4.2.6.3-2",
+ "rule-digest": "973b1b738f29",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.6.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "run unit",
+    "answer": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity'; §2023:3.158 rewords it ('runtime entity ... independent entity'). The same entity; one EXCEPTION-OBJECT per run unit means the same."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule matched only on 'run unit'; one instance of EXCEPTION-OBJECT does not rest on initial state, transfer of control or termination. No change; gl2m2_exception_object_identity at 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "GR-8.4.3.6.4-2": "973b1b738f29"
+  }
+ }
+}

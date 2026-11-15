@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-22",
+ "rule-digest": "14b4d331e670",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.27.4-23"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "sharing mode (newer: 9.1.15)",
+    "answer": "§2002:4 defines sharing mode as 'The state of a file that indicates the mode of file sharing'; 2023 describes the same state in §2023:9.1.15 with the same three standard modes (no other, read only, all other). Same term, same files; no change of scope."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.1.14 (changed, undecided)",
+    "answer": "Read §2002:9.1.14: 'If there is no SHARING phrase on the OPEN statement, the sharing mode is completely determined by the SHARING clause in the file control entry', and the implementor defines the mode when neither is given; §2023:9.1.15 has the same words without 'completely' and adds only file-lock release under APPLY COMMIT (2023-only). GR22 rests on exactly the shared text, so its three arms and the three witnesses at --std 2002 stand."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "GR-14.9.27.4-23": "14b4d331e670"
+  }
+ }
+}

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: da4_function_sending_operand
       *> rules: [SR-14.9.48.3-8, GR-14.9.48.4-3]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

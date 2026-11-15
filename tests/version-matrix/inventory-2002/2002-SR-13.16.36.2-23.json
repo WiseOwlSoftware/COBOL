@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-23",
+ "rule-digest": "adef351a29aa",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.38.3-26"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "2002 defines report as 'A printed output described in the report section and generated from those data descriptions' (§2002:4); 2023 drops the definition and describes reports through the RD and REPORT clause (13.18.46), with the same meaning. The rule is confined to report group description entries of the report section in both editions, so the set of entries it governs is unchanged. Witnesses re-run now at 2002: pb565_report_vertical_repetition and pb565_report_repeating_entry PASS, pb565-multiple-line-with-occurs refused COBOL2199 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-06\\batch-2002.txt)."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR23 is a FORMAT 3 (report) rule on STEP integer-3 (§2002:13.16.36.2 SR23); a CD record has no format 3 OCCURS. No CD reach."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "SR-13.18.38.3-26": "adef351a29aa"
+  }
+ }
+}

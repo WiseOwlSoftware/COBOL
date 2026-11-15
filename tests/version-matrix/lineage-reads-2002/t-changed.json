@@ -1,0 +1,1496 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice t-changed of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "t-changed",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.5.2-2",
+   "2002-GR-14.8.5.3-9",
+   "2002-GR-14.8.6.3-9",
+   "2002-SR-14.8.10.2-1",
+   "2002-GR-14.8.10.3-17",
+   "2002-SR-14.8.13.2-1",
+   "2002-SR-14.8.13.2-6",
+   "2002-SR-14.8.13.2-8",
+   "2002-SR-14.8.13.2-9",
+   "2002-GR-14.8.17.3-1",
+   "2002-SR-14.8.18.2-2",
+   "2002-GR-14.8.21.3-7",
+   "2002-GR-14.8.21.3-8",
+   "2002-SR-14.8.22.2-12",
+   "2002-SR-14.8.22.2-2",
+   "2002-GR-14.8.22.3-7",
+   "2002-SR-14.8.24.2-5",
+   "2002-SR-14.8.24.2-8",
+   "2002-GR-14.8.24.3-5",
+   "2002-SR-14.8.26.2-6",
+   "2002-GR-14.8.26.3-24",
+   "2002-GR-14.8.26.3-25",
+   "2002-GR-14.8.26.3-4",
+   "2002-GR-14.8.26.3-6",
+   "2002-GR-14.8.27.3-9"
+  ],
+  "pointers": {
+   "2002-SR-14.8.5.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.5.3-1",
+    "similarity": 0.758
+   },
+   "2002-GR-14.8.5.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.5.4-9",
+    "similarity": 0.716
+   },
+   "2002-GR-14.8.6.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.6.4-9",
+    "similarity": 0.831
+   },
+   "2002-SR-14.8.10.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.11.3-1",
+    "similarity": 0.887
+   },
+   "2002-GR-14.8.10.3-17": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.11.4-18",
+    "similarity": 0.809
+   },
+   "2002-SR-14.8.13.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.14.3-1",
+    "similarity": 0.856
+   },
+   "2002-SR-14.8.13.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.14.3-6",
+    "similarity": 0.762
+   },
+   "2002-SR-14.8.13.2-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.14.3-7",
+    "similarity": 0.859
+   },
+   "2002-SR-14.8.13.2-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.14.3-7",
+    "similarity": 0.838
+   },
+   "2002-GR-14.8.17.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.18.4-3",
+    "similarity": 0.834
+   },
+   "2002-SR-14.8.18.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.19.3-2",
+    "similarity": 0.793
+   },
+   "2002-GR-14.8.21.3-7": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.22.4-8",
+    "similarity": 0.851
+   },
+   "2002-GR-14.8.21.3-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.22.4-9",
+    "similarity": 0.895
+   },
+   "2002-SR-14.8.22.2-12": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.23.3-12",
+    "similarity": 0.79
+   },
+   "2002-SR-14.8.22.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.23.3-2",
+    "similarity": 0.727
+   },
+   "2002-GR-14.8.22.3-7": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.23.4-7",
+    "similarity": 0.852
+   },
+   "2002-SR-14.8.24.2-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.25.3-6",
+    "similarity": 0.772
+   },
+   "2002-SR-14.8.24.2-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.25.3-10",
+    "similarity": 0.779
+   },
+   "2002-GR-14.8.24.3-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.25.4-7",
+    "similarity": 0.863
+   },
+   "2002-SR-14.8.26.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.27.3-8",
+    "similarity": 0.795
+   },
+   "2002-GR-14.8.26.3-24": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.27.4-2",
+    "similarity": 0.74
+   },
+   "2002-GR-14.8.26.3-25": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.27.4-25",
+    "similarity": 0.765
+   },
+   "2002-GR-14.8.26.3-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.27.4-6",
+    "similarity": 0.885
+   },
+   "2002-GR-14.8.26.3-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.27.4-8",
+    "similarity": 0.882
+   },
+   "2002-GR-14.8.27.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.28.4-13",
+    "similarity": 0.849
+   }
+  }
+ },
+ "read": {
+  "slice": "t-changed",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.5.2-2",
+    "to": [
+     "SR-14.9.5.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 of every CANCEL statement: shall be an alphanumeric or national literal (any other literal class refused)"
+    ],
+    "evidence-2002": [
+     "refusal of a numeric literal-1: not shown through the pointer (slice pointer SR-14.9.5.3-1 is the identifier-1 rule; the literal twin SR-14.9.5.3-2's only witness pb130-cancel-zero-length tests a zero-length literal, not the class); covered by probe cancel_lit_num.cob at --std 2002 (exit 65, COBOL1627)",
+     "admission of alphanumeric and national literal-1: covered by probe cancel_lit_ok.cob at --std 2002 (CANCEL \"NOTCALLED\" N\"NOTCALL2\" runs, CANCEL-OK)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.2 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal and shall not be a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both editions (CANCEL {identifier-1 | literal-1 | program-prototype-name-1} ...). The slice's pointer SR-14.9.5.3-1 is the identifier-1 rule, not this one; the real twin is SR-14.9.5.3-2, which adds only the zero-length clause (a 2014+ literal form with no 2002 counterpart). The 2002 requirement is the class restriction alone, and neither pointer's evidence shows the class refusal: SR-14.9.5.3-2's witness is the zero-length case. Probes at --std 2002: numeric literal refused (COBOL1627), alphanumeric and national literals accepted. No communication-section or debugging reach (a literal).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cancel_lit_num.cob",
+    "widening": "2023 adds the zero-length prohibition (no 2002 counterpart)",
+    "class": "other",
+    "needs": "its own verdict: the compiler at --std 2002 refuses CANCEL 123 (COBOL1627) and admits alphanumeric and national literals (probes cancel_lit_num.cob, cancel_lit_ok.cob); the pointer should be SR-14.9.5.3-2",
+    "compiler-at-2002": "correct (probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cancel_lit_num.cob, cancel_lit_ok.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-9",
+    "to": [
+     "GR-14.9.5.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implicit CLOSE without optional phrases of every open internal file connector of the canceled program",
+     "the implicit CLOSEs run for all such files even when one fails",
+     "no USE procedure associated with those files is executed (2002 USE formats: AFTER EXCEPTION on file-names / open modes / exception-names, BEFORE REPORTING; no USE FOR DEBUGGING in 2002)"
+    ],
+    "evidence-2002": [
+     "implicit CLOSE: not shown through the pointer (pb154_cancel_initial refused at --std 2002, COBOL0900 OCCURS DYNAMIC); covered by probe cancel_implicit_close.cob at --std 2002 (main reopens the physical file and reads HELLO written by the canceled subprogram; the subprogram's OPEN OUTPUT on its second activation returns 00, so the connector was closed)",
+     "all CLOSEs even after an error: not shown",
+     "USE procedures suppressed: not shown (no implicit CLOSE in the probe fails; the subprogram's USE did not run)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR9",
+      "quote": "Any USE procedures associated with any of these files are not executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR9",
+      "quote": "Any USE EXCEPTION procedures associated with any of these files or associated with any EC-I-O exception conditions raised for any of these files are not executed",
+      "check": "OK"
+     }
+    ],
+    "reason": "The implicit-CLOSE sentence is the same; the differing words are 2002 'Any USE procedures associated with any of these files' against 2023's 'USE EXCEPTION procedures ... or associated with any EC-I-O exception conditions raised for any of these files' plus the exception-checking PERFORM WHEN sentence. The PERFORM WHEN sentence has no 2002 counterpart (no Format-3 PERFORM). The EC-I-O clause is a real textual difference: 2002 suppresses only declaratives associated with the files; a USE naming an EC-I-O exception-name is not named, so its fate on a failing implicit CLOSE in 2002 rests on 14.5.12 (uncatalogued). The pointer's witness does not compile at 2002; my probe shows the implicit close but not the error paths.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cancel_implicit_close.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the implicit CLOSE (candidate: probe cancel_implicit_close.cob) and for a failing implicit CLOSE with a file USE procedure present (not shown; also needs 14.5.12 of 2002 read for EC-I-O-named declaratives)",
+    "compiler-at-2002": "correct for the implicit CLOSE (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cancel_implicit_close.cob); error paths not probed: needs a CLOSE that fails during CANCEL"
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-9",
+    "to": [
+     "GR-14.9.6.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.6 CLOSE statement",
+    "clause-2023": "14.9.6 CLOSE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every CLOSE statement (all formats: REEL/UNIT, NO REWIND, LOCK): releases the file lock and record locks of file-name-1's connector"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks and conformance:cases/14.9.6-CLOSE/file_sharing_seq, both golden MATCH at --std 2002 (run now, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cases/)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR9",
+      "quote": "The file lock and any record locks associated with the file connector referenced by file-name-1 are released by the execution of the CLOSE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR9",
+      "quote": "Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file connector",
+      "check": "OK"
+     }
+    ],
+    "reason": "The only differing words are 2023's 'Except when the file is specified in an APPLY COMMIT clause'; APPLY COMMIT does not occur in the 2002 text (grep count 0), so the 2002 rule is the 2023 rule's non-APPLY-COMMIT case. 2002 CLOSE format adds WITH LOCK (removed in 2023), but the rule speaks of every CLOSE and the lock release is the same; WITH LOCK's own effect belongs to other rules. File connectors are not communication-section items. Twin witnesses run clean at 2002.",
+    "probe": null,
+    "widening": "2023 exempts APPLY COMMIT files (no 2002 counterpart)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.10.2-1",
+    "to": [
+     "SR-14.9.11.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10 DISPLAY statement",
+    "clause-2023": "14.9.11 DISPLAY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 of DISPLAY Format 1 (line): refused when of class object or class pointer (data-pointer, program-pointer)"
+    ],
+    "evidence-2002": [
+     "pointer: covered by conformance:cases/13.18.60-USAGE/l1-display-pointer-operand refused at --std 2002 (COBOL1694) and probe disp_ptr.cob",
+     "program-pointer: covered by conformance:cases/13.18.60-USAGE/l1-display-program-pointer-operand refused at --std 2002 (COBOL1694) and probe disp_pptr.cob",
+     "object: covered by conformance:cases/14.9.11-DISPLAY/l1-display-object-reference-operand refused at --std 2002 (COBOL1694) and probe disp_obj.cob",
+     "admitted classes: covered by conformance:cases/14.9.11-DISPLAY/l1_display_admitted_classes golden MATCH at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class object or class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 of DISPLAY is the same in both editions (identifier-1/literal-1 ..., UPON, WITH NO ADVANCING, END-DISPLAY). The only differing word is 2023's message-tag class, which does not exist in 2002 (grep count 0). A communication-section item can be identifier-1 in 2002, but none is of class object or pointer, so no extra case. The twin's negative witnesses are refused at 2002 with the same diagnostic.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/disp_ptr.cob",
+    "widening": "2023 adds class message-tag"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-17",
+    "to": [
+     "GR-14.9.11.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10 DISPLAY statement (Format 2, screen)",
+    "clause-2023": "14.9.11 DISPLAY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "unsuccessful DISPLAY screen-name-1 (Format 2): ON EXCEPTION / declarative / fall-through transfer of control"
+    ],
+    "evidence-2002": [
+     "declined with a diagnostic at --std 2002: conformance-suite/wiseowl/cases/14.9.11-DISPLAY/a42-display-screen-exception (DISPLAY screen with ON/NOT ON EXCEPTION) run now at --std 2002: exit 65, COBOL1560 for the SCREEN SECTION (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cases/a42-display-screen-exception-2002); also q-25's probe disp_screen_q25.cob (COBOL1707 at the DISPLAY)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR17",
+      "quote": "If the execution of the DISPLAY statement is unsuccessful, then",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.4 GR18",
+      "quote": "If the ON EXCEPTION phrase is not specified in the DISPLAY statement and there is no applicable exception processing procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 the rule sits under FORMAT 2 (screen) of the general rules: ON EXCEPTION exists only in the screen format. The differing words are 2023's exception-checking PERFORM WHEN arm (no 2002 counterpart). The 2023 twin is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support: the screen format of DISPLAY is processor-dependent (B.3) and an unclaimed processor-dependent element need not be implemented, with a compile-time diagnostic (3.1.5). The compiler declines every DISPLAY screen statement at --std 2002 with a diagnostic.",
+    "probe": null,
+    "widening": "2023 adds the exception-checking PERFORM WHEN arm",
+    "licence-2002": "§2002:B.3 (the screen format of the DISPLAY statement is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time warning mechanism is required)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.13.2-1",
+    "to": [
+     "SR-14.9.14.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.13 EXIT statement (Format 1)",
+    "clause-2023": "14.9.14 EXIT statement (Format 1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 EXIT: refused unless alone in a sentence that is the only sentence of its paragraph",
+     "admitted: alone in a named paragraph; alone in the unnamed paragraph after a section header (2002 14.3.2 makes those sentences a paragraph)"
+    ],
+    "evidence-2002": [
+     "refusal: covered by conformance:cases/14.9.14-EXIT/pb397-exit-not-alone refused at --std 2002 (COBOL2966)",
+     "admission: not shown through the pointer (the positive golden pb397_sequence_placement_legal is refused at --std 2002 for an unrelated STOP literal, COBOL0902; the other positives are C# conformance-tests not run at 2002); covered by probes exit_in_para_ok.cob and exit_section_nopara.cob at --std 2002 (both run, DONE)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.2 SR1",
+      "quote": "The EXIT statement shall appear in a sentence by itself that shall be the only sentence in the paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.3 SR1",
+      "quote": "the only sentence in the paragraph or in a section without paragraphs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.3.2",
+      "quote": "if the paragraph-name is omitted, one or more successive sentences following the procedure division header or a section header",
+      "check": "OK"
+     }
+    ],
+    "reason": "The differing words are 2023's 'or in a section without paragraphs'. They change nothing a 2002 program can show: 2002 14.3.2 already defines the sentences after a section header as an unnamed paragraph, so 'S SECTION. EXIT.' is legal in 2002 too, and the compiler accepts it at 2002. The requirement is the same; the gap is evidence: the twin's positive golden does not compile at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_section_nopara.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the admitted positions (candidates: probes exit_in_para_ok.cob, exit_section_nopara.cob); the refusal is witnessed at 2002 by pb397-exit-not-alone",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_in_para_ok.cob, exit_section_nopara.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.13.2-6",
+    "to": [
+     "SR-14.9.14.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.13 EXIT statement (Formats 2, 3, 4)",
+    "clause-2023": "14.9.14 EXIT statement (Format 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RAISING LAST [EXCEPTION] of EXIT PROGRAM, EXIT METHOD and EXIT FUNCTION: refused outside a declarative procedure, admitted inside one"
+    ],
+    "evidence-2002": [
+     "refusal: not shown at 2002 through the pointer (its witnesses are C# conformance-tests, not run at 2002, and pb407_goback_general_format, refused at 2002 for GOBACK WITH STATUS); covered by probe exit_raising_last.cob at --std 2002 (COBOL2103)",
+     "admission in a declarative: covered by probe exit_raising_last_decl.cob at --std 2002 (runs)",
+     "EXIT METHOD / EXIT FUNCTION RAISING LAST: not shown (2002-only formats)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.2 SR6",
+      "quote": "The LAST phrase may be specified only in a declarative procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.3 SR6",
+      "quote": "The LAST phrase may be specified only in a declarative procedure or a WHEN phrase in a PERFORM statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 the rule is banded FORMATS 2, 3, AND 4 (EXIT PROGRAM, EXIT METHOD, EXIT FUNCTION); in 2023 only Format 2 (EXIT PROGRAM) remains. The 2023 widening (WHEN phrase of an exception-checking PERFORM) has no 2002 counterpart and the compiler refuses Format-3 PERFORM at 2002. So 2002 scope is wider in the statement forms it governs (EXIT METHOD/FUNCTION RAISING LAST) and narrower in admitted positions. Probes show the EXIT PROGRAM half at 2002; the diagnostic text mentions the 2023 WHEN position, which is message wording only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_raising_last.cob",
+    "widening": "2023 also admits a WHEN phrase of an exception-checking PERFORM",
+    "class": "removed-form",
+    "needs": "a 2002 witness for EXIT PROGRAM (candidates: probes exit_raising_last.cob, exit_raising_last_decl.cob) and for EXIT METHOD / EXIT FUNCTION RAISING LAST outside a declarative",
+    "compiler-at-2002": "correct for EXIT PROGRAM (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_raising_last.cob, exit_raising_last_decl.cob); EXIT METHOD/FUNCTION RAISING LAST not probed"
+   },
+   {
+    "rule-id": "2002-SR-14.8.13.2-8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.13 EXIT statement (Format 3, method)",
+    "clause-2023": "14.9.14 EXIT statement (no method format)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "EXIT METHOD: refused outside a method procedure division; admitted (and terminates the method) inside one"
+    ],
+    "evidence-2002": [
+     "refusal: covered by probe exit_method_in_program.cob at --std 2002 (COBOL0827)",
+     "admission: covered by probe exit_method_ok.cob at --std 2002 (EXIT METHOD returns the RETURNING item set before it: R=GOOD)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.2 SR8",
+      "quote": "An EXIT METHOD statement may be specified only in a method procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR7",
+      "quote": "The execution of an EXIT METHOD statement causes the executing method to terminate",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.14.3 SR7",
+      "quote": "An EXIT PROGRAM statement may be specified only in a program procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "EXIT METHOD statement — EXIT FUNCTION statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no EXIT METHOD (E.2 item 1 lists it as removed); the slice's pointer SR-14.9.14.3-7 is the EXIT PROGRAM rule and says nothing about methods. The rule has no 2023 twin; its witnesses must be 2002 ones.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_method_in_program.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler at --std 2002 refuses EXIT METHOD in a program (COBOL0827) and runs it in a method (probes exit_method_in_program.cob, exit_method_ok.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_method_in_program.cob, exit_method_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.13.2-9",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.13 EXIT statement (Format 4, function)",
+    "clause-2023": "14.9.14 EXIT statement (no function format)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "EXIT FUNCTION: refused outside a function procedure division; admitted (and terminates the function) inside one"
+    ],
+    "evidence-2002": [
+     "refusal: covered by probe exit_function_in_program.cob at --std 2002 (COBOL0827)",
+     "admission: covered by probe exit_function_ok.cob at --std 2002 (user-defined function returns GOOD set before EXIT FUNCTION)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.13.2 SR9",
+      "quote": "An EXIT FUNCTION statement may be specified only in a function procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR8",
+      "quote": "The execution of an EXIT FUNCTION statement causes the executing function to terminate",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "EXIT METHOD statement — EXIT FUNCTION statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no EXIT FUNCTION (E.2 item 1); the slice's pointer SR-14.9.14.3-7 (EXIT PROGRAM) does not reach it. No 2023 twin.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_function_in_program.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler at --std 2002 refuses EXIT FUNCTION in a program (COBOL0827) and runs it in a function (probes exit_function_in_program.cob, exit_function_ok.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/exit_function_in_program.cob, exit_function_ok.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.17.3-1",
+    "to": [
+     "GR-14.9.18.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.17 GOBACK statement",
+    "clause-2023": "14.9.18 GOBACK statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GOBACK in a called program: behaves as EXIT PROGRAM (2002 14.8.13.3 GR3, GR4, GR6): return to the caller with RETURNING result, implicit CANCEL of an initial program, RAISING raised in the activator when enabled there"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.14-EXIT/pb408_raising_enablement_locus, conformance:cases/14.9.4-CALL/goback_returning and conformance:cases/14.9.18-GOBACK/pb892_operand_activation_resume, golden MATCH at --std 2002 (run now)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.17.3 GR1",
+      "quote": "the program operates as if executing an EXIT PROGRAM statement with the RAISING phrase, if any, that is specified in the GOBACK statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.13.3 GR6",
+      "quote": "The execution of an EXIT PROGRAM statement causes the executing program to terminate, and control to return to the calling statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.18.4 GR1",
+      "quote": "If a GOBACK statement is executed in a program that is under the control of a calling runtime element, execution proceeds as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.18.4 GR2",
+      "quote": "The execution of an GOBACK statement causes the executing program to terminate, and control to return to the calling statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.18.4 GR3",
+      "quote": "If a GOBACK statement is executed in a program that is not under the control of a calling runtime element",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice's pointer GR-14.9.18.4-3 is the NOT-under-control rule (2002 GR2's twin), not this one. 2002 GR1 defers to the EXIT PROGRAM rules; 2023 writes those out inside GOBACK as GR1 (RAISING) and GR2 (termination, RETURNING, initial-program CANCEL). The deferred-to 2002 EXIT PROGRAM text and 2023 GR1/GR2 say the same; the 2002 rule is covered by the two 2023 rules together. Witnesses of both run clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "GR-14.9.18.4-2"
+    ],
+    "needs": "KEPT to both targets GR-14.9.18.4-1 and GR-14.9.18.4-2 (both exist in the 2023 catalog; their goldens pb408, goback_returning, pb892 MATCH at --std 2002); not to the slice's pointer GR-14.9.18.4-3",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cases/pb408_raising_enablement_locus-2002, goback_returning-2002)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.18.2-2",
+    "to": [
+     "SR-14.9.19.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.18 IF statement",
+    "clause-2023": "14.9.19 IF statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "nested IF in statement-1/statement-2: ELSE and END-IF matching left to right"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.5.3.2-Explicit-scope-termination/l1_if_nested_else_endif_match, golden MATCH at --std 2002 (run now)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.2 SR2",
+      "quote": "Any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.3 SR2",
+      "quote": "any END-IF encountered is matched with the nearest preceding IF that has not been implicitly or explicitly terminated",
+      "check": "OK"
+     }
+    ],
+    "reason": "The two matching sentences are the same in both; 2023 only reorganizes them into a) and b), renumbers the cross-reference (14.4.2 to 14.5.3, both 'Scope of statements') and adds a NOTE that a period ends a nested IF (already so in 2002's scope-of-statements rules). The IF format is the same (2002: IF condition-1 THEN {statement-1 | NEXT SENTENCE} ELSE ...). Nothing a program can show differs; the twin's golden runs clean at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-7",
+    "to": [
+     "GR-14.9.22.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21 INSPECT statement",
+    "clause-2023": "14.9.22 INSPECT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the TALLYING/REPLACING comparison cycle: operand order, LEADING and FIRST occurrence, advance after a match, termination, the CHARACTERS implied operand (left-to-right only; 2002 has no BACKWARD)"
+    ],
+    "evidence-2002": [
+     "LEADING anchoring: covered by conformance:cases/14.9.22-INSPECT/pb1124_inspect_leading_anchor_at_first_eligible_cycle, MATCH at --std 2002",
+     "the rest of the cycle: not shown through the pointer (l1p5_inspect_general_rules refused at --std 2002, COBOL0845 INSPECT BACKWARD; l1c14 and pb1152 are BACKWARD cases); covered by probe inspect_cycle_2002.cob at --std 2002 (hand-derived expected inspect_cycle_2002.expected matches: ALL, LEADING, CHARACTERS, two-operand order AA/A = 2/3, FIRST)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR7",
+      "quote": "If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR8",
+      "quote": "if BACKWARD is specified, the rightmost character position in the data item referenced by identifier-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The differing words are all 2023's BACKWARD alternatives plus renumbered internal references (2002 GR11/12/15/16 to 2023 GR12/15/17); the forward cycle text is the same. INSPECT's format is otherwise the same for TALLYING/REPLACING. So the requirement is the 2023 forward case, but the twin's main witness uses BACKWARD and does not compile at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/inspect_cycle_2002.cob",
+    "widening": "2023 adds BACKWARD",
+    "class": "other",
+    "needs": "a 2002 witness for the forward comparison cycle (candidate: probe inspect_cycle_2002.cob with its expected file)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/inspect_cycle_2002.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.21.3-8",
+    "to": [
+     "GR-14.9.22.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.21 INSPECT statement",
+    "clause-2023": "14.9.22 INSPECT statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "BEFORE/AFTER regions of the comparison cycle: no phrase, BEFORE (with and without an occurrence of literal-2), AFTER (with and without an occurrence)"
+    ],
+    "evidence-2002": [
+     "covered partly by pb1124 (LEADING with AFTER) MATCH at --std 2002; the twin's region witnesses l1p5_inspect_before_regions (refused at 2002, COBOL0900 DYNAMIC LENGTH) and l1c14/pb1152 (BACKWARD) do not run at 2002; covered by probe inspect_cycle_2002.cob at --std 2002 (BEFORE INITIAL X = 4, AFTER INITIAL X, AFTER with no occurrence = 0, BEFORE with no occurrence = 7, AFTER+BEFORE region ***)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.21.3 GR8",
+      "quote": "its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.22.4 GR9",
+      "quote": "If BACKWARD is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same forward text; 2023 adds the BACKWARD arms and rewords BEFORE's start as 'the first character position that is eligible to participate', which is the leftmost position for a forward scan. The twin's region witnesses do not run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/inspect_cycle_2002.cob",
+    "widening": "2023 adds BACKWARD",
+    "class": "other",
+    "needs": "a 2002 witness for the BEFORE/AFTER regions (candidate: probe inspect_cycle_2002.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/inspect_cycle_2002.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-12",
+    "to": [
+     "SR-14.9.23.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22 INVOKE statement",
+    "clause-2023": "14.9.23 INVOKE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-3 (USING argument) and identifier-4 (RETURNING item) that are bit data items: subscripts AND every reference-modification operand (leftmost position and length) only fixed-point numeric literals or all-literal expressions without exponentiation; byte-aligned"
+    ],
+    "evidence-2002": [
+     "byte alignment: covered by conformance:cases/14.9.23-INVOKE/pb1137-invoke-bit-unaligned refused at --std 2002 (COBOL2453)",
+     "literal-only leftmost position: covered by probe invoke_bit_refmod_start.cob at --std 2002 (COBOL2453)",
+     "literal-only reference-modification LENGTH: not met; probe invoke_bit_refmod_len.cob (INVOKE O \"TAKEB\" USING B8(1:L), L a data item) is ACCEPTED at --std 2002 (exit 0, COMPILED)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR12",
+      "quote": "subscripting and reference modification in that identifier consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals and the exponentiation operator is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR12",
+      "quote": "subscripting and the leftmost position in a reference modification of that identifier consist of only fixed-point numeric literals",
+      "check": "OK"
+     }
+    ],
+    "reason": "Own text: 2002 constrains the whole reference modification (leftmost position and length); 2023 only the leftmost position (and adds 'whose result is a positive integer'). The compiler's screen (ParameterConformance.ScreenBitAlignment, BitStartFault.NonLiteralRefMod) checks only the leftmost position at every edition, so at --std 2002 a variable-length ref-mod of a bit argument is accepted. Siblings with the same 2002 wording: CALL (§2002:14.8.4.2 SR6/SR8) and function arguments (§2002:8.4.2.2.2 SR12); probe call_bit_refmod_len.cob shows CALL USING B8(1:L) is also accepted at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_bit_refmod_len.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a fix: at --std 2002 the bit-argument screen must also require a literal (all-literal expression) reference-modification length; then a 2002 witness (invoke_bit_refmod_len.cob refused)",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_bit_refmod_len.cob: accepted, exit 0; expected a refusal per §2002:14.8.22.2 SR12a; sibling E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/call_bit_refmod_len.cob also accepted, against the same words in §2002:14.8.4.2 SR6)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.22.2-2",
+    "to": [
+     "SR-14.9.23.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22 INVOKE statement",
+    "clause-2023": "14.9.23 INVOKE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 (method name) of INVOKE: alphanumeric or national; any other class refused"
+    ],
+    "evidence-2002": [
+     "admitted forms: covered by conformance:cases/8.3.3.5-National-literals/pb1136_invoke_selector_forms MATCH at --std 2002",
+     "refusal of another class: not shown through the pointer; covered by probe invoke_lit_num.cob at --std 2002 (INVOKE O 123 refused, COBOL0823)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR2",
+      "quote": "Literal-1 shall be of class alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR2",
+      "quote": "Literal-1 shall be of class alphanumeric or national and shall not be a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only difference in words is 2023's zero-length clause (no 2002 counterpart). Same INVOKE literal-1 position in both formats. The twin's witness shows the admitted forms at 2002 but not the refusal the rule imposes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_lit_num.cob",
+    "widening": "2023 adds the zero-length prohibition",
+    "class": "other",
+    "needs": "a 2002 witness for the refusal (candidate: probe invoke_lit_num.cob, COBOL0823)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_lit_num.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.22.3-7",
+    "to": [
+     "GR-14.9.23.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22 INVOKE statement",
+    "clause-2023": "14.9.23 INVOKE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) operand evaluation and item identification at the start",
+     "b) method location; EC-OO-METHOD when not found, no activation",
+     "c) universal-reference conformance; EC-OO-UNIVERSAL",
+     "d) transfer of control per entry convention",
+     "e) return / propagated exception",
+     "f) declarative for the raised exception (2002 has no external-item check at method activation)"
+    ],
+    "evidence-2002": [
+     "a): covered by conformance:cases/14.6.4-Item-identification/pb1123_returning_item_identification_once MATCH at --std 2002",
+     "b) and f): covered by probe invoke_ec_oo_method.cob at --std 2002 (INVOKE O \"NOSUCH\" with EC-OO-METHOD checking on: declarative runs, EXCEPTION-STATUS EC-OO-METHOD, RETURNING item unchanged)",
+     "c): covered by conformance:cases/9.3.6-Method-invocation/pb480_universal_match_relations MATCH at --std 2002 (match relations); EC-OO-UNIVERSAL raising not shown",
+     "d), e): covered by the same goldens (method runs, returns)",
+     "the twin's external-item witnesses w68r_pb1138* are refused at 2002 (EC-EXTERNAL-* is a 2023 name), consistent with 2002 having no such check"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.3 GR7",
+      "quote": "the EC-OO-METHOD exception condition is set to exist, the method is not activated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.3 GR7",
+      "quote": "any declarative that is associated with that exception condition is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.4 GR7",
+      "quote": "External items are checked to ensure that they comply with the following rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has six steps a-f; 2023 inserts d) the external-item checks (EC-EXTERNAL-*), rewords b/c to 'the method invocation is not successful', changes f's 'any declarative' to 'any exception processing statements' (adds exception-checking PERFORM) and renumbers the referenced clauses (2002 14.7 Conformance for parameters and returning items; 8.4.5; 9.3.5; 12.2.7). The 2002 rule is narrower; the twin's evidence at 2002 covers a), c) match relations, d), e); b) and f) only by my probe; EC-OO-UNIVERSAL raising unshown.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_ec_oo_method.cob",
+    "widening": "2023 adds external-item checks and exception-checking PERFORM",
+    "class": "other",
+    "needs": "a 2002 witness for b)/f) (candidate: probe invoke_ec_oo_method.cob) and for c)'s EC-OO-UNIVERSAL raising",
+    "compiler-at-2002": "correct for b)/f) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/invoke_ec_oo_method.cob); EC-OO-UNIVERSAL not probed"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-5",
+    "to": [
+     "SR-14.9.25.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24 MOVE statement",
+    "clause-2023": "14.9.25 MOVE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MOVE (and every implicit move that applies MOVE rules) of SPACE/SPACES to a numeric or numeric-edited receiving item: refused"
+    ],
+    "evidence-2002": [
+     "covered by probes move_space_num.cob and move_space_numed.cob at --std 2002 (COBOL0819) and by conformance:cases/14.9.25-MOVE/pb3605-move-space-numeric refused at --std 2002 (a witness of SR-14.9.25.3-5, not of the slice's pointer SR-14.9.25.3-6)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR5",
+      "quote": "The figurative constant SPACE shall not be moved to a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR5",
+      "quote": "the move of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, ALL \"literal\", or ALL symbolic-character) to either a numeric item or a numeric-edited item is prohibited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR6",
+      "quote": "The figurative constant ZERO shall not be moved to an alphabetic data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice's pointer SR-14.9.25.3-6 is the ZERO-to-alphabetic rule (2002 SR6's twin). The nearest real counterpart is 2023 SR5, which prohibits every alphanumeric figurative constant to numeric/numeric-edited except digit-only ALL; 2002 prohibits only SPACE, and 2002 Table 18 admits HIGH-VALUE, LOW-VALUE and QUOTE to numeric items (archaic). So the 2023 verdict does not carry: the 2002 rule is a narrower prohibition. The compiler at 2002 refuses SPACE and admits HIGH-VALUE/LOW-VALUE/QUOTE (probe move_figs_num.cob), as the 2002 text requires.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/move_space_num.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 SPACE/SPACES to numeric and numeric-edited is refused (COBOL0819; probes move_space_num.cob, move_space_numed.cob; pb3605-move-space-numeric) while the other alphanumeric figurative constants are admitted (move_figs_num.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/move_space_num.cob, move_space_numed.cob, move_figs_num.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-8",
+    "to": [
+     "SR-14.9.25.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24 MOVE statement",
+    "clause-2023": "14.9.25 MOVE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 of usage binary-char/short/long/double: identifier-2 shall be numeric or numeric-edited",
+     "every other MOVE: validity per Table 17 (cell-for-cell 2023 Table 16)"
+    ],
+    "evidence-2002": [
+     "binary half: covered by conformance:cases/14.9.25-MOVE/move-binary-to-national, pb878-move-binary-char-to-group, pb878-invoke-content-binary-long-to-alnum refused at --std 2002 (witnesses of SR-14.9.25.3-8)",
+     "table: covered by conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view MATCH at --std 2002, and the pb73 negatives (bit/display boolean view to numeric, alphabetic view to boolean, alphabetic view to numeric) refused at --std 2002; pb72_table16_admitted_cells (the row's main positive) is refused at 2002 (FUNCTION CONCAT, COBOL1502)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR8",
+      "quote": "If identifier-1 is a data item described with usage binary-char, binary-short, binary-long, or binary-double, identifier-2 shall be a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR8",
+      "quote": "If identifier-1 references a data item described with usage binary-char, binary-short, binary-long, or binary-double, identifier-2 shall reference a numeric or numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR10",
+      "quote": "For all other cases not described in Syntax rules 8 and 9",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 split the 2002 rule: its binary sentence is 2023 SR8, its table is 2023 SR10 (with 2023 SR9, variable-length groups, a 2014+ concept with no 2002 case, in between). Table 17 (2002) and Table 16 (2023) have the same rows, columns and cells. The witnesses of both 2023 rules that run at 2002 cover the binary half and the table's cells used; the 2023 row's broad positive golden pb72 does not compile at 2002.",
+    "probe": null,
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "SR-14.9.25.3-8"
+    ],
+    "needs": "KEPT to both targets SR-14.9.25.3-10 and SR-14.9.25.3-8 (both in the 2023 catalog; witnesses listed run at --std 2002); a 2002 positive for the admitted cells beyond pb73 would replace pb72",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cases/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.24.3-5",
+    "to": [
+     "GR-14.9.25.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24 MOVE statement",
+    "clause-2023": "14.9.25 MOVE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "category of literals and of figurative constants by receiving category per Table 18, including ZERO to numeric/numeric-edited (numeric) and HIGH-VALUE, LOW-VALUE, QUOTE to numeric/numeric-edited (alphanumeric; national when the numeric-edited item is of usage national)"
+    ],
+    "evidence-2002": [
+     "ALL literal / national / boolean rows: covered by conformance:cases/8.3.3.6-Figurative-constant-values/pb71_all_national_boolean_figurative MATCH at --std 2002 and pb442_numeric_edited_national_class MATCH at 2002",
+     "ZERO to numeric (display, packed, national) and numeric-edited; HIGH-VALUE/QUOTE to numeric; LOW-VALUE to numeric-edited: not shown through the pointer; covered by probe move_figs_num.cob at --std 2002 (Z9=000, ZE=  0.00, ZP=+000.0, ZN=000, HV-ALNUM, Q9=\"\"\", LV-ALNUM); the same program is refused at --std 2023 (COBOL0902)",
+     "HIGH-VALUE etc. to a national numeric-edited item: not shown"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.3 GR5",
+      "quote": "MOVE of alphanumeric figurative constants to numeric items is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.4 GR7",
+      "quote": "The category of figurative constants when used in the MOVE statement depends on the category of the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR5",
+      "quote": "to either a numeric item or a numeric-edited item is prohibited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "Move of alphanumeric figurative constants to numeric or numeric-edited items",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Table 18 has rows 2023 Table 17 lacks: ZERO to Numeric and Numeric-edited (category numeric) and HIGH-VALUE/LOW-VALUE/QUOTE to Numeric and Numeric-edited (alphanumeric, or national for a national numeric-edited item); 2023 removed the move of alphanumeric figurative constants to numeric items (E.2 item 1) and merged SPACE and ZERO into one row with a Boolean entry. The 2023 verdict says nothing about the removed rows. The compiler at 2002 admits and moves them as the 2002 table says.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/move_figs_num.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for the Table 18 rows 2023 lacks (candidate: probe move_figs_num.cob) plus one for the national numeric-edited arm",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/move_figs_num.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-6",
+    "to": [
+     "SR-14.9.27.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26 OPEN statement",
+    "clause-2023": "14.9.27 OPEN statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN of a file whose SHARING clause or OPEN phrase says ALL: refused without a LOCK MODE clause"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/sharing-all-no-lockmode and pb316-open-sharing-all-no-lockmode refused at --std 2002 (COBOL5994) and conformance:cases/14.9.27-OPEN/pb319_sr8_antecedent MATCH at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR6",
+      "quote": "the LOCK MODE clause shall be specified in the file control entry for file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR8",
+      "quote": "When file-name-1 is not subject to an APPLY COMMIT clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "The only differing words are 2023's APPLY COMMIT exemption and NOTE; APPLY COMMIT is not in 2002. OPEN's SHARING phrase is the same (WITH {ALL OTHER | NO OTHER | READ ONLY}). The twin's witnesses run at 2002.",
+    "probe": null,
+    "widening": "2023 exempts APPLY COMMIT files"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-24",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.26 OPEN statement",
+    "clause-2023": "14.9.27 OPEN statement (no counterpart)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OPEN of a file connector locked by an earlier CLOSE WITH LOCK: unsuccessful, I-O status '38'"
+    ],
+    "evidence-2002": [
+     "covered by probe open_after_close_lock.cob at --std 2002 (CLOSE F WITH LOCK, OPEN INPUT F: REOPEN=38); the same program is refused at --std 2023 (COBOL0902)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR24",
+      "quote": "the execution of the OPEN statement is unsuccessful and the I-O status associated with that file connector is set to '38'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR2",
+      "quote": "If it is open, the execution of the OPEN statement is unsuccessful and the I-O status associated with file-name-1 is set to '41'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "The WITH LOCK phrase of the CLOSE statement and the related File Status of 38",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 removed CLOSE WITH LOCK and status 38 (E.2 item 1); the slice's pointer GR-14.9.27.4-2 is the already-open (41) rule. No 2023 counterpart exists.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/open_after_close_lock.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 OPEN after CLOSE WITH LOCK gives status 38 (probe open_after_close_lock.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/open_after_close_lock.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-25",
+    "to": [
+     "GR-14.9.27.4-25"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.26 OPEN statement",
+    "clause-2023": "14.9.27 OPEN statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "unsuccessful OPEN: physical file unaffected; then a) I-O status, b) level-3 EC-I-O set to exist, c) applicable USE procedure, in that order"
+    ],
+    "evidence-2002": [
+     "not shown through the pointer: pb370_open_unsuccessful_order is refused at --std 2002 (Format-3 PERFORM, COBOL0900); pb321_table19_open_arbitration MATCH at 2002 covers the status values only",
+     "covered by probes open_unsuccessful_use.cob (status 35 visible in the USE procedure; second OPEN still 35, so the missing file was not created) and open_unsuccessful_use_turn.cob (with EC-I-O checking on: FUNCTION EXCEPTION-STATUS is EC-I-O-PERMANENT-ERROR inside the declarative, so b) precedes c)) at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR25",
+      "quote": "If the execution of the OPEN statement is unsuccessful, the physical file is not affected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR25",
+      "quote": "If it is enabled, the level-3 EC-I-O exception condition associated with the I-O status value is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "When checking for EC-I-O exception conditions is enabled, the associated exception conditions are raised based on the resulting I-O status value",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differences: 2002 'physical file' vs 2023 'file' (same meaning); 2023 b) adds 'If it is enabled', which 2002 states in 14.5.12.1; 2023 inserts c) the exception-checking PERFORM WHEN (no 2002 counterpart). The twin's order witness needs that PERFORM and does not compile at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/open_unsuccessful_use_turn.cob",
+    "widening": "2023 adds the exception-checking PERFORM WHEN step",
+    "class": "other",
+    "needs": "a 2002 witness for the a-b-c order (candidates: probes open_unsuccessful_use.cob, open_unsuccessful_use_turn.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/open_unsuccessful_use.cob, open_unsuccessful_use_turn.cob)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-4",
+    "to": [
+     "GR-14.9.27.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26 OPEN statement",
+    "clause-2023": "14.9.27 OPEN statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "statements referencing a file-name whose connector is not open (other than MERGE/SORT USING/GIVING and OPEN)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/l1_open_not_open_statements, golden MATCH at --std 2002 (run now)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR4",
+      "quote": "except for a MERGE or SORT statement with the USING or GIVING phrase, or an OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR6",
+      "quote": "the COMMIT and ROLLBACK statements, a DELETE FILE statement, or an OPEN statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds the COMMIT, ROLLBACK and DELETE FILE exemptions; none of those statements exists in 2002, so the 2002 rule is the 2023 rule restricted to 2002's statements. The twin's witness runs at 2002.",
+    "probe": null,
+    "widening": "2023 exempts COMMIT, ROLLBACK and DELETE FILE"
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-6",
+    "to": [
+     "GR-14.9.27.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26 OPEN statement",
+    "clause-2023": "14.9.27 OPEN statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a successful OPEN before any other permissible I-O statement; Table 21 permissible statements by access mode and open mode"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/l1_table20_indexed and conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative, golden MATCH at --std 2002, and pb325-start-random-access refused at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR6",
+      "quote": "an OPEN statement shall be successfully executed prior to the execution of any other permissible input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR8",
+      "quote": "the file connector shall be in an open mode at the time of the execution of any other permissible input-output statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Table 21 (2002) and Table 20 (2023) have the same cells; 2023 writes DELETE RECORD for 2002's DELETE because it added DELETE FILE (not in 2002). 2023's 'shall be in an open mode' is what 2002 GR4 already requires of a closed connector. The twin's witnesses run at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.27.3-9",
+    "to": [
+     "GR-14.9.28.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27 PERFORM statement",
+    "clause-2023": "14.9.28 PERFORM statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VARYING terms (induction variables, initialization and augment values, BY omitted = 1, item identification timing)",
+     "sequence of operation for TEST BEFORE/AFTER with and without AFTER phrases"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.28-PERFORM/pb437_varying_operand_windows, pb2282_perform_varying_by_omitted, pb5386_perform_varying_identified_as_set (witnesses of GR-14.9.28.4-12) and pb436_varying_after_from_outer, l1_perform_varying_six_after, pb440_perform_empty_range_2002 (witnesses of GR-14.9.28.4-13), all golden MATCH at --std 2002 (run now)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.3 GR9",
+      "quote": "For any BY phrase that is omitted, the augment value is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR12",
+      "quote": "For any BY phrase that is omitted, the augment value is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.4 GR13",
+      "quote": "The sequence of operation of the PERFORM statement is as follows",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 split the 2002 rule in two: the definitions and item-identification paragraph is GR12 and the sequence of operation is GR13; the text of each is the same as the corresponding part of 2002 GR9 (step numbering 'step 13 a' and NOTE numbers aside). The VARYING format is the same. Witnesses of both run at 2002.",
+    "probe": null,
+    "widening": null,
+    "class": "split-rule",
+    "second-targets": [
+     "GR-14.9.28.4-12"
+    ],
+    "needs": "KEPT to both targets GR-14.9.28.4-13 and GR-14.9.28.4-12 (both in the 2023 catalog; witnesses MATCH at --std 2002)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-changed/cases/)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "t-changed",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.6.3-9",
+    "verdict": "OVERTURNED",
+    "reason": "The 2002 CLOSE general format has a WITH LOCK option (14.8.6.1: WITH {NO REWIND | LOCK}) that 2023 deleted (§2023:E.2). GR9 governs every CLOSE, and 2002 Table 15 gives the CLOSE WITH LOCK row symbol c ('Close file') plus e, so GR9's lock release applies to CLOSE WITH LOCK. The reader's own scope-2002 lists LOCK, but its evidence is the 2023 row's witnesses (pb235_close_unit_locks, file_sharing_seq), neither of which writes CLOSE WITH LOCK, and no 2023 witness can (the phrase is refused at --std 2023, COBOL0902). So part of the 2002 scope has no evidence at 2002 through the 2023 row: a removed form the rule's words never name. Probe close_lock_release.cob at --std 2002: a manual record lock held by A blocks B (51) and CLOSE F-A WITH LOCK releases it (B then reads 00); a SHARING WITH NO OTHER file lock blocks Y (61) and CLOSE F-X WITH LOCK releases it (Y then opens 00). So the compiler is correct, and the probe is the candidate 2002 witness. At --std 2023 the probe is refused (COBOL0902), as expected.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR9",
+      "quote": "The file lock and any record locks associated with the file connector referenced by file-name-1 are released by the execution of the CLOSE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again during the execution of this run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR9",
+      "quote": "Except when the file is specified in an APPLY COMMIT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "The WITH LOCK phrase of the CLOSE statement and the related File Status of 38",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for the lock release by CLOSE WITH LOCK (candidate: probe close_lock_release.cob, output A-LOCKS=00 B-BLOCKED=51 A-CLOSE-LOCK=00 B-AFTER=00 RRRRR X-OPEN=00 Y-BLOCKED=61 X-CLOSE-LOCK=00 Y-AFTER=00)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-changed/close_lock_release.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-changed/close_lock_release.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.10.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format 1 of DISPLAY is the same in both editions. In 2002, class object covers object references (including EXCEPTION-OBJECT, SELF, SUPER and NULL), and class pointer covers data-pointer and program-pointer (2002 8.4.x: data-address-identifier and program-address-identifier also create class-pointer items). All of these are within the 2023 rule, which adds only message-tag. Communication reach: an item under a CD cannot be of class pointer in this compiler at either edition (probe disp_cd_ptr.cob is refused at both for the shared-record representation, COBOL0899), and the rule is class-based in any case, so a CD record item adds no case. Probe disp_excobj.cob: DISPLAY EXCEPTION-OBJECT is refused at 2002 with COBOL1694. Side note, not a SAME/DIFFERENT matter: DISPLAY ADDRESS OF W and DISPLAY ADDRESS OF PROGRAM are refused at both editions with the wrong diagnostic (a reserved-word error, COBOL0901/COBOL5506, rather than COBOL1694). The refusal still holds, at both editions alike.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class object or class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-changed/disp_excobj.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.10.3-17",
+    "verdict": "UPHELD",
+    "reason": "The 2002 licence holds when read in full. B.3 item 1 makes the screen section and the screen format of DISPLAY processor-dependent. 3.1.5 lets an implementation leave an unclaimed processor-dependent element unimplemented, requires a compile-time warning mechanism, and does not require executable code. At --std 2002 the compiler refuses the screen section and the DISPLAY screen statement by name (COBOL1560, a42-display-screen-exception), which meets the warning mechanism, and docs/CONFORMANCE.md section 5 documents the non-support. The diagnostic cites the 2023 optional-module licence (A.4.2) rather than 2002's B.3; that is message wording, not behaviour. GR17 lives only under FORMAT 2, so nothing outside the declined facility is reached.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.3 GR17",
+      "quote": "If the execution of the DISPLAY statement is unsuccessful, then",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The implementor is not required to produce executable code when unsupported processor-dependent language elements are used",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.18.2-2",
+    "verdict": "UPHELD",
+    "reason": "Both IF formats (delimited, and historic with NEXT SENTENCE) are identical in the two editions, and NEXT SENTENCE is archaic in both. The ELSE and END-IF matching sentences are word-for-word the same; 2023 only lays them out as a) and b) and adds a NOTE. The referenced 'Scope of statements' clause (2002 14.4.2, 2023 14.5.3) reads the same in its explicit and implicit termination rules, compared side by side. The twin's golden l1_if_nested_else_endif_match is MATCH at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.18.2 SR2",
+      "quote": "Any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.19.3 SR2",
+      "quote": "any ELSE encountered is matched with the nearest preceding IF that either has not been already matched with an ELSE",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-6",
+    "verdict": "UPHELD",
+    "reason": "The OPEN format and its sharing-phrase are identical in both editions. In 2002 the SHARING and LOCK MODE clauses sit in file-control Formats 1-3 (indexed, relative, and sequential or report); sort-merge Format 4 carries neither, as in 2023. The only differing words are the APPLY COMMIT exemption and its NOTE, which name a facility 2002 does not have. The twin's witnesses run at 2002 (sharing-all-no-lockmode and pb316 refused with COBOL5994, pb319 MATCH).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR6",
+      "quote": "If the SHARING phrase is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR8",
+      "quote": "if the sharing phrase is omitted from the OPEN statement and the ALL phrase is specified in the SHARING clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-4",
+    "verdict": "UPHELD",
+    "reason": "2002's exempt list (MERGE/SORT USING/GIVING, OPEN) is 2023's list minus statements 2002 lacks, so the 2002 rule is a subset. I looked for a 2002-only statement that references a file-name: CLOSE WITH LOCK is the only removed form, and on a not-open connector it is still governed by CLOSE GR1 ('42'), the same arm the witness shows for plain CLOSE. The witness is representative (CLOSE, READ, WRITE, REWRITE) in both editions alike; START, DELETE and UNLOCK are equally absent from it at 2023, so CLOSE WITH LOCK adds no new kind of case. Report writer statements reference report files implicitly in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR4",
+      "quote": "except for a MERGE or SORT statement with the USING or GIVING phrase, or an OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR6",
+      "quote": "the COMMIT and ROLLBACK statements, a DELETE FILE statement, or an OPEN statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.26.3-6",
+    "verdict": "UPHELD",
+    "reason": "Compared cell by cell, 2002 Table 21 and 2023 Table 20 are the same: 15 rows (Sequential, Random and Dynamic access by READ/WRITE/REWRITE/START/DELETE) with identical X marks. The only label difference is DELETE versus DELETE RECORD. 2023's added 'and the file connector shall be in an open mode' is what 2002 GR4 already requires of a connector that was opened and then closed. The witnesses l1_table20_indexed and l1_table20_seq_relative are MATCH at 2002, and pb325 is refused at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR6",
+      "quote": "an OPEN statement shall be successfully executed prior to the execution of any other permissible input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR8",
+      "quote": "the file connector shall be in an open mode at the time of the execution of any other permissible input-output statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "01a787449a96609c802e1b0a1278ed8268abdc2b4d2ee8a5fe03c0599499fe10",
+  "read": "417a497fec5000498a7d1ab8cc70a4c5d6df511dad485b1b26bc3d2cf98949bd",
+  "refute": "84186206cd8224b82b1dc07cef86de0dc3fb3db1dd94b6f89a241c983f6a08ff"
+ }
+}

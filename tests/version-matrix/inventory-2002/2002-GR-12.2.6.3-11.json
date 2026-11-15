@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-11",
+ "rule-digest": "7e3ba5f1487b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 10979 has the same rule split by '## Page 264': page break only. Re-read §2002:12.2.6.3 GR11: unchanged."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined); native alphanumeric character set (newer: undefined)",
+    "answer": "§2002:4 4.130 native alphanumeric character set is 'The computer's alphanumeric coded character set' and 4.125 national character 'A character in a national character set'; GR11 picks the character at an ordinal position in those native sets (or in alphabet-name-3), the same determination 2023 makes. Items a)-c) are shown at --std 2002 (pb110 and probe p04)."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.3.7.4-11": "7e3ba5f1487b"
+  }
+ }
+}

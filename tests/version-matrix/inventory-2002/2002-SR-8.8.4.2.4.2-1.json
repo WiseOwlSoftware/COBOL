@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.8.4.2.4.2-1",
+ "rule-digest": "239ac580fb38",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.8.4.12.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
+    "answer": "Read §2002:8.8.2 (a boolean expression: a boolean identifier, boolean literal, ZERO, ALL boolean literal, B-NOT / binary boolean operators, parentheses), §2002:8.8.4.1.1 (a relation 'involving operands of class boolean is a boolean relation condition'; format 2 is boolean-expression-1 [NOT] =/EQUAL boolean-expression-2) and §2002:8.8.4.2.4 (format: AND/OR only, NOT; SR1-SR3). The rule's term is defined the same way, and the scope includes a boolean-expression subject: the suite's three refusal cases (boolean identifier, boolean literal, and B1 B-AND B2 as relation-condition-1) each draw COBOL2723 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/abbrev.2002.txt; the <> case also draws COBOL0900 for <>, a 2014 operator, and still COBOL2723). No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "SR-8.8.4.12.3-1": "239ac580fb38"
+  }
+ }
+}

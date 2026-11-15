@@ -5271,15 +5271,15 @@
    "pending-clause": "§2002:9.3.5 (changed)"
   },
   "2002-GR-13.9.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-13.9.3-2": {
    "definition-changed": "class | of a data item",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-13.9.3-3": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-14.1.3-1": {
    "definition-changed": "procedure",
@@ -6121,154 +6121,154 @@
    "pending-clause": "§2002:7.1 (changed, undecided)"
   },
   "2002-GR-7.2.10.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.10.3-2": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.10.3-4": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.10.3-5": {
    "ambiguous": "2 targets",
-   "behaviour-switch": "compile-time-arithmetic-mode",
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode",
    "band-formats": "band-formats [1] against [[1], [2]]"
   },
   "2002-GR-7.2.10.3-7": {
    "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.10.3-9": {
    "ambiguous": "2 targets",
-   "behaviour-switch": "compile-time-arithmetic-mode",
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode",
    "band-formats": "band-formats [2] against [[1], [2]]"
   },
   "2002-GR-7.2.13.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.13.3-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.13.3-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.14.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.15.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.15.2-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.15.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.15.2-5": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.16.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.16.3-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.16.3-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.17.3-1": {
    "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.17.3-3": {
    "pending-clause": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.17.3-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.18.2-2": {
    "pending-clause": "§2002:6 (changed, undecided)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.18.2-3": {
    "pending-clause": "§2002:6 (changed, undecided)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.18.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.18.2-5": {
    "pending-clause": "§2002:6 (changed, undecided)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.19.3-1": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.19.3-5": {
    "definition-changed": "run unit",
    "pending-clause": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.3-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.3-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.6.2-1": {
    "cross-reference": "8.8.2",
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode",
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode",
    "deferral": "the rules for "
   },
   "2002-GR-7.2.7.2-2": {
    "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
    "pending-clause": "§2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.7.3.3-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.7.3.3-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.8.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.8.2-3": {
    "definition-dropped": "method (newer: 9.3.4)",
    "pending-clause": "§2002:9.3.5 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-1": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-4": {
    "definition-dropped": "method (newer: 9.3.4)",
    "pending-clause": "§2002:9.3.5 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-5": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-7.2.9.3-7": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-GR-8.1.2.1-2": {
    "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)",
@@ -7472,32 +7472,32 @@
   },
   "2002-SR-13.9.2-1": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-10": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-11": {
    "definition-dropped": "report (newer: 13.18.46.2)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-5": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-6": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-8": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-13.9.2-9": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-14.1.2-10": {
    "definition-changed": "program prototype definition",
@@ -8051,114 +8051,114 @@
   },
   "2002-SR-7.2.10.2-1": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-10": {
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-11": {
    "definition-changed": "boolean expression",
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-12": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-13": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-5": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-6": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-7": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.10.2-8": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-3": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-4": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-5": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-6": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.13.2-7": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.14.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.16.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.17.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.19.2-1": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.19.2-5": {
    "pending-clause": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-1": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-10": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-3": {
    "pending-clause": "§2002:6 (changed, undecided)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-4": {
    "pending-clause": "§2002:6 (changed, undecided)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-6": {
    "cross-reference": "8.12",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.2-9": {
    "absent-from-2014": "its whole text is not in the 2014 transcription",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.6.1-1": {
    "cross-reference": "8.8.2",
    "pending-clause": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)",
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-7.2.9.2-2": {
-   "behaviour-switch": "compile-time-arithmetic-mode"
+   "behaviour-switch": "compile-time-arithmetic-is-standard-decimal, compile-time-arithmetic-mode"
   },
   "2002-SR-8.3.1.2.1.2-3": {
    "definition-dropped": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)"

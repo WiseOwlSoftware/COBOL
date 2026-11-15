@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb19_argument_class_batch5
 *> rules: [AR-15.49.3-1, AR-15.56.3-1, RV-15.57.4-1]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

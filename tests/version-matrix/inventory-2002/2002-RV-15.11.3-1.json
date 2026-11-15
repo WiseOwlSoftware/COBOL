@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-RV-15.11.3-1",
+ "rule-digest": "a9a6037b4bb6",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.13.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "boolean position (newer: undefined)",
+    "answer": "§2002:4 (4.23) has only the storage sense; 2023 adds §2023:3.25 'the location within a boolean data item of a boolean character'. RV1's 'the rightmost boolean position is the low-order binary digit' uses the location sense by ordinary reading in 2002 too, and the length 'in terms of boolean positions' is the storage sense. Both are unchanged, and the reader's dt2002.cob shows them at 2002."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:8.8.1.1 to 8.8.1.3.6 govern the evaluation of arithmetic expressions (§2002:8.8.1.1 'The following rules apply regardless of the mode of arithmetic that is in effect'), and 15/15.1 the kinds of function; RV1 maps the value of argument-1 to bits. How an expression argument is evaluated is governed by §2002:15.2 item 5 ('An arithmetic expression that will always result in an integer value or an integer data item shall be specified') and 8.8.1, not by RV1, and the probed values are far below 31 digits, so PB5575 does not reach them. §2002:15.1 item 2 ('Boolean functions have an implicit usage bit'; 'The number of boolean positions in this data item is specified in the function definition', which 2023 drops) is met by RV1 through argument-2. No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-37.json",
+  "digests": {
+   "RV-15.13.4-1": "a9a6037b4bb6"
+  }
+ }
+}

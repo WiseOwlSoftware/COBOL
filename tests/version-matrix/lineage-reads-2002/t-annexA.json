@@ -1,0 +1,1279 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice t-annexA of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "t-annexA",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-A.1.2.3-30",
+   "2002-GR-A.1.2.3-31",
+   "2002-GR-A.1.2.3-32",
+   "2002-GR-A.1.2.3-33",
+   "2002-GR-A.1.2.3-34",
+   "2002-GR-A.1.2.3-4",
+   "2002-GR-A.1.2.3-5",
+   "2002-GR-A.1.2.3-6",
+   "2002-GR-A.1.2.3-7",
+   "2002-GR-A.1.2.3-8",
+   "2002-GR-A.1.2.3-9",
+   "2002-FMT-A.2.1.1",
+   "2002-SR-A.2.1.2-1",
+   "2002-GR-A.2.1.3-1",
+   "2002-GR-A.2.1.3-2",
+   "2002-FMT-A.2.2.1",
+   "2002-SR-A.2.2.2-1",
+   "2002-SR-A.2.2.2-2",
+   "2002-SR-A.2.2.2-3",
+   "2002-GR-A.2.2.3-1",
+   "2002-GR-A.2.2.3-2",
+   "2002-GR-A.2.2.3-3",
+   "2002-GR-A.2.2.3-4",
+   "2002-GR-A.2.2.3-5",
+   "2002-GR-A.2.2.3-6"
+  ],
+  "pointers": {
+   "2002-GR-A.1.2.3-30": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-31": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-32": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-33": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-34": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-4": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-5": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-6": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-7": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-8": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.1.2.3-9": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-A.2.1.1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-A.2.1.2-1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.1.3-1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.1.3-2": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-A.2.2.1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-A.2.2.2-1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-A.2.2.2-2": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-A.2.2.2-3": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-1": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-2": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-3": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-4": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-5": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-A.2.2.3-6": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": null,
+    "similarity": 0.0
+   }
+  }
+ },
+ "read": {
+  "slice": "t-annexA",
+  "seed": null,
+  "pointer-note": "Every rule here has nearest-2023 null (annex-A bucket). The code and test pointer used is the 1985 twin, the text most similar by difflib (0.90-1.00), recorded as pointer-1985. 'to' is empty.",
+  "cases": [
+   {
+    "rule-id": "2002-GR-A.1.2.3-30",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-30",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 3 INITIAL input-output CD in a program the MCS scheduled: data-name-3 shall not be changed",
+     "after a change, every statement referencing cd-name-1 is unsuccessful and data-name-6 says unknown source or destination (Table A.1)"
+    ],
+    "evidence-2002": {
+     "scheduled terminal kept": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr30 (WISEOWL_COBOL_MCS_SCHEDULED=T1): FIRST 00 T1 [ALPHA]",
+     "changed: RECEIVE, SEND, DISABLE unsuccessful": "covered by the same probe: RECEIVE 21, SEND 20, DISABLE I-O TERMINAL 21, then restored 00 [BETA]"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR30",
+      "quote": "the execution of any statement referencing cd-name-1 is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.4",
+      "quote": "Communication status key conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-30, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall' and the table reference (Table A.1 in place of 1985 Table 1). Nothing a program can see. Table A.1 = 1985 Table 1 minus status 40, which only the KEY phrase produced, and the KEY phrase is not in 2002. 21 is Table A.1's value for RECEIVE and DISABLE I-O TERMINAL. 20 is its value for SEND on an input-output CD ('One or more destinations unknown'). The 1985 witness is the harness test ScheduledProgramTests (dialect 85); the probe repeats it at 2002 and also covers SEND and DISABLE.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr30",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 a scheduled program that changes data-name-3 gets 21 (RECEIVE, DISABLE I-O TERMINAL) and 20 (SEND), and 00 again once it restores the name (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr30/out-2002.txt). Candidate witness: ScheduledProgramTests run with dialect 2002",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-31",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-31",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "input-output CD without INITIAL, or with INITIAL in an unscheduled program: data-name-3 set before the first statement referencing cd-name-1",
+     "data-name-3 fixed after that first statement; a change makes later statements unsuccessful (unknown source or destination)"
+    ],
+    "evidence-2002": {
+     "terminal fixed at the first statement": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-31, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-31-activation and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-31-failing-first-statement, each run at --std 2002 with output identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR31",
+      "quote": "After executing the first statement referencing cd-name-1, the content of the data item referenced by data-name-3 shall not be changed by the program.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-31, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall' twice, and Table A.1 in place of the 1985 page reference. Nothing a program can see (see GR30 for the table).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-31",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-31/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-31 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-32",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-32",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RECEIVE: data-name-4 = number of alphanumeric character positions filled",
+     "SEND: data-name-4 = number of leftmost alphanumeric character positions of the SEND identifier to transfer; that identifier is of class alphanumeric (A.2.6.2 SR2), elementary or group"
+    ],
+    "evidence-2002": {
+     "RECEIVE count and SEND leftmost-n of an elementary item": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-32 at --std 2002, identical to its .out",
+     "SEND from a group holding a BINARY item (counted in alphanumeric positions = its storage)": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr32grp: at 2002 the group XX + 9(4) BINARY is 4 positions (FUNCTION LENGTH 4), so 4 gives 00 and 5 and 6 give 50. At --std 85 the same program counts 6 (digits) and gives 00 for each"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR32",
+      "quote": "the number of alphanumeric character positions filled as a result of the execution of the RECEIVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§1985:XIV.2.2.4 GR32",
+      "quote": "the number of character positions filled as a result of the execution of the RECEIVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-32, CONFORMS, whose witness is accept:[85] only. The words differ: 2002 says 'alphanumeric character positions' where 1985 says 'character positions', and 2002 drops the RECEIVE and SEND page references. The new word matters: at 2002 the size of a group SEND identifier is its alphanumeric positions (its storage), and at 1985 it is its characters in standard data format. The compiler keeps this edition split, and the probe shows the 2002 arm. Note: section 3.3 of docs/conformance still says the 2002 text 'is not in the specs this repository carries', but specs/ISO_COBOL_2002.md is there. That is a stale doc sentence, not a defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr32grp",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the 1985 witness's output is unchanged, and a group identifier is counted in its storage positions (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr32grp/out-2002.txt). Candidate witnesses: case 1985-GR-XIV_2_2_4-32 with 2002 accepted, plus the group probe",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-33",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-33",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-5 (END KEY) of the input-output CD, set only by RECEIVE: MESSAGE phrase 3/2/0, SEGMENT phrase 3/2/1/0, first rule satisfied wins"
+    ],
+    "evidence-2002": {
+     "end key values": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-33 at --std 2002 (VALID, identical to its .out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR33",
+      "quote": "is set only by the MCS as part of the execution of a RECEIVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-33, CONFORMS, whose witness is accept:[85] only. Differing words: list markers only (a)/1. against a./1)). The enumeration is the same, with no case added or lost.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-33",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-33/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-33 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-34",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-34",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-6 (STATUS KEY) of the input-output CD holds the status of the last DISABLE, ENABLE, PURGE, RECEIVE or SEND, per Table A.1"
+    ],
+    "evidence-2002": {
+     "status after each statement": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-34 at --std 2002 (rerun with a 300 s limit after a load timeout), identical to its .out",
+     "no status 40": "Table A.1 has no 40 (password). At 2002 the KEY phrase is refused with COBOL0902 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable-key), so 40 cannot arise"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR34",
+      "quote": "indicates the status condition of the previously executed DISABLE, ENABLE, PURGE, RECEIVE, or SEND statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.4",
+      "quote": "Communication status key conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§1985:XIV.2.2.5",
+      "quote": "Password invalid. No enabling/disabling action taken.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-34, CONFORMS, whose witness is accept:[85] only. Differing words: Table A.1 in place of 1985 Table 1. The referenced table changed in one row: 1985's 40 'Password invalid' is not in 2002 (checked). The only source of 40 is the KEY phrase, which 2002's ENABLE and DISABLE formats lack and the compiler refuses at 2002. So the 2002 rule narrows, and the 1985 witness (no KEY) holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-34",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-34/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-34 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 input CD: data-name-1..4 hold queue and sub-queue symbolic names",
+     "these follow system-name formation and are defined to the MCS"
+    ],
+    "evidence-2002": {
+     "defined and undefined queue paths": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-4 at --std 2002, identical to its .out",
+     "2002 system-name formation (underscore allowed, 8.3.1.1; lowercase equal to uppercase)": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr4-underscore: PAY_Q/HOUR_LY gives 00 000002, pay_q/hour_ly gives 00 000002, NOQ gives 20"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR4",
+      "quote": "shall have been previously defined to the message control system",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1",
+      "quote": "The hyphen or underscore shall not appear as the first or last character in such words.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-4, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall' and level-box marks. The rule leans on system-name formation, which 2002 widened (COBOL words may hold an underscore). The probe shows the MCS accepts such names at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-4",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-4/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-4 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RECEIVE on an input CD: serial return of the next message or portion from the named queue structure; partial levels resolved by the MCS; afterwards all levels filled"
+    ],
+    "evidence-2002": {
+     "serial return, partial levels, levels filled": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-5 at --std 2002, identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR5",
+      "quote": "A RECEIVE statement causes the serial return of the next message",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-5, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall' twice, and 'a message' in place of 'message'. Nothing a program can see.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-5",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-5/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-5 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INITIAL input CD of a program scheduled by the MCS: data-name-1..4 hold the scheduling queue names before the first procedure division statement",
+     "otherwise those items are spaces",
+     "rest of the CD updated only by the RECEIVE that returns the scheduling message"
+    ],
+    "evidence-2002": {
+     "unscheduled: spaces": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-6 at --std 2002, identical to its .out",
+     "scheduled: names, then RECEIVE updates the rest": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr6sched (WISEOWL_COBOL_MCS_SCHEDULED=Q1/S1): Q1/S1/spaces before the first statement, then RECEIVE 00 [HELLO] length 0005"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR6",
+      "quote": "are initialized to spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-6, CONFORMS, whose witness is accept:[85] only. Differing words: casing ('procedure division'). Nothing a program can see.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/gr6sched",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-6/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-6 with 2002 added to its accept list; plus the scheduled probe",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MCS scheduling a program with no INITIAL clause: results undefined"
+    ],
+    "evidence-2002": {
+     "undefined result": "not shown: the rule has no expected value. The 1985 twin closed on a signed derivation (docs/CONFORMANCE.md#DRV-1985-GR-XIV.2.2.4-7)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR7",
+      "quote": "If the MCS attempts to schedule a program lacking an INITIAL clause, the results are undefined.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-7, CONFORMS, whose witness is accept:[85] only. The words are the 1985 GR7 text exactly. The rule states that the results are undefined, so there is no testable requirement. Its 1985 pointer is recorded as a signed derivation (undefined-in-rule), not a test.",
+    "probe": null,
+    "widening": null,
+    "needs": "a signed derivation: not testable because the rule's own text declares the results undefined (as DRV-1985-GR-XIV.2.2.4-7, re-signed for 2002)",
+    "compiler-at-2002": "not probed: the rule declares the result undefined, so no program has an expected outcome",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RECEIVE sets data-name-5 (MESSAGE DATE) to the completion date as YYMMDD; no other statement updates it"
+    ],
+    "evidence-2002": {
+     "date set by RECEIVE only": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-8 at --std 2002, identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR8",
+      "quote": "the date on which it recognized that the message was complete in the form 'YYMMDD'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-8, CONFORMS, whose witness is accept:[85] only. The words are the 1985 text exactly. 2002 keeps the 6-digit 'YYMMDD' form here.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-8",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-8/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-8 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.1.2.3-9",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.1.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.2.2.4-9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RECEIVE sets data-name-6 (MESSAGE TIME) to the completion time as HHMMSSTT; no other statement updates it"
+    ],
+    "evidence-2002": {
+     "time set by RECEIVE only": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-9 at --std 2002, identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.1.2.3 GR9",
+      "quote": "the time at which it recognized that the message was complete in the form 'HHMMSSTT'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.2.2.4-9, CONFORMS, whose witness is accept:[85] only. The words are the 1985 text exactly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-9",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_2_2_4-9/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_2_2_4-9 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-FMT-A.2.1.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.1.1",
+    "clause-2023": null,
+    "pointer-1985": "1985-FMT-XIV.3.1.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT cd-name-1 [MESSAGE] COUNT (MESSAGE optional, COUNT required)"
+    ],
+    "evidence-2002": {
+     "both spellings accepted and run": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable: ACCEPT CIN MESSAGE COUNT and ACCEPT CIN COUNT each give 00 000002",
+     "COUNT missing refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-FMT-XIV_3_1_2 at --std 2002: COBOL5506 'expected COUNT', the same refusal as at 85"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.1.1",
+      "quote": "ACCEPT cd-name-1 MESSAGE COUNT",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-FMT-XIV.3.1.2, CONFORMS, whose witness is accept:[85] only. The general format is the 1985 one (MESSAGE optional, COUNT a key word, per the transcription, not checked against the PDF render).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 both spellings are accepted and a missing COUNT is refused COBOL5506 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-FMT-XIV_3_1_2/out-2002.txt)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-SR-A.2.1.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.1.2",
+    "clause-2023": null,
+    "pointer-1985": "1985-SR-XIV.3.1.3-1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT MESSAGE COUNT: cd-name-1 references an input CD"
+    ],
+    "evidence-2002": {
+     "output CD refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_1_3-1 at --std 2002: COBOL6170 quoting §2002:A.2.1.2 SR1",
+     "input CD accepted": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.1.2 SR1",
+      "quote": "Cd-name-1 shall reference an input CD.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-SR-XIV.3.1.3-1, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall'. At 2002 the compiler's diagnostic quotes the 2002 text.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_1_3-1",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 an output CD in ACCEPT MESSAGE COUNT is refused COBOL6170 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_1_3-1/out-2002.txt)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.1.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.1.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.1.4-1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ACCEPT MESSAGE COUNT sets the CD's message count to the number of complete messages in the queue structure named by data-name-1..4"
+    ],
+    "evidence-2002": {
+     "count per structure, partly received message": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-1 and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-1-partly-received at --std 2002, each identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.1.3 GR1",
+      "quote": "to indicate the number of complete messages that exist in the queue structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.1.4-1, CONFORMS, whose witness is accept:[85] only. Differing words: box marks only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-1",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-1/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_1_4-1 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.1.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.1.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.1.4-2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "area holds at least the symbolic queue name; STATUS KEY and MESSAGE COUNT updated"
+    ],
+    "evidence-2002": {
+     "status and count, unknown queue 20": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-2 at --std 2002, identical to its .out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.1.3 GR2",
+      "quote": "shall contain at least the name of the symbolic queue to be tested",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.1.4-2, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall' and the cross-reference (A.1.2 in place of the 1985 page). The referenced clause is the same CD entry, and Table A.1's ACCEPT MESSAGE COUNT values (00, 20) are the 1985 values.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-2",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_1_4-2/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_1_4-2 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-FMT-A.2.2.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.1",
+    "clause-2023": null,
+    "pointer-1985": "1985-FMT-XIV.3.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE {INPUT [TERMINAL] | I-O TERMINAL | OUTPUT} cd-name-1, with no KEY phrase in 2002"
+    ],
+    "evidence-2002": {
+     "every 2002 arm accepted and run": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable: INPUT, INPUT TERMINAL, I-O TERMINAL and OUTPUT each give 00, and a repeat gives 15",
+     "the 1985 KEY phrase is outside the 2002 format": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable-key: WITH KEY refused COBOL0902 at 2002",
+     "malformed arm refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-FMT-XIV_3_2_2 at --std 2002 (COBOL0901)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.1",
+      "quote": "DISABLE I-O TERMINAL cd-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-FMT-XIV.3.2.2, CONFORMS, whose witness is accept:[85] only. The 2002 format differs from its pointer: 1985 prints [WITH KEY {identifier-1 | literal-1}] and 2002 has no KEY phrase. The compiler gates this edition by edition (CommunicationKeyPhraseRemoved2002). The 1985 cases that carry WITH KEY fail to compile at 2002 (e.g. 1985-GR-XIV_3_2_4-2), so the 1985 witnesses cannot be reused at 2002 unchanged.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the three arms are accepted and run, and WITH KEY is refused COBOL0902 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable-key)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-SR-A.2.2.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.2",
+    "clause-2023": null,
+    "pointer-1985": "1985-SR-XIV.3.2.3-1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE: cd-name-1 references an input CD when INPUT is specified"
+    ],
+    "evidence-2002": {
+     "wrong format refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-1-nokey2002 at --std 2002: DISABLE INPUT of an output CD refused COBOL6170 (the 1985 case with its KEY phrase removed; the case as written also draws COBOL0902 at 2002)",
+     "right format accepted": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.2 SR1",
+      "quote": "Cd-name-1 shall reference an input CD when the INPUT phrase is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-SR-XIV.3.2.3-1, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall'. 1985 has a fourth syntax rule (the KEY operand) that 2002 does not.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-1-nokey2002",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the wrong CD format is refused COBOL6170 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-1-nokey2002/out-2002.txt)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-SR-A.2.2.2-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.2",
+    "clause-2023": null,
+    "pointer-1985": "1985-SR-XIV.3.2.3-2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE: cd-name-1 references an input-output CD when I-O TERMINAL is specified"
+    ],
+    "evidence-2002": {
+     "wrong format refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-2 at --std 2002: DISABLE I-O TERMINAL of an input CD refused COBOL6170 quoting §2002:A.2.2.2 SR2",
+     "right format accepted": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.2 SR2",
+      "quote": "Cd-name-1 shall reference an input-output CD when the I-O TERMINAL phrase is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-SR-XIV.3.2.3-2, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall'. 1985 has a fourth syntax rule (the KEY operand) that 2002 does not.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-2",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the wrong CD format is refused COBOL6170 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-2/out-2002.txt)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-SR-A.2.2.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.2",
+    "clause-2023": null,
+    "pointer-1985": "1985-SR-XIV.3.2.3-3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE: cd-name-1 references an output CD when OUTPUT is specified"
+    ],
+    "evidence-2002": {
+     "wrong format refused": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-3 at --std 2002: DISABLE OUTPUT of an input CD refused COBOL6170 quoting §2002:A.2.2.2 SR3",
+     "right format accepted": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/fmt-disable"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.2 SR3",
+      "quote": "Cd-name-1 shall reference an output CD when the OUTPUT phrase is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-SR-XIV.3.2.3-3, CONFORMS, whose witness is accept:[85] only. Differing words: 'must'->'shall'. 1985 has a fourth syntax rule (the KEY operand) that 2002 does not.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-3",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the wrong CD format is refused COBOL6170 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-SR-XIV_3_2_3-3/out-2002.txt)",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE logically disconnects the MCS from the named sources or destinations; already disconnected gives no action and a status; the program-to-MCS path is unaffected"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-1, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-1-repeated-destination at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR1",
+      "quote": "No action is taken when a DISABLE statement is executed that specifies a source or destination that is already disconnected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-1, CONFORMS, whose witness is accept:[85] only. Differing words: 'which'->'that'.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-1",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-1/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-1 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "disconnection at the earliest time the source or destination is inactive; never cuts a message being transmitted"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-2-nokey2002 at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR2",
+      "quote": "will never cause the remaining portion of the message to be terminated during transmission",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-2, CONFORMS, whose witness is accept:[85] only. Differing words: 'insure'->'ensure'. The 1985 witness carries WITH KEY and is refused COBOL0902 at 2002. With the KEY phrase removed it runs at 2002 and matches its .out (DISABLED).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-2-nokey2002",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-2-nokey2002/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-2-nokey2002 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE INPUT (no TERMINAL): paths between the named queue structure and all enabled sources deactivated"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-3, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-3-known-prefix-unknown-level, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/pb5286_disable_input_structure at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR3",
+      "quote": "all the associated enabled sources are deactivated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-3, CONFORMS, whose witness is accept:[85] only. Differing words: box marks only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-3",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-3/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-3 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE INPUT TERMINAL: paths between the source named by data-name-7 and all its queues deactivated"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-4 at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR4",
+      "quote": "and all of its associated queues and sub-queues are deactivated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-4, CONFORMS, whose witness is accept:[85] only. Differing words: box marks only. 1985 was amended by X3.23a-1989, and the 2002 words are that amended text.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-4",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-4/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-4 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-5",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE I-O TERMINAL: the path between the terminal named by data-name-3 and the program deactivated"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-5 at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR5",
+      "quote": "the logical path between the source (as defined by the content of the data item referenced by data-name-3 (SYMBOLIC TERMINAL)) and the program is deactivated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-5, CONFORMS, whose witness is accept:[85] only. Differing words: box marks only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-5",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-5/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-5 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   },
+   {
+    "rule-id": "2002-GR-A.2.2.3-6",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "A.2.2.3",
+    "clause-2023": null,
+    "pointer-1985": "1985-GR-XIV.3.2.4-6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DISABLE OUTPUT: paths deactivated for every destination in data-name-5 occurrences 1 through data-name-1's count"
+    ],
+    "evidence-2002": {
+     "the rule's behaviour": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-6 at --std 2002, each output identical to the 1985 .out (rerun with a 300 s limit where the first run hit a load timeout)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.2.3 GR6",
+      "quote": "up to and including the occurrence specified by the content of data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule: 2023 has no communication facility, so the slice gives no pointer and the brief makes a no-pointer rule DIFFERENT. The 2002 rule is Annex A (normative, optional per §2002:3.1, obsolete per G.2 item 1). The compiler provides the facility at --std 2002 (each construct draws the obsolete warning COBOL0903; docs/conformance/3.3). The code and test pointer is the word-near 1985 twin 1985-GR-XIV.3.2.4-6, CONFORMS, whose witness is accept:[85] only. Differing words: box marks only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-6",
+    "widening": null,
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-annexA/cases/1985-GR-XIV_3_2_4-6/out-2002.txt). Candidate 2002 witness: conformance-suite case 1985-GR-XIV_3_2_4-6 with 2002 added to its accept list",
+    "compiler-at-2002": "correct",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited)."
+   }
+  ]
+ },
+ "refute": {
+  "slice": "t-annexA",
+  "cases": [],
+  "note": "The reader's file holds 25 rules, every one DIFFERENT and none SAME (checked by loading t-annexA-read.json: 25 cases, verdict set {DIFFERENT}). So there is no SAME verdict to attack. Each DIFFERENT row rests on the 2023 standard having no communication facility (a grep of specs/ISO_COBOL_2023.md for 'communication section', 'communication facility' and 'Communications' finds no CD entry or Annex A facility; the EC-MCS names are the asynchronous messaging facility, a different feature). That difference exists, so no DIFFERENT row is plainly wrong.",
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "bd5881ff6cb317eb5a23033b19238795d98ed3cd97e2d240611be1c66ef08a1b",
+  "read": "f262346bb37b5d341413052d020ed2b62e58e2b020054067c0a00ba855366930",
+  "refute": "ec479352a951708cddf502b5816184b15232c1ba3a16018cf2740aa4b349f169"
+ }
+}

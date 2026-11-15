@@ -254,18 +254,19 @@ The private recursion is the `EvalArith` walk: `+ - * /` and unary sign over the
 tiers (§2023:8.8.1/§2023:7.3.6.3 GR1); SR1a exponentiation reject; SR1b operand-is-fixed-point-literal-or-numeric-name
 (floating-point/E-form rejected); SR1c div-by-zero reject; overflow reported, never wrapped.
 
-**The MODE is selected per edition (§2023:7.3.6.3 GR2 + Annex E.2 6)/21), kb/Work PB1592).** `CompileTimeArithmetic.For
-(edition)` is the ONE selection — every operand ENTERS the mode and every operation RUNS in it, so the three
-consumers cannot disagree:
+**The MODE is selected per edition (§2002:7.2.5.2 GR1, §2014:7.3.5.2 GR1, §2023:7.3.6.3 GR2 + Annex E.2 6)/21), kb/Work PB1592, PB5575).**
+`CompileTimeArithmetic.For(edition)` is the ONE selection — every operand ENTERS the mode and every operation RUNS in it, so
+the three consumers cannot disagree:
 
 | Edition | Mode | Why |
 |---|---|---|
-| 2002, 2014 | `CompileTimeArithmetic.Standard` — the SDIDI (`CobolDec`, 34 digits, decimal128 range), NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a) | E.2 6): "The previous COBOL Standard required the use of an arithmetic mode that is no longer supported"; the only mode 2023 removed is Standard Arithmetic (E.2 21). This compiler's standard arithmetic IS the SDIDI engine (`ArithmeticModes.IsDecimalEngine(Standard)`). |
+| 2002 | `CompileTimeArithmetic.Standard2002` — the 2002 standard intermediate data item: 32 significant digits, every operand and every `+ - * /` result TRUNCATED toward zero to 32 digits (carried on `CobolDec` with `CobolRounding.Truncation`, then `CobolDec.TruncateToSignificantDigits(32)`), magnitude 10^-999 through 10^1000 - 10^968 (a value outside it is the §2002:8.8.1.3.1 r2 size error, reported as the range diagnostic) | §2002:7.2.5.2 GR1 "Standard arithmetic shall be used for all arithmetic operations"; §2002:8.8.1.3.1.1, §2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5. |
+| 2014 | `CompileTimeArithmetic.StandardDecimal` — the SDIDI (`CobolDec`, 34 digits, decimal128 range), NEAREST-AWAY-FROM-ZERO (§2023:11.9.11.2 GR3 a) | §2014:7.3.5.2 GR1 "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time". |
 | 2023 | `CompileTimeArithmetic.SystemDecimal` — .NET `System.Decimal` (96-bit, 28–29 digits, ties to even; **not** decimal128) | E.2 6) makes the mode implementor-defined; the documented choice is CONFORMANCE.md DOC-A.1-29 (kept after a GnuCOBOL survey). |
 
-The edition edge is written once, in the runtime's behaviour register (`DialectBehavior.CompileTimeArithmeticImplementorDefined`,
-VCR row 12). COBOL-85 has no compile-time arithmetic expression; an expression reached there only after its
-introduction gate refused it takes the pre-2023 mode. **Values** travel in the mode-independent carrier
+The two edition edges are written once, in the runtime's behaviour register (`DialectBehavior.CompileTimeArithmeticIsStandardDecimal` at 2014, VCR row 7.77, and
+`DialectBehavior.CompileTimeArithmeticImplementorDefined` at 2023, VCR row 12). COBOL-85 has no compile-time arithmetic expression; an expression reached there only after its
+introduction gate refused it takes the 2002 mode. **Values** travel in the mode-independent carrier
 `CtNumeric`/`CobolDec` (exact for every valid literal and for every value either mode yields), so `CtValue`,
 `CtNumber` and the consumers never see which mode produced a value; the System.Decimal mode enters a carrier value
 through the same `decimal` parse a literal always used.

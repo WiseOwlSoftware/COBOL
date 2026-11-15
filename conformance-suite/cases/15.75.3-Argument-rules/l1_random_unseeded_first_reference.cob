@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_random_unseeded_first_reference
       *> rules: [AR-15.75.3-4]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

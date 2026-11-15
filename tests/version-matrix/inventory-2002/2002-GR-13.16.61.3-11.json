@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.61.3-11",
+ "rule-digest": "6e34f64eaf12",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.63.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.61 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "VALUE does reach CD records (§2002:13.16.61.3 GR4 names the communication section; only the first redefinition may carry VALUE, §2002:A.1.2.2 SR9), through format 1 as a data-item value. GR11 is the screen-item sentence of format 1 (§2002:13.16.61.3 GR11) and a CD record item is not a screen item, so this rule has no CD reach; screen section declined at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-23.json",
+  "digests": {
+   "GR-13.18.63.4-10": "6e34f64eaf12"
+  }
+ }
+}

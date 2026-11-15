@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c25_rewrite_position_unaffected
       *> rules: [GR-14.9.35.4-13]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

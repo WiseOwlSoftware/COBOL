@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.9.3-1",
+ "rule-digest": "c9245598c740",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.10.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats None against [[1]]",
+    "answer": "The 2002 DELETE has one format (§2002:14.8.9.1: DELETE file-name-1 RECORD, retry-phrase, INVALID KEY phrases, END-DELETE), identical to 2023 Format 1 (record); 2023's Format 2 (DELETE FILE) has no 2002 counterpart. The 2023 band FORMAT 1 reaches every 2002 DELETE. The twin witnesses pb144_indexed_delete_record and w73b_pb1194_mutation_open_mode_first re-run now PASS at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/p-07.json",
+  "digests": {
+   "GR-14.9.10.4-1": "c9245598c740"
+  }
+ }
+}

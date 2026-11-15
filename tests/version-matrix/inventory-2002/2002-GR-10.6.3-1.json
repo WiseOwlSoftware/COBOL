@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-10.6.3-1",
+ "rule-digest": "dc7f88d18ec1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-10.7.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. Each of the nine end markers ends the same unit, and l1c08 and pb988 run clean at --std 2002. The scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "GR-10.7.4-1": "dc7f88d18ec1"
+  }
+ }
+}

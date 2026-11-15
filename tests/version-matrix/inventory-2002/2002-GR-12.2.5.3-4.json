@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-4",
+ "rule-digest": "4f6ec8615492",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test in GR4 is the same. The scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-4": "4f6ec8615492"
+  }
+ }
+}

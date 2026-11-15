@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.15.2-3",
+ "rule-digest": "674c0c99ede8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.16.3-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so a contained GENERATE needs GLOBAL on the same RD and FD; scope and evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-26.json",
+  "digests": {
+   "SR-14.9.16.3-3": "674c0c99ede8"
+  }
+ }
+}

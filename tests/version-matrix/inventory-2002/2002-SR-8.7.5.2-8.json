@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.7.5.2-8",
+ "rule-digest": "a749b138e987",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.7.5.2-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "normalized": {
+    "flag": "normalized",
+    "answer": "Exact words compared: 2002's '&lt;=' is the transcription's HTML escape of '<='; the rule is SR-8.7.5.2-10's ('<= is an abbreviation for LESS THAN OR EQUAL TO.'), the right pointer; no change."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.7.5.2-10": "7fc3e90a7eb3"
+  }
+ }
+}

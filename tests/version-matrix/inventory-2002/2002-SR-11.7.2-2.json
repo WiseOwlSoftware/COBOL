@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-11.7.2-2",
+ "rule-digest": "6522c28ebfc7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-11.8.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; interface | of an object",
+    "answer": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. This rule does use 'object interface' (§2002:11.7.2 SR2); §2002:4 (4.110) lists, per method, the ordered formal parameters with description and passing technique, the returned value, and the exceptions, the same three items as 2023 3.109, so what must conform is the same; the conformance test itself is §2002:9.3.7.1.2, read by the reader."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "Read §2002:9.3.5: binding by name only in 2002, by signature in 2023 (overloading, which this compiler does not claim, PB1519). Conformance (§2002:9.3.7.1.2) pairs each prototype with the class's method of the same name, which with one method per name is the binding 9.3.5 gives, so the 2002 witnesses (COBOL0841 at 2002) show the 2002 requirement."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "SR-11.8.3-2": "6522c28ebfc7"
+  }
+ }
+}

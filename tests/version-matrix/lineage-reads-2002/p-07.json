@@ -1,0 +1,1602 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-07 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-07",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.5.3-11",
+   "2002-GR-14.8.5.3-6",
+   "2002-GR-14.8.6.3-2",
+   "2002-GR-14.8.6.3-6",
+   "2002-GR-14.8.9.3-1",
+   "2002-GR-7.1.2.3-1",
+   "2002-GR-7.1.2.3-11",
+   "2002-GR-7.1.2.3-14",
+   "2002-GR-7.1.2.3-2",
+   "2002-GR-7.1.2.3-3",
+   "2002-GR-7.1.2.3-4",
+   "2002-GR-7.1.2.3-5",
+   "2002-GR-7.1.2.3-6",
+   "2002-GR-7.1.2.3-7",
+   "2002-GR-7.1.3.3-1",
+   "2002-GR-7.1.3.3-3",
+   "2002-GR-7.1.3.3-6",
+   "2002-GR-7.1.3.3-7",
+   "2002-GR-7.1.3.3-9",
+   "2002-GR-8.1.2.1-5",
+   "2002-GR-8.3.1.2.1.3-1",
+   "2002-GR-8.3.1.2.3.3-2",
+   "2002-GR-8.3.1.2.4.3-1",
+   "2002-GR-8.3.1.2.4.3-2",
+   "2002-GR-8.3.1.2.5.3-5"
+  ]
+ },
+ "read": {
+  "slice": "p-07",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.5.3-11",
+    "to": [
+     "GR-14.9.5.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR11",
+      "quote": "the result of referencing the program-pointer in a subsequent CALL statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR11",
+      "quote": "the result of referencing the program-pointer in a subsequent CALL statement is undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "CANCEL general format identical in both (identifier-1 | literal-1 | program-prototype-name-1). The rule imposes no requirement (result undefined), so the 2002-only CALL ... ON OVERFLOW form it can reach adds nothing; program-pointer exists in both. 2023 SR2 adds a zero-length-literal restriction irrelevant to this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.5.3-6",
+    "to": [
+     "GR-14.9.5.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.5 CANCEL statement",
+    "clause-2023": "14.9.5 CANCEL statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR6",
+      "quote": "A logical relationship to a canceled program is established only by execution of a subsequent CALL statement referencing that program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR6",
+      "quote": "A logical relationship to a canceled program is established only by execution of a subsequent CALL statement referencing that program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.3 GR3",
+      "quote": "If the program referenced by a successfully executed CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state",
+      "check": "OK"
+     }
+    ],
+    "reason": "CANCEL format and rule text identical, but the requirement is carried by 'a subsequent CALL statement referencing that program', and the 2002 CALL statement has a form 2023 removed: CALL ... ON OVERFLOW (archaic in 2002, deleted in 2023). A 2002 program that CANCELs a program and re-establishes it by CALL ... ON OVERFLOW is governed by this rule; the 2023 verdict says nothing about it. Fifth-cause candidate: the removed form sits in a REFERENCED statement, not in this clause's format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/cancel_ovf.cob",
+    "widening": null,
+    "class": "other",
+    "class-detail": "referenced statement lost a form: CALL ... ON OVERFLOW (2002 14.8.4) exists in 2002 only",
+    "needs": "a 2002 witness for CANCEL followed by CALL ... ON OVERFLOW (probe cancel_ovf.cob shows CNT=1, CNT=2, CNT=1 at --std 2002: the re-called program is in its initial state)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/cancel_ovf.cob; --std 2002 prints CNT=1/CNT=2/CNT=1; --std 2023 rejects with COBOL0882"
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-2",
+    "to": [
+     "GR-14.9.6.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.6 CLOSE statement",
+    "clause-2023": "14.9.6 CLOSE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR2",
+      "quote": "For the purpose of showing the effect of various types of CLOSE statements as applied to various storage media",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR2",
+      "quote": "For the purpose of showing the effect of various types of CLOSE statements as applied to various storage media",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again during the execution of this run unit",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 CLOSE general format has WITH LOCK (alternative to WITH NO REWIND); 2023 removed it (format and Table 14 have no CLOSE WITH LOCK row; symbol 'e) Close lock' gone, later symbols re-lettered). The categories this rule defines are the columns of table 15, whose 2002 rows include CLOSE WITH LOCK (c,e / c,e,g / a,c,e,g / c,e). So 'the effect of various types of CLOSE statements' covers CLOSE WITH LOCK in 2002 only; the rule's words never name LOCK.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/close_lock.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CLOSE WITH LOCK across the file categories (probe close_lock.cob: OPEN1=00 CLOSE=00 OPEN2=38 at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/close_lock.cob; --std 2002: 00/00/38 (reopen after CLOSE WITH LOCK refused); --std 2023 rejects with COBOL0902"
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-6",
+    "to": [
+     "GR-14.9.6.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.6 CLOSE statement",
+    "clause-2023": "14.9.6 CLOSE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR6",
+      "quote": "no end-of-file or unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR6",
+      "quote": "no end-of-file or unit processing is performed for the file and the file position indicator and the current volume pointer are unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again during the execution of this run unit",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same removed form as GR2: in 2002 this rule also governs CLOSE WITH LOCK of an optional input file that is not present (no end-of-file or unit processing, file position indicator unchanged, while the lock effect still applies). 2023 has no CLOSE WITH LOCK.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/close_lock_opt.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CLOSE WITH LOCK of an absent OPTIONAL input file (probe close_lock_opt.cob: OPEN1=05 CLOSE=00 OPEN2=38 at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/close_lock_opt.cob; --std 2002: 05/00/38; --std 2023 rejects with COBOL0902"
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-1",
+    "to": [
+     "GR-14.9.10.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.9 DELETE statement",
+    "clause-2023": "14.9.10 DELETE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be I-O and the physical file associated with that file connector shall be a mass storage file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be I-O and the physical file associated with that file connector shall be a mass storage file",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 DELETE has one format, identical to 2023 Format 1 (record), including retry-phrase and the INVALID KEY phrases. 2023 added Format 2 (DELETE FILE) but scopes this rule to FORMAT 1. Open mode I-O and mass storage file unchanged.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/pb144_indexed_delete_record-2002/run.log",
+    "widening": "2023 adds DELETE FILE (format 2), outside this rule's FORMAT 1 scope",
+    "flags-answered": {
+     "band-formats: band-formats None against [[1]]": "The 2002 DELETE has one format (§2002:14.8.9.1: DELETE file-name-1 RECORD, retry-phrase, INVALID KEY phrases, END-DELETE), identical to 2023 Format 1 (record); 2023's Format 2 (DELETE FILE) has no 2002 counterpart. The 2023 band FORMAT 1 reaches every 2002 DELETE. The twin witnesses pb144_indexed_delete_record and w73b_pb1194_mutation_open_mode_first re-run now PASS at --std 2002."
+    },
+    "evidence-2002": [
+     "covered by conformance-suite/cases/14.9.10-DELETE/pb144_indexed_delete_record and w73b_pb1194_mutation_open_mode_first, PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/<case>-2002/run.log)"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be I-O",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-07"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-1",
+    "to": [
+     "GR-7.2.3.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR1",
+      "quote": "Text-name-1 or literal-1 identifies the library text to be processed by the COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR1",
+      "quote": "Text-name-1 or literal-1 identifies the library text to be processed by the COPY statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "The COPY head (literal-1 | text-name-1, OF/IN literal-2 | library-name-1, SUPPRESS PRINTING) is identical. 2023 removed the REPLACING operands text-1/word-1/literal-3 and all debugging lines, but neither changes how text-name-1/literal-1 identifies library text.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-11",
+    "to": [
+     "GR-7.2.3.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR11",
+      "quote": "If the REPLACING phrase is specified, the library text shall not contain a COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR10",
+      "quote": "If the REPLACING phrase is specified, the library text shall not contain a COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1, text-1, word-1, literal-3, or partial-word-1 in the library text is replaced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1 or partial-word-1 in the library text is replaced",
+      "check": "OK"
+     }
+    ],
+    "reason": "'the REPLACING phrase' in 2002 admits operands text-1, word-1, literal-3 BY text-2, word-2, literal-4 (archaic); 2023's REPLACING admits only pseudo-text and partial-word. The prohibition therefore reaches COPY ... REPLACING word-1 BY ... in 2002, a form 2023 removed and the rule's words never name.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_word_nest.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for COPY ... REPLACING <word> BY <literal> of library text containing a COPY statement (probe copy_word_nest.cob: COBOL1640 at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_word_nest.cob; --std 2002: error COBOL1640 (library text contains COPY); --std 2023: COBOL0902 (operand removed) plus COBOL1640"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-14",
+    "to": [
+     "GR-7.2.3.4-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR14",
+      "quote": "The implementation shall support nesting of at least 5 levels, including the first COPY statement in the sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR12",
+      "quote": "The implementation shall support nesting of at least 5 levels, including the first COPY statement in the sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Debugging-line reach: in 2002 the nested COPY in library text may itself be on a debugging line (GR13 names 'the COPY statement begins on a debugging line'), and by 6.2.7 debugging lines become comments only after all COPY and REPLACE processing, so the permitted nested COPY must be processed and its text placed on debugging lines. 2023 has no debugging lines, so its verdict says nothing about this case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dnest_on.cob",
+    "widening": null,
+    "class": "removed-form",
+    "class-detail": "debugging lines (fixed indicator D, floating >>D) exist in 2002 only",
+    "needs": "a 2002 witness for a nested COPY on a debugging line in library text (probes copy_dnest_off.cob / copy_dnest_on.cob: OUTER vs OUTER+INNER at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dnest_off.cob prints OUTER; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dnest_on.cob prints OUTER, INNER (--std 2002)"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-2",
+    "to": [
+     "GR-7.2.3.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR2",
+      "quote": "Library-name-1 names a resource that shall be available to the compiler",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR2",
+      "quote": "Library-name-1 names a resource that shall be available to the compiler",
+      "check": "OK"
+     }
+    ],
+    "reason": "Library-name-1 operand identical in both formats; nothing removed bears on it.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-3",
+    "to": [
+     "GR-7.2.3.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR3",
+      "quote": "The implementor shall define the rules for locating the library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR3",
+      "quote": "The implementor shall define the rules for locating the library text",
+      "check": "OK"
+     }
+    ],
+    "reason": "Implementor-defined library location; text-name-1/literal-1/library-name-1/literal-2 identical in both formats.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-4",
+    "to": [
+     "GR-7.2.3.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     }
+    ],
+    "reason": "SUPPRESS PRINTING identical in both formats; listing content is outside the standard in both.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-5",
+    "to": [
+     "GR-7.2.3.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR5",
+      "quote": "the LISTING directive that is in effect for the COPY statement itself is considered to be in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR5",
+      "quote": "the LISTING directive that is in effect for the COPY statement itself is considered to be in effect",
+      "check": "OK"
+     }
+    ],
+    "reason": "The referenced LISTING directive (2002 7.2.15, 2023 7.3.18) has the same format and the same five general rules; 2023 only adds that the implementor defines its stage of processing.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-6",
+    "to": [
+     "GR-7.2.3.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR6",
+      "quote": "logically replacing the entire COPY statement beginning with the reserved word COPY and ending with the separator period, inclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR6",
+      "quote": "logically replacing the entire COPY statement beginning with the reserved word COPY and ending with the separator period, inclusive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1, text-1, word-1, literal-3, or partial-word-1 in the library text is replaced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1 or partial-word-1 in the library text is replaced",
+      "check": "OK"
+     }
+    ],
+    "reason": "'the entire COPY statement ... ending with the separator period' in 2002 includes a REPLACING phrase with text-1/word-1/literal-3 operands, removed in 2023. A 2002 COPY ... REPLACING AAA BY \"HELLO\" is governed by this rule; 2023 has no such statement.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_word.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for COPY with a non-pseudo-text REPLACING operand (probe copy_word.cob prints HELLO at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_word.cob; --std 2002 prints HELLO; --std 2023 rejects with COBOL0902"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-7",
+    "to": [
+     "GR-7.2.3.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2 COPY statement",
+    "clause-2023": "7.2.3 COPY statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR7",
+      "quote": "If the REPLACING phrase is not specified, the library text is included in the resultant text unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR7",
+      "quote": "If the REPLACING phrase is not specified, the library text is included in the resultant text unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 library text may contain debugging lines; 'included in the resultant text unchanged' keeps them as debugging lines, which 6.2.7 then compiles or turns into comments per WITH DEBUGGING MODE. 2023 has no debugging lines, so this case is outside the 2023 verdict.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dbg_on.cob",
+    "widening": null,
+    "class": "removed-form",
+    "class-detail": "debugging lines in library text (2002 only)",
+    "needs": "a 2002 witness for COPY without REPLACING of library text holding a debugging line (probes copy_dbg_off.cob prints ALWAYS; copy_dbg_on.cob prints ALWAYS, DEBUGLINE at --std 2002)",
+    "compiler-at-2002": "correct",
+    "compiler-at-2002-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dbg_off.cob / E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-07/copy_dbg_on.cob; --std 2023 rejects the D line with COBOL0902"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-1",
+    "to": [
+     "GR-7.2.4.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3 REPLACE statement",
+    "clause-2023": "7.2.4 REPLACE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR1",
+      "quote": "In subsequent general rules of the REPLACE statement, 'source text' refers to the conditionally-processed compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR1",
+      "quote": "In subsequent general rules of the REPLACE statement, 'source text' refers to the conditionally-processed compilation group",
+      "check": "OK"
+     }
+    ],
+    "reason": "REPLACE formats 1 and 2 identical in both editions. Definitional rule; 2002 debugging-line handling in REPLACE is carried by GR8c6 and GR11 (2002 only), not by this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-3",
+    "to": [
+     "GR-7.2.4.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3 REPLACE statement",
+    "clause-2023": "7.2.4 REPLACE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR3",
+      "quote": "Partial-word-1 specifies the text to be replaced by partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR3",
+      "quote": "Partial-word-1 specifies the text to be replaced by partial-word-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Partial-word operands and their syntax rules identical; debugging-line placement is 2002 GR11's, not this rule's.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-6",
+    "to": [
+     "GR-7.2.4.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3 REPLACE statement",
+    "clause-2023": "7.2.4 REPLACE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR6",
+      "quote": "A format 1 REPLACE statement is placed in the active state at the point at which it is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR6",
+      "quote": "A format 1 REPLACE statement is placed in the active state at the point at which it is encountered",
+      "check": "OK"
+     }
+    ],
+    "reason": "State machine over identical formats (ALSO, LAST, OFF); GR4/GR5 state definitions identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-7",
+    "to": [
+     "GR-7.2.4.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3 REPLACE statement",
+    "clause-2023": "7.2.4 REPLACE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR7",
+      "quote": "A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR7",
+      "quote": "A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical formats and identical enumeration a)-d); queue semantics unchanged.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-9",
+    "to": [
+     "GR-7.2.4.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3 REPLACE statement",
+    "clause-2023": "7.2.4 REPLACE statement",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR9",
+      "quote": "shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR9",
+      "quote": "shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "reason": "The prohibited list is the same five items; the SOURCE FORMAT directive exists in both. In 2002 a debugging line in pseudo-text-2 is not a comment at REPLACE time (6.2.7), so the extra 2002 content falls outside this prohibition in both readings.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-5",
+    "to": [
+     "GR-8.1.3.2-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.1.2 COBOL character repertoire",
+    "clause-2023": "8.1.3 COBOL character repertoire",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR5",
+      "quote": "substitute graphics may be specified by the implementor to replace the characters not represented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor to replace the characters not represented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Repertoire table has the same basic letters, digits and special characters in both; implementor latitude identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The characters that may be replaced by substitute graphics are COBOL characters (4.28, and the alias 'COBOL character' 4.38), which 2023 keeps as members of the COBOL character repertoire (§2023:3.37); the implementor latitude is the same. The added 'cobol character' entry is 2002's alias 4.38 for 4.28, covered by §2023:3.37."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-07",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.1.3-1",
+    "to": [
+     "GR-8.3.3.2.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1 Alphanumeric literals",
+    "clause-2023": "8.3.3.2 Alphanumeric literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR1",
+      "quote": "The separators that delimit the alphanumeric literal are not included in the value of the alphanumeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR1",
+      "quote": "The separators that delimit the alphanumeric literal are not included in the value of the alphanumeric literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats 1 and 2 (quoted, X-hex) in both; 2023 makes character-1/hex sequence optional (zero-length) and raises the length limit to 8191.",
+    "probe": null,
+    "widening": "2023 also covers zero-length and longer literals"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.3.3-2",
+    "to": [
+     "GR-8.3.3.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.3 Boolean literals",
+    "clause-2023": "8.3.3.4 Boolean literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.3 GR2",
+      "quote": "Boolean literals are of the class and category boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.4 GR2",
+      "quote": "Boolean literals are of the class and category boolean",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats B and BX in both; class and category boolean exist in both.",
+    "probe": null,
+    "widening": "2023 admits zero-length boolean literals",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class boolean is the same class; the rule assigns it to a literal (class of literals is fixed by 8.3.1.2, not the data-item definition). Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-1",
+    "to": [
+     "GR-8.3.3.5.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR1",
+      "quote": "The separators that delimit the national literal are not included in the value of the national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR1",
+      "quote": "The separators that delimit the national literal are not included in the value of the national literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats N and NX in both.",
+    "probe": null,
+    "widening": "2023 admits zero-length national literals"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-2",
+    "to": [
+     "GR-8.3.3.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.4 National literals",
+    "clause-2023": "8.3.3.5 National literals",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR2",
+      "quote": "National literals are of the class and category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR2",
+      "quote": "National literals are of the class and category national",
+      "check": "OK"
+     }
+    ],
+    "reason": "Formats N and NX in both; class and category national exist in both.",
+    "probe": null,
+    "widening": "2023 admits zero-length national literals",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class national is the same class; the rule assigns it to a literal (8.3.1.2), not through the data-item definition. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-5",
+    "to": [
+     "GR-8.3.3.6.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5 Figurative constant values",
+    "clause-2023": "8.3.3.6 Figurative constant values",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR5",
+      "quote": "the high-value format represents the character, or multiple-character combination, that has the highest ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR6",
+      "quote": "the high-value format represents the character, or multiple-character combination, that has the highest ordinal position",
+      "check": "OK"
+     }
+    ],
+    "reason": "Seven figurative-constant formats identical; the ordinal shift is 2023 splitting 2002 GR2 (length rules) in two, not a change here. Locale LC_COLLATE and the national program collating sequence exist in both.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'The character ... that has the highest ordinal position' is a member of the coded character set (4.26) placed by the collating sequence, the 2023 alphanumeric/national character; confirmed now at --std 2002 and 2023 alike: ORD(HIGH-VALUE)=65536 and HIGH-VALUE = CHAR(65536) (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-14/rw_space.cob (rw_space-2002.txt, rw_space-2023.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR5",
+      "quote": "the high-value format represents the character, or multiple-character combination, that has the highest ordinal position",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-14/rw_space.cob (rw_space-2002.txt, rw_space-2023.txt)",
+    "from-slice": "p-07",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-07",
+  "method": "Each SAME re-read against both clauses. COPY (2002 7.1.2) and REPLACE (2002 7.1.3) rules attacked through the 2002-only debugging-line context: a COPY or REPLACE statement may itself be written on a debugging line, pseudo-text may contain debugging lines, and debugging lines become comments only AFTER all COPY and REPLACE processing. So every COPY/REPLACE general rule governs text and statements 2023 does not have (2023's transcription contains no debugging line, debugging indicator or DEBUGGING MODE at all: grep 'debugging line' in specs/ISO_COBOL_2023.md finds 0 hits). This is the same reach the reader itself accepted for 2002-GR-7.1.2.3-14 and -7. Probes in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/ (run.log), pinned compiler E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe, --copy lib. All citations checked: refute-p-07/cites.log (48 OK, 0 FAIL).",
+  "shared-citations": [
+   {
+    "cite": "§2002:6.2.7",
+    "quote": "A debugging line is permitted anywhere in a compilation unit after the SOURCE-COMPUTER paragraph",
+    "check": "OK"
+   },
+   {
+    "cite": "§2002:6.2.7",
+    "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+    "check": "OK"
+   },
+   {
+    "cite": "§2002:6.2.7",
+    "quote": "A debugging line is an obsolete element in this International Standard and is to be deleted from the next revision of standard COBOL",
+    "check": "OK"
+   },
+   {
+    "cite": "§2002:7",
+    "quote": "The inclusion or exclusion of debugging lines occurs in the compilation stage",
+    "check": "OK"
+   },
+   {
+    "cite": "§2002:H.2",
+    "quote": "The standard is ambiguous as to how debugging lines are treated when used in conjunction with or imbedded within COPY and REPLACE statements",
+    "check": "OK"
+   }
+  ],
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.5.3-11",
+    "verdict": "UPHELD",
+    "reason": "CANCEL format, syntax rules and GR11 identical (2023 SR2 adds only a zero-length-literal ban). The rule states only that the result is undefined; the extra 2002 reach (a CALL ... ON OVERFLOW through the program-pointer) is also undefined, and any behaviour conforms to an undefined result, so the 2023 verdict carries. Debugging-line placement of a CANCEL is ordinary compile-or-comment, no different requirement.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR11",
+      "quote": "the result of referencing the program-pointer in a subsequent CALL statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR11",
+      "quote": "the result of referencing the program-pointer in a subsequent CALL statement is undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.9.3-1",
+    "verdict": "UPHELD",
+    "reason": "2002 DELETE has one format, word for word 2023 Format 1 (RECORD optional, retry-phrase, INVALID KEY/NOT INVALID KEY, END-DELETE); 2023 scopes GR1 under 'FORMAT 1'. No 2002 operand, phrase or file organization this rule reaches is missing in 2023; DELETE has no communication-section operand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be I-O",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.10.4 GR1",
+      "quote": "The open mode of the file connector referenced by file-name-1 shall be I-O",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 a COPY statement may begin on a debugging line (GR13 names that case) and, because debugging lines become comments only after all COPY processing, such a COPY is processed whether or not WITH DEBUGGING MODE is specified: text-name-1 must identify library text that is then copied onto debugging lines. 2023 has no debugging lines, so its verdict says nothing about this. Probe copy_d_missing.cob (D-line COPY of a nonexistent member, no DEBUGGING MODE): --std 2002 'error CBL3620: COPY copybook NOSUCHMEMBER not found' (the D-line COPY is processed); copy_d_on.cob prints MAIN, FROMLIB; copy_d_off.cob prints MAIN; --std 2023 rejects the D line (COBOL0902). Compiler at 2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR1",
+      "quote": "Text-name-1 or literal-1 identifies the library text to be processed by the COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR1",
+      "quote": "Text-name-1 or literal-1 identifies the library text to be processed by the COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a COPY statement written on a debugging line",
+    "needs": "a 2002 witness for a COPY statement on a debugging line, with and without WITH DEBUGGING MODE",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/copy_d_missing.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach as GR1: a COPY ... OF library-name-1 written on a debugging line is processed in 2002 before debugging lines are excluded, so library-name-1 must be available and give access to the library text even when the line will later be a comment. 2023 has no such COPY. Probe copy_d_missing.cob shows the 2002 compile requires the library text of a D-line COPY.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR2",
+      "quote": "Library-name-1 names a resource that shall be available to the compiler",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR2",
+      "quote": "Library-name-1 names a resource that shall be available to the compiler",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7",
+      "quote": "The inclusion or exclusion of debugging lines occurs in the compilation stage",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a COPY statement written on a debugging line",
+    "needs": "a 2002 witness for COPY ... OF library-name on a debugging line",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/copy_d_missing.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach as GR1: the implementor-defined locating of library text applies in 2002 to a COPY on a debugging line, which is processed in the text-manipulation stage regardless of DEBUGGING MODE. Probe copy_d_missing.cob: --std 2002 searches 'E:\\...\\refute-p-07; lib' for the D-line COPY's member and fails when it is absent. 2023 has no such COPY.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR3",
+      "quote": "The implementor shall define the rules for locating the library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR3",
+      "quote": "The implementor shall define the rules for locating the library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a COPY statement written on a debugging line",
+    "needs": "a 2002 witness for locating library text of a COPY on a debugging line",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/copy_d_missing.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-4",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach: COPY ... SUPPRESS PRINTING may begin on a debugging line in 2002 and is processed there; the listing rule then governs a statement 2023 does not have. Weaker than GR1-3 because listing content and stage are implementor-defined and no listing probe was possible; overturned rather than KEPT because the 2023 verdict cannot speak to a D-line COPY at all.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a COPY statement written on a debugging line",
+    "needs": "a 2002 witness (or a recorded N/A for listings) for COPY SUPPRESS on a debugging line",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-5",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach: 'the COPY statement itself' may be on a debugging line in 2002 (a LISTING directive itself may not be, 2002 7.2 SR8d, but the COPY may), so the rule restoring the COPY's LISTING state governs a 2002-only statement. Weak like GR4 (listing, no probe), overturned for the same reason.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR5",
+      "quote": "the LISTING directive that is in effect for the COPY statement itself is considered to be in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR5",
+      "quote": "the LISTING directive that is in effect for the COPY statement itself is considered to be in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "A debugging line is permitted anywhere in a compilation unit after the SOURCE-COMPUTER paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a COPY statement written on a debugging line",
+    "needs": "a 2002 witness (or a recorded N/A for listings) for a COPY on a debugging line whose library text holds LISTING directives",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "The 'source text' this rule defines is, in 2002, a conditionally-processed compilation group that still contains debugging lines (they are excluded only in the compilation stage), and the REPLACE rules built on it match inside them (GR8c6) and keep results on them (GR11). In 2023 the same words denote text with no debugging lines. Probe repl_d_partial.cob (REPLACE LEADING ==YY== BY ==XX==, then a D-line DISPLAY YY-VAL, DEBUGGING MODE): --std 2002 prints NEW, i.e. the D line is source text for REPLACE; --std 2023 rejects the D line.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR1",
+      "quote": "In subsequent general rules of the REPLACE statement, 'source text' refers to the conditionally-processed compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR1",
+      "quote": "In subsequent general rules of the REPLACE statement, 'source text' refers to the conditionally-processed compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7",
+      "quote": "The inclusion or exclusion of debugging lines occurs in the compilation stage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR8c6",
+      "quote": "Text words within a debugging line participate in the matching",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only) are part of REPLACE's source text",
+    "needs": "a 2002 witness for REPLACE over source text that contains debugging lines",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/repl_d_partial.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 partial-word-1 is matched against text-words on debugging lines (GR8c6) and the result stays on a debugging line (GR11): a partial-word replacement inside a debugging line is a 2002-only case of this rule. Probe repl_d_partial.cob: --std 2002 prints NEW (YY-VAL on the D line became XX-VAL); --std 2023 rejects the D line (COBOL0902). Compiler at 2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR3",
+      "quote": "Partial-word-1 specifies the text to be replaced by partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR3",
+      "quote": "Partial-word-1 specifies the text to be replaced by partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR8c6",
+      "quote": "Text words within a debugging line participate in the matching",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR11",
+      "quote": "If the text being replaced begins on a debugging line, the resultant text is on a debugging line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): partial-word replacement within a debugging line",
+    "needs": "a 2002 witness for LEADING/TRAILING partial-word replacement on a debugging line",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/repl_d_partial.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "A format 1 REPLACE written on a debugging line is 'encountered' in 2002 during text manipulation, before debugging lines are turned into comments, so it becomes active even without WITH DEBUGGING MODE and changes ordinary source lines. 2023 has no such statement. Probe repl_d_off.cob (D-line REPLACE ==AAA== BY ==\"REPLACED\"==, no DEBUGGING MODE, then DISPLAY AAA on a normal line): --std 2002 prints REPLACED; --std 2023 rejects the D line. Compiler at 2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR6a",
+      "quote": "A format 1 REPLACE statement is placed in the active state at the point at which it is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR6a",
+      "quote": "A format 1 REPLACE statement is placed in the active state at the point at which it is encountered",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:H.2",
+      "quote": "The standard is ambiguous as to how debugging lines are treated when used in conjunction with or imbedded within COPY and REPLACE statements",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a REPLACE statement written on a debugging line",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a D-line REPLACE without DEBUGGING MODE is to activate it (prints REPLACED); 2002 H.2 records the interaction as a known ambiguity, so the witness should cite 6.2.7's ordering",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/repl_d_off.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-7",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach as GR6: a format 1 REPLACE ALSO or format 2 REPLACE [LAST] OFF written on a debugging line drives the active/queue state machine in 2002 regardless of DEBUGGING MODE. Probe repl_d_off_last.cob (REPLACE AAA, REPLACE ALSO BBB, then D-line REPLACE LAST OFF, no DEBUGGING MODE): --std 2002 the LAST OFF takes effect (BBB is no longer replaced: COBOL1639 'BBB' is not defined), matching GR7c; --std 2023 rejects the D line. Compiler at 2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR7c",
+      "quote": "A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR7c",
+      "quote": "A format 2 REPLACE statement with the LAST phrase cancels the active REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only): a REPLACE statement written on a debugging line",
+    "needs": "a 2002 witness for REPLACE ALSO / REPLACE LAST OFF on a debugging line",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/repl_d_off_last.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-9",
+    "verdict": "OVERTURNED",
+    "reason": "2002 SR10 lets pseudo-text-2 contain debugging lines, so the produced text can contain a COPY statement on a debugging line; at REPLACE time that line is not yet a comment (6.2.7), so the prohibition reaches it. 2023 has no such text. Probe repl_d_copy.cob (pseudo-text-2 holds a D-line 'COPY RPIN.', no DEBUGGING MODE): --std 2002 compiles and prints MAIN with no diagnostic; --std 2023 rejects the D line. LEAD, beyond this rule: repl_copy.cob (same, no D line) compiles at BOTH editions and the produced COPY is processed (prints MAIN, FROMLIB), which looks contrary to §2023:7.2.4.4 GR9 itself; the 2023 KEPT verdict for GR-7.2.4.4-9 may be wrong and deserves a separate check.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR9",
+      "quote": "shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR9",
+      "quote": "shall not contain a COPY statement, a REPLACE statement, a SOURCE FORMAT directive, a comment, or a blank line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "class-detail": "debugging lines (2002 only) in pseudo-text-2",
+    "needs": "its own verdict: at --std 2002 a REPLACE whose pseudo-text-2 puts a COPY statement on a debugging line is accepted without diagnostic (repl_d_copy.cob); decide whether that is conforming",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-07/repl_d_copy.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-5",
+    "verdict": "UPHELD",
+    "reason": "Repertoire tables list the same basic letters, digits and 19 special characters; the rule is a permission to the implementor ('may'), identical in both. A different extended-letter annex does not change a permissive substitute-graphics latitude.",
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR5",
+      "quote": "substitute graphics may be specified by the implementor to replace the characters not represented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR5",
+      "quote": "substitute graphics may be specified by the implementor to replace the characters not represented",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.1.3-1",
+    "verdict": "UPHELD",
+    "reason": "Formats 1 (quoted) and 2 (X-hex) present in both; 2023 only makes the content optional and raises the 160 limit to 8191 (widening). No 2002 alphanumeric literal form is missing in 2023; the literal's value does not depend on the context it appears in.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR1",
+      "quote": "The separators that delimit the alphanumeric literal are not included in the value of the alphanumeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR1",
+      "quote": "The separators that delimit the alphanumeric literal are not included in the value of the alphanumeric literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.3.3-2",
+    "verdict": "UPHELD",
+    "reason": "B and BX formats in both, same syntax apart from zero length and the 8191 limit (widening); class and category boolean in both.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.3 GR2",
+      "quote": "Boolean literals are of the class and category boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.4 GR2",
+      "quote": "Boolean literals are of the class and category boolean",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-1",
+    "verdict": "UPHELD",
+    "reason": "N and NX formats in both, identical character-1 rules; 2023 adds zero length and 8191 limit only.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR1",
+      "quote": "The separators that delimit the national literal are not included in the value of the national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR1",
+      "quote": "The separators that delimit the national literal are not included in the value of the national literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.4.3-2",
+    "verdict": "UPHELD",
+    "reason": "As GR1: same formats; class and category national in both.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR2",
+      "quote": "National literals are of the class and category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR2",
+      "quote": "National literals are of the class and category national",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-5",
+    "verdict": "UPHELD",
+    "reason": "Seven figurative-constant formats identical; the high-value rule's four paragraphs (compile-time/SPECIAL-NAMES, runtime, LC_COLLATE, national vs alphanumeric program collating sequence) are word for word the same in 2023 GR6. The renumbering comes from 2023 splitting 2002 GR2 (length) into GR2 and GR3, which does not touch this rule. The value of HIGH-VALUE does not depend on whether it appears in a 2002-only context.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR5",
+      "quote": "the high-value format represents the character, or multiple-character combination, that has the highest ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR6",
+      "quote": "the high-value format represents the character, or multiple-character combination, that has the highest ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR5",
+      "quote": "If the context of the figurative constant requires national characters, the national program collating sequence is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR6",
+      "quote": "If the context of the figurative constant requires national characters, the national program collating sequence is used",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "7157a4617a8e3948456ffc43e63f528120d1071229be81b6b9b755deeb19b14f",
+  "read": "4cbf639e70e29ad584cc7ec054e7b099d36107a264114b1cd4ac423ceee8bbed",
+  "refute": "a3e1181e7e1c2a35da364ba6ee4c153c8c2f42478871c6d6bc48dcaad8b56b95"
+ }
+}

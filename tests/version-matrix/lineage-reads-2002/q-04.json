@@ -1,0 +1,2146 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-04 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-04",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-7.2.19.3-5",
+   "2002-GR-8.1.2.1-2",
+   "2002-SR-8.3.1.2.1.2-4",
+   "2002-SR-8.3.1.2.3.2-2",
+   "2002-SR-8.3.1.2.4.2-3",
+   "2002-GR-8.3.1.2.5.3-1",
+   "2002-GR-8.3.1.2.5.3-3",
+   "2002-GR-8.3.1.2.5.3-4",
+   "2002-SR-8.4.1.1.2-7",
+   "2002-SR-8.4.1.1.2-8",
+   "2002-SR-8.4.1.2.2-2",
+   "2002-SR-8.4.1.2.2-8",
+   "2002-GR-8.4.1.2.3-1",
+   "2002-GR-8.4.2.1.3-1",
+   "2002-SR-8.4.2.2.2-1",
+   "2002-SR-8.4.2.2.2-7",
+   "2002-SR-8.4.2.3.2-2",
+   "2002-SR-8.4.2.3.2-4",
+   "2002-GR-8.4.2.3.3-1",
+   "2002-SR-8.4.2.4.2-1",
+   "2002-SR-8.4.2.4.2-2",
+   "2002-SR-8.4.2.5.2-1",
+   "2002-GR-8.4.2.5.3-1",
+   "2002-GR-8.4.2.5.3-6",
+   "2002-GR-8.4.2.5.3-7"
+  ],
+  "flags": {
+   "2002-GR-7.2.19.3-5": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-SR-8.4.1.1.2-7": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-8.4.1.1.2-8": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-SR-8.4.1.2.2-2": {
+    "changed-definition-term": "subscript"
+   },
+   "2002-SR-8.4.1.2.2-8": {
+    "changed-definition-term": "subscript"
+   },
+   "2002-GR-8.4.1.2.3-1": {
+    "normalized": "normalized",
+    "changed-definition-term": "index, subscript"
+   },
+   "2002-GR-8.4.2.3.3-1": {
+    "changed-definition-term": "boolean position"
+   },
+   "2002-SR-8.4.2.4.2-2": {
+    "changed-definition-term": "null"
+   },
+   "2002-SR-8.4.2.5.2-1": {
+    "changed-definition-term": "null"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-04",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.19.3-5",
+    "to": [
+     "GR-7.3.25.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.19",
+    "clause-2023": "7.3.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR5",
+      "quote": "If the LOCATION phrase is specified, all information necessary to identify a source statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR7",
+      "quote": "If the LOCATION phrase is specified, all information necessary to identify a source statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format identical in both (ON [WITH LOCATION] | OFF, exception-name-1 [file-name-1]...). The rule names the same three functions, all present in 2002 (EXCEPTION-LOCATION-N is in the 2002 function table). 2023 renumbered the rule (GR5 to GR7) and added EC-I-O-WARNING and within-statement rules around it, none touching LOCATION. The implementor choice for the unspecified case is documented (CONFORMANCE DOC-A.1-204: not available). The 2023 row's two witnesses do not compile at 2002 (Format-3 PERFORM, EC-CONTINUE-LESS-THAN-ZERO), so the 2002 evidence is turn-location-unspecified (accept includes 2002; it cites GR-7.3.25.4-7) and probe turnloc.cob.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/turnloc.cob",
+    "widening": null,
+    "scope-2002": [
+     "TURN ... CHECKING ON WITH LOCATION: location info available to EXCEPTION-LOCATION, EXCEPTION-LOCATION-N, EXCEPTION-STATEMENT",
+     "LOCATION not specified: implementor-specified availability"
+    ],
+    "evidence-2002": {
+     "WITH LOCATION": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/turnloc.cob (2002: L=[Q4TRNLOC; MAIN-PARA; 9], N the same, T=[STRING])",
+     "no LOCATION": "covered by conformance:cases/7.3.25-TURN/turn-location-unspecified at 2002 (RAISED / LOCATION NOT AVAILABLE, its .204=not-available.out)"
+    },
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). TURN takes no expression operand, so the compile-time arithmetic mode cannot reach it. Re-run now at --std 2002: turnloc.cob prints L=[Q4TRNLOC; MAIN-PARA; 9], N=[Q4TRNLOC; MAIN-PARA; 9], T=[STRING]; conformance-suite/cases/7.3.25-TURN/turn-location-unspecified prints RAISED / LOCATION NOT AVAILABLE (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q03q04-2002.log).",
+     "definition-changed: run unit": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity' and §2023:3.158 '... as an independent entity' name the same set of runtime modules; the run unit to which §2002:7.2.19.3 GR5 makes the location information available is unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "§2002:14.5.2.1.2.1 (initial state of data), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination) are matched by the words 'run unit'; GR5 only makes source-location information available to EXCEPTION-LOCATION, EXCEPTION-LOCATION-N and EXCEPTION-STATEMENT and rests on none of their text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.3 GR5",
+      "quote": "is made available to the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "run unit: One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.158",
+      "quote": "function at execution time as an independent entity",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-2",
+    "to": [
+     "GR-8.1.3.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.1.2",
+    "clause-2023": "8.1.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR2",
+      "quote": "If more than one encoding is permitted in a single compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR2",
+      "quote": "If more than one encoding is permitted in a single compilation group",
+      "check": "OK"
+     }
+    ],
+    "reason": "Whole clause read in both: same repertoire table content, GR1 and GR2 word-identical; 2023 adds GR3 (case folding, equivalence), which does not bear on GR2. The rule is an implementor-documentation requirement for source encodings; the twin's witnesses run clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "mixed alphanumeric/national source coded character sets: documented mechanism",
+     "more than one encoding per compilation group: documented control functions or methods"
+    ],
+    "evidence-2002": {
+     "mixed sets": "vacuous as in the 2023 row (one coded character set); documented",
+     "multiple encodings": "covered by l1_encoding_per_file_bom (PASS at 2002) and l1_encoding_marked_malformed_is_refused (COBOL5434 at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The rule maps COBOL characters (4.28) to code values of coded character sets (4.26); 2023 says the same through §2023:3.37 and the coded-character-set terms, so the governed source texts are the same. The added 'cobol character' entry is 2002's alias 4.38 for 4.28, covered by §2023:3.37.",
+     "pending-clause: §2002:9.3.5 (changed)": "The flag came from 'other methods' in GR2 (§2002:8.1.2.1 GR2: the implementor specifies the control functions or other methods for distinguishing encodings); this is a documentation mechanism, not method invocation, so §2002:9.3.5 does not govern the rule."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.1.2.1 GR2",
+      "quote": "the implementor shall specify the control functions or other methods used for distinguishing between encodings",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "The procedural code in a method is executed by invoking the method",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); cobol character (newer: undefined)": null,
+     "pending-clause: §2002:9.3.5 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-4",
+    "to": [
+     "SR-8.3.3.2.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1",
+    "clause-2023": "8.3.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR4",
+      "quote": "shall be in the same coded character set representation as the opening quotation symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR4",
+      "quote": "shall be in the same coded character set representation as the opening quotation symbol",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical except that 2023 makes character-1 optional (zero-length literal, a 2023 widening that does not touch SR4); SR3/SR4 identical. Satisfied by construction in the lexer (only U+0022/U+0027 delimit, and the doubled pair is the opener's code point), independent of edition.",
+    "probe": null,
+    "widening": "2023 admits zero-length alphanumeric literals; not part of SR4's 2002 scope",
+    "scope-2002": [
+     "format 1 alphanumeric literal: doubled quotation symbol in the opener's representation"
+    ],
+    "evidence-2002": {
+     "doubled quote": "covered by l1c01_alnum_literal_characters (PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR4's 'same coded character set representation as the opening quotation symbol' rests on that sense only; the doubled-quote scope is unchanged and covered by l1c01_alnum_literal_characters at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "coded character set: A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.3.2-2",
+    "to": [
+     "SR-8.3.3.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.3",
+    "clause-2023": "8.3.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR2",
+      "quote": "Boolean-character-1 shall be a boolean character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.3 SR2",
+      "quote": "Boolean-character-1 shall be a boolean character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 (B\"...\") identical apart from 2023's optional boolean-character-1 (zero-length widening). 'boolean character' is defined alike (2002 4.20, the value zero or one). The witness refuses B\"012\" at 2002.",
+    "probe": null,
+    "widening": "2023 admits zero-length boolean literals",
+    "scope-2002": [
+     "format 1 boolean literal content restricted to 0 and 1"
+    ],
+    "evidence-2002": {
+     "non-boolean character refused": "covered by w73a-boolean-literal-non-boolean-character (COBOL2630 at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR2 rests on 'boolean character', defined alike in §2002:4 (\"A unit of information that consists of the value zero or one\"); the 'character' entries do not change which literals SR2 governs.",
+     "pending-clause: §2002:8.1.1 (changed, undecided)": "Not dependent: §2002:8.1.2 puts \"the content of boolean and hexadecimal literals\" in the COBOL character repertoire, not the computer's coded character set of 8.1.1, and 8.1.1's differing text (2023's added single coded values and currency prohibition) says nothing of boolean literals; the refusal of B\"012\" is shown at --std 2002 (w73a-boolean-literal-non-boolean-character)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.1.2",
+      "quote": "the content of boolean and hexadecimal literals are defined in the COBOL character repertoire",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "boolean character: A unit of information that consists of the value zero or one",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR2",
+      "quote": "Boolean-character-1 shall be a boolean character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-3",
+    "to": [
+     "SR-8.3.3.5.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.4",
+    "clause-2023": "8.3.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol",
+      "check": "OK"
+     }
+    ],
+    "reason": "National literal format and SR2/SR3 identical (2023 only adds the zero-length option).",
+    "probe": null,
+    "widening": "2023 admits zero-length national literals",
+    "scope-2002": [
+     "format 1 national literal: doubled opening quote is one quote, in the same representation"
+    ],
+    "evidence-2002": {
+     "doubled quote": "covered by l1c19_national_literal_quotes_class (PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR3's 'quotation symbol characters' are characters in that same sense; the national-literal scope is unchanged and covered at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "coded character set: A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-1",
+    "to": [
+     "GR-8.3.3.6.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR1",
+      "quote": "the figurative constant represents a national character value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR1",
+      "quote": "the figurative constant represents a national character value",
+      "check": "OK"
+     }
+    ],
+    "reason": "The seven figurative-constant formats are identical in both; GR1 identical. 2023 restructured GR2 (the length rules) but GR1 does not depend on it.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "national vs alphanumeric representation of figurative constants",
+     "ZERO/SPACE/QUOTE values and their documented representation"
+    ],
+    "evidence-2002": {
+     "alphanumeric": "covered by l1c10_figurative_space_quote_zero_chars and l1c10_figurative_code_values (PASS at 2002)",
+     "national": "covered by l1c05_coded_character_values_national (PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined); national character (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR1 ('represents a national character value') uses these terms in that sense. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. The alphanumeric and national representation cases are unchanged and covered at 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "coded character set: A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "national character: A character in a national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.125",
+      "quote": "coded character set that the implementor has designated for representation of data items described as usage national",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-3",
+    "to": [
+     "GR-8.3.3.6.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR3",
+      "quote": "The zero format represents the numeric value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR4",
+      "quote": "The zero format represents the numeric value",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 (zero) identical; rule identical; boolean data exists in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/figzero.cob",
+    "widening": null,
+    "scope-2002": [
+     "numeric context",
+     "boolean context",
+     "character context"
+    ],
+    "evidence-2002": {
+     "numeric": "covered by pb51_compute_figurative_zero, pb3962_figurative_zero_before_a_signed_literal (PASS at 2002)",
+     "boolean": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/figzero.cob (2002: B=[0000], B4 = ZERO true)",
+     "character": "covered by probe figzero.cob (X=[000], N=[000])"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR3 uses 'character' (the character zero) in that ordinary sense; the numeric, boolean and character contexts it governs in 2002 are unchanged and covered by the reader's evidence at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "coded character set: A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-4",
+    "to": [
+     "GR-8.3.3.6.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR4",
+      "quote": "The space format represents one or more of the character space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR5",
+      "quote": "The space format represents one or more of the character space",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 identical; rule identical.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/figzero.cob",
+    "widening": null,
+    "scope-2002": [
+     "SPACE in alphanumeric and national contexts"
+    ],
+    "evidence-2002": {
+     "space": "covered by l1c10_figurative_space_quote_zero_chars (PASS at 2002) and probe figzero.cob (S=[   ])"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR4's 'one or more of the character space' uses the ordinary sense; SPACE in alphanumeric and national contexts is governed alike, covered at --std 2002."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a coded character set): A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "coded character set: A set of unambiguous rules that establishes a character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:2",
+      "quote": "Information technology — Universal Coded Character Set (UCS)",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-7",
+    "to": [
+     "SR-8.4.2.2.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.1",
+    "clause-2023": "8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR7",
+      "quote": "LINE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR9",
+      "quote": "LINE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 8 (qualified-report-counter) is identical; the 2002 file-cd-report-qualifier (cd-name) belongs to data-name formats 1-3, not to the counter format. The rule concerns report description entries and the procedure division, which are the same in both. 'procedure' (2002 4.150) does not enter the rule's scope.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "procedure division reference with more than one RD: qualification required",
+     "report section: implicit qualification by the containing RD",
+     "another report's counter: explicit qualification"
+    ],
+    "evidence-2002": {
+     "two RDs unqualified": "covered by pb1049-unqualified-counter-two-reports (COBOL2729 at 2002)",
+     "implicit/explicit": "covered by pb1456_other_report_counters_85 (PASS at 2002) and pb1456-counter-qualified-by-report-group (COBOL2729 at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. 'report description entry' is the RD in both.",
+     "pending-clause: §2002:8.4.1.1 (changed, undecided)": "§2002:8.4.1.1 differs from 2023 in its formats 1-3 (file-cd-report-qualifier with cd-name-1) and in one general sentence: 'The LINAGE-COUNTER and report counter identifiers require qualification ... whenever a SOURCE UNIT would result in more than one occurrence', where SR7 says source ELEMENT (§2002:4 (entry 4.172)). SR7 does not rest on that sentence: its own words fix its scope (more than one RD in the source element), identical to the 2023 rule, and format 8 is identical. The sentence's wider reading (a contained program's RD) is resolved in 2002 by scope of names: counters are local unless the RD is GLOBAL (§2002:8.4.5.1.4) and an inner declaration wins (§2002:8.4.5.1 (item 3a)). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-11/lc-nested.cob (outer GLOBAL RD R1 + inner RD R2, unqualified LINE-COUNTER in each): accepted and the same at --std 2002 and 2023 (lc-nested.log). The sentence is the pending clause's own question, not this row's."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1",
+      "quote": "The LINAGE-COUNTER and report counter identifiers require qualification to provide uniqueness of reference whenever a source unit would result in more than one occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A source unit excluding any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1.4",
+      "quote": "PAGE-COUNTER and LINE-COUNTER are global if the GLOBAL clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1",
+      "quote": "If the name is declared in source element B, the item in source element B is the referenced item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.2 SR7",
+      "quote": "LINE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-11/lc-nested.log"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-8",
+    "to": [
+     "SR-8.4.2.2.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.1",
+    "clause-2023": "8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR8",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR10",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 8 (qualified-report-counter) is identical; the 2002 file-cd-report-qualifier (cd-name) belongs to data-name formats 1-3, not to the counter format. The rule concerns report description entries and the procedure division, which are the same in both. 'procedure' (2002 4.150) does not enter the rule's scope.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "procedure division reference with more than one RD: qualification required",
+     "report section: implicit qualification by the containing RD",
+     "another report's counter: explicit qualification"
+    ],
+    "evidence-2002": {
+     "two RDs unqualified": "covered by pb1049-unqualified-counter-two-reports (COBOL2729 at 2002)",
+     "implicit/explicit": "covered by pb1456_other_report_counters_85 (PASS at 2002) and pb1456_counter_in_source_expression (PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-changed: procedure": "The rule uses 'procedure division' (the division), never the defined term 'procedure'; §2002:4 (entry 4.150) 'One or more successive paragraphs or sections in the procedure division' vs §2023:3.145 does not touch what the division is. Scope and evidence unchanged.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (entry 4.163) defines report as the printed output described in the report section; 2023 drops the entry and the term rests on the RD entry and REPORT clause (§2023:13.18.46.1). In both editions a report is exactly what one RD describes, so the rule governs the same report groups and RDs. 'report description entry' is the RD in both.",
+     "pending-clause: §2002:8.4.1.1 (changed, undecided)": "§2002:8.4.1.1 differs from 2023 in its formats 1-3 (file-cd-report-qualifier with cd-name-1) and in one general sentence: 'The LINAGE-COUNTER and report counter identifiers require qualification ... whenever a SOURCE UNIT would result in more than one occurrence', where SR8 says source ELEMENT (§2002:4 (entry 4.172)). SR8 does not rest on that sentence: its own words fix its scope (more than one RD in the source element), identical to the 2023 rule, and format 8 is identical. The sentence's wider reading (a contained program's RD) is resolved in 2002 by scope of names: counters are local unless the RD is GLOBAL (§2002:8.4.5.1.4) and an inner declaration wins (§2002:8.4.5.1 (item 3a)). Probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-11/lc-nested.cob (outer GLOBAL RD R1 + inner RD R2, unqualified LINE-COUNTER in each; PAGE-COUNTER follows the same scope rule 8.4.5.1.4): accepted and the same at --std 2002 and 2023 (lc-nested.log). The sentence is the pending clause's own question, not this row's."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1",
+      "quote": "The LINAGE-COUNTER and report counter identifiers require qualification to provide uniqueness of reference whenever a source unit would result in more than one occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A source unit excluding any contained source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1.4",
+      "quote": "PAGE-COUNTER and LINE-COUNTER are global if the GLOBAL clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.1",
+      "quote": "If the name is declared in source element B, the item in source element B is the referenced item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.2 SR8",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-11/lc-nested.log"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-2",
+    "to": [
+     "SR-8.4.2.3.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2",
+    "clause-2023": "8.4.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR2",
+      "quote": "shall contain an OCCURS clause or shall be subordinate to a data description entry that contains an OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR2",
+      "quote": "shall contain an OCCURS clause or shall be subordinate to a data description entry that contains an OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "data-name-1 [ data-qualifier ] … [ file-cd-report-qualifier ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.1",
+      "quote": "CD cd-name-1 FOR",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but in 2002 qualified-data-name-1 (8.4.1.1.1 format 1, with file-cd-report-qualifier) and its data description entry may be in the communication section: record entries under a CD, and the data-names a CD entry itself defines (TEXT LENGTH IS TL, ...). The 2023 row's witnesses cover only working-storage items. Probes at 2002: a subscript on a non-table CD record item is refused (COBOL2096), on a level-88 of one refused, on the CD's TL refused; a subscript on a CD table element is accepted and runs.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/cd-sub-bad.cob",
+    "widening": null,
+    "scope-2002": [
+     "subscripted data-name or condition-name outside the communication section",
+     "subscripted item of a CD record (communication section)",
+     "subscripted data-name defined by a CD entry clause"
+    ],
+    "evidence-2002": {
+     "outside CD": "covered by pb877-subscript-on-non-table-item, pb1016-constant-length-subscript-on-non-table (COBOL2096 at 2002), pb1016_constant_length_subscripts (PASS at 2002); pb877_subscripted_subscript does not compile at 2002 (a SEARCH identifier-1 subscript is 2023-only)",
+     "CD record": "not shown by the 2023 row; probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/cd-sub-bad.cob and cd-sub-bad2.cob (COBOL2096) and cd-sub-ok.cob (T=[ABY], T1-Y(3) TRUE) at 2002",
+     "CD entry data-name": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/cd-sub-bad2.cob, TL (1) refused COBOL2096 at 2002"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a subscript on a communication-section item (a CD record entry and a CD-defined data-name)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/cd-sub-bad.cob, cd-sub-bad2.cob, cd-sub-ok.cob)",
+    "flags-answered": [
+     "changed-definition-term 'subscript': 2002 4.179 'A number used to refer to a specific element of a table, or ... ALL' equals 2023 3.170 in substance; no scope change. The scope difference is the communication section, not the term."
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-8",
+    "to": [
+     "SR-8.4.2.3.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.2",
+    "clause-2023": "8.4.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR8",
+      "quote": "neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR8",
+      "quote": "neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK"
+     }
+    ],
+    "reason": "Subscript format identical; the rule is confined to the report section in both. 2023 SR5 adds case (g), an unsubscripted SUM addend, which does not alter SR8.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "report section: a sum counter as a subscript is refused",
+     "LINE-COUNTER/PAGE-COUNTER as a subscript is refused",
+     "legal report subscripts accepted"
+    ],
+    "evidence-2002": {
+     "refusals": "covered by the six pb1474-* refusal tests (COBOL2751/COBOL1559 at 2002)",
+     "legal": "covered by pb1474_report_subscripts_legal (PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    },
+    "flags-answered": {
+     "definition-changed: subscript": "§2002:4 (4.179) 'A number used to refer to a specific element of a table, or in the case of the subscript 'ALL', to all elements of a table' and §2023:3.170 ('the value 'ALL'') differ only in wording, so the subscripts SR8 forbids are the same.",
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 (4.163) 'A printed output described in the report section and generated from those data descriptions'; 2023 describes the report in 13.18.46.2. SR8 is confined 'In the report section' in both, so the scope is the same."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'subscript': definitions equal in substance; no change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A number used to refer to a specific element of a table, or in the case of the subscript 'ALL', to all elements of a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.170",
+      "quote": "number used to refer to a specific element of a table, or in the case of the value 'ALL', to all elements of a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR8",
+      "quote": "In the report section, neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.1.2.3-1",
+    "to": [
+     "GR-8.4.2.3.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2",
+    "clause-2023": "8.4.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.3 GR1",
+      "quote": "the subscript is the result of the evaluation of arithmetic-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.4 GR1",
+      "quote": "the subscript is the result of the evaluation of arithmetic-expression-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Normalized match: the only difference is the typographic minus (an en dash in the 2002 transcription, a hyphen in 2023); otherwise the words and the subscript format (ALL | arithmetic-expression-1 | index-name-1 [+|- integer-1]) are identical. GR1a defers to the functions that allow ALL, and 2002's set is a subset of 2023's. Two twin witnesses fail at 2002 for unrelated 2023-only constructs (pb62 uses TRIM, CONCAT, OCCURS DYNAMIC; pb877 subscripts SEARCH identifier-1), so ALL is shown by a 2002-only cut of pb62. The rule governs the subscript's value, not the entry, so a CD table is the same evaluation (also probed).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-07/substd.cob",
+    "widening": null,
+    "scope-2002": [
+     "ALL in intrinsic-function arguments (2002 functions)",
+     "arithmetic-expression subscript; non-integer sets EC-BOUND-SUBSCRIPT",
+     "index-name +/- integer"
+    ],
+    "evidence-2002": {
+     "ALL": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/all02.cob (pb62 minus its 2023-only lines; output equals pb62's expected lines at 2002)",
+     "arithmetic-expression": "covered by pb136_subscript_expressions, pb41_position_not_integer, pb170/pb201/pb50 (PASS at 2002); CD table: probe cd-sub-ok.cob",
+     "index-name": "covered by index_name_r7_windows (PASS at 2002)",
+     "arithmetic-expression under ARITHMETIC IS STANDARD": "not shown: wrong at --std 2002 (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-07/substd.cob), PB5575"
+    },
+    "flags-answered": {
+     "deferral: the rules for ": "The deferral in a) is 'as specified in the rules for the functions for which the subscript ALL is allowed'. §2002:8.4.1.2.2 SR6 limits ALL to intrinsic-function arguments and the table SORT. The reader's all02.cob probe exercises the 2002 functions at --std 2002, and its 19 output lines equal the expected lines (they differ only in CRLF). This flag does not change the row.",
+     "definition-changed: index; subscript": "§2002:4 defines index as 'A storage area or a register, the content of which refers to a particular element in a table', where 2023 says 'conceptual data item'. Subscript is 'A number used to refer to a specific element of a table', with 'subscript ALL' against 'value ALL'. The mapping of an index to an occurrence number is implementor-defined in both editions, and index_name_r7_windows passes at 2002, so c) is unchanged.",
+     "held: S1 (adopt-2002): its witness was refused at 2002 for ALL subscripts, which the rule names": "This hold is answered by the reader's 2002-only cut of pb62, out/probes-q-04/all02.cob. At --std 2002 its output (all02.2002.txt) equals all02.expected for MEAN, MEDIAN, MIDRANGE, RANGE, SUM, MAX, ORD-MAX, ORD-MIN, PRESENT-VALUE and MAX/MIN over ODO, 1-D and 2-D ALL subscripts. That is a 2002 witness for a); the refused twin is not needed.",
+     "normalized: normalized": "The 2002 text has an en dash in '(when the operator – is used)' where 2023 has a hyphen. The difference is typographic only, and GR-8.4.2.3.4-1 is the pointer.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "This flag CHANGES the row. In b), 'the result of the evaluation of arithmetic-expression-1' is computed by standard arithmetic when ARITHMETIC IS STANDARD is specified (§2002:11.8.4.2 GR2), and 2002 addition gives 'the exact sum truncated to 32 significant digits' (§2002:8.8.1.3.2). So E (10 + X) with X = 1E-31 evaluates to the integer 10, and EC-BOUND-SUBSCRIPT must not be set. The probe substd.cob at --std 2002 instead ends fatally: 'EC-BOUND-SUBSCRIPT (fatal): subscript value 10 is not an integer'. That is PB5575 (34 digits at 2002); --std 2014 gives the same, which is right for 2014. The 14.5.12.x changes do not reach this rule: 2023 adds the PERFORM WHEN, MERGE/SORT and I-O arms, and the fatal handling 2002 gives (USE declarative, PROPAGATE, abnormal termination, §2002:14.5.12.1.2) is what the compiler does once the condition exists."
+    },
+    "reader-flags-answered": [
+     "normalized: an en dash vs a hyphen in '(when the operator - is used)', typographic only; the pointer is GR-8.4.2.3.4-1",
+     "changed-definition-term 'index, subscript': 2002 4.102 index 'A storage area or a register' vs 2023 3.102 'conceptual data item'; the mapping to an occurrence number is implementor-defined in both and index_name_r7_windows passes at 2002; no scope change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.1.2.3 GR1",
+      "quote": "If the evaluation of arithmetic-expression-1 does not result in an integer, the EC-BOUND-SUBSCRIPT exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and certain integer and numeric functions shall be those specified for standard arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR6",
+      "quote": "The subscript ALL may be used only when the subscripted identifier is used as an intrinsic function argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A number used to refer to a specific element of a table",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "class-detail": "b) rests on 2002 standard arithmetic (§2002:8.8.1.3: 32 significant digits, truncated per operation), which the compiler does not implement at --std 2002",
+    "needs": "PB5575",
+    "compiler-at-2002": "wrong: program: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-07/substd.cob; expected: OPTIONS. ARITHMETIC IS STANDARD., X PIC V9(31) VALUE 1E-31, MOVE \"AB\" TO E (10 + X): 10 + 1E-31 truncated to 32 significant digits is 10 (§2002:8.8.1.3.2 'The result shall be the exact sum truncated to 32 significant digits', §2002:11.8.4.2 GR2), an integer, so no EC-BOUND-SUBSCRIPT and the program prints A=AB; observed: --std 2002 --run: 'abnormal run-unit termination: EC-BOUND-SUBSCRIPT (fatal): subscript value 10 is not an integer (ISO 8.4.2.3.4 GR1b)', rc 1 (out-answer/probes-a-07/run2002/out.txt); --std 2014 gives the same, which is right for 2014's 34 digits (run2014/out.txt); code-site: PB5575: src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:16-20 and the run-time ARITHMETIC IS STANDARD engine (34 digits at 2002)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.1.3-1",
+    "to": [
+     "GR-8.4.3.1.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.1",
+    "clause-2023": "8.4.3.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.3 GR1",
+      "quote": "The order in which the various components of an identifier are applied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.4 GR1",
+      "quote": "The order in which the various components of an identifier are applied",
+      "check": "OK"
+     }
+    ],
+    "reason": "All eleven identifier formats match (2023 writes formats 10/11 as qualified-linage-counter-1/qualified-report-counter-1, same content; class-name-1 OF SUPER becomes object-class-name-1). The ordered list a) to g) is identical.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "application order of subscripted names, predefined objects, functions, counters, address-identifier, object-view, property, inline invocation, function arguments, reference modifier"
+    ],
+    "evidence-2002": {
+     "order": "covered by pb1425_object_property_identifier, pb428_inline_method_invocation, pb1407_address_of_reference_modified, pb1425_object_view (all PASS at 2002), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/twins-2002.txt"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-1",
+    "to": [
+     "SR-8.4.3.2.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.2",
+    "clause-2023": "8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR1",
+      "quote": "A function-identifier shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR1",
+      "quote": "A function-identifier shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR3",
+      "quote": "transferred to the receiving character positions of the area referenced by identifier-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule reaches every receiving operand of the 2002 language, which includes RECEIVE cd-name-1 ... INTO identifier-1 (2002 Annex A.2.5, the communication facility). The 2023 row's evidence (INSPECT, ADD, a drift test over the receiving grammar rules) covers 2023 statements only. Probe: RECEIVE CDIN MESSAGE INTO FUNCTION UPPER-CASE (W) is refused at 2002 (COBOL5506, at the parser: the RECEIVE INTO slot admits no function-identifier), while RECEIVE ... INTO W compiles.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-fn.cob",
+    "widening": null,
+    "scope-2002": [
+     "receiving operands of statements common to both editions",
+     "RECEIVE ... INTO identifier-1 (communication facility)"
+    ],
+    "evidence-2002": {
+     "common statements": "covered by pb10-inspect-fn-replacing (COBOL1632 at 2002)",
+     "RECEIVE INTO": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-fn.cob refused (COBOL5506), control recv-ok.cob accepted at 2002"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for RECEIVE ... INTO <function-identifier>",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-fn.cob, control recv-ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-7",
+    "to": [
+     "SR-8.4.3.2.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.2",
+    "clause-2023": "8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR7",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR9",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 format: function-prototype-name-1 | intrinsic-function-name-1 with argument-1 | OMITTED; OMITTED is barred for intrinsics (SR5). 2023 adds function-pointer-name-1, a widening. For prototypes the rule is the same.",
+    "probe": null,
+    "widening": "2023 also covers OMITTED in a function-pointer-name-1 call",
+    "scope-2002": [
+     "OMITTED argument of a user-defined function: the formal parameter must be OPTIONAL"
+    ],
+    "evidence-2002": {
+     "refusal": "covered by pb757-function-omitted-not-optional (COBOL2238 at 2002)",
+     "accept": "covered by pb757_invoke_omitted (PASS at 2002)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:14.6.4 (changed), §2002:14.6.6 (changed)": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding formal parameter' of a function argument), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR7",
+      "quote": "the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.5",
+      "quote": "A pair of data items correspond if",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "The arithmetic statements are the ADD, COMPUTE, DIVIDE, MULTIPLY, and SUBTRACT statements",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-2",
+    "to": [
+     "SR-8.4.3.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR2",
+      "quote": "it shall reference an alphanumeric, boolean, or national function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR2",
+      "quote": "it shall reference an alphanumeric, boolean, or national function",
+      "check": "OK"
+     }
+    ],
+    "reason": "The reference-modification format is identical; the 2002 intrinsic set is a subset of 2023's and each function's class is fixed by its definition; a user function's class comes from its RETURNING item in both.",
+    "probe": null,
+    "widening": "2023 has more alphanumeric and national functions, and function-pointer-name-1",
+    "scope-2002": [
+     "refmod of an alphanumeric/boolean/national function result accepted",
+     "refmod of a numeric or integer function refused"
+    ],
+    "evidence-2002": {
+     "accept": "covered by pb8_refmod_function_result (PASS at 2002)",
+     "refuse": "covered by pb8-refmod-numeric-function (COBOL1629 at 2002)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:15 (changed), §2002:15.1 (changed)": "This rule does rest on §2002:15.1: it admits reference modification only of alphanumeric, boolean or national functions. 2002 15.1 has the same six types (alphanumeric, boolean, national, numeric, integer, index) as §2023:15.2, each of the same class and category; 2002 adds only that the size is fixed by each function definition, which 2023 leaves to the definition too. So the governed set is the same. Confirming probe at --std 2002: refmod of BOOLEAN-OF-INTEGER and NATIONAL-OF accepted and right (BOOL=OK, NAT=BC), alongside the reader's alphanumeric-accept and numeric-refuse cases."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR2",
+      "quote": "it shall reference an alphanumeric, boolean, or national function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "Alphanumeric functions. These are of the class and category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "Boolean functions. These are of the class and category boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "National functions. These are of the class and category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-20/refmod-bool-nat.cob (output refmod-bool-nat-2002.out: BOOL=OK, NAT=BC, exit 0)",
+    "from-slice": "q-04"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-4",
+    "to": [
+     "SR-8.4.3.3.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR4",
+      "quote": "Leftmost-position and length shall be arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR4",
+      "quote": "Leftmost-position and length shall be arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical; an arithmetic expression is the same construct. 2023's REF-MOD-ZERO-LENGTH directive (GR5c) is general-rule territory, not SR4.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "leftmost-position and length as arithmetic expressions",
+     "non-arithmetic operands refused"
+    ],
+    "evidence-2002": {
+     "accept": "covered by pb201_position_operand_carriers, pb50_figurative_zero_position_expressions, pb8_refmod_function_result (PASS at 2002)",
+     "refuse": "covered by pb201-refmod-group-bound, pb170-refmod-alphanumeric-bound (COBOL0844), pb170-refmod-index-name (COBOL1637) at 2002"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). SR4 only requires leftmost-position and length to be arithmetic expressions (§2002:8.4.2.3.2 SR4), a syntax check; the values they evaluate to are governed by the general rules and by 8.8.1.3, not by SR4."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.3.2 SR4",
+      "quote": "Leftmost-position and length shall be arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.3.3-1",
+    "to": [
+     "GR-8.4.3.3.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.3 GR1",
+      "quote": "Leftmost-position represents a boolean position, alphanumeric position, or national position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.4 GR1",
+      "quote": "Leftmost-position represents a boolean position, alphanumeric position, or national position",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR1 to GR6 of the clause match (GR5a: bit positions under usage bit, character positions otherwise, in both). 2002 defines boolean position only as the storage for one boolean character (4.23); 2023 adds a second sense, 'location within a boolean data item'. Under GR5a the 2002 storage sense gives the same ordinal positions, so the rule's scope is unchanged.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "boolean item (bit and display forms)",
+     "alphanumeric item",
+     "national item"
+    ],
+    "evidence-2002": {
+     "boolean": "covered by pb73_table16_function_type_and_boolean_view (PASS at 2002) and pb73-move-bit/display-boolean-view-to-numeric (COBOL0819 at 2002)",
+     "alphanumeric/national": "covered by pb8_refmod_function_result (PASS at 2002)"
+    },
+    "flags-answered": {
+     "definition-dropped: boolean position (newer: undefined)": "§2002:4 (4.23) defines boolean position only as storage ('The amount of physical storage required to store, or presentation space required to print or display, a single boolean character'); 2023 adds the location sense (3.25). In GR1 ('Leftmost-position represents a boolean position, alphanumeric position, or national position') the unit counted is the same in both, so the boolean items reached and the position arithmetic are unchanged."
+    },
+    "reader-flags-answered": [
+     "changed-definition-term 'boolean position': 2002 4.23 'The amount of physical storage required to store ... a single boolean character'; read with 8.4.2.3.3 GR5a it gives the same positions as 2023's added locational sense; the evidence holds at 2002"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The amount of physical storage required to store, or presentation space required to print or display, a single boolean character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.25",
+      "quote": "the location within a boolean data item of a boolean character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.3.3 GR1",
+      "quote": "Leftmost-position represents a boolean position, alphanumeric position, or national position",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.4.2-1",
+    "to": [
+     "SR-8.4.3.4.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.4",
+    "clause-2023": "8.4.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.2 SR1",
+      "quote": "Inline method invocation shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.3 SR1",
+      "quote": "Inline method invocation shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "As for the function-identifier SR1: the 2002 receiving operands include RECEIVE ... INTO identifier-1 (A.2.5). The 2023 row's witnesses (DIVIDE INTO, drift tests over the 2023 receiving rules) do not reach it. Probe: RECEIVE CDIN MESSAGE INTO OB :: \"GETX\" (OB class-typed, the method returns PIC X(10)) is refused at 2002 (COBOL2269).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-inline.cob",
+    "widening": null,
+    "scope-2002": [
+     "receiving operands of statements common to both editions",
+     "RECEIVE ... INTO identifier-1 (communication facility)"
+    ],
+    "evidence-2002": {
+     "common statements": "covered by pb1142-divide-into-inline-receiver (COBOL1689 at 2002)",
+     "RECEIVE INTO": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-inline.cob refused (COBOL2269) at 2002"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for RECEIVE ... INTO <inline method invocation>",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-04/recv-inline.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.4.2-2",
+    "to": [
+     "SR-8.4.3.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.4",
+    "clause-2023": "8.4.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.2 SR2",
+      "quote": "neither the predefined object reference NULL nor a universal object reference shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.3 SR2",
+      "quote": "neither the predefined object reference NULL nor a universal object reference shall be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (class-name-1 vs object-class-name-1 on the other alternative; identifier-1 the same). 'null' 2002 4.136 covers a pointer and an object reference; 2023 adds message-tag null, irrelevant to an object reference.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "identifier-1 of class object",
+     "NULL refused",
+     "universal reference refused"
+    ],
+    "evidence-2002": {
+     "NULL": "covered by pb428-inline-invocation-null-receiver (COBOL2138 at 2002)",
+     "universal": "covered by pb1429-inline-chained-universal (COBOL2138 at 2002)",
+     "legal": "covered by pb428_inline_method_invocation (PASS at 2002)"
+    },
+    "flags-answered": [
+     "changed-definition-term 'null': 2023 adds only the message-tag sense; the rule names the predefined object reference NULL, the same in 2002; no change"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.5.2-1",
+    "to": [
+     "SR-8.4.3.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5",
+    "clause-2023": "8.4.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.2 SR1",
+      "quote": "the predefined object references SUPER and NULL shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.3 SR1",
+      "quote": "the predefined object references SUPER and NULL shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Object-view format identical (FACTORY OF class ONLY | interface | UNIVERSAL); SR1 identical.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "non-object identifier-1 refused",
+     "NULL refused",
+     "SUPER refused"
+    ],
+    "evidence-2002": {
+     "non-object, NULL": "covered by pb1425-object-view-subject (COBOL2870 at 2002)",
+     "SUPER": "covered by pb4652-object-view-super-subject-position (COBOL2870 at 2002)",
+     "legal": "covered by pb1425_object_view (PASS at 2002)"
+    },
+    "flags-answered": [
+     "changed-definition-term 'null': the object-reference sense is identical in 2002; no change"
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-1",
+    "to": [
+     "GR-8.4.3.5.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5",
+    "clause-2023": "8.4.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR1",
+      "quote": "treated at compile-time as though it had the description specified by the AS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR1",
+      "quote": "treated at compile-time as though it had the description specified by the AS phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Object-view general format and GR1 to GR7 identical (class-name-1 is renamed object-class-name-1 in 2023). EC-OO-CONFORMANCE exists in 2002, and the twin witness, which enables it with >>TURN and handles it in a declarative, runs clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "compile-time description of identifier-1 AS ..."
+    ],
+    "evidence-2002": {
+     "all forms": "covered by pb1425_object_view and pb1425_object_view_unchecked (both PASS at 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-6",
+    "to": [
+     "GR-8.4.3.5.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5",
+    "clause-2023": "8.4.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR6",
+      "quote": "If the object referenced by identifier-1 does not implement interface-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR6",
+      "quote": "If the object referenced by identifier-1 does not implement interface-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Object-view general format and GR1 to GR7 identical (class-name-1 is renamed object-class-name-1 in 2023). EC-OO-CONFORMANCE exists in 2002, and the twin witness, which enables it with >>TURN and handles it in a declarative, runs clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "AS interface-name-1 description",
+     "EC-OO-CONFORMANCE when the interface is not implemented"
+    ],
+    "evidence-2002": {
+     "interface view": "covered by pb1425_object_view (PASS at 2002; >>TURN EC-OO-CONFORMANCE CHECKING ON plus USE AFTER EXCEPTION CONDITION)"
+    }
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-7",
+    "to": [
+     "GR-8.4.3.5.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5",
+    "clause-2023": "8.4.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR7",
+      "quote": "The EC-OO-CONFORMANCE exception condition is not set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR7",
+      "quote": "The EC-OO-CONFORMANCE exception condition is not set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "Object-view general format and GR1 to GR7 identical (class-name-1 is renamed object-class-name-1 in 2023). EC-OO-CONFORMANCE exists in 2002, and the twin witness, which enables it with >>TURN and handles it in a declarative, runs clean at 2002.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "AS UNIVERSAL description",
+     "no EC-OO-CONFORMANCE"
+    ],
+    "evidence-2002": {
+     "universal view": "covered by pb1425_object_view (PASS at 2002)"
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-04",
+  "method": "Each SAME re-read in 2002's own terms. Main lead: the 2002 communication facility's statement operands (A.2.5 RECEIVE ... INTO identifier-1, A.2.6 SEND cd-name FROM identifier-1), CD record entries (A.1.2) and their VALUE clauses. Every probe compiled with the pinned E:\\COBOL-wt\\coderead85-tree-d cobol.exe at --std 2002; outputs are in refute-q-04\\run-2002\\*.txt. Finding: the 2002 SEND FROM slot (grammar CobolCommunication.g4 sendText: functionCall | dataReference) has no inline-method-invocation alternative, although an inline method invocation is an identifier (2002 8.4.2.1 format 4) whose result has the method's class (8.4.2.4.3 GR1). So `SEND CDOUT FROM OB :: \"GETX\"` (GETX returns PIC X(10)) fails with COBOL0001 at --std 2002, while `DISPLAY OB :: \"GETX\"` runs (ABC) and SEND FROM a property, function, refmod, subscript, or W compile. Rules whose operand reaches SEND FROM only through the shared dataReference/functionCall/receivingIdentifier rules were probed in those slots, the compiler was correct, and they are UPHELD.",
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.19.3-5",
+    "verdict": "UPHELD",
+    "reason": "2002 7.2.19.1 format (ON [WITH LOCATION] | OFF, exception-name-1 [file-name-1]...) and GR5 match 2023 7.3.25.4 GR7. EXCEPTION-LOCATION-N is a 2002 function (15.26). The rule does not name a communication or removed form, and it does not defer to unnamed rules. The reader's 2002 probe and turn-location-unspecified cover both branches.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.3 GR5",
+      "quote": "If the LOCATION phrase is specified, all information necessary to identify a source statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR7",
+      "quote": "If the LOCATION phrase is specified, all information necessary to identify a source statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.1.2.1-2",
+    "verdict": "UPHELD",
+    "reason": "An implementor-documentation rule about source encodings. It has no format, operand, or communication reach. The words match 2023 8.1.3.2 GR2.",
+    "citations": [
+     {
+      "cite": "§2002:8.1.2.1 GR2",
+      "quote": "If more than one encoding is permitted in a single compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.1.3.2 GR2",
+      "quote": "If more than one encoding is permitted in a single compilation group",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-4",
+    "verdict": "UPHELD",
+    "reason": "2002 8.3.1.2.1.1 has format 1 (quoted) and format 2 (X\"...\"). SR4 sits under FORMAT 1, the same as 2023, so it is not affected by format 2 or by 2023's zero-length widening. The rule is lexical and does not depend on where the literal appears (a VALUE in a CD record is the same token).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR4",
+      "quote": "shall be in the same coded character set representation as the opening quotation symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR4",
+      "quote": "shall be in the same coded character set representation as the opening quotation symbol",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Boolean literal format 1 is the same, the rule is lexical, and the twin witness refuses B\"012\" at 2002 (reader's run).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR2",
+      "quote": "Boolean-character-1 shall be a boolean character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.4.3 SR2",
+      "quote": "Boolean-character-1 shall be a boolean character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.4.2-3",
+    "verdict": "UPHELD",
+    "reason": "The national literal format and the rule are the same. The rule is lexical and has no communication reach.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR3",
+      "quote": "The two contiguous quotation symbol characters shall be in the same coded character set representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.3 SR3",
+      "quote": "The two contiguous quotation symbol characters shall be in the same coded character set representation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-1",
+    "verdict": "UPHELD",
+    "reason": "Communication reach checked: 2002 lets the first redefinition of a CD record carry VALUE clauses (A.1.2.2 SR9), so figurative constants can initialise CD record items. The probe cd-fig.cob runs at 2002 and prints [000][\"\"\"][000][QQQ] / E HIGH / [   ][000] for VALUE ZERO, QUOTE, numeric ZERO, ALL \"Q\", HIGH-VALUE and MOVE SPACE/ZERO on CD record items. That is correct and follows the shared data-description path. A CD record is never a national context.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR1",
+      "quote": "the figurative constant represents a national character value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR1",
+      "quote": "the figurative constant represents a national character value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/cd-fig.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-3",
+    "verdict": "UPHELD",
+    "reason": "Zero format: the numeric, boolean and character contexts are the same in both editions. The CD-record contexts were probed (cd-fig.cob: alphanumeric [000], numeric [000]).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR3",
+      "quote": "The zero format represents the numeric value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR4",
+      "quote": "The zero format represents the numeric value",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/cd-fig.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-4",
+    "verdict": "UPHELD",
+    "reason": "Space format is the same. MOVE SPACE to a CD record item gives [   ] (cd-fig.cob).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR4",
+      "quote": "The space format represents one or more of the character space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR5",
+      "quote": "The space format represents one or more of the character space",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/cd-fig.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-7",
+    "verdict": "UPHELD",
+    "reason": "The qualified-report-counter format is the same. The cd-name qualifier belongs to the data-name formats, not to the counter, and the report description entry is the same construct in both editions. A CD cannot hold LINE-COUNTER.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR7",
+      "quote": "LINE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR9",
+      "quote": "LINE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-8",
+    "verdict": "UPHELD",
+    "reason": "As for SR7, for PAGE-COUNTER.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR8",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR10",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-8",
+    "verdict": "UPHELD",
+    "reason": "The rule is confined to the report section, which is the same in both editions. It has no communication reach.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR8",
+      "quote": "neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR8",
+      "quote": "neither a sum counter nor the LINE-COUNTER and PAGE-COUNTER identifiers may be used as a subscript",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.1.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "The 2002 rule fixes the order in which all identifier components apply, item e) being the inline method invocation operator. In 2002 the SEND statement's FROM identifier-1 is an identifier of class alphanumeric (A.2.6.2 SR2), and an inline method invocation's result has the method's class (8.4.2.4.3 GR1), so `SEND CDOUT FROM OB :: \"GETX\"` and `SEND CDOUT FROM OB AS RQ4SNDC :: \"GETX\"` (c applied before e) are legal 2002. At --std 2002 both fail with COBOL0001 'cannot parse construct near SEND'. The same identifiers run under DISPLAY (disp-inline, disp-view: ABC), and SEND FROM a property, a function, a refmod or a plain item compiles. The cause is grammar CobolCommunication.g4 sendText: functionCall | dataReference, which has no inlineMethodInvocation, while the 2023 messaging SEND has one. The 2023 row's witnesses do not reach the 2002 SEND slot.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.3 GR1",
+      "quote": "the inline method invocation operator applies the literal method-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.4 GR1",
+      "quote": "the inline method invocation operator applies the literal method-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.3 GR1",
+      "quote": "references a temporary data item with the same class, category, and content",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: at --std 2002 the compiler refuses the legal SEND cd-name FROM <inline method invocation> (COBOL0001); a defect for kb/Work, then a 2002 witness",
+    "compiler-at-2002": "wrong (send-inline.cob, send-view.cob; controls disp-inline.cob, disp-view.cob, send-prop.cob, send-fn.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-inline.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-7",
+    "verdict": "UPHELD",
+    "reason": "Communication reach checked: 2002 SEND FROM admits a function-identifier (A.2.6.2 SR7). In that slot `SEND CDOUT FROM FUNCTION RQ4OMF (OMITTED)` is refused with COBOL2238 when the formal lacks OPTIONAL (send-omit-bad.cob) and compiles when it has OPTIONAL (send-omit-ok.cob). It uses the shared functionCall rule, so the result is correct at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR7",
+      "quote": "If the word OMITTED is specified, the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR9",
+      "quote": "If the word OMITTED is specified, the OPTIONAL phrase shall be specified for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR7",
+      "quote": "If identifier-1 is a function-identifier, it shall reference an alphanumeric function",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-omit-bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Communication reach checked: in the 2002 SEND FROM slot, FUNCTION UPPER-CASE (W) (1:3) compiles (send-fn-refmod.cob) and FUNCTION NUMVAL (\"12\") (1:1) is refused with COBOL1629 citing the twin rule (send-numfn-refmod.cob). Correct at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR2",
+      "quote": "If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR2",
+      "quote": "If identifier-1 is a function-identifier, it shall reference an alphanumeric, boolean, or national function",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-numfn-refmod.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-4",
+    "verdict": "UPHELD",
+    "reason": "Communication reach checked: arithmetic-expression refmods compile in RECEIVE ... INTO W (2:3) (recv-refmod.cob), in SEND ... FROM W (N:3) (send-refmod.cob) and on CD record items (cdrec-refmod.cob), all through the shared identifier rules. The format is the same in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR4",
+      "quote": "Leftmost-position and length shall be arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR4",
+      "quote": "Leftmost-position and length shall be arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/recv-refmod.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.3.3-1",
+    "verdict": "UPHELD",
+    "reason": "Communication reach checked: cdrec-refmod.cob runs at 2002. MOVE \"XYZ\" TO CR-TEXT (N:3) with N=2, then CDREC (2:4) TO W, displays ' XYZ ' and 'XYZ', which are the correct alphanumeric positions on CD record items.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.3 GR1",
+      "quote": "Leftmost-position represents a boolean position, alphanumeric position, or national position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.4 GR1",
+      "quote": "Leftmost-position represents a boolean position, alphanumeric position, or national position",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/cdrec-refmod.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.4.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 the rule's scope includes the inline method invocation as SEND cd-name FROM identifier-1 (A.2.6.2 SR2: class alphanumeric; 8.4.2.4.3 GR1: the result has the method's class). At --std 2002 the permitted case, identifier-1 of class object (`SEND CDOUT FROM OB :: \"GETX\"`), is refused with COBOL0001 (send-inline.cob). The excluded case (`FROM NULL :: \"GETX\"`) is refused by the same parse failure, not by this rule (send-inline-null.cob). DISPLAY OB :: \"GETX\" runs at 2002 (disp-inline.cob: ABC). The cause is grammar sendText, which lacks inlineMethodInvocation. The 2023 row's witnesses (pb428 family) exercise other statements only.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.2 SR2",
+      "quote": "Identifier-1 shall be of class object; neither the predefined object reference NULL nor a universal object reference shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.3 SR2",
+      "quote": "Identifier-1 shall be of class object; neither the predefined object reference NULL nor a universal object reference shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.3 GR1",
+      "quote": "references a temporary data item with the same class, category, and content",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler at --std 2002 refuses legal SEND cd-name FROM identifier-1 :: literal-1 (COBOL0001), and NULL there is refused by a parse error instead of SR2; fix sendText, then a 2002 witness",
+    "compiler-at-2002": "wrong (send-inline.cob, send-inline-null.cob; control disp-inline.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-inline.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.5.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 an object view can be identifier-1 of an inline method invocation (8.4.2.1.3 GR1: c, the object view, applies before e, the inline invocation), and that invocation can be SEND cd-name FROM identifier-1. `SEND CDOUT FROM OB AS RQ4SNDC :: \"GETX\"`, with OB of class object, is a permitted case of this rule. At --std 2002 it is refused with COBOL0001 (send-view.cob), while DISPLAY OB AS RQ4SNDC :: \"GETX\" runs (disp-view.cob: ABC). The cause is the same as for SR-8.4.2.4.2-2 (sendText). The 2023 row's object-view witnesses do not reach the 2002 SEND slot.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.2 SR1",
+      "quote": "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.3 SR1",
+      "quote": "Identifier-1 shall be of class object; the predefined object references SUPER and NULL shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: an object view inside an inline invocation in 2002 SEND FROM is refused (COBOL0001); the same root fix as SR-8.4.2.4.2-2, then a 2002 witness",
+    "compiler-at-2002": "wrong (send-view.cob; control disp-view.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-view.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach as SR-8.4.2.5.2-1. In 2002 `SEND CDOUT FROM OB AS RQ4SNDC :: \"GETX\"` treats OB at compile time as described by the AS phrase so that GETX resolves. The compiler at --std 2002 never gets that far because the SEND slot refuses the construct (COBOL0001, send-view.cob). The DISPLAY control runs.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR1",
+      "quote": "treated at compile-time as though it had the description specified by the AS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR1",
+      "quote": "treated at compile-time as though it had the description specified by the AS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: as SR-8.4.2.5.2-1 (one root cause, grammar sendText)",
+    "compiler-at-2002": "wrong (send-view.cob; control disp-view.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-view.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach. `SEND cd FROM OB AS interface-name-1 :: m` is legal 2002 and is governed by GR6 (interface description, EC-OO-CONFORMANCE). The SEND slot refuses any inline invocation at --std 2002 (COBOL0001, shown with the class form in send-view.cob; the interface form uses the same unparsed slot). The 2023 witness that passes at 2002 uses another statement.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR6",
+      "quote": "If interface-name-1 is specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE interface-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR6",
+      "quote": "If interface-name-1 is specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE interface-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: as SR-8.4.2.5.2-1 (one root cause, grammar sendText)",
+    "compiler-at-2002": "wrong (send-view.cob, the same slot)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-view.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-7",
+    "verdict": "OVERTURNED",
+    "reason": "Same reach, through an argument. A universal view cannot be the inline invocation's own identifier-1, because 8.4.2.4.2 SR2 bars a universal reference there. It can be an argument: `SEND cd FROM OB :: \"M\" (OB2 AS UNIVERSAL)` is legal 2002 and is governed by GR7 (no EC-OO-CONFORMANCE). The 2002 SEND slot has no inlineMethodInvocation alternative (grammar sendText), so every SEND FROM ... :: form fails to parse at --std 2002 (send-inline.cob, send-view.cob). This argument form was not compiled separately; the grammar refuses it for the same reason.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR7",
+      "quote": "If UNIVERSAL is specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR7",
+      "quote": "If UNIVERSAL is specified, identifier-1 is treated as though it were described as USAGE OBJECT REFERENCE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.2 SR2",
+      "quote": "Identifier-1 shall be of class object; neither the predefined object reference NULL nor a universal object reference shall be specified",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "its own verdict: as SR-8.4.2.5.2-1 (one root cause, grammar sendText)",
+    "compiler-at-2002": "wrong (send-view.cob, the same slot)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-04/send-view.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "251434fa1d03f81d1ed8b2584a79bb0f4a25e5640679ea4e76017dad7b78dd1e",
+  "read": "10a0f75777be1d3c82eba5b9d41f727dd4250880a2e86628b2f7441ba9eeef24",
+  "refute": "cb745399aca45fc87cf3b2ca45810e0caadd3e77326973ec49656fc67a41c231"
+ }
+}

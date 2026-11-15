@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-6",
+ "rule-digest": "f4688f53852b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.6.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "source unit",
+    "answer": "§2002:4 (4.173) 'finishing with an end marker or the end of the compilation group, including any contained source units' puts contained units inside the definition; §2023:3.165 says the same in Note 1. The containment test for CHARACTER CLASSIFICATION is the same. The scope and the evidence do not change."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. In GR6, 'characters' and 'coded character set' are the runtime alphanumeric and national characters (4.29 and 4.40). The term picks out the same characters in both, so the scope and the evidence do not change."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.1.1 (changed, undecided)",
+    "answer": "§2002:8.1.1 ('The computer's coded character set is the set of characters used in the memory of the computer during compilation or during execution of a COBOL runtime element', split into alphanumeric and national, characters and encoding specified by the implementor) is carried word for word into 2023 8.1.2. The 2023 changes, such as the list of single coded values for figurative constants, editing and fill characters, do not touch character classification. The default GR6 names is the same, and probe cc_none.cob shows it at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "GR-12.3.6.4-6": "f4688f53852b"
+  }
+ }
+}

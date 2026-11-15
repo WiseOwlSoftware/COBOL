@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_fd_clauses_any_order
 *> rules: [SR-13.4.5.3-2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

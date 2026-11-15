@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_native_arith_lane_and_rounding
 *> rules: [GR-11.9.5.2-4, DOC-A.1-123]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

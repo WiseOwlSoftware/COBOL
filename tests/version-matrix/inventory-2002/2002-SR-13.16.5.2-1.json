@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.5.2-1",
+ "rule-digest": "c732f44ff623",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.5.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item",
+    "answer": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class object is category object-reference in both; the excluded 2002 entries are the same (USAGE OBJECT REFERENCE, refused COBOL1797 at 2002 by the reader's probe). Scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/p-13.json",
+  "digests": {
+   "SR-13.18.5.3-1": "c732f44ff623"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-5",
+ "rule-digest": "61feedf29584",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. 'The character ... that has the highest ordinal position' is a member of the coded character set (4.26) placed by the collating sequence, the 2023 alphanumeric/national character; confirmed now at --std 2002 and 2023 alike: ORD(HIGH-VALUE)=65536 and HIGH-VALUE = CHAR(65536) (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-14/rw_space.cob (rw_space-2002.txt, rw_space-2023.txt))."
+   }
+  },
+  "source": "lineage-reads-2002/p-07.json",
+  "digests": {
+   "GR-8.3.3.6.4-6": "61feedf29584"
+  }
+ }
+}

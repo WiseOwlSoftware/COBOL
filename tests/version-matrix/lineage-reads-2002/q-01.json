@@ -1,0 +1,1896 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-01 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-01",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-7.1.2.2-1",
+   "2002-SR-7.1.2.2-2",
+   "2002-SR-7.2.2-1",
+   "2002-SR-7.2.2-10",
+   "2002-SR-7.2.2-2",
+   "2002-SR-7.2.2-3",
+   "2002-SR-7.2.2-4",
+   "2002-SR-7.2.2-6",
+   "2002-SR-7.2.2-9",
+   "2002-GR-7.2.3-1",
+   "2002-GR-7.2.3-3",
+   "2002-GR-7.2.3-4",
+   "2002-SR-7.2.6.1-1",
+   "2002-GR-7.2.6.2-1",
+   "2002-GR-7.2.7.2-2",
+   "2002-GR-7.2.7.3.3-1",
+   "2002-GR-7.2.7.3.3-2",
+   "2002-GR-7.2.8.2-1",
+   "2002-GR-7.2.8.2-3",
+   "2002-SR-7.2.9.2-2",
+   "2002-GR-7.2.9.3-1",
+   "2002-GR-7.2.9.3-2",
+   "2002-GR-7.2.9.3-3",
+   "2002-GR-7.2.9.3-4",
+   "2002-GR-7.2.9.3-5"
+  ],
+  "flags": {
+   "2002-SR-7.1.2.2-1": {
+    "band-lacks-2002": "bands ['2023']"
+   },
+   "2002-SR-7.1.2.2-2": {
+    "band-lacks-2002": "bands ['2023']"
+   },
+   "2002-SR-7.2.2-6": {
+    "cross-reference": "8.12"
+   },
+   "2002-SR-7.2.2-9": {
+    "not-in-2014": "normalized text not found in specs/ISO_COBOL_2014.md"
+   },
+   "2002-SR-7.2.6.1-1": {
+    "cross-reference": "8.8.2"
+   },
+   "2002-GR-7.2.6.2-1": {
+    "cross-reference": "8.8.2"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-01",
+  "seed": null,
+  "probe-root": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01",
+  "logs": {
+   "witness-cases-at-both-editions": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run-witness.log",
+   "probes-1": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run-probes1.log",
+   "probes-2": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run-probes2.log",
+   "parameter-unset": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run-g4-unset.log",
+   "parameter-set-7": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run-g4-set7.log",
+   "runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/run.sh (cobol.exe of E:/COBOL-wt/coderead85-tree-d, --std 2002 and --std 2023, --copy lib and the case's own directory)"
+  },
+  "defects": [
+   {
+    "id": "D1",
+    "summary": "At --std 2002 the FLAG-85 and FLAG-NATIVE-ARITHMETIC directive lines are not checked against their 2002 general formats, so trailing text after the directive is accepted in fixed and free form.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_junk.cob (fixed: >>FLAG-85 ALL ON JUNK)",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_fna_junk.cob (fixed: >>FLAG-NATIVE-ARITHMETIC ON JUNK)",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_f85_junk_free.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_fna_junk_free.cob"
+    ],
+    "expected": "refused: §2002:7.2.2 SR3 'When the reference format is fixed-form, a compiler directive shall be written in the program-text area and may be followed only by space characters and an optional inline comment' (OK) and §2002:7.2.2 SR4 (OK); the same compiler refuses >>LEAP-SECOND ON JUNK and >>CALL-CONVENTION COBOL JUNK at 2002 (COBOL1911, e_ls_junk, e_cc_junk).",
+    "observed": "all four compile and run at --std 2002 (output A B / A), no diagnostic.",
+    "code-site": "E:/COBOL-wt/coderead85-tree-d/tests/version-matrix/constructs/flag-85-directive-window.json and flag-native-arithmetic-directive-window.json: directiveOperand form 'text', 'operand syntax is NOT derivable in-repo ... Content unchecked by decision' (stale: specs/ISO_COBOL_2002.md 7.2.11.1 and 7.2.12.1 print both formats); CompilerDirectiveCatalog.CheckOperand checks nothing for a Text row."
+   },
+   {
+    "id": "D2",
+    "summary": "At --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are recognized and ignored: no warning mechanism exists, so the directive does not apply to the text that follows.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_numval.cob (>>FLAG-85 NUMVAL ON then COMPUTE X = FUNCTION NUMVAL(Y))"
+    ],
+    "expected": "a warning on the NUMVAL reference: §2002:7.2.11.3 GR1 'The implementor shall provide a warning mechanism that flags the incompatibilities' (OK), §2002:7.2.11.3 GR4g 'The NUMVAL and NUMVAL-C intrinsic functions shall be flagged' (OK); likewise §2002:7.2.12.3 GR1 (OK) for FLAG-NATIVE-ARITHMETIC. docs/conformance/3/D-IGNORED-DIRECTIVES.md lists CALL-CONVENTION, LEAP-SECOND, LISTING and PAGE as recognized-and-ignored, not FLAG-85 or FLAG-NATIVE-ARITHMETIC, and the 2002 text gives no licence to ignore them.",
+    "observed": "compiles and prints 3 with no warning at --std 2002.",
+    "code-site": "the same two construct rows (word-only gate); no FLAG-85/FLAG-NATIVE-ARITHMETIC processor exists beside the FLAG-02/FLAG-14 ones (COBOL1620/COBOL1621)."
+   },
+   {
+    "id": "D3",
+    "summary": "The compiler-directive word set is the 2023 table at every edition: at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC (2002 compiler-directive words) are accepted as compilation-variable-names, and PUSH and EQUATE (not 2002 compiler-directive words) are refused as compiler-directive words.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_f85.cob (>>DEFINE FLAG-85 AS 1: accepted, prints A)",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_fna.cob (accepted, prints A)",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_push.cob (refused COBOL2650 citing §2023:8.12)",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_equate.cob (refused COBOL2650 citing §2023:8.12)"
+    ],
+    "expected": "§2002:7.2.2 SR6 'Compiler-directive words are identified in 8.12, Compiler-directive words' (OK); §2002:8.12 'The following words are reserved in compiler directives' (OK) lists FLAG-85 and FLAG-NATIVE-ARITHMETIC and not PUSH, POP, EQUATE, COBOL-WORDS, DISPLAY, FLAG-02, FLAG-14 and the other 2023 additions; §2002:7.2.9.2 SR1 'Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word' (OK). So d_def_f85/d_def_fna shall be refused and d_def_push/d_def_equate accepted at --std 2002.",
+    "observed": "the reverse, at both editions alike.",
+    "code-site": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Frontend/Common/CompilerDirectiveWords.cs (Table is §2023:8.12 only; IsReserved takes no edition), called from ConditionalCompilationProcessor.cs:729, CompileTimeExpressionEvaluator.cs:549, TurnDirectiveProcessor.cs:185."
+   },
+   {
+    "id": "D4",
+    "summary": "At --std 2002 a DEFINE directive whose operand is a boolean expression is accepted, though the 2002 DEFINE format admits only arithmetic-expression-1, literal-1 or PARAMETER.",
+    "programs": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/b_def_bool.cob (>>DEFINE V AS B\"1100\" B-OR B\"0011\" prints DEFINE-BOOL-EXPR at 2002)"
+    ],
+    "expected": "refused at 2002: §2002:7.2.6 'A compile-time boolean expression may be specified in the EVALUATE directive and in a constant conditional expression' (OK); §2002:7.2.9 'The DEFINE directive specifies a symbolic name, called a compilation variable, for a particular literal value' (OK) with format 7.2.9.1 {arithmetic-expression-1 | literal-1 | PARAMETER}; boolean-expression-1 enters only at §2023:7.3.11.3 SR4 'Boolean-expression-1 shall be formed in accordance with 7.3.7' (OK). A boolean LITERAL operand stays legal (b_def_boollit).",
+    "observed": "accepted and evaluated at --std 2002. The 2023 witness conformance-suite/cases/7.3.11-DEFINE/pb1367_define_general_format_alternatives.cob carries 'accept: [2002]' and writes this boolean-expression form, so its band is wrong too.",
+    "code-site": "the DEFINE operand parse in ConditionalCompilationProcessor (boolean-expression-1 not edition-gated)."
+   }
+  ],
+  "cases": [
+   {
+    "rule-id": "2002-SR-7.1.2.2-1",
+    "to": [
+     "SR-7.2.3.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.2 (COPY statement, syntax rules)",
+    "clause-2023": "7.2.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "COPY on a source line, anywhere a character-string or separator may appear (mid-statement)",
+     "COPY in library text (nested COPY)",
+     "COPY on a debugging line: fixed D indicator and the >>D floating indicator, processed before debugging lines become comments",
+     "the prohibition of a COPY within a COPY statement (e.g. inside REPLACING pseudo-text)"
+    ],
+    "evidence-2002": {
+     "mid-statement": "covered by probe cp_mid.cob (2002: MID)",
+     "library text": "covered by w/copy_nested_five_levels.cob (2002: L5) and w/pb5126_nested_copy_two_levels.cob at --std 2002",
+     "debugging line": "covered by probes cp_dline_on.cob (D line, DEBUGGING MODE: FROMLIB), cp_fdbg_on.cob (>>D line: FROMLIB), cp_dline_off.cob (no DEBUGGING MODE: MAIN only) at --std 2002; not by the 2023 row",
+     "COPY within COPY": "covered by probe cp_in_copy.cob (2002: COBOL2451)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR1",
+      "quote": "a COPY statement shall not appear within a COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR1",
+      "quote": "a COPY statement shall not appear within a COPY statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words and head format identical. In 2002 a debugging line carries character-strings, so 'anywhere ... a character-string ... may appear' reaches a COPY that begins on a D or >>D line (2002 GR13 names that case, and 6.2.7 processes COPY before the line becomes a comment); the 2023 row has no debugging lines and no witness (no case tags SR-7.2.3.3-1). Same reach the p-07/p-18 readers found for 7.1.2.3 GR1-GR7 and 7.1.2.2 SR5/SR14.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a COPY on a D or >>D line is correct (processed; text compiled only WITH DEBUGGING MODE), probes cp_dline_on/cp_fdbg_on/cp_dline_off; plus cp_mid, cp_in_copy and the nested-COPY cases for the source-line scope",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/cp_dline_on.cob, cp_fdbg_on.cob, cp_dline_off.cob, cp_mid.cob, cp_in_copy.cob)",
+    "flags-answered": [
+     "band-lacks-2002 (bands ['2023']): the 2023 twin has no tagged witness at all; the 2002 evidence is the probes and the two nested-COPY cases run at --std 2002"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/cp_dline_on.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-2",
+    "to": [
+     "SR-7.2.3.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.2",
+    "clause-2023": "7.2.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "COPY on a source line preceded by a space",
+     "COPY not preceded by a space (refused)",
+     "COPY as the first statement of a compilation group",
+     "the same on a debugging line (D or >>D)"
+    ],
+    "evidence-2002": {
+     "preceded by space": "covered by probe cp_space_ok.cob (2002: 1)",
+     "not preceded by space": "covered by probe cp_nospace.cob (2002: COBOL2451)",
+     "first statement": "covered by probe cp_first.cob (2002: FIRST)",
+     "debugging line": "covered by probes e_cp_dline_nosp.cob (D line, COPY after '(' refused COBOL2451) and cp_dline_on.cob (accepted) at --std 2002; not by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR2",
+      "quote": "A COPY statement shall be preceded by a space except when it is the first statement in a compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR2",
+      "quote": "A COPY statement shall be preceded by a space except when it is the first statement in a compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words; the rule governs every 2002 COPY, including one that begins on a debugging line (GR13), which the 2023 row cannot show. The twin has no tagged witness; probes give the 2002 evidence for every scope item.",
+    "needs": "its own verdict: at --std 2002 the space rule is applied on source and debugging lines alike (probes cp_nospace, e_cp_dline_nosp, cp_space_ok, cp_first)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_cp_dline_nosp.cob, cp_nospace.cob, cp_first.cob)",
+    "flags-answered": [
+     "band-lacks-2002 (bands ['2023']): no tagged twin witness; evidence is the probes at --std 2002"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_cp_dline_nosp.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-1",
+    "to": [
+     "SR-7.3.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2 (Compiler directives, syntax rules)",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every 2002 directive (CALL-CONVENTION, DEFINE, EVALUATE, FLAG-85, FLAG-NATIVE-ARITHMETIC, IF, LEAP-SECOND, LISTING, PAGE, PROPAGATE, SOURCE FORMAT, TURN) on one line",
+     "the EVALUATE and IF exceptions"
+    ],
+    "evidence-2002": {
+     "directives 2023 also has": "covered by w/pb1360-define-directive-continued-fixed.cob at --std 2002 (COBOL2696); w/pb1360-evaluate-operand-continued.cob at 2002 (COBOL2649)",
+     "FLAG-85, FLAG-NATIVE-ARITHMETIC": "covered by probes e_f85_cont.cob and e_fna_cont.cob (2002: COBOL2696); not by the 2023 row",
+     "EVALUATE/IF multi-line": "covered by the IF/EVALUATE probes b_prec.cob, b_eval.cob at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR1",
+      "quote": "A compiler directive shall be specified on one line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR1",
+      "quote": "A compiler directive shall be specified on one line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11",
+      "quote": "The FLAG-85 directive specifies options to flag certain syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.12",
+      "quote": "The FLAG-NATIVE-ARITHMETIC directive specifies that when standard arithmetic has been specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, but the clause's general format >>compiler-instruction ranges over the 2002 directive set, which has FLAG-85 (7.2.11) and FLAG-NATIVE-ARITHMETIC (7.2.12); 2023 has neither, so the 2023 row's evidence never shows them. Probes show the one-line rule applied to both at 2002.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a continued FLAG-85 / FLAG-NATIVE-ARITHMETIC line is COBOL2696 (correct), probes e_f85_cont, e_fna_cont",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_f85_cont.cob, e_fna_cont.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_f85_cont.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-10",
+    "to": [
+     "SR-7.3.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.2",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literals in the 2002 directives that take literals: DEFINE, IF (constant conditional expression), EVALUATE; FLAG-85 and FLAG-NATIVE-ARITHMETIC take no literal"
+    ],
+    "evidence-2002": {
+     "concatenation": "covered by probe d_lit_cat.cob (2002: COBOL1619)",
+     "figurative constant": "covered by probes d_lit_fig.cob, e_if_fig.cob (2002: COBOL1619)",
+     "floating-point literal": "covered by probes d_lit_float.cob, e_if_float.cob (2002: COBOL1619)",
+     "ordinary literal accepted": "covered by probe d_lit_ok.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR10",
+      "quote": "shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR10",
+      "quote": "shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 literal-taking directives are a subset of 2023's (2023 adds DISPLAY and COBOL-WORDS); the three prohibited forms and the literal definitions are the same. The 2023 row's tagged witness pb807 uses the 2023-only DISPLAY directive and fails at 2002 for that reason, so the 2002 evidence is the DEFINE/IF probes, which hit the same COBOL1619 producer.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_lit_fig.cob",
+    "widening": "2023 adds the DISPLAY and COBOL-WORDS directives' literals to the rule's reach",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The rule refuses three literal forms in a directive; that is decided on the literal's form, apart from any arithmetic operation. Re-run now at --std 2002: d_lit_cat, d_lit_fig, d_lit_float, e_if_fig, e_if_float refused (COBOL1619, each naming SR10), d_lit_ok.cob prints OK (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR10",
+      "quote": "shall not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-2",
+    "to": [
+     "SR-7.3.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every 2002 directive line, including FLAG-85 and FLAG-NATIVE-ARITHMETIC",
+     "a directive written after program text",
+     "a directive written after the >>D floating debugging indicator (preceded by non-space; also SR8 d)"
+    ],
+    "evidence-2002": {
+     "after program text": "covered by w/pb1361-directive-after-program-text.cob and w/pb1690-directive-after-program-text-fixed.cob at --std 2002 (COBOL2691)",
+     "FLAG-85": "covered by probe d_f85_after.cob (2002: COBOL2691); not by the 2023 row",
+     "after >>D": "covered by probe e_fdbg_dir.cob (2002: refused, COBOL0001) and e_dline_dir.cob (fixed D line: refused); not by the 2023 row",
+     "leading spaces accepted": "covered by probe d_fna_sp.cob and every probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR2",
+      "quote": "A compiler directive shall be preceded only by zero, one, or more space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR2",
+      "quote": "A compiler directive shall be preceded only by zero, one, or more space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "between the lines of a continued character-string, d) on a debugging line",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; the 2002 scope adds the FLAG-85/FLAG-NATIVE-ARITHMETIC lines and the debugging-line boundary (>>D before a directive), neither of which the 2023 row can show. Probes: all refused at 2002. The >>D refusal is a generic COBOL0001, not a directive diagnostic, but it is a refusal.",
+    "needs": "its own verdict: at --std 2002 FLAG-85 after program text is COBOL2691 and a directive after >>D or on a D line is refused (probes d_f85_after, e_fdbg_dir, e_dline_dir)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_after.cob, e_fdbg_dir.cob, e_dline_dir.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_fdbg_dir.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-3",
+    "to": [
+     "SR-7.3.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "fixed form: every 2002 directive in the program-text area (not column 7)",
+     "followed only by spaces and an optional inline comment, for every 2002 directive including FLAG-85 and FLAG-NATIVE-ARITHMETIC"
+    ],
+    "evidence-2002": {
+     "program-text area": "covered by w/pb1365_turn_directive_in_program_text_area.cob at --std 2002 and probe e_col7_dir.cob (2002: COBOL2616)",
+     "trailing text, directives 2023 also has": "covered by probes e_cc_junk.cob, e_ls_junk.cob (2002: COBOL1911)",
+     "inline comment": "covered by probe d_f85_icmt.cob (2002: accepted)",
+     "trailing text after FLAG-85 / FLAG-NATIVE-ARITHMETIC": "NOT shown: probes d_f85_junk.cob and d_fna_junk.cob are ACCEPTED at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR3",
+      "quote": "a compiler directive shall be written in the program-text area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR3",
+      "quote": "a compiler directive shall be written in the program-text area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "The word or words following FLAG-85 indicate the syntax to be diagnosed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; the 2002 directive set includes FLAG-85 and FLAG-NATIVE-ARITHMETIC, whose formats end at ON|OFF. The compiler applies SR3 to TURN, CALL-CONVENTION, LEAP-SECOND, ELSE, END-IF at 2002, but not to these two (defect D1).",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for >>FLAG-85 ALL ON JUNK and >>FLAG-NATIVE-ARITHMETIC ON JUNK (fixed form) is acceptance: a defect (D1)",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_junk.cob, d_fna_junk.cob: accepted, prints A B; expected refusal by §2002:7.2.2 SR3)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_junk.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-4",
+    "to": [
+     "SR-7.3.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "free form: every 2002 directive followed only by spaces and an optional inline comment, including FLAG-85 and FLAG-NATIVE-ARITHMETIC"
+    ],
+    "evidence-2002": {
+     "directives 2023 also has": "covered by w/pb1365-turn-directive-trailing-word.cob, w/pb806-else-trailing-word.cob, w/pb806-end-if-trailing-word.cob (refused) and w/pb1365_turn_directive_inline_comment_is_legal.cob (TURN-OK) at --std 2002; probe e_cc_junk_free.cob (COBOL1911)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC": "NOT shown: probes e_f85_junk_free.cob, e_fna_junk_free.cob are ACCEPTED at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR4",
+      "quote": "When the reference format is free-form, a compiler directive may be followed only by space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR4",
+      "quote": "When the reference format is free-form, a compiler directive may be followed only by space characters",
+      "check": "OK"
+     }
+    ],
+    "reason": "As SR3, in free form: the 2023 witnesses hold at 2002 for the shared directives; the two 2002-only directives take any trailing text (defect D1).",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for free-form >>FLAG-85 ALL ON JUNK / >>FLAG-NATIVE-ARITHMETIC OFF JUNK is acceptance: a defect (D1)",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_f85_junk_free.cob, e_fna_junk_free.cob: accepted, prints A)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_f85_junk_free.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-6",
+    "to": [
+     "SR-7.3.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2 (with 8.12)",
+    "clause-2023": "7.3.3 (with 8.12)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "compiler-instruction composed per each 2002 directive's syntax",
+     "the compiler-directive words of §2002:8.12: includes FLAG-85 and FLAG-NATIVE-ARITHMETIC, excludes PUSH, POP, EQUATE, UNDEFINE, SUBSTITUTE, RESERVE, COBOL-WORDS, DISPLAY, FLAG-02, FLAG-14, B-SHIFT-*, <> and the other 2023 additions",
+     "plus the 2002 exception-names of 14.5.12.1"
+    ],
+    "evidence-2002": {
+     "directive composition for shared directives": "covered by w/pb1365-turn-directive-trailing-word.cob, w/pb1365-turn-file-name-is-directive-word.cob at --std 2002",
+     "2002 word list": "NOT shown and WRONG: probes d_def_f85.cob, d_def_fna.cob accepted; d_def_push.cob, d_def_equate.cob refused citing §2023:8.12",
+     "2002 exception-names": "not shown (depends on the uncatalogued 2002 14.5.12.1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR6",
+      "quote": "Compiler-directive words are identified in 8.12, Compiler-directive words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR6",
+      "quote": "Compiler-directive words are identified in 8.12, Compiler-directive words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "all of the exception-names specified in 14.5.12.1, Exception conditions, are also compiler-directive words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     }
+    ],
+    "reason": "The sentence is the same but the clause it names, 8.12, is a different list in each edition: 2002 has FLAG-85 and FLAG-NATIVE-ARITHMETIC; 2023 adds about thirty words 2002 lacks. The compiler holds one edition-blind 2023 table (defect D3), so at 2002 it reserves words 2002 does not and fails to reserve two it does.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is the 2023 word set (d_def_f85/d_def_fna accepted, d_def_push/d_def_equate refused): a defect (D3); and a 2002 witness for the 2002 exception-names once 14.5.12.1 is catalogued",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_f85.cob, d_def_push.cob)",
+    "flags-answered": [
+     "cross-reference 8.12: read in 2002; the list differs (FLAG-85, FLAG-NATIVE-ARITHMETIC present; the 2023 additions absent; exception-names from 14.5.12.1 instead of 14.6.13.1), which changes both the scope and the evidence"
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_def_push.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-9",
+    "to": [
+     "SR-7.3.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.2",
+    "clause-2023": "7.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "IMP reserved as a compiler-directive word",
+     "an IMP directive's syntax rules implementor-defined if the implementor defines it"
+    ],
+    "evidence-2002": {
+     "IMP reserved": "covered by w/pb1366-define-name-is-directive-word-imp.cob at --std 2002 (COBOL2650)",
+     "IMP not defined by this implementor": "covered by w/w59h-imp-directive-undefined.cob and probe d_imp.cob at --std 2002 (>>IMP refused)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR9",
+      "quote": "The compiler-directive word 'IMP' is reserved for use by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR9",
+      "quote": "The compiler-directive word 'IMP' is reserved for use by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule and NOTE; IMP is on both 8.12 lists; the compiler defines no IMP directive in any edition and both twin witnesses give the same result at 2002.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_imp.cob (re-run: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-01/work/d_imp-2002/run.log)",
+    "widening": null,
+    "flags-answered-reader": [
+     "not-in-2014: the 2014 transcription's wording differs, which does not bear on 2002; the 2002 evidence is the two twin cases run at --std 2002"
+    ],
+    "flags-answered": {
+     "absent-from-2014: its whole text is not in the 2014 transcription": "2014 line 3039 differs only in the NOTE ('may optionally' for 2002's 'can optionally'), which states no requirement. Re-read against §2002:7.2.2 SR9: IMP reserved, its syntax implementor-defined if defined; unchanged.",
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs) selects the arithmetic mode for compile-time arithmetic expressions in directives and constant entries; §2002:7.2.2 SR9 involves no expression, so the switch cannot reach it. Its behaviour at --std 2002 is shown: d_imp.cob re-run now at 2002 refuses >>IMP (rc 65, COBOL0001), and pb1366 shows IMP reserved (COBOL2650) at 2002."
+    },
+    "probe-reader": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_imp.cob",
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.2 SR9",
+      "quote": "The compiler-directive word 'IMP' is reserved for use by the implementor",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-01"
+   },
+   {
+    "rule-id": "2002-GR-7.2.3-1",
+    "to": [
+     "GR-7.3.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.3",
+    "clause-2023": "7.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every 2002 directive line under COPY REPLACING and REPLACE, including FLAG-85 and FLAG-NATIVE-ARITHMETIC lines",
+     "the 2002 archaic REPLACING operands (word-1, text-1, literal-3) as well as pseudo-text"
+    ],
+    "evidence-2002": {
+     "shared directives": "covered by w/pb1352_directive_lines_not_replaced.cob at --std 2002 (same output as 2023), probes d_repl_def.cob and e_cp_repl_dir.cob",
+     "FLAG-85 line": "covered by probes e_repl_f85word.cob (REPLACE ==FLAG-85== BY ==XYZZY==: NOT-REPLACED) and d_repl_f85.cob; not by the 2023 row",
+     "archaic word-1 operand": "not shown (e_cp_repl_dir.cob uses pseudo-text, not word-1 BY word-2)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.3 GR1",
+      "quote": "A compiler directive line is not affected by the replacing action of a COPY statement or a REPLACE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.4 GR1",
+      "quote": "A compiler directive line is not affected by the replacing action of a COPY statement or a REPLACE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; the 2002 scope includes the FLAG-85 / FLAG-NATIVE-ARITHMETIC lines and COPY REPLACING with the archaic word/text/literal operands, which the 2023 row cannot show. The probe shows a FLAG-85 line untouched by REPLACE at 2002.",
+    "needs": "a 2002 witness for COPY ... REPLACING word-1 BY word-2 leaving a directive line unchanged; FLAG-85 shown by probe e_repl_f85word",
+    "compiler-at-2002": "correct for what was probed (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_repl_f85word.cob, e_cp_repl_dir.cob); the word-1 operand form not probed",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/e_repl_f85word.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.3-3",
+    "to": [
+     "GR-7.3.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.3",
+    "clause-2023": "7.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "general rules of an implementor-defined IMP directive"
+    ],
+    "evidence-2002": {
+     "no IMP directive defined": "covered by w/w59h-imp-directive-undefined.cob and probe d_imp.cob at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.3 GR3",
+      "quote": "If the implementor defines the IMP directive, the general rules for that directive shall be implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.4 GR4",
+      "quote": "If the implementor defines the IMP directive, the general rules for that directive shall be implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Conditional on an implementor IMP directive, which this compiler does not define at any edition. Renumbered only because 2023 inserted the PUSH/POP rule as GR3.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_imp.cob",
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The rule is conditional on an implementor IMP directive, which this compiler does not define; no expression is involved, so the switch cannot reach it. Re-run now at --std 2002: d_imp.cob is refused (rc 65, COBOL0001 at the >>IMP line; E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.3 GR3",
+      "quote": "If the implementor defines the IMP directive, the general rules for that directive shall be implementor-defined",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.3-4",
+    "to": [
+     "GR-7.3.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.3",
+    "clause-2023": "7.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every 2002 directive applies to the following source and library text, independent of execution flow, including FLAG-85 and FLAG-NATIVE-ARITHMETIC"
+    ],
+    "evidence-2002": {
+     "shared directives": "covered by w/pb1067_library_text_source_format.cob at --std 2002 and probe d_flow.cob (DEFINE in a paragraph GO TO skips still applies: DEFINED-AFTER)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC": "NOT shown and WRONG: probe d_f85_numval.cob (>>FLAG-85 NUMVAL ON before a NUMVAL reference) gives no warning at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.3 GR4",
+      "quote": "A compiler directive applies to all of the source text and library text that follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.4 GR5",
+      "quote": "A compiler directive applies to all of the source text and library text that follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4g",
+      "quote": "The NUMVAL and NUMVAL-C intrinsic functions shall be flagged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR1",
+      "quote": "The implementor shall provide a warning mechanism that flags the incompatibilities",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.4 GR3",
+      "quote": "The state of compiler directives may be saved and restored with PUSH and POP directives",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; 2023 also adds PUSH/POP (its GR3), a widening. In 2002 the rule reaches FLAG-85 and FLAG-NATIVE-ARITHMETIC, which the compiler recognizes and then ignores (defect D2), so they apply to nothing that follows.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for >>FLAG-85 NUMVAL ON followed by FUNCTION NUMVAL is no flag: a defect (D2)",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_numval.cob: compiles, prints 3, no warning)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/d_f85_numval.cob",
+    "widening": "2023 adds PUSH/POP state save and restore (7.3.4 GR3)"
+   },
+   {
+    "rule-id": "2002-SR-7.2.6.1-1",
+    "to": [
+     "SR-7.3.7.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.6.1 (with 8.8.2)",
+    "clause-2023": "7.3.7.2 (with 8.8.2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "compile-time boolean expressions in the EVALUATE directive and in constant conditional expressions (IF directive, EVALUATE WHEN)",
+     "formed per 2002 8.8.2 (B-NOT, B-AND, B-XOR, B-OR, parentheses; no shift operators)",
+     "all operands boolean literals"
+    ],
+    "evidence-2002": {
+     "formation and operators": "covered by probes b_prec.cob, b_eval.cob at --std 2002",
+     "non-boolean operand refused": "covered by probes b_numop.cob, b_alnumop.cob (2002: COBOL1619)",
+     "malformed sequence refused": "covered by probe b_order.cob (COBOL1619)",
+     "no shift operators at 2002": "covered by w/pb1370-directive-shift-below-2023.cob at --std 2002 (COBOL0900)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.7.2 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6",
+      "quote": "A compile-time boolean expression may be specified in the EVALUATE directive and in a constant conditional expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.7.1",
+      "quote": "A compile-time boolean expression may be specified where allowed by the general format of an expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 8.8.2 is 2023 8.8.2 without the shift operators; the 2002 contexts are a subset of 2023's. The 2023 witness boolean_expression_formation.cob is refused at 2002 only for its shift lines, so the 2002 evidence is the probes. Adjacent defect D4 (not this rule's requirement): a DEFINE operand that is a boolean expression is accepted at 2002 (b_def_bool.cob), though 2002 7.2.6 places boolean expressions only in EVALUATE and constant conditional expressions.",
+    "compiler-at-2002": "correct for this rule (adjacent defect D4 reported)",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A compile-time boolean expression is evaluated by boolean operations on boolean positions (§2002:8.8.2, its rule 7), never through the arithmetic mode the switch selects. Re-run now at --std 2002: b_prec.cob and b_eval.cob run as expected; b_numop.cob, b_alnumop.cob (non-boolean operand) and b_order.cob (malformed sequence) refused with COBOL1619 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log).",
+     "cross-reference: 8.8.2": "Read §2002:8.8.2 whole: formation rules 1-5 with Table 5, evaluation rule 6 (parentheses, then B-NOT, B-AND, B-XOR, B-OR, left to right), rule 7 (shorter operand extended on the right with boolean zeros) and rule 8 (result length). §2023:8.8.2 is the same text plus the boolean shift operators (a formation item, parts of its rules 2, 5 and 8, Table 4's shift row, the shift precedence paragraph) and NOTE 2 on zero-length operands, which an expression of boolean literals cannot have; so the 2002 requirement is the 2023 one without shifts, and shifts are refused at 2002 (w/pb1370-directive-shift-below-2023.cob, COBOL0900, in the reader's evidence). Formation rules 1-5 and Table 5 of 2002 are 2023's rules 1-6 and Table 4 without the shift entries.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "§2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 are arithmetic (native versus standard arithmetic, the standard intermediate data item, exponentiation) and a boolean expression's evaluation does not use them; §2002:8.8.2 is read under the cross-reference flag; §2002:8.8.4.1.1 governs comparing a boolean expression as a relation operand, not forming or evaluating it; §2002:8.8.4.2.4 abbreviated combined relation conditions are barred in a constant conditional expression (§2002:7.2.7.1 SR1). The rule rests on none of the differing text."
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/b_prec.cob",
+    "widening": "2023 adds boolean shift operators and boolean-expression-1 in DEFINE",
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1",
+      "quote": "Abbreviated combined relation conditions shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "as though the shorter operand were extended on the right by a sufficient number of boolean zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.6.2-1",
+    "to": [
+     "GR-7.3.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.6.2 (with 8.8.2)",
+    "clause-2023": "7.3.7.3 (with 8.8.2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "precedence B-NOT, B-AND, B-XOR, B-OR; parentheses first; left to right at equal precedence",
+     "unequal lengths: shorter operand extended on the right with boolean zeros"
+    ],
+    "evidence-2002": {
+     "precedence": "covered by probe b_prec.cob at --std 2002 (AND-BEFORE-OR, XOR-BEFORE-OR, NOT-FIRST, PARENS)",
+     "length extension": "covered by probe b_prec.cob (EXTEND-RIGHT)",
+     "EVALUATE directive": "covered by probe b_eval.cob (EVAL-BOOL)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.6.2 GR1",
+      "quote": "The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.7.3 GR1",
+      "quote": "The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "The precedence of operations at the same level of inclusiveness",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "as though the shorter operand were extended on the right by a sufficient number of boolean zeros",
+      "check": "OK"
+     }
+    ],
+    "reason": "The evaluation rules of 2002 8.8.2 (6, 7, 8) are 2023 8.8.2 (7, 9, 10) without the shift operators' precedence and semantics; probes confirm each at 2002.",
+    "compiler-at-2002": "correct",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A compile-time boolean expression is evaluated by boolean operations on boolean positions (§2002:8.8.2, its rule 7), never through the arithmetic mode the switch selects. Re-run now at --std 2002: b_prec.cob prints AND-BEFORE-OR, XOR-BEFORE-OR, NOT-FIRST, EXTEND-RIGHT, PARENS; b_eval.cob prints EVAL-BOOL (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log).",
+     "cross-reference: 8.8.2": "Read §2002:8.8.2 whole: formation rules 1-5 with Table 5, evaluation rule 6 (parentheses, then B-NOT, B-AND, B-XOR, B-OR, left to right), rule 7 (shorter operand extended on the right with boolean zeros) and rule 8 (result length). §2023:8.8.2 is the same text plus the boolean shift operators (a formation item, parts of its rules 2, 5 and 8, Table 4's shift row, the shift precedence paragraph) and NOTE 2 on zero-length operands, which an expression of boolean literals cannot have; so the 2002 requirement is the 2023 one without shifts, and shifts are refused at 2002 (w/pb1370-directive-shift-below-2023.cob, COBOL0900, in the reader's evidence).",
+     "deferral: the rules for ": "The rule defers 'the rules for evaluation' to §2002:8.8.2, whose rules 6-8 are read under the cross-reference flag (the same as rules 7, 9 and 10 of §2023:8.8.2 less the shift operators); the deferral reaches no other clause, so the scope stays as the reader gave it.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "§2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.6 are arithmetic (native versus standard arithmetic, the standard intermediate data item, exponentiation) and a boolean expression's evaluation does not use them; §2002:8.8.2 is read under the cross-reference flag; §2002:8.8.4.1.1 governs comparing a boolean expression as a relation operand, not forming or evaluating it; §2002:8.8.4.2.4 abbreviated combined relation conditions are barred in a constant conditional expression (§2002:7.2.7.1 SR1). The rule rests on none of the differing text."
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/b_prec.cob",
+    "widening": "2023 adds boolean shift-operator precedence",
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.2 GR1",
+      "quote": "The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1",
+      "quote": "Abbreviated combined relation conditions shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "as though the shorter operand were extended on the right by a sufficient number of boolean zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.2-2",
+    "to": [
+     "GR-7.3.8.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.2",
+    "clause-2023": "7.3.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "simple relations between alphanumeric or national literals (or compilation variables of those categories) in a constant conditional expression, with IS [NOT] EQUAL TO / IS [NOT] = only"
+    ],
+    "evidence-2002": {
+     "case-sensitive": "covered by probe r_alnum.cob at --std 2002 (CASE-NE, NAT-CASE-NE, VAR-CASE-NE)",
+     "unequal length not equal": "covered by r_alnum.cob (LEN-NE)",
+     "equality and NOT =": "covered by r_alnum.cob (EQ, NE, NAT-EQ)",
+     "<> not 2002": "probe r_ne_ltgt.cob refused at 2002 (COBOL0900)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.2 GR2",
+      "quote": "For a simple relation condition where the operands are not numeric or boolean, no collating sequence is used for the comparison",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.3 GR2",
+      "quote": "For a simple relation condition where the operands are not numeric or boolean, no collating sequence is used for the comparison",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1a2",
+      "quote": "the relational operator shall be 'IS [NOT] EQUAL TO' or 'IS [NOT] ='",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.2 SR1a2",
+      "quote": "'IS EQUAL TO', 'IS NOT EQUAL TO', 'IS =', 'IS NOT =', or 'IS <>'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same comparison rule; the 2002 operator list is a subset of 2023's (2023 adds IS <>). The twin has no tagged witness; probes at 2002 show every 2002 case.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/r_alnum.cob",
+    "widening": "2023 adds the <> operator",
+    "from-slice": "q-01",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). This rule governs only relations whose operands are not numeric or boolean, so no arithmetic expression and no mode enters; probe r_alnum.cob re-run now at --std 2002 prints CASE-NE, LEN-NE, EQ, NE, NAT-EQ, NAT-CASE-NE, VAR-CASE-NE (probes-a-04/rerun/rerun.log).",
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 4.26 defines character (in a coded character set) as 'A code value that constitutes the coded representation of a letter, digit, symbol'; GR2's 'each character's encoding' is that sense (and 4.29's code value), which 2023 uses unchanged from ISO/IEC 10646. The screen and COBOL-repertoire senses play no part; which literals are compared does not change.",
+     "pending-clause: §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed)": "Read §2002:8.8.2 (boolean expressions), 8.8.4.1.1 (relation conditions) and 8.8.4.2.4 (abbreviated combined relation conditions). GR2 excludes boolean operands, replaces 8.8.4.1.1's collating comparison with its own binary character-by-character test ('A character by character comparison for equality based on the binary value of each character's encoding is used', §2002:7.2.7.2 GR2), and §2002:7.2.7.1 SR1d forbids abbreviated combined relations, so the rule does not rest on the differing text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.7.2 GR2",
+      "quote": "A character by character comparison for equality based on the binary value of each character's encoding is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1d",
+      "quote": "Abbreviated combined relation conditions shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.3.3-1",
+    "to": [
+     "GR-7.3.8.4.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.3.3",
+    "clause-2023": "7.3.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "IS DEFINED true for a currently defined compilation variable (DEFINE without OFF, PARAMETER with a value)"
+    ],
+    "evidence-2002": {
+     "defined": "covered by probe c_defined.cob at --std 2002 (D1), g4_param.cob with Q01PARM=7 (PARAM-7)",
+     "undefined, OFF, IS optional": "covered by c_defined.cob (D2, D3, D4)",
+     "spelling": "covered by w/pb4240-defined-spelled-with-dotted-capital-i.cob at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.3.3 GR1",
+      "quote": "A defined condition using the IS DEFINED syntax evaluates TRUE if compilation-variable-name-1 is currently defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.4.4 GR1",
+      "quote": "A defined condition using the IS DEFINED syntax evaluates TRUE if compilation-variable-name-1 is currently defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format compilation-variable-name-1 IS [NOT] DEFINED identical; 'currently defined' rests on the DEFINE rules, which are the same for the 2002 operand forms.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/c_defined.cob",
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). Whether a name is currently defined follows DEFINE processing, not the value of an arithmetic expression; the switch changes values only (a DEFINE expression outside 2002's range but inside the 34-digit one is a §2002:7.2.5.1 SR1 matter, not this rule's). Re-run now at --std 2002: c_defined.cob prints D1-D4 and g4_param.cob with Q01PARM=7 prints PARAM-7 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log, run-q01-param7.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.3.3 GR1",
+      "quote": "evaluates TRUE if compilation-variable-name-1 is currently defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.1 SR1",
+      "quote": "The exponentiation operator shall not be specified",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.3.3-2",
+    "to": [
+     "GR-7.3.8.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.3.3",
+    "clause-2023": "7.3.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "IS NOT DEFINED true for a never-defined name, a name after DEFINE ... OFF, and a PARAMETER name with no value"
+    ],
+    "evidence-2002": {
+     "never defined": "covered by probe c_defined.cob at --std 2002 (D2)",
+     "after OFF": "covered by c_defined.cob (D3) and g2_off_def.cob (OFF-DEFCOND-OK)",
+     "PARAMETER with no value": "covered by g4_param.cob unset (PARAM-UNDEFINED) and g4_param_ovr.cob (NOW-UNDEFINED)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.3.3 GR2",
+      "quote": "A defined condition using the IS NOT DEFINED syntax evaluates TRUE if compilation-variable-name-1 is not currently defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.4.4 GR2",
+      "quote": "A defined condition using the IS NOT DEFINED syntax evaluates TRUE if compilation-variable-name-1 is not currently defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR1.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/c_defined.cob",
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). As GR1: definedness is not an arithmetic result. Re-run now at --std 2002: c_defined.cob D2/D3, g2_off_def.cob OFF-DEFCOND-OK, g4_param.cob unset PARAM-UNDEFINED, g4_param_ovr.cob NOW-UNDEFINED (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR4",
+      "quote": "If no value is made available from the operating environment, compilation-variable-name-1 is not defined",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-1",
+    "to": [
+     "GR-7.3.9.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.8.2",
+    "clause-2023": "7.3.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "absent a CALL-CONVENTION directive, program-names and method-names in INVOKE, inline invocation, CALL, CANCEL and program-address-identifiers are treated as with >>CALL-CONVENTION COBOL"
+    ],
+    "evidence-2002": {
+     "default COBOL": "covered by w/l1c02_call_convention_default.cob at --std 2002 (same output as 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR1",
+      "quote": "The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.9.3 GR1",
+      "quote": "The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format, same GR2 list of constructs (INVOKE, inline method invocations, CALL, CANCEL, program-address-identifiers) in both editions; the twin witness runs and matches at 2002.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/w/l1c02_call_convention_default.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-3",
+    "to": [
+     "GR-7.3.9.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.8.2",
+    "clause-2023": "7.3.9.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implementor permission to use the directive for other interaction details"
+    ],
+    "evidence-2002": {
+     "permission": "not a testable requirement; the implementor uses no other details at any edition (docs/conformance/3/D-IGNORED-DIRECTIVES.md: only COBOL accepted); e_cc_junk.cob shows the operand check at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR3",
+      "quote": "The CALL-CONVENTION directive may also be used by the implementor to determine other details",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.9.3 GR3",
+      "quote": "The CALL-CONVENTION directive may also be used by the implementor to determine other details",
+      "check": "OK"
+     }
+    ],
+    "reason": "A permission with the same format and context in both editions; the implementor's choice is edition-independent.",
+    "compiler-at-2002": "correct",
+    "probe": null,
+    "widening": null,
+    "from-slice": "q-01",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). CALL-CONVENTION takes no expression; the rule is a permission the implementor does not use at any edition, so the switch cannot reach it.",
+     "definition-dropped: method (newer: 9.3.4)": "§2002:4 4.121 method: 'A procedural entity defined by a method definition within, or inherited by, a class definition'; 2023 describes the same entity in 9.3.4. GR3 names methods only as one of the three things the implementor may interact with; the set is the same.",
+     "pending-clause: §2002:9.3.5 (changed)": "Read §2002:9.3.5: binding by method-name alone ('if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound'); 2023 9.3.6 adds signature matching. GR3 grants the implementor a permission and does not rest on how an invocation is bound."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.5",
+      "quote": "if a method with the method-name specified in the invocation is defined in the class of the object, that method is bound",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.8.2 GR3",
+      "quote": "may also be used by the implementor to determine other details needed to interact with a function, method, or program",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.9.2-2",
+    "to": [
+     "SR-7.3.11.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.2",
+    "clause-2023": "7.3.11.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a DEFINE without OFF or OVERRIDE of an already-declared name: allowed only after an OFF, or with the same value; operands arithmetic-expression-1, literal-1, PARAMETER"
+    ],
+    "evidence-2002": {
+     "different value refused": "covered by probes s_redef_diff.cob, s_redef_str.cob at --std 2002 (COBOL1618)",
+     "same value accepted": "covered by s_redef_same.cob (SAME-OK)",
+     "after OFF accepted": "covered by s_redef_off.cob (OFF-OK)",
+     "OVERRIDE exempt": "covered by s_redef_ovr.cob and w/l1c06_define_override_rebinds.cob at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.2 SR2",
+      "quote": "If a DEFINE directive specifies neither the OFF nor the OVERRIDE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.3 SR2",
+      "quote": "If a DEFINE directive specifies neither the OFF nor the OVERRIDE phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical three-way rule; 2023's DEFINE format only adds boolean-expression-1, so the 2002 operand forms are a subset. The twin has no tagged witness; probes show each arm at 2002.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/s_redef_diff.cob",
+    "widening": "2023 adds boolean-expression-1 values"
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-1",
+    "to": [
+     "GR-7.3.11.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "use after the DEFINE in a directive where a literal of its category is permitted (DEFINE operand, IF / EVALUATE expressions)",
+     "in a defined condition",
+     "in a constant entry with FROM",
+     "not before the DEFINE; not where the category differs"
+    ],
+    "evidence-2002": {
+     "directives": "covered by probe g1_uses.cob at --std 2002 (USES-OK, EVAL-V)",
+     "constant entry FROM": "covered by w/pb1368_constant_from_compilation_variable.cob at 2002 (same output as 2023)",
+     "before definition": "covered by g1_before.cob and w/pb1368-constant-from-defined-later.cob at 2002 (refused)",
+     "category": "covered by g1_cat.cob (refused)",
+     "defined condition": "covered by c_defined.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR1",
+      "quote": "compilation-variable-name-1 may be used in the compilation group in any compiler directive where a literal of the category associated with the name is permitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR1",
+      "quote": "compilation-variable-name-1 may be used in the compilation group in any compiler directive where a literal of the category associated with the name is permitted",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 literal-taking directives are a subset of 2023's (2023 adds DISPLAY and COBOL-WORDS); constant entry FROM exists in both (2002 13.9). The twin's 2023-only cases (COBOL-WORDS, PUSH/POP) are refused at 2002 for those directives, so the 2002 evidence is the probes plus the 2002-band case.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/g1_uses.cob",
+    "widening": "2023 adds DISPLAY and COBOL-WORDS operands",
+    "from-slice": "q-01",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). GR1 says where a compilation variable may be used; it evaluates nothing. g1_uses.cob re-run now at --std 2002 prints USES-OK, EVAL-V (rerun.log).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. Matched by 'constant entry'; GR1 permits a reference to the variable (in directives, a defined condition, a constant entry with FROM) and does not say how an expression is evaluated. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-2",
+    "to": [
+     "GR-7.3.11.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "after DEFINE ... OFF the name may appear only in a defined condition until redefined"
+    ],
+    "evidence-2002": {
+     "relation refused": "covered by probe g2_off_rel.cob at --std 2002 (COBOL1619)",
+     "DEFINE operand refused": "covered by g2_off_use.cob (COBOL1619)",
+     "constant FROM refused": "covered by w/pb1368-constant-from-after-define-off.cob at 2002 (COBOL1547)",
+     "defined condition and redefinition allowed": "covered by g2_off_def.cob (OFF-DEFCOND-OK, REDEFINED-5)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR2",
+      "quote": "compilation-variable-name-1 shall not be used except in a defined condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR2",
+      "quote": "compilation-variable-name-1 shall not be used except in a defined condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule over identical OFF syntax.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/g2_off_rel.cob",
+    "widening": null,
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). The rule restricts where a name turned OFF may be used; no arithmetic value decides it. Re-run now at --std 2002: g2_off_rel.cob and g2_off_use.cob refused (COBOL1619), g2_off_def.cob prints OFF-DEFCOND-OK, REDEFINED-5 (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q01-2002.log)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR2",
+      "quote": "shall not be used except in a defined condition unless it is redefined in a subsequent DEFINE directive",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-3",
+    "to": [
+     "GR-7.3.11.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "OVERRIDE rebinds to the operand's value: arithmetic-expression-1, literal-1 or PARAMETER"
+    ],
+    "evidence-2002": {
+     "literal / expression": "covered by w/l1c06_define_override_rebinds.cob at --std 2002 (same output) and probe s_redef_ovr.cob (OVR-2, OVR-X)",
+     "PARAMETER OVERRIDE": "covered by g4_param_ovr.cob (set: STILL-DEFINED; unset: NOW-UNDEFINED)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR3",
+      "quote": "If the OVERRIDE phrase is specified, compilation-variable-name-1 is unconditionally set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR3",
+      "quote": "If the OVERRIDE phrase is specified, compilation-variable-name-1 is unconditionally set",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; 2002 operands are a subset of 2023's.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/s_redef_ovr.cob",
+    "widening": "2023 adds boolean-expression-1 operands"
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-4",
+    "to": [
+     "GR-7.3.11.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "PARAMETER: value from the operating environment by an implementor-defined method when the directive is processed; none available means not defined"
+    ],
+    "evidence-2002": {
+     "value available": "covered by probe g4_param.cob with Q01PARM=7 at --std 2002 (PARAM-7)",
+     "no value": "covered by g4_param.cob unset (PARAM-UNDEFINED) and g4_param_ovr.cob (NOW-UNDEFINED)",
+     "method": "documented at docs/conformance/7/DOC-A.1-49.md ('at EVERY edition')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR4",
+      "quote": "If no value is made available from the operating environment, compilation-variable-name-1 is not defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR4",
+      "quote": "If no value is made available from the operating environment, compilation-variable-name-1 is not defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; the implementor's mechanism (environment variable of the upper-cased name) is edition-independent and behaves the same at 2002.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/g4_param.cob",
+    "widening": null,
+    "from-slice": "q-01",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). PARAMETER takes a value from the operating environment and evaluates no expression. g4_param.cob re-run now at --std 2002 prints PARAM-7 with Q01PARM=7 and PARAM-UNDEFINED unset (rerun.log).",
+     "definition-dropped: method (newer: 9.3.4)": "GR4's 'by an implementor-defined method' is the ordinary word (a manner of obtaining the value), not the §2002:4 4.121 object-oriented method, so the definition does not govern this rule.",
+     "pending-clause: §2002:9.3.5 (changed)": "§2002:9.3.5 is method invocation; it was matched only by the word 'method' in 'implementor-defined method' ('is obtained from the operating environment by an implementor-defined method', §2002:7.2.9.3 GR4). The rule does not rest on it."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR4",
+      "quote": "is obtained from the operating environment by an implementor-defined method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A procedural entity defined by a method definition within, or inherited by, a class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-5",
+    "to": [
+     "GR-7.3.11.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a single numeric literal operand keeps its value (not truncated as an arithmetic expression would be by 7.2.5.2 GR2)"
+    ],
+    "evidence-2002": {
+     "single literal": "covered by probe g5_lit.cob at --std 2002 (LITERAL-1.5, NEG-LITERAL)",
+     "expression contrast": "covered by g5_lit.cob (1.5 + 0 truncated: EXPR-TRUNC-1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR5",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR5",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; the 2002 arithmetic mode (standard arithmetic, 7.2.5.2 GR1) does not touch a lone literal. The twin has no tagged witness; the probe shows it at 2002.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-01/g5_lit.cob",
+    "widening": null,
+    "from-slice": "q-01",
+    "flags-answered": {
+     "behaviour-switch: compile-time-arithmetic-mode": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). The rule is that a lone numeric literal is NOT an arithmetic expression, so neither the switch's mode nor §2002:7.2.5.2 GR2's truncation is applied to it. g5_lit.cob re-run now at --std 2002 prints LITERAL-1.5, EXPR-TRUNC-1, NEG-LITERAL (rerun.log).",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1, 8.8.1.3.1 and 8.8.1.3.1.1 (standard intermediate data item, 'a precision of 32 decimal digits', rounding to 31; the PB5575 gap is the compiler's 34). They govern the evaluation of an arithmetic expression only. GR5 keeps a single numeric literal out of the expression path, so no standard intermediate item is formed; a 2002 literal has at most 31 digits, so PB5575 cannot reach it. No dependence."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR5",
+      "quote": "that operand is treated as a literal, not as an arithmetic-expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "Any operand of an arithmetic expression that is not already contained in a standard intermediate data item shall be converted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-01",
+  "cases": [
+   {
+    "rule-id": "2002-SR-7.2.2-10",
+    "verdict": "UPHELD",
+    "reason": "2002 literal-taking directives are DEFINE, EVALUATE, IF only (7.2.11-7.2.19 read: FLAG-85, FLAG-NATIVE-ARITHMETIC, LEAP-SECOND, LISTING, PAGE, PROPAGATE, SOURCE FORMAT, TURN take keywords, comment-text or names, no literal); no 2002-only directive carries a literal; reader's probes cover all three forbidden forms at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-9",
+    "verdict": "UPHELD",
+    "reason": "IMP is on the 2002 8.12 list; rule and NOTE identical; no IMP directive defined at any edition.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.3-3",
+    "verdict": "UPHELD",
+    "reason": "Conditional on an implementor IMP directive; none defined.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.6.1-1",
+    "verdict": "UPHELD",
+    "reason": "2002 8.8.2 formation rules 1-5 and Table 5 equal 2023 8.8.2 minus the shift operators; 2002 contexts (EVALUATE directive, constant conditional expression) a subset; no 2002-only boolean form.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 8.8.2 rules 6-8 (precedence, left-to-right, right-extension with boolean zeros, result length) are 2023 8.8.2 rules 7, 9, 10 minus shift; reader probed at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.2-2",
+    "verdict": "UPHELD",
+    "reason": "Comparison operands are non-numeric non-boolean literals only, no arithmetic; 2002 operator list a subset of 2023's.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.3.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical; 'currently defined' rests on DEFINE/PARAMETER rules, which give the same defined/undefined state at 2002 (values aside).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.3.3-2",
+    "verdict": "UPHELD",
+    "reason": "As GR1.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 the CALL-CONVENTION default governs program-names in every CALL statement, and the 2002 CALL statement has a whole format, Format 1 (on-overflow), CALL ... ON OVERFLOW, that 2023 removed (Annex E.2 item 1). The 2023 row's witness l1c02 uses only CALL ... ON EXCEPTION and CANCEL, so the 2002 scope 'program-name in a CALL ... ON OVERFLOW statement treated as a COBOL word' has no evidence through the 2023 row. Probe cc_ovf.cob: at --std 2002 CALL \"ccovfs\" / \"CcOvFs\" ON OVERFLOW both resolve to PROGRAM-ID CCOVFS (SUB-COUNT=1, 2), i.e. the compiler is correct at 2002; at --std 2023 refused COBOL0882. Needs a 2002 witness (the probe) for the on-overflow format.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR1",
+      "quote": "The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.9.3 GR1",
+      "quote": "The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.8.2 GR2",
+      "quote": "inline method invocations, CALL statements, CANCEL statements, and program-address-identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "On Overflow phrase of the CALL statement",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-01/cc_ovf.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-3",
+    "verdict": "UPHELD",
+    "reason": "A permission; nothing testable; the implementor uses no other details at any edition.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.9.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "'The same value' of an arithmetic-expression-1 operand is its value under 2002 compile-time arithmetic, which 2002 fixes as standard arithmetic (32-digit truncating operations, then integer part); 2023 makes the mode implementor-defined and the compiler uses .NET decimal at both editions. 2/3*3 is 1 in 2002 (0.666...6 x3 = 1.99...98 truncated to 32 digits, integer part 1). Probe ar_redef_same.cob: >>DEFINE V AS 1 then >>DEFINE V AS 2 / 3 * 3 (no OVERRIDE) is legal in 2002 (same value 1) but refused at --std 2002 with COBOL1618 'redefined to a different value'. Compiler WRONG at 2002 (the known standard-arithmetic defect, reaching this rule). ar_std32.cob shows V=2 at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.2 SR2",
+      "quote": "the last previous DEFINE directive referring to compilation-variable-name-1 shall have specified the same value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.3 SR2",
+      "quote": "the last previous DEFINE directive referring to compilation-variable-name-1 shall have specified the same value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR6",
+      "quote": "arithmetic-expression-1 is evaluated according to 7.2.5, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR6",
+      "quote": "arithmetic-expression-1 is evaluated according to 7.3.6, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR2",
+      "quote": "The implementor shall define and document which mode of arithmetic is to be used",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-01/ar_redef_same.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-1",
+    "verdict": "UPHELD",
+    "reason": "Use-sites depend on the category of the value, not its arithmetic value; 2002 literal-taking directives a subset; constant entry FROM in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical OFF rule; reader probed each use-site at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "OVERRIDE sets the name to 'the value of the specified operand'; for arithmetic-expression-1 that value is fixed by 2002 GR6 -> 7.2.5 as standard arithmetic, while 2023 7.3.6.3 GR2 leaves the mode to the implementor, so the 2023 verdict says nothing about the 2002 value. Probe ar_override.cob: >>DEFINE W AS 5 then >>DEFINE W AS 2 / 3 * 3 OVERRIDE; 2002 requires W = 1; observed at --std 2002 'OVR W=2 NOT-STD32'. Compiler WRONG at 2002 (standard-arithmetic defect reaching this rule).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR3",
+      "quote": "If the OVERRIDE phrase is specified, compilation-variable-name-1 is unconditionally set to reference the value of the specified operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR3",
+      "quote": "If the OVERRIDE phrase is specified, compilation-variable-name-1 is unconditionally set to reference the value of the specified operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "The final result of the arithmetic expression shall be truncated to the integer part",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR6",
+      "quote": "arithmetic-expression-1 is evaluated according to 7.2.5, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.4 GR6",
+      "quote": "arithmetic-expression-1 is evaluated according to 7.3.6, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR2",
+      "quote": "The implementor shall define and document which mode of arithmetic is to be used",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-01/ar_override.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-4",
+    "verdict": "UPHELD",
+    "reason": "PARAMETER value comes from the environment, no arithmetic; mechanism edition-independent; probed at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-5",
+    "verdict": "UPHELD",
+    "reason": "A lone numeric literal is not evaluated, so 2002 standard arithmetic does not reach it; probed at 2002 (g5_lit).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "notes": "Probes in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-01/ (run.log). The standard-arithmetic defect (compile-time arithmetic at --std 2002 uses .NET decimal, not 2002 32-digit truncating standard arithmetic) also reaches 2002 7.2.9.3 GR6 and the EVALUATE/IF arithmetic operands outside this slice."
+ },
+ "imported": {
+  "asked": "629d521903592c1c2b1642546b451fc6a99b6445bfc9e1223f23a2de46bf1e5c",
+  "read": "a2bcd3dad1c8cfc229edc5303feef1cc8b218a60de7f956bae56efd2ef58bac6",
+  "refute": "b958163097aca64f4af43050052c7f3c48b81bae8deac2ddfe5e2f0ef9613179"
+ }
+}

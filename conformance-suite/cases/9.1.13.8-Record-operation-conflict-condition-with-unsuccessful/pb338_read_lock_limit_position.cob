@@ -2,7 +2,7 @@
       *> id: pb338_read_lock_limit_position
       *> rules: [GR-9.1.13.8-4, GR-12.4.5.9.4-7, GR-14.9.30.4-18,
       *>    DOC-A.1-155]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

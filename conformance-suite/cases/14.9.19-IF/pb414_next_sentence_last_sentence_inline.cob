@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb414_next_sentence_last_sentence_inline
       *> rules: [GR-14.9.19.4-4, GR-14.9.19.4-6]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

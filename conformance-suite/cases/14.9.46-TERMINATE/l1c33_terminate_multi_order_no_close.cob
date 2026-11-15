@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c33_terminate_multi_order_no_close
       *> rules: [GR-14.9.46.4-4, GR-14.9.46.4-6, FMT-14.9.46.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-7.2.17.2-1",
+ "rule-digest": "3322e38c434f",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-7.3.21.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301), read only by CompileTimeArithmetic.For (src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs:44), which picks the mode for operand entry and + - * / inside a compile-time arithmetic expression (§2002:7.2.5.2 GR1; its 34-digit 2002 mode against §2002:8.8.1.3.1.1's 32 digits is the known PB5575-family defect, reaching only results of arithmetic operations). A placement rule for a directive with no expression operand (ON | OFF); the switch cannot reach it. Re-run now at --std 2002: pb1378-propagate-within-unit refused (COBOL2652); prop-func.cob, with >>PROPAGATE ON before and >>PROPAGATE OFF between its units, compiles and runs (the run ends in the propagated EC-BOUND-SUBSCRIPT it is written to show) (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out-answer\\probes-a-03\\run-q03q04-2002.log)."
+   }
+  },
+  "source": "lineage-reads-2002/q-03.json",
+  "digests": {
+   "SR-7.3.21.3-1": "3322e38c434f"
+  }
+ }
+}

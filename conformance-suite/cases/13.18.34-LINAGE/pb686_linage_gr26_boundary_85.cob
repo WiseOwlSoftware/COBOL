@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb686_linage_gr26_boundary_85
       *> rules: [GR-13.18.34.4-2, GR-13.18.34.4-3, GR-14.9.51.4-26]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.45.2-6",
+ "rule-digest": "a419f6384852",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.47.3-6"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "The flag fires on the word 'termination' (the normal termination key) (the table's invokes pattern 'run unit|initial state|terminat|transfer of control'); here it means the end of one ACCEPT screen statement (function key or normal termination key), not run unit termination (§2002:14.5.10), initial state (§2002:14.5.2.1.2.1) or the flow-of-control mechanism (§2002:14.5.3), whose differing text (communication-section initialization, MCS purge, paragraph vs procedure wording, declaratives vs exception procedures) the rule does not rest on. The construct is the declined screen ACCEPT, refused at --std 2002 with no code produced (§2002:3.1.5), so scope and evidence are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "GR-13.18.47.3-6": "a419f6384852"
+  }
+ }
+}

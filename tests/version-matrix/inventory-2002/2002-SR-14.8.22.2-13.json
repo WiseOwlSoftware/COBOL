@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-13",
+ "rule-digest": "8459bd4668eb",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.23.3-13"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "The §2002:4 object reference matches §2023:9.3.2; the rule concerns an object reference described with the ACTIVE-CLASS phrase, a USAGE OBJECT REFERENCE data description, the same in both. No scope change; pb1116 refused at 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "SR-14.9.23.3-13": "8459bd4668eb"
+  }
+ }
+}

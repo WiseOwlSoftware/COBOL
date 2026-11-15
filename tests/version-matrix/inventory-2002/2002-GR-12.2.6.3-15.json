@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-15",
+ "rule-digest": "aa3269084443",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-15"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "9.2.5",
+    "answer": "I read §2002:9.2.5. 'The cursor locator is a six-character conceptual entity', set 'Upon successful termination of execution of an ACCEPT screen statement', is word for word §2023:9.2.5, so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "These clauses (initial state, transfers of control, normal run unit termination) were matched by the word 'termination'. Here it means the termination of the ACCEPT screen statement ('This content shall be updated by the execution of a successful ACCEPT screen statement'), not of a run unit, and the rule involves no initial state or transfer of control. It does not rest on those clauses."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.3.7.4-15": "aa3269084443"
+  }
+ }
+}

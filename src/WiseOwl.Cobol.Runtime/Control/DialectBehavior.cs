@@ -267,6 +267,15 @@ public enum DialectBehavior
     /// variable" (§1985:VI.6.3.1.1) is not an EVALUATE rule, and GnuCOBOL 3.2 -std=cobol85 accepts it (kb/Work PB5481; VCR row 7.75).
     /// Both editions are QUOTED. The consumer is <c>EvaluateOperandCombinations.IsPermitted</c>.</summary>
     EvaluateRefusesLiteralSubjectLiteralObject = 21,
+    /// <summary>§2014:7.3.5.2 GR1 — "The results of all arithmetic operations shall be as if ARITHMETIC IS STANDARD-DECIMAL were in
+    /// effect at compile time", the 34-digit SDIDI engine (§2023:8.8.1.5). §2002:7.2.5.2 GR1 says instead "Standard arithmetic
+    /// shall be used for all arithmetic operations", the 2002 standard intermediate data item of 32 significant digits whose every
+    /// operation result is truncated to 32 (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) in the range 10^-999 to
+    /// 10^1000 - 10^968 (§2002:8.8.1.3.1.1), so at <c>--std 2002</c> a compile-time expression whose exact value has more than 32
+    /// digits is cut where 2014 keeps 34 (kb/Work PB5575; VCR row 7.77). Both editions are QUOTED. From 2023 the mode is
+    /// implementor-defined (<see cref="CompileTimeArithmeticImplementorDefined"/>). The consumer is
+    /// <c>CompileTimeArithmetic.For</c>.</summary>
+    CompileTimeArithmeticIsStandardDecimal = 22,
 }
 
 /// <summary>
@@ -388,6 +397,11 @@ public static class DialectBehaviors
             "an EVALUATE selection object that is a literal against a selection subject that is a literal is a syntax violation "
             + "(COBOL1634) only from COBOL-2002, whose combination table leaves that cell blank; COBOL-85 has no table and "
             + "selects by the value and class of the two literals"),
+        new(DialectBehavior.CompileTimeArithmeticIsStandardDecimal, "compile-time-arithmetic-is-standard-decimal", 2014,
+            "7.77", "§2014:7.3.5.2 GR1", "§2002:7.2.5.2 GR1",
+            "compile-time arithmetic expressions are evaluated as if ARITHMETIC IS STANDARD-DECIMAL (34 digits) only from "
+            + "COBOL-2014; COBOL-2002 prescribes standard arithmetic, whose intermediate data item holds 32 digits and "
+            + "truncates each operation's result to them"),
     ];
 
     static DialectBehaviors()

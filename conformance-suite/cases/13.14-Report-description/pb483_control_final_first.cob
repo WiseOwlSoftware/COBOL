@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb483_control_final_first
       *> rules: [SR-13.14.3-2, GR-13.18.16.4-2, FMT-13.18.16.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

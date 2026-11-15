@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-11",
+ "rule-digest": "619fc2b454e3",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.49.3-11"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule speaks of a declarative (USE) procedure, which is a declarative section in both editions; §2002:4 (entry 4.150) already covers one section ('one or more successive ... sections'), and §2023:3.145 only spells out the single paragraph/section case. Same units, scope unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "SR-14.9.49.3-11": "619fc2b454e3"
+  }
+ }
+}

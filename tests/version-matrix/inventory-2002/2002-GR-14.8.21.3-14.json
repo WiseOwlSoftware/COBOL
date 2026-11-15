@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-14",
+ "rule-digest": "2362456ed2b4",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.22.4-15"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines character as a code value of a coded character set, a COBOL character, a screen-item graphic character or 'A single code value of a coded character set' (§2002:4); 2023 drops these entries but uses the word the same way. In INSPECT the character is one character of identifier-1's category (§2002:14.8.21.3 GR3a): one alphanumeric or one national character, so the rule governs the same data. National case shown at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-05/inspect-nat-char.cob (C1 ABC***, C2 XZCXZC) with negative control inspect-nat-char-neg.cob (N\"**\" with CHARACTERS refused COBOL0846)."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "The rule's dependent behaviour is EC-RANGE-INSPECT-SIZE, fatal in the 2002 table (§2002:14.5.12.1.5 'Size of replace items in INSPECT differs'); 2002 enables checking only by TURN (§2002:14.5.12.1), runs the USE declarative for a fatal condition (§2002:14.5.12.1.2) and RESUME AT NEXT STATEMENT is not normal completion (§2002:14.5.12.1.1) so execution continues (§2002:14.8.31.3 GR2). What 2023 changed (MERGE/SORT, EC-I-O, the PERFORM WHEN phrase, the non-fatal clause regrouped, incompatible data) does not reach INSPECT at 2002. Shown at --std 2002: pb1126_inspect_size_ec run this session, output MATCHes its .out (E1-E3 EC-RANGE-INSPECT-SIZE, E4 X  X)."
+   },
+   "behaviour-switch": {
+    "flag": "inspect-before-from-first-eligible-position",
+    "answer": "The switch (DialectBehavior.InspectBeforeFromFirstEligiblePosition) decides only where an operand's BEFORE delimiter is looked for when it also has AFTER; at 2002 the BEFORE portion runs from the leftmost position (§2002:14.8.21.3 GR8b) and the operand participates where it meets the AFTER portion (§2002:14.8.21.3 GR8). The one-character size check is independent of the region; pb1126_inspect_size_ec MATCH at 2002 this session."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "GR-14.9.22.4-15": "2362456ed2b4"
+  }
+ }
+}

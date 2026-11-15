@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb359_unsuccessful_read_start_position
       *> rules: [GR-14.9.30.4-18, GR-14.9.41.4-7]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

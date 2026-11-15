@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c27_report_group_level1_extent
       *> rules: [GR-13.15.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

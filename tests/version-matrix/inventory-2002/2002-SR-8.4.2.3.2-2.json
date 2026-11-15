@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.4.2.3.2-2",
+ "rule-digest": "7e50986b04d7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.3.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "This rule does rest on §2002:15.1: it admits reference modification only of alphanumeric, boolean or national functions. 2002 15.1 has the same six types (alphanumeric, boolean, national, numeric, integer, index) as §2023:15.2, each of the same class and category; 2002 adds only that the size is fixed by each function definition, which 2023 leaves to the definition too. So the governed set is the same. Confirming probe at --std 2002: refmod of BOOLEAN-OF-INTEGER and NATIONAL-OF accepted and right (BOOL=OK, NAT=BC), alongside the reader's alphanumeric-accept and numeric-refuse cases."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "SR-8.4.3.3.3-2": "7e50986b04d7"
+  }
+ }
+}

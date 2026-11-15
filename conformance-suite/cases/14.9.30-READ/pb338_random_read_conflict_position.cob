@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb338_random_read_conflict_position
 *> rules: [GR-14.9.30.4-10]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

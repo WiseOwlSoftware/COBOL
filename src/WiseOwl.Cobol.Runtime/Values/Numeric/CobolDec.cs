@@ -231,6 +231,22 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return new CobolDec(Sig < 0 && rem != 0 ? q - 1 : q, 0);
     }
 
+    /// <summary>The exponent of the value's LEADING digit — the normalized exponent of a standard intermediate data item
+    /// (§2002:8.8.1.3.1.2: "the significand shall contain exactly one non-zero digit to the left of the decimal point"):
+    /// 3 for 1234.5, -1 for 0.05. Meaningless for zero, which has no leading digit (the caller tests <see cref="Sig"/>).</summary>
+    public int AdjustedExponent => DigitCount(UAbs(Sig)) + Exp - 1;
+
+    /// <summary>The value cut to at most <paramref name="digits"/> significant digits by TRUNCATION toward zero, AS AN SDIDI-shaped
+    /// carrier value — the ONE spelling of "truncated to 32 significant digits" (§2002:8.8.1.3.2 addition, §2002:8.8.1.3.4
+    /// multiplication, §2002:8.8.1.3.5 division). A value with that many digits or fewer comes back unchanged; zero
+    /// comes back unchanged (its exponent kept).</summary>
+    public CobolDec TruncateToSignificantDigits(int digits)
+    {
+        int drop = DigitCount(UAbs(Sig)) - digits;
+        if (Sig == 0 || drop <= 0) return this;
+        return new CobolDec(DivRemPow10(Sig, drop).Q, Exp + drop);
+    }
+
     /// <summary>⛔ THE SUBSIDIARY QUOTIENT OF DIVIDE ... GIVING ... REMAINDER ON THE SDIDI (ISO §2023:14.9.12.4 6) c), kb/Work
     /// PB3017): "a subsidiary quotient is developed that is signed and derived from the quotient by truncation of digits
     /// at the least significant end and that has the same number of digits and the same decimal point location as the

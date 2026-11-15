@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c35_unstring_tallying_accessed
       *> rules: [GR-14.9.48.4-6, GR-14.9.48.4-14]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

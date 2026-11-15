@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-17",
+ "rule-digest": "6a80c96ab70d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.23.3-18"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "The rule uses only 'procedure division header', not the defined term 'procedure' (§2002:4 4.150); no change of scope or evidence."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Read §2002:14.6.4 and 14.6.6 (size error, arithmetic statements; 31-digit composite, standard arithmetic). The rule matched only on 'corresponding formal parameter'; OMITTED/OPTIONAL in INVOKE has nothing to do with size error or arithmetic statements. No dependence; evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-27.json",
+  "digests": {
+   "SR-14.9.23.3-18": "6a80c96ab70d"
+  }
+ }
+}

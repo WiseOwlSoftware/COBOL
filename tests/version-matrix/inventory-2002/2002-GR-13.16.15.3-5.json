@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-13.16.15.3-5",
+ "rule-digest": "9de8224bb74d",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.16.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so the control footings of the report at TERMINATE are the same; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Matched on the word TERMINATE (the report writer statement at whose execution prior controls are stored), not on run unit termination (§2002:14.5.10), the initial state (§2002:14.5.2.1.2.1) or transfers of control (§2002:14.5.3); the rule rests on none of those clauses. pb1187_terminate_restore_last_85 and pb5128_terminate_footing_control_values re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+   }
+  },
+  "source": "lineage-reads-2002/q-13.json",
+  "digests": {
+   "GR-13.18.16.4-5": "9de8224bb74d"
+  }
+ }
+}

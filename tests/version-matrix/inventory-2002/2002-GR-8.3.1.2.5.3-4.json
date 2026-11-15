@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-4",
+ "rule-digest": "59f97a57f930",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.3.3.6.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. GR4's 'one or more of the character space' uses the ordinary sense; SPACE in alphanumeric and national contexts is governed alike, covered at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "GR-8.3.3.6.4-5": "59f97a57f930"
+  }
+ }
+}

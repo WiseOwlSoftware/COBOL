@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-5",
+ "rule-digest": "47e4010603ff",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.2.3-7"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.4.1.1 (changed, undecided)",
+    "answer": "§2002:8.4.1.1 is restructured in 2023 (the uniqueness cases are rewritten and 2023 lists 'a paragraph-name referenced within its own section' among the cases needing no qualification), and 2002 has TYPEDEF/TYPE wording. For paragraph names 2002 reaches the same result through the rule itself (need not be qualified within the same section) plus 8.4.1.1 item 6 (qualification by the section-name); nothing in the changed text alters which duplicates are barred. Scope and the pb466 / para-dup evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/p-19.json",
+  "digests": {
+   "SR-8.4.2.2.3-7": "47e4010603ff"
+  }
+ }
+}

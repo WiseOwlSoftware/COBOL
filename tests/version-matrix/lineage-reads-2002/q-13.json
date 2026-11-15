@@ -1,0 +1,1874 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-13 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-13",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.15.2-2",
+   "2002-GR-13.16.15.3-2",
+   "2002-GR-13.16.15.3-3",
+   "2002-GR-13.16.15.3-5",
+   "2002-GR-13.16.15.3-6",
+   "2002-SR-13.16.16.2-2",
+   "2002-GR-13.16.16.3-1",
+   "2002-GR-13.16.16.3-2",
+   "2002-GR-13.16.16.3-3",
+   "2002-GR-13.16.16.3-4",
+   "2002-SR-13.16.17.2-1",
+   "2002-SR-13.16.17.2-2",
+   "2002-SR-13.16.17.2-3",
+   "2002-GR-13.16.17.3-1",
+   "2002-GR-13.16.17.3-3",
+   "2002-GR-13.16.17.3-4",
+   "2002-GR-13.16.17.3-6",
+   "2002-SR-13.16.18.2-1",
+   "2002-SR-13.16.18.2-2",
+   "2002-GR-13.16.18.3-1",
+   "2002-SR-13.16.19.2-1",
+   "2002-SR-13.16.19.2-2",
+   "2002-GR-13.16.19.3-1",
+   "2002-GR-13.16.19.3-2",
+   "2002-SR-13.16.21.2-1"
+  ],
+  "flags": {
+   "2002-SR-13.16.16.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.16.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.16.3-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.16.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.16.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.17.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.17.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.17.2-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.17.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.17.3-3": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.17.3-4": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.17.3-6": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.19.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.19.2-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.19.3-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-13.16.19.3-2": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-13.16.21.2-1": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-13",
+  "seed": null,
+  "counts": {
+   "SAME": 9,
+   "DIFFERENT": 16,
+   "DOUBTFUL": 0
+  },
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.15.2-2",
+    "to": [
+     "SR-13.18.16.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CONTROL data-name-1 defined in the report section: rejected",
+     "data-name-1 in any other section (file, working-storage, local-storage, linkage, communication): not prohibited by this rule"
+    ],
+    "evidence-2002": {
+     "report-section operand rejected": "covered by conformance:cases/13.18.16-CONTROL/pb205-control-operand-report-section, refused at --std 2002 with COBOL1699 citing SR2 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb205-control-operand-report-section-2002.txt)",
+     "other sections admitted": "working-storage by every report case; communication-section record item admitted and working at --std 2002 by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/ctl_cd.cob"
+    },
+    "reason": "Same general format (CONTROL IS/CONTROLS ARE, data-name-1 ... or FINAL [data-name-1] ...). The rule is a prohibition on one section; its prohibited case is witnessed at 2002. 2002's extra communication section is a permitted location the rule does not govern; probed anyway.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/ctl_cd.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 clause 3 has no entry for it (3.153 relative item, 3.156 report writer, nothing between), and its meaning in 2023 rests on §2023:13.8.1 and §2023:13.14.1, word-identical to §2002:13.7 and §2002:13.12 (the report section describes the reports to be written to report files; each report begins with an RD entry; 13.18.46.2 is only the REPORT clause format). The rule prohibits data-name-1 defined in the report section; that section is the same in both editions (§2002:13.7 = §2023:13.8.1), so the dropped definition changes nothing the rule governs."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.7",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.1",
+      "quote": "The report section describes the reports to be written to report files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.12",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.14.1",
+      "quote": "The report description entry names a report and describes its general physical and logical structure",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-2",
+    "to": [
+     "GR-13.18.16.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR2",
+      "quote": "Therefore FINAL, if specified, is associated with the highest level in the hierarchy.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR2",
+      "quote": "Therefore FINAL, if specified, is associated with the highest level in the hierarchy.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FINAL as the highest control level of an RD"
+    ],
+    "evidence-2002": {
+     "FINAL highest level": "covered by conformance:cases/13.14-Report-description/pb483_control_final_first (runs at --std 2002, output equals .out: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb483_control_final_first-2002.txt) and pb483-control-final-placement (refused at 2002 with COBOL2421)"
+    },
+    "reason": "Identical format and rule; FINAL is only in the CONTROL clause of an RD in both editions; the row's witnesses hold at 2002.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 has no entry and the term rests on the RD and the REPORT clause (§2023:13.18.46.1, 'the reports that may be written to a report file'). Both mean an RD-described output written to a report file, so the rule's reach (FINAL as the highest control level of a report) is the same in 2002 and the reader's 2002 witnesses stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-3",
+    "to": [
+     "GR-13.18.16.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR3",
+      "quote": "Execution of the chronologically first GENERATE statement for a given report saves each current control data item in the corresponding prior control.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR3",
+      "quote": "Execution of the chronologically first GENERATE statement for a given report saves each current control data item in the corresponding prior control.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "prior control per data-name-1, saved by the first GENERATE",
+     "later GENERATEs test major to minor, stop at the first change, break processing for that level and lower",
+     "control data items in any non-report section, the communication section included"
+    ],
+    "evidence-2002": {
+     "first GENERATE saves / later test / break levels": "not shown through the row: its only witnesses pb205_control_ref_mod and rw_suppress are refused at --std 2002 (COBOL0900 ORGANIZATION LINE SEQUENTIAL; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb205_control_ref_mod-2002.txt, rw_suppress-2002.txt). Shown instead by conformance:cases/13.18.16-CONTROL/pb4513_control_overlap_restore (rules GR-13.18.16.4-4 only), which runs at 2002 with the expected output (major break prints both footings, minor break one, no change none)",
+     "communication-section control item": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/ctl_cd.cob at 2002: report AA / CF AA / BB / CF BB, correct"
+    },
+    "reason": "The requirement is the same words over the same format, but the 2023 row's evidence does not hold at --std 2002: both its witnesses use ORGANIZATION LINE SEQUENTIAL, a 2023 element. The compiler is correct at 2002 (pb4513 and the probe), so the row needs a witness that runs at 2002, not a fix.",
+    "needs": "a 2002 witness for GR3's break sensing: register pb4513_control_overlap_restore (or pb5128_footing_page_groups_control_values) against GR-13.18.16.4-3, both run clean at --std 2002",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb4513_control_overlap_restore-2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/ctl_cd-2002.rpt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/ctl_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-5",
+    "to": [
+     "GR-13.18.16.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR5",
+      "quote": "the prior controls are stored in the control data items before each control footing is printed, as though a highest-level control break had been detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR5",
+      "quote": "the prior controls are stored in the control data items before each control footing is printed, as though a highest-level control break had been detected",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "TERMINATE with control footings: prior controls stored in the control data items before each footing, as a highest-level break"
+    ],
+    "evidence-2002": {
+     "TERMINATE footings see prior controls": "covered by the row's witness conformance:cases/13.18.16-CONTROL/pb1187_terminate_restore_last_85, run at --std 2002 with output equal to .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb1187_terminate_restore_last_85-2002.txt); also pb5128_terminate_footing_control_values at 2002; the row's other two witnesses (pb205_control_ref_mod, rw_suppress) do not compile at 2002"
+    },
+    "reason": "Identical rule and format; the TERMINATE statement's referenced behaviour is the same; one of the row's witnesses runs at 2002.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so the control footings of the report at TERMINATE are the same; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Matched on the word TERMINATE (the report writer statement at whose execution prior controls are stored), not on run unit termination (§2002:14.5.10), the initial state (§2002:14.5.2.1.2.1) or transfers of control (§2002:14.5.3); the rule rests on none of those clauses. pb1187_terminate_restore_last_85 and pb5128_terminate_footing_control_values re-run now PASS at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-18/witnesses-2002.txt)."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "When normal run unit termination occurs, the runtime system performs the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "The flow of control mechanism transfers control from statement to statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "Automatic data and initial data is placed in the initial state",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-6",
+    "to": [
+     "GR-13.18.16.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.15",
+    "clause-2023": "13.18.16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR6",
+      "quote": "Data-name-1 shall not reference a zero-length group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR6",
+      "quote": "Data-name-1 shall not reference a zero-length group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR5",
+      "quote": "The entry specified by data-name-1 shall not have a variable-occurrence entry subordinate to it.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "zero-length group per §2002:8.5.4 items 1-2 (a group of only a variable-occurrence item at zero occurrences, recursively)",
+     "item 4 (a variable-length logical record of zero characters) is a run-time state with no exception or outcome specified"
+    ],
+    "evidence-2002": {
+     "items 1-2": "covered by the row's derivation (ControlOperandShapeViolation SR5 arm): pb177-control-occurs-depending refused at --std 2002 with COBOL1699 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/pb177-control-occurs-depending-2002.txt)",
+     "item 4": "no action required, as in the 2023 derivation"
+    },
+    "reason": "'Zero-length group item' rests on 8.5.4, whose 2002 list is a subset of 2023's (2023 adds DYNAMIC LENGTH, dynamic-capacity tables, zero-length literals, ref-mod); the 2002 cases are those the 2023 derivation covers, and its SR5 arm fires at 2002.",
+    "probe": null,
+    "widening": "2023's 8.5.4 adds items (DYNAMIC LENGTH, dynamic-capacity tables) the 2023 derivation covers through SR7; 2002 has none of them",
+    "flags-answered": {
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)": "The rule rests on 'zero-length group item', §2002:8.5.4. Its 2002 group cases are item 1 (a group containing only a variable-occurrence item at zero occurrences) and item 2 (recursively), equal in reach to 2023 items 1-2 (2023 says 'occurs-depending table'); 2002 lacks 2023's DYNAMIC LENGTH, dynamic-capacity, zero-length literal and ref-mod cases. 8.5.3 (types) and 14.5.8 (alignment) match only on words and do not bear on it. The SR5 refusal covers items 1-2 at 2002 (COBOL1699, the reader's probe), so scope and evidence stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.4",
+      "quote": "A group data item containing only an occurs-depending table in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR5",
+      "quote": "The entry specified by data-name-1 shall not have a variable-occurrence entry subordinate to it",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-13"
+   },
+   {
+    "rule-id": "2002-SR-13.16.16.2-2",
+    "to": [
+     "SR-13.18.17.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.16",
+    "clause-2023": "13.18.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.16.2 SR2",
+      "quote": "Literal-1 or the data item referenced by identifier-1 shall be valid as a sending operand for a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.17.3 SR2",
+      "quote": "Literal-1 or the data item referenced by identifier-1 shall be valid as a sending operand for a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DEFAULT literal-1 / identifier-1 must be a valid MOVE sender to the subject"
+    ],
+    "evidence-2002": {
+     "DEFAULT literal-1 / identifier-1 must be a valid MOVE sender to the subject": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DEFAULT clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.16.3-1",
+    "to": [
+     "GR-13.18.17.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.16",
+    "clause-2023": "13.18.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.16.3 GR1",
+      "quote": "A default value is established during the format validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.17.4 GR1",
+      "quote": "A default value is established during the format validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "default established at VALIDATE format validation: elementary invalid-on-format or all-spaces display/national",
+     "alphanumeric/strongly-typed group all spaces",
+     "national group all spaces",
+     "DEFAULT ignored outside VALIDATE"
+    ],
+    "evidence-2002": {
+     "default established at VALIDATE format validation: elementary invalid-on-format or all-spaces display/national": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "alphanumeric/strongly-typed group all spaces": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "national group all spaces": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "DEFAULT ignored outside VALIDATE": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DEFAULT clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.16.3-2",
+    "to": [
+     "GR-13.18.17.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.16",
+    "clause-2023": "13.18.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.16.3 GR2",
+      "quote": "If identifier-1 is specified, the default value used is the value of the data item referenced by identifier-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.17.4 GR2",
+      "quote": "If identifier-1 is specified, the default value used is the value of the data item referenced by identifier-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DEFAULT literal-1 value",
+     "DEFAULT identifier-1 value"
+    ],
+    "evidence-2002": {
+     "DEFAULT literal-1 value": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "DEFAULT identifier-1 value": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DEFAULT clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.16.3-3",
+    "to": [
+     "GR-13.18.17.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.16",
+    "clause-2023": "13.18.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.16.3 GR3",
+      "quote": "the default value is that which would be supplied for the data item by the execution of an implicit INITIALIZE statement without a REPLACING or VALUE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.17.4 GR3",
+      "quote": "the default value is that which would be supplied for the data item by the execution of an implicit INITIALIZE statement without a REPLACING or VALUE phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no DEFAULT clause or DEFAULT NONE: default = implicit INITIALIZE value"
+    ],
+    "evidence-2002": {
+     "no DEFAULT clause or DEFAULT NONE: default = implicit INITIALIZE value": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. GR3 also governs every VALIDATE'd item WITHOUT a DEFAULT clause, which the compiler accepts but validates as a no-op (COBOL1580).",
+    "needs": "2002 requires the VALIDATE facility's DEFAULT clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.16.3-4",
+    "to": [
+     "GR-13.18.17.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.16",
+    "clause-2023": "13.18.17",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.16.3 GR4",
+      "quote": "any DESTINATION clause specified for the data item is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.17.4 GR4",
+      "quote": "any DESTINATION clause specified for the data item is ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "DEFAULT NONE: DESTINATION ignored for an all-spaces or invalid-on-format item"
+    ],
+    "evidence-2002": {
+     "DEFAULT NONE: DESTINATION ignored for an all-spaces or invalid-on-format item": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DEFAULT clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.17.2-1",
+    "to": [
+     "SR-13.18.18.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.2 SR1",
+      "quote": "a syntactically correct MOVE statement results when that data item is the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.3 SR1",
+      "quote": "a syntactically correct MOVE statement results when that data item is the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 a valid MOVE receiver of the subject"
+    ],
+    "evidence-2002": {
+     "identifier-1 a valid MOVE receiver of the subject": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.17.2-2",
+    "to": [
+     "SR-13.18.18.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.2 SR2",
+      "quote": "any data item subordinate to identifier-1 shall not contain a VALIDATE-STATUS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.3 SR2",
+      "quote": "any data item subordinate to identifier-1 shall not contain a VALIDATE-STATUS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 or a subordinate with VALIDATE-STATUS: rejected"
+    ],
+    "evidence-2002": {
+     "identifier-1 or a subordinate with VALIDATE-STATUS: rejected": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.17.2-3",
+    "to": [
+     "SR-13.18.18.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.2 SR3",
+      "quote": "If the subject of the entry is a global name, every data-name appearing in identifier-1 shall be a global name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.3 SR3",
+      "quote": "If the subject of the entry is a global name, every data-name appearing in identifier-1 shall be a global name.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "global subject: every data-name in identifier-1 global"
+    ],
+    "evidence-2002": {
+     "global subject: every data-name in identifier-1 global": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.17.3-1",
+    "to": [
+     "GR-13.18.18.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.3 GR1",
+      "quote": "The DESTINATION clause causes one or more implicit MOVE statements to be executed during the input distribution phase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.4 GR1",
+      "quote": "The DESTINATION clause causes one or more implicit MOVE statements to be executed during the input distribution phase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "implicit MOVEs in VALIDATE's input distribution phase",
+     "DESTINATION ignored outside VALIDATE"
+    ],
+    "evidence-2002": {
+     "implicit MOVEs in VALIDATE's input distribution phase": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "DESTINATION ignored outside VALIDATE": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.17.3-3",
+    "to": [
+     "GR-13.18.18.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.3 GR3",
+      "quote": "default value is moved to the data item referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.4 GR3",
+      "quote": "default value is moved to the data item referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "default assigned, not DEFAULT NONE: default value moved to identifier-1"
+    ],
+    "evidence-2002": {
+     "default assigned, not DEFAULT NONE: default value moved to identifier-1": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.17.3-4",
+    "to": [
+     "GR-13.18.18.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.3 GR4",
+      "quote": "DEFAULT NONE is specified in the entry, the data item referenced by identifier-1 is unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.4 GR4",
+      "quote": "DEFAULT NONE is specified in the entry, the data item referenced by identifier-1 is unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "default assigned with DEFAULT NONE: identifier-1 unchanged"
+    ],
+    "evidence-2002": {
+     "default assigned with DEFAULT NONE: identifier-1 unchanged": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.17.3-6",
+    "to": [
+     "GR-13.18.18.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.17",
+    "clause-2023": "13.18.18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.17.3 GR6",
+      "quote": "is moved to the data item referenced by each identifier-1 in the order specified, according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.18.4 GR6",
+      "quote": "is moved to the data item referenced by each identifier-1 in the order specified, according to the rules for the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "moves to each identifier-1 in order per the MOVE rules"
+    ],
+    "evidence-2002": {
+     "moves to each identifier-1 in order per the MOVE rules": "not shown: the compiler refuses the clause at --std 2002 (COBOL1708), probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob"
+    },
+    "licence-2002": "none",
+    "reason": "The words are identical and the 2023 row is DOCUMENTED-NON-SUPPORT, licensed by §2023 Annex A.4.1/A.4.14 (VALIDATE optional). In 2002 VALIDATE (14.8.46) and its data-division clauses are standard required elements: §2002:3.1 names only Annex A, the communications facility, as optional; §2002:3.1.1 requires the syntax and functionality of every standard element; VALIDATE is not in §2002:B.3 and not obsolete in G.2. So the 2023 verdict cannot carry. ",
+    "needs": "2002 requires the VALIDATE facility's DESTINATION clause; the compiler declines it",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+     "expected": "compiles; VALIDATE W-IN establishes the default 'DEF' for the all-spaces W-F (§2002:13.16.16.3 GR1 a, GR2) and moves it to W-OUT (§2002:13.16.17.3 GR3); DISPLAY shows 'OUT [DEF]'",
+     "observed": "exit 65 at --std 2002: error COBOL1708 at (8,21) DEFAULT and (8,38) DESTINATION, 'A data-division clause of the VALIDATE facility ... is written', citing the §2023 optional-element licence; the VALIDATE statement draws warning COBOL1580 'accepted but performs no content validation ... Fires at 2002/2014/2023'. Output E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest-2002.txt",
+     "code-site": "src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause (band 2002,2014,2023)"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/val_default_dest.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.1/A.4.14 (VALIDATE optional). 2002 has no such licence: §2002:3.1 makes ONLY Annex A (communications) optional, §2002:3.1.1 requires every standard element, and VALIDATE is in neither B.3 (processor-dependent) nor G.2 (obsolete). The flag changes the verdict: 2002 requires the clause; the compiler refuses it."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.18.2-1",
+    "to": [
+     "SR-13.18.20.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.18",
+    "clause-2023": "13.18.20",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.18.2 SR1",
+      "quote": "If the entry-name clause is not specified in a data description entry, a report group description entry, or a screen description entry, the word FILLER is assumed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.20.3 SR2",
+      "quote": "If the entry-name clause is not specified in a data description entry, a report group description entry, or a screen description entry, the word FILLER is assumed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "omitted entry-name in a data description entry (file, working-storage, local-storage, linkage)",
+     "omitted entry-name in a record description entry under a CD",
+     "omitted entry-name in a report group description entry",
+     "screen description entry (licensed non-support)"
+    ],
+    "evidence-2002": {
+     "data description entry": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob at 2002: 'WS [ABC]'",
+     "CD record entry": "not shown through the row (its witness is the report case pb1226_report_filler_entry_name); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob at --std 2002: a CD record with an omitted name and a FILLER entry lays out correctly ('CD [QQ          ZZZZZZZZZZZZZZ]')",
+     "report group entry": "covered by pb1226_report_filler_entry_name, output equal to .out at 2002",
+     "screen entry": "refused COBOL1560 at 2002 (a42-screen-erase)"
+    },
+    "reason": "Same three formats and the same rule words. In 2002 a 'data description entry' also occurs as a record description entry under a CD (§2002:A.1.1, §2002:A.1.1.2: a record description consists of data description entries, each with 'the data-name or FILLER clause'), so the rule also governs communication-section record entries, which the 2023 twin's witness does not reach. The screen-description third is licensed in 2002 by §2002:3.1.5 with §2002:B.3 item 1 and refused (COBOL1560). Compiler correct at 2002 by probe.",
+    "needs": "a 2002 witness for an omitted entry-name in a communication-section record description entry",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd-2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.18.2-2",
+    "to": [
+     "SR-13.18.20.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.18",
+    "clause-2023": "13.18.20",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.18.2 SR2",
+      "quote": "If the entry-name clause is specified in a data description entry or a report group description entry, either data-name-1 or FILLER shall be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.20.3 SR3",
+      "quote": "If the entry-name clause is specified in a data description entry or a report group description entry, either data-name-1 or FILLER shall be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "data-name-1 or FILLER in a data description entry, including CD record entries",
+     "data-name-1 or FILLER in a report group description entry",
+     "screen-name-1 or FILLER in a screen description entry (licensed non-support)"
+    ],
+    "evidence-2002": {
+     "data description entry": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob",
+     "CD record entry": "not shown through the row (its witness is the report case pb1226_report_filler_entry_name); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob at --std 2002: a CD record with an omitted name and a FILLER entry lays out correctly ('CD [QQ          ZZZZZZZZZZZZZZ]')",
+     "report group entry": "covered by pb1226_report_filler_entry_name at 2002 (pb3964-report-filler-85 compiles at 2002 too)",
+     "screen entry": "refused COBOL1560 at 2002"
+    },
+    "reason": "Same three formats and the same rule words. In 2002 a 'data description entry' also occurs as a record description entry under a CD (§2002:A.1.1, §2002:A.1.1.2: a record description consists of data description entries, each with 'the data-name or FILLER clause'), so the rule also governs communication-section record entries, which the 2023 twin's witness does not reach. The screen-description third is licensed in 2002 by §2002:3.1.5 with §2002:B.3 item 1 and refused (COBOL1560). Compiler correct at 2002 by probe.",
+    "needs": "a 2002 witness for data-name-1 / FILLER in a communication-section record description entry",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd-2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.18.3-1",
+    "to": [
+     "GR-13.18.20.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.18",
+    "clause-2023": "13.18.20",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.18.3 GR1",
+      "quote": "Under no circumstances shall a FILLER item be referred to explicitly.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.20.4 GR1",
+      "quote": "Under no circumstances shall a FILLER item be referred to explicitly.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FILLER names a data item (CD record items included), a report item, a screen item (licensed)",
+     "a FILLER item is never referenced explicitly"
+    ],
+    "evidence-2002": {
+     "FILLER data item": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob",
+     "CD record FILLER": "not shown through the row (its witness is the report case pb1226_report_filler_entry_name); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob at --std 2002: a CD record with an omitted name and a FILLER entry lays out correctly ('CD [QQ          ZZZZZZZZZZZZZZ]')",
+     "no explicit reference": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_filler_ref.cob refused at 2002 (COBOL5506 unexpected 'FILLER')",
+     "report item": "pb1226_report_filler_entry_name at 2002"
+    },
+    "reason": "Same three formats and the same rule words. In 2002 a 'data description entry' also occurs as a record description entry under a CD (§2002:A.1.1, §2002:A.1.1.2: a record description consists of data description entries, each with 'the data-name or FILLER clause'), so the rule also governs communication-section record entries, which the 2023 twin's witness does not reach. The screen-description third is licensed in 2002 by §2002:3.1.5 with §2002:B.3 item 1 and refused (COBOL1560). Compiler correct at 2002 by probe.",
+    "needs": "a 2002 witness for a FILLER item in a communication-section record description entry",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd-2002.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_filler_ref-2002.txt)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/en_ws_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.19.2-1",
+    "to": [
+     "SR-13.18.21.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.19",
+    "clause-2023": "13.18.21",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.2 SR1",
+      "quote": "The word EOL is equivalent to the words END OF LINE.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.3 SR1",
+      "quote": "The word EOL is equivalent to the words END OF LINE.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ERASE EOL in a screen description entry"
+    ],
+    "evidence-2002": {
+     "ERASE EOL in a screen description entry": "covered by the twin's witness conformance:wiseowl/cases/13.18.21-ERASE/a42-screen-erase, refused at --std 2002 with COBOL1560 (screen section and the clause, by name): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase-2002.txt"
+    },
+    "licence-2002": "§2002:3.1.5 (an unclaimed processor-dependent element need not be implemented; compile-time warning required) with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "reason": "Same general format, same synonyms and rules in both editions; in 2002 the clause appears only in a screen description entry (8.9 table). 2002 licenses non-support of the screen section through its own text (§2002:3.1.5, §2002:B.3 item 1), and the compiler declines it at --std 2002 with a named diagnostic, which meets 3.1.5's warning requirement. Nothing in 2002 widens the clause beyond the screen section.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.2. 2002 gives its own licence: §2002:B.3 item 1 lists the screen section as processor-dependent and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time warning. The compiler refuses it at --std 2002 with COBOL1560, so the licence and the evidence hold; the diagnostic text cites the 2023 Annex A.4.2 rather than §2002:B.3 (wording only, not a behaviour defect)."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.19.2-2",
+    "to": [
+     "SR-13.18.21.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.19",
+    "clause-2023": "13.18.21",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.2 SR2",
+      "quote": "The word EOS is equivalent to the words END OF SCREEN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.3 SR2",
+      "quote": "The word EOS is equivalent to the words END OF SCREEN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ERASE EOS in a screen description entry"
+    ],
+    "evidence-2002": {
+     "ERASE EOS in a screen description entry": "covered by the twin's witness conformance:wiseowl/cases/13.18.21-ERASE/a42-screen-erase, refused at --std 2002 with COBOL1560 (screen section and the clause, by name): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase-2002.txt"
+    },
+    "licence-2002": "§2002:3.1.5 (an unclaimed processor-dependent element need not be implemented; compile-time warning required) with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "reason": "Same general format, same synonyms and rules in both editions; in 2002 the clause appears only in a screen description entry (8.9 table). 2002 licenses non-support of the screen section through its own text (§2002:3.1.5, §2002:B.3 item 1), and the compiler declines it at --std 2002 with a named diagnostic, which meets 3.1.5's warning requirement. Nothing in 2002 widens the clause beyond the screen section.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.2. 2002 gives its own licence: §2002:B.3 item 1 lists the screen section as processor-dependent and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time warning. The compiler refuses it at --std 2002 with COBOL1560, so the licence and the evidence hold; the diagnostic text cites the 2023 Annex A.4.2 rather than §2002:B.3 (wording only, not a behaviour defect)."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.19.3-1",
+    "to": [
+     "GR-13.18.21.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.19",
+    "clause-2023": "13.18.21",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.3 GR1",
+      "quote": "a portion of the screen is cleared during the execution of a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.4 GR1",
+      "quote": "a portion of the screen is cleared during the execution of a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ERASE LINE/SCREEN clearing at DISPLAY screen"
+    ],
+    "evidence-2002": {
+     "ERASE LINE/SCREEN clearing at DISPLAY screen": "covered by the twin's witness conformance:wiseowl/cases/13.18.21-ERASE/a42-screen-erase, refused at --std 2002 with COBOL1560 (screen section and the clause, by name): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase-2002.txt"
+    },
+    "licence-2002": "§2002:3.1.5 (an unclaimed processor-dependent element need not be implemented; compile-time warning required) with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "reason": "Same general format, same synonyms and rules in both editions; in 2002 the clause appears only in a screen description entry (8.9 table). 2002 licenses non-support of the screen section through its own text (§2002:3.1.5, §2002:B.3 item 1), and the compiler declines it at --std 2002 with a named diagnostic, which meets 3.1.5's warning requirement. Nothing in 2002 widens the clause beyond the screen section.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.2. 2002 gives its own licence: §2002:B.3 item 1 lists the screen section as processor-dependent and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time warning. The compiler refuses it at --std 2002 with COBOL1560, so the licence and the evidence hold; the diagnostic text cites the 2023 Annex A.4.2 rather than §2002:B.3 (wording only, not a behaviour defect)."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.19.3-2",
+    "to": [
+     "GR-13.18.21.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.19",
+    "clause-2023": "13.18.21",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.3 GR2",
+      "quote": "The ERASE clause is ignored during all phases of the execution of an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.4 GR2",
+      "quote": "The ERASE clause is ignored during all phases of the execution of an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ERASE ignored at ACCEPT screen"
+    ],
+    "evidence-2002": {
+     "ERASE ignored at ACCEPT screen": "covered by the twin's witness conformance:wiseowl/cases/13.18.21-ERASE/a42-screen-erase, refused at --std 2002 with COBOL1560 (screen section and the clause, by name): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase-2002.txt"
+    },
+    "licence-2002": "§2002:3.1.5 (an unclaimed processor-dependent element need not be implemented; compile-time warning required) with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "reason": "Same general format, same synonyms and rules in both editions; in 2002 the clause appears only in a screen description entry (8.9 table). 2002 licenses non-support of the screen section through its own text (§2002:3.1.5, §2002:B.3 item 1), and the compiler declines it at --std 2002 with a named diagnostic, which meets 3.1.5's warning requirement. Nothing in 2002 widens the clause beyond the screen section.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-erase.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.2. 2002 gives its own licence: §2002:B.3 item 1 lists the screen section as processor-dependent and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time warning. The compiler refuses it at --std 2002 with COBOL1560, so the licence and the evidence hold; the diagnostic text cites the 2023 Annex A.4.2 rather than §2002:B.3 (wording only, not a behaviour defect)."
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.21.2-1",
+    "to": [
+     "SR-13.18.23.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.21",
+    "clause-2023": "13.18.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.2 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an unsigned integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.3 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an unsigned integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FOREGROUND-COLOR identifier-1 an unsigned integer in file/WS/LS/linkage"
+    ],
+    "evidence-2002": {
+     "FOREGROUND-COLOR identifier-1 an unsigned integer in file/WS/LS/linkage": "covered by the twin's witness conformance:wiseowl/cases/13.18.23-FOREGROUND-COLOR/a42-screen-foreground-color, refused at --std 2002 with COBOL1560 (screen section and the clause, by name): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-foreground-color-2002.txt"
+    },
+    "licence-2002": "§2002:3.1.5 (an unclaimed processor-dependent element need not be implemented; compile-time warning required) with §2002:B.3 item 1 (the screen section is processor-dependent)",
+    "reason": "Same general format, same synonyms and rules in both editions; in 2002 the clause appears only in a screen description entry (8.9 table). 2002 licenses non-support of the screen section through its own text (§2002:3.1.5, §2002:B.3 item 1), and the compiler declines it at --std 2002 with a named diagnostic, which meets 3.1.5's warning requirement. Nothing in 2002 widens the clause beyond the screen section.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-13/a42-screen-foreground-color.cob",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under §2023 Annex A.4.2. 2002 gives its own licence: §2002:B.3 item 1 lists the screen section as processor-dependent and §2002:3.1.5 lets an unclaimed processor-dependent element go unimplemented, with a compile-time warning. The compiler refuses it at --std 2002 with COBOL1560, so the licence and the evidence hold; the diagnostic text cites the 2023 Annex A.4.2 rather than §2002:B.3 (wording only, not a behaviour defect)."
+    ],
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-13",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.15.2-2",
+    "verdict": "UPHELD",
+    "reason": "General format of 13.16.15.1 is phrase-for-phrase that of 13.18.16.2 (CONTROL IS/CONTROLS ARE; data-name-1 ... or FINAL [data-name-1] ...). The clause's other syntax rules differ (2002 SR3 'may be qualified' where 2023 SR3 forbids OCCURS; 2023 adds SR7) but neither bears on this rule, which only bars one section. The only 2002-only location of data-name-1 is a CD record (communication section), which this rule permits, not governs; the reader's ctl_cd probe and mine (term_cd) show such an operand accepted and working at --std 2002. The prohibited case is witnessed at 2002 (COBOL1699). No form, enumeration or deferral reaches beyond 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.2 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR2",
+      "quote": "Data-name-1 shall not be defined in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR3",
+      "quote": "Data-name-1 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.3 SR3",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/term_cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical rule over an identical format; FINAL appears in the CONTROL clause and in the TYPE clause CH/CF FINAL forms, and the 2002 TYPE format 2 (13.16.55.1) matches 2023's (13.18.57.2) for those phrases. With a CD-record control item at --std 2002 my probe prints the FINAL footing after the minor footing at TERMINATE (FF BB after CF BB), so the communication-section reach behaves as the rule requires.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR2",
+      "quote": "Therefore FINAL, if specified, is associated with the highest level in the hierarchy.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR2",
+      "quote": "Therefore FINAL, if specified, is associated with the highest level in the hierarchy.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/term_cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-5",
+    "verdict": "UPHELD",
+    "reason": "Identical rule; the TERMINATE statement it leans on (§2002:14.8.42 vs §2023:14.9.46) has the same format and the same GR1-GR3 (2023 adds only SR3 and GR4 for exception-checking PERFORM and multi-report sequencing, widenings). The one 2002-only reach is a control data item in a CD record: my probe moves ZZ into CD-K after the last GENERATE, and at --std 2002 TERMINATE prints CF BB and FF BB (the prior control stored before each footing) and leaves CD-K = ZZ afterwards (restored), exactly GR5 with TERMINATE GR3a-d. The row's pb1187 witness runs at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR5",
+      "quote": "as though a highest-level control break had been detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR5",
+      "quote": "as though a highest-level control break had been detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.42.3 GR3",
+      "quote": "The contents of any control data items are changed to their prior values.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.46.4 GR3",
+      "quote": "The contents of any control data items are changed to their prior values.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/term_cd.cob (output term_cd-2002.txt, term_cd-2002.rpt)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.15.3-6",
+    "verdict": "UPHELD",
+    "reason": "The rule leans on the term zero-length item. §2002:8.5.4 lists five cases; each has a 2023 counterpart in §2023:8.5.4 (variable-occurrence item vs occurs-depending table: 2002's only variable-occurrence form is OCCURS DEPENDING, §2002:4.187; ANY LENGTH; logical record of zero characters; intrinsic function), 2023 only adding cases (DYNAMIC LENGTH, dynamic-capacity tables, zero-length literals, ref-mod). No 2002 case is outside 2023's list, and the statically detectable one is refused at 2002 by the SR5 arm (pb177, COBOL1699). A CD record cannot be zero-length (fixed record description).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.15.3 GR6",
+      "quote": "Data-name-1 shall not reference a zero-length group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.16.4 GR6",
+      "quote": "Data-name-1 shall not reference a zero-length group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.4",
+      "quote": "A group data item containing only an occurs-depending table in which the number of occurrences is zero.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.15.2 SR5",
+      "quote": "The entry specified by data-name-1 shall not have a variable-occurrence entry subordinate to it.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.19.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format and rules of 13.16.19 are identical to 13.18.21; in 2002 ERASE/EOL/EOS occur only in a screen description entry (2002 8.9 table). The 2002 text licenses non-support on its own terms: the screen section is a processor-dependent element (§2002:B.3 item 1) and §2002:3.1.5 lets an unclaimed one go unimplemented, requiring a compile-time warning and a statement of absence in user documentation (docs/conformance/5/A.4.2.md). The twin's witness uses only ERASE END OF LINE, so I probed the EOL and EOS spellings: refused at --std 2002 with COBOL1560 at the section header and the clause, exit 65.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.2 SR1",
+      "quote": "The word EOL is equivalent to the words END OF LINE.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.3 SR1",
+      "quote": "The word EOL is equivalent to the words END OF LINE.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/erase_eol_eos.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.19.2-2",
+    "verdict": "UPHELD",
+    "reason": "As for SR1: identical clause, screen-only in 2002, licensed non-support by §2002:3.1.5 with §2002:B.3 item 1. My probe uses ERASE EOS and ERASE END OF SCREEN (the twin's witness uses neither); refused at --std 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.2 SR2",
+      "quote": "The word EOS is equivalent to the words END OF SCREEN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.3 SR2",
+      "quote": "The word EOS is equivalent to the words END OF SCREEN.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/erase_eol_eos.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.19.3-1",
+    "verdict": "UPHELD",
+    "reason": "Identical rule; the DISPLAY screen format it rests on is itself named processor-dependent in §2002:B.3 item 1, so the licence covers both the clause and the statement. The compiler refuses the DISPLAY of a screen-name at 2002 (COBOL1707) as well as the clause (COBOL1560).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.3 GR1",
+      "quote": "a portion of the screen is cleared during the execution of a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.4 GR1",
+      "quote": "a portion of the screen is cleared during the execution of a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/erase_eol_eos.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.19.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical rule; ACCEPT screen format is processor-dependent in §2002:B.3 item 1; non-support licensed by §2002:3.1.5; clause refused at 2002 (COBOL1560, reader's a42-screen-erase and my probe).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.19.3 GR2",
+      "quote": "The ERASE clause is ignored during all phases of the execution of an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.21.4 GR2",
+      "quote": "The ERASE clause is ignored during all phases of the execution of an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/erase_eol_eos.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.21.2-1",
+    "verdict": "UPHELD",
+    "reason": "Identical format (identifier-1 | integer-1) and rule; in 2002 FOREGROUND-COLOR occurs only in a screen description entry (8.9 table; no inline-attribute form of ACCEPT/DISPLAY in 2002), and its listed sections exclude the 2002-only communication section in both editions alike. Licensed non-support via §2002:B.3 items 1 and 2 with §2002:3.1.5. The twin's witness; my probe adds the identifier-1 form (FOREGROUND-COLOR WS-C): refused at --std 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.21.2 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an unsigned integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.23.3 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an unsigned integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-13/erase_eol_eos.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "ce9889c9e5d89fd36b9dd19171ebf2c4b1263fcac54bb235912542346e6930b8",
+  "read": "d9c417081be66dd75e65c2fc717b809236ba168c363049e824d26d68c58a69b9",
+  "refute": "549e25e6b67a5abe5a125a743cb4dc10ed75abeaa3783202bbfa745531ebcf9d"
+ }
+}

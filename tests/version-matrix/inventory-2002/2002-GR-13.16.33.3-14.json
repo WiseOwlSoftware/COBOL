@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.33.3-14",
+ "rule-digest": "34c74a8136be",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.35.4-14"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "EC-SCREEN-LINE-NUMBER is NF in the 2002 table, so §2002:14.5.12.1.3 would govern it as 2023's nonfatal rule does (less the PERFORM WHEN path). The screen section is declined at --std 2002 as §2002:3.1.5 licenses, so the runtime rule is unreachable; no change."
+   }
+  },
+  "source": "lineage-reads-2002/q-16.json",
+  "digests": {
+   "GR-13.18.35.4-14": "34c74a8136be"
+  }
+ }
+}

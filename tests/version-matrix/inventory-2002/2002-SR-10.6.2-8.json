@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-10.6.2-8",
+ "rule-digest": "2ceb18c217f2",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-10.7.3-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "The flag fires on the word 'corresponding' (invokes pattern 'size error|arithmetic statement|corresponding'). Here it is plain English ('the corresponding PROGRAM-ID paragraph' that the end marker closes), not the CORRESPONDING phrase (§2002:14.6.5) and not an arithmetic statement or size error (§2002:14.6.6, §2002:14.6.4), so the changed arithmetic and size-error text (standard-binary/decimal modes, floating-point operands, near-zero size error) cannot reach this rule; scope and evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "SR-10.7.3-8": "2ceb18c217f2"
+  }
+ }
+}

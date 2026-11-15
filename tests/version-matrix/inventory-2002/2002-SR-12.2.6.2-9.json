@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-9",
+ "rule-digest": "90163df3235b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-9"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "The rule restricts where an ordering-name may appear (only as a STANDARD-COMPARE argument). The changed text of §2002:15/15.1 is the type sentences and 2023-only argument kinds; none concerns ordering-name arguments, which STANDARD-COMPARE's own clause defines. Scope and the p02-order-ok / p02-order-bad evidence at 2002 are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "SR-12.3.7.3-9": "90163df3235b"
+  }
+ }
+}

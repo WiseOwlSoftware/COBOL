@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-8",
+ "rule-digest": "fa54e30d14ec",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.2.3.3-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "subscript",
+    "answer": "§2002:4 (4.179) 'A number used to refer to a specific element of a table, or in the case of the subscript 'ALL', to all elements of a table' and §2023:3.170 ('the value 'ALL'') differ only in wording, so the subscripts SR8 forbids are the same."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 (4.163) 'A printed output described in the report section and generated from those data descriptions'; 2023 describes the report in 13.18.46.2. SR8 is confined 'In the report section' in both, so the scope is the same."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "SR-8.4.2.3.3-8": "fa54e30d14ec"
+  }
+ }
+}

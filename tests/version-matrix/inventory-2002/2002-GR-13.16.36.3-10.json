@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-10",
+ "rule-digest": "c6663d822505",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.38.4-10"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 15032 has the same rule with a '## Page 375' marker before d): page break only. Re-read §2002:13.16.36.3 GR10 (FORMAT 3, report-writer): unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and describes reports through the REPORT clause and RD (§2023:13.18.46.1). Same object in both: what GR10 governs (repetitions in a report group) does not change."
+   },
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "No reach: GR10 is banded FORMAT 3, the report-writer OCCURS, and speaks of 'report items' in a 'report group definition'; a CD entry cannot hold a report group description entry, so no communication-section entry is governed."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "GR-13.18.38.4-10": "c6663d822505"
+  }
+ }
+}

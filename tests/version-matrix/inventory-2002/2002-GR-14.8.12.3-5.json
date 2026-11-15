@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.12.3-5",
+ "rule-digest": "209c22f19a4c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.13.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 20578 has the same rule split by '## Page 521': page break only. Re-read §2002:14.8.12.3 GR5: unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "GR5 ends the EVALUATE statement; control then goes to the next executable statement under §2002:14.5.3. The 2002 text of 14.5.3 differs from 2023 14.6.3 only in paragraph/procedure wording, declaratives versus exception procedures, and EXIT FUNCTION/METHOD in the no-next-statement list, none of which bears on the end of an EVALUATE. The 2002 witnesses (pb396, udf_per_eval, probe eval_cd T7) show it."
+   }
+  },
+  "source": "lineage-reads-2002/q-25.json",
+  "digests": {
+   "GR-14.9.13.4-5": "209c22f19a4c"
+  }
+ }
+}

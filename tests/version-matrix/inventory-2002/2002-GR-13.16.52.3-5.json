@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-5",
+ "rule-digest": "a87f7ccf0507",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.54.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)",
+    "answer": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). GR5 says only what the data-name of a SUM entry names (§2002:13.16.52.3 GR5). The SUM additions are evaluated in the arithmetic mode in effect (§2002:8.8.1.3 names the SUM clause), but which item the name designates does not depend on precision, and the witnesses use small native values."
+   }
+  },
+  "source": "lineage-reads-2002/q-20.json",
+  "digests": {
+   "GR-13.18.54.4-5": "a87f7ccf0507"
+  }
+ }
+}

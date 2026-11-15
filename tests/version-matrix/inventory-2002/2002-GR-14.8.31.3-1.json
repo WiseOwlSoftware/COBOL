@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.31.3-1",
+ "rule-digest": "700579ec37cf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.33.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "GR1 makes RESUME in a global declarative a CONTINUE; what follows is the declarative's completion under §2002:14.5.12.1.1 and the fatal/nonfatal sequence of §2002:14.5.12.1.2/1.3. 2023's fatal and nonfatal processing differs from §2002:14.5.12.1.2/1.3 only by additions with no 2002 counterpart (the PERFORM WHEN path, §2023:14.6.13.1.3; SORT/MERGE and fatal EC-I-O steps; APPLY COMMIT rollback); the 2002 sequence (conditional phrase, declarative, PROPAGATE, abnormal termination, implementor-defined when unchecked) is 2023's without them, and §2002:14.5.12.2 differs only by 2023's floating-point arms. The witness pb1160_resume_in_global_scope MATCHes at --std 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-30.json",
+  "digests": {
+   "GR-14.9.33.4-1": "700579ec37cf"
+  }
+ }
+}

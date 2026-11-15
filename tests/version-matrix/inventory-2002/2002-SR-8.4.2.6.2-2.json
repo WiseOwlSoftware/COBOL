@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-SR-8.4.2.6.2-2",
+ "rule-digest": "e7dfe8579512",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.4.3.6.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; external data",
+    "answer": "Class object / category object-reference is the same Table 3 row in both (§2002:8.5.2.11 'An elementary data item explicitly or implicitly described as usage object-reference is of category object-reference'); the PB5625 usage-national question cannot reach a predefined object reference. 'external data' §2002:4 (4.81) 'Data that belongs to the run unit and may be accessed by any runtime element in which it is described' differs from 2023 3.79 only in 'may'/'can'. Scope unchanged."
+   },
+   "definition-dropped": {
+    "flag": "object reference (newer: 9.3.2)",
+    "answer": "§2002:4 (4.141) 'object reference: An explicitly- or implicitly-defined data item that contains a reference to an object'; 2023 moved the meaning to §2023:9.3.2 ('An object reference is an implicitly- or explicitly-defined data item containing an object reference value'), which adds uniqueness but names the same items. SR2 states EXCEPTION-OBJECT's implicit description; nothing in it depends on the wording. Scope unchanged."
+   },
+   "held": {
+    "flag": "S1 (adopt-2002): its witness was refused at 2002 for the exception-object user word, which the rule names",
+    "answer": "The refused witness is pb922_exception_object_user_word_85 (accept [85]): it uses EXCEPTION-OBJECT as an ordinary 1985 user word, which 2002 reserves as this predefined object reference (§2002:8.4.2.6), so its refusal at 2002 (COBOL2196/COBOL1694) is the 2002 behaviour, not evidence against SR2. SR2's 2002 witness is pb922_exception_object_reference (accept [2002]), which S1 ran at 2002: pass (adopt-2002/s1-run-classified.json)."
+   }
+  },
+  "source": "lineage-reads-2002/q-05.json",
+  "digests": {
+   "SR-8.4.3.6.3-2": "e7dfe8579512"
+  }
+ }
+}

@@ -54,6 +54,8 @@ WiseOwl.Cobol.Runtime.ActivationDescription.PointerType.init -> void
 WiseOwl.Cobol.Runtime.AsyncMessaging
 WiseOwl.Cobol.Runtime.CellPointer.Extent.get -> int?
 WiseOwl.Cobol.Runtime.CellPointer.Extent.init -> void
+WiseOwl.Cobol.Runtime.CobolDec.AdjustedExponent.get -> int
+WiseOwl.Cobol.Runtime.CobolDec.TruncateToSignificantDigits(int digits) -> WiseOwl.Cobol.Runtime.CobolDec
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision() -> void
 WiseOwl.Cobol.Runtime.CobolDecWithPrecision.CobolDecWithPrecision(WiseOwl.Cobol.Runtime.CobolDec Value, int Precision) -> void
@@ -146,6 +148,7 @@ WiseOwl.Cobol.Runtime.DebugItem.StoreName(string! image) -> void
 WiseOwl.Cobol.Runtime.DebugItem.StoreSub(int level, string! image) -> void
 WiseOwl.Cobol.Runtime.DialectBehavior.CancelRefusesEveryActiveProgram = 16 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.CloseWithLockLocksFileConnector = 19 -> WiseOwl.Cobol.Runtime.DialectBehavior
+WiseOwl.Cobol.Runtime.DialectBehavior.CompileTimeArithmeticIsStandardDecimal = 22 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.ControlFootingPageGroupsSeePriorControlValues = 4 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateObjectsInWhenPhraseOrder = 18 -> WiseOwl.Cobol.Runtime.DialectBehavior
 WiseOwl.Cobol.Runtime.DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject = 21 -> WiseOwl.Cobol.Runtime.DialectBehavior

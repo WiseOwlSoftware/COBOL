@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb59_operand_category_total
 *> rules: [AR-15.26.3-1, RV-15.63.4-3]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

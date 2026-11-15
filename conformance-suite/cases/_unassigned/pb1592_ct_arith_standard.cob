@@ -1,13 +1,17 @@
       *>--- conformance-case
       *> id: pb1592_ct_arith_standard
       *> rules: []
-      *> accept: [2002]
+      *> accept: [2014]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> kb/Work PB1592 - compile-time arithmetic at COBOL-2002/2014 is
-      *>   STANDARD ARITHMETIC, the mode the previous standards
-      *>   prescribed; the 2023 twin is 2023/gl2m2_ct_arith_mode.
+      *> kb/Work PB1592, PB5575 - compile-time arithmetic at COBOL-2014 is
+      *>   "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile
+      *>   time" (§2014:7.3.5.2 GR1), the 34-digit mode; the 2002 twin
+      *>   (32 digits, every result truncated) is
+      *>   7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/
+      *>   pb5575-ct-arith-32-digit-truncation; the 2023 twin is
+      *>   2023/gl2m2_ct_arith_mode.
       *> Rules: Annex E.2 6) "The mode of arithmetic used in evaluating
       *>   compile-time arithmetic expressions and the handling of
       *>   intermediate results is now explicitly implementor defined."

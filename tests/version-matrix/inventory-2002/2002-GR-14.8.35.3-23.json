@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-23",
+ "rule-digest": "35b559561759",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-26"
+  ],
+  "bridge": true,
+  "answers": {
+   "band-formats": {
+    "flag": "band-formats [11] against [[12]]",
+    "answer": "2002 Format 11 (save-locale) and 2023 Format 12 are the same diagram (§2002:14.8.35.1 'SET identifier-11 TO LOCALE' {LC_ALL | USER-DEFAULT}; §2023:14.9.39.2 the same words), renumbered only by 2023's inserted function-pointer format; §2002:14.8.35.2 SR27 equals §2023:14.9.39.3 SR28. Same format reached; no change."
+   }
+  },
+  "source": "lineage-reads-2002/p-06.json",
+  "digests": {
+   "GR-14.9.39.4-26": "35b559561759"
+  }
+ }
+}

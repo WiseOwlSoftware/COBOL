@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-12.2.6.2-1",
+ "rule-digest": "fc586e651d13",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-12.3.7.3-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; source unit",
+    "answer": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.173) source unit runs from an identification division to an end marker 'including any contained source units', which 2023 3.165 carries as a note: the same outer level of a source unit that defines a class."
+   }
+  },
+  "source": "lineage-reads-2002/q-07.json",
+  "digests": {
+   "SR-12.3.7.3-1": "fc586e651d13"
+  }
+ }
+}

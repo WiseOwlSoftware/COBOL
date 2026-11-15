@@ -1,0 +1,1665 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-19 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-19",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-7.1.3.2-6",
+   "2002-SR-7.1.3.2-7",
+   "2002-SR-7.1.3.2-8",
+   "2002-SR-8.3.1.2.1.2-3",
+   "2002-SR-8.3.1.2.1.2-6",
+   "2002-SR-8.3.1.2.5.2-4",
+   "2002-SR-8.4.1.1.2-2",
+   "2002-SR-8.4.1.1.2-3",
+   "2002-SR-8.4.1.1.2-5",
+   "2002-SR-8.4.1.2.2-4",
+   "2002-SR-8.4.1.2.2-7",
+   "2002-SR-8.4.2.1.2-1",
+   "2002-SR-8.4.2.11.2-1",
+   "2002-SR-8.4.2.11.2-5",
+   "2002-SR-8.4.2.13.2-2",
+   "2002-SR-8.4.2.2.2-3",
+   "2002-SR-8.4.2.2.2-4",
+   "2002-SR-8.4.2.2.2-5",
+   "2002-SR-8.4.2.3.2-3",
+   "2002-SR-8.4.2.5.2-2",
+   "2002-SR-8.4.2.9.2-1",
+   "2002-SR-8.4.3.2-1",
+   "2002-SR-8.7.5.2-2",
+   "2002-SR-8.7.5.2-3"
+  ]
+ },
+ "read": {
+  "slice": "p-19",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-7.1.3.2-6",
+    "to": [
+     "SR-7.2.4.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR6",
+      "quote": "Partial-word-2 shall consist of zero or one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR6",
+      "quote": "Partial-word-2 shall consist of zero or one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.1.4",
+      "quote": "any other sequence of contiguous COBOL characters bounded by separators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.2.5",
+      "quote": "any other character or sequence of contiguous characters from the compile-time coded character set",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 (LEADING/TRAILING partial-word) is identical in both editions, but the TERM the rule counts changed: a 2002 text-word (7.1.1.4 item 3) is a sequence of contiguous COBOL characters, a 2023 text-word (7.2.2.5 item 3) is any character sequence from the compile-time coded character set (the implementor may prohibit some). So in 2002 a partial-word-2 holding a character outside the COBOL repertoire (==Y¤Z==) is not zero or one text-word and violates SR6; in 2023 it is one text-word. The count part (two text-words refused, zero accepted) is shown at 2002 by rp-two.cob (COBOL2572) and rp-ok.cob (FOO BAR). The narrower 2002 text-word is not applied: rp-nonc.cob and rp-nonc3.cob compile clean at --std 2002, while word-nonc.cob shows the same compiler refuses U+00A4 in a COBOL word at 2002 (COBOL2773). Fifth cause: a text-manipulation term defined in 7.1.1.4 (not in clause 4) that 2023 widened; it reaches every pseudo-text / partial-word rule of 7.1.2 and 7.1.3.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-nonc.cob",
+    "widening": null,
+    "scope-2002": [
+     "REPLACE format 1 partial-word-2 under LEADING and TRAILING: zero text-words",
+     "partial-word-2: one text-word",
+     "partial-word-2: more than one text-word (refuse)",
+     "partial-word-2 containing a character outside the COBOL character repertoire (not a text-word in 2002: refuse)"
+    ],
+    "evidence-2002": {
+     "zero": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-ok.cob (2002: FOO BAR)",
+     "one": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-ok.cob",
+     "two": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-two.cob (2002: COBOL2572)",
+     "non-COBOL character": "not shown; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-nonc.cob is ACCEPTED at 2002 (rc=0, prints A)"
+    },
+    "class": "other",
+    "needs": "its own verdict: the compiler at --std 2002 accepts a partial-word-2 holding a non-COBOL character (rp-nonc.cob), which 2002 7.1.1.4 does not make a text-word; fix or decide, then a 2002 witness",
+    "compiler-at-2002": "wrong (low severity): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-nonc.cob compiles and runs at --std 2002 (prints A); expected a syntax diagnostic per §2002:7.1.3.2 SR6 with §2002:7.1.1.4 item 3; same at rp-nonc3.cob for pseudo-text-2 (SR4 sibling)"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-7",
+    "to": [
+     "SR-7.2.4.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR7",
+      "quote": "An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR7",
+      "quote": "An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical (LEADING/TRAILING partial-word-1 BY partial-word-2); the three literal classes are the same; the literal definitions do not narrow in 2023 (2023 adds zero-length literals, still alphanumeric/national). Not a pseudo-text rule, so the debugging-line and continuation differences of the clause do not reach it. The 2023 witness replace-literal-partial-word.cob tests an undelimited literal, not SR7 proper; probes rp-lit1/2/3 test SR7 itself at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-lit1.cob",
+    "widening": null,
+    "scope-2002": [
+     "alphanumeric literal as partial-word-1",
+     "national literal as partial-word-2",
+     "boolean literal as partial-word-1"
+    ],
+    "evidence-2002": {
+     "alphanumeric": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-lit1.cob (2002: COBOL2572)",
+     "national": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-lit2.cob (2002: COBOL2572)",
+     "boolean": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-lit3.cob (2002: COBOL2572)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:7.1 (changed, undecided)": "§2002:7.1 differs from 2023 in the processing steps (2023 adds COBOL-WORDS and PUSH/POP steps), in step numbering, and in 2023's licence to prohibit non-COBOL characters in text-words. The rule does not rest on any of that: 2002 7.1 itself requires alphanumeric, boolean and national literals to be syntactically correct in the initial text, so they are recognized as literals before REPLACE applies, and SR7 bars them as partial words. Scope and the rp-lit1/2/3 evidence at 2002 are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:7.1",
+      "quote": "alphanumeric, boolean, and national literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1",
+      "quote": "The following elements and the separators required to distinguish them shall be syntactically correct in the initial source text and library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR7",
+      "quote": "An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-19"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-8",
+    "to": [
+     "SR-7.2.4.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR8",
+      "quote": "Character-strings within pseudo-text-1 and pseudo-text-2 may be continued in accordance with the rules of reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR8",
+      "quote": "Character-strings within pseudo-text-1 and pseudo-text-2 may be continued in accordance with the rules of reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.4",
+      "quote": "A COBOL word, literal, or picture character-string may be broken such that part of it appears on one or more subsequent lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.3.5",
+      "quote": "Continuation of an alphanumeric, boolean, or national literal is indicated when either",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule defers to \"the rules of reference format\", which differ: 2002 6.2.4 lets a COBOL word, a numeric literal or a picture character-string be broken across lines with a fixed continuation indicator; 2023 6.3.5 continues only alphanumeric, boolean and national literals. So 2002 SR8 also permits a COBOL word continued inside pseudo-text (and, via 2002 SR10, inside a debugging line within pseudo-text). Probe rp-cont.cob (word WORKAREA split inside pseudo-text-1) prints REPLACED at --std 2002 and is refused at --std 2023 (COBOL0902). Literal continuation inside pseudo-text behaves the same at both (rp-contlit.cob; 18 trailing spaces to margin R kept).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-cont.cob",
+    "widening": null,
+    "scope-2002": [
+     "fixed-form continuation of an alphanumeric literal inside pseudo-text",
+     "floating continuation of a literal inside pseudo-text",
+     "fixed-form continuation of a COBOL word (or numeric literal / picture string) inside pseudo-text",
+     "continuation within a debugging line inside pseudo-text"
+    ],
+    "evidence-2002": {
+     "fixed literal": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-contlit.cob (2002 = 2023)",
+     "floating literal": "covered by pb1359_floating_continuation_fixed/free, E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "COBOL word": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-cont.cob (2002: REPLACED; 2023: COBOL0902)",
+     "debugging line": "not shown"
+    },
+    "class": "deferral",
+    "needs": "a 2002 witness for a COBOL word continued inside pseudo-text (rp-cont.cob is one) and for continuation within a debugging line in pseudo-text",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-cont.cob, rp-contlit.cob); debugging-line case not probed"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-3",
+    "to": [
+     "SR-8.3.3.2.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1",
+    "clause-2023": "8.3.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 is {character-1}... in 2002 and [character-1]... in 2023 (2023 adds the zero-length literal); every 2002 literal is a 2023 literal. SR2 and SR4 around it identical; the same-line requirement for the pair is in both free-form continuation rules. Probe: \"A\"\"B\", 'C''D', \"\"\"\" give A\"B, C'D, \" and length 3/1 at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/lit-quote.cob",
+    "widening": "2023 also admits a zero-length literal (no 2002 program affected).",
+    "scope-2002": [
+     "quote-delimited format 1 literal with an embedded quote pair",
+     "apostrophe-delimited format 1 literal with an embedded pair"
+    ],
+    "evidence-2002": {
+     "quote": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/lit-quote.cob (2002: [A\"B], length 3)",
+     "apostrophe": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/lit-quote.cob (2002: [C'D], FUNCTION LENGTH('''') = 1)"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The quotation symbol characters are COBOL characters of the source (4.28), which 2023 covers by §2023:3.37 COBOL character repertoire; the literal's content characters are coded characters in both; no change of scope."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-19",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-6",
+    "to": [
+     "SR-8.3.3.2.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.1",
+    "clause-2023": "8.3.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 X\"...\" identical but optional in 2023 (zero-length); implementor-defined digit count (2) is the same choice at both editions. Probe: X\"ABC\" refused (COBOL1635) and X\"414243\" gives ABC at both; pb1393_hex_literal_positions passes at 2002; r03-hex-literal-digit-grouping refuses at 2002 (runcases.sh).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/hex-odd.cob",
+    "widening": "2023 admits a zero-length hexadecimal literal X\"\" (not a 2002 program).",
+    "scope-2002": [
+     "hex literal whose digit count is a multiple of 2 (accept)",
+     "hex literal with an odd digit count (refuse)"
+    ],
+    "evidence-2002": {
+     "accept": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/hex-ok.cob and pb1393_hex_literal_positions E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "refuse": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/hex-odd.cob and r03-hex-literal-digit-grouping via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)"
+    },
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The hexadecimal digits are COBOL characters (4.28, = §2023:3.37) and each digit pair denotes one code value (4.29); the same units at both editions."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-19",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.5.2-4",
+    "to": [
+     "SR-8.3.3.6.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR4",
+      "quote": "Symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.3 SR4",
+      "quote": "Symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 7 (ALL symbolic-character-1, ALL optional) identical; SR1 restrictions identical; the SYMBOLIC CHARACTERS clause is in SPECIAL-NAMES in both. Probes: an undefined ALL NOSYMCHR refused (COBOL1670) and a defined STAR IS 43 gives *** at both; pb110_symbolic_and_class_in passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/sym-undef.cob",
+    "widening": null,
+    "scope-2002": [
+     "symbolic-character defined in SYMBOLIC CHARACTERS (accept)",
+     "word not so defined used as a symbolic-character (refuse)"
+    ],
+    "evidence-2002": {
+     "accept": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/sym-ok.cob and pb110_symbolic_and_class_in E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "refuse": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/sym-undef.cob (2002: COBOL1670)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-2",
+    "to": [
+     "SR-8.4.2.2.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1",
+    "clause-2023": "8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR2",
+      "quote": "A name may be qualified even though it does not need qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR2",
+      "quote": "A name may be qualified even though it does not need qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "where file-cd-report-qualifier is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.2",
+      "quote": "where file-report-qualifier is",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule is about qualifiers; the 2002 general formats file-cd-report-qualifier admits cd-name-1 (and format 2, qualified-condition-name, admits the whole file-cd-report-qualifier), while 2023s file-report-qualifier has no cd-name and its format 2 takes only file-name-1. So the 2002 rule also governs qualification by a cd-name of items in a communication record, which no 2023 witness reaches. Probe qual-cd.cob at --std 2002: MOVE \"CDA\" TO A1 IN CDOUT and B1 OF CDOUT qualify by cd-name where needed and not needed; condition-name A1-YES IN CDOUT / A1-YES OF A1 OF CDOUT sets and tests; prints CDA CDA BBB BBB WSA / COND YES; unqualified A1 is refused as ambiguous (qual-cd-amb.cob, COBOL1639). --std 2023 refuses the section (COBOL0902).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob",
+    "widening": null,
+    "scope-2002": [
+     "qualification of data-names, condition-names and index-names by data-name, file-name, report-name",
+     "qualification by cd-name-1 (file-cd-report-qualifier) of items in a communication record",
+     "qualified-procedure-name, screen-name, record-key-name, LINAGE-COUNTER, report counters"
+    ],
+    "evidence-2002": {
+     "data/file/report qualifiers": "covered by pb567_condition_name_qualification, qualified_unique_match, pb919_index_name_qualified, pb1454_sum_counter_group_qualifier E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "cd-name qualifier": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob (2002: correct)",
+     "other formats": "covered by pb466_procedure_name_uniqueness E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/para-dup.cob"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for qualification by cd-name-1 (qual-cd.cob is one)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob, qual-cd-amb.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-3",
+    "to": [
+     "SR-8.4.2.2.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1",
+    "clause-2023": "8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR3",
+      "quote": "The words IN and OF are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR3",
+      "quote": "The words IN and OF are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "where file-cd-report-qualifier is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.2",
+      "quote": "where file-report-qualifier is",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule is about qualifiers; the 2002 general formats file-cd-report-qualifier admits cd-name-1 (and format 2, qualified-condition-name, admits the whole file-cd-report-qualifier), while 2023s file-report-qualifier has no cd-name and its format 2 takes only file-name-1. So the 2002 rule also governs qualification by a cd-name of items in a communication record, which no 2023 witness reaches. Probe qual-cd.cob at --std 2002: A1 OF CDREC IN CDOUT and A1 IN CDREC OF CDOUT name the same item; condition-name A1-YES IN CDOUT / A1-YES OF A1 OF CDOUT sets and tests; prints CDA CDA BBB BBB WSA / COND YES; unqualified A1 is refused as ambiguous (qual-cd-amb.cob, COBOL1639). --std 2023 refuses the section (COBOL0902).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob",
+    "widening": null,
+    "scope-2002": [
+     "qualification of data-names, condition-names and index-names by data-name, file-name, report-name",
+     "qualification by cd-name-1 (file-cd-report-qualifier) of items in a communication record",
+     "qualified-procedure-name, screen-name, record-key-name, LINAGE-COUNTER, report counters"
+    ],
+    "evidence-2002": {
+     "data/file/report qualifiers": "covered by pb567_condition_name_qualification, qualified_unique_match, pb919_index_name_qualified, pb1454_sum_counter_group_qualifier E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "cd-name qualifier": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob (2002: correct)",
+     "other formats": "covered by pb466_procedure_name_uniqueness E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/para-dup.cob"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for qualification by cd-name-1 (qual-cd.cob is one)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/qual-cd.cob, qual-cd-amb.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-5",
+    "to": [
+     "SR-8.4.2.2.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.1",
+    "clause-2023": "8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR5",
+      "quote": "If explicitly referenced, a paragraph-name shall not be duplicated within a section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR7",
+      "quote": "If explicitly referenced, a paragraph-name shall not be duplicated within a section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 4 (paragraph-name-1 IN/OF section-name-1) identical (2023 shows the qualifier optional, as 2002 implies by SR5s second sentence); 2023 moves \"need not be qualified within the same section\" also into the 8.4.2.2.1 list item 6, same meaning. No communication or debugging reach (procedure names). Probe para-dup.cob: an unreferenced duplicate is accepted and P1 / P1 OF S2 / P1 IN S2 resolve to S2s P1 at both; pb466-paragraph-name-duplicated-in-section refuses at 2002 (COBOL2122); pb466_procedure_name_uniqueness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/para-dup.cob",
+    "widening": null,
+    "scope-2002": [
+     "duplicate paragraph-name in a section that is referenced (refuse)",
+     "unreferenced duplicate (accept)",
+     "unqualified reference within the same section; qualified reference from another"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by pb466-paragraph-name-duplicated-in-section via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL2122)",
+     "accept/resolve": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/para-dup.cob and pb466_procedure_name_uniqueness E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)"
+    },
+    "flags-answered": {
+     "pending-clause: §2002:8.4.1.1 (changed, undecided)": "§2002:8.4.1.1 is restructured in 2023 (the uniqueness cases are rewritten and 2023 lists 'a paragraph-name referenced within its own section' among the cases needing no qualification), and 2002 has TYPEDEF/TYPE wording. For paragraph names 2002 reaches the same result through the rule itself (need not be qualified within the same section) plus 8.4.1.1 item 6 (qualification by the section-name); nothing in the changed text alters which duplicates are barred. Scope and the pb466 / para-dup evidence at 2002 are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.1.1",
+      "quote": "Every user-defined name explicitly referenced shall be uniquely referenced because either",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.2 SR5",
+      "quote": "A paragraph-name need not be qualified when referred to from within the same section",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-19"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-4",
+    "to": [
+     "SR-8.4.2.3.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.2",
+    "clause-2023": "8.4.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR4",
+      "quote": "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR4",
+      "quote": "Index-name-1 shall correspond to a data description entry in the hierarchy of the table being referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Subscript format identical. The rule reads the data description of the table referenced; in 2002 that table may be described in a record description entry under a CD (communication section), which 2023 lacks and no 2023 witness reaches (pb459/pb1472 use working-storage tables). Probes at --std 2002: subs-cd.cob (CD table, CE(CX), CE(CX + 1), CE(CX - 1)) prints BB CC AA; subs-cd-bad.cob (CE(WX), WX of a working-storage table) and subs-cd-bad2.cob (WE(CX), CX of the CD table) are refused with COBOL1961.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/subs-cd.cob",
+    "widening": null,
+    "scope-2002": [
+     "index-name subscript of a working-storage/file/linkage table",
+     "index-name subscript of a table in a communication record"
+    ],
+    "evidence-2002": {
+     "non-CD tables": "covered by pb459-index-name-not-in-table and pb1472-all-subscript-index-name-other-table via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL1961), pb459_set_index_amount_guards E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "CD table": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/subs-cd.cob, subs-cd-bad.cob, subs-cd-bad2.cob"
+    },
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an index-name subscript of a table in a communication record (subs-cd*.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/subs-cd.cob, subs-cd-bad.cob, subs-cd-bad2.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-7",
+    "to": [
+     "SR-8.4.2.3.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.2",
+    "clause-2023": "8.4.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR7",
+      "quote": "ALL shall not be specified if qualified-condition-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR7",
+      "quote": "ALL shall not be specified if qualified-condition-name-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Subscript format (ALL / arithmetic-expression / index-name +- integer) identical; the rule is a pure form restriction on format 2 (qualified-condition-name-with-subscripts), independent of where the conditional variable is described. 2023 SR5/SR6 widen the SORT uses of ALL, not condition-names. The 2023 row lists NO witness; probe all-cond.cob (IF E-ONE (ALL)) is refused at both (COBOL2363, citing the SR6 position rule), and all-cond-ok.cob (FUNCTION SUM(E(ALL))) prints 3 at both.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/all-cond.cob",
+    "widening": null,
+    "scope-2002": [
+     "subscript ALL on a qualified-condition-name (refuse)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/all-cond.cob (2002: COBOL2363); note the 2023 row carries no witness of its own"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.1.2-1",
+    "to": [
+     "SR-8.4.3.1.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.1",
+    "clause-2023": "8.4.3.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR1",
+      "quote": "Identifier is defined recursively: whenever the format for an identifier allows another identifier to be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.3 SR1",
+      "quote": "Identifier is defined recursively: whenever the format for an identifier allows another identifier to be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "The eleven identifier formats are the same list in both editions (function-identifier, qualified-data-name-with-subscripts, reference-modification, inline-method-invocation, object-view, predefined-object, object-property, predefined-address, address-identifier, qualified-linage-counter, qualified-report-counter); the order-of-application GR1 is the same. The recursion rule is form-only; the cd-name qualifier difference belongs to the qualification rows (8.4.1.1.2 SR2/SR3, marked DIFFERENT). 2023 widens the function-identifier with function-pointer-name.",
+    "probe": null,
+    "widening": "2023 function-identifier also admits function-pointer-name-1 (not in 2002).",
+    "scope-2002": [
+     "nesting of each identifier format inside another"
+    ],
+    "evidence-2002": {
+     "nesting": "covered by pb428_inline_method_invocation, pb1407_address_of_reference_modified, pb1425_object_property_identifier, pb1425_object_view, pb1425_predefined_object_operands E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)"
+    },
+    "flags-answered": {
+     "deferral: the rules for ": "The rule defers to 'the rules for each format' of an identifier: 'including the one being defined provided the rules for each format are followed'. I read §2002:8.4.2.1.1. It has the same eleven formats, from function-identifier to qualified-report-counter, and each format's own rules are separate rows (the cd-name qualification difference is decided in the 8.4.1.1.2 rows). The recursion itself is form-only and is shown nesting at 2002 by the reader's cases, so scope and evidence are unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR1",
+      "quote": "including the one being defined provided the rules for each format are followed",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-1",
+    "to": [
+     "SR-8.4.3.11.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.11",
+    "clause-2023": "8.4.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program",
+      "check": "OK"
+     }
+    ],
+    "reason": "The sentence lists four admitted sections; 2002 has a fifth data section, the communication section (Annex A), which the list excludes. So the 2002 rule also REFUSES ADDRESS OF an item in a communication record or a CDs own fields; 2023 has no such section and no witness reaches it. Probe addr-cd.cob (SET P TO ADDRESS OF A1, A1 in the record under CD CDOUT) and addr-cd2.cob (ADDRESS OF SK, the CDs STATUS KEY item) COMPILE AND RUN at --std 2002 (print SET). The binders section screen (ReferenceResolver forAddressOf path + AddressOfOperandScreen.Admit, src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs; PtrBinder.PtrBindAddressOf) excludes only SCREEN/REPORT entries, constant-names and special registers.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/addr-cd.cob",
+    "widening": null,
+    "scope-2002": [
+     "ADDRESS OF an item of the file, working-storage, local-storage or linkage section (accept)",
+     "ADDRESS OF object/factory working-storage or file-section data (refuse)",
+     "ADDRESS OF a report-section or screen-section item (refuse)",
+     "ADDRESS OF an item in the communication section (refuse)"
+    ],
+    "evidence-2002": {
+     "admitted sections": "covered by pb1019_address_of_linkage_formal, pb1407_address_of_reference_modified E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)",
+     "object data": "covered by pb1062-address-of-object-data via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL2784)",
+     "report/screen": "not shown at 2002 for report; screen section is refused wholesale (addr-scr.cob, COBOL1560)",
+     "communication section": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/addr-cd.cob / addr-cd2.cob: ACCEPTED at 2002 (defect)"
+    },
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler at --std 2002 accepts ADDRESS OF a communication-section item (addr-cd.cob, addr-cd2.cob print SET); fix, then a 2002 refusal witness",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/addr-cd.cob compiles (rc=0) and prints SET at --std 2002; expected a compile-time refusal per §2002:8.4.2.11.2 SR1 (the communication section is not one of the four admitted sections); code site AddressOfOperandScreen.Admit / ReferenceResolver.Identify(forAddressOf)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-5",
+    "to": [
+     "SR-8.4.3.11.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11",
+    "clause-2023": "8.4.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR5",
+      "quote": "This identifier format shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR5",
+      "quote": "This identifier format shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "General format ADDRESS OF identifier-1 identical. The only 2002-only receiving positions are in the communications statements; RECEIVE INTO identifier-1 must be category alphanumeric (A.2.5.2 SR2), which a data-pointer is not, so no extra 2002 case escapes the 2023 witnesses. gn1-data-address-receiving-initialize refuses at 2002 (COBOL3979); gn1-data-address-receiving-set-up-by refuses at both (parse error at UP).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)",
+    "widening": null,
+    "scope-2002": [
+     "data-address-identifier as a receiving operand of any statement (refuse)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by gn1-data-address-receiving-initialize via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL3979) and gn1-data-address-receiving-set-up-by (2002: refused)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.13.2-2",
+    "to": [
+     "SR-8.4.3.14.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.13",
+    "clause-2023": "8.4.3.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.2 SR2",
+      "quote": "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.3 SR2",
+      "quote": "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format (LINAGE-COUNTER [IN/OF file-name-1]) and SR1/SR3 identical; RECEIVE INTO cannot take it (category numeric, A.2.5.2 SR2). Probes: MOVE 1 TO LINAGE-COUNTER and ADD 1 TO LINAGE-COUNTER OF PFILE refused (COBOL2026) at both; linage-ok.cob reads it as a sender (LC 02 02) at both. The conformance-test witness iterates AllEditions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/linage-recv.cob",
+    "widening": null,
+    "scope-2002": [
+     "LINAGE-COUNTER, qualified or not, as a receiving operand (refuse)",
+     "as a sending operand (accept)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/linage-recv.cob, linage-recv2.cob (2002: COBOL2026)",
+     "accept": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/linage-ok.cob"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-3",
+    "to": [
+     "SR-8.4.3.2.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.2",
+    "clause-2023": "8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR3",
+      "quote": "Function-prototype-name-1 shall be the user-function-name of the containing function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR3",
+      "quote": "Function-prototype-name-1 shall be the user-function-name of the containing function definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical except 2023 adds function-pointer-name-1 (a widening the rule does not touch). REPOSITORY function-specifier exists in both. Probes: FUNCTION UDFDBL without a REPOSITORY entry refused (COBOL1501), with FUNCTION UDFDBL in REPOSITORY prints 0042, at both; the conformance-test witness compiles at edition 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/udf-norepo.cob",
+    "widening": "2023 adds function-pointer-name-1 to the format.",
+    "scope-2002": [
+     "function-prototype-name declared in REPOSITORY (accept)",
+     "not declared (refuse)"
+    ],
+    "evidence-2002": {
+     "accept": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/udf-repo.cob",
+     "refuse": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/udf-norepo.cob (2002: COBOL1501) and UdfInvocationTests.MissingRepositoryEntry_1501_WithGr12Hint (edition 2002)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-4",
+    "to": [
+     "SR-8.4.3.2.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.2",
+    "clause-2023": "8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR4",
+      "quote": "the left parenthesis is always treated as the left parenthesis of that function's arguments",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR6",
+      "quote": "the left parenthesis is always treated as the left parenthesis of that function's arguments",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence and same NOTE (RANDOM example); it names only function-prototype-name-1 and intrinsic-function-name-1 in both, so the 2023 function-pointer addition does not change it. pb8-refmod-arg-permitting-function refuses at 2002 (COBOL1543).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)",
+    "widening": null,
+    "scope-2002": [
+     "left parenthesis after an argument-permitting intrinsic or user function is its argument list"
+    ],
+    "evidence-2002": {
+     "rule": "covered by pb8-refmod-arg-permitting-function via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL1543)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-5",
+    "to": [
+     "SR-8.4.3.2.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.2",
+    "clause-2023": "8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR5",
+      "quote": "The word OMITTED shall not be specified if intrinsic-function-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR7",
+      "quote": "The word OMITTED shall not be specified if intrinsic-function-name-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format (argument-1 | OMITTED) identical; func-omitted-arg refuses at 2002 (COBOL1544).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)",
+    "widening": null,
+    "scope-2002": [
+     "OMITTED as an intrinsic-function argument (refuse)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by func-omitted-arg via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL1544)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-3",
+    "to": [
+     "SR-8.4.3.3.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR3",
+      "quote": "Identifier-1 shall not be a reference-modification format identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR3",
+      "quote": "Identifier-1 shall not be a reference-modification format identifier",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identifier-1(leftmost-position : [length]) identical; the rule is form-only. 2023 SR1 additionally excludes variable-length groups (a 2023 construct). pb8-refmod-of-refmod-data and -function refuse at 2002 (COBOL1630).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)",
+    "widening": null,
+    "scope-2002": [
+     "reference modification of a reference-modified data item (refuse)",
+     "of a reference-modified function result (refuse)"
+    ],
+    "evidence-2002": {
+     "data": "covered by pb8-refmod-of-refmod-data via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL1630)",
+     "function": "covered by pb8-refmod-of-refmod-function via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL1630)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.5.2-2",
+    "to": [
+     "SR-8.4.3.5.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5",
+    "clause-2023": "8.4.3.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.2 SR2",
+      "quote": "An object-view shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.3 SR2",
+      "quote": "An object-view shall not be specified as a receiving operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical (2023 renames class-name-1 to object-class-name-1, same thing); RECEIVE INTO cannot take an object (A.2.5.2 SR2). pb1425-object-view-receiving and pb1551-object-view-initialize refuse at 2002 (COBOL2871); pb1551_receiving_identifier_routes passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023)",
+    "widening": null,
+    "scope-2002": [
+     "object-view as a receiving operand (refuse)"
+    ],
+    "evidence-2002": {
+     "refuse": "covered by pb1425-object-view-receiving, pb1551-object-view-initialize via E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/runcases.sh (conformance case compiled at --std 2002 and 2023) (2002: COBOL2871)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-1",
+    "to": [
+     "SR-8.4.3.9.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.9",
+    "clause-2023": "8.4.3.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format and all seven SRs identical (class-name-1 renamed object-class-name-1); property-specifier in the 2002 REPOSITORY format. Probes: BAL OF A without PROPERTY BAL refused (COBOL0843), with it prints 0000, at both; the OoSpineTests witness compiles at edition 2002 by default.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/prop-norepo.cob",
+    "widening": null,
+    "scope-2002": [
+     "property reference with a REPOSITORY PROPERTY specifier (accept)",
+     "without one (refuse)"
+    ],
+    "evidence-2002": {
+     "accept": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/prop-repo.cob",
+     "refuse": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/prop-norepo.cob (2002: COBOL0843) and OoSpineTests.PropertyReference_NoRepositorySpecifier_0843 (edition 2002)"
+    },
+    "flags-answered": {
+     "definition-changed: property": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; 'object property specified in the REPOSITORY paragraph' is the same specifier; the reader's probes stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-8.4.3.2-1",
+    "to": [
+     "SR-8.4.4.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.3",
+    "clause-2023": "8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.3.2 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.4.3 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats and both SRs identical; the switch-status condition-name mechanism in SPECIAL-NAMES is the same. pb390_procedure_and_condition_operands passes at 2002.",
+    "probe": null,
+    "widening": null,
+    "scope-2002": [
+     "switch-status condition-name format 1"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by pb390_procedure_and_condition_operands E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)"
+    }
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-2",
+    "to": [
+     "SR-8.7.5.2-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.7.5",
+    "clause-2023": "8.7.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR2",
+      "quote": "Format 1 specifies simple relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR1",
+      "quote": "Format 1 specifies simple relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator that defines the comparison",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR6",
+      "quote": "NOT < is an abbreviation for NOT LESS THAN",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2",
+      "quote": "If the relational operator following the word NOT is a simple relational operator, then the NOT participates",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words, different Format 1 (checked on the rendered PDF page 141): 2002 Format 1 is IS [NOT] GREATER THAN / > / LESS THAN / < / EQUAL TO / =, twelve operators; 2023 Format 1 has no NOT and moves the six NOT forms into Format 2 (extended). So the 2002 rule makes NOT GREATER THAN etc. SIMPLE relational operators, which 2002 8.8.4.2.4.3 GR2b reads in abbreviated combined relation conditions; the 2023 row says nothing about them. Probe relop.cob at --std 2002: all six NOT forms evaluate correctly (T1-T6) and the abbreviated A > B AND NOT < C OR D and A NOT EQUAL B OR D expand as GR2b requires (T11, T13); same at 2023.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob",
+    "widening": null,
+    "scope-2002": [
+     "the six non-NOT simple operators",
+     "the six NOT forms of Format 1 as simple relational operators",
+     "NOT forms in abbreviated combined relation conditions (8.8.4.2.4.3 GR2b)"
+    ],
+    "evidence-2002": {
+     "non-NOT": "covered by l1c26_relational_operator_spellings E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob",
+     "NOT forms": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob (T1-T6 at 2002)",
+     "abbreviated": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob (T11, T13 at 2002)"
+    },
+    "class": "removed-form",
+    "needs": "a 2002 witness for the NOT forms of Format 1 as simple relational operators, incl. an abbreviated combined relation (relop.cob is one); 2023 classifies them under SR-8.7.5.2-2 (extended), so neither 2023 row covers the 2002 classification",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob)"
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-3",
+    "to": [
+     "SR-8.7.5.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.7.5",
+    "clause-2023": "8.7.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR3",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR2",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 2 is the four operators GREATER THAN OR EQUAL TO, >=, LESS THAN OR EQUAL TO, <= (rendered page 141); all four are in 2023 Format 2 with the same classification. 2023 adds the NOT forms and <> (widening). Note for the 8.8.4.2.4 rows: 2002 GR2a speaks of NOT followed by an extended operator, but the 2002 abbreviated format (rendered page 158) does not generate it and the compiler refuses A = B OR NOT >= C at both editions (COBOL0902). Probe relop.cob T7-T10 at 2002; pb1034_printed_relational_operator_set and l1_perform_until_condition_forms pass at 2002; pb1034-not-gteq refuses at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob",
+    "widening": "2023 Format 2 also contains NOT GREATER/LESS/EQUAL forms and <>.",
+    "scope-2002": [
+     "the four extended relational operators"
+    ],
+    "evidence-2002": {
+     "four operators": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/relop.cob (T7-T10) and pb1034_printed_relational_operator_set, l1_perform_until_condition_forms E:/COBOL-coord/scratch/op-20261114/adopt-2002/results/results.json (edition 2002, PASS)"
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-19",
+  "cases": [
+   {
+    "rule-id": "2002-SR-7.1.3.2-7",
+    "verdict": "UPHELD",
+    "reason": "Format 1 of REPLACE (LEADING/TRAILING partial-word-1 BY partial-word-2) is the same in both editions; SR5-SR7 identical. The text-word change the reader found for SR6 (2002 7.1.1.4 item 3 vs 2023 7.2.2.5 item 3) does not reach SR7: SR7 is about literals, which are text-word item 2, word-identical in both editions. The three literal classes named exist in both; numeric literals are named in neither. 2002 SR10 (debugging lines) names only pseudo-text, so no debugging-line reach for partial-words; no communication reach (compiler-directing statement). Reader's rp-lit1/2/3 refuse at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR7",
+      "quote": "An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR7",
+      "quote": "An alphanumeric, boolean, or national literal shall not be specified as partial-word-1 or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.1.4",
+      "quote": "an alphanumeric, boolean, or national literal including the opening and closing delimiters that bound the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.2.5",
+      "quote": "an alphanumeric, boolean, or national literal including the opening and closing delimiters that bound the literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-p-19/rp-lit1.cob (reader's)"
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 {character-1}... (2002) vs [character-1]... (2023): 2023 only widens to zero length. SR2-SR4 identical. The rule leans on reference format only through the same-line requirement for a quote pair, which 2002 6.3.1 (free form) states word for word as 2023 does, and which fixed form omits in both. No national/boolean reach (the national literal has its own rule). Reader's lit-quote.cob agrees at both.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR3",
+      "quote": "Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.1",
+      "quote": "A pair of quotation symbols indicating a single quotation symbol within a literal shall be specified on the same line",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.1.2-6",
+    "verdict": "UPHELD",
+    "reason": "Format 2 X\"...\" same except 2023 makes the sequence optional (zero length, NOTE 2: widening). SR5/SR6 identical; the implementor-defined digit count is one implementor choice applied at both editions (reader's hex-odd/hex-ok). No removed form.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.3 SR6",
+      "quote": "Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.3.1.2.5.2-4",
+    "verdict": "UPHELD",
+    "reason": "All seven figurative-constant formats identical; SR1-SR4 identical except 2023 SR2 adds a zero-length exclusion (format 6, not this rule). The SYMBOLIC CHARACTERS clause is in SPECIAL-NAMES in both. No communication or debugging reach.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR4",
+      "quote": "Symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.3 SR4",
+      "quote": "Symbolic-character-1 shall be specified in the SYMBOLIC CHARACTERS clause of the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.1.2-5",
+    "verdict": "UPHELD",
+    "reason": "Format 4 qualified-procedure-name identical (2023 brackets the qualifier; 2002 implies it by SR5's second sentence). Both full sentences identical. Procedure-name references: 2002 has no ALTER and no USE FOR DEBUGGING (grep of the 2002 text: 0 hits), so no 2002-only referencing statement. The cd-name qualifier difference is in formats 1-3 only, not format 4.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR5",
+      "quote": "If explicitly referenced, a paragraph-name shall not be duplicated within a section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR7",
+      "quote": "If explicitly referenced, a paragraph-name shall not be duplicated within a section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.1.2.2-7",
+    "verdict": "UPHELD",
+    "reason": "Attacked via communication reach: the 2002 qualified-condition-name admits file-cd-report-qualifier (cd-name-1), so a condition-name under a CD is in scope. But the rule is vacuous in 2002 for the same reason the 2023 row records (docs/conformance/8/DRV-SR-8.4.2.3.3-7.md, unpopulatable-antecedent): 2002 SR6 confines ALL to an intrinsic function argument or the SORT table format, 2002 15.2 lets a table argument be only a data-name with its qualifiers, and the 2002 SORT table format takes data-name-2. A CD condition-name adds no populated case. Probes: allcond-cd.cob (IF CE-ONE IN CDOUT (ALL)) refused at 2002 (COBOL2363); allcond-cd-ok.cob (CE-ONE IN CDOUT (2); FUNCTION SUM(CE IN CDOUT (ALL))) runs at 2002 (X2, 3).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.2 SR7",
+      "quote": "ALL shall not be specified if qualified-condition-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR7",
+      "quote": "ALL shall not be specified if qualified-condition-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR6",
+      "quote": "The subscript ALL may be used only when the subscripted identifier is used as an intrinsic function argument",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "a table may be referenced by specifying the data-name and any qualifiers that identify the table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "where file-cd-report-qualifier is",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-19\\allcond-cd.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-19\\allcond-cd-ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.1.2-1",
+    "verdict": "UPHELD",
+    "reason": "The eleven identifier formats are the same list (2002 Format 10/11 spell out the qualifier, 2023 points to 8.4.2.2; no change to recursion). GR1 order identical. The cd-name qualifier reaches this rule only through format 2's definition; that is the qualification rows' concern (marked DIFFERENT), and nesting with a CD-qualified operand works at 2002: ident-cd.cob prints FUNCTION LENGTH(CE IN CDOUT (2) (2:2)) = 2 and FUNCTION UPPER-CASE(CE OF CDREC IN CDOUT (2))(3:2) = CD.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR1",
+      "quote": "Identifier is defined recursively: whenever the format for an identifier allows another identifier to be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.3 SR1",
+      "quote": "Identifier is defined recursively: whenever the format for an identifier allows another identifier to be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-19\\ident-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-5",
+    "verdict": "UPHELD",
+    "reason": "Format ADDRESS OF identifier-1 identical; receiving operand defined identically (2002 14.5.7 = 2023 14.6.7). The only 2002-only receiving identifier position is RECEIVE ... INTO identifier-1, confined to category alphanumeric, which a data-pointer is not; ACCEPT MESSAGE COUNT takes a cd-name. No extra case.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR5",
+      "quote": "This identifier format shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR5",
+      "quote": "This identifier format shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.7",
+      "quote": "An operand is a receiving operand if its contents may be changed by the execution of the statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.13.2-2",
+    "verdict": "UPHELD",
+    "reason": "8.4.2.13.1 format and SR1-SR3 identical; LINAGE-COUNTER is category numeric, so RECEIVE INTO (alphanumeric only) cannot take it. Same receiving-operand definition.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.2 SR2",
+      "quote": "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.3 SR2",
+      "quote": "The LINAGE-COUNTER identifier shall not be referenced as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-3",
+    "verdict": "UPHELD",
+    "reason": "Full sentence identical; the scope-of-names rule identical (2002 8.4.5.5 = 2023 8.4.6.6); the REPOSITORY user-defined function-specifier identical. The reader's scope omitted the own-name (recursive) branch; probe udf-self.cob (FACT calls FUNCTION FACT with no REPOSITORY entry for itself) prints 00000120 at both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR3",
+      "quote": "Function-prototype-name-1 shall be the user-function-name of the containing function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR3",
+      "quote": "Function-prototype-name-1 shall be the user-function-name of the containing function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.5.5",
+      "quote": "Function-prototype-names referenced within a source element shall be either the user-function-name of the containing function definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-19\\udf-self.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-4",
+    "verdict": "UPHELD",
+    "reason": "Same sentence and NOTE; it names only function-prototype-name-1 and intrinsic-function-name-1, so the 2023 function-pointer-name addition is outside it.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR4",
+      "quote": "the left parenthesis is always treated as the left parenthesis of that function's arguments",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR6",
+      "quote": "the left parenthesis is always treated as the left parenthesis of that function's arguments",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.2.2-5",
+    "verdict": "UPHELD",
+    "reason": "Argument list (argument-1 | OMITTED) identical; the rule names intrinsic functions only.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR5",
+      "quote": "The word OMITTED shall not be specified if intrinsic-function-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.3 SR7",
+      "quote": "The word OMITTED shall not be specified if intrinsic-function-name-1 is specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.3.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format identifier-1(leftmost-position : [length]) identical; form-only rule. 2023 SR1 narrows by variable-length groups (a 2023 construct), not SR3.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.2 SR3",
+      "quote": "Identifier-1 shall not be a reference-modification format identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.3 SR3",
+      "quote": "Identifier-1 shall not be a reference-modification format identifier",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.5.2-2",
+    "verdict": "UPHELD",
+    "reason": "Format identical (class-name-1 renamed object-class-name-1). Identifier-1 of class object cannot be a RECEIVE INTO operand (alphanumeric only).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.2 SR2",
+      "quote": "An object-view shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.3 SR2",
+      "quote": "An object-view shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format and SR1-SR7 identical; the property-specifier PROPERTY property-name-1 [AS literal] is in the REPOSITORY format of both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "Both formats and SRs identical; the SPECIAL-NAMES switch-name-1 ON/OFF STATUS clause and the switch-name definition are the same in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.3.2 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.4.3 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-3",
+    "verdict": "UPHELD",
+    "reason": "2002 Format 2 = the four >=/<= forms; all four are extended in 2023 too (2023 adds the NOT forms and <>: a widening; the NOT-form reclassification belongs to SR2, marked DIFFERENT). The only 2002 rule that reads the class is 8.8.4.2.4.3 GR2; NOT before >=/<= in an abbreviated condition is prohibited in 2002 (its Annex change item 22) and refused at both (reader's note).",
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR3",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR2",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2",
+      "quote": "If an extended relational operator immediately follows the word NOT, then the NOT is interpreted as a logical operator",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "29ff68654c7ff7b8fff485815e610cfdf39f006ed9a2369b2a52ee79ad1b4e0b",
+  "read": "ebb1738c581fffa721899b486815dd3a129c8ff6c1a946c639e784e363ab2bf9",
+  "refute": "adb42ce859a05f1bf4b354c0bfc0f42d41893e1f219501b935651a1d446f1622"
+ }
+}

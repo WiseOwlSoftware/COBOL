@@ -1,0 +1,1529 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-18 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-18",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.44.2-9",
+   "2002-SR-14.8.45.2-17",
+   "2002-SR-14.8.45.2-2",
+   "2002-SR-14.8.45.2-5",
+   "2002-SR-14.8.5.2-1",
+   "2002-SR-14.8.5.2-3",
+   "2002-SR-14.8.6.2-1",
+   "2002-SR-14.8.7.2-1",
+   "2002-SR-14.8.7.2-2",
+   "2002-SR-14.8.7.2-3",
+   "2002-SR-14.8.8.2-1",
+   "2002-SR-6.1.2.1-1",
+   "2002-SR-6.1.2.1-2",
+   "2002-SR-6.1.2.1-4",
+   "2002-SR-6.1.2.1-5",
+   "2002-SR-7.1.2.2-13",
+   "2002-SR-7.1.2.2-14",
+   "2002-SR-7.1.2.2-15",
+   "2002-SR-7.1.2.2-5",
+   "2002-SR-7.1.2.2-6",
+   "2002-SR-7.1.3.2-1",
+   "2002-SR-7.1.3.2-11",
+   "2002-SR-7.1.3.2-3",
+   "2002-SR-7.1.3.2-4",
+   "2002-SR-7.1.3.2-5"
+  ]
+ },
+ "read": {
+  "slice": "p-18",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.44.2-9",
+    "to": [
+     "SR-14.9.48.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44",
+    "clause-2023": "14.9.48",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR9",
+      "quote": "The data item referenced by identifier-4 is the receiving operand for data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR9",
+      "quote": "The data item referenced by identifier-4 is the receiving operand for data",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "UNSTRING identifier-4 (INTO) as the receiving operand for data",
+     "identifier-5 (DELIMITER IN) as the receiving operand for delimiters",
+     "either operand may be an item of a CD record, qualified by its cd-name (2002 identifier qualification)"
+    ],
+    "evidence-2002": [
+     "identifier-4 receives data, identifier-5 receives delimiters: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\us_recv.cob at --std 2002",
+     "CD-record receivers qualified by the cd-name: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\us_cd.cob at --std 2002"
+    ],
+    "reason": "General format identical phrase for phrase. SR1-SR9 identical; 2023 adds SR10 (no variable-length group) and the zero-length-literal ban, both 2023-only concepts. The rule is a role classification resting only on its own format. A receiver in a CD record is an ordinary data-item operand (the CD reach belongs to the data-description rows); probed anyway. Probes: us_recv gives [ABC ][,][03][DE  ][;] / [02][FGH ][ ] at both editions; us_cd (INTO CR1 IN CIN DELIMITER IN CD1 OF CIN) gives [AB  ][,] at 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\us_recv.cob",
+    "widening": "2023 SR10 restricts variable-length groups, which do not exist in 2002."
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-17",
+    "to": [
+     "SR-14.9.49.3-17"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45",
+    "clause-2023": "14.9.49",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR17",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR17",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "USE AFTER EXCEPTION OBJECT / EO interface-name-1 (format 4)"
+    ],
+    "evidence-2002": [
+     "interface named in REPOSITORY accepted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_eo_ok.cob at --std 2002",
+     "undefined name refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_eo_bad.cob at --std 2002",
+     "interface defined in the compilation group but absent from REPOSITORY refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_eo_norepo.cob at --std 2002"
+    ],
+    "reason": "Format 4 identical except 2023 renames class-name-1 to object-class-name-1 (the other alternative). The REPOSITORY interface-specifier is the same in both (p-01 GR-12.2.7.3-9). No CD, debugging or removed-form reach. Probes at 2002: use_eo_ok compiles and prints OK; use_eo_bad and use_eo_norepo refused with COBOL0859, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_eo_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-2",
+    "to": [
+     "SR-14.9.49.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45",
+    "clause-2023": "14.9.49",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR2",
+      "quote": "File-name-1 or file-name-2 shall not be a sort or a merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR2",
+      "quote": "File-name-1 or file-name-2 shall not be a sort or a merge file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 file-name-1 (USE AFTER STANDARD EXCEPTION/ERROR ON file-name)",
+     "format 3 file-name-2 (USE AFTER EC exception-name-2 FILE file-name-2)"
+    ],
+    "evidence-2002": [
+     "format 1 naming an SD refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_sort1.cob at --std 2002",
+     "format 3 naming an SD refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_sort3.cob at --std 2002"
+    ],
+    "reason": "The four USE formats are identical in both editions (2002 has no USE FOR DEBUGGING format). Sort and merge files are the same. A cd-name is not a file-name, so no CD reach. Probes at 2002: both forms refused with COBOL0897, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_sort1.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-5",
+    "to": [
+     "SR-14.9.49.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.45",
+    "clause-2023": "14.9.49",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR5",
+      "quote": "need not all have the same organization or access",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR5",
+      "quote": "need not all have the same organization or access",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "formats 1 and 3: the files named or implied (INPUT/OUTPUT/I-O/EXTEND) may differ in organization and access"
+    ],
+    "evidence-2002": [
+     "sequential and indexed-dynamic files in one format 1 and one format 3 USE: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_orgs.cob at --std 2002"
+    ],
+    "reason": "Same FORMATS 1 AND 3 band, same formats, and the same three 2002 organizations (2023 adds line sequential, a widening). Permissive rule. Probe use_orgs (USE ... ON SF XF and USE AFTER EC EC-I-O-PERMANENT-ERROR FILE SF FILE XF, sequential SF, indexed dynamic XF) compiles and runs (OK) at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\use_orgs.cob",
+    "widening": "2023 adds the line sequential organization."
+   },
+   {
+    "rule-id": "2002-SR-14.8.5.2-1",
+    "to": [
+     "SR-14.9.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5",
+    "clause-2023": "14.9.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.2 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CANCEL identifier-1: alphanumeric or national data item"
+    ],
+    "evidence-2002": [
+     "alphanumeric and national identifiers accepted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cn_ok.cob at --std 2002",
+     "numeric identifier refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cn_num.cob at --std 2002"
+    ],
+    "reason": "CANCEL general format identical. 2023 SR2 only adds the zero-length-literal ban. CANCEL is not in the 2002 Annex A list of clauses that refer to the communication facility. Probes at 2002: cn_ok (alphanumeric, national, literal) prints OK; cn_num refused with COBOL1696, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cn_num.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.5.2-3",
+    "to": [
+     "SR-14.9.5.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5",
+    "clause-2023": "14.9.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.2 SR3",
+      "quote": "Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR3",
+      "quote": "Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CANCEL program-prototype-name-1"
+    ],
+    "evidence-2002": [
+     "a name that is not a REPOSITORY program prototype refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cn_proto.cob at --std 2002"
+    ],
+    "reason": "Same format and the same REPOSITORY program-specifier. Probe at 2002: CANCEL NOTAPROTO refused with COBOL1760, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cn_proto.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.6.2-1",
+    "to": [
+     "SR-14.9.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.6",
+    "clause-2023": "14.9.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.2 SR1",
+      "quote": "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.3 SR1",
+      "quote": "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential organization",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CLOSE file-name-1 REEL/UNIT [FOR REMOVAL] and WITH NO REWIND: sequential organization only"
+    ],
+    "evidence-2002": [
+     "REEL, UNIT FOR REMOVAL and NO REWIND on a sequential file accepted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cl_seq.cob at --std 2002",
+     "NO REWIND on indexed, REEL on indexed, UNIT on relative refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cl_idx_nr.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cl_idx_reel.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cl_rel_unit.cob at --std 2002"
+    ],
+    "reason": "The 2002 format also has WITH LOCK, but the rule names only NO REWIND, REEL and UNIT, so WITH LOCK is outside its scope (legal with any organization; the compiler accepts CLOSE XF WITH LOCK on an indexed file at 2002 in cl_seq.cob and refuses it at 2023). 2002 organizations are sequential, relative and indexed. Probes at 2002: the three illegal forms refused with COBOL1693; the legal ones run (OK).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cl_idx_nr.cob",
+    "widening": "2023 adds the line sequential organization."
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-1",
+    "to": [
+     "SR-14.9.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.7",
+    "clause-2023": "14.9.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR1",
+      "quote": "Identifier-1 shall reference either an elementary numeric item or an elementary numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR1",
+      "quote": "Identifier-1 shall reference either an elementary numeric item or an elementary numeric-edited item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 COMPUTE identifier-1: elementary numeric or numeric-edited"
+    ],
+    "evidence-2002": [
+     "numeric and numeric-edited receivers accepted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_ok.cob at --std 2002",
+     "alphanumeric and group receivers refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_alnum.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_grp.cob at --std 2002"
+    ],
+    "reason": "Format 1 identical except ROUNDED becomes rounded-phrase (a widening). The 2002 numeric and numeric-edited items are a subset of 2023's. Probes at 2002: COMPUTE N1 E1 = 12.5 * 2 gives 025 and 25.00; PIC X and group receivers refused with COBOL1675, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_alnum.cob",
+    "widening": "2023 adds ROUNDED MODE and further numeric usages."
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-2",
+    "to": [
+     "SR-14.9.8.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.7",
+    "clause-2023": "14.9.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR2",
+      "quote": "Identifier-2 shall reference an elementary boolean data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR2",
+      "quote": "Identifier-2 shall reference an elementary boolean data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 COMPUTE identifier-2: elementary boolean data item (usage display or bit)"
+    ],
+    "evidence-2002": [
+     "boolean receiver accepted: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_ok.cob at --std 2002",
+     "numeric receiver of a boolean expression refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_bnum.cob at --std 2002"
+    ],
+    "reason": "Format 2 identical; the boolean category and its usages are the same. Probes at 2002: COMPUTE B1 = B2 B-AND B\"1010\" gives 1000; a numeric receiver refused with COBOL1511, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_bnum.cob",
+    "widening": "2023 adds the boolean shift operators to boolean expressions."
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-3",
+    "to": [
+     "SR-14.9.8.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.7",
+    "clause-2023": "14.9.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR3",
+      "quote": "Boolean-expression-1 shall not consist solely of the figurative constant ALL literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR3",
+      "quote": "Boolean-expression-1 shall not consist solely of the figurative constant ALL literal",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 boolean-expression-1 consisting solely of ALL literal"
+    ],
+    "evidence-2002": [
+     "COMPUTE B1 = ALL B\"1\" refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_ball.cob at --std 2002"
+    ],
+    "reason": "Same format; the ALL literal figurative constant is defined the same way in both. Probe at 2002 refused with COBOL1511, as at 2023.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_ball.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.8.2-1",
+    "to": [
+     "SR-14.9.9.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.8",
+    "clause-2023": "14.9.9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.8.2 SR1",
+      "quote": "The CONTINUE statement may be used anywhere a conditional statement or an imperative-statement may be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.9.3 SR1",
+      "quote": "The CONTINUE statement may be used anywhere a conditional statement or an imperative-statement may be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR5",
+      "quote": "control is transferred to imperative-statement-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "every imperative-statement position of a 2002 statement, including CALL format 1 ON OVERFLOW imperative-statement-1",
+     "the communication RECEIVE cd-name-1 ... NO DATA imperative-statement-1 / WITH DATA imperative-statement-2",
+     "every conditional-statement position (IF, EVALUATE, SIZE ERROR, ...)"
+    ],
+    "evidence-2002": [
+     "CALL ... ON OVERFLOW CONTINUE: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_ovf.cob at --std 2002",
+     "RECEIVE ... NO DATA CONTINUE WITH DATA CONTINUE: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_recv.cob at --std 2002",
+     "IF / EVALUATE / ON SIZE ERROR positions: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_ctx.cob at --std 2002"
+    ],
+    "reason": "The rule's reach is 'anywhere ... an imperative-statement may be used', and in 2002 that set includes CALL format 1 (on-overflow) ON OVERFLOW imperative-statement-1 and the communication RECEIVE (A.2.5) NO DATA and WITH DATA imperative-statements. The 2023 row cannot witness CONTINUE there. Probes at 2002: ct_ovf (CALL \"P18NOSUCH\" ON OVERFLOW CONTINUE, then the same with DISPLAY \"OVF\") prints OVF AFTER; ct_recv (RECEIVE CIN MESSAGE INTO MSG NO DATA CONTINUE WITH DATA CONTINUE) compiles and runs (OK); ct_ctx prints OK 1 at both. At 2023 ct_ovf is refused (COBOL0882) and ct_recv is refused (COBOL0902).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_ovf.cob",
+    "widening": "2023 CONTINUE gains the AFTER ... SECONDS phrase.",
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for CONTINUE as the CALL ON OVERFLOW imperative and as the communication RECEIVE NO DATA / WITH DATA imperative is to accept and run it (probes ct_ovf.cob, ct_recv.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_ovf.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\ct_recv.cob"
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-1",
+    "to": [
+     "SR-6.2.3.2-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "6.1.2",
+    "clause-2023": "6.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR1",
+      "quote": "a space is implied immediately following a floating comment indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR1",
+      "quote": "a space is implied immediately following a floating comment indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2",
+      "quote": "a debugging line when followed by at least one space character",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "floating comment indicators on source lines",
+     "on fixed-form debugging lines (indicator D)",
+     "on floating debugging lines (>>D)"
+    ],
+    "evidence-2002": [
+     "source lines: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "inline comments with and without a following space on D and >>D lines, DEBUGGING MODE on and off: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_off.cob at --std 2002"
+    ],
+    "reason": "In 2002 the program-text area of a debugging line may contain comments and floating indicators (6.2.3), and debugging lines stay text of the compilation group until all COPY and REPLACE statements are processed (6.2.7), so the rule also governs floating comment indicators on D and >>D lines. The 2023 row has no debugging lines. Probes at 2002: fi_dbg_on prints D1 D2 F3 MAIN (the '*>no-space' comment on a D line is a comment, and the DISPLAY \"BAD\" after it is not compiled); fi_dbg_off prints MAIN.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_on.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for a floating comment indicator on a debugging line, fixed D and >>D (probes fi_dbg_on.cob, fi_dbg_off.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_off.cob"
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-2",
+    "to": [
+     "SR-6.2.3.2-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "6.1.2",
+    "clause-2023": "6.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR2",
+      "quote": "The floating comment indicator of an inline comment shall be preceded by a separator space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR2",
+      "quote": "The floating comment indicator of an inline comment shall be preceded by a separator space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "inline comments on source lines",
+     "inline comments on D and >>D debugging lines, including exception b) after a floating literal continuation indicator on a debugging line"
+    ],
+    "evidence-2002": [
+     "source lines: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_sr2b.cob at --std 2002",
+     "debugging lines: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr2b.cob at --std 2002"
+    ],
+    "reason": "Same reach as SR1: 2002 debugging lines carry inline comments (6.2.3). Probes at 2002: inline comments on D and >>D lines accepted (fi_dbg_on); an inline comment after a floating continuation indicator on a D line refused with COBOL2689 (fi_dbg_sr2b, with consequent diagnostics), the same diagnostic as on a source line (fi_sr2b).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr2b.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for inline comments on debugging lines, including exception b) (probes fi_dbg_on.cob, fi_dbg_sr2b.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr2b.cob"
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-4",
+    "to": [
+     "SR-6.2.3.2-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "6.1.2",
+    "clause-2023": "6.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR4",
+      "quote": "A floating literal continuation indicator shall be specified only for an alphanumeric, boolean, or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR4",
+      "quote": "A floating literal continuation indicator shall be specified only for an alphanumeric, boolean, or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.4",
+      "quote": "a free-form line is created in the resultant compilation group that consists of the following: a floating debugging indicator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "floating literal continuation on source lines",
+     "floating literal continuation of a literal begun on a debugging line (6.4 steps 4, 5 and 9)",
+     "one form of continuation per literal, also for a literal begun on a debugging line"
+    ],
+    "evidence-2002": [
+     "source lines: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_cont_both.cob at --std 2002",
+     "debugging line continued by a source line, DEBUGGING MODE on and off: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_off.cob at --std 2002",
+     "two forms on a literal begun on a D line refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_both.cob at --std 2002"
+    ],
+    "reason": "A floating literal continuation indicator may be specified on a 2002 debugging line (6.2.3). Probes at 2002: D line DISPLAY \"AB\"- continued by \"CD\". prints ABCD with DEBUGGING MODE and nothing without it (the logical line is a debugging line); a D-line literal continued with both forms is refused with COBOL2687. Note: a D line continued by another D line is refused (COBOL3473); I read that as consistent with 6.4 step 5 (each fixed D line starts a new free-form >>D line), so not a defect, though the standard is not explicit about it.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_on.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for floating literal continuation on a debugging line (probes fi_dbg_cont_on.cob, fi_dbg_cont_off.cob, fi_dbg_cont_both.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_on.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_off.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_cont_both.cob"
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-5",
+    "to": [
+     "SR-6.2.3.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "6.1.2",
+    "clause-2023": "6.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR5",
+      "quote": "A floating literal continuation indicator shall not be specified on a line that contains a fixed literal continuation indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR5",
+      "quote": "A floating literal continuation indicator shall not be specified on a line that contains a fixed literal continuation indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2.1 SR8",
+      "quote": "A floating debugging indicator shall not be specified on a line that contains a fixed debugging indicator or a fixed continuation indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a fixed continuation line ('-') of a literal on a source line",
+     "a fixed continuation line of a literal begun on a D debugging line (the logical line is a debugging line)"
+    ],
+    "evidence-2002": [
+     "source line: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_sr5.cob at --std 2002",
+     "continuation of a D-line literal: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr5.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_fixed.cob at --std 2002"
+    ],
+    "reason": "A fixed D line cannot itself carry a fixed continuation indicator, and SR8 bars >>D on such a line, but a fixed continuation line may continue a literal begun on a D line, so the rule reaches one line of a 2002 debugging logical line, which the 2023 row cannot witness. Narrow; DIFFERENT rather than SAME because the case exists only in 2002. Probes at 2002: fi_dbg_sr5 refused with COBOL2686; the control fi_dbg_fixed (fixed continuation only) prints AB...CD with the continued line's trailing spaces kept.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr5.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for a fixed continuation line that continues a debugging-line literal (probe fi_dbg_sr5.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\fi_dbg_sr5.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-13",
+    "to": [
+     "SR-7.2.3.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2",
+    "clause-2023": "7.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR13",
+      "quote": "Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR10",
+      "quote": "Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.2 SR12",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2",
+      "quote": "a debugging line when followed by at least one space character",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "directive lines in COPY pseudo-text and partial-words are refused",
+     "a >>D floating debugging line in pseudo-text is a debugging line (SR12 permits it), not a directive line"
+    ],
+    "evidence-2002": [
+     "directive line in pseudo-text-2 refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt2_dir.cob at --std 2002",
+     ">>D line in pseudo-text-2 accepted and compiled as a debugging line: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt2_fdbg.cob at --std 2002"
+    ],
+    "reason": "In 2002 '>>' followed by D and a space is the floating debugging indicator, and SR12 allows debugging lines in pseudo-text, so the rule's boundary between a forbidden directive line and a permitted >>D line exists only in 2002. Probes at 2002: COPY CPA REPLACING ==AAA== BY == / >>D AAA. DISPLAY / BBB== with DEBUGGING MODE prints OLD NEW; >>SOURCE FORMAT IS FIXED inside pseudo-text-2 is refused (COBOL2697) at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt2_fdbg.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness that a >>D debugging line in COPY pseudo-text is not a compiler directive line (probe cp_pt2_fdbg.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt2_fdbg.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt2_dir.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-14",
+    "to": [
+     "SR-7.2.3.3-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2",
+    "clause-2023": "7.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR14",
+      "quote": "Partial-word-1 shall consist of one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR11",
+      "quote": "Partial-word-1 shall consist of one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "partial-word-1 of a COPY on a source line",
+     "partial-word-1 of a COPY that begins on a debugging line (processed before debugging lines become comments, 6.2.7)"
+    ],
+    "evidence-2002": [
+     "source line: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "D-line COPY with a two-word partial-word-1, no DEBUGGING MODE, refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw1.cob at --std 2002",
+     "D-line COPY LEADING replacement applied: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw_ok.cob at --std 2002"
+    ],
+    "reason": "A COPY statement may begin on a 2002 debugging line (GR13) and is processed during text manipulation whether or not DEBUGGING MODE is specified (6.2.7), so its partial-words fall under the rule; the p-07 refuter found the same reach for 7.1.2.3 GR1-GR5. Probes at 2002: cp_d_pw1 is refused with COBOL2572 even though the line would become a comment; cp_d_pw_ok shows the D-line COPY ... LEADING ==A== BY ==B== processed (AAA became BAA, hence its undefined-name error).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw1.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for partial-word-1 of a COPY on a debugging line (probe cp_d_pw1.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw1.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-15",
+    "to": [
+     "SR-7.2.3.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2",
+    "clause-2023": "7.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR15",
+      "quote": "Partial-word-2 shall consist of zero or one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR12",
+      "quote": "Partial-word-2 shall consist of zero or one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "partial-word-2 of a COPY on a source line",
+     "partial-word-2 of a COPY that begins on a debugging line"
+    ],
+    "evidence-2002": [
+     "source line: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "D-line COPY with a two-word partial-word-2 refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw2.cob at --std 2002"
+    ],
+    "reason": "Same reach as SR14. Probe at 2002: cp_d_pw2 (D-line COPY ... LEADING ==AA== BY ==BB CC==, no DEBUGGING MODE) is refused with COBOL2572.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw2.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for partial-word-2 of a COPY on a debugging line (probe cp_d_pw2.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_pw2.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-5",
+    "to": [
+     "SR-7.2.3.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2",
+    "clause-2023": "7.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR5",
+      "quote": "Literal-1 and literal-2 shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR5",
+      "quote": "Literal-1 and literal-2 shall be alphanumeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "each text-word introduced appears on a debugging line if the COPY statement begins on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "literal-1 / literal-2 of a COPY on a source line",
+     "literal-1 / literal-2 of a COPY that begins on a debugging line"
+    ],
+    "evidence-2002": [
+     "source line, national literal refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_lit_nat.cob at --std 2002",
+     "D-line COPY \"CPL\" copies: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_lit_ok.cob at --std 2002",
+     "D-line COPY N\"CPL\" without DEBUGGING MODE refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_lit_nat.cob at --std 2002"
+    ],
+    "reason": "COPY head format identical; the 2002 REPLACING operands text-1, word-1 and literal-3 are not this rule's. The reach is the D-line COPY (GR13, 6.2.7), on which the p-07 refuter overturned 7.1.2.3 GR1-GR3. Probes at 2002: D-line COPY \"CPL\" prints FROMLIB; D-line COPY N\"CPL\" is refused with COBOL2450 although the line would become a comment.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_lit_nat.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for the literal-1 rule of a COPY on a debugging line (probes cp_d_lit_ok.cob, cp_d_lit_nat.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_lit_nat.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_d_lit_ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-6",
+    "to": [
+     "SR-7.2.3.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.2",
+    "clause-2023": "7.2.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR6",
+      "quote": "Pseudo-text-1 shall contain one or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR6",
+      "quote": "Pseudo-text-1 shall contain one or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.2 SR12",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "pseudo-text-1 text-words on source lines",
+     "pseudo-text-1 text-words on debugging lines inside the pseudo-text (SR12), which count and take part in matching"
+    ],
+    "evidence-2002": [
+     "source lines: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "pseudo-text-1 whose only text-word is on a D line: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt1_dbg.cob at --std 2002"
+    ],
+    "reason": "SR12 lets 2002 pseudo-text contain debugging lines, so a text-word that satisfies SR6 may stand on a debugging line. Probe at 2002 (no DEBUGGING MODE): COPY CPA REPLACING == / D AAA / == BY ==BBB== prints NEW.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt1_dbg.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for pseudo-text-1 text-words on a debugging line (probe cp_pt1_dbg.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\cp_pt1_dbg.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-1",
+    "to": [
+     "SR-7.2.4.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR1",
+      "quote": "A REPLACE statement may be specified anywhere in source text or in library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR1",
+      "quote": "A REPLACE statement may be specified anywhere in source text or in library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REPLACE in source or library text on source lines",
+     "REPLACE on a debugging line (character-strings and separators may appear there, 6.2.3), processed before debugging lines become comments"
+    ],
+    "evidence-2002": [
+     "source lines: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "D-line REPLACE without DEBUGGING MODE takes effect: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_sr1.cob at --std 2002"
+    ],
+    "reason": "In 2002 a debugging line's program-text area holds character-strings and separators, so a REPLACE may be specified there, and it is processed whatever the DEBUGGING MODE setting (6.2.7); the p-07 refuter overturned 7.1.3.3 GR1 and GR6 on the same reach. Probe at 2002: D-line REPLACE ==AAA== BY ==BBB== followed by DISPLAY AAA prints NEW.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_sr1.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for a REPLACE statement on a debugging line (probe rp_d_sr1.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_sr1.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-11",
+    "to": [
+     "SR-7.2.4.3-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR11",
+      "quote": "Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR10",
+      "quote": "Compiler directive lines shall not be specified within pseudo-text-1, pseudo-text-2, partial-word-1, or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2",
+      "quote": "a debugging line when followed by at least one space character",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "directive lines in REPLACE pseudo-text and partial-words are refused",
+     "a >>D debugging line in pseudo-text is permitted (SR10)"
+    ],
+    "evidence-2002": [
+     "directive line refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dir.cob at --std 2002",
+     ">>D line in pseudo-text-2 accepted and compiled as a debugging line: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_fdbg.cob at --std 2002"
+    ],
+    "reason": "As COPY SR13. Probes at 2002: REPLACE ==XYZ== BY == / >>D DISPLAY \"DBG\" / == with DEBUGGING MODE prints DBG MAIN; a >>SOURCE line in pseudo-text-2 is refused (COBOL2697) at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_fdbg.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness that a >>D debugging line in REPLACE pseudo-text is not a directive line (probe rp_pt2_fdbg.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_fdbg.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dir.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-3",
+    "to": [
+     "SR-7.2.4.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR3",
+      "quote": "Pseudo-text-1 shall contain one or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR3",
+      "quote": "Pseudo-text-1 shall contain one or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "pseudo-text-1 text-words on source lines",
+     "pseudo-text-1 text-words on debugging lines in the pseudo-text (SR10)"
+    ],
+    "evidence-2002": [
+     "source lines: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "pseudo-text-1 whose only text-word is on a D line: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt1_dbg.cob at --std 2002"
+    ],
+    "reason": "As COPY SR6. Probe at 2002 (no DEBUGGING MODE): REPLACE == / D AAA / == BY ==BBB== followed by DISPLAY AAA prints NEW.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt1_dbg.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for REPLACE pseudo-text-1 on a debugging line (probe rp_pt1_dbg.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt1_dbg.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-4",
+    "to": [
+     "SR-7.2.4.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR4",
+      "quote": "Pseudo-text-2 shall contain zero, one, or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR4",
+      "quote": "Pseudo-text-2 shall contain zero, one, or more text-words",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "pseudo-text-2 of zero or more text-words on source lines",
+     "pseudo-text-2 whose text-words are on debugging lines (they stay on debugging lines in the result)"
+    ],
+    "evidence-2002": [
+     "source lines: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "pseudo-text-2 on a D line, DEBUGGING MODE off and on: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dbg.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dbg_on.cob at --std 2002"
+    ],
+    "reason": "SR10 lets 2002 pseudo-text-2 contain debugging lines. Probes at 2002: REPLACE ==DISPLAY AAA== BY == / D DISPLAY BBB / == prints MAIN without DEBUGGING MODE (the replacement becomes a comment) and MAIN NEW with it.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dbg_on.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for REPLACE pseudo-text-2 on a debugging line (probes rp_pt2_dbg.cob, rp_pt2_dbg_on.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dbg.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_pt2_dbg_on.cob"
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-5",
+    "to": [
+     "SR-7.2.4.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.1.3",
+    "clause-2023": "7.2.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR5",
+      "quote": "Partial-word-1 shall consist of one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR5",
+      "quote": "Partial-word-1 shall consist of one text-word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR11",
+      "quote": "If the text being replaced begins on a debugging line, the resultant text is on a debugging line",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "partial-word-1 of a REPLACE on a source line",
+     "partial-word-1 of a REPLACE on a debugging line (processed whatever the DEBUGGING MODE setting)"
+    ],
+    "evidence-2002": [
+     "source line: covered by the 2023 row's witness (ordinary source lines are the same case in both editions)",
+     "D-line REPLACE with a two-word partial-word-1, no DEBUGGING MODE, refused: covered by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_pw1.cob at --std 2002"
+    ],
+    "reason": "Same reach as REPLACE SR1 and as the p-07 refuter's 7.1.3.3 GR3. Probe at 2002: D-line REPLACE LEADING ==AA BB== BY ==CC== is refused with COBOL2572 although the line would become a comment.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_pw1.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for partial-word-1 of a REPLACE on a debugging line (probe rp_d_pw1.cob)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-18\\rp_d_pw1.cob"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-18",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.44.2-9",
+    "verdict": "OVERTURNED",
+    "reason": "Format and SR1-SR9 are word-identical, but in 2002 identifier-4 and identifier-5 may reference items of the communication section: a user record under a CD (qualified by the cd-name through file-cd-report-qualifier), and the CD entry's own implicitly described data-names (A.1.2.3 GR2: SYMBOLIC QUEUE X(12), END KEY X, TEXT LENGTH 9(4) ...). Annex A names 8.4.2.1 Identifier as a communication entity. The reader's own scope-2002 lists the CD receivers and covers them only with a new probe, not with the 2023 row, which by the reader brief's definition of SAME makes the row DIFFERENT. The p-05 refuter upheld DIVIDE on the opposite view (location-independent operand rule); the coordinator should make the two consistent. Probe at 2002: us_cd_impl.cob (UNSTRING INTO QN DELIMITER IN EK, TL, all implicit CD data-names) prints [QUEUEA      ][,][0042]; the reader's us_cd.cob covers a CD-record receiver. Compiler correct at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR9",
+      "quote": "The data item referenced by identifier-4 is the receiving operand for data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR9",
+      "quote": "The data item referenced by identifier-4 is the receiving operand for data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2 and general rule 1d",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2a",
+      "quote": "The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for UNSTRING receivers that are CD-record items and implicit CD data-names (probes refute-p-18\\us_cd_impl.cob, probes-p-18\\us_cd.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-18\\us_cd_impl.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-17",
+    "verdict": "OVERTURNED",
+    "reason": "SR17 rests on what 'an interface specified in the REPOSITORY paragraph' may be and where it may be used, and that changed. 2002 12.2.7.3 GR7 lets interface-name-2 be used throughout the environment division's scope with no exception, and 2002 9.3.13 says naming a parameterized interface in REPOSITORY creates an instance of it. 2023 12.3.8.4 GR7 adds a second sentence: an interface described with USING may be specified ONLY in the REPOSITORY paragraph. So USE AFTER EO PI, with PI a parameterized interface named in REPOSITORY, satisfies 2002 SR17 and no 2002 rule forbids it, while 2023 forbids it. The reader cited p-01 GR-12.2.7.3-9 as proof that the specifier is the same, but the p-01 refuter left that row DOUBTFUL for this same 9.3.13 change. Probe use_eo_param.cob: refused at --std 2002 AND 2023 with COBOL0859, whose text cites §2023:12.3.8.4 GR1/GR7. The compiler's SR17 check applies the 2023-only restriction at 2002. This is probably a defect, unless the 2002 9.3.13 wording is read as not admitting a non-EXPANDS use (the open p-01 question). Sibling: SR16 (class-name-1) uses the same check and the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR17",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR17",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.3 GR7",
+      "quote": "Interface-name-2 is the name of an interface that may be used throughout the scope of the containing environment division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.4 GR7",
+      "quote": "If interface-name-1 is an interface described with the USING phrase, interface-name-1 may be specified only in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.13",
+      "quote": "When a parameterized interface is specified in the REPOSITORY paragraph, a new interface",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 the compiler refuses USE AFTER EO <parameterized interface named in REPOSITORY> with COBOL0859 citing §2023:12.3.8.4 GR7 (probe use_eo_param.cob); settle the 2002 9.3.13 reading (shared with p-01 GR-12.2.7.3-9), then file a defect or record the ruling",
+    "compiler-at-2002": "wrong (pending the 9.3.13 reading): use_eo_param.cob refused at 2002 by a 2023-only rule",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-18\\use_eo_param.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-2",
+    "verdict": "UPHELD",
+    "reason": "All four USE formats and the ALL FORMATS band are word-identical (2023 renames class-name-1 only). File-name-1/file-name-2 name file connectors. A cd-name is not a file-name, and sort/merge files are SD entries in both editions. I found no removed form or deferral.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR2",
+      "quote": "File-name-1 or file-name-2 shall not be a sort or a merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR2",
+      "quote": "File-name-1 or file-name-2 shall not be a sort or a merge file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.45.2-5",
+    "verdict": "UPHELD",
+    "reason": "Both editions have the same FORMATS 1 AND 3 band and the same file-name-1 / INPUT / OUTPUT / I-O / EXTEND and EC ... FILE file-name-2 operands. The rule is permissive, and the 2002 organizations (sequential, relative, indexed) all remain in 2023. No CD operand is possible.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.45.2 SR5",
+      "quote": "need not all have the same organization or access",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.3 SR5",
+      "quote": "need not all have the same organization or access",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.5.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "The format is identical, but SR1 tests the category of identifier-1, and in 2002 identifier-1 may reference a communication-section item whose category comes only from Annex A. Examples are the implicit CD data-names (A.1.2.3 GR2a SYMBOLIC QUEUE and GR2g SYMBOLIC SOURCE are elementary alphanumeric, so they are legal; GR2h TEXT LENGTH and GR2k MESSAGE COUNT are implicit unsigned integers, so they are illegal) and items of a CD record. Annex A names 8.4.2.1 Identifier as a communication entity, so the reader's 'CANCEL is not in the Annex A list' does not exclude the reach. The 2023 row cannot witness either leg. Probes at 2002: cn_cd_ok.cob (CANCEL QN, CANCEL SS) prints OK. cn_cd_bad.cob (CANCEL MC, CANCEL TL) is refused with COBOL1696 'of category numeric'. Compiler correct at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.2 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric or national data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2 and general rule 1d",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2a",
+      "quote": "The SYMBOLIC QUEUE clause defines data-name-1 as the name of an elementary alphanumeric data item of 12 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "The MESSAGE COUNT clause defines data-name-11 as the name of an elementary data item whose implicit description is that of an integer of 6 digits",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CANCEL of implicit CD data-names, alphanumeric accepted and numeric refused (probes cn_cd_ok.cob, cn_cd_bad.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-18\\cn_cd_bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.5.2-3",
+    "verdict": "UPHELD",
+    "reason": "The program-specifier is the same in both editions (PROGRAM program-prototype-name-1 [AS literal]), and SR14/SR15 and GR10 correspond. Program prototypes have no parameterized form, so the 9.3.13 change that breaks USE SR17 does not reach this rule. No CD operand is possible.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.2 SR3",
+      "quote": "Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.3 SR3",
+      "quote": "Program-prototype-name-1 shall be a program prototype specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.6.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the removed form. The 2002 format is WITH {NO REWIND | LOCK}, and 2023 drops LOCK. SR1 names only NO REWIND, REEL and UNIT, all present identically in 2023, so the LOCK alternative is outside the rule. The reader's cl_seq.cob shows CLOSE ... WITH LOCK on an indexed file accepted at 2002, so SR1 is not over-applied to it. The 2002 organizations are a subset of 2023's. Neither edition has a CD operand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.2 SR1",
+      "quote": "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.3 SR1",
+      "quote": "The NO REWIND, REEL, and UNIT phrases may be used only with files that are of sequential organization",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "Same format apart from ROUNDED becoming rounded-phrase. But SR1 tests whether identifier-1 is elementary numeric, and in 2002 identifier-1 may be an implicit CD data-name whose category is fixed only by Annex A. TEXT LENGTH (GR2h, implicit 4-digit integer), MESSAGE COUNT, MESSAGE DATE and DESTINATION COUNT are legal receivers. SYMBOLIC QUEUE and STATUS KEY are alphanumeric, so they are illegal. A numeric item in a CD record is also reachable. The 2023 row has no such items. Probes at 2002: cp_cd_ok.cob (COMPUTE TL MC = 12 * 3, COMPUTE DC = 2, COMPUTE OTL = TL + 1) prints 0036 000036 0002 0037. cp_cd_bad.cob (COMPUTE SK, COMPUTE QN) is refused with COBOL1675 'of category Alphanumeric'. Compiler correct at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR1",
+      "quote": "Identifier-1 shall reference either an elementary numeric item or an elementary numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR1",
+      "quote": "Identifier-1 shall reference either an elementary numeric item or an elementary numeric-edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2h",
+      "quote": "The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2 and general rule 1d",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for COMPUTE receivers that are implicit CD data-names, numeric accepted and alphanumeric refused (probes cp_cd_ok.cob, cp_cd_bad.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-18\\cp_cd_ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-2",
+    "verdict": "UPHELD",
+    "reason": "Format 2 is identical, and the boolean category and usages are the same. Attacked the CD reach. The implicit CD data-names are all alphanumeric or numeric (A.1.2.3 GR2), and Annex A states that boolean data is omitted from the communications facility. So identifier-2 has no 2002-only CD case the way COMPUTE SR1 does. A user boolean item in an output-CD record would be categorized by its own data description entry, the same mechanism as in 2023.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR2",
+      "quote": "Identifier-2 shall reference an elementary boolean data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR2",
+      "quote": "Identifier-2 shall reference an elementary boolean data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "Support for data of classes boolean and national and exception handling are intentionally omitted",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.7.2-3",
+    "verdict": "UPHELD",
+    "reason": "The rule constrains only the form of boolean-expression-1 (solely ALL literal), and that form is defined the same way in both editions. The rule has no operand location, CD reach or removed form.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.2 SR3",
+      "quote": "Boolean-expression-1 shall not consist solely of the figurative constant ALL literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.3 SR3",
+      "quote": "Boolean-expression-1 shall not consist solely of the figurative constant ALL literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "a28573b527615e072884866163f06b0197fbc4d429052d486201e1e7e0034f7f",
+  "read": "54531d117aae99032a0a57f4842f6de87d93243de246c52e2639e806e682091d",
+  "refute": "e02f8a2b09696f486f1e8d8715e2455e2ba7d7d233de83d698be87df9a648207"
+ }
+}

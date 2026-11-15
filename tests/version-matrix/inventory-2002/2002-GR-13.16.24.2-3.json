@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-13.16.24.2-3",
+ "rule-digest": "cfd4b4e0d2fc",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.26.3-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 14218 writes 'nonspace' for 2002's 'non-space': spelling only. Re-read §2002:13.16.24.2 GR3: unchanged."
+   },
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); digit position (newer: undefined)",
+    "answer": "§2002:4 4.27 'character (in a screen item)' and 4.63 digit position (storage/presentation sense) are the senses this screen rule uses; 2023 drops the character senses and adds a location sense of digit position. No program's scope changes: the FULL clause is a screen-section element, licensed non-support at 2002 and refused there (COBOL1560)."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Matched on 'normal termination key', the key that ends ACCEPT screen input, not run unit termination, initial state or transfer of control (§2002:14.5.2.1.2.1, 14.5.3, 14.5.10). The rule does not rest on those clauses."
+   }
+  },
+  "source": "lineage-reads-2002/q-14.json",
+  "digests": {
+   "GR-13.18.26.3-3": "cfd4b4e0d2fc"
+  }
+ }
+}

@@ -1,1 +1,1 @@
-{"refuse-at": ["2023"], "expect": "COBOL1511"}
+{"refuse-at": ["2002", "2023"], "expect": "COBOL1511"}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-15",
+ "rule-digest": "339b16f1476a",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.1.4-15"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "2002 defines 'character' in four senses (§2002:4, 4.26 to 4.29: coded value, graphic character in a screen item, COBOL character, code value in storage) and 'coded character set' (4.40); 2023's clause 3 defines none of them and uses the words in their ordinary sense. GR15 positions the screen in 'alphanumeric character positions' (4.31). Screen ACCEPT is processor-dependent in 2002 (§2002:3.1.5, B.3), and the compiler refuses it at --std 2002 (COBOL1560/COBOL1707, the reader's screen1.cob), so the evidence is unaffected. The term picks out the same characters in both, so the scope and the evidence do not change."
+   }
+  },
+  "source": "lineage-reads-2002/q-24.json",
+  "digests": {
+   "GR-14.9.1.4-15": "339b16f1476a"
+  }
+ }
+}

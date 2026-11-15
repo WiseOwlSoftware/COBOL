@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.36.2-21",
+ "rule-digest": "7fe6674d9fa1",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.38.3-24"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.36 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "SR21 sits under FORMAT 3, the report-writer format, which exists only in report group description entries (§2002:13.16.36.2 SR21); a CD record uses formats 1 and 2. No CD reach."
+   }
+  },
+  "source": "lineage-reads-2002/p-11.json",
+  "digests": {
+   "SR-13.18.38.3-24": "7fe6674d9fa1"
+  }
+ }
+}

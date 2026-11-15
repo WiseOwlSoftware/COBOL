@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.13.3-2",
+ "rule-digest": "7aec0c7be706",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#Standard2002",
+ "test-ref": "conformance:cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation",
+ "notes": "§2002:7.2.13.3 GR2 includes text-1 when the condition is TRUE; an arithmetic operand of the condition is evaluated by the 32-digit standard arithmetic (kb/Work PB5575). The witness's IF 10^30 * 100 + 9 - 10^30 * 100 = 0 is TRUE at 2002 and includes its text-1."
+}

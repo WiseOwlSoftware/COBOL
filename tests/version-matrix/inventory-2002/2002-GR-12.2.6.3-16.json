@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-16",
+ "rule-digest": "1bf5ec594ec8",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-12.3.7.4-16"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "9.2.3",
+    "answer": "§2002:9.2.3 exists under the same number with the same values and the same link to the CRT STATUS clause ('The value of the CRT status is available through the use of the CRT STATUS clause in the SPECIAL-NAMES paragraph'), so the scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+   }
+  },
+  "source": "lineage-reads-2002/q-08.json",
+  "digests": {
+   "GR-12.3.7.4-16": "1bf5ec594ec8"
+  }
+ }
+}

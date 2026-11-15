@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1m8_counters_dummy_suppressed
       *> rules: [GR-8.4.3.15.4-5]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_search_all_index_and_others
       *> rules: [GR-14.9.37.4-8]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

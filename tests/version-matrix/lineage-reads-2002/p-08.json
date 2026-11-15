@@ -1,0 +1,1565 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-08 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-08",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-8.3.1.2.5.3-6",
+   "2002-GR-8.3.1.2.5.3-8",
+   "2002-GR-8.3.1.2.5.3-9",
+   "2002-GR-8.4.2.11.3-1",
+   "2002-GR-8.4.2.12.3-3",
+   "2002-GR-8.4.2.13.3-1",
+   "2002-GR-8.4.2.3.3-2",
+   "2002-GR-8.4.2.3.3-3",
+   "2002-GR-8.4.2.4.3-2",
+   "2002-GR-8.8.3.3-1",
+   "2002-SR-10.5.2-1",
+   "2002-SR-10.5.2-3",
+   "2002-SR-10.6.2-2",
+   "2002-SR-11.2.2-1",
+   "2002-SR-11.3.2-1",
+   "2002-SR-11.5.2-2",
+   "2002-SR-11.6.2-5",
+   "2002-SR-11.7.2-1",
+   "2002-SR-11.9.2-2",
+   "2002-SR-11.9.2-3",
+   "2002-SR-11.9.2-4",
+   "2002-SR-11.9.2-5",
+   "2002-SR-12.2.2-1",
+   "2002-SR-12.2.2-3",
+   "2002-SR-12.2.5.2-1"
+  ]
+ },
+ "read": {
+  "slice": "p-08",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-6",
+    "to": [
+     "GR-8.3.3.6.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR6",
+      "quote": "the low-value format represents the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR7",
+      "quote": "the low-value format represents the character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 4 (LOW-VALUE/LOW-VALUES, optional ALL) identical in both; all four paragraphs of the rule identical; SR1 restrictions identical; program collating sequence, OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE and LC_COLLATE locale mechanism unchanged. The only 2023 change in the clause is the restructured length rules GR2/GR3 (not this rule). Probe: LOW-VALUES equals LOW-VALUE and compares below SPACE at both editions.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\fig.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-8",
+    "to": [
+     "GR-8.3.3.6.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR8",
+      "quote": "The all-literal format represents all or part of the string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR9",
+      "quote": "The all-literal format represents all or part of the string",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 6 ALL literal-1 identical; SR2 literal classes (alphanumeric, boolean, national, may be a concatenation expression) identical; 2023 SR2 adds 'nor a zero-length literal', a construct 2002 lacks, so no 2002 case is removed. Probe: MOVE ALL \"AB\" TO PIC X(5) gives ABABA at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\fig.cob",
+    "widening": "2023 SR2 also excludes zero-length literals, which do not exist in 2002 (no 2002 program affected)."
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-9",
+    "to": [
+     "GR-8.3.3.6.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5",
+    "clause-2023": "8.3.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR9",
+      "quote": "The symbolic-character format represents one or more of the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR10",
+      "quote": "The symbolic-character format represents one or more of the character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 7 and SR4 identical; the SYMBOLIC CHARACTERS clause format (FOR ALPHANUMERIC/NATIONAL, IS/ARE, IN alphabet-name-3) is the same in both SPECIAL-NAMES formats. Probe: MOVE ALL STAR (ordinal 43) gives *** at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\fig.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.11.3-1",
+    "to": [
+     "GR-8.4.3.11.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11",
+    "clause-2023": "8.4.3.11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.3 GR1",
+      "quote": "Data-address-identifier creates a unique data item of class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.4 GR1",
+      "quote": "Data-address-identifier creates a unique data item of class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format ADDRESS OF identifier-1 identical. 2002 SR1 limits identifier-1 to the file, working-storage, local-storage and linkage sections, so there is no communication-section reach. 2023 adds restrictions (CONSTANT RECORD, dynamic-length items) on constructs 2002 lacks. Class pointer / category data-pointer defined the same. Not probed (the 2023 verdict carries; nothing 2002-only to exercise).",
+    "probe": null,
+    "widening": "2023 SR3/SR6 exclude CONSTANT RECORD and dynamic-length items, absent from 2002.",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class pointer in 2002 is data-pointer and program-pointer; 2023 adds function-pointer. The rule names category data-pointer, present and identical in both. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.1",
+      "quote": "Data-pointer<br>Function-pointer<br>Program-pointer",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-3",
+    "to": [
+     "GR-8.4.3.13.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.12",
+    "clause-2023": "8.4.3.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR3",
+      "quote": "has the characteristics of a program-pointer restricted to program-prototype-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR3",
+      "quote": "has the characteristics of a program-pointer restricted to program-prototype-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format ADDRESS OF PROGRAM {identifier-1 | literal-1 | program-prototype-name-1} identical; SR3 (prototype in REPOSITORY) identical; restricted program-pointer semantics same. 2023 SR2 adds a non-zero-length literal requirement (2023-only construct). 2023 adds a separate function-address-identifier clause that does not touch this rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.13.3-1",
+    "to": [
+     "GR-8.4.3.14.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.13",
+    "clause-2023": "8.4.3.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.3 GR1",
+      "quote": "LINAGE-COUNTER references a temporary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.4 GR1",
+      "quote": "LINAGE-COUNTER references a temporary unsigned integer data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format LINAGE-COUNTER [IN|OF file-name-1] identical; the referenced LINAGE clause (2002 13.16.32 / 2023 13.18.34) has an identical format and an identical GR2 page-size definition (2023 adds SR1 no-OCCURS data-names; 2002 allows qualified data-names: neither changes the size of LINAGE-COUNTER).",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class and category numeric are the same; the rule describes an implicit item, not a set picked out by the definition. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.3.3-2",
+    "to": [
+     "GR-8.4.3.3.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.3 GR2",
+      "quote": "explicitly or implicitly described as usage DISPLAY and its category is other than alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.4 GR2",
+      "quote": "explicitly or implicitly described as usage DISPLAY and its category is other than alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words, format and the SR1 list are identical (2023 adds only 'nor a variable-length group'). But in 2002 identifier-1 may reference a data item of the communication section, including the CD's implicitly described numeric fields (MESSAGE DATE/TIME, TEXT LENGTH, MESSAGE COUNT, DESTINATION COUNT: 'implicit description is that of an integer'), which are 'implicitly described as usage DISPLAY' with category numeric. 2023 has no CD, so the 2023 verdict says nothing about reference modification of those items. Probe at 2002: MC(4:3) of MESSAGE COUNT 123456 = 456, MC(2:) = 23456, TL(3:2) of TEXT LENGTH 42 = 42, MOVE \"XY\" TO MC(1:2) gives XY3456; DC(3:2) of output-CD DESTINATION COUNT 12 = 12: all correct. Working-storage case identical at both editions (refmod.cob).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\comm2.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for reference modification of implicitly described numeric CD fields (MESSAGE COUNT, TEXT LENGTH, DESTINATION COUNT) is correct per comm2.cob and comm3.cob (operated on as alphanumeric of the same size)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\comm2.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\comm3.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.3.3-3",
+    "to": [
+     "GR-8.4.3.3.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.3",
+    "clause-2023": "8.4.3.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.3 GR3",
+      "quote": "explicitly or implicitly described as usage NATIONAL and its category is other than national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.4 GR3",
+      "quote": "explicitly or implicitly described as usage NATIONAL and its category is other than national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words and format identical. In 2002 identifier-1 may reference a usage NATIONAL item of category other than national in a record description entry under an output CD (A.1.2.2 SR9: records under an output CD implicitly redefine its area, with no fixed-size or alphanumeric-only restriction), a context 2023 lacks. Probe at 2002: ONUM PIC 9(3) USAGE NATIONAL under an output CD, ONUM(2:2) of 789 = 89: correct. Working-storage case identical at both editions (refmod.cob NN(2:2) = 89).",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\comm3.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for reference modification of a usage NATIONAL numeric item in a record under an output CD is correct per comm3.cob",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\comm3.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.4.3-2",
+    "to": [
+     "GR-8.4.3.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.4",
+    "clause-2023": "8.4.3.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.3 GR2",
+      "quote": "the resumption point is the next executable statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.4 GR2",
+      "quote": "the resumption point is the next executable statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format identical except class-name-1 renamed object-class-name-1 (same entity). The term 'next executable statement' (2002 14.5.3 / 2023 14.6.3) changed only for the EXIT FUNCTION/EXIT METHOD and fatal-declarative-end cases, not for the statement following a statement containing an inline invocation. 2023 adds PERFORM WHEN / RESUME exception processing (additions). In 2002 the invoked method may raise via EXIT METHOD RAISING (removed in 2023), but the caller-side resumption is the same as for GOBACK RAISING, which both editions have. Not probed (needs a method raising an exception object).",
+    "probe": null,
+    "widening": "2023 also reaches exceptions handled by exception-checking PERFORM WHEN / RESUME, absent from 2002."
+   },
+   {
+    "rule-id": "2002-GR-8.8.3.3-1",
+    "to": [
+     "GR-8.8.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.3",
+    "clause-2023": "8.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.3 GR1",
+      "quote": "when both of the operands are figurative constants, the class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.3 GR1",
+      "quote": "when both of the operands are figurative constants, the class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format and SR1 identical; enumeration a)-c) identical. The SR2-SR4 length limit is raised from 160 to 8,191 in 2023 (widening). Probe: \"AB\" & \"CD\" & SPACE, N\"X\" & QUOTE and \"Q\" & ZERO give identical results at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\concat.cob",
+    "widening": "2023 admits concatenation results up to 8,191 positions (2002: 160)."
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-1",
+    "to": [
+     "SR-10.6.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.5",
+    "clause-2023": "10.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR1",
+      "quote": "function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR1",
+      "quote": "function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     }
+    ],
+    "reason": "Compilation-group format: the same six source-unit kinds (program/function prototype and definition, class, interface) in both. 2002 SR4 (no communication section in a method), dropped in 2023, does not touch this rule. Probe: a prototype after a program definition is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\protoord.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-3",
+    "to": [
+     "SR-10.6.2-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.5",
+    "clause-2023": "10.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR3",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR3",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     }
+    ],
+    "reason": "Function-prototype and function-definition formats identical; 'signature' is defined by the identical external-repository list in 8.13 of both editions. Probe: a differing RETURNING item is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\fsig.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-2",
+    "to": [
+     "SR-10.7.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6",
+    "clause-2023": "10.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR2",
+      "quote": "Program-name-1 shall be identical to the program-name declared in a preceding PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR2",
+      "quote": "Program-name-1 shall be identical to the program-name declared in a preceding PROGRAM-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "End-marker format identical (class-name-1 renamed object-class-name-1 only). Probe: END PROGRAM OTHERX after PROGRAM-ID OUTER is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\endname.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-1",
+    "to": [
+     "SR-11.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.2",
+    "clause-2023": "11.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     }
+    ],
+    "reason": "CLASS-ID format identical (object-class-name rename). Rule text identical; 2023 CLASS-ID SR1 does not add the zero-length exclusion the sibling paragraphs add. Probe: AS SPACE is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\clsfig.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.3.2-1",
+    "to": [
+     "SR-11.4.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.3",
+    "clause-2023": "11.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.3.2 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.3 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "FACTORY paragraph format and syntax rules identical; the REPOSITORY interface-specifier is the same. Probe: IMPLEMENTS of an interface not in the REPOSITORY is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\oo.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged.",
+     "definition-dropped: class definition | in object orientation (newer: undefined)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. The REPOSITORY paragraph of the containing class definition is the same construct in both."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-08"
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-2",
+    "to": [
+     "SR-11.6.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5",
+    "clause-2023": "11.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.5.2 SR2",
+      "quote": "Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.3 SR2",
+      "quote": "Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element",
+      "check": "OK"
+     }
+    ],
+    "reason": "INTERFACE-ID format identical; 2023 adds SR6/SR7 (no duplicate INHERITS/USING names), restrictions on other operands only.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: interface | of an object": "§2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "The names of all the methods defined for the object, including inherited methods",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-08"
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-5",
+    "to": [
+     "SR-11.7.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6",
+    "clause-2023": "11.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR5",
+      "quote": "the PROPERTY clause shall not be specified in the data description entry of that data-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR5",
+      "quote": "the PROPERTY clause shall not be specified in the data description entry of that data-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "METHOD-ID format identical; the PROPERTY clause exists in both; 2023 changes SR3/SR4 to 'method resolution signature' and adds ACTIVE-CLASS limits in SR6/SR7, not this rule. Probe: GET PROPERTY P1 with P1 carrying PROPERTY is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\prop.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: property": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; the rule (no PROPERTY clause on a data-name that is property-name-1 of a GET/SET PROPERTY method) has the same scope; the reader's probe prop.cob stands."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-11.7.2-1",
+    "to": [
+     "SR-11.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.7",
+    "clause-2023": "11.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.7.2 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.8.3 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "OBJECT paragraph format and rules identical.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item; interface | of an object": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.110) interface of an object lists the methods with their parameters, returned value and exceptions, word for word 2023 3.109 apart from 'may'/'can'; the rule names an interface as the language construct (§2002:4 4.111 'A grouping of method prototypes'), defined alike in 2023 3.110, so scope is unchanged.",
+     "definition-dropped: class definition | in object orientation (newer: undefined)": "§2002:4 (4.36) 'A compilation unit that defines a class of objects' is word for word 2023 3.35 (the screen's 'newer: undefined' is a miss: 2023 still defines it), so the class definitions the rule reaches are the same. The REPOSITORY paragraph of the containing class definition is the same construct in both."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A grouping of method prototypes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A compilation unit that defines a class of objects",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-08"
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-2",
+    "to": [
+     "SR-11.10.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9",
+    "clause-2023": "11.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR2",
+      "quote": "Literal-1 shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR2",
+      "quote": "Literal-1 shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     }
+    ],
+    "reason": "PROGRAM-ID formats 1 and 2 identical, FORMAT 1 scoping identical. Probe: an AS literal in a contained program is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\nestas.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-3",
+    "to": [
+     "SR-11.10.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9",
+    "clause-2023": "11.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR3",
+      "quote": "shall not be assigned the same name as that of any other program contained within the outermost program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR3",
+      "quote": "shall not be assigned the same name as that of any other program contained within the outermost program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format and rule; containment model unchanged. Probe: a duplicate DEEP at two nesting levels is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\nestdup.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-4",
+    "to": [
+     "SR-11.10.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9",
+    "clause-2023": "11.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR4",
+      "quote": "The COMMON clause may be specified only if the program is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR4",
+      "quote": "The COMMON clause may be specified only if the program is contained within another program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; the common-program definition (2002 8.6.5 / 2023 8.6.6) is unchanged. Probe: COMMON on an outermost program is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\common.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-5",
+    "to": [
+     "SR-11.10.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.9",
+    "clause-2023": "11.10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR5",
+      "quote": "The INITIAL clause shall not be specified if any program that directly or indirectly contains this program is a recursive program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR5",
+      "quote": "The INITIAL clause shall not be specified if any program that directly or indirectly contains this program is a recursive program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical; a 'recursive program' is attained only by the RECURSIVE clause in both (2002 8.6.5 / 2023 8.6.6). Probe: INITIAL inside a RECURSIVE program is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\initrec.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-1",
+    "to": [
+     "SR-12.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2",
+    "clause-2023": "12.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR1",
+      "quote": "The configuration section shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR1",
+      "quote": "The configuration section shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Configuration-section format (four optional paragraphs) and all three SRs identical. Probe: a CONFIGURATION SECTION in a contained program is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\nestcfg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-3",
+    "to": [
+     "SR-12.3.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2",
+    "clause-2023": "12.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR3",
+      "quote": "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR3",
+      "quote": "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition or an instance definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical. Probe: SOURCE-COMPUTER in a FACTORY definition is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\factsc.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.5.2-1",
+    "to": [
+     "SR-12.3.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.5",
+    "clause-2023": "12.3.6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.3 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     }
+    ],
+    "reason": "OBJECT-COMPUTER format identical (CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE with FOR ALPHANUMERIC/NATIONAL); the ALPHABET clause format is identical in both SPECIAL-NAMES paragraphs. 2023 adds SR4 (period omission). Probe: an alphabet FOR NATIONAL as alphabet-name-1 is rejected at both.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-08\\pcs.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-08",
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "Same words, but in 2002 the low-value format can be the VALUE operand of an entry in a record description under a CD (A.1.2.2 SR5 lets the first redefinition carry VALUE clauses; 13.16.61 GR4 makes VALUE take effect in the communication section), and it can be moved to or compared with a CD record item. 2023 has no communication section, so the 2023 verdict says nothing about LOW-VALUE initialising or associated with a CD-record item. Probe at 2002: F-LOW PIC X(3) VALUE LOW-VALUE under CD CIN FOR INPUT equals a working-storage LOW-VALUE item and compares below SPACE (correct); at 2023 the CD is refused (COBOL0902).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR6",
+      "quote": "the low-value format represents the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR7",
+      "quote": "the low-value format represents the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for LOW-VALUE in a VALUE clause of a record under a CD (cdfig.cob shows the compiler correct at --std 2002)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-8",
+    "verdict": "OVERTURNED",
+    "reason": "Same words. In 2002 ALL literal can be the VALUE operand of an entry under a CD (A.1.2.2 SR5, 13.16.61 GR4) or be moved to a CD-record item, and 'all or part of the string' is then sized by that CD-record item. 2023 has no CD, so its verdict does not cover that case. Probe at 2002: F-ALL PIC X(5) VALUE ALL \"AB\" under an input CD = ABABA; MOVE ALL \"XY\" TO F-ALL = XYXYX (correct); 2023 refuses the CD.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR8",
+      "quote": "The all-literal format represents all or part of the string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR9",
+      "quote": "The all-literal format represents all or part of the string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.3 GR4",
+      "quote": "VALUE clauses in the working-storage, local-storage, and communication sections take effect",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for ALL literal in a VALUE clause of, and moved to, a CD-record item (cdfig.cob: correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.3.1.2.5.3-9",
+    "verdict": "OVERTURNED",
+    "reason": "Same words. In 2002 ALL symbolic-character can be the VALUE operand of an entry under a CD, or be moved to a CD-record item, which sets how many of the character it stands for. 2023 has no CD. Probe at 2002: F-SYM PIC X(3) VALUE ALL STAR (ordinal 43) = ***, and MOVE ALL STAR TO F-SYM = *** (correct).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR9",
+      "quote": "The symbolic-character format represents one or more of the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR10",
+      "quote": "The symbolic-character format represents one or more of the character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a symbolic-character figurative constant in VALUE of, and moved to, a CD-record item (cdfig.cob: correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.11.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format ADDRESS OF identifier-1 is identical. 2002 SR1 limits identifier-1 to the file, working-storage, local-storage and linkage sections, so it cannot reach the communication section. 2002 SR4 (strongly-typed group needs a TYPE ... STRONG) is gone in 2023, which widens 2023. 2023 SR3/SR6 restrict only constructs 2002 does not have. GR1 text is identical.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.3 GR1",
+      "quote": "Data-address-identifier creates a unique data item of class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-3",
+    "verdict": "UPHELD",
+    "reason": "GR3 governs only the program-prototype-name-1 form. That operand and its REPOSITORY rule are identical in both editions. Identifier-1 can reach an alphanumeric CD field in 2002, but GR3 does not govern it. The 2023 zero-length-literal restriction applies to a construct 2002 does not have.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR3",
+      "quote": "has the characteristics of a program-pointer restricted to program-prototype-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR3",
+      "quote": "has the characteristics of a program-pointer restricted to program-prototype-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.13.3-1",
+    "verdict": "UPHELD",
+    "reason": "The LINAGE-COUNTER format and the LINAGE clause format are identical. The page-size definition (GR2) and the LINAGE-COUNTER rules (GR7) carry the same text. LINAGE exists only in file description entries in both editions, so it has no CD or report reach.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.3 GR1",
+      "quote": "LINAGE-COUNTER references a temporary unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.4 GR1",
+      "quote": "LINAGE-COUNTER references a temporary unsigned integer data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.4.3-2",
+    "verdict": "OVERTURNED",
+    "reason": "Two differences the reader missed. (1) communication-reach by deferral: 2002 SR3 makes the inline invocation valid when the equivalent INVOKE is, and 2002 INVOKE SR9 admits a communication-section argument, which 2023 SR9 drops (Annex A names INVOKE SR9/SR11 as communication references). So in 2002 GR2 governs a statement whose inline invocation passes a CD-record item. Probe inlcd.cob at 2002: MOVE C1 :: \"ECHO\" (QN) TO W, where QN is in a record under an input CD, gives [QUEUE-ONE   ] (correct). (2) 2023 SR4 adds a ban on an ACTIVE-CLASS returning item, which 2002 SR4 lacks (2002 13.16.58.2 SR15 allows ACTIVE-CLASS in a method's linkage section). So a 2002-valid inline invocation of a method returning ACTIVE-CLASS, governed by GR2, is outside 2023. Probe inlac.cob: --std 2002 REJECTS it with COBOL2140 citing §2023:8.4.3.4.3 SR4, a compiler defect at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.3 GR2",
+      "quote": "the resumption point is the next executable statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.4 GR2",
+      "quote": "the resumption point is the next executable statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.2 SR3",
+      "quote": "One of the INVOKE statements specified in general rule 1 shall be valid according to 14.8.22, INVOKE statement, syntax rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.2 SR4",
+      "quote": "shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.3 SR4",
+      "quote": "shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition, or the linkage or local-storage section of a method definition",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach (also other: 2023 SR4 restricts the clause with an ACTIVE-CLASS ban absent from 2002)",
+    "needs": "its own verdict: at --std 2002 an inline invocation with a CD-record argument is correct (inlcd.cob); an inline invocation of a method whose RETURNING item is ACTIVE-CLASS is wrongly rejected (inlac.cob), so a defect note is needed before this row can close",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\inlac.cob: COBOL2140 'the invoked method's RETURNING item is described with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)' at --std 2002; expected acceptance per §2002:8.4.2.4.2 SR4); correct for the CD case (inlcd.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\inlac.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.3.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "Same words and format, but 2002 GR3 lets a concatenation expression stand anywhere a literal can. That includes the VALUE clause of an entry under a CD (A.1.2.2 SR5), so GR1 sets the class of a CD-record VALUE operand, a case outside 2023. Probe at 2002: F-CAT PIC X(2) VALUE SPACE & QUOTE under an input CD = [ \"] (alphanumeric, correct). This is a weak reach because the class result does not depend on context, but by the brief's question 2 the rule governs a CD-record operand.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.3 GR1",
+      "quote": "when both of the operands are figurative constants, the class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.3 GR1",
+      "quote": "when both of the operands are figurative constants, the class alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.3.3 GR3",
+      "quote": "may be used anywhere a literal of that class may be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "only the first redefinition may contain VALUE clauses",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a figurative-constant concatenation in a VALUE clause of a CD-record item (cdfig.cob: correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\cdfig.cob"
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "The compilation-group format has the same six source-unit kinds, and the prototype formats are identical. The communication facility is allowed only in a program definition and does not touch the order of units. 2002 SR4 is a separate rule.",
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR1",
+      "quote": "function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR1",
+      "quote": "function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-10.5.2-3",
+    "verdict": "UPHELD",
+    "reason": "Signature is defined in 8.13 by the same list of external-repository items in both editions, and the sentence that defines the term is identical. Functions cannot use the communication facility. The function-definition and function-prototype formats are identical.",
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR3",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR3",
+      "quote": "the signatures of these two compilation units shall be the same",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-10.6.2-2",
+    "verdict": "UPHELD",
+    "reason": "End-marker format and SR1-SR9 are identical; the only change is the rename of class-name-1 to object-class-name-1.",
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR2",
+      "quote": "Program-name-1 shall be identical to the program-name declared in a preceding PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR2",
+      "quote": "Program-name-1 shall be identical to the program-name declared in a preceding PROGRAM-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.2.2-1",
+    "verdict": "UPHELD",
+    "reason": "CLASS-ID format is identical apart from the rename. 2023 CLASS-ID SR1 keeps the exact 2002 wording, with no zero-length addition. Literal classes are unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:11.2.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.3.3 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "FACTORY format, SR1-SR2 and GR1-GR2 are identical. The REPOSITORY interface-specifier, including EXPANDS, is identical, and parameterized classes are kept in 2023.",
+    "citations": [
+     {
+      "cite": "§2002:11.3.2 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.4.3 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.5.2-2",
+    "verdict": "UPHELD",
+    "reason": "INTERFACE-ID format is identical. 2023 SR6/SR7 add duplicate-name bans on the INHERITS and USING lists, which are other prohibitions and do not narrow SR2.",
+    "citations": [
+     {
+      "cite": "§2002:11.5.2 SR2",
+      "quote": "Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.3 SR2",
+      "quote": "Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.6.2-5",
+    "verdict": "UPHELD",
+    "reason": "SR5 is a prohibition. Every program it rejects in 2002 is also rejected in 2023 (by SR5, and by SR6/SR7 when ACTIVE-CLASS is involved), and SR5 does not depend on the returning item. LEAD for a sibling row (not this slice): 2023 SR6 adds an ACTIVE-CLASS ban on a GET property method's returning item, which 2002 SR6 lacks, and --std 2002 applies it (propac.cob: COBOL2790 citing §2023:11.7.3 SR6). That is a compiler defect at 2002 for row 2002-SR-11.6.2-6.",
+    "citations": [
+     {
+      "cite": "§2002:11.6.2 SR5",
+      "quote": "the PROPERTY clause shall not be specified in the data description entry of that data-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR5",
+      "quote": "the PROPERTY clause shall not be specified in the data description entry of that data-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.6.2 SR6",
+      "quote": "then the method shall have no USING phrase parameters specified in the procedure division header and shall have a single RETURNING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.7.3 SR6",
+      "quote": "The returning item shall not be an object reference described with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\propac.cob"
+   },
+   {
+    "rule-id": "2002-SR-11.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "OBJECT paragraph format and all rules are identical, and the REPOSITORY interface-specifier is identical.",
+    "citations": [
+     {
+      "cite": "§2002:11.7.2 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.8.3 SR1",
+      "quote": "Interface-name-1 shall be the name of an interface specified in the REPOSITORY paragraph of the containing class definition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-2",
+    "verdict": "UPHELD",
+    "reason": "Both PROGRAM-ID formats are identical. Containment rules are unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR2",
+      "quote": "Literal-1 shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR2",
+      "quote": "Literal-1 shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format and rule are identical, and the containment model is unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR3",
+      "quote": "shall not be assigned the same name as that of any other program contained within the outermost program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR3",
+      "quote": "shall not be assigned the same name as that of any other program contained within the outermost program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-4",
+    "verdict": "UPHELD",
+    "reason": "Identical. The common-attribute text in 2002 8.6.5 and 2023 8.6.6 is the same in substance; it only adds wording about contained programs' data for INITIAL and RECURSIVE.",
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR4",
+      "quote": "The COMMON clause may be specified only if the program is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR4",
+      "quote": "The COMMON clause may be specified only if the program is contained within another program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-11.9.2-5",
+    "verdict": "UPHELD",
+    "reason": "Identical. In both editions the recursive attribute comes only from the RECURSIVE clause (2002 8.6.5, 2023 8.6.6).",
+    "citations": [
+     {
+      "cite": "§2002:11.9.2 SR5",
+      "quote": "The INITIAL clause shall not be specified if any program that directly or indirectly contains this program is a recursive program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.10.3 SR5",
+      "quote": "The INITIAL clause shall not be specified if any program that directly or indirectly contains this program is a recursive program",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "Same words, but the configuration section's SOURCE-COMPUTER paragraph has a form in 2002 that 2023 dropped: WITH DEBUGGING MODE (obsolete in 2002, G.2 item 2). 2002 SR1 therefore also forbids a contained program whose configuration section carries SOURCE-COMPUTER ... WITH DEBUGGING MODE, a form the 2023 rule never sees. Probe nestdbg.cob at 2002: the clause gets an obsolete warning (COBOL0903) and the configuration section is rejected with COBOL1643 (correct).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR1",
+      "quote": "The configuration section shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR1",
+      "quote": "The configuration section shall not be specified in a program that is contained within another program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.2 SR1",
+      "quote": "If neither computer-name-1 nor the DEBUGGING MODE clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.3 SR1",
+      "quote": "If computer-name-1 is not specified, the second period in the General format may be omitted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "If the DEBUGGING MODE clause is specified in a source unit, all debugging lines are compiled",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for a contained program with SOURCE-COMPUTER WITH DEBUGGING MODE (nestdbg.cob: rejected, correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\nestdbg.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\nestdbg.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.2.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "The rule names SOURCE-COMPUTER, whose 2002 format has WITH DEBUGGING MODE and whose 2023 format does not. So 2002 SR3 also governs a factory or instance definition with SOURCE-COMPUTER ... WITH DEBUGGING MODE, a form outside 2023. Probe factdbg.cob at 2002: obsolete warning, then rejection with COBOL2644 (correct).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.2 SR3",
+      "quote": "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.3 SR3",
+      "quote": "The SOURCE-COMPUTER, OBJECT-COMPUTER, and REPOSITORY paragraphs shall not be specified in a factory definition or an instance definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.2 SR1",
+      "quote": "If neither computer-name-1 nor the DEBUGGING MODE clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.5.3 SR1",
+      "quote": "If computer-name-1 is not specified, the second period in the General format may be omitted",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for SOURCE-COMPUTER WITH DEBUGGING MODE in a factory definition (factdbg.cob: rejected, correct)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\factdbg.cob)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-08\\factdbg.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.2.5.2-1",
+    "verdict": "UPHELD",
+    "reason": "The OBJECT-COMPUTER format (CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE) is identical, and so is the SPECIAL-NAMES alphabet-name-clause, every alternative included. 2002 OBJECT-COMPUTER has no extra 2002-only phrase such as MEMORY SIZE or SEGMENT-LIMIT.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.5.2 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.3 SR1",
+      "quote": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "6f418ee2328b72e10bb7d37fde509d2e060fba1d39fbe16058d4b6bbc8bc10cc",
+  "read": "39f4117c71c887607ad0ed23da82933dd0c70b7f873d49807c79713b9b89c738",
+  "refute": "c6ec7b352aff1bb7fbc52112a8146be05e83797ee0141c94dae2673e9c7b1303"
+ }
+}

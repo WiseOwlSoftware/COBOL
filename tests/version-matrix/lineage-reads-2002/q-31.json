@@ -1,0 +1,2348 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-31 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-31",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.34.2-4",
+   "2002-SR-14.8.34.2-7",
+   "2002-SR-14.8.34.2-8",
+   "2002-GR-14.8.34.3-2",
+   "2002-GR-14.8.34.3-8",
+   "2002-SR-14.8.35.2-1",
+   "2002-SR-14.8.35.2-15",
+   "2002-SR-14.8.35.2-16",
+   "2002-SR-14.8.35.2-19",
+   "2002-SR-14.8.35.2-2",
+   "2002-SR-14.8.35.2-21",
+   "2002-SR-14.8.35.2-23",
+   "2002-SR-14.8.35.2-3",
+   "2002-SR-14.8.35.2-9",
+   "2002-GR-14.8.35.3-10",
+   "2002-GR-14.8.35.3-15",
+   "2002-GR-14.8.35.3-16",
+   "2002-GR-14.8.35.3-17",
+   "2002-GR-14.8.35.3-18",
+   "2002-GR-14.8.35.3-21",
+   "2002-GR-14.8.35.3-22",
+   "2002-GR-14.8.35.3-25",
+   "2002-SR-14.8.36.2-8",
+   "2002-GR-14.8.36.3-10",
+   "2002-GR-14.8.36.3-13"
+  ],
+  "flags": {
+   "2002-SR-14.8.34.2-4": {
+    "cross-reference": "8.8.4"
+   },
+   "2002-SR-14.8.34.2-7": {
+    "normalized": "normalized",
+    "changed-definition-term": "subscript"
+   },
+   "2002-GR-14.8.34.3-2": {
+    "cross-reference": "8.8.4"
+   },
+   "2002-GR-14.8.34.3-8": {
+    "changed-definition-term": "index"
+   },
+   "2002-SR-14.8.35.2-1": {
+    "changed-definition-term": "index"
+   },
+   "2002-SR-14.8.35.2-15": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.35.2-16": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-SR-14.8.35.2-19": {
+    "changed-definition-term": "null"
+   },
+   "2002-SR-14.8.35.2-2": {
+    "changed-definition-term": "index"
+   },
+   "2002-SR-14.8.35.2-21": {
+    "changed-definition-term": "null"
+   },
+   "2002-SR-14.8.35.2-3": {
+    "changed-definition-term": "index"
+   },
+   "2002-GR-14.8.35.3-10": {
+    "target-not-CONFORMS-OK": "verdicts ['DOCUMENTED-NON-SUPPORT'], states ['OK']"
+   },
+   "2002-GR-14.8.35.3-15": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-14.8.35.3-22": {
+    "changed-definition-term": "run unit"
+   },
+   "2002-GR-14.8.35.3-25": {
+    "changed-definition-term": "null"
+   },
+   "2002-GR-14.8.36.3-10": {
+    "changed-definition-term": "procedure"
+   },
+   "2002-GR-14.8.36.3-13": {
+    "changed-definition-term": "procedure"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-31",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.34.2-4",
+    "to": [
+     "SR-14.9.37.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.34 SEARCH statement",
+    "clause-2023": "14.9.37 SEARCH statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR4",
+      "quote": "Condition-1 may be any conditional expression evaluated as specified in 8.8.4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR6",
+      "quote": "Condition-1 may be any conditional expression evaluated as specified in 8.8.4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.4",
+      "quote": "When standard-decimal arithmetic is in effect, the form of rounding used in the operation shall be as specified in 11.9.11",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 WHEN condition-1: every 2002 8.8.4 condition kind is admitted (relation incl. pointer/object, boolean, class, condition-name, switch-status, sign, omitted-argument, negated, combined, abbreviated)",
+     "condition-1 evaluated as specified in 2002 8.8.4, which for numeric comparisons under ARITHMETIC IS STANDARD uses the 32-digit standard intermediate data item rounded to 31 digits"
+    ],
+    "evidence-2002": [
+     "covered by cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms and cases/8.8.4.3-Simple-boolean-condition/l1_search_when_boolean_omitted, both RUN-MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt); pointer relation in a WHEN: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-ptr-when.cob FOUND-2 at 2002",
+     "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob WRONG at 2002"
+    ],
+    "flags-answered": [
+     "cross-reference 8.8.4: read 2002 8.8.4. Its condition kinds are a subset of 2023's (2023 adds message-tag, variable-length group, float class tests), so the admitted forms are covered; but 2002 8.8.4.1.1.3 makes a numeric comparison under standard arithmetic follow 8.8.1.3.1.3 (32-digit item, rounded to 31 when compared), where 2023 8.8.4.2.4 names standard-binary/standard-decimal. The referenced evaluation changed; it changes the evidence"
+    ],
+    "reason": "General formats identical (Format 1 WHEN condition-1). The permission itself is covered at 2002 by the twin's breadth witnesses. But the rule's own words 'evaluated as specified in 8.8.4' reach 2002's numeric-comparison rule, which under ARITHMETIC IS STANDARD (a 2002 OPTIONS clause; 2023 removed STANDARD and the compiler refuses it at 2023, COBOL0807) is decided by 32-digit standard arithmetic. The 2023 row shows nothing about that, and the probe shows the compiler carries 34 digits in a WHEN.",
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a WHEN comparison under ARITHMETIC IS STANDARD follows 34 digits, not 2002's 32/31 (search-std-arith.cob); fix under the known 34-digit defect, then a 2002 witness",
+    "compiler-at-2002": "wrong (the KNOWN 34-digit standard-arithmetic defect, reached here; not a new defect): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob (OPTIONS. ARITHMETIC IS STANDARD; A PIC 9(30) all nines; IF (A + 0.001) = A and SEARCH E ... WHEN (A + 0.001) = A). Expected at 2002: A + 0.001 is truncated to 32 significant digits (A.00) and rounded to 31 for the comparison, so both are TRUE (IF-EQUAL, SEARCH-WHEN-TRUE). Observed --std 2002: IF-NOT-EQUAL, SEARCH-AT-END (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith-2002.txt). With 0.00001 (35 digits) the compiler gives IF-EQUAL/SEARCH-WHEN-TRUE (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith-35-2002.txt): it carries 34 digits. The WHEN shares the relation evaluator with IF.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-7",
+    "to": [
+     "SR-14.9.37.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34 SEARCH statement",
+    "clause-2023": "14.9.37 SEARCH statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR7",
+      "quote": "All referenced condition-names shall be defined as having only a single value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR9",
+      "quote": "All referenced condition-names shall be defined as having only a single value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A number used to refer to a specific element of a table",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 2 (SEARCH ALL) WHEN/AND condition-name-1/-2: single value",
+     "subscripted by the first index-name of identifier-1 plus any required subscripts",
+     "its conditional variable named in the KEY phrase",
+     "no '+'/'-' after the index-name subscript"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.37-SEARCH/pb445-search-all-condition-name-multivalue REFUSED COBOL1965 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "covered by cases/14.9.37-SEARCH/pb445_search_all_format2_legal RUN-MATCH at --std 2002 (pb443_search_identifier_1 does NOT run at 2002: it subscripts identifier-1, which 2002 SR1 forbids, and is refused COBOL0900, correctly)",
+     "covered by cases/14.9.37-SEARCH/pb445-search-all-condition-name-not-key REFUSED COBOL1965 at --std 2002",
+     "covered by cases/14.9.37-SEARCH/pb445-search-all-condition-name-index-plus REFUSED COBOL1965 at --std 2002 (the message cites §2002:14.8.34.2 SR7)"
+    ],
+    "flags-answered": {
+     "definition-changed: subscript": "§2002:4 (4.179) and §2023:3.170 differ only in 'the subscript 'ALL'' versus 'the value 'ALL''. The index-name and other subscripts SR7 requires on a condition-name are the same.",
+     "normalized: normalized": "2002 writes 'The index-name subscript shall not be followed by a '+' or a '–'' with an en dash; 2023 SR9 uses a hyphen. Both are the minus sign of relative indexing, so the requirement is the same. SR-14.9.37.3-9 is the right pointer (2023 renumbered SR7 to SR9)."
+    },
+    "reason": "Format 2 general format identical in both editions; the rule's terms (condition-name, KEY phrase, first index-name) mean the same; no CD, screen or debugging reach. 2023 widens SEARCH (identifier-1 may be subscripted at outer levels, §2023:14.9.37.3 SR2), which only adds 2023 cases.",
+    "widening": "2023 lets identifier-1 be subscripted at the outer levels (SR2/SR3); 2002 SR1 forbids any subscripting of identifier-1. 2023-only cases; the 2002 cases are covered at 2002.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "reader-flags-answered": [
+     "normalized: 2002 prints an en dash in \"a '+' or a '–'\", 2023 a hyphen; the same minus sign, no change of scope; the pointer to code and tests is SR-14.9.37.3-9 (the only match)",
+     "changed-definition-term subscript: 2002 4 'A number used to refer to a specific element of a table, or ... ALL'; 2023 3.170 the same with 'the value ALL'. No change of scope"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A number used to refer to a specific element of a table, or in the case of the subscript 'ALL', to all elements of a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.170",
+      "quote": "number used to refer to a specific element of a table, or in the case of the value 'ALL', to all elements of a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR7",
+      "quote": "The index-name subscript shall not be followed by a '+' or a '–'",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-8",
+    "to": [
+     "SR-14.9.37.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34 SEARCH statement",
+    "clause-2023": "14.9.37 SEARCH statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR8",
+      "quote": "shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR10",
+      "quote": "shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 2 identifier-3/-4 and identifiers in arithmetic-expression-1/-2: not a KEY data item",
+     "not subscripted by the first index-name of identifier-1"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.37-SEARCH/pb445-search-all-sending-is-key REFUSED COBOL1966 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "covered by cases/14.9.37-SEARCH/pb445-search-all-sending-uses-index REFUSED COBOL1966 at --std 2002; legal shape pb445_search_all_format2_legal RUN-MATCH at 2002"
+    ],
+    "reason": "Format 2 identical; identifier-3/-4 and arithmetic-expression-1/-2 admit the same things; a syntax restriction, no arithmetic evaluation involved. No CD/screen/debugging reach.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Read §2002:8.8.1.1 (order of evaluation and exponentiation exceptions, which apply 'regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.2 (each sum 'truncated to 32 significant digits'), and §2002:8.8.1.3.6 (exponentiation); this text governs only under ARITHMETIC IS STANDARD (§2002:8.8.1.3), and the compiler keeps 34 digits there at --std 2002 (PB5575, reconfirmed by probes-a-21/src/vals.cob: (B*100 + 1) - B*100 gives 1 where 2002 gives 0). SR8 restricts which identifiers may appear in the SEARCH ALL WHEN operands (§2002:14.8.34.2 SR8), a compile-time check; the evaluation of arithmetic-expression-1/-2 is outside the rule."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR8",
+      "quote": "shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-2",
+    "to": [
+     "GR-14.9.37.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.34 SEARCH statement",
+    "clause-2023": "14.9.37 SEARCH statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR2",
+      "quote": "The comparison associated with each WHEN phrase is executed in accordance with the rules specified for conditional expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR2",
+      "quote": "The comparison associated with each WHEN phrase is executed in accordance with the rules specified for conditional expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When standard arithmetic is used, the number of digits of the standard intermediate data item used and whether there is rounding shall be as specified in 8.8.1.3.1.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.4",
+      "quote": "When standard-decimal arithmetic is in effect, the form of rounding used in the operation shall be as specified in 11.9.11",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "WHEN comparisons of both formats evaluated per 2002 8.8.4 (algebraic numeric, space-extended alphanumeric, etc.)",
+     "numeric WHEN comparisons under ARITHMETIC IS STANDARD: 32-digit standard intermediate data item rounded to 31 digits (8.8.4.1.1.3 -> 8.8.1.3.1.3)"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.37-SEARCH/l1_search_when_comparison_rules RUN-MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob WRONG at 2002"
+    ],
+    "flags-answered": [
+     "cross-reference 8.8.4: read 2002 8.8.4; the numeric comparison rule it points at defers to 2002 standard arithmetic (8.8.1.3.1.3), which 2023 replaced by standard-binary/standard-decimal (8.8.4.2.4 -> 11.9.11). It changes the evidence: the 2023 witness exercises native arithmetic only"
+    ],
+    "reason": "Identical words and an ALL FORMATS rule in both editions, but the rule is a pure deferral to 8.8.4, and 2002's 8.8.4 decides a numeric comparison under ARITHMETIC IS STANDARD by 32-digit standard arithmetic (rounded to 31 when compared). The 2023 row cannot show that (2023 has no ARITHMETIC IS STANDARD). The probe shows the known 34-digit carry in a SEARCH WHEN.",
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a SEARCH WHEN numeric comparison under ARITHMETIC IS STANDARD must follow 32/31-digit standard arithmetic; the compiler carries 34 digits (search-std-arith.cob); fix under the known 34-digit defect, then a 2002 witness",
+    "compiler-at-2002": "wrong (the KNOWN 34-digit standard-arithmetic defect, reached here; not a new defect): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob (OPTIONS. ARITHMETIC IS STANDARD; A PIC 9(30) all nines; IF (A + 0.001) = A and SEARCH E ... WHEN (A + 0.001) = A). Expected at 2002: A + 0.001 is truncated to 32 significant digits (A.00) and rounded to 31 for the comparison, so both are TRUE (IF-EQUAL, SEARCH-WHEN-TRUE). Observed --std 2002: IF-NOT-EQUAL, SEARCH-AT-END (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith-2002.txt). With 0.00001 (35 digits) the compiler gives IF-EQUAL/SEARCH-WHEN-TRUE (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith-35-2002.txt): it carries 34 digits. The WHEN shares the relation evaluator with IF.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/search-std-arith.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-8",
+    "to": [
+     "GR-14.9.37.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34 SEARCH statement",
+    "clause-2023": "14.9.37 SEARCH statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR8",
+      "quote": "Any other indexes associated with identifier-1 remain unchanged by the search operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR8",
+      "quote": "Any other indexes associated with identifier-1 remain unchanged by the search operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.102",
+      "quote": "conceptual data item, the content of which refers to a particular element in a table",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 2: the search index is the first INDEXED index-name of identifier-1",
+     "other indexes of identifier-1 unchanged"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.37-SEARCH/l1_search_all_index_and_others RUN-MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)"
+    ],
+    "flags-answered": {
+     "definition-changed: index": "§2002:4 (4.102) index 'A storage area or a register, the content of which refers to a particular element in a table' vs 2023 3.102 'conceptual data item': a change of model, not of which index-names are associated with identifier-1 (the INDEXED phrase, same in both); no change."
+    },
+    "reason": "Format 2 identical; INDEXED phrase of OCCURS the same; no arithmetic or exception dependence.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term index: 2002 4 'A storage area or a register, the content of which refers to a particular element in a table'; 2023 3.102 'conceptual data item ...'. A change of the model of storage, not of which index is varied; no change of scope or evidence"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-31"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-1",
+    "to": [
+     "SR-14.9.39.3-1"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR1",
+      "quote": "Identifier-1 shall reference a data item of class index or an integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR1",
+      "quote": "Identifier-1 shall reference a data item of class index or an integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 identifier-1: an index data item or an integer data item; anything else refused"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb212-set-receiver-noninteger REFUSED COBOL2326 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "covered by cases/14.9.17-GO-TO/pb212_operand_class_screens RUN-MATCH at --std 2002"
+    ],
+    "reason": "Format 1 (index-assignment) general format identical in both editions (index-name-1/identifier-1 TO arithmetic-expression-1/index-name-2/identifier-2).",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "flags-answered-reader": [
+     "changed-definition-term index: definition wording changed (storage area/register vs conceptual data item); class index and index data item are the same; no change of scope"
+    ],
+    "flags-answered": {
+     "definition-changed: class | of a data item; index": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; the category that class follows (§2002:8.5.2 Table 3, same rows as 2023 Table 2 less message-tag and function-pointer) is where 2002 differs: §2002:8.5.2.7 item 3 makes 'An elementary data item explicitly or implicitly described as usage national.' category national (PDF p.112 rendered: the item is there; 2023 8.5.2.10 dropped it), while §2002:8.5.2.9 makes a PIC 9 item category numeric. So a PIC 9 (or PIC 1) USAGE NATIONAL item is class numeric (boolean) or class national in 2002: the open reading kb/Work PB5625 Reading 2. 'index' §2002:4 (4.102 'A storage area or a register, the content of which refers to a particular element in a table') vs 2023 3.102 'conceptual data item' is wording only; class index is category index (§2002:8.5.2.6) in both. But SR1's 'integer data item' is reached by PB5625: a PIC 9(3) USAGE NATIONAL identifier-1 is an integer (numeric) item under the numeric reading (SR4 then requires index-name-2) and not one under the national reading (refused). The compiler accepts SET N4 TO IX at 2002 (natnum-accept.cob: SETN4 002). Not settled here."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "an elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.6",
+      "quote": "An elementary data item explicitly or implicitly described as usage index",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR1",
+      "quote": "Identifier-1 shall reference a data item of class index or an integer data item",
+      "check": "OK"
+     }
+    ],
+    "needs": "PB5625 Reading 2 decided: if a numeric/boolean USAGE NATIONAL item is class numeric/boolean in 2002 (the reading §2002:8.5.2.9, §2002:13.16.58.2 SR11, §2002:14.8.23.3 GR2a and §2002:13.16.22.3 GR4 presuppose), the row is SAME with probe E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.cob as its 2002 evidence; if class national (§2002:8.5.2.7 item 3), it is DIFFERENT and the compiler is wrong at 2002.",
+    "compiler-at-2002": "takes the numeric reading (correct if PB5625 decides numeric): probe: E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.cob; observed: --std 2002: SET N4 TO IX with N4 PIC 9(3) USAGE NATIONAL accepted, N4 = 002 (natnum-accept.log); identical at 2023",
+    "answer-probes": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-accept.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/natnum-refuse.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/stdarith-args.cob",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/stdarith-args.log",
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-09/spec_p134.png"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-15",
+    "to": [
+     "SR-14.9.39.3-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR15",
+      "quote": "Any particular screen-attribute shall not be specified more than once in a SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR15",
+      "quote": "Any particular screen-attribute shall not be specified more than once in a SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' and 'it is not required to diagnose syntax errors within this unsupported syntax'; §2002:B.3 item 1 lists the screen section (and item 2 the BELL/BLINK/HIGHLIGHT/LOWLIGHT/REVERSE-VIDEO/UNDERLINE renditions) as processor-dependent",
+    "scope-2002": [
+     "Format 6 (attribute) SET screen-name-1 ATTRIBUTE ...: a screen-section construct, processor-dependent in 2002"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/14.9.39-SET/a42-set-attribute at --std 2002: refused by name, COBOL1560 on the SCREEN SECTION entries and COBOL1707 on 'SET SG ATTRIBUTE HIGHLIGHT ON' (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt)"
+    ],
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2. 2002 gives its own licence (processor-dependent element, 3.1.5 + B.3 item 1) and expressly excuses diagnosing syntax errors inside unsupported syntax, which is what this syntax rule is. The compiler declines Format 6 at --std 2002 with a diagnostic. Scope unchanged"
+    ],
+    "reason": "Format 6 general format identical in both editions. Non-support is licensed by 2002's own text and the compiler declines it at 2002 by name. The diagnostic text at --std 2002 cites 2023's licence (Annex A.4.1/A.4.2 'OPTIONAL module'); 2002's licence is processor-dependence (3.1.5, B.3 item 1), which also requires a compile-time warning for unsupported use, satisfied by the error. A message-citation nit, not a behaviour defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-16",
+    "to": [
+     "SR-14.9.39.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR16",
+      "quote": "HIGHLIGHT and LOWLIGHT shall not both be specified in the same SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR16",
+      "quote": "HIGHLIGHT and LOWLIGHT shall not both be specified in the same SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' and 'it is not required to diagnose syntax errors within this unsupported syntax'; §2002:B.3 item 1 lists the screen section (and item 2 the BELL/BLINK/HIGHLIGHT/LOWLIGHT/REVERSE-VIDEO/UNDERLINE renditions) as processor-dependent",
+    "scope-2002": [
+     "Format 6 (attribute) SET screen-name-1 ATTRIBUTE ...: a screen-section construct, processor-dependent in 2002"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/14.9.39-SET/a42-set-attribute at --std 2002: refused by name, COBOL1560 on the SCREEN SECTION entries and COBOL1707 on 'SET SG ATTRIBUTE HIGHLIGHT ON' (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt)"
+    ],
+    "flags-answered": [
+     "target-not-CONFORMS-OK: the 2023 twin is DOCUMENTED-NON-SUPPORT under Annex A.4.2. 2002 gives its own licence (processor-dependent element, 3.1.5 + B.3 item 1) and expressly excuses diagnosing syntax errors inside unsupported syntax, which is what this syntax rule is. The compiler declines Format 6 at --std 2002 with a diagnostic. Scope unchanged"
+    ],
+    "reason": "Format 6 general format identical in both editions. Non-support is licensed by 2002's own text and the compiler declines it at 2002 by name. The diagnostic text at --std 2002 cites 2023's licence (Annex A.4.1/A.4.2 'OPTIONAL module'); 2002's licence is processor-dependence (3.1.5, B.3 item 1), which also requires a compile-time warning for unsupported use, satisfied by the error. A message-citation nit, not a behaviour defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-19",
+    "to": [
+     "SR-14.9.39.3-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR19",
+      "quote": "identifier-6 shall be the predefined address NULL or shall reference a data-pointer restricted to the same type",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR19",
+      "quote": "identifier-6 shall be the predefined address NULL or shall reference a data-pointer restricted to the same type",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The state of a pointer indicating that it contains no address",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.133",
+      "quote": "state of an address pointer that it contains no valid address",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 7: restricted identifier-5 needs NULL or same-type restricted sender",
+     "strongly-typed/restricted data-name-1 needs a sender restricted to its type",
+     "restricted identifier-6 needs a same-type receiver or typed data-name-1"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt): pb548-set-unrestricted-into-restricted, pb153-set-address-strong-to-unrestricted, pb153-set-unrestricted-to-address-of-strong, pb450-set-format7-restricted-sender-second-receiver, pb548-set-restricted-into-unrestricted, pb665-set-address-of-untyped-from-restricted, pb3817-initialize-replacing-restricted-data-pointer all REFUSED COBOL0869; legal shapes pb80_based_odo_group, pb450_set_format7_receiving_list, pb548_set_restricted_pointer_plain, pb665_restricted_pointer_conforming, pb3682_set_restricted_pointer_to_typedef_group_clauses RUN-MATCH"
+    ],
+    "flags-answered": [
+     "changed-definition-term null: 2002 4 'The state of a pointer indicating that it contains no address, or ... object reference'; 2023 splits it (3.131-3.133) and adds message-tag null. The predefined address NULL of a data-pointer is the same; no change of scope"
+    ],
+    "reason": "Format 7 general format identical; restricted data-pointer, strongly-typed group and typed item exist in 2002 with the same meaning.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-2",
+    "to": [
+     "SR-14.9.39.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR2",
+      "quote": "Identifier-2 shall reference a data item of class index",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR2",
+      "quote": "Identifier-2 shall reference a data item of class index",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 identifier-2 sender: class index only (a numeric identifier is arithmetic-expression-1)"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb155-set-to-edited: its refuse-at lists only 2023, but at --std 2002 it is refused COBOL2326 the same way, which is the 2002 rule's outcome (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "covered by cases/14.9.17-GO-TO/pb212_operand_class_screens RUN-MATCH at --std 2002"
+    ],
+    "reason": "Format 1 identical in both editions, the three sending alternatives the same.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "flags-answered-reader": [
+     "changed-definition-term index: wording only; class index unchanged"
+    ],
+    "flags-answered": {
+     "definition-changed: class | of a data item; index": "'index' §2002:4 (4.102 'A storage area or a register, the content of which refers to a particular element in a table') vs 2023 3.102 'conceptual data item' is wording only; 'a data item of class index' is category index (§2002:8.5.2.6 'An elementary data item explicitly or implicitly described as usage index', or an index function), the same Table 3 row as 2023. The open 2002 usage-national reading (PB5625) cannot make an item class index. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.6",
+      "quote": "An elementary data item explicitly or implicitly described as usage index",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR2",
+      "quote": "Identifier-2 shall reference a data item of class index",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-21",
+    "to": [
+     "SR-14.9.39.3-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 8, program-pointer-assignment)",
+    "clause-2023": "14.9.39 SET statement (Format 9, program-pointer-assignment)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR21",
+      "quote": "the program-prototypes associated with identifier-7 and identifier-8 shall have the same signature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR22",
+      "quote": "the program-prototypes associated with identifier-7 and identifier-8 shall have the same signature",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 8 (2002 numbering): restricted program-pointer identifier-7 takes NULL or a program-pointer whose prototype has the same signature"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt): pb817-set-program-pointer-signature and pb3817-initialize-replacing-restricted-program-pointer REFUSED COBOL1959, pb452-program-pointer-to-without-typedef REFUSED COBOL0881; pb817_restricted_program_pointer and pb3817_initialize_replacing_restricted_program_pointer RUN-MATCH"
+    ],
+    "flags-answered": [
+     "changed-definition-term null: the predefined address NULL of a program-pointer means the same in 2002; no change of scope"
+    ],
+    "reason": "The program-pointer format is the same text under a different number (2023 inserted Format 8 function-pointer-assignment before it; 2002 has no function-pointer, so nothing of 2002 is lost). Program-prototypes and restricted program-pointers exist in 2002.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-23",
+    "to": [
+     "SR-14.9.39.3-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 9)",
+    "clause-2023": "14.9.39 SET statement (Format 10)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR23",
+      "quote": "Identifier-9 shall not be a data-pointer restricted to a type described with the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR24",
+      "quote": "Identifier-9 shall not be a data-pointer restricted to a type described with the STRONG phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 9 (data-pointer-arithmetic) receivers: not restricted to a STRONG type"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb816-set-up-by-strong-restricted-pointer REFUSED COBOL0869 at --std 2002 and pb665_restricted_pointer_conforming RUN-MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)"
+    ],
+    "reason": "Same format under a different number; STRONG typedefs exist in 2002 with the same meaning. A syntax rule: no arithmetic dependence.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-3",
+    "to": [
+     "SR-14.9.39.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement",
+    "clause-2023": "14.9.39 SET statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR3",
+      "quote": "If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR3",
+      "quote": "If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1: an index data item receiver with an arithmetic-expression-1 sender refused"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb212-set-index-data-from-literal REFUSED COBOL2326 at --std 2002 and pb212_operand_class_screens RUN-MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)"
+    ],
+    "flags-answered": {
+     "definition-changed: class | of a data item; index": "§2002:4 (4.34) gives class by PICTURE/USAGE and (4.102) index as 'A storage area or a register' where 2023 says 'conceptual data item'; a data item of class index in 2002 is still a USAGE INDEX item (an index function, §2002:15.1 item 6, cannot be the receiving identifier-1), so the set of receivers §2002:14.8.35.2 SR3 restricts is unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed)": "Triggered by 'arithmetic-expression-1'. §2002:14.8.35.2 SR3 forbids specifying the expression for an index-class receiver; nothing is evaluated, so standard arithmetic (§2002:8.8.1.x, PB5575) cannot change the result; the refusal witness at 2002 stands."
+    },
+    "reason": "Format 1 identical in both editions; a syntax restriction with no evaluation.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term index: wording only; no change of scope"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A storage area or a register, the content of which refers to a particular element in a table",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR3",
+      "quote": "If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-31"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-9",
+    "to": [
+     "SR-14.9.39.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 5)",
+    "clause-2023": "14.9.39 SET statement (Format 5)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR9",
+      "quote": "the predefined object reference SUPER shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR9",
+      "quote": "the predefined object reference SUPER shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 5 identifier-4 is an object reference",
+     "SUPER never the sender, in a program or in a method"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb456-set-object-ref-literal-sender REFUSED COBOL0867 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-super.cob at --std 2002: SET U TO SUPER (program) and SET V TO SUPER (method of a class inheriting BASE) both refused COBOL0867 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-super-2002.txt); the twin's C# OoSpineTests case has no edition"
+    ],
+    "reason": "Format 5 differs only in the other alternative (2002 class-name-1, 2023 object-class-name-1), which this rule does not use; identifier-4 and SUPER mean the same.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-super.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-10",
+    "to": [
+     "GR-14.9.39.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 6)",
+    "clause-2023": "14.9.39 SET statement (Format 6)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR10",
+      "quote": "The latest settings of the attributes are used when screen-name-1 is referenced in an ACCEPT screen or DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR11",
+      "quote": "The latest settings of the attributes are used when screen-name-1 is referenced in an ACCEPT screen or DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented'; §2002:B.3 item 1 (screen section, screen ACCEPT/DISPLAY processor-dependent)",
+    "scope-2002": [
+     "Format 6 execution: screen item attributes turned on/off and used by later ACCEPT/DISPLAY screen"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/14.9.39-SET/a42-set-attribute at --std 2002: refused by name, COBOL1560 on the SCREEN SECTION entries and COBOL1707 on 'SET SG ATTRIBUTE HIGHLIGHT ON' (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt)"
+    ],
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2002's own licence is processor-dependence (3.1.5, B.3 item 1); the compiler declines Format 6 at --std 2002 by name (COBOL1707). Scope unchanged"
+    ],
+    "reason": "Format 6 identical in both editions; non-support licensed by the 2002 text; declined at 2002 with a diagnostic. The diagnostic text at --std 2002 cites 2023's licence (Annex A.4.1/A.4.2 'OPTIONAL module'); 2002's licence is processor-dependence (3.1.5, B.3 item 1), which also requires a compile-time warning for unsupported use, satisfied by the error. A message-citation nit, not a behaviour defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/a42-set-attribute-2002/output.txt",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-15",
+    "to": [
+     "GR-14.9.39.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 9)",
+    "clause-2023": "14.9.39 SET statement (Format 10)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR15",
+      "quote": "If identifier-9 contains the predefined address NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR18",
+      "quote": "If identifier-9 contains the predefined address NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The state of a pointer indicating that it contains no address",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SET pointer UP/DOWN BY with a NULL operand sets EC-DATA-PTR-NULL (Fatal in 2002 Table 14)"
+    ],
+    "evidence-2002": [
+     "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-null.cob at --std 2002 (>>TURN EC-DATA-PTR-NULL CHECKING ON): abnormal run-unit termination EC-DATA-PTR-NULL (fatal) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-null-2002.txt); without the TURN it continues (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-null-nocheck-2002.txt). The twin's witness is a unit test with no edition"
+    ],
+    "flags-answered": [
+     "changed-definition-term null: 2002's null of a pointer is the same state; EC-DATA-PTR-NULL is Fatal in both editions' tables; no change of scope"
+    ],
+    "reason": "Same format (2002 Format 9 = 2023 Format 10); EC name and category identical; the condition is a NULL operand, no arithmetic dependence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-null.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-16",
+    "to": [
+     "GR-14.9.39.4-19"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35 SET statement (Format 9)",
+    "clause-2023": "14.9.39 SET statement (Format 10)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR16",
+      "quote": "If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR19",
+      "quote": "If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception condition is set to exist, the execution of the SET statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "non-integer amount (data item or literal): EC-SIZE-ADDRESS, SET unsuccessful, operand unchanged",
+     "the integrality of arithmetic-expression-3 as evaluated by 2002 arithmetic, including ARITHMETIC IS STANDARD (32-digit standard intermediate)"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb465_set_pointer_range_ec RUN-MATCH at --std 2002 (2.5 -> EC-SIZE-ADDRESS, unchanged) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt); probes p/set-ptr-half-std.cob and p/set-ptr-half-native.cob (1 + 1/2) correct at 2002",
+     "not shown by the 2023 row; probes WRONG at 2002: p/set-ptr-lit20-std.cob, p/set-ptr-std-arith-20.cob, p/thr/t10000000.cob"
+    ],
+    "flags-answered": [
+     "no flag (held back for dependence on uncatalogued 2002 clauses: exception conditions, standard arithmetic). EC-SIZE-ADDRESS is Fatal in both tables (no change). Standard arithmetic changes the evidence: under ARITHMETIC IS STANDARD the amount is a 32-digit standard intermediate data item, and its integrality is what GR16 tests"
+    ],
+    "reason": "Same words and format, but whether arithmetic-expression-3 'evaluates to an integer' is decided in 2002 by 2002 arithmetic. Under ARITHMETIC IS STANDARD, ONE + ONE / 100000000000000000000 is exactly 1.00000000000000000001 (well inside 32 digits), not an integer, so GR16 requires EC-SIZE-ADDRESS and an unchanged pointer. The compiler lands the amount at scale 6, truncated, before the integrality test, so any fraction below 1E-6 is lost: the pointer moves by 1 and no condition is raised. The 2023 row's witnesses use 2.5 only.",
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for SET P UP BY <expression with a fraction below 1E-6> under ARITHMETIC IS STANDARD is to move the pointer with no EC-SIZE-ADDRESS (set-ptr-lit20-std.cob); fix the amount landing, then a 2002 witness",
+    "compiler-at-2002": "wrong (NEW defect): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-lit20-std.cob (>>TURN EC-SIZE-ADDRESS CHECKING ON; OPTIONS. ARITHMETIC IS STANDARD; USE AFTER EXCEPTION CONDITION EC-SIZE-ADDRESS with RESUME AT NEXT STATEMENT; SET P TO ADDRESS OF B1; SET P UP BY ONE + ONE / 100000000000000000000; IF P = ADDRESS-OF-B2 'MOVED-1'). Expected per §2002:14.8.35.3 GR16 with §2002:8.8.1.3.5: HANDLED=EC-SIZE-ADDRESS then NOT-MOVED. Observed --std 2002: MOVED-1, no condition (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-lit20-std-2002.txt). Threshold: 1+1/1000000 raises, 1+1/10000000 does not (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/thr/). Code site: src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs EmitSetPointerUpDown lands the amount via num.Landed(..., ReceiverContext.None); the generated C# is `(Int128)(CobolDec.Add(...).ToUnscaledIntermediate(6, CobolRounding.Truncation))` then CobolPtr.UpByAmount(P, __ptrBy0, 6, false) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/thr/t10000000.g.cs line 157). The same program at --std 2023 with STANDARD-DECIMAL also moves (p/set-ptr-lit20-stddec-2023.txt), so the 2023 row GR-14.9.39.4-19 is reached too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-lit20-std.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-17",
+    "to": [
+     "GR-14.9.39.4-20"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.35 SET statement (Format 9)",
+    "clause-2023": "14.9.39 SET statement (Format 10)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR17",
+      "quote": "the EC-RANGE-PTR exception condition is set to exist and the value of the data item referenced by identifier-9 is unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR20",
+      "quote": "the EC-RANGE-PTR exception condition is set to exist and the value of the data item referenced by identifier-9 is unchanged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "if the value is too large or too small, respectively, to be contained in a standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "each identifier-9 moved by the amount in bytes, in order, item identification before change",
+     "an address outside the implementor range: EC-RANGE-PTR (Fatal), operand unchanged",
+     "the amount as evaluated by 2002 arithmetic, including ARITHMETIC IS STANDARD (magnitude up to about 1E1000)"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pointer_arith and pb465_set_pointer_range_ec RUN-MATCH at --std 2002 (movement, HUGE-AMT -> EC-RANGE-PTR) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-range-std.cob WRONG at 2002"
+    ],
+    "flags-answered": [
+     "no flag (held back for exception conditions / standard arithmetic): EC-RANGE-PTR Fatal in both tables; under 2002 STANDARD arithmetic an integral amount of 1E40 is a valid standard intermediate value, so the outcome must be GR17's EC-RANGE-PTR; this changes the evidence"
+    ],
+    "reason": "Same words and format. Under ARITHMETIC IS STANDARD, SET P UP BY 10 ** 40 has an integral amount well within the standard intermediate data item's magnitude, so GR17 applies: the new address is outside the range, EC-RANGE-PTR, pointer unchanged. The compiler instead lands the amount in an Int128 at scale 6 and terminates with a fatal EC-SIZE-OVERFLOW citing 2023's implementor-defined intermediate range (§2023:14.7.5 case 5, A.1 item 179); 2002 standard arithmetic gives no such licence. The same amount landing as GR16's defect, the other side of it.",
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for SET P UP BY 10 ** 40 under ARITHMETIC IS STANDARD is a fatal EC-SIZE-OVERFLOW instead of EC-RANGE-PTR with the pointer unchanged; fix the amount landing, then a 2002 witness",
+    "compiler-at-2002": "wrong (the same NEW defect as 2002-GR-14.8.35.3-16, the magnitude side): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-range-std.cob (>>TURN EC-RANGE-PTR CHECKING ON; ARITHMETIC IS STANDARD; USE AFTER EXCEPTION CONDITION EC-RANGE-PTR ... RESUME AT NEXT STATEMENT; SET P UP BY 10 ** 40). Expected per §2002:14.8.35.3 GR17: HANDLED=EC-RANGE-PTR then NOT-MOVED. Observed --std 2002 (rc 1): 'abnormal run-unit termination: EC-SIZE-OVERFLOW (fatal): an intermediate value exceeds the native Int128 carrier at this scale (ISO §2023:14.7.5 case 5 ... A.1 item 179)' (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-range-std-2002.txt). Code site: PtrEmitter.EmitSetPointerUpDown's Int128 scale-6 landing.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-ptr-range-std.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-18",
+    "to": [
+     "GR-14.9.39.4-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 10, set-locale)",
+    "clause-2023": "14.9.39 SET statement (Format 11, set-locale)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR18",
+      "quote": "the EC-LOCALE-INVALID-PTR exception condition is set to exist and the SET statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR21",
+      "quote": "the EC-LOCALE-INVALID-PTR exception condition is set to exist and the SET statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-10 not referencing saved locale information: EC-LOCALE-INVALID-PTR (Fatal), SET unsuccessful",
+     "definition of 'saved locale' as established by a set-locale SET"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.9.39-SET/pb64t1_save_restore_locale at --std 2002: output equals the .out after trailing spaces are trimmed (the suite's comparison) (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/pb64t1_save_restore_locale-2002/output.txt); RESUME, which it uses, exists in 2002 (14.8.31)"
+    ],
+    "flags-answered": [
+     "no flag (held back for exception conditions): EC-LOCALE-INVALID-PTR is Fatal in both tables; no change of scope"
+    ],
+    "reason": "Same format under a different number; locale categories, saved-locale pointers and the EC identical.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-21",
+    "to": [
+     "GR-14.9.39.4-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 10)",
+    "clause-2023": "14.9.39 SET statement (Format 11)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR21",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR24",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.2",
+      "quote": "If the locale is not found during an operation requiring a locale, the EC-LOCALE-MISSING exception condition is set to exist and the operation is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "locale-name-1 (SPECIAL-NAMES LOCALE clause) unavailable: EC-LOCALE-MISSING (Fatal)"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.6.6-Locale-identification/pb64t1_ec_locale_missing at --std 2002: equals the .out after trailing spaces are trimmed (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/runs/pb64t1_ec_locale_missing-2002/output.txt)"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [10] against [[11]]": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope.",
+     "pending-clause: §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)": "The rule only sets EC-LOCALE-MISSING to exist; what follows rests on 2002 condition handling. 2002's table makes it fatal (§2002:14.5.12.1.5 'EC-LOCALE-MISSING Fatal The specified locale is not available'), so 14.5.12.1.2 governs: with checking enabled and an applicable USE the declarative runs, and RESUME is not normal completion (§2002:14.5.12.1.1 lists 'An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement'), so RESUME AT NEXT STATEMENT continues; with checking off (the default, §2002:14.5.12.1) the continuation is implementor-defined (14.5.12.1.2 item 5). 14.5.12.1.3 (non-fatal) and 14.5.12.2 (incompatible data) are not reached by a fatal locale condition. The dependent behaviour is shown at 2002: the twin witness, which enables checking and handles the condition with a declarative and RESUME, matches its .out. No change."
+    },
+    "reason": "Same format and EC; no CD/screen/arithmetic reach.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: pb64t1_ec_locale_missing prints HANDLED=EC-LOCALE-MISSING for the SET and for the locale-bound collating sequence and matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/ecmiss-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR21",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR24",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "EC-LOCALE-MISSING Fatal The specified locale is not available",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled and there is an applicable USE statement in the source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.1",
+      "quote": "An EXIT FUNCTION, EXIT METHOD, EXIT PROGRAM, GOBACK, RESUME, or STOP statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "By default, checking is not enabled for any exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.3",
+      "quote": "If a non-fatal exception condition other than an exception object is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-22",
+    "to": [
+     "GR-14.9.39.4-25"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 10)",
+    "clause-2023": "14.9.39 SET statement (Format 11)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR22",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR25",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.158",
+      "quote": "runtime entity consisting of one or more runtime modules that interact",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "each category set stays in effect for the run unit or until another SET names it"
+    ],
+    "evidence-2002": [
+     "covered by cases/14.6.6-Locale-identification/pb64t1_set_locale_categories RUN-MATCH at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [10] against [[11]]": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope.",
+     "definition-changed: run unit": "§2002:4 run unit: 'One or more runtime modules that interact with one another and that function, at execution time, as an entity to provide problem solutions'; §2023:3.158: 'runtime entity consisting of one or more runtime modules that interact and that function at execution time as an independent entity'. Same extent (the set of interacting runtime modules); the rule's 'duration of the run unit' reaches the same execution, so no change.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read all three in 2002: 14.5.2.1.2.1 is the initial state of data ('The first time the function, method, or program in which it is described is activated in a run unit'), 14.5.3 is the flow of control, and 14.5.10 is normal run unit termination, whose item 5 says 'the implementor specifies whether the locale is reset to the locale in effect when the run unit was activated', which is after the run unit ends and so outside this rule's 'duration of the run unit'. The rule matched them only on the words 'run unit'; what keeps a switched category current inside the run unit is §2002:14.5.6 item 3 ('the new locale becomes the current locale for the run unit for the switched categories') and item 9, which are not flagged clauses. No dependence on the flagged text; no change."
+    },
+    "reason": "Same format; run unit means the same.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: pb64t1_set_locale_categories matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/pb64t1_set_locale_categories-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR22",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR25",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more runtime modules that interact with one another and that function, at execution time, as an entity",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.158",
+      "quote": "runtime entity consisting of one or more runtime modules that interact",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.10",
+      "quote": "the implementor specifies whether the locale is reset to the locale in effect when the run unit was activated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.6",
+      "quote": "the new locale becomes the current locale for the run unit for the switched categories",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The first time the function, method, or program in which it is described is activated in a run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "There is no next executable statement when the execution of an EXIT FUNCTION",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-25",
+    "to": [
+     "GR-14.9.39.4-28"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35 SET statement (Format 12, saved-exception)",
+    "clause-2023": "14.9.39 SET statement (Format 13, saved-exception)",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR25",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR28",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "The state of a pointer indicating that it contains no address",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "EXCEPTION-OBJECT set to null",
+     "last exception status set to no exception"
+    ],
+    "evidence-2002": [
+     "EXCEPTION-OBJECT half: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-last-exc-obj.cob at --std 2002: after RAISE of a CX object EXCEPTION-OBJECT is non-null, after SET LAST EXCEPTION TO OFF it is NULL (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-last-exc-obj-2002.txt); the 2023 row had no test for this half",
+     "status half: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-last-exc.cob at --std 2002: EC-OVERFLOW-STRING (non-fatal) then OFF gives 31 spaces from FUNCTION EXCEPTION-STATUS (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-last-exc-2002.txt); the twin's C# test has no edition"
+    ],
+    "flags-answered": {
+     "band-formats: band-formats [12] against [[13]]": "2002 Format 12 and 2023 Format 13 are both exactly 'SET LAST EXCEPTION TO OFF' (§2002:14.8.35.1, §2023:14.9.39.2); renumbered by 2023's inserted function-pointer format only. Same format reached; no change.",
+     "definition-dropped: null (newer: 8.4.3.7.1); object reference (newer: 9.3.2)": "2002 defines both terms in clause 4: null is 'the state of an object reference indicating that it contains no reference' and object reference is 'An explicitly- or implicitly-defined data item that contains a reference to an object' (§2002:4); 2023 still defines null for an object reference (§2023:3.132) and moves the rest to §2023:8.4.3.7.1 (NULL) and §2023:9.3.2 (object references), with the same meaning. EXCEPTION-OBJECT is a 2002 predefined object reference (§2002:8.4.2.6) and the last exception status is a 2002 run-unit entity (§2002:14.5.12.1). The rule governs the same items; no change."
+    },
+    "reason": "Same format under a different number; EXCEPTION-OBJECT and the last exception status exist in 2002 with the same meaning.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/set-last-exc-obj.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "answer-evidence-2002": "re-run this session at --std 2002: set-last-exc-obj.cob prints AFTER-RAISE-NONNULL then AFTER-OFF-NULL (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/set-last-exc-obj-2002.txt); set-last-exc.cob prints EC-OVERFLOW-STRING then 31 spaces after SET LAST EXCEPTION TO OFF (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/set-last-exc-2002.txt)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR25",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR28",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.1",
+      "quote": "SET LAST EXCEPTION TO OFF",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.2",
+      "quote": "SET LAST EXCEPTION TO OFF",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "the state of an object reference indicating that it contains no reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "An explicitly- or implicitly-defined data item that contains a reference to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.132",
+      "quote": "state of an object reference indicating that it contains no valid reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.1",
+      "quote": "NULL is a predefined object reference that contains the null object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.3.2",
+      "quote": "An object reference is an implicitly- or explicitly-defined data item containing an object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.6",
+      "quote": "EXCEPTION-OBJECT is a predefined object reference that is used in a declarative procedure to reference the current exception object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1",
+      "quote": "a last exception status exists for the entire run unit",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-8",
+    "to": [
+     "SR-14.9.40.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement",
+    "clause-2023": "14.9.40 SORT statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR8",
+      "quote": "is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR8",
+      "quote": "is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "USING file-name-2 / GIVING file-name-3 not a report file",
+     "not a sort-merge (SD) file"
+    ],
+    "evidence-2002": [
+     "report-file half: covered by cases/13.4.5-File-description/pb1171-sort-merge-report-file REFUSED COBOL2577 at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt)",
+     "sort-merge half: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/sort-using-sd.cob at --std 2002, USING S2 and GIVING S2 (an SD) both refused COBOL1757 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/sort-using-sd-2002.txt); the 2023 row names no test for this half"
+    ],
+    "reason": "Format 1 general format identical. Report files (FD with REPORT clause) exist in 2002; a CD is not a file description entry, so no communication reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/p/sort-using-sd.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: report (newer: 13.18.46.2)": "§2002:4 defines report as 'A printed output described in the report section and generated from those data descriptions'; 2023 drops the definition and reaches the same object through the RD and the REPORT clause (§2023:13.18.46.1). Same object in both editions, so a 'report file' is excluded from SORT USING/GIVING; scope and evidence unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A printed output described in the report section and generated from those data descriptions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.46.1",
+      "quote": "The REPORT clause identifies the reports that may be written to a report file",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-10",
+    "to": [
+     "GR-14.9.40.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement",
+    "clause-2023": "14.9.40 SORT statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR10",
+      "quote": "The compiler inserts a return mechanism after the last statement in the input procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR11",
+      "quote": "The compiler inserts a return mechanism after the last statement in the input procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INPUT PROCEDURE procedure-name-1 [THRU procedure-name-2] entered before sequencing",
+     "return mechanism after its last statement, then the released records are sorted"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt): pb3511_implicit_goback_sort_input_procedure, pb3511_implicit_goback_sort_merge_called_program, pb440_sort_procedure_range RUN-MATCH; pb3511_sort_merge_procedure_ends_at_last_paragraph equal to its .out after trailing spaces are trimmed"
+    ],
+    "flags-answered": {
+     "definition-changed: procedure": "The rule's input/output procedure is the procedure-name-1 [THRU procedure-name-2] range of SORT/MERGE in both editions; §2002:4 (entry 4.150) ('one or more successive paragraphs or sections') names the same range that §2023:3.145 does. Scope unchanged. The return mechanism is inserted after the last statement of that range in both."
+    },
+    "reason": "Format 1 identical (INPUT PROCEDURE/USING alternatives). 2002 SR1 lets a format 1 SORT appear anywhere outside declaratives (2023 SR3 also forbids it inside input/output procedures); executing one there is 2002 GR9's EC-SORT-MERGE-ACTIVE matter, not this rule's.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-13",
+    "to": [
+     "GR-14.9.40.4-14"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36 SORT statement",
+    "clause-2023": "14.9.40 SORT statement",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR13",
+      "quote": "The RETURN statements in the output procedure are the requests for the next record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR14",
+      "quote": "The RETURN statements in the output procedure are the requests for the next record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.145",
+      "quote": "paragraph, section, or one or more successive paragraphs or sections that include the executable code",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OUTPUT PROCEDURE entered after sequencing",
+     "return mechanism after its last statement ends the sort and continues after the SORT",
+     "RETURN statements request the next record"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-q-31/witnesses-2002.txt): pb3511_implicit_goback_sort_output_procedure, pb3511_implicit_goback_sort_merge_called_program, pb440_sort_procedure_range RUN-MATCH; pb3511_sort_merge_procedure_ends_at_last_paragraph equal after trailing-space trim"
+    ],
+    "flags-answered": {
+     "definition-changed: procedure": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('output procedure') names the same units in 2002; scope and evidence unchanged.",
+     "pending-clause: §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)": "Read §2002:14.5.2.1.2.1 (initial state), 14.5.3 (transfers of control) and 14.5.10 (normal run unit termination); 2002 14.5.3 says 'paragraph' where 2023 says 'procedure', 2002 14.5.10 has the MCS purge item and lacks COMMIT and dynamic-table items, 2002 initial state also initializes the communication section. The rule rests on §2002:14.5.3 items 1 and 2; 'last paragraph in the range' and 2023's 'last procedure' end at the same statement of an output procedure, so the return mechanism sits at the same point. Shown at 2002 by the reader's witnesses-2002.txt (pb3511, pb440)."
+    },
+    "reason": "Format 1 identical; RETURN statement and output procedure mean the same.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null,
+    "reader-flags-answered": [
+     "changed-definition-term procedure: as for GR10, no change of scope"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "One or more successive paragraphs or sections in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "then an implied transfer of control occurs from the last statement in the paragraph to the control mechanism of the last executed controlling statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.3",
+      "quote": "implicit transfer of control occurs to any associated input or output procedures",
+      "check": "OK"
+     }
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-31",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.34.2-7",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.34, 2023 14.9.37): the Format 2 general formats are identical phrase by phrase; 2023 only widens identifier-1 (subscripting at outer levels, SR2/SR3) and adds SR12/SR13 (variable-length group, zero-length literal), constructs 2002 lacks. NEXT SENTENCE is archaic in both. Communication reach checked: in 2002 a keyed, INDEXED table may sit in a record under an output CD (A.1.2.2 SR9, no category limit). Probe at --std 2002 (cd-search.cob, table placed after the 23-character implicit output-CD area of A.1.2.3 GR16): SEARCH ALL WHEN K(IX1) = N gives FOUND-1 c, WHEN K-THREE(IX1) gives FOUND-2 c, WHEN K(IX1) = TL (the implicit TEXT LENGTH as identifier-3) gives FOUND-3 d, and IX2 is unchanged (GR8-OK); cd-search-bad.cob is refused at 2002 with COBOL1965 for a 2-valued condition-name and COBOL1966 for a KEY item as identifier-3. SR7 holds for the CD-record table too.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR7",
+      "quote": "All referenced condition-names shall be defined as having only a single value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR9",
+      "quote": "All referenced condition-names shall be defined as having only a single value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-search-bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-8",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.34, 2023 14.9.37): the Format 2 general formats are identical phrase by phrase; 2023 only widens identifier-1 (subscripting at outer levels, SR2/SR3) and adds SR12/SR13 (variable-length group, zero-length literal), constructs 2002 lacks. NEXT SENTENCE is archaic in both. Communication reach checked: in 2002 a keyed, INDEXED table may sit in a record under an output CD (A.1.2.2 SR9, no category limit). Probe at --std 2002 (cd-search.cob, table placed after the 23-character implicit output-CD area of A.1.2.3 GR16): SEARCH ALL WHEN K(IX1) = N gives FOUND-1 c, WHEN K-THREE(IX1) gives FOUND-2 c, WHEN K(IX1) = TL (the implicit TEXT LENGTH as identifier-3) gives FOUND-3 d, and IX2 is unchanged (GR8-OK); cd-search-bad.cob is refused at 2002 with COBOL1965 for a 2-valued condition-name and COBOL1966 for a KEY item as identifier-3. SR8 holds for the CD-record table and with a CD implicit item as identifier-3.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR8",
+      "quote": "shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR10",
+      "quote": "shall be neither referenced in the KEY phrase of the OCCURS clause associated with identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "A record area of contiguous alphanumeric character positions is allocated for each output CD",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-search-bad.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-8",
+    "verdict": "UPHELD",
+    "reason": "Re-read both clauses whole (2002 14.8.34, 2023 14.9.37): the Format 2 general formats are identical phrase by phrase; 2023 only widens identifier-1 (subscripting at outer levels, SR2/SR3) and adds SR12/SR13 (variable-length group, zero-length literal), constructs 2002 lacks. NEXT SENTENCE is archaic in both. Communication reach checked: in 2002 a keyed, INDEXED table may sit in a record under an output CD (A.1.2.2 SR9, no category limit). Probe at --std 2002 (cd-search.cob, table placed after the 23-character implicit output-CD area of A.1.2.3 GR16): SEARCH ALL WHEN K(IX1) = N gives FOUND-1 c, WHEN K-THREE(IX1) gives FOUND-2 c, WHEN K(IX1) = TL (the implicit TEXT LENGTH as identifier-3) gives FOUND-3 d, and IX2 is unchanged (GR8-OK); cd-search-bad.cob is refused at 2002 with COBOL1965 for a 2-valued condition-name and COBOL1966 for a KEY item as identifier-3. GR8 (other index IX2 unchanged) holds for the CD-record table.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR8",
+      "quote": "Any other indexes associated with identifier-1 remain unchanged by the search operation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR8",
+      "quote": "Any other indexes associated with identifier-1 remain unchanged by the search operation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-search.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-15",
+    "verdict": "UPHELD",
+    "reason": "Format 6 identical in both editions. Checked the reader's licence: 2002 3.1.5 lets an implementor not claim a processor-dependent element, excuses diagnosing syntax errors inside unsupported syntax and requires only a compile-time warning mechanism; B.3 item 1 lists the screen section (SET ATTRIBUTE operates on a screen-name, which exists only there) and item 2 the attribute renditions. The compiler refuses the screen section and SET ATTRIBUTE at --std 2002 by name (reader's a42-set-attribute run). No CD reach (screen-name only).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR15",
+      "quote": "Any particular screen-attribute shall not be specified more than once in a SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR15",
+      "quote": "Any particular screen-attribute shall not be specified more than once in a SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-16",
+    "verdict": "UPHELD",
+    "reason": "Format 6 identical in both editions. Checked the reader's licence: 2002 3.1.5 lets an implementor not claim a processor-dependent element, excuses diagnosing syntax errors inside unsupported syntax and requires only a compile-time warning mechanism; B.3 item 1 lists the screen section (SET ATTRIBUTE operates on a screen-name, which exists only there) and item 2 the attribute renditions. The compiler refuses the screen section and SET ATTRIBUTE at --std 2002 by name (reader's a42-set-attribute run). No CD reach (screen-name only).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR16",
+      "quote": "HIGHLIGHT and LOWLIGHT shall not both be specified in the same SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR16",
+      "quote": "HIGHLIGHT and LOWLIGHT shall not both be specified in the same SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-19",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 identifier-5 (and identifier-6) of SET format 7 may be a restricted data-pointer that is a level-1 record under an output CD (01 CRP TYPE PT1, PT1 TYPEDEF USAGE POINTER TO a STRONG type). In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. Probe cd-ptr7.cob: SET CRP TO NULL; SET CRP TO WP (WP restricted to the same type); expected SR19-OK; observed COBOL0899 at 2002; control ws-ptr7.cob (CRP in working-storage) prints SR19-OK at 2002. needs: its own verdict; compiler-at-2002: wrong (rejects legal source).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR19",
+      "quote": "If identifier-5 references a restricted data-pointer, identifier-6 shall be the predefined address NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR19",
+      "quote": "If identifier-5 references a restricted data-pointer, identifier-6 shall be the predefined address NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-ptr7.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-2",
+    "verdict": "UPHELD",
+    "reason": "Format 1 general format identical in both editions. Communication reach checked: an index data item in an output-CD record, the implicit TEXT LENGTH integer and the output CD's DESTINATION TABLE index-name (2002 A.1.2.1 format 2). At --std 2002 cd-idx.cob runs: SET CIX TO TX, SET WIX TO CIX, SET TX TO WIX, SET TL TO TX gives TL=0004; SET DX TO 2, SET TL TO DX gives TL2=0002. cd-idx-bad.cob at 2002 refuses SET CNI TO TX (CNI PIC 9V9 in the CD record, COBOL2326 SR1), SET TX TO CNUM (CNUM PIC X in the CD record, COBOL2326 SR2) and SET CIX TO 1 (COBOL2326 SR3).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR2",
+      "quote": "Identifier-2 shall reference a data item of class index",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR2",
+      "quote": "Identifier-2 shall reference a data item of class index",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-idx-bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-21",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 identifier-7 of SET format 8 may be a restricted program-pointer that is a level-1 record under an output CD (01 PP2 TYPE PPT). In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. Probe cd-pptr-r.cob (pb817_restricted_program_pointer with PP2 moved under CD CDOUT FOR OUTPUT): expected PP-SET PP-SAME PP-NULL CALLED 0042; observed COBOL0899 at 2002. The unrestricted form cd-pptr.cob is also COBOL0899; its working-storage control ws-pptr.cob prints SR21-OK. needs: its own verdict; compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR21",
+      "quote": "the program-prototypes associated with identifier-7 and identifier-8 shall have the same signature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR22",
+      "quote": "the program-prototypes associated with identifier-7 and identifier-8 shall have the same signature",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR20",
+      "quote": "Identifier-7 shall reference a data item of category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-pptr-r.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-23",
+    "verdict": "OVERTURNED",
+    "reason": "SR23 permits, in 2002, any identifier-9 of category data-pointer not restricted to a STRONG type, including an unrestricted level-1 USAGE POINTER record under an output CD. In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. Probe cd-ptr9.cob: SET CP TO ADDRESS OF W1; SET CP UP BY 2; expected SR23-RAN; observed COBOL0899 at 2002; control ws-ptr9.cob prints SR23-RAN. needs: its own verdict; compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR23",
+      "quote": "Identifier-9 shall not be a data-pointer restricted to a type described with the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR24",
+      "quote": "Identifier-9 shall not be a data-pointer restricted to a type described with the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR22",
+      "quote": "Identifier-9 shall be of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-ptr9.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 general format identical in both editions. Communication reach checked: an index data item in an output-CD record, the implicit TEXT LENGTH integer and the output CD's DESTINATION TABLE index-name (2002 A.1.2.1 format 2). At --std 2002 cd-idx.cob runs: SET CIX TO TX, SET WIX TO CIX, SET TX TO WIX, SET TL TO TX gives TL=0004; SET DX TO 2, SET TL TO DX gives TL2=0002. cd-idx-bad.cob at 2002 refuses SET CNI TO TX (CNI PIC 9V9 in the CD record, COBOL2326 SR1), SET TX TO CNUM (CNUM PIC X in the CD record, COBOL2326 SR2) and SET CIX TO 1 (COBOL2326 SR3).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR3",
+      "quote": "If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR3",
+      "quote": "If identifier-1 references a data item of class index, arithmetic-expression-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-idx-bad.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-9",
+    "verdict": "OVERTURNED",
+    "reason": "SR9's first clause makes identifier-4 any object reference; in 2002 that includes a level-1 USAGE OBJECT REFERENCE record under an output CD (SR14 bars object references only in the file section). In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. This is the exact shape q-27 overturned for INVOKE identifier-1. Probe cd-obj5.cob: SET COB TO WOB; SET WOB TO COB (COB under CD CDOUT FOR OUTPUT); expected SR9-OK; observed COBOL0899 at 2002; control ws-obj5.cob prints SR9-OK. needs: its own verdict; compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR9",
+      "quote": "Identifier-4 shall be an object reference; the predefined object reference SUPER shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR9",
+      "quote": "Identifier-4 shall be an object reference; the predefined object reference SUPER shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-obj5.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-10",
+    "verdict": "UPHELD",
+    "reason": "Format 6 identical in both editions. Checked the reader's licence: 2002 3.1.5 lets an implementor not claim a processor-dependent element, excuses diagnosing syntax errors inside unsupported syntax and requires only a compile-time warning mechanism; B.3 item 1 lists the screen section (SET ATTRIBUTE operates on a screen-name, which exists only there) and item 2 the attribute renditions. The compiler refuses the screen section and SET ATTRIBUTE at --std 2002 by name (reader's a42-set-attribute run). No CD reach (screen-name only).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR10",
+      "quote": "The latest settings of the attributes are used when screen-name-1 is referenced in an ACCEPT screen or DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR11",
+      "quote": "The latest settings of the attributes are used when screen-name-1 is referenced in an ACCEPT screen or DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "it is not required to diagnose syntax errors within this unsupported syntax",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-15",
+    "verdict": "OVERTURNED",
+    "reason": "GR15 governs every identifier-9 of SET UP/DOWN BY, and in 2002 identifier-9 may be a level-1 data-pointer record under an output CD; a NULL there must raise EC-DATA-PTR-NULL. In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. The reader's probe set-ptr-null.cob used a working-storage pointer only. Probe cd-ptr9.cob (the same CD pointer as identifier-9) never compiles at 2002 (COBOL0899), so the CD half of GR15 has no evidence and cannot run. needs: its own verdict; compiler-at-2002: wrong (rejects legal source).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR15",
+      "quote": "If identifier-9 contains the predefined address NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR18",
+      "quote": "If identifier-9 contains the predefined address NULL, the EC-DATA-PTR-NULL exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR22",
+      "quote": "Identifier-9 shall be of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-ptr9.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-18",
+    "verdict": "OVERTURNED",
+    "reason": "GR18 governs identifier-10 of SET LOCALE ... TO identifier-10, an elementary data-pointer (2002 SR26), which in 2002 may be a level-1 record under an output CD, filled by a save-locale SET. In 2002 a level-1 USAGE POINTER, PROGRAM-POINTER or OBJECT REFERENCE entry (or a TYPE of such a typedef) may be a record description entry under an OUTPUT CD: 13.16.58.2 SR13 admits these usages at level 1, SR14 bars object references only in the FILE section, A.1.2.2 SR9 puts no category limit on output-CD records (only input and I-O CD records must be alphanumeric positions), and 13.16.42.2 SR13 governs a written REDEFINES clause, not the CD's implicit redefinition (the same reading the q-27 refute recorded for INVOKE; the compiler's own diagnostic calls the shape 'recognized but not yet implemented'). The 2023 twin has no communication section, so its evidence cannot reach this case. At --std 2002 the compiler refuses the declaration with COBOL0899 ('the record area of X is shared ... is of a pointer class ... a shared record area of that shape is recognized but not yet implemented'): legal 2002 source rejected, while the working-storage control of the same program runs. Same defect as q-27 2002-SR-14.8.22.2-1 (CD record-area binding), reached here through SET. Probe cd-ptr9.cob: SET CP TO LOCALE LC_ALL; SET LOCALE LC_ALL TO CP; expected GR18-RAN; observed COBOL0899 at 2002; control ws-ptr9.cob prints GR18-RAN. needs: its own verdict; compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR18",
+      "quote": "The content of the pointer data item referenced by identifier-10 shall reference saved locale information",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR21",
+      "quote": "The content of the pointer data item referenced by identifier-10 shall reference saved locale information",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.35.2 SR26",
+      "quote": "Identifier-10 shall reference an elementary data item of category data-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR13",
+      "quote": "The REDEFINES clause shall not be specified for a data item of class object or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\cd-ptr9.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-21",
+    "verdict": "UPHELD",
+    "reason": "GR21 concerns locale-name-1 only (a SPECIAL-NAMES LOCALE name), which cannot be a CD item; format and EC identical; the reader's pb64t1_ec_locale_missing run at 2002 stands.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR21",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR24",
+      "quote": "If the locale specified by locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-22",
+    "verdict": "UPHELD",
+    "reason": "GR22 fixes how long a set category stays in effect; that property does not depend on where the operand lives, and the CD-pointer form of identifier-10 is the GR18 overturn, not a separate GR22 case. Same format; run unit has the same extent; the reader's pb64t1_set_locale_categories run at 2002 stands.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR22",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR25",
+      "quote": "Each locale category specified remains in effect for the duration of the run unit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-25",
+    "verdict": "UPHELD",
+    "reason": "Format 12 has no operand, so no CD reach; EXCEPTION-OBJECT and the last exception status exist in 2002 with the same meaning; the reader's two probes at 2002 cover both halves.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR25",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR28",
+      "quote": "The predefined object reference EXCEPTION-OBJECT is set to null, and the last exception status is set to indicate no exception",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-8",
+    "verdict": "UPHELD",
+    "reason": "Format 1 general formats identical phrase by phrase (2002 14.8.36.1, 2023 14.9.40.2); file-name-2/-3 are FD files in both; a CD is not a file description entry. The reader's two witnesses at 2002 stand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR8",
+      "quote": "is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR8",
+      "quote": "is not for a report file and is not a sort-merge file description entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-10",
+    "verdict": "UPHELD",
+    "reason": "Attacked through the one real format difference: 2002 SR1 lets a format 1 SORT appear anywhere outside the declaratives, so a 2002 input or output procedure may CONTAIN a SORT statement (executing it is GR9's EC-SORT-MERGE-ACTIVE matter), where 2023 SR3 forbids it. GR10/GR13 govern those 2002-only procedures too, and the 2023 row cannot reach them. Probe sort-nested.cob (input and output procedures each holding an unexecuted SORT S2): at --std 2002 it compiles and prints OUT-A OUT-B OUT-C DONE (records released by the input procedure, sorted at its return mechanism, returned by RETURN); at 2023 it is refused COBOL2700 (SR3). The 2002-only scope is covered.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR10",
+      "quote": "The compiler inserts a return mechanism after the last statement in the input procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR11",
+      "quote": "The compiler inserts a return mechanism after the last statement in the input procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR3",
+      "quote": "in an input or output procedure, or in a declarative procedure",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\sort-nested.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.36.3-13",
+    "verdict": "UPHELD",
+    "reason": "Attacked through the one real format difference: 2002 SR1 lets a format 1 SORT appear anywhere outside the declaratives, so a 2002 input or output procedure may CONTAIN a SORT statement (executing it is GR9's EC-SORT-MERGE-ACTIVE matter), where 2023 SR3 forbids it. GR10/GR13 govern those 2002-only procedures too, and the 2023 row cannot reach them. Probe sort-nested.cob (input and output procedures each holding an unexecuted SORT S2): at --std 2002 it compiles and prints OUT-A OUT-B OUT-C DONE (records released by the input procedure, sorted at its return mechanism, returned by RETURN); at 2023 it is refused COBOL2700 (SR3). The 2002-only scope is covered.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.3 GR13",
+      "quote": "The RETURN statements in the output procedure are the requests for the next record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.4 GR14",
+      "quote": "The RETURN statements in the output procedure are the requests for the next record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.2 SR1",
+      "quote": "a format 1 SORT statement shall not appear in the declarative portion",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR3",
+      "quote": "in an input or output procedure, or in a declarative procedure",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-q-31\\sort-nested.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "819969e8c1c3263c6202cf5481ca0d0808de16a8d10424ed9f87a5a36068b79f",
+  "read": "d88ade8670a8117f771f487835c5317324d58e470a6532251a6ab3c04834b735",
+  "refute": "4d1d9c50dd0b3f4bea23854cc6b17879792e2549fd75eb6872276efe4f0950d3"
+ }
+}

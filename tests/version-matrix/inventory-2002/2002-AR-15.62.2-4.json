@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-AR-15.62.2-4",
+ "rule-digest": "0225aa1e4349",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "AR-15.75.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "run unit",
+    "answer": "§2002:4 (4.166) 'One or more runtime modules that interact with one another and that function, at execution time, as an entity' and §2023:3.158 (which adds only 'independent') name the same entity, so 'the first reference to this function in the run unit' covers the same references. The 2023 witness l1_random_unseeded_first_reference runs clean at --std 2002 (the reader's probe), so the scope and evidence do not change."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:8.8.1.1 to 8.8.1.3.6 govern the evaluation of arithmetic expressions (§2002:8.8.1.1 'The following rules apply regardless of the mode of arithmetic that is in effect'), and 15/15.1 the kinds of function; AR4 does no arithmetic and its only subject is the seed when argument-1 is absent, so the 32-digit standard arithmetic (PB5575) cannot change what it governs. §2002:15.1 item 4 ('A numeric function has an operational sign') says what 2023 15.2 says for a numeric function. 14.5.2.1.2.1 (initial state of data), 14.5.3 (transfers of control) and 14.5.10 (normal termination: files, ALLOCATE storage, objects, locale) say nothing about the RANDOM sequence. The rule rests on its own words and the run-unit definition only."
+   }
+  },
+  "source": "lineage-reads-2002/q-42.json",
+  "digests": {
+   "AR-15.75.3-4": "0225aa1e4349"
+  }
+ }
+}

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c20_odo_record_varying_no_depending
       *> rules: [GR-13.18.38.4-9]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

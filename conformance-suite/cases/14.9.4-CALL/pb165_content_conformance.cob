@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb165_content_conformance
 *> rules: [SR-14.9.4.3-25, GR-14.9.4.4-3, GR-14.9.4.4-6]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

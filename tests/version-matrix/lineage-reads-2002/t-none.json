@@ -1,0 +1,1581 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice t-none of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "t-none",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-8.8.4.1.3.2-4",
+   "2002-SR-8.8.4.1.3.2-5",
+   "2002-SR-8.8.4.1.3.2-6",
+   "2002-GR-8.8.4.1.3.3-1",
+   "2002-GR-8.8.4.1.3.3-2",
+   "2002-GR-8.8.4.1.3.3-3",
+   "2002-GR-8.8.4.1.4.2-1",
+   "2002-GR-8.8.4.1.4.2-2",
+   "2002-GR-8.8.4.1.4.2-3",
+   "2002-GR-8.8.4.1.6.2-1",
+   "2002-SR-8.8.4.1.7.2-1",
+   "2002-GR-8.8.4.1.7.3-1",
+   "2002-GR-8.8.4.1.7.3-2",
+   "2002-SR-12.3.4.4.2-1",
+   "2002-SR-12.3.4.4.2-2",
+   "2002-GR-12.3.4.4.3-1",
+   "2002-GR-12.3.4.4.3-2",
+   "2002-GR-12.3.4.4.3-3",
+   "2002-GR-12.3.4.4.3-4",
+   "2002-SR-12.3.4.10.2-1",
+   "2002-SR-12.3.4.10.2-2",
+   "2002-SR-12.3.4.10.2-3",
+   "2002-GR-12.3.4.10.3-1",
+   "2002-GR-12.3.4.10.3-2",
+   "2002-GR-12.3.4.10.3-3"
+  ],
+  "pointers": {
+   "2002-SR-8.8.4.1.3.2-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.3.2-5": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.3.2-6": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.3.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.3.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.3.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.4.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.4.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.4.2-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.6.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.7.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.7.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.7.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.4.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.4.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.4.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.4.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.4.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.4.3-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.10.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.10.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-12.3.4.10.2-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.10.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.10.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-12.3.4.10.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   }
+  }
+ },
+ "read": {
+  "slice": "t-none",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-4",
+    "to": [
+     "SR-8.8.4.4.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR4",
+      "quote": "BOOLEAN shall not be specified if the category of the data item referenced by identifier-1 is numeric or numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR5",
+      "quote": "BOOLEAN shall not be specified if the category of the data item referenced by identifier-1 is numeric or numeric-edited",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BOOLEAN class test over a numeric item",
+     "BOOLEAN class test over a numeric-edited item"
+    ],
+    "evidence-2002": {
+     "numeric": "covered by conformance-suite/cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-numeric-operand (refused COBOL2201 at --std 2002, tests re-run at --std 2002 on the pinned tree E:/COBOL-wt/coderead85-tree-d with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/run.py)",
+     "numeric-edited": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p2a_boolean_on_numeric_edited.cob (COBOL2201 at --std 2002); positive case pb590_boolean_class_condition PASS at 2002"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. 2002 format has NUMERIC, ALPHABETIC(-LOWER/-UPPER), BOOLEAN, alphabet-name-1, class-name-1; 2023 only adds float/range phrases, which this rule does not name. Categories numeric and numeric-edited are the same in both. No CD or debugging reach (a procedure-division condition).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p2a_boolean_on_numeric_edited.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-5",
+    "to": [
+     "SR-8.8.4.4.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR5",
+      "quote": "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR4",
+      "quote": "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALPHABETIC/-LOWER/-UPPER/class-name-1 over boolean, numeric, numeric-edited items"
+    ],
+    "evidence-2002": {
+     "numeric": "covered by pb571-class-alphabetic-on-numeric (COBOL6000 at 2002)",
+     "boolean": "covered by class-alphabetic-on-boolean (COBOL6000 at 2002) and probe p2c_lower_on_boolean.cob",
+     "numeric-edited": "covered by probes p2b_classname_on_numeric_edited.cob, p2d_upper_on_numeric_edited.cob (COBOL6000 at 2002)",
+     "legal cases": "pb571_class_condition_one_table PASS at 2002"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical; the four phrases and three categories are the same in both editions (boolean category exists in 2002).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p2b_classname_on_numeric_edited.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-6",
+    "to": [
+     "SR-8.8.4.4.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR6",
+      "quote": "Alphabet-name-1 shall not reference an alphabet associated with a locale",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR2",
+      "quote": "Alphabet-name-1 shall not reference an alphabet associated with a locale",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "alphabet-name-1 naming a locale alphabet"
+    ],
+    "evidence-2002": {
+     "locale alphabet": "covered by pb64t5-class-condition-locale-alphabet (COBOL1669 at 2002)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical; ALPHABET ... LOCALE exists in 2002 (locales are a 2002 facility).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.3.3-1",
+    "to": [
+     "GR-8.8.4.4.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.3 GR1",
+      "quote": "the truth value of the class condition without the word NOT is false",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.4 GR1",
+      "quote": "the truth value of the class condition without the word NOT is false",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class condition over an ODO group at zero occurrences",
+     "over an ANY LENGTH formal bound to a zero-length argument",
+     "over a zero-length variable-length record",
+     "over a function returning a zero-length value"
+    ],
+    "evidence-2002": {
+     "ODO group at zero": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p1_zero_length_class.cob at 2002: ALPHA=F NUM=F NOTUP=T, and ALPHA2=T once N=2",
+     "ANY LENGTH / record / function": "not shown"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical, but the pointer row's only witness (8.5.4-Zero-length-items/ca7_class_zero_length, accept 2014) builds its zero-length item from DYNAMIC LENGTH and the zero-length literal, both 2014 constructs; at --std 2002 it is refused (COBOL0900), so no evidence of the rule runs at 2002 through the pointer. 2002's zero-length items (§2002:8.5.4: ODO group at zero occurrences, ANY LENGTH argument, zero-length variable record, zero-length function value) need their own witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p1_zero_length_class.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the zero-length class condition over 2002 zero-length items (p1 is the candidate for the ODO case; the pointer's witness uses 2014-only DYNAMIC LENGTH)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p1_zero_length_class.cob)"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.3.3-2",
+    "to": [
+     "GR-8.8.4.4.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.3 GR2",
+      "quote": "consists entirely of a valid representation for the usage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.4 GR3",
+      "quote": "consists entirely of a valid representation for the usage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.4 GR3",
+      "quote": "is any standard floating-point usage",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NUMERIC over display/national numeric, other usages incl. FLOAT-LONG, non-numeric items (alphanumeric, national, boolean display)",
+     "ALPHABETIC/-LOWER/-UPPER with and without locale",
+     "BOOLEAN",
+     "alphabet-name-1",
+     "class-name-1"
+    ],
+    "evidence-2002": {
+     "NUMERIC": "covered by pb5122_numeric_test_operands_2002, pb1466_numeric_class_stored_image, pb1466_national_numeric_class_image, pb823_refmod_class_numeric (PASS at 2002); FLOAT-LONG and boolean-display operands by probe p3_numeric_on_boolean_and_float.cob (FLNUM=T, BOOLNUM=T, NENUM=F, NATNUM=T)",
+     "ALPHABETIC family": "covered by pb64t5_character_classification, pb64t5_classification_unavailable, pb760_classification_national_group (PASS at 2002)",
+     "BOOLEAN": "covered by pb590_boolean_class_condition (PASS at 2002)",
+     "alphabet-name-1": "covered by pb109_class_condition_alphabet (PASS at 2002)",
+     "class-name-1": "covered by pb571_class_condition_one_table (PASS at 2002)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Differing words: 2002 NUMERIC b. covers every non-display/national usage; 2023 splits it into b. (standard floating-point, absent from 2002) and c. 'Otherwise' with the same text, so for every 2002 usage (binary, packed, FLOAT-SHORT/LONG/EXTENDED, ...) the 2023 c. is the 2002 b. SIGN clause reference 13.16.50 vs 13.18.52 is the same clause renumbered. Items a)-g) of 2002 are 2023's a)-f),n) reordered, text identical. 2023's g)-m) are additions outside the 2002 scope (their tests pb225/pb1401 are refused at 2002 as expected).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p3_numeric_on_boolean_and_float.cob",
+    "widening": "2023 adds standard floating-point NUMERIC (b.) and the float/range phrases g)-m); not 2002 scope."
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.3.3-3",
+    "to": [
+     "GR-8.8.4.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.3 GR3",
+      "quote": "If the word NOT is specified, the truth value is reversed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.4 GR2",
+      "quote": "If the word NOT is specified, the truth value is reversed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NOT with every 2002 class phrase"
+    ],
+    "evidence-2002": {
+     "NOT": "covered by pb590_boolean_class_condition (PASS at 2002) and probe p1 (NOT ALPHABETIC-UPPER)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical (2023 moved it from GR3 to GR2).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-1",
+    "to": [
+     "GR-8.8.4.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.4",
+    "clause-2023": "8.8.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR1",
+      "quote": "associated with a range or ranges of values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.5.3 GR1",
+      "quote": "associated with one or more ranges of values",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "88 THRU ranges over numeric, alphanumeric, national conditional variables"
+    ],
+    "evidence-2002": {
+     "ranges": "covered by l1_value_thru_through_equivalent (PASS at 2002); national range by probe p4_condname_nat_bool.cob (NVRNG=T), numeric negative range NUMNEG=T"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Differing words: 'a range or ranges' / 'falls in this range' vs 'one or more ranges' / 'within the specified range or ranges'; same requirement (inclusive range test). Format is condition-name-1 in both.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p4_condname_nat_bool.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-2",
+    "to": [
+     "GR-8.8.4.5.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.4",
+    "clause-2023": "8.8.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR2",
+      "quote": "the same as those specified for relation conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.5.3 GR2",
+      "quote": "the same as those specified for relation conditions",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "numeric, alphanumeric (incl. group), national and boolean conditional variables"
+    ],
+    "evidence-2002": {
+     "numeric/alphanumeric/group/figurative": "covered by pb728_condition_name_group_subject_class, pb1477_cond88_odo_figurative (PASS at 2002)",
+     "national, boolean": "covered by probe p4_condname_nat_bool.cob (NVABC=T, BV10=T)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. It defers to the relation-condition clause (§2002:8.8.4.1.1); the comparisons a condition-name reaches are same-class (numeric algebraic, alphanumeric/national padded, boolean), whose 2002 text I read (8.8.4.1.1.3, .6) and which match 2023 for these operands. The relation-condition details are their own 2002 rows.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p4_condname_nat_bool.cob",
+    "widening": "deferral to relation conditions: the 2002 relation-condition rows decide comparison details"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-3",
+    "to": [
+     "GR-8.8.4.5.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.4",
+    "clause-2023": "8.8.4.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR3",
+      "quote": "equals the value of its associated conditional variable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.5.3 GR3",
+      "quote": "equals the value of its associated conditional variable",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "88 with one or several VALUES"
+    ],
+    "evidence-2002": {
+     "values": "covered by l1_value_values_equivalent (PASS at 2002)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.6.2-1",
+    "to": [
+     "GR-8.8.4.7.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.6",
+    "clause-2023": "8.8.4.7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.6.2 GR1",
+      "quote": "negative if its value is less than zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.7.4 GR1",
+      "quote": "evaluated according to the rules of arithmetic in effect",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifiers, literals, expressions incl. unary minus",
+     "NOT POSITIVE/NEGATIVE/ZERO",
+     "FLOAT-SHORT/LONG/EXTENDED operands (incl. -0.0)"
+    ],
+    "evidence-2002": {
+     "format 1": "covered by l1c32_sign_condition_format1 and pb171_sign_condition_operands (PASS at 2002)",
+     "implementor floats": "covered by ca8_float_sign_format2 (accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Differing words: 2002 defines positive/negative/zero of the operand's value and that NOT pairs with the next keyword; 2023 Format 1 states the truth of each phrase. Same algebraic test. 2002 has one format (arithmetic-expression-1); 2023 Format 2 (standard float data-name) is an addition; 2002 implementor floats (FLOAT-SHORT/LONG/EXTENDED) fall under 2023 Format 1, and -0.0 is zero (not negative) in both.",
+    "probe": null,
+    "widening": "2023 adds Format 2 for standard floating-point items; not 2002 scope (its tests l1c32_format2, pb1471 are refused at 2002 as expected)."
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.7.2-1",
+    "to": [
+     "SR-8.8.4.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.7",
+    "clause-2023": "8.8.4.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.2 SR1",
+      "quote": "shall be a formal parameter defined in the source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.8.3 SR1",
+      "quote": "shall be a formal parameter defined in the source element",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "program",
+     "function",
+     "method"
+    ],
+    "evidence-2002": {
+     "program": "covered by pb133-omitted-cond-not-formal (COBOL1686 at 2002)",
+     "method": "covered by conformance-test MethodOmittedArgumentTests.OmittedCondition_OnMethodNonFormal_1686 (its ErrorsOf compiles at edition 2002 by default)",
+     "function": "covered by probe p6_omitted_function_nonformal.cob (COBOL1686 at 2002)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical; source elements are programs, functions and methods in both.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p6_omitted_function_nonformal.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.7.3-1",
+    "to": [
+     "GR-8.8.4.8.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.7",
+    "clause-2023": "8.8.4.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.3 GR1",
+      "quote": "was a trailing argument that was omitted from the activating statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.8.4 GR1",
+      "quote": "was a trailing argument that was omitted from the activating statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "CALL, INVOKE and function activation with OMITTED",
+     "trailing omission",
+     "forwarding"
+    ],
+    "evidence-2002": {
+     "all three cases on program, method and function arms": "covered by 8.4.3.2-Function-identifier/pb757_invoke_omitted (accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical; a) OMITTED phrase, b) trailing omission, c) forwarded omitted formal, same three cases.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.7.3-2",
+    "to": [
+     "GR-8.8.4.8.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.7",
+    "clause-2023": "8.8.4.8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.3 GR2",
+      "quote": "NOT and the keyword OMITTED specify one condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.8.4 GR2",
+      "quote": "NOT and the keyword OMITTED specify one condition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "IS NOT OMITTED"
+    ],
+    "evidence-2002": {
+     "NOT OMITTED": "covered by pb757_invoke_omitted (IS NOT OMITTED, PASS at 2002)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.4.2-1",
+    "to": [
+     "SR-12.4.5.5.2-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.2 SR1",
+      "quote": "shall not be specified for file-names specified in the USING or GIVING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.2 SR1",
+      "quote": "shall not be specified for file-names specified in the USING or GIVING phrase",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SORT USING, SORT GIVING, MERGE USING, MERGE GIVING with a random-access relative/indexed file"
+    ],
+    "evidence-2002": {
+     "SORT USING/GIVING, MERGE USING": "covered by pb994-sort-using-random-access, pb994-sort-giving-random-access, pb994-merge-using-random-access (COBOL1757 at 2002)",
+     "MERGE GIVING": "not separately shown (same check site, SortBinder.SortMapIoFiles)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.4.2-2",
+    "to": [
+     "SR-12.4.5.5.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.2 SR2",
+      "quote": "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.2 SR2",
+      "quote": "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.2 SR12",
+      "quote": "Format 3 shall be specified only for a sequential file or a report file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RANDOM/DYNAMIC on an explicit or defaulted sequential organization",
+     "on a report file"
+    ],
+    "evidence-2002": {
+     "sequential": "covered by pb692-access-random-organization-sequential, pb692-access-dynamic-organization-sequential, pb692-access-dynamic-organization-omitted (COBOL1858 at 2002)",
+     "report file": "covered by probe p5_report_file_random.cob (COBOL1858 at 2002; control p5b without it draws no COBOL1858)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/p5_report_file_random.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-1",
+    "to": [
+     "GR-12.4.5.5.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR1",
+      "quote": "If the ACCESS MODE clause is not specified, sequential access is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR1",
+      "quote": "If the ACCESS MODE clause is not specified, sequential access is assumed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sequential, relative and indexed files"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1c12_access_mode_sequential_default (accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-2",
+    "to": [
+     "GR-12.4.5.5.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR2",
+      "quote": "For relative files this sequence is the order of ascending relative record numbers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR2",
+      "quote": "For relative files this sequence is the order of ascending relative record numbers",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "sequential, relative and indexed files"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1c12_access_mode_sequential_default (sequential, relative, indexed incl. alternate key; accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-3",
+    "to": [
+     "GR-12.4.5.5.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR3",
+      "quote": "the value of a record key data item indicates the record to be accessed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR3",
+      "quote": "the value of a record key data item indicates the record to be accessed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative and indexed files"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1c12_access_mode_random_dynamic (relative and indexed random; accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-4",
+    "to": [
+     "GR-12.4.5.5.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4",
+    "clause-2023": "12.4.5.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR4",
+      "quote": "records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR4",
+      "quote": "records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "relative and indexed files"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1c12_access_mode_random_dynamic (relative and indexed dynamic; accept 2002, PASS)"
+    },
+    "reason": "The slice gives no pointer (bucket 'no same-subject 2023 rule') only because 2023 renamed the subject ('Simple class condition' etc.); I chose the word-identical 2023 rule of the renumbered clause as pointer. Words identical. The 2002 clause is one clause of the file control entry formats 1-3 (indexed, relative: SEQUENTIAL/RANDOM/DYNAMIC; sequential and report files: SEQUENTIAL only; sort-merge: none); 2023's clause format is the same. 2002's sequential file has no LINE SEQUENTIAL; report files are sequential files (Format 3).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.10.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.2 SR1",
+      "quote": "Literal-1 shall be a one-character alphanumeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.11",
+      "quote": "An implementation is required to support obsolete language elements",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "literal-1: one-character alphanumeric literal, figurative constant"
+    ],
+    "evidence-2002": {
+     "accept": "probes pad_lit.cob (\"*\") and pad_fig.cob (SPACE) compile and run at 2002",
+     "refuse": "probes pad_lit2.cob (\"**\"), pad_num.cob (5), pad_natlit.cob (N\"*\"), pad_bool.cob (B\"1\") draw COBOL6848 citing §2002:12.3.4.10.2 SR1"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit2.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for literal-1 is correct (probes pad_lit, pad_fig accepted; pad_lit2, pad_num, pad_natlit, pad_bool refused COBOL6848)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_*.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.10.2-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.2 SR2",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "qualified data-name-1; uniqueness of an unqualified one"
+    ],
+    "evidence-2002": {
+     "qualified": "probe pad_qual.cob (PAD-CHAR OF G1, two PAD-CHARs) compiles and runs at 2002",
+     "ambiguous": "probe pad_ambig.cob refused COBOL1639 at 2002"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_qual.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a qualified data-name-1 is correct (pad_qual accepted, pad_ambig refused)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_qual.cob, pad_ambig.cob)"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.10.2-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.2 SR3",
+      "quote": "defined in the working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "data-name-1 one character, category alphanumeric, in working-storage, local-storage or linkage"
+    ],
+    "evidence-2002": {
+     "accept": "pad_qual.cob (working-storage), pad_ls.cob (local-storage) run at 2002; linkage not shown",
+     "refuse": "pad_dn2 (PIC XX), pad_dnnum (PIC 9), pad_dnnat (PIC N), pad_dnfile (file section) refused COBOL6848 citing §2002:12.3.4.10.2 SR3"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_dnfile.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for data-name-1 is correct (probes pad_dn2, pad_dnnum, pad_dnnat, pad_dnfile refused; pad_qual, pad_ls accepted)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_*.cob)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.10.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.3 GR1",
+      "quote": "a logical record that consists solely of padding characters shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "block padding on input (bypass, ignore all-padding record) and output (fill)"
+    ],
+    "evidence-2002": {
+     "null facility": "probe pad_lit.cob at 2002: records AB**, ****, CD   written and read back unchanged (the all-'*' record is not ignored, consistent with GR2's not-applicable arm)"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests. The compiler has no blocking model and records (docs/conformance/3.6) that padding is not applicable to its files, so no padding is created or recognized; Annex B.3 item 9 of 2002 lists the clause as processor-dependent ('dependent upon whether padding characters are applicable to the device type').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the clause is a documented null facility (no blocking); KEPT on the not-applicable arm of §2002:12.3.4.10.3 GR2 with docs/conformance/3.6 as the determination",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob)",
+    "licence-2002": "§2002:12.3.4.10.3 GR2 with §2002:3.1.5 (processor-dependent, Annex B.3 item 9)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.10.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "no padding where not applicable to the device type"
+    ],
+    "evidence-2002": {
+     "null facility": "probe pad_lit.cob at 2002: records AB**, ****, CD   written and read back unchanged (the all-'*' record is not ignored, consistent with GR2's not-applicable arm)"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests. The compiler has no blocking model and records (docs/conformance/3.6) that padding is not applicable to its files, so no padding is created or recognized; Annex B.3 item 9 of 2002 lists the clause as processor-dependent ('dependent upon whether padding characters are applicable to the device type').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the clause is a documented null facility (no blocking); KEPT on the not-applicable arm of §2002:12.3.4.10.3 GR2 with docs/conformance/3.6 as the determination",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob)",
+    "licence-2002": "§2002:12.3.4.10.3 GR2 with §2002:3.1.5 (processor-dependent, Annex B.3 item 9)"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.10.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10",
+    "clause-2023": "none",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10.3 GR3",
+      "quote": "at the time the OPEN statement that creates the file is executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.3 GR2",
+      "quote": "the creation or recognition of padding characters shall not occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the padding value taken at the creating OPEN"
+    ],
+    "evidence-2002": {
+     "null facility": "probe pad_lit.cob at 2002: records AB**, ****, CD   written and read back unchanged (the all-'*' record is not ignored, consistent with GR2's not-applicable arm)"
+    },
+    "reason": " PADDING CHARACTER is a 2002 file control entry clause (Format 3, sequential files; obsolete in 2002) with no 2023 counterpart, so there is no pointer: the 2002 rows need their own verdict. The compiler accepts the clause at --std 2002 with the obsolete warning COBOL0903 (§2002:3.1.11 requires obsolete elements to be supported and warned) and enforces its syntax rules in FileControlBinder.Padding.cs (CapturePadding, ScreenPaddingDataName). The 1985 twins (inventory-1985 1985-SR-VII.2.7.3-1..3, 1985-GR-VII.2.7.4-1..3) are the nearer pointer to code and tests. The compiler has no blocking model and records (docs/conformance/3.6) that padding is not applicable to its files, so no padding is created or recognized; Annex B.3 item 9 of 2002 lists the clause as processor-dependent ('dependent upon whether padding characters are applicable to the device type').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: at --std 2002 the clause is a documented null facility (no blocking); KEPT on the not-applicable arm of §2002:12.3.4.10.3 GR2 with docs/conformance/3.6 as the determination",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-t-none/pad_lit.cob)",
+    "licence-2002": "§2002:12.3.4.10.3 GR2 with §2002:3.1.5 (processor-dependent, Annex B.3 item 9)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "t-none",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-4",
+    "verdict": "UPHELD",
+    "reason": "Words, format operands and categories match. Attack 1, communication reach: in 2002 identifier-1 can name a CD field (Annex A, optional and obsolete). Probe r1 at --std 2002: the compiler accepts the COMMUNICATION SECTION (warning COBOL0903) and refuses 'MC IS BOOLEAN' (MC = MESSAGE COUNT, numeric) with COBOL2201. So the CD case is covered. Attack 2, strongly-typed groups (2002 SR1 does not exclude them, 2023 SR1 does): a 2002 group has no usage of its own (13.16.58 GR1) and its category is the type-name, so 2002 SR2/SR3 already exclude it. No 2002-only operand reaches this rule.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR4",
+      "quote": "BOOLEAN shall not be specified if the category of the data item referenced by identifier-1 is numeric or numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR1",
+      "quote": "it applies only to each elementary item in the group and not to the group itself",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r1_cd_condname.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-5",
+    "verdict": "UPHELD",
+    "reason": "The words are identical and the four phrases and three categories are unchanged. CD reach: probe r3 at --std 2002 refuses 'MC IS ALPHABETIC' over the numeric MESSAGE COUNT field of a CD (COBOL6000). The strongly-typed group case is excluded by 2002 SR3 (a group has no usage display), as for SR4.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR5",
+      "quote": "ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, or class-name-1 shall not be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR3",
+      "quote": "If the NUMERIC phrase is not specified, identifier-1 shall reference a data item whose usage is display or national",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r3_cd_alpha_numeric.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-6",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. I compared the alphabet-name-clause general format of 2002 (12.2.6.1) with 2023's (12.3.7) phrase by phrase: LOCALE [locale-name-2], NATIVE, STANDARD-1, STANDARD-2, code-name, literal-phrase, and on the national side LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name and literal-phrase. The two formats are identical, so 'an alphabet associated with a locale' denotes the same set in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR6",
+      "quote": "Alphabet-name-1 shall not reference an alphabet associated with a locale",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.3.3-2",
+    "verdict": "UPHELD",
+    "reason": "I re-checked items a) to g) against 2023 GR3 a) to f) and n). The text is the same. 2002 a)1.b covers every usage that is not display or national. In 2023 that case is item c ('Otherwise'), because 2023's standard floating-point usages (FLOAT-BINARY-*, FLOAT-DECIMAL-*) do not exist in 2002, and 2002's FLOAT-SHORT, FLOAT-LONG and FLOAT-EXTENDED fall under 2023 c. The SIGN clause and the ALPHABET and CLASS formats it leans on are unchanged. CD reach: probe r2 at --std 2002 runs ALPHABETIC and NOT NUMERIC over a CD record field with correct results (ALPHA=T, NOTNUM=T). Strongly-typed groups are excluded by 2002 SR2/SR3.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.3 GR2",
+      "quote": "consists entirely of a valid representation for the usage",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r2_cd_record.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.3.3-3",
+    "verdict": "UPHELD",
+    "reason": "The words are identical and the rule has nothing further to lean on. The NOT operand set is the 2002 class phrases, each of which exists in 2023. Probe r2 shows NOT NUMERIC over a CD field at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.3 GR3",
+      "quote": "If the word NOT is specified, the truth value is reversed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r2_cd_record.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-1",
+    "verdict": "UPHELD",
+    "reason": "The differing words ('a range or ranges'/'falls in this range' against 'one or more ranges'/'within the specified range or ranges') state the same inclusive test. The rule leans on VALUE Format 3, which is identical in both editions, IN alphabet-name-1 included, and on the THROUGH phrase (2002 14.6.7 = 2023 14.7.8, word for word, EC-RANGE-INVALID included). CD reach: probe r2 at --std 2002 tests an 88 THRU range over a field of a CD record correctly (QNA=T).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR1",
+      "quote": "including the end values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.7",
+      "quote": "When the IN alphabet-name phrase is specified, the collating sequence used for range evaluation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r2_cd_record.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "The rule defers to relation conditions. The only part of 2002's comparison text that 2023 changed in substance is the numeric comparison under 2002 standard arithmetic (ARITHMETIC IS STANDARD, a mode 2023 removed): rounding to 31 digits on comparison. That case cannot change a condition-name result. A conditional variable has at most 31 digits (2002 PICTURE SR6). Its VALUE literals must fit its PICTURE. Float usages use native arithmetic in 2002. So both operands convert exactly and compare the same as in 2023. The alphanumeric, national, boolean and alphanumeric-national comparison texts are the same in substance (I compared 8.8.4.1.1.4 to .8 with 2023's 8.8.4.2.5 to .11). Probe r2 checks equality over a CD field (QNB=F).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR2",
+      "quote": "the same as those specified for relation conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.3",
+      "quote": "When standard arithmetic is used, the number of digits of the standard intermediate data item used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.2 SR6",
+      "quote": "the number of digit positions described by character-string-1 shall range from 1 through 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "the techniques used shall be those specified for native arithmetic",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r2_cd_record.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.4.2-3",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. The values come from VALUE Format 3, which is identical in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4.2 GR3",
+      "quote": "equals the value of its associated conditional variable",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.6.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "The rule decides the sign of 'its value', the value of arithmetic-expression-1. In 2002 that value is computed by standard arithmetic when OPTIONS ARITHMETIC IS STANDARD is in effect: 32-digit truncation per operation, rounded to 31 digits for the comparison. 2023 removed ARITHMETIC IS STANDARD; its GR1 'rules of arithmetic in effect' means NATIVE, STANDARD-BINARY or STANDARD-DECIMAL. So the 2023 verdict says nothing about the 2002 standard-arithmetic case. Probe r4 at --std 2002 under ARITHMETIC IS STANDARD: A=1.0000000000000001, C=1.0000000000000002. The exact A*A is 1+2E-16+1E-32 (33 digits), which truncates to 1+2E-16, so A*A-C is 0. 2002 requires POSITIVE false and ZERO true. Observed: POS=T ZERO=F, a 34-digit result (the same as r4b at 2023 under STANDARD-DECIMAL). This is the known 34-digit standard-arithmetic defect at --std 2002 reaching the sign condition. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.6.2 GR1",
+      "quote": "An operand is positive, if its value is greater than zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "shall be those specified for standard arithmetic in 8.8.1.3, Standard arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.4",
+      "quote": "The result shall be the exact product truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is compared",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.7.4 GR1",
+      "quote": "evaluated according to the rules of arithmetic in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.9.5.2 GR3",
+      "quote": "If the STANDARD-DECIMAL phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "have been removed from this Working Draft International Standard",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r4_sign_std_arith.cob",
+    "compiler-at-2002": "wrong",
+    "expected-2002": "POS=F / ZERO=T",
+    "observed-2002": "POS=T / ZERO=F"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. The 2002 source elements that have formal parameters (program, function, method) are the same as in 2023, and the PROCEDURE DIVISION USING [OPTIONAL] format is the same. Prototypes have no procedure body, so they cannot contain this condition.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.2 SR1",
+      "quote": "shall be a formal parameter defined in the source element",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.7.3-1",
+    "verdict": "UPHELD",
+    "reason": "The words are identical: the same three cases a) to c). OMITTED and the OPTIONAL trailing-argument rules are the same in 2002 (CALL, INVOKE, function-identifier, PROCEDURE DIVISION USING OPTIONAL). The activating statements are the same.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.3 GR1",
+      "quote": "was a trailing argument that was omitted from the activating statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.7.3-2",
+    "verdict": "UPHELD",
+    "reason": "The words are identical and the rule has nothing further to lean on.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.3 GR2",
+      "quote": "NOT and the keyword OMITTED specify one condition",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.4.2-1",
+    "verdict": "UPHELD",
+    "reason": "The words and the ACCESS MODE format are identical, and the SORT/MERGE USING/GIVING forms are the same. The reader left MERGE GIVING not shown. Probe r6 at --std 2002 refuses MERGE ... GIVING into a RANDOM relative file (COBOL1757); the control r6b (SEQUENTIAL) compiles clean.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.2 SR1",
+      "quote": "shall not be specified for file-names specified in the USING or GIVING phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r6_merge_giving_random.cob"
+   },
+   {
+    "rule-id": "2002-SR-12.3.4.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. The 2002 sequential file is Format 3 (sequential or report file, ACCESS SEQUENTIAL only), and the report-file case was probed by the reader (p5). No 2002-only file form reaches this rule. PADDING CHARACTER sits in Format 3 but does not bear on access mode.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.2 SR2",
+      "quote": "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-1",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. The default applies to the same organizations.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR1",
+      "quote": "If the ACCESS MODE clause is not specified, sequential access is assumed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-2",
+    "verdict": "DOUBTFUL",
+    "reason": "Item c) orders indexed records by 'a given key of reference'. In 2002 the prime and alternate record keys may be subscripted table elements: 5.1.3 lets data-name-n carry subscription, 2002 RECORD KEY SR1 and ALTERNATE RECORD KEY SR1 add only 'may be qualified', and 2014 E.2 item 25 records that later editions added the OCCURS prohibition. 2023 RECORD KEY SR1 forbids OCCURS, so the 2023 evidence never has a subscripted key of reference. The compiler refuses such keys at --std 2002 (COBOL2024; refute-p-01/reckey.cbl). Items a) and b) are covered. It would be settled by deciding whether the subscripted-key defect (filed against the RECORD KEY rows from p-01) needs its own sequential-order witness for this rule once it is fixed.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR2",
+      "quote": "ascending within a given key of reference according to the collating sequence for that key",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-p-01/reckey.cbl"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-3",
+    "verdict": "OVERTURNED",
+    "reason": "This rule names the relative key data item and the record key data item. In 2002 both may be subscripted table elements: 5.1.3 allows subscription for data-name-n, 2002 RELATIVE KEY SR1 and RECORD KEY SR1 say only 'may be qualified', and 2014 E.2 item 25 records the OCCURS prohibition as added after 2002. 2023 RELATIVE KEY SR1 and RECORD KEY SR1 forbid OCCURS, so 2023 GR3 never governs random access through a subscripted key, and its verdict says nothing about that 2002 case. Probe r5 at --std 2002 (RELATIVE KEY IS RK(2), RK OCCURS 3 in working-storage, ACCESS RANDOM) is refused with COBOL2024, and so is RECORD KEY IS K(2) (refute-p-01/reckey.cbl). compiler-at-2002: wrong. It refuses legal 2002 source, so random access by a subscripted key cannot run. The root is the same defect as p-01's RECORD KEY overturn, which this probe extends to RELATIVE KEY.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR3",
+      "quote": "the value of a relative key data item indicates the record to be accessed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.3 GR3",
+      "quote": "the value of a record key data item indicates the record to be accessed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.13.3 SR1",
+      "quote": "Data-name-1 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-t-none/r5_relkey_subscripted.cob",
+    "compiler-at-2002": "wrong"
+   },
+   {
+    "rule-id": "2002-GR-12.3.4.4.3-4",
+    "verdict": "UPHELD",
+    "reason": "The words are identical. The rule states what the dynamic mode permits and names no key data item. The subscripted-key case is carried by GR3 (OVERTURNED) and by the RECORD KEY and RELATIVE KEY rows. Dynamic access over non-subscripted keys is the same in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.3 GR4",
+      "quote": "records in the file may be accessed sequentially, randomly, or both",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "5b97cd87dc5bd8a656aeb8bb747d2983644496332cd5c1ccd1b4c10c528c4b72",
+  "read": "a5989509baca454e4468f0a63ffcaadab278c33d71a21d96d32d82d08712ba0a",
+  "refute": "8bbfb81cdbb13598cc0ce8813db4e5f974f0a8b4d1fd5d14b788c134193b556b"
+ }
+}

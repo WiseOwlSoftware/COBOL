@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-7.2.16.3-1",
+ "rule-digest": "5d62b6f908cf",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.19.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch is DialectBehavior.CompileTimeArithmeticImplementorDefined (src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs:301): before 2023 compile-time arithmetic expressions use standard arithmetic (§2002:7.2.5.2 GR1 'Standard arithmetic shall be used for all arithmetic operations'), and such expressions occur only in DEFINE and EVALUATE directives, constant conditional expressions and constant entries (§2002:7.2.5); its only call sites are the >>DEFINE/>>IF/>>EVALUATE evaluator and the constant-entry binder (git grep CompileTimeArithmetic in src). This directive's format carries only keywords or comment-text, no compile-time arithmetic expression, so the switch cannot reach the rule; >>PAGE takes only comment-text, which 'is not checked syntactically' (§2002:7.2.16.2 SR2), so digits or operators in it are never evaluated. At --std 2002 comment-text has no effect: page-junk.cob (re-run this session: ONE, TWO, with COPY NOSUCH., unbalanced quotes and +-*/ in comment-text) and pb1352_directive_lines_not_replaced (matches its .out at 2002)."
+   }
+  },
+  "source": "lineage-reads-2002/q-03.json",
+  "digests": {
+   "GR-7.3.19.4-1": "5d62b6f908cf"
+  }
+ }
+}

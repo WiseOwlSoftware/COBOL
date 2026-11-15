@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-7.2.17.3-3",
+ "rule-digest": "4ce698b13d4b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-7.3.21.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed)",
+    "answer": "Read §2002:14.5.12.1, 14.5.12.1.2, 14.5.12.1.3 and 14.5.12.2. 2023 rewrites the fatal and non-fatal lists (adds the PERFORM WHEN, SORT/MERGE, fatal EC-I-O and APPLY COMMIT items); 14.5.12.2 is incompatible data. What propagation does is §2002:14.5.12.1.2 item 3 ('there is an applicable PROPAGATE ON directive, the exception condition is propagated as if a GOBACK statement with the RAISING LAST EXCEPTION phrase were executed'), the same words as 2023's item 6; the 2023 additions (PERFORM WHEN, SORT/MERGE, fatal EC-I-O, APPLY COMMIT) are 2023 constructs or come before the propagation step. This rule only switches propagation off per element, which does not rest on the differing text. §2002:9.3.5 (method binding) is matched by 'methods'; it does not touch the switch."
+   },
+   "behaviour-switch": {
+    "flag": "compile-time-arithmetic-mode",
+    "answer": "The switch (DialectBehavior.CompileTimeArithmeticImplementorDefined, src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeArithmetic.cs#For) picks only the mode in which a compile-time arithmetic expression is evaluated: Standard at 2002, as §2002:7.2.5.2 GR1 requires ('Standard arithmetic shall be used for all arithmetic operations'). PROPAGATE OFF takes no expression, so the switch does not reach it; the reader's prop-func-off/prop-meth-off/prop-offon probes at --std 2002 are the evidence."
+   }
+  },
+  "source": "lineage-reads-2002/q-03.json",
+  "digests": {
+   "GR-7.3.21.4-3": "4ce698b13d4b"
+  }
+ }
+}

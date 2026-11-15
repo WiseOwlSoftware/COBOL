@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.27.3-6",
+ "rule-digest": "cd31cd0f85a7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.28.4-8"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "type | for type declaration (newer: 8.5.3)",
+    "answer": "The word is 'this type of PERFORM statement' (a kind of statement), not §2002:4 4.182 type (for type declaration); the definition cannot change the rule's scope."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:14.5.8 (removed)",
+    "answer": "Triggered by the same word 'type'; GR6 involves no typedef, zero-length item or alignment, so it does not rest on §2002:8.5.3, 8.5.4 or 14.5.8."
+   },
+   "band-formats": {
+    "flag": "band-formats None against [[1, 2]]",
+    "answer": "The 2002 PERFORM has two formats, out-of-line and inline (§2002:14.8.27.1), with one unbanded syntax-rule list; they are 2023 formats 1 and 2 phrase for phrase (2023 adds UNTIL EXIT and format 3, both absent from 2002). The 2023 band FORMATS 1 AND 2 therefore reaches every 2002 PERFORM; no 2002 format falls outside it. GR6 defines the basic PERFORM in either format."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "GR-14.9.28.4-8": "cd31cd0f85a7"
+  }
+ }
+}

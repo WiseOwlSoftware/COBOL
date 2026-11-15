@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: w73b_pb1077_select_scope_per_program
       *> rules: [SR-12.4.5.2-2, SR-12.4.5.2-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

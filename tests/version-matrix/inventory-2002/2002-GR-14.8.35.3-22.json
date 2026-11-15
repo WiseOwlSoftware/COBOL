@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-22",
+ "rule-digest": "a22f48aea1b7",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.39.4-25"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "run unit",
+    "answer": "§2002:4 run unit: 'One or more runtime modules that interact with one another and that function, at execution time, as an entity to provide problem solutions'; §2023:3.158: 'runtime entity consisting of one or more runtime modules that interact and that function at execution time as an independent entity'. Same extent (the set of interacting runtime modules); the rule's 'duration of the run unit' reaches the same execution, so no change."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Read all three in 2002: 14.5.2.1.2.1 is the initial state of data ('The first time the function, method, or program in which it is described is activated in a run unit'), 14.5.3 is the flow of control, and 14.5.10 is normal run unit termination, whose item 5 says 'the implementor specifies whether the locale is reset to the locale in effect when the run unit was activated', which is after the run unit ends and so outside this rule's 'duration of the run unit'. The rule matched them only on the words 'run unit'; what keeps a switched category current inside the run unit is §2002:14.5.6 item 3 ('the new locale becomes the current locale for the run unit for the switched categories') and item 9, which are not flagged clauses. No dependence on the flagged text; no change."
+   },
+   "band-formats": {
+    "flag": "band-formats [10] against [[11]]",
+    "answer": "2002 Format 10 (set-locale) is 2023 Format 11 element for element (SET LOCALE {LC_ALL | LC_COLLATE | LC_CTYPE | LC_MESSAGES | LC_MONETARY | LC_NUMERIC | LC_TIME ... | USER-DEFAULT} TO {identifier-10 | locale-name-1 | USER-DEFAULT | SYSTEM-DEFAULT}); the number moved only because 2023 inserted Format 8 function-pointer-assignment (§2023:14.9.39.2 'SET { identifier-12 } … TO identifier-13') ahead of it, and SR25/SR26 of 2002 read as SR26/SR27 of 2023. The band reaches the same single format in both editions, so no split and no change of scope."
+   }
+  },
+  "source": "lineage-reads-2002/q-31.json",
+  "digests": {
+   "GR-14.9.39.4-25": "a22f48aea1b7"
+  }
+ }
+}

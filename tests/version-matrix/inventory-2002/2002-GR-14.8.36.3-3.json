@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-14.8.36.3-3",
+ "rule-digest": "3360f693bb5e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.40.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "procedure",
+    "answer": "§2002:4 (4.150) 'One or more successive paragraphs or sections in the procedure division'; §2023:3.145 adds 'paragraph, section' explicitly, which a single paragraph or section already is in 2002, so the set of procedures is the same. This rule's use ('input procedure') names the same units in 2002; scope and evidence unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.6.4 (changed), §2002:14.6.6 (changed)",
+    "answer": "Read §2002:14.6.4 and 14.6.6 (size error, arithmetic statements; 31-digit composite, standard arithmetic). The rule matched only on 'corresponding key data items'; record order among equal keys under DUPLICATES involves no size error or arithmetic statement. No dependence; evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-32.json",
+  "digests": {
+   "GR-14.9.40.4-3": "3360f693bb5e"
+  }
+ }
+}

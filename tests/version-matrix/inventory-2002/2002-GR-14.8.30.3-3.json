@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.30.3-3",
+ "rule-digest": "9e0db4f00a19",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.32.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "output file",
+    "answer": "§2002:4 (entry 4.145) 'A file that is opened in either the output mode or extend mode' and §2023:3.141 'can only be written or extended' name the same files. In GR3 'the associated output file' is the sort-merge file of record-name-1 in both editions (an SD file is never OPENed), so the definition does not change which files the SAME RECORD AREA availability covers; scope and evidence unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-30.json",
+  "digests": {
+   "GR-14.9.32.4-3": "9e0db4f00a19"
+  }
+ }
+}

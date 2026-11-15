@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-13.16.37.3-2",
+ "rule-digest": "e848559fd8d9",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.39.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 15118 has the same rule with a '## Page 377' marker inside it: page break only. Re-read §2002:13.16.37.3 GR2: unchanged."
+   },
+   "definition-dropped": {
+    "flag": "report (newer: 13.18.46.2)",
+    "answer": "Same report object; GR2 sets the page regions of an RD, unchanged."
+   },
+   "pending-clause": {
+    "flag": "§2002:14.5.2.1.2.1 (changed), §2002:14.5.3 (changed), §2002:14.5.10 (changed)",
+    "answer": "Matched on 'terminates before this line' (a heading's layout), not run unit termination or transfer of control; GR2 does not rest on §2002:14.5.2.1.2.1, 14.5.3 or 14.5.10."
+   }
+  },
+  "source": "lineage-reads-2002/q-17.json",
+  "digests": {
+   "GR-13.18.39.4-2": "e848559fd8d9"
+  }
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.1.2-4",
+ "rule-digest": "ed07ccef90ab",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.3.2.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR4's 'same coded character set representation as the opening quotation symbol' rests on that sense only; the doubled-quote scope is unchanged and covered by l1c01_alnum_literal_characters at 2002."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "SR-8.3.3.2.3-4": "ed07ccef90ab"
+  }
+ }
+}

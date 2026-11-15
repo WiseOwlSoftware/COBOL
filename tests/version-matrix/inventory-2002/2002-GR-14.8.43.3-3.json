@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.43.3-3",
+ "rule-digest": "f35b29da4287",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.47.4-3"
+  ],
+  "bridge": true,
+  "answers": {
+   "pending-clause": {
+    "flag": "§2002:9.1.12 (changed), §2002:9.1.12.1 (changed), §2002:9.1.12.2 (changed), §2002:9.1.12.5 (changed), §2002:9.1.12.9 (changed), §2002:9.1.13 (changed)",
+    "answer": "Read §2002:9.1.12 (the statements whose I-O status is set: CLOSE, DELETE, OPEN, READ, REWRITE, START, UNLOCK, WRITE), 9.1.12.1 (00), 9.1.12.2 (0x), 9.1.12.4 (23 b and d: START on an optional file not present, START on a sequential file with no records), 9.1.12.5 (3x), 9.1.12.6 (42: CLOSE or UNLOCK on a file not open), 9.1.12.9 (9x) and 9.1.13 (invalid key condition). The values these rules reach (00, 23, 42) and the invalid-key transfer of control are the same words as §2023:9.1.13.2/9.1.13.5/9.1.13.7 and 9.1.14; what 2002 lacks is 2023's EC-I-O-WARNING for a nonzero 0x status and the 7x class, neither of which these rules produce. UNLOCK GR3 rests on 00 (§2002:9.1.12.1) and 42 (§2002:9.1.12.6), both unchanged; the reader's unlock_status at 2002 shows 00, 00, then 42 with the USE AFTER ERROR declarative run (probes-q-33/unlock_status-2002.log). No change."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.47.4-3": "f35b29da4287"
+  }
+ }
+}

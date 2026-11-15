@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-DOC-B.1-47",
+ "rule-digest": "f604a8ac7072",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-66"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "8.13",
+    "answer": "Read §2002:8.13 whole: the same thirteen information items as §2023:8.13, ending 'any other information that the implementor requires', the same signature definition and the same two mechanism sentences (update; flag differences). 2002 adds an opening sentence naming the source units the repository holds and points at 12.2.7 where 2023 points at 12.3.8; neither changes the two mechanisms this item documents. The mechanisms are edition-independent CLI options, shown at --std 2002 in probe-repository-2002.log (COBOL5969 with check on; COBOL5968 with update off)."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-66": "f604a8ac7072"
+  }
+ }
+}

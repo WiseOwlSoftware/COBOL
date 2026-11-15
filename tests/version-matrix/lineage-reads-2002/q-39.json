@@ -1,0 +1,2406 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice q-39 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "q-39",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-AR-15.34.2-1",
+   "2002-AR-15.35.2-1",
+   "2002-RV-15.35.3-1",
+   "2002-AR-15.36.2-1",
+   "2002-AR-15.37.2-1",
+   "2002-AR-15.38.2-1",
+   "2002-RV-15.38.3-1",
+   "2002-AR-15.39.2-1",
+   "2002-RV-15.39.3-1",
+   "2002-RV-15.39.3-2",
+   "2002-RV-15.39.3-3",
+   "2002-RV-15.39.3-5",
+   "2002-RV-15.39.3-6",
+   "2002-AR-15.40.2-1",
+   "2002-AR-15.40.2-2",
+   "2002-AR-15.40.2-3",
+   "2002-AR-15.40.2-4",
+   "2002-RV-15.40.3-1",
+   "2002-RV-15.40.3-2",
+   "2002-RV-15.40.3-3",
+   "2002-RV-15.40.3-4",
+   "2002-RV-15.40.3-5",
+   "2002-RV-15.40.3-6",
+   "2002-AR-15.41.2-1",
+   "2002-AR-15.41.2-2"
+  ],
+  "flags": {
+   "2002-RV-15.38.3-1": {
+    "normalized": "normalized",
+    "cross-reference": "1.5, 1.5, 1.0, 1.0"
+   },
+   "2002-RV-15.40.3-5": {
+    "normalized": "normalized"
+   }
+  }
+ },
+ "read": {
+  "slice": "q-39",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.34.2-1",
+    "to": [
+     "AR-15.44.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.34 INTEGER function",
+    "clause-2023": "15.44 INTEGER function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.34.2 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.3 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR9",
+      "quote": "Numeric. An arithmetic expression or a numeric data item shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format FUNCTION INTEGER ( argument-1 ) identical; argument type Numeric (15.2 item 9) has the same words in both editions; class numeric = category numeric in both class tables. The argument rule does not depend on the arithmetic mode. A numeric item in a communication-section record is still a numeric data item and works (p6).",
+    "scope-2002": [
+     "argument-1 of class numeric: numeric data item, numeric literal, arithmetic expression",
+     "refusal of a non-numeric argument",
+     "numeric items in any section incl. a CD record"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p1_intfuncs.cob (--std 2002 output = 2023: -1.5->-2, +1.5->+1, expr)",
+     "covered by probes-q-39/r_int_alnum.cob (COBOL1627 at --std 2002)",
+     "covered by probes-q-39/p6_cd_length.cob (a CD-record item as argument, --std 2002: LENGTH 87/30/12/4, INTEGER -3, INTEGER-PART -2, INTEGER-OF-BOOLEAN 0, LOCALE-COMPARE '=')"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p1_intfuncs.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class numeric (category numeric, every 2002 numeric usage) is the same set. Scope unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 (standard arithmetic, removed in 2023) govern how an arithmetic expression is evaluated, not its class: §2002:8.8.1.3.1 'A standard intermediate data item is of the class numeric and the category numeric', so an expression argument is class numeric in either mode. Probe stdarith-args.cob (OPTIONS ARITHMETIC IS STANDARD, --std 2002) accepts expression arguments to INTEGER, INTEGER-PART, FRACTION-PART, EXP10, EXP and MIDRANGE with correct values; stdarith-bad.cob refuses alphanumeric (COBOL1627). PB5575 (34 vs 31 digits) touches returned values, not this argument rule. §2002:15 and §2002:15.1 differ from 2023 15.1/15.2 only in the function-type text (2002 15.1 says 'The number of character positions in this data item is specified in the function definition'; 2023 adds the sentence on type determining use); both describe the returned item. Argument classes are in §2002:15.2, whose argument types the reader cited; this argument rule does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "Arguments may be required to have a certain class or a subset of a certain class",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-08/stdarith-args.cob (+ .2002.txt); E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-08/stdarith-bad.cob (+ .2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.35.2-1",
+    "to": [
+     "AR-15.45.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.35 INTEGER-OF-BOOLEAN function",
+    "clause-2023": "15.45 INTEGER-OF-BOOLEAN function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.35.2 AR1",
+      "quote": "Argument-1 shall be of class boolean.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.45.3 AR1",
+      "quote": "Argument-1 shall be of class boolean.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR3",
+      "quote": "Boolean. A bit group item, a boolean expression or literal, or an elementary boolean data item shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; 15.2 Boolean argument type identical in both (bit group, boolean expression or literal, elementary boolean item). The twin witness pb65_boolean_expression_argument is refused at 2002 for an unrelated zero-length literal (S1 list), so evidence comes from the probes.",
+    "scope-2002": [
+     "boolean literal",
+     "boolean display / national / bit elementary items",
+     "bit group item",
+     "boolean expression",
+     "refusal of numeric / alphanumeric argument"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p7_iob.cob (B\"1010\"=10, PIC 1(4)=10, BIT 8x1=255, USAGE NATIONAL 101=5, bit group 10011=19, B-AND=2, B-NOT=5, BX\"F\"=15; same at 2023)",
+     "covered by probes-q-39/r_iob_num.cob, r_iob_alnum.cob (COBOL1627 at --std 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p7_iob.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class boolean is category boolean plus bit group items (§2002:8.5.2), the same set; the reader's p7_iob covers both. Scope unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "8.8.1.x (standard arithmetic) govern numeric expressions; this argument is boolean and no arithmetic enters. §2002:15 and §2002:15.1 differ from 2023 15.1/15.2 only in the function-type text (2002 15.1 says 'The number of character positions in this data item is specified in the function definition'; 2023 adds the sentence on type determining use); both describe the returned item. Argument classes are in §2002:15.2, whose argument types the reader cited; this argument rule does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "a bit group item has class and category boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "Arguments may be required to have a certain class or a subset of a certain class",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-RV-15.35.3-1",
+    "to": [
+     "RV-15.45.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.35 INTEGER-OF-BOOLEAN function",
+    "clause-2023": "15.45 INTEGER-OF-BOOLEAN function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.35.3 RV1",
+      "quote": "The unsigned binary value represented by the same bit configuration as the bit configuration of that temporary boolean data item is determined.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.45.4 RV1",
+      "quote": "The unsigned binary value represented by the same bit configuration as the bit configuration of that temporary boolean data item is determined.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When standard arithmetic is in effect, the returned value for numeric and integer functions is contained in a temporary standard intermediate data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.4.1",
+      "quote": "When standard-decimal arithmetic or standard-binary arithmetic is in effect, the returned value for numeric and integer functions is contained in a temporary standard data item in the intermediate form defined for the arithmetic mode in effect.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The value rule is word-identical, but in 2002 the returned value of this integer function is governed by 15.3.1 (an uncatalogued 2002 clause) in two modes: native, and ARITHMETIC IS STANDARD, where the value is held in a 32-digit standard intermediate data item. A boolean argument can exceed 32 digits (PIC 1(110) USAGE BIT = 2**110-1, 34 digits). The 2023 row's evidence covers native/standard-decimal only; the twin's witness does not run at 2002. Native at 2002 is correct (p7, p11b). Under ARITHMETIC IS STANDARD at --std 2002 the compiler keeps 34 digits: IOB(2**110-1) - IOB(2**110-2) = 1, where a 32-digit standard intermediate gives 0 (p11c); at 37 digits (2**120) it gives 0 (p11). This is the KNOWN 32-vs-34-digit standard-arithmetic defect reaching this rule, not a new one.",
+    "scope-2002": [
+     "returned value, native arithmetic",
+     "returned value under ARITHMETIC IS STANDARD (32-digit standard intermediate, 2002 15.3.1)"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p7_iob.cob and p11b_iob_wide_native.cob (correct at 2002)",
+     "probes-q-39/p11c_iob_110_std.cob: WRONG at --std 2002 (34-digit container; known defect)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p11c_iob_110_std.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 under ARITHMETIC IS STANDARD for a returned value of more than 32 digits keeps 34 digits (p11c: DIFF110 +1, expected 0) - the known 32-vs-34 defect; native is correct (p7)",
+    "compiler-at-2002": "wrong (known 32-vs-34-digit standard-arithmetic defect, reached through §2002:15.3.1; program probes-q-39/p11c_iob_110_std.cob; expected DIFF110 +000000000, observed +000000001)"
+   },
+   {
+    "rule-id": "2002-AR-15.36.2-1",
+    "to": [
+     "AR-15.46.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.36 INTEGER-OF-DATE function",
+    "clause-2023": "15.46 INTEGER-OF-DATE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.36.2 AR1",
+      "quote": "It shall be an integer greater than 1600 and less than 10000.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.46.3 AR1",
+      "quote": "It shall be an integer greater than 1600 and less than 10000.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "Integer. An arithmetic expression that will always result in an integer value or an integer data item shall be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and text; 15.2 Integer argument type identical; EC-ARGUMENT-FUNCTION is Fatal in both exception tables. 2023's 15.3 adds 'or for the returned value' to the EC-ARGUMENT-FUNCTION sentence (wider, not relevant to an argument rule). Leap-year method (ISO 8601) the same in 15.4 (2002) / 15.5 (2023).",
+    "scope-2002": [
+     "integer YYYYMMDD argument, valid range",
+     "non-integer / non-numeric argument refused",
+     "invalid value -> EC-ARGUMENT-FUNCTION (fatal)"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p1_intfuncs.cob (20240229->154557, 16010101->1)",
+     "covered by r_iod_alnum.cob, r_iod_nonint_item.cob (COBOL1627 at 2002)",
+     "covered by p10_argfn.cob (declarative then abnormal termination at 2002, per §2002:14.5.12.1.2)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p1_intfuncs.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). This rule bounds an integer YYYYMMDD argument (8 digits) and the result is at most 3,067,671, so the 32-digit/31-digit rounding of §2002:8.8.1.3.1.1 and the 34-digit PB5575 defect cannot change acceptance, the value or EC-ARGUMENT-FUNCTION; no exponentiation is involved. Confirmed under ARITHMETIC IS STANDARD at --std 2002 with an expression argument: INTEGER-OF-DATE(D8 + 1) = 154557 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.37.2-1",
+    "to": [
+     "AR-15.47.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.37 INTEGER-OF-DAY function",
+    "clause-2023": "15.47 INTEGER-OF-DAY function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.37.2 AR1",
+      "quote": "It shall be a positive integer less than 367 provided that it is valid for the year specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.47.3 AR1",
+      "quote": "It shall be a positive integer less than 367 provided that it is valid for the year specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and text; same Integer argument type and EC-ARGUMENT-FUNCTION handling as INTEGER-OF-DATE.",
+    "scope-2002": [
+     "integer YYYYDDD argument, valid range",
+     "non-integer argument refused",
+     "invalid value -> EC-ARGUMENT-FUNCTION"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p1_intfuncs.cob (2024060->154557, 1601001->1)",
+     "covered by r_iody_nonint.cob (COBOL1627 at 2002)",
+     "covered by p10b_argfn_day.cob (2023366 -> EC-ARGUMENT-FUNCTION at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p1_intfuncs.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). The YYYYDDD argument is a 7-digit integer and the result at most 3,067,671, far inside 31 digits, so the standard-arithmetic text does not reach the rule. Confirmed under ARITHMETIC IS STANDARD at --std 2002: INTEGER-OF-DAY(N7 + 1) = 154557 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.38.2-1",
+    "to": [
+     "AR-15.49.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.38 INTEGER-PART function",
+    "clause-2023": "15.49 INTEGER-PART function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.38.2 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.49.3 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR9",
+      "quote": "Numeric. An arithmetic expression or a numeric data item shall be specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; Numeric argument type identical; the argument rule is mode-independent.",
+    "scope-2002": [
+     "argument-1 of class numeric",
+     "refusal of non-numeric argument",
+     "numeric item in a CD record"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p1_intfuncs.cob",
+     "covered by r_intpart_alnum.cob (COBOL1627 at 2002)",
+     "covered by probes-q-39/p6_cd_length.cob (a CD-record item as argument, --std 2002: LENGTH 87/30/12/4, INTEGER -3, INTEGER-PART -2, INTEGER-OF-BOOLEAN 0, LOCALE-COMPARE '=')"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p1_intfuncs.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so class numeric (category numeric, every 2002 numeric usage) is the same set. Scope unchanged.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 (standard arithmetic, removed in 2023) govern how an arithmetic expression is evaluated, not its class: §2002:8.8.1.3.1 'A standard intermediate data item is of the class numeric and the category numeric', so an expression argument is class numeric in either mode. Probe stdarith-args.cob (OPTIONS ARITHMETIC IS STANDARD, --std 2002) accepts expression arguments to INTEGER, INTEGER-PART, FRACTION-PART, EXP10, EXP and MIDRANGE with correct values; stdarith-bad.cob refuses alphanumeric (COBOL1627). PB5575 (34 vs 31 digits) touches returned values, not this argument rule. §2002:15 and §2002:15.1 differ from 2023 15.1/15.2 only in the function-type text (2002 15.1 says 'The number of character positions in this data item is specified in the function definition'; 2023 adds the sentence on type determining use); both describe the returned item. Argument classes are in §2002:15.2, whose argument types the reader cited; this argument rule does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "Arguments may be required to have a certain class or a subset of a certain class",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-08/stdarith-args.cob (+ .2002.txt); E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-08/stdarith-bad.cob (+ .2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.38.3-1",
+    "to": [
+     "RV-15.49.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.38 INTEGER-PART function",
+    "clause-2023": "15.49 INTEGER-PART function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.38.3 RV1",
+      "quote": "where the arguments for the SIGN and ABS functions are the same as for the INTEGER-PART function itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.49.4 RV1",
+      "quote": "where the arguments for the SIGN and ABS functions are the same as for the INTEGER-PART function itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.4.1",
+      "quote": "The returned value of numeric and integer functions depends on the mode of arithmetic in effect, native, standard-binary, or standard-decimal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical (flag 'normalized' = en-dash vs hyphen NOTE bullets only). But the rule IS an equivalent arithmetic expression, whose meaning 15.3.1 gives per arithmetic mode: in 2002 native (implementor approximation) and ARITHMETIC IS STANDARD (exact equality, 32-digit standard intermediate). The twin's witness l1_integer_family_notes uses STANDARD-DECIMAL and is refused at --std 2002 (S1 list), so the 2023 row shows nothing at 2002. Probes: native at 2002 correct (p1); ARITHMETIC IS STANDARD at 2002 gives the NOTE values and the equality relation true (p8). The known 34-digit defect reaches it through the argument expression (p12: INTEGER-PART(X*1000+7)-X*1000 = 7 with a 31-digit X; a 32-digit standard intermediate gives 0).",
+    "scope-2002": [
+     "equivalent arithmetic expression under native arithmetic",
+     "equivalent arithmetic expression under ARITHMETIC IS STANDARD (2002 OPTIONS paragraph): returned value = expression, standard intermediate 32 digits"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p1_intfuncs.cob (--std 2002: -1.5->-1, +1.5->+1, -1.0->-1, 0->0)",
+     "covered by probes-q-39/p8_intpart_std.cob (--std 2002 STANDARD: NOTE values and EQ-TRUE); 32-digit precision wrong through the argument, p12_intpart_34.cob (known defect)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p8_intpart_std.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 under ARITHMETIC IS STANDARD for INTEGER-PART is correct for the rule's own values and equality (p8); precision beyond 32 digits shows the known 34-digit defect (p12)",
+    "compiler-at-2002": "correct for this rule (p8_intpart_std.cob); the known 32-vs-34 standard-arithmetic defect reaches it only through argument evaluation (p12_intpart_34.cob: observed IPDIFF +7, 32-digit arithmetic gives 0)",
+    "flags-answered": [
+     "normalized: the 2002 and 2023 texts differ only in NOTE bullet glyphs (en dash vs hyphen); exact 2002 words = 2023 RV-15.49.4-1, the pointer to code",
+     "cross-reference '1.5, 1.5, 1.0, 1.0': the values -1.5/+1.5/-1.0/+1.0 of the NOTE examples, not clause numbers; no scope change"
+    ]
+   },
+   {
+    "rule-id": "2002-AR-15.39.2-1",
+    "to": [
+     "AR-15.50.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.2 AR1",
+      "quote": "a data item of any class or category; a based entry; or a type-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.3 AR1",
+      "quote": "a data item of any class or category; a based entry; or a type-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "| Pointer | Data-pointer<br>Program-pointer |",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 format FUNCTION LENGTH ( argument-1 ); 2023 adds an optional PHYSICAL (widening). 2002 class/category table is a subset of 2023's (2023 adds message-tag, function-pointer). Based entries (BASED) and type-names (TYPEDEF) exist in both. A data item in a CD record is a data item 'of any class' in 2002 and works (p6).",
+    "scope-2002": [
+     "alphanumeric / national / boolean literal",
+     "data items of every 2002 category (alphabetic, alphanumeric, -edited, numeric, numeric-edited, national, national-edited, boolean, index, data-pointer, program-pointer, object-reference)",
+     "based entry",
+     "type-name",
+     "data items in a CD record (communication section, 2002 Annex A)"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob",
+     "covered by p4_length.cob, p5_length2.cob (all at --std 2002 = 2023)",
+     "covered by p4_length.cob (BX 7, BO 10)",
+     "covered by p4_length.cob (TX 9, TB 6, TN 4, TO1 17)",
+     "covered by probes-q-39/p6_cd_length.cob (a CD-record item as argument, --std 2002: LENGTH 87/30/12/4, INTEGER -3, INTEGER-PART -2, INTEGER-OF-BOOLEAN 0, LOCALE-COMPARE '=')"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": "2023 adds the PHYSICAL phrase and dynamic-length / variable-length group rules (RV6-RV8); the 2002 cases are a subset.",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so 'a data item of any class or category' is every 2002 class of Table 3 plus strongly-typed groups (class = type-name, §2002:8.5.2). The reader's probes p4/p5/p6 at 2002 cover them. Scope unchanged.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.8 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Invoked by 'type-name' and clause 15. §2002:8.5.3 types: 'A type is a template that contains all the characteristics of a data item', the same TYPEDEF types AR1 admits; §2002:8.5.4 zero-length items (ODO-zero groups, ANY LENGTH) are data items AR1 admits, their length is the returned-value rule's; §2002:14.5.8 is MOVE alignment, unrelated; 8.8.1.x has no role (no arithmetic). §2002:15 and §2002:15.1 differ from 2023 15.1/15.2 only in the function-type text (2002 15.1 says 'The number of character positions in this data item is specified in the function definition'; 2023 adds the sentence on type determining use); both describe the returned item. Argument classes are in §2002:15.2, whose argument types the reader cited; this argument rule does not rest on the changed text."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Both the class and the category of a strongly-typed group item are the type-name specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A zero-length item is a data item whose minimum length is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-1",
+    "to": [
+     "RV-15.50.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV1",
+      "quote": "the returned value is an integer equal to the length of argument-1 in boolean positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV1",
+      "quote": "the returned value is an integer equal to the length of argument-1 in boolean positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; bit group item / boolean category defined the same (GROUP-USAGE BIT, USAGE BIT/DISPLAY/NATIONAL boolean). Integer value is small, so the arithmetic mode cannot change it (p4s under ARITHMETIC IS STANDARD identical).",
+    "scope-2002": [
+     "bit group item",
+     "elementary boolean item (display, national, bit)",
+     "boolean literal",
+     "type declaration for a boolean item"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob BG 7",
+     "covered by p4_length.cob BD 5, BN 3, BBIT 5",
+     "covered by p4_length.cob BLIT 6",
+     "covered by p4_length.cob TB 6 (and p4s_length_std.cob identical under STANDARD)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: type | for type declaration (newer: 8.5.3)": "The rule names 'a type declaration for a boolean item', so the term applies; §2002:4's definition is §2023:8.5.3.1's sentence word for word, so the same TYPEDEF entries are reached; shown at --std 2002 by p4_length.cob TB 6.",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.8 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.5.3 is 2023's for this purpose. §2002:8.5.4 makes a bit group holding only a zero-occurrence ODO table a zero-length item; probed now at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-19/len0.cob): LENGTH of a GROUP-USAGE BIT group of PIC 1(3) OCCURS 0 TO 5 gives 0 at CNT=0 and 6 at CNT=2, correct by RV1. §2002:14.5.8 (MOVE alignment) is not involved. §2002:8.8.1.x: the value is a small integer, unaffected by standard arithmetic (p4s_length_std.cob identical); §2002:15/15.1 list LENGTH's integer type as 2023 does (2002 only adds that character/boolean sizes are given in each function definition). No change."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is referenced in a data description entry by specifying the TYPE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A group data item containing only a variable-occurrence data item in which the number of occurrences is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.39.3 RV1",
+      "quote": "the returned value is an integer equal to the length of argument-1 in boolean positions",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-39"
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-2",
+    "to": [
+     "RV-15.50.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV2",
+      "quote": "the returned value is an integer equal to the length of argument-1 in national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV2",
+      "quote": "the returned value is an integer equal to the length of argument-1 in national character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text and terms.",
+    "scope-2002": [
+     "national group item",
+     "elementary usage national item other than boolean (national, national-edited, numeric-edited national)",
+     "national literal",
+     "type declaration for national"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob NG 5",
+     "covered by p4_length.cob NN 3, NNE 5, NEN 3 (BN boolean-national counted in boolean positions per RV1)",
+     "covered by p4_length.cob NLIT 3",
+     "covered by p4_length.cob TN 4"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); national character (newer: undefined); type | for type declaration (newer: 8.5.3)": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. RV2 counts 'national character positions'. 'national character' (§2002:4: \"A character in a national character set\") is the same notion 2023 uses with its kept 'national character set' entry (§2023:3.125); this compiler's national set is UTF-16 in both editions. 'type (for type declaration)' is defined in §2002:4 in the words 2023 keeps (3.174) and §2002:8.5.3 repeats; the type-declaration case is covered (p4_length.cob TN 4).",
+     "pending-clause: §2002:8.5.3 (near), §2002:8.5.4 (changed), §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.5.8 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.5.3 defines a type as in 2023; §2002:8.5.4 makes a group holding only a zero-occurrence ODO item a zero-length item, which RV2 then measures as 0: probed now at --std 2002, a GROUP-USAGE NATIONAL group with OCCURS 0 TO 5 DEPENDING ON CNT gives LENGTH 0 at CNT=0 and 6 at CNT=3 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-15/len_nat_zero-results.txt). The result is an integer count, so standard arithmetic (§2002:8.8.1.x) and alignment (§2002:14.5.8) are not involved; §2002:15/15.1's differing text does not bear on it (§2002:15.39 \"The type of this function is integer\")."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "type (for type declaration): A template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "A type is a template that contains all the characteristics of a data item and its subordinates",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.4",
+      "quote": "A zero-length item is a data item whose minimum length is zero and whose length at execution time is zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.39",
+      "quote": "The type of this function is integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.39.3 RV2",
+      "quote": "the returned value is an integer equal to the length of argument-1 in national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "national character: A character in a national character set",
+      "check": "OK"
+     }
+    ],
+    "probe-added": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-15/len_nat_zero.cob",
+    "from-slice": "q-39"
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-3",
+    "to": [
+     "RV-15.50.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV3",
+      "quote": "If argument-1 is other than category boolean or usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV3",
+      "quote": "If argument-1 is other than category boolean or usage national",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; in 2023 the residual case also covers message-tag and function-pointer and is pre-empted by RV6-RV8 for dynamic-length/variable-length items (widening). Every 2002 residual category probed.",
+    "scope-2002": [
+     "alphanumeric literal",
+     "alphabetic, alphanumeric(-edited), numeric, numeric-edited display, pointer, program-pointer, index, object-reference",
+     "alphanumeric group incl. national and bit subordinates",
+     "strongly-typed group",
+     "reference-modified item",
+     "CD record items"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob ALIT 4",
+     "covered by p4_length.cob / p5_length2.cob (A5 5, AL 3, AE 5, NUM 5, NE 6, PTR 8, PPTR 8, IX 8, OBJ 8)",
+     "covered by p4_length.cob AG 6",
+     "covered by p5_length2.cob TS 5, SG 5",
+     "covered by p5_length2.cob REF 7",
+     "covered by probes-q-39/p6_cd_length.cob (a CD-record item as argument, --std 2002: LENGTH 87/30/12/4, INTEGER -3, INTEGER-PART -2, INTEGER-OF-BOOLEAN 0, LOCALE-COMPARE '=')"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": "2023 residual also reaches message-tag and function-pointer items.",
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. Alphanumeric character positions are the storage unit (4.31), 'one element of a coded character set occupies one character position', which 2023 keeps under character position; no change of scope.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 (standard arithmetic, 32-digit standard intermediate) bear on a function only through §2002:15.3.1 (numeric and integer function results under standard arithmetic); LENGTH is an integer function whose value is a count of positions, exact in any 32-digit intermediate, so precision cannot change RV3's result. §2002:15 is 2023's 15.1 word for word and §2002:15.1 (types of functions) differs from §2023:15.2 only by its sentence that the number of character positions is specified in the function definition (2023 admits dynamic lengths); neither bears on RV3."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When standard arithmetic is in effect, the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-39",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-5",
+    "to": [
+     "RV-15.50.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV5",
+      "quote": "The returned length shall include the number of implicit FILLER positions, if any, in argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV5",
+      "quote": "The returned length shall include the number of implicit FILLER positions, if any, in argument-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.1.5.3",
+      "quote": "Implicit filler bit positions are generated",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; the 2002 implicit-filler sources (8.5.1.5.3 bit alignment, 8.5.1.5.4 SYNCHRONIZED) have the same words in 2023's alignment clause. The implementation generates no slack bytes for SYNCHRONIZED (implementor-defined) and does generate bit-alignment filler.",
+    "scope-2002": [
+     "implicit filler bit positions in an alphanumeric group (bit items)",
+     "SYNCHRONIZED slack (implementor-defined)"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob ABITG 1, ABITG2 4",
+     "covered by p5_length2.cob SY 5 (no slack generated, consistent with the record size)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). LENGTH is an integer function (§2002:15.1 type 5, same as 2023) returning a small count; implicit filler counting is a data-layout matter, not arithmetic. Under ARITHMETIC IS STANDARD at --std 2002 LENGTH of a one-bit group = 1 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "An integer function has an operational sign and no digits to the right of the decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2 AR5",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-22/stdfn.cob (output stdfn.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-6",
+    "to": [
+     "RV-15.50.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.39 LENGTH function",
+    "clause-2023": "15.50 LENGTH function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV6",
+      "quote": "the returned value is rounded to the next larger integer value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV9",
+      "quote": "the returned value is rounded to the next larger integer value",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text (renumbered RV6 -> RV9 in 2023 because RV6-RV8 were inserted for dynamic-length items and variable-length groups; the enumeration gained cases that do not touch this rule).",
+    "scope-2002": [
+     "alphanumeric-position result for an argument with a non-integral number of positions (bit items in an alphanumeric group)"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p4_length.cob ABITG 1 (3 bits), ABITG2 4"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p4_length.cob",
+    "widening": null,
+    "flags-answered": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The rule counts alphanumeric character positions (4.31), the same unit in 2023; the bit-group rounding is unaffected by the term.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "§2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 (standard arithmetic, 32-digit standard intermediate) bear on a function only through §2002:15.3.1 (numeric and integer function results under standard arithmetic); the 'rounded to the next larger integer' of RV6 (§2002:15.39.3 RV6) is a ceiling on a position count, not ROUNDED or standard-arithmetic rounding, and the value is exact. §2002:15 is 2023's 15.1 word for word and §2002:15.1 (types of functions) differs from §2023:15.2 only by its sentence that the number of character positions is specified in the function definition (2023 admits dynamic lengths); neither bears on RV6."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "A code value that constitutes the coded representation of a letter, digit, symbol, control function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "character (in a screen item): A graphic character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A letter, digit, or special character, independent of its coded representation, that is used in formation of the words and separators of COBOL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A single code value of a coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "One element of a coded character set occupies one character position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.7",
+      "quote": "coded character in an alphanumeric coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.37",
+      "quote": "repertoire of characters used in writing the syntax of a COBOL compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When standard arithmetic is in effect, the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.39.3 RV6",
+      "quote": "the returned value is rounded to the next larger integer value",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-39",
+    "flags": {
+     "definition-dropped: character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)": null,
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": null
+    }
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-1",
+    "to": [
+     "AR-15.51.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.2 AR1",
+      "quote": "Argument-1 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.3 AR1",
+      "quote": "Argument-1 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "| Alphanumeric | Alphanumeric<br>Alphanumeric-edited<br>Numeric-edited (if usage is display) |",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format ( argument-1 argument-2 [ locale-name-1 ] ) and text; class alphabetic/alphanumeric/national have the same categories in the 2002 Table 3 and the 2023 Table 2.",
+    "scope-2002": [
+     "alphabetic, alphanumeric, alphanumeric-edited, numeric-edited (display), national items and literals accepted",
+     "numeric / boolean argument refused"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob (A(4), X, N, literals) and r_lc_numedited.cob (accepted at 2002)",
+     "covered by r_lc_num.cob, r_lc_num2.cob, r_lc_bool.cob (COBOL1627 at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-2",
+    "to": [
+     "AR-15.51.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.2 AR2",
+      "quote": "Argument-2 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.3 AR2",
+      "quote": "Argument-2 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "| Alphanumeric | Alphanumeric<br>Alphanumeric-edited<br>Numeric-edited (if usage is display) |",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format ( argument-1 argument-2 [ locale-name-1 ] ) and text; class alphabetic/alphanumeric/national have the same categories in the 2002 Table 3 and the 2023 Table 2.",
+    "scope-2002": [
+     "alphabetic, alphanumeric, alphanumeric-edited, numeric-edited (display), national items and literals accepted",
+     "numeric / boolean argument refused"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob (A(4), X, N, literals) and r_lc_numedited.cob (accepted at 2002)",
+     "covered by r_lc_num.cob, r_lc_num2.cob, r_lc_bool.cob (COBOL1627 at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-3",
+    "to": [
+     "AR-15.51.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.2 AR3",
+      "quote": "Arguments may be of different classes.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.3 AR3",
+      "quote": "Arguments may be of different classes.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; the classes admitted are the same.",
+    "scope-2002": [
+     "mixed alphanumeric/national, alphabetic/alphanumeric arguments"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob (NAT, NAT2, A<D)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). The rule admits arguments of different classes (alphanumeric, national, alphabetic); no arithmetic expression is evaluated, so 8.8.1.x does not apply, and the 2002 15.1 alphanumeric/national types are the same class and category as 2023's."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-4",
+    "to": [
+     "AR-15.51.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.2 AR4",
+      "quote": "Locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.3 AR4",
+      "quote": "Locale-name-1 shall be associated with a locale in the SPECIAL-NAMES paragraph.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR5",
+      "quote": "When the LOCALE clause is specified, locale-name-1 references a locale identified by external-locale-name-1 or the value of literal-4.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; the SPECIAL-NAMES LOCALE clause format (LOCALE locale-name-1 IS external-locale-name-1 / literal-4) is the same in both.",
+    "scope-2002": [
+     "declared locale-name accepted",
+     "undeclared name refused"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob (LOC1)",
+     "covered by r_lc_badloc.cob (COBOL1664 at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\r_lc_badloc.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). A locale-name argument (§2002:15.2 type 7) involves no arithmetic, so 8.8.1.x does not apply; the 2002 15.1 wording change concerns returned-value types, not this argument rule."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-1",
+    "to": [
+     "RV-15.51.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV1",
+      "quote": "the other argument is converted to class national for purposes of comparison",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV1",
+      "quote": "the other argument is converted to class national for purposes of comparison",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text.",
+    "scope-2002": [
+     "national vs alphanumeric comparison"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob NAT '=', NAT2 '='"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-2",
+    "to": [
+     "RV-15.51.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV2",
+      "quote": "an operand consisting of all spaces is truncated to a single space",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV2",
+      "quote": "an operand consisting of all spaces is truncated to a single space",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text.",
+    "scope-2002": [
+     "trailing-space truncation",
+     "all-space operand"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob TRAIL '='",
+     "covered by p2_locale.cob SPC '='"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). Trailing-space truncation is the function's own comparison rule; no arithmetic. The further clauses §2002:8.8.2 (boolean expressions), §2002:8.8.4.1.1 (relation conditions) and §2002:8.8.4.2.4 (abbreviated combined relations) govern relation conditions in procedure statements; this function's comparison is defined by its own returned-value rules, not by 8.8.4.1.1, so they do not reach the rule. Reader's p2_locale TRAIL/SPC at 2002 stand."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "A boolean expression may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-3",
+    "to": [
+     "RV-15.51.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV3",
+      "quote": "If the locale associated with locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV3",
+      "quote": "If the locale associated with locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; 'current locale' (8.2 in 2002, same words in 2023) and SET LOCALE the same; EC-LOCALE-MISSING is Fatal in both exception tables; 2002 fatal-exception processing (14.5.12.1.2: declarative then abnormal termination) matches the probe.",
+    "scope-2002": [
+     "locale-name-1 specified",
+     "no locale-name: current locale (incl. after SET LOCALE)",
+     "locale unavailable -> EC-LOCALE-MISSING, fatal, checked and unchecked"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob, p9_curloc.cob",
+     "covered by p9_curloc.cob (SET LOCALE LC_ALL TO de_DE changes the current-locale result)",
+     "covered by p3_locmissing.cob (checked: declarative then abnormal termination at 2002) and p3b_locmissing_unchecked.cob (implementor continues)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p3_locmissing.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:14.5.12.1.2 (changed), §2002:14.5.12.1.3 (removed), §2002:14.5.12.2 (changed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). No arithmetic is involved. The extra §2002:14.5.12.1.2 / 14.5.12.1.3 / 14.5.12.2 flags: EC-LOCALE-MISSING is Fatal in 2002 table 14 (§2002:14.5.12.1.5), so §2002:14.5.12.1.2 applies: checked with a USE declarative, the declarative runs and the run unit terminates abnormally; unchecked, the implementor decides (item 5). Re-run now at --std 2002: checked gives DECL EC-LOCALE-MISSING then abnormal termination; unchecked continues (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/p3_locmissing.cob, p3b_locmissing_unchecked.cob (output locmissing.2002.txt)). 14.5.12.1.3 (non-fatal) and 14.5.12.2 (incompatible data) do not apply to a fatal locale exception. The further clauses §2002:8.8.2 (boolean expressions), §2002:8.8.4.1.1 (relation conditions) and §2002:8.8.4.2.4 (abbreviated combined relations) govern relation conditions in procedure statements; this function's comparison is defined by its own returned-value rules, not by 8.8.4.1.1, so they do not reach the rule."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "A boolean expression may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.5",
+      "quote": "The specified locale is not available",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.2",
+      "quote": "Incompatible data exists when the content of a sending operand is not valid only in the following cases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.40.3 RV3",
+      "quote": "If the locale associated with locale-name-1 is not available, the EC-LOCALE-MISSING exception condition is set to exist.",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/p3_locmissing.cob, p3b_locmissing_unchecked.cob (output locmissing.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-4",
+    "to": [
+     "RV-15.51.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV4",
+      "quote": "Argument-1 and argument-2 are compared using the cultural ordering defined by the locale being used.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV4",
+      "quote": "Argument-1 and argument-2 are compared using the cultural ordering defined by the locale being used.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text.",
+    "scope-2002": [
+     "cultural (not binary) ordering"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob ('a' vs 'B' gives '<', binary order would give '>') and p9_curloc.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:8.8.2 (changed), §2002:8.8.4.1.1 (removed), §2002:8.8.4.2.4 (changed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and the exponentiation exceptions, mode-independent), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 (32-digit standard intermediate) and §2002:8.8.1.3.1.3 (rounding to 31 digits on compare, on a function argument with no equivalent expression, on a store without ROUNDED), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (the same six function types; 2002 15.1 says the definition gives an alphanumeric/national function's character positions). Cultural ordering is the function's own rule; no arithmetic. The further clauses §2002:8.8.2 (boolean expressions), §2002:8.8.4.1.1 (relation conditions) and §2002:8.8.4.2.4 (abbreviated combined relations) govern relation conditions in procedure statements; this function's comparison is defined by its own returned-value rules, not by 8.8.4.1.1, so they do not reach the rule. Under --std 2002 LOCALE-COMPARE('a' 'B') = '<' (binary order would give '>') (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt))."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value for numeric and integer functions is contained in a temporary standard intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "A boolean expression may be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "A relation condition involving operands of class boolean is a boolean relation condition",
+      "check": "OK"
+     }
+    ],
+    "answer-probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-23/stdfn23.cob (output stdfn23.2002.txt)"
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-5",
+    "to": [
+     "RV-15.51.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV5",
+      "quote": "if argument-1 is greater than argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV5",
+      "quote": "if argument-1 is greater than argument-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; the texts differ only in transcription markup (backslash line breaks and &lt; in 2002, &nbsp; indentation in 2023).",
+    "scope-2002": [
+     "'=' equal",
+     "'<' less",
+     "'>' greater"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob TRAIL '='",
+     "covered by p2_locale.cob A<D '<'",
+     "covered by p2_locale.cob D>A '>'"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "normalized: normalized": "Exact words compared: 2002 has line-break backslashes and '&lt;' (escape of '<'), 2023 has '&nbsp;' indentation; the three returned values '=', '<', '>' and their conditions are identical; pointer RV-15.51.4-5.",
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "LOCALE-COMPARE is an alphanumeric function returning one character; no arithmetic is evaluated, so §2002:8.8.1.x (standard arithmetic, standard intermediate data item) is not involved. §2002:15.1 adds only that an alphanumeric function's size is given in its definition, which 15.40 does; no change."
+    },
+    "flags-answered-earlier": [
+     "normalized: the match needed markup normalization only (2002 backslash line breaks and '&lt;', 2023 '&nbsp;'); the 2002 words are the three cases '=', '<', '>' of RV-15.51.4-5, the pointer to code; no scope change"
+    ],
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "A standard intermediate data item is of the class numeric and the category numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "q-39"
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-6",
+    "to": [
+     "RV-15.51.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.40 LOCALE-COMPARE function",
+    "clause-2023": "15.51 LOCALE-COMPARE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV6",
+      "quote": "The length of the returned value is 1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV6",
+      "quote": "The length of the returned value is 1.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; function type alphanumeric in both.",
+    "scope-2002": [
+     "returned length 1"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob LEN 1"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null,
+    "flags-answered": {
+     "pending-clause: §2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:15 (changed), §2002:15.1 (changed)": "Read §2002:8.8.1.1 (evaluation order and exponentiation exceptions, which 'apply regardless of the mode of arithmetic'), §2002:8.8.1.3.1 with §2002:8.8.1.3.1.1 ('with a precision of 32 decimal digits') and §2002:8.8.1.3.1.3 (rounded to 31 digits), §2002:8.8.1.3.6 (exponentiation), and §2002:15 / §2002:15.1 (2002's 15 holds 2023's 15.1 General list; 2002 15.1 adds that the function definition gives an alphanumeric/national function's character positions and lacks 2023 15.2's type-determination sentence; the six function types are the same). 2002 15.1 says the function definition gives an alphanumeric function's character positions; RV6 is exactly that specification (length 1), so the 15.1 wording difference confirms rather than changes the rule; no arithmetic is involved."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.1",
+      "quote": "The following rules apply regardless of the mode of arithmetic that is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.6",
+      "quote": "For exponentiation, the operands and operator are",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15",
+      "quote": "Each intrinsic function definition specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.2",
+      "quote": "The type of a function is determined by the class and category of the unique data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.1",
+      "quote": "The number of character positions in this data item is specified in the function definition",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-AR-15.41.2-1",
+    "to": [
+     "AR-15.52.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.41 LOCALE-DATE function",
+    "clause-2023": "15.52 LOCALE-DATE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.41.2 AR1",
+      "quote": "Argument-1 shall be of class alphanumeric or national and shall be 8 character positions in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.52.3 AR1",
+      "quote": "Argument-1 shall be of class alphanumeric or national and shall be 8 character positions in length.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format ( argument-1 [ locale-name-1 ] ) and text; class tables the same.",
+    "scope-2002": [
+     "alphanumeric 8 positions (item, literal)",
+     "national 8 positions",
+     "wrong length or class refused"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob (X(8), literal)",
+     "covered by p2_locale.cob LDN (N(8))",
+     "covered by r_ld_len6.cob, r_ld_num.cob, r_iod_nonint_item.cob (N(7)) - COBOL1627 at 2002"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p2_locale.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.41.2-2",
+    "to": [
+     "AR-15.52.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.41 LOCALE-DATE function",
+    "clause-2023": "15.52 LOCALE-DATE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.41.2 AR2",
+      "quote": "shall be valid according to the definition of a returned value from that function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.52.3 AR2",
+      "quote": "shall be valid according to the definition of a returned value from that function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.16.2 RV1",
+      "quote": "Two numeric digits of the month of the year, in the range 01 through 12.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text; the referenced CURRENT-DATE positions 1-8 (2002 15.16.2, 2023 15.21.3) have the same table. An invalid content sets EC-ARGUMENT-FUNCTION (15.2, Fatal in both).",
+    "scope-2002": [
+     "valid YYYYMMDD content",
+     "invalid content -> EC-ARGUMENT-FUNCTION"
+    ],
+    "evidence-2002": [
+     "covered by probes-q-39/p2_locale.cob, p9_curloc.cob",
+     "covered by p10c_argfn_ld.cob ('20241399': declarative then abnormal termination at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-q-39\\p10c_argfn_ld.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "q-39",
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.34.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format FUNCTION INTEGER ( argument-1 ) identical in 15.34.1/15.44.2; 2002 numeric category (8.5.2.9) is a subset of 2023's (8.5.2.12 adds float-binary/decimal usages); 2002 national-category item 3 does not remove numeric national items from category numeric; CD-record numeric item probed by reader (p6). No 2002-only form.",
+    "citations": [
+     {
+      "cite": "§2002:15.34.2 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.35.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 boolean literals (8.3.1.2.3) are a strict subset of 2023's (2023 adds zero length); boolean category list identical; national boolean PIC 1 USAGE NATIONAL is category boolean in both (reader p7 covers it at 2002).",
+    "citations": [
+     {
+      "cite": "§2002:15.35.2 AR1",
+      "quote": "Argument-1 shall be of class boolean.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.36.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "The answer's claim that a small-valued argument cannot feel the 32- vs 34-digit difference is false: the rule governs an argument that may be an arithmetic expression, and under ARITHMETIC IS STANDARD at 2002 every operation is truncated to 32 significant digits (§2002:8.8.1.3.1.1, §2002:8.8.1.3.2), so an expression whose intermediate has 33-34 digits yields a different small argument value at 2002 than the compiler's 34-digit evaluation (PB5575). With BIG = 10**30 (PIC 9(31)): INTEGER-OF-DATE(BIG*1000 + 20240229 - BIG*1000): 2002 evaluates the argument as 20240200 (10**33+20240229 truncated to 32 digits), DD = 00 violates AR1 c, so EC-ARGUMENT-FUNCTION is set (checking on: fatal, as control iod0.cob shows for 20240200). Observed at --std 2002 (iod.2002.txt): 'IOD= 000154557', no exception. The 2023 twin's evidence (34-digit standard-decimal) cannot show this 2002 case; DIFFERENT, needs PB5575.",
+    "citations": [
+     {
+      "cite": "§2002:15.36.2 AR1",
+      "quote": "DD represents a day and shall be a positive integer less than 32",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.1.5.2",
+      "quote": "with a maximum precision of 34 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "If the evaluation of an argument results in an incorrect value for that argument according to the rules specified in the function definition",
+      "check": "OK"
+     }
+    ],
+    "class": "other (pending-clause: 2002 standard arithmetic 32-digit truncation, PB5575)",
+    "needs": "PB5575",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-22/iod.cob",
+    "compiler-at-2002": "wrong: program iod.cob (>>TURN EC-ARGUMENT-FUNCTION CHECKING ON, ARITHMETIC IS STANDARD); expected EC-ARGUMENT-FUNCTION fatal per §2002:15.36.2 AR1 c with §2002:8.8.1.3.2; observed IOD= 000154557 (iod.2002.txt); control iod0.cob INTEGER-OF-DATE(20240200) -> fatal EC-ARGUMENT-FUNCTION (iod0.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.37.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "The answer's claim that a small-valued argument cannot feel the 32- vs 34-digit difference is false: the rule governs an argument that may be an arithmetic expression, and under ARITHMETIC IS STANDARD at 2002 every operation is truncated to 32 significant digits (§2002:8.8.1.3.1.1, §2002:8.8.1.3.2), so an expression whose intermediate has 33-34 digits yields a different small argument value at 2002 than the compiler's 34-digit evaluation (PB5575). With BIG = 10**30 (PIC 9(31)): INTEGER-OF-DAY(BIG*1000 + 2024060 - BIG*1000): 2002 argument = 2024000, DDD = 000 violates AR1 b, so EC-ARGUMENT-FUNCTION (control iody0.cob: fatal). Observed at --std 2002 (iody.2002.txt): 'IODY= 000154557', no exception. The 2023 twin's evidence (34-digit standard-decimal) cannot show this 2002 case; DIFFERENT, needs PB5575.",
+    "citations": [
+     {
+      "cite": "§2002:15.37.2 AR1",
+      "quote": "It shall be a positive integer less than 367 provided that it is valid for the year specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3",
+      "quote": "Standard arithmetic is in effect when the ARITHMETIC IS STANDARD clause is specified in the OPTIONS paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "inclusive, with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.1.5.2",
+      "quote": "with a maximum precision of 34 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "If the evaluation of an argument results in an incorrect value for that argument according to the rules specified in the function definition",
+      "check": "OK"
+     }
+    ],
+    "class": "other (pending-clause: 2002 standard arithmetic 32-digit truncation, PB5575)",
+    "needs": "PB5575",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-22/iody.cob",
+    "compiler-at-2002": "wrong: program iody.cob; expected EC-ARGUMENT-FUNCTION fatal per §2002:15.37.2 AR1 b with §2002:8.8.1.3.2; observed IODY= 000154557 (iody.2002.txt); control iody0.cob INTEGER-OF-DAY(2024000) -> fatal (iody0.2002.txt)"
+   },
+   {
+    "rule-id": "2002-AR-15.38.2-1",
+    "verdict": "UPHELD",
+    "reason": "As INTEGER AR1.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.39.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 format lacks PHYSICAL (2023 widening); 2002 literal forms are a subset (2023 allows zero length); 2002 class/category table a subset of 2023's; CD data-name (CQ OF CDIN) probed by reader p6. 2023's variable-length-group restriction (15.3) reaches only 2023-only dynamic items.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-1",
+    "verdict": "UPHELD",
+    "reason": "Same text and terms; boolean category list identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-2",
+    "verdict": "UPHELD",
+    "reason": "Rule is worded by usage national, not by category national, so the 2002-only national-category item 3 does not change its scope.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-3",
+    "verdict": "UPHELD",
+    "reason": "Residual case by category boolean / usage national; same in both; 2023's RV6-RV8 pre-empt only 2023-only dynamic items.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-5",
+    "verdict": "UPHELD",
+    "reason": "Same text; implicit FILLER sources unchanged.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-6",
+    "verdict": "UPHELD",
+    "reason": "Same text, renumbered RV9 in 2023.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "In 2002 the category national includes 'an elementary data item explicitly or implicitly described as usage national' (8.5.2.7 item 3), and 2002 USAGE SR11 lets USAGE NATIONAL describe a numeric (or boolean) picture; Table 3 maps category national to class national, and 8.5.2 says a class/category name means the category. So in 2002 a PIC 9(4) USAGE NATIONAL item is of class national and is a legal argument-1. 2023 (and 2014) deleted item 3 from the national category list (2023 8.5.2.10 items 1-4), so the 2023 rule refuses it. Caveat: 2002 also lists that item as numeric (8.5.2.9) and Table 3 lists only numeric-edited by usage, so 2002 contradicts itself; under the refuter default the literal 8.5.2.7 reading stands. Compiler at --std 2002 rejects it: COBOL1627 'argument-1 is of class numeric' (probe n1).",
+    "citations": [
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR11",
+      "quote": "shall be declared with a picture character-string that describes a boolean, national, national-edited, numeric, or numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Use of the name of a data class or data category in the rules of COBOL refers to the category unless class is specifically indicated.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.40.2 AR1",
+      "quote": "Argument-1 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.3 AR1",
+      "quote": "Argument-1 shall be of class alphabetic, alphanumeric, or national.",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2002 definition of category national has an item, 8.5.2.7 item 3, that 2023 lacks)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-39/n1_lc_natnum.cob"
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "As AR1 for argument-2: under 2002 8.5.2.7 item 3 a numeric (or boolean) item of usage national is category, hence class, national and admitted; 2023 lacks item 3. Compiler at --std 2002: COBOL1627 'argument-2 is of class numeric' (probe n1, line 11). Same self-contradiction caveat as AR1.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase.",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2002 definition of category national, 8.5.2.7 item 3)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-39/n1_lc_natnum.cob"
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-3",
+    "verdict": "UPHELD",
+    "reason": "A permission over whatever classes AR1/AR2 admit; the added 2002 case lives in AR1/AR2, which are overturned.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.40.2-4",
+    "verdict": "UPHELD",
+    "reason": "SPECIAL-NAMES LOCALE clause format identical (2002 13.16 SPECIAL-NAMES, 2023 SPECIAL-NAMES).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-1",
+    "verdict": "DOUBTFUL",
+    "reason": "The rule turns on 'one is national'. Under 2002 8.5.2.7 item 3 a numeric or boolean item of usage national is class national, so 2002 RV1 also governs comparing such an item with an alphanumeric one (the alphanumeric operand converted to national); 2023 never reaches that case. Settled by the same reading that decides AR1/AR2: if 8.5.2.7 item 3 is taken literally, OVERTURNED (other); if it is taken as a 2002 drafting defect, UPHELD.",
+    "citations": [
+     {
+      "cite": "§2002:15.40.3 RV1",
+      "quote": "the other argument is converted to class national for purposes of comparison",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.51.4 RV1",
+      "quote": "the other argument is converted to class national for purposes of comparison",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-2",
+    "verdict": "UPHELD",
+    "reason": "Same text; does not depend on the argument's class.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-3",
+    "verdict": "UPHELD",
+    "reason": "Same text; at run unit activation the current locale is the user default locale in both; EC-LOCALE-MISSING is Fatal in both exception tables.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-4",
+    "verdict": "UPHELD",
+    "reason": "Same text; LC_COLLATE of the locale in both.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-5",
+    "verdict": "UPHELD",
+    "reason": "Same three cases, markup only.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.40.3-6",
+    "verdict": "UPHELD",
+    "reason": "Same text.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.41.2-1",
+    "verdict": "OVERTURNED",
+    "reason": "2002 8.5.2.1: 'An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand.' So in 2002 a PIC A(8) item (2002 also lets it hold any alphanumeric characters) is a legal LOCALE-DATE argument-1 'of class alphanumeric'. 2023 8.5.2.2 has no such sentence; 2014 E.2 item 2 records the removal as a substantive change affecting existing programs ('may be used only where rules explicitly allow them'). Second case: a PIC 9(8) USAGE NATIONAL item is class national under 2002 8.5.2.7 item 3 (as for LOCALE-COMPARE). Compiler at --std 2002 is WRONG for the alphabetic case: COBOL1627 'argument-1 is of class alphabetic' (probe a1; expected: accepted, date formatted); it also rejects the numeric-national case (probe n2).",
+    "citations": [
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.2",
+      "quote": "An elementary data item described as alphabetic by its PICTURE character-string is of category alphabetic.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Data items of class and category alphabetic may be used only where rules explicitly allow them.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.41.2 AR1",
+      "quote": "shall be of class alphanumeric or national and shall be 8 character positions in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.52.3 AR1",
+      "quote": "shall be of class alphanumeric or national and shall be 8 character positions in length",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2002 blanket rule 8.5.2.1: alphabetic wherever elementary alphanumeric is permitted, removed in 2014/2023)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-39/a1_ld_alpha.cob"
+   },
+   {
+    "rule-id": "2002-AR-15.41.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "The content rule governs whatever argument-1 is. In 2002 that includes an alphabetic item (8.5.2.1) and, read literally, a numeric item of usage national (8.5.2.7 item 3). The 2023 row's evidence never uses those arguments. It derives from AR1.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand.",
+      "check": "OK"
+     }
+    ],
+    "class": "other (derivative of the AR1 widening by 2002 8.5.2.1)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-q-39/a1_ld_alpha.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "138428d2a1ae9580a8b53993157605c0e9d5ecdff1b8de9d846134ec9d4323bb",
+  "read": "6cd538148767d2f5d93acdc2cdb29fcd31c0f75ecbade7b7a610f011c85dd117",
+  "refute": "7e29c16762791fa6d90b3ee7c2be6614b3eefefaec180820eba77d18e636ed84"
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.31.2-5",
+ "rule-digest": "ac32669d889e",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.33.3-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "communication-reach": {
+    "flag": "clause 13.16.31 is reached by the 2002 communication section (Annex A, the CD entry)",
+    "answer": "Level-number does reach CD records, but through SR2, which names the CD (§2002:13.16.31.2 SR2); SR5 names only the working-storage, local-storage and linkage sections (§2002:13.16.31.2 SR5), so this rule governs no CD entry."
+   }
+  },
+  "source": "lineage-reads-2002/p-11.json",
+  "digests": {
+   "SR-13.18.33.3-5": "ac32669d889e"
+  }
+ }
+}

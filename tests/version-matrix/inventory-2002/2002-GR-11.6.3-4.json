@@ -1,0 +1,30 @@
+{
+ "rule-id": "2002-GR-11.6.3-4",
+ "rule-digest": "00a00a5ff545",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.7.4-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "class | of a data item; invocation",
+    "answer": "§2002:4 (4.34) defines class of a data item by PICTURE/USAGE, a predefined identifier or an intrinsic function, as 2023 3.33 does in its note; this rule's 'class' is the object-oriented class (4.33/4.36), not a data class, so the difference reaches nothing the rule governs. §2002:4 (4.123) invocation 'The request to execute a named method on a given object' is word for word 2023 3.121."
+   },
+   "definition-dropped": {
+    "flag": "method (newer: 9.3.4)",
+    "answer": "§2002:4 (4.121) method 'A procedural entity defined by a method definition within, or inherited by, a class definition' names the same entity 2023 describes in 9.3.4; the method definitions the rule places or refuses are the same source elements."
+   },
+   "pending-clause": {
+    "flag": "§2002:9.3.5 (changed)",
+    "answer": "This rule does rest on invocation: read §2002:9.3.5, which binds the method with the invoked method-name defined in the class of the object (2023 9.3.6 adds signature matching). GR4 names only an object of the defining class, where both editions bind the one method of that name; the 2002 witness oo_hello (accept includes 2002, MATCH) shows it, and inheritance and overloading lie outside GR4."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "GR-11.7.4-4": "00a00a5ff545"
+  }
+ }
+}

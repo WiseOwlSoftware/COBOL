@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-13.16.40.2-2",
+ "rule-digest": "eb366234533c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-13.18.42.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "property",
+    "answer": "§2002:4 (4.140) 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' vs §2023:3.137 'can be used': editorial, the same object properties; the rule governs the PROPERTY clause on items subject to OCCURS; same scope, evidence pb1273-property-under-occurs at 2002 stands."
+   }
+  },
+  "source": "lineage-reads-2002/p-12.json",
+  "digests": {
+   "SR-13.18.42.3-2": "eb366234533c"
+  }
+ }
+}

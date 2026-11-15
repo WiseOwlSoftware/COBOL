@@ -2,7 +2,7 @@
       *> id: pb979_unstring_receiver_size
       *> rules: [GR-14.9.48.4-5, GR-14.9.48.4-8, GR-14.9.48.4-11,
       *>    GR-14.9.48.4-12, GR-14.9.48.4-13]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-GR-11.5.3-2",
+ "rule-digest": "94bb97b2909c",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-11.6.4-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-changed": {
+    "flag": "interface | of an object",
+    "answer": "§2002:4 defines interface of an object as 'The names of all the methods defined for the object, including inherited methods', with parameters, returned value and exceptions. 2023 differs only in 'may be raised' against 'can be raised' and in layout. The rule names interfaces as language constructs, and the conformance they imply is the same, so the scope does not change."
+   },
+   "cross-reference": {
+    "flag": "9.3.10",
+    "answer": "I read §2002:9.3.10. A word diff with §2023:9.3.10 is empty apart from the heading level ('The inheriting interface shall always conform to each of the inherited interfaces'), so the scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-06.json",
+  "digests": {
+   "GR-11.6.4-2": "94bb97b2909c"
+  }
+ }
+}

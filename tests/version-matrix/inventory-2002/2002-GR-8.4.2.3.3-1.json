@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-8.4.2.3.3-1",
+ "rule-digest": "c0d462cbd5a0",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-8.4.3.3.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "boolean position (newer: undefined)",
+    "answer": "§2002:4 (4.23) defines boolean position only as storage ('The amount of physical storage required to store, or presentation space required to print or display, a single boolean character'); 2023 adds the location sense (3.25). In GR1 ('Leftmost-position represents a boolean position, alphanumeric position, or national position') the unit counted is the same in both, so the boolean items reached and the position arithmetic are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "GR-8.4.3.3.4-1": "c0d462cbd5a0"
+  }
+ }
+}

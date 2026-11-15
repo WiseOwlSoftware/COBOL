@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.41.3-5",
+ "rule-digest": "1f023b9e2598",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.43.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 line 16079 has the same sentence with a missing space ('specified.This'), a transcription artifact. Re-read against §2002:13.16.41.3 GR5: same implicit format 1/format 2 rule; the 2002 witnesses (pb1277 FA leg, pb322 SD arm) run at --std 2002, so nothing changes."
+   }
+  },
+  "source": "lineage-reads-2002/q-18.json",
+  "digests": {
+   "GR-13.18.43.4-5": "1f023b9e2598"
+  }
+ }
+}

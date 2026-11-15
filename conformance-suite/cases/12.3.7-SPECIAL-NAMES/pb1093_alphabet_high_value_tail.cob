@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1093_alphabet_high_value_tail
 *> rules: [GR-12.3.7.4-8, GR-12.3.7.4-10]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

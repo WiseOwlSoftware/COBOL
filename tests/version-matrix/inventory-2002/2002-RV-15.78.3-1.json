@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-RV-15.78.3-1",
+ "rule-digest": "e50f080a4679",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "RV-15.97.4-1"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "§2002:4 splits 'character' into four senses (4.26 a code value of a coded character set, 4.27 a graphic character in a screen item, 4.28 a COBOL character, 4.29 a single code value in storage); 2023 drops those entries but keeps each sense under its own term (§2023:3.7 alphanumeric character, national character, §2023:3.93 graphic character, §2023:3.37 COBOL character repertoire), so the drop is of a heading, not of a meaning. The letters replaced are code values of the argument's coded character set (4.26), 2023's alphanumeric/national characters; no change of scope."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.8.1.1 (removed), §2002:8.8.1.3.1 (removed), §2002:8.8.1.3.6 (removed), §2002:14.6.4 (changed), §2002:14.6.6 (changed), §2002:15 (changed), §2002:15.1 (changed)",
+    "answer": "§2002:8.8.1.1/8.8.1.3.1/8.8.1.3.6 (standard arithmetic, 32-digit standard intermediate) bear on a function only through §2002:15.3.1 (numeric and integer function results under standard arithmetic); UPPER-CASE is an alphanumeric/national function, so they do not apply. §2002:15 is 2023's 15.1 word for word and §2002:15.1 (types of functions) differs from §2023:15.2 only by its sentence that the number of character positions is specified in the function definition (2023 admits dynamic lengths); UPPER-CASE's RV3 fixes the length. §2002:14.6.4/14.6.6 were matched by 'corresponding uppercase letters', not the CORRESPONDING phrase; they do not govern this rule."
+   }
+  },
+  "source": "lineage-reads-2002/q-43.json",
+  "digests": {
+   "RV-15.97.4-1": "e50f080a4679"
+  }
+ }
+}

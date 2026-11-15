@@ -1,0 +1,1673 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-17 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-17",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.36.2-9",
+   "2002-SR-14.8.37.2-1",
+   "2002-SR-14.8.38.2-2",
+   "2002-SR-14.8.39.2-1",
+   "2002-SR-14.8.39.2-2",
+   "2002-SR-14.8.39.2-4",
+   "2002-SR-14.8.39.2-5",
+   "2002-SR-14.8.39.2-6",
+   "2002-SR-14.8.39.2-7",
+   "2002-SR-14.8.39.2-8",
+   "2002-SR-14.8.39.2-9",
+   "2002-SR-14.8.4.2-1",
+   "2002-SR-14.8.4.2-12",
+   "2002-SR-14.8.4.2-14",
+   "2002-SR-14.8.4.2-17",
+   "2002-SR-14.8.4.2-4",
+   "2002-SR-14.8.4.2-5",
+   "2002-SR-14.8.4.2-9",
+   "2002-SR-14.8.40.2-4",
+   "2002-SR-14.8.42.2-2",
+   "2002-SR-14.8.43.2-1",
+   "2002-SR-14.8.44.2-2",
+   "2002-SR-14.8.44.2-3",
+   "2002-SR-14.8.44.2-4",
+   "2002-SR-14.8.44.2-7"
+  ]
+ },
+ "read": {
+  "slice": "p-17",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.36.2-9",
+    "to": [
+     "SR-14.9.40.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.36",
+    "clause-2023": "14.9.40",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR9",
+      "quote": "the first specification of data-name-1 shall be associated with an ASCENDING phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR9",
+      "quote": "the first specification of data-name-1 shall be associated with an ASCENDING phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "SORT Format 1 general format identical phrase for phrase in both (KEY, DUPLICATES, COLLATING SEQUENCE with FOR ALPHANUMERIC/NATIONAL, INPUT/OUTPUT PROCEDURE, USING/GIVING). SR9 identical; the prime record key is the RECORD KEY clause's key in both; GIVING file-name-3 is constrained identically by SR8. 2023's changes in the clause (SR3 placement, SR6 b/d) are other rules. Probes at 2002 and 2023: DESCENDING first key, key at wrong bytes, key of wrong size each refused COBOL1757; the legal ASCENDING case sorts into the indexed file (AAA, BBB, CCC).",
+    "scope-2002": [
+     "SORT format 1 GIVING file-name-3 of indexed organization: first key ASCENDING",
+     "first key's byte location and size equal to the prime record key"
+    ],
+    "evidence-2002": [
+     "covered by probe sort9-desc.cob (refused at 2002)",
+     "covered by probes sort9-pos.cob, sort9-len.cob (refused at 2002) and sort9-ok.cob (runs at 2002); 2023 row tests pb994-sort-giving-indexed-*"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sort9-ok.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sort9-desc.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sort9-pos.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sort9-len.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-1",
+    "to": [
+     "SR-14.9.41.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.37",
+    "clause-2023": "14.9.41",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR1",
+      "quote": "The access mode of the file referenced by file-name-1 shall be either sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR1",
+      "quote": "The access mode of the file referenced by file-name-1 shall be either sequential or dynamic",
+      "check": "OK"
+     }
+    ],
+    "reason": "START general format identical (FIRST / KEY relational-operator data-name-1|record-key-name-1 WITH LENGTH / LAST, INVALID KEY choice indicators). Same access modes and file organizations in both editions. Probe: ACCESS RANDOM indexed file refused COBOL0862 at both; DYNAMIC and SEQUENTIAL accepted at both.",
+    "scope-2002": [
+     "START on a sequential, relative or indexed file: access mode sequential or dynamic"
+    ],
+    "evidence-2002": [
+     "covered by probes start1.cob (random refused), start1-dyn.cob, start1-seq.cob (accepted) at 2002"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\start1.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\start1-dyn.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\start1-seq.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.38.2-2",
+    "to": [
+     "SR-14.9.42.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.38",
+    "clause-2023": "14.9.42",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.2 SR2",
+      "quote": "Identifier-1 shall reference an integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.3 SR2",
+      "quote": "Identifier-1 shall reference an integer data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "STOP RUN [WITH ERROR|NORMAL STATUS [identifier-1|literal-1]] general format identical; STOP literal is absent from both. 2023 SR4 (zero-length literal) concerns a construct 2002 lacks. Probe: S9V9 COMP-3 status refused COBOL1704 at both; S9(3) COMP-3 integer status accepted and passed (process exit code 7) at both.",
+    "scope-2002": [
+     "STOP RUN WITH ERROR/NORMAL STATUS identifier-1"
+    ],
+    "evidence-2002": [
+     "covered by probes stop2.cob (refused at 2002) and stop2-ok.cob (exit 7 at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\stop2.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\stop2-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-1",
+    "to": [
+     "SR-14.9.43.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR1",
+      "quote": "All literals shall be described as alphanumeric, boolean, or national literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR1",
+      "quote": "All literals shall be described as alphanumeric, boolean, or national literals",
+      "check": "OK"
+     }
+    ],
+    "reason": "STRING general format identical (identifier-1|literal-1 ... DELIMITED BY identifier-2|literal-2|SIZE, INTO, WITH POINTER, ON/NOT ON OVERFLOW). Literal classes (alphanumeric, boolean, national) and usages (display, national) exist in both. 2023 adds SR3/SR11 (zero-length literal, variable-length group): constructs 2002 lacks. An operand that is a 2002 communication-section data item is still a data item; the rule does not depend on the section it is defined in, and no operand of this statement may be a cd-name. Probes at both: COMP-3 sender, numeric literal, alphanumeric-into-national mix refused; boolean literal and national operands accepted.",
+    "scope-2002": [
+     "STRING literal-1/literal-2 class",
+     "STRING identifier-1/2/3 usage display or national",
+     "national all-or-nothing over five operands"
+    ],
+    "evidence-2002": [
+     "covered by probes str1-numlit.cob (refused), str1-bool.cob (accepted)",
+     "covered by probe str1-comp3.cob (refused at 2002)",
+     "covered by probes str1-natmix.cob (refused) and str-ok.cob (national STRING runs)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str1-comp3.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str1-natmix.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str1-numlit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str1-bool.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str-ok.cob",
+    "widening": "2023 adds zero-length literals and dynamic-length items the same sentence also covers; no 2002 case removed.",
+    "flags-answered": {
+     "definition-changed: class | of a data item": "§2002:4 (4.34) defines class of a data item by 'the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses'; §2023:3.33 says 'the specific clauses' and moves PICTURE/USAGE to a note. The operative table, §2002:8.5.2 Table 3, is §2023:8.5.2.1 Table 2 less the 2023-only class message-tag and category function-pointer, with the same group-item rules, so 'of class national' covers the same 2002 operands (national, national-edited, numeric-edited usage national, national group items). The reader's 2002 probes str1-natmix/str-ok show the all-or-nothing arm. Scope unchanged."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:4",
+      "quote": "defined by the PICTURE clause, the USAGE clause, or the PICTURE and USAGE clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.33",
+      "quote": "defined by the specific clauses in a data description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "The class of an elementary data item is related to its category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "a national group item has class and category national",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-2",
+    "to": [
+     "SR-14.9.43.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR2",
+      "quote": "shall not be a figurative constant that begins with the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR2",
+      "quote": "shall not be a figurative constant that begins with the word ALL",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format and the same figurative-constant formats (ALL literal) in both editions. Probe: DELIMITED BY ALL \"*\" refused COBOL1757 at both.",
+    "scope-2002": [
+     "STRING literal-1 / literal-2 ALL figurative constant"
+    ],
+    "evidence-2002": [
+     "covered by probe str2-all.cob (refused at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str2-all.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-4",
+    "to": [
+     "SR-14.9.43.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR4",
+      "quote": "Identifier-3 shall not reference an edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR5",
+      "quote": "Identifier-3 shall not reference an edited data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; edited categories and JUSTIFIED exist in both. Probe: PIC XXBXX and JUSTIFIED RIGHT receivers refused COBOL1651 at both.",
+    "scope-2002": [
+     "identifier-3 edited",
+     "identifier-3 JUSTIFIED"
+    ],
+    "evidence-2002": [
+     "covered by probe str4-edit.cob",
+     "covered by probe str4-just.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str4-edit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str4-just.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-5",
+    "to": [
+     "SR-14.9.43.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR5",
+      "quote": "Identifier-3 shall not reference a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR6",
+      "quote": "Identifier-3 shall not reference a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; TYPEDEF STRONG exists in both editions with the same meaning. Probe: an item of a strong typedef as INTO refused COBOL1651 at both.",
+    "scope-2002": [
+     "identifier-3 strongly-typed group"
+    ],
+    "evidence-2002": [
+     "covered by probe str5-typed.cob (refused at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str5-typed.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-6",
+    "to": [
+     "SR-14.9.43.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR6",
+      "quote": "of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR7",
+      "quote": "of sufficient size to contain a value equal to 1 plus the size of the data item referenced by identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "to indicate violations of the general formats and the explicit syntax rules of standard COBOL",
+      "check": "OK"
+     }
+    ],
+    "reason": "The requirement is word for word the same in both editions and the format is identical, but the 2023 row's evidence covers only part of it. The row (CONFORMS, kb/Work PB88, test pb88-string-pointer-not-integer) and the code (StringUnstringBinder.BindString via StrUnstrIsInteger) check 'elementary numeric integer without P' and never the size requirement. Probe str6-small.cob: 01 R PIC X(10), 01 P1 PIC 9, STRING S1 DELIMITED BY SIZE INTO R WITH POINTER P1 compiles with no diagnostic at --std 2002 and 2023 (P1 holds at most 9; the rule asks for a value of 11) and runs: OVF, R=ABCDEFGHIJ, P1=1 (the pointer was truncated on store). Non-integer and P pointers are refused at both (str6-nonint, str6-p).",
+    "scope-2002": [
+     "identifier-4 elementary numeric integer",
+     "identifier-4 without P",
+     "identifier-4 of sufficient size for 1 plus the size of identifier-3"
+    ],
+    "evidence-2002": [
+     "covered by probe str6-nonint.cob (refused at 2002)",
+     "covered by probe str6-p.cob (refused at 2002)",
+     "not shown: contradicted, str6-small.cob compiles clean at 2002"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str6-small.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str6-nonint.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str6-p.cob",
+    "widening": null,
+    "class": "other",
+    "other": "the identical requirement's 2023 CONFORMS evidence covers only its integer/P part; the size part is unenforced at every edition",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for an undersized POINTER item (PIC 9 for a 10-character identifier-3) is acceptance with no diagnostic; fix the size check, then a 2002 witness",
+    "compiler-at-2002": "wrong: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str6-small.cob compiles with no diagnostic at --std 2002 (and 2023); expected a diagnostic per §2002:14.8.39.2 SR6 and §2002:3.1.1; observed run output 'OVF' then '[ABCDEFGHIJ] P1=1'. Code site: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs BindString (POINTER screen, ~line 143)",
+    "sibling": "§2002:14.8.44.2 SR6 (UNSTRING identifier-7, the same sentence against identifier-1) uses the same StrUnstrIsInteger screen in BindUnstring (~line 330); not in this slice, not probed"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-7",
+    "to": [
+     "SR-14.9.43.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR7",
+      "quote": "it shall be described as an integer without the symbol 'P'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR8",
+      "quote": "it shall be described as an integer without the symbol 'P'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence and format; the 'P' picture symbol is the same in both. Probe: PIC 9V9 and PIC 9P senders refused COBOL1651 at both; a PIC 9(3) integer sender is transferred (str-ok '042').",
+    "scope-2002": [
+     "identifier-1/identifier-2 numeric non-integer",
+     "identifier-1/identifier-2 with P"
+    ],
+    "evidence-2002": [
+     "covered by probe str7-dec.cob",
+     "covered by probe str7-p.cob; legal integer in str-ok.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str7-dec.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str7-p.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-8",
+    "to": [
+     "SR-14.9.43.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR8",
+      "quote": "The DELIMITED phrase may be omitted only immediately preceding the INTO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR9",
+      "quote": "The DELIMITED phrase may be omitted only immediately preceding the INTO phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format: the DELIMITED bracket is optional per group in both. The 'only immediately preceding INTO' restriction is structural (identifiers with no DELIMITED phrase join the next group), so no other omission can be written. Probe str-ok.cob: the last group 'S2 SN' with no DELIMITED is moved whole (ABDEF042) at both.",
+    "scope-2002": [
+     "DELIMITED omitted before INTO implies SIZE"
+    ],
+    "evidence-2002": [
+     "covered by probe str-ok.cob (runs at 2002, [ABDEF042  ])"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-9",
+    "to": [
+     "SR-14.9.43.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.39",
+    "clause-2023": "14.9.43",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR9",
+      "quote": "The data item referenced by identifier-3 is the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR10",
+      "quote": "The data item referenced by identifier-3 is the receiving operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence and format. Probe: a constant-name as INTO refused COBOL1548 (receiving operand) at both; a FUNCTION as INTO is not parsed at both; the legal STRING runs.",
+    "scope-2002": [
+     "literal-1/identifier-1 sending",
+     "identifier-3 receiving"
+    ],
+    "evidence-2002": [
+     "covered by probe str-ok.cob",
+     "covered by probe str9-recv.cob (refused at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str9-recv.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str9-funcrecv.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\str-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-1",
+    "to": [
+     "SR-14.9.4.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 SR1 sits under ALL FORMATS, and 2002 has three CALL formats: Format 1 (on-overflow: CALL ... ON OVERFLOW imperative-statement-1), Format 2 (on-exception), Format 3 (program-prototype). 2023 SR1 sits under FORMATS 1 AND 2 (program, prototype); 2023 has no ON OVERFLOW format. So the 2002 rule also governs CALL identifier-1 ... ON OVERFLOW, which the 2023 row's evidence cannot show. Probes at 2002: numeric identifier-1 with ON OVERFLOW refused COBOL1681 (call1-num.cob); alphanumeric identifier-1 and literal-1 with ON OVERFLOW compile and run (call-ovf.cob: OVF2 for a missing program). At 2023 the ON OVERFLOW sources are refused COBOL0882 (removed).",
+    "scope-2002": [
+     "Format 1 CALL identifier-1 ... ON OVERFLOW",
+     "Format 2 CALL identifier-1 ... ON EXCEPTION",
+     "Format 3 CALL identifier-1 AS prototype"
+    ],
+    "evidence-2002": [
+     "covered by probes call1-num.cob (refused at 2002) and call-ovf.cob (runs at 2002)",
+     "covered by probe call1-num-exc.cob (refused at 2002) and the 2023 row's pb132-call-target-category (refused at 2002, adopt-2002 S1-lists D)",
+     "covered by the 2023 row's evidence"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call1-num.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call1-num-exc.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CALL identifier-1 ... ON OVERFLOW (Format 1, on-overflow)",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call1-num.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-12",
+    "to": [
+     "SR-14.9.4.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR12",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR13",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 Format 3 and 2023 Format 2 (program-prototype) are identical phrase for phrase; the rule sits under FORMAT 3 / FORMAT 2 respectively. 'Program definition' versus function, method and program prototype definitions are the same source-element kinds in both. The 2023 witnesses pb132-call-as-nested-in-function and -in-method are refused COBOL1682 at --std 2002.",
+    "scope-2002": [
+     "CALL AS NESTED in a function, method or prototype definition"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.4-CALL/pb132-call-as-nested-in-function and -in-method compiled at --std 2002 (refused COBOL1682)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb132-call-as-nested-in-function.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb132-call-as-nested-in-method.cob",
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: pb132-call-as-nested-in-function and pb132-call-as-nested-in-method both refused COBOL1682 (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR12",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR13",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "NOTE ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-14",
+    "to": [
+     "SR-14.9.4.3-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR14",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR16",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same prototype format; the REPOSITORY program-specifier exists in both. The 2023 witnesses pb46-call-as-prototype-name (refused COBOL1760) and pb237_program_prototype (output matches its .out) behave the same at --std 2002.",
+    "scope-2002": [
+     "CALL [identifier-1|literal-1 AS] program-prototype-name-1 declared in REPOSITORY"
+    ],
+    "evidence-2002": [
+     "covered by pb46-call-as-prototype-name (refused at 2002) and pb237_program_prototype (matches .out at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb46-call-as-prototype-name.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb237_program_prototype.cob",
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: pb46-call-as-prototype-name refused COBOL1760; pb237_program_prototype matches its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR14",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR16",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "NOTE ON OVERFLOW is an archaic feature",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-17",
+    "to": [
+     "SR-14.9.4.3-20"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR17",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR20",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same prototype format (BY REFERENCE identifier-2|OMITTED; BY CONTENT arithmetic/boolean expression|identifier-4|literal-2; BY VALUE). Object properties exist in both. The 2023 witnesses pb238_call_sr20_object_property and pb238_call_format2_operands produce their .out at --std 2002.",
+    "scope-2002": [
+     "Format 3 BY CONTENT omission for a receiving-permitted identifier-4 / object property"
+    ],
+    "evidence-2002": [
+     "covered by pb238_call_sr20_object_property and pb238_call_format2_operands (match .out at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb238_call_sr20_object_property.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\wit/pb238_call_format2_operands.cob",
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats [3] against [[2]]": "The 2002 band FORMAT 3 is the program-prototype format; 2023 merged 2002's Format 1 (on-overflow, archaic: §2002:14.8.4.1 'NOTE ON OVERFLOW is an archaic feature') and Format 2 (on-exception) into its Format 1, so the program-prototype format became Format 2. The two program-prototype diagrams are identical phrase for phrase (AS NESTED / program-prototype-name-1, BY REFERENCE identifier-2 | OMITTED, BY CONTENT and BY VALUE with arithmetic-expression-1, boolean-expression-1, identifier-4, literal-2, RETURNING, ON / NOT ON EXCEPTION), and neither band reaches the on-overflow or on-exception formats. No 2002 format is left unreached; no split.",
+     "definition-changed: property": "§2002:4 defines object property as 'A name that may be used to qualify an object reference to get a value from or pass a value to an object' and property as 'property; object property: See object property'; §2023:3.137 reads 'name that can be used to qualify an object reference to get a value from or pass a value to an object'. Only 'may' became 'can'; the same names qualify the same object references, so the identifier-4 operands the exception admits are the same."
+    },
+    "answer-evidence-2002": "re-run this session at --std 2002: pb238_call_sr20_object_property and pb238_call_format2_operands match their .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/probes-a-02/wit/)",
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR17",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR20",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "A name that may be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "property; object property: See object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:3.137",
+      "quote": "name that can be used to qualify an object reference to get a value from or pass a value to an object",
+      "check": "OK"
+     }
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-4",
+    "to": [
+     "SR-14.9.4.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR4",
+      "quote": "identifier-2 is a sending operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR4",
+      "quote": "identifier-2 is a sending operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cause as SR1: 2002 ALL FORMATS includes Format 1 (on-overflow), absent in 2023 (FORMATS 1 AND 2 = program, prototype). The rule therefore also classifies BY CONTENT identifier-2 in CALL ... ON OVERFLOW as a sending operand. 2002 SR3 also admits identifier-2 in the communication section (dropped in 2023); the classification does not depend on the section. Probe call-ovf.cob at 2002: BY CONTENT B stays BBBB after the called program moved XXXX to it, under ON OVERFLOW.",
+    "scope-2002": [
+     "identifier-2 BY CONTENT / address-identifier in Format 1 (on-overflow)",
+     "same in Format 2",
+     "same in Format 3"
+    ],
+    "evidence-2002": [
+     "covered by probe call-ovf.cob (runs at 2002)",
+     "covered by the 2023 row's evidence",
+     "covered by the 2023 row's evidence"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CALL ... USING BY CONTENT identifier-2 ... ON OVERFLOW",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-5",
+    "to": [
+     "SR-14.9.4.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR5",
+      "quote": "identifier-2 is not an address-identifier, it is a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR5",
+      "quote": "identifier-2 is not an address-identifier, it is a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cause as SR1 (ALL FORMATS reaches the 2002 on-overflow Format 1). Probes at 2002: BY REFERENCE constant-name under ON OVERFLOW refused COBOL1548 (receiving operand) (call5-const.cob); BY REFERENCE A modified to XXXX by the called program (call-ovf.cob).",
+    "scope-2002": [
+     "identifier-2 BY REFERENCE in Format 1 (on-overflow)",
+     "same in Format 2",
+     "same in Format 3"
+    ],
+    "evidence-2002": [
+     "covered by probes call5-const.cob (refused at 2002) and call-ovf.cob",
+     "covered by the 2023 row's evidence",
+     "covered by the 2023 row's evidence"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call5-const.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CALL ... USING BY REFERENCE identifier-2 ... ON OVERFLOW",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call5-const.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-9",
+    "to": [
+     "SR-14.9.4.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.4",
+    "clause-2023": "14.9.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR9",
+      "quote": "Identifier-3 is a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR9",
+      "quote": "Identifier-3 is a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same cause as SR1: RETURNING identifier-3 appears in 2002 Format 1 (on-overflow), absent in 2023. 2002 SR7 also admits identifier-3 in the communication section. Probes at 2002: RETURNING constant-name under ON OVERFLOW refused COBOL1548 (call9-const.cob); RETURNING RV receives 42 under ON OVERFLOW (call-ovf.cob).",
+    "scope-2002": [
+     "RETURNING identifier-3 in Format 1 (on-overflow)",
+     "same in Format 2",
+     "same in Format 3"
+    ],
+    "evidence-2002": [
+     "covered by probes call9-const.cob (refused at 2002) and call-ovf.cob",
+     "covered by call9-const-exc.cob and the 2023 row's evidence",
+     "covered by the 2023 row's evidence"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call9-const.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call9-const-exc.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CALL ... RETURNING identifier-3 ON OVERFLOW",
+    "compiler-at-2002": "correct: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call9-const.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\call-ovf.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.40.2-4",
+    "to": [
+     "SR-14.9.44.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.40",
+    "clause-2023": "14.9.44",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.2 SR4",
+      "quote": "Identifier-3 shall reference a numeric data item or a numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.3 SR4",
+      "quote": "Identifier-3 shall reference a numeric data item or a numeric-edited data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 2 (giving) identical except ROUNDED becoming rounded-phrase in 2023 (a widening unrelated to identifier-3's category). Numeric and numeric-edited categories the same. An operand that is a 2002 communication-section data item is still a data item; the rule does not depend on the section it is defined in, and no operand of this statement may be a cd-name. Probe: alphanumeric GIVING refused COBOL1675 at both; numeric-edited and numeric GIVING store 3.50- and -003 at both.",
+    "scope-2002": [
+     "SUBTRACT ... GIVING identifier-3 category"
+    ],
+    "evidence-2002": [
+     "covered by probes sub4.cob (refused at 2002) and sub4-ok.cob (runs at 2002)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sub4.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\sub4-ok.cob",
+    "widening": "2023 replaces ROUNDED with rounded-phrase (ROUNDED MODE); not about this rule."
+   },
+   {
+    "rule-id": "2002-SR-14.8.42.2-2",
+    "to": [
+     "SR-14.9.46.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.42",
+    "clause-2023": "14.9.46",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.42.2 SR2",
+      "quote": "the file description entry associated with report-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.46.3 SR2",
+      "quote": "the file description entry associated with report-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "TERMINATE { report-name-1 } ... identical; GLOBAL on FD and RD exist in both. The 2023 row's unit test GlobalReportScopeTests.AContainedReportVerbOnAGlobalReportWhoseFileIsNotGlobal_IsRefused binds at edition 2002. Probe: a contained program's TERMINATE of the container's GLOBAL report is refused COBOL2392 when the FD lacks GLOBAL, and runs (DETAIL written, DONE) when it has it, at both.",
+    "scope-2002": [
+     "TERMINATE in a contained program of a report defined in a containing program"
+    ],
+    "evidence-2002": [
+     "covered by unit:GlobalReportScopeTests (edition 2002) and probes term2.cob / term2-noglobal.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\term2.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\term2-noglobal.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.43.2-1",
+    "to": [
+     "SR-14.9.47.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.43",
+    "clause-2023": "14.9.47",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.43.2 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.3 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file",
+      "check": "OK"
+     }
+    ],
+    "reason": "UNLOCK file-name-1 [RECORD|RECORDS] identical; sort and merge files (SD) the same in both. 2023 SR2 (APPLY COMMIT) is a 2023 addition. Probe: UNLOCK of an SD refused COBOL1692 at both; UNLOCK of a sequential file (with and without RECORDS) runs at both.",
+    "scope-2002": [
+     "UNLOCK naming a sort or merge file"
+    ],
+    "evidence-2002": [
+     "covered by probes unlock1.cob (refused at 2002) and unlock1-ok.cob (runs)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\unlock1.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\unlock1-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-2",
+    "to": [
+     "SR-14.9.48.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44",
+    "clause-2023": "14.9.48",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR2",
+      "quote": "shall reference data items of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR2",
+      "quote": "shall reference data items of category alphanumeric or national",
+      "check": "OK"
+     }
+    ],
+    "reason": "UNSTRING general format identical (DELIMITED BY [ALL] ... OR [ALL], INTO DELIMITER IN / COUNT IN, POINTER, TALLYING, ON/NOT ON OVERFLOW); categories the same. An operand that is a 2002 communication-section data item is still a data item; the rule does not depend on the section it is defined in, and no operand of this statement may be a cd-name. Probes: numeric sender, numeric delimiter, numeric DELIMITER IN refused COBOL1651 at both; the 2023 row's pb2586 refusals are refused at 2002 (adopt-2002 S1-lists D).",
+    "scope-2002": [
+     "identifier-1 sender",
+     "identifier-2/3 delimiters",
+     "identifier-5 DELIMITER IN"
+    ],
+    "evidence-2002": [
+     "covered by probe uns2-numsend.cob",
+     "covered by probe uns2-numdelim.cob",
+     "covered by probe uns2-delimin-num.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns2-numsend.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns2-numdelim.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns2-delimin-num.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-3",
+    "to": [
+     "SR-14.9.48.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44",
+    "clause-2023": "14.9.48",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR3",
+      "quote": "then all shall be of category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR3",
+      "quote": "then all shall be of category national",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence over the same seven operands; same format. Probes: an alphanumeric sender into a national receiver, and a national sender into an alphabetic receiver, refused COBOL2306 at both; an all-national UNSTRING runs (XY | ; | ZW) at both.",
+    "scope-2002": [
+     "national all-or-nothing over seven operands"
+    ],
+    "evidence-2002": [
+     "covered by probes uns3-natmix.cob, uns4-natalpha.cob (refused at 2002) and uns-ok.cob (runs)"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns3-natmix.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns4-natalpha.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-4",
+    "to": [
+     "SR-14.9.48.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44",
+    "clause-2023": "14.9.48",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR4",
+      "quote": "Numeric items shall not be specified with the symbol 'P'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR4",
+      "quote": "Numeric items shall not be specified with the symbol 'P'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; usages and categories the same. Probes: numeric-edited, COMP and P receivers refused COBOL1626 at both; numeric, alphabetic and alphanumeric display receivers and national receivers run at both (uns-ok: 012|AB|CD).",
+    "scope-2002": [
+     "identifier-4 usage/category",
+     "identifier-4 numeric without P"
+    ],
+    "evidence-2002": [
+     "covered by probes uns4-edit.cob, uns4-comp.cob (refused at 2002), uns-ok.cob (runs)",
+     "covered by probe uns4-p.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns4-edit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns4-comp.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns4-p.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns-ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-7",
+    "to": [
+     "SR-14.9.48.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.44",
+    "clause-2023": "14.9.48",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR7",
+      "quote": "The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR7",
+      "quote": "The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence and format. Probes: DELIMITER IN and COUNT IN without DELIMITED BY refused COBOL1651 at both; with DELIMITED BY they run (uns-ok: DL space, CT 06).",
+    "scope-2002": [
+     "DELIMITER IN without DELIMITED BY",
+     "COUNT IN without DELIMITED BY"
+    ],
+    "evidence-2002": [
+     "covered by probe uns7-delimin.cob",
+     "covered by probe uns7-count.cob; legal form in uns-ok.cob"
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns7-delimin.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns7-count.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-17\\uns-ok.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-17",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.36.2-9",
+    "verdict": "DOUBTFUL",
+    "class": "deferral",
+    "reason": "Format and SR9 are word-identical, and SR9 leans on 'the prime record key for that file'. That key is what the RECORD KEY clause declares, and its syntax rules differ: 2002 SR1 says only that data-name-1 'may be qualified', while 2023 SR1 says it 'shall not be subject to any OCCURS clauses'. If 2002 admits a subscripted RECORD KEY (data-name includes 'subscription if needed' in the 2002 metalanguage table, and 8.4.1.2.2 SR5 requires a table element reference to be subscripted), SR9 then requires the first sort key to sit at the byte location of a table element such as IX-K(2), a case the 2023 verdict cannot see. Probe sort9-occkey.cob (SD key at offset 3, GIVING an indexed file with RECORD KEY IX-K(2)) is refused at --std 2002 with COBOL2024 on the RECORD KEY, so the 2002 SORT case cannot even be compiled. Settled by the adjudication of the subscripted-RECORD-KEY question (p-01 refute overturned 12.3.4.12 GR3/GR4 on it): if 2002 permits it, OVERTURNED; if not, UPHELD.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR9",
+      "quote": "occupy the same number of bytes as the prime record key for that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR9",
+      "quote": "occupy the same number of bytes as the prime record key for that file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.12.3 SR1",
+      "quote": "Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR5",
+      "quote": "Each table element reference shall be subscripted except when such reference appears",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sort9-occkey.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.37.2-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "START format identical phrase for phrase; SR1 identical; the file organizations (sequential, relative, indexed) and access modes are the same in both. START has no communication operand and no removed form. 2023 SR4 (OCCURS ban on data-name-1) is a different rule. Reader's probes stand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.37.2 SR1",
+      "quote": "The access mode of the file referenced by file-name-1 shall be either sequential or dynamic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.41.3 SR1",
+      "quote": "The access mode of the file referenced by file-name-1 shall be either sequential or dynamic",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.38.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "STOP RUN WITH ERROR/NORMAL STATUS format identical; no STOP literal in either. Attacked the two halves of the disjunction at 2002: PIC 9V9 DISPLAY and PIC X(2) accepted (usage display), S9(4) BINARY accepted (integer), COMP-2, POINTER and INDEX refused COBOL1704; identical at 2023. Communication reach attacked: 2002 Annex A lists the clauses that refer to the communication section, and this statement is not among them (only CALL SR3/SR7 and INVOKE SR9/SR11 are); an operand that is a CD-record item is checked identically, probe cd-stop.cob refused at --std 2002 with the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.2 SR2",
+      "quote": "Identifier-1 shall reference an integer data item or a data item with usage display or usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.3 SR2",
+      "quote": "Identifier-1 shall reference an integer data item or a data item with usage display or usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-dec.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-x.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-bin.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-c2.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-ptr.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\st-idx.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-stop.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-1",
+    "verdict": "DOUBTFUL",
+    "reason": "The answerer enumerated 2002 class national as 'national, national-edited, numeric-edited usage national, national group items' and said the 2002 table equals 2023's; but 2002's national category (§2002:8.5.2.7 item 3) also lists 'An elementary data item explicitly or implicitly described as usage national', which 2023 §2023:8.5.2.10 (and 2014) dropped. Read literally, PIC 9(n) USAGE NATIONAL and PIC 1(n) USAGE NATIONAL are category, hence class, national in 2002, a datum the 2023 evidence never shows. Other 2002 text (§2002:13.16.22.3 GR4 'class numeric with usage national', §2002:14.8.23.3 GR2a) contradicts that reading, so it is not decisive either way; the flag answer did not address it. For THIS rule the reading flips the outcome: STRING N\"AB\" NN INTO NT (NN PIC 9(3) USAGE NATIONAL, NT PIC N(10)) is legal at 2002 if NN is class national, but the compiler refuses it COBOL2306 at 2002 (as at 2023); STRING \"AB\" NN INTO XT (alphanumeric receiver) is illegal if NN is class national, and the compiler accepts and runs it at 2002 (AB123). Settle with one ruling (a docs/conformance entry or kb/Work decision): whether §2002:8.5.2.7 item 3, absent from 2014 and 2023, is inoperative for an elementary item whose PICTURE gives category numeric, numeric-edited or boolean (as §2002:13.16.22.3 GR4, §2002:14.8.23.3 GR2a and Table 3 presuppose), or makes such an item (also) category and class national at --std 2002. If inoperative: UPHELD. If operative: DIFFERENT, compiler-at-2002 wrong.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR1",
+      "quote": "If any one of literal-1, literal-2, identifier-1, identifier-2, or identifier-3 is of class national, then all shall be of class national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.7",
+      "quote": "An elementary data item explicitly or implicitly described as usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.10",
+      "quote": "A group item explicitly or implicitly described with a GROUP-USAGE clause with the NATIONAL phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.9",
+      "quote": "An elementary data item described as numeric by its PICTURE character-string and not described with a BLANK WHEN ZERO clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR4",
+      "quote": "class numeric with usage national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.23.3 GR2a",
+      "quote": "elementary data item of usage national and of category numeric, numeric-edited, or boolean",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2",
+      "quote": "Numeric-edited (if usage is national)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-08/strnatnum.cob",
+    "compiler-at-2002": "strnatnum: refused COBOL2306 at 2002 and 2023 (strnatnum.2002.txt); strnatnum2: accepted, prints AB123 at 2002 and 2023 (strnatnum2.2002.txt)",
+    "probes-also": [
+     "E:/COBOL-coord/scratch/op-20261114/read-2002/out-answer/refute-a-08/strnatnum2.cob"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The figurative-constant formats are the same in both editions (ALL optional before ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE, ALL literal, ALL symbolic-character). Probed every ALL form beyond the reader's ALL \"*\": ALL SPACES and ALL symbolic-character delimiters, ALL ZEROS and ALL QUOTE senders all refused COBOL1757 at 2002 and 2023; plain SPACE delimiter accepted. Literals cannot be CD items.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR2",
+      "quote": "Literal-1 or literal-2 shall not be a figurative constant that begins with the word ALL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR2",
+      "quote": "Literal-1 or literal-2 shall not be a figurative constant that begins with the word ALL",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s2-allspace.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s2-allsym.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s2-allzero.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s2-allquote.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s2-space-ok.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-4",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence and format. Beyond the reader's numeric-edited/JUSTIFIED probes: alphanumeric-edited and national-edited receivers refused COBOL1651 at both. Communication reach attacked: 2002 Annex A lists the clauses that refer to the communication section, and this statement is not among them (only CALL SR3/SR7 and INVOKE SR9/SR11 are); an operand that is a CD-record item is checked identically, probe cd-strjust.cob (JUSTIFIED RIGHT item under an input CD) refused at --std 2002 with the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR4",
+      "quote": "Identifier-3 shall not reference an edited data item and shall not be described with the JUSTIFIED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR5",
+      "quote": "Identifier-3 shall not reference an edited data item and shall not be described with the JUSTIFIED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s4-anedit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s4-natedit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-strjust.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence; the strongly-typed group item (8.5.3.2 in 2002, 8.5.3.3 in 2023) is described the same. Probed a group subordinate to a STRONG typedef (TG-G OF TGI) as INTO: refused COBOL1651 at both. A CD record described TYPE TG (cd-strtyped.cob) also draws COBOL1651 on the STRING at 2002 (and a separate redefinition error from another rule).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR5",
+      "quote": "Identifier-3 shall not reference a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR6",
+      "quote": "Identifier-3 shall not reference a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s5-subgrp.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s5-nested.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-strtyped.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-7",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence; the reader probed identifier-1 only. Probed identifier-2 (delimiter): PIC 9V9 and PIC 9P delimiters refused COBOL1651 at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR7",
+      "quote": "it shall be described as an integer without the symbol 'P' in its picture character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR8",
+      "quote": "it shall be described as an integer without the symbol 'P' in its picture character-string",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s7-deldec.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s7-delp.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence and an identical format bracket for DELIMITED; no 2002-only form. The rule is structural.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR8",
+      "quote": "The DELIMITED phrase may be omitted only immediately preceding the INTO phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR9",
+      "quote": "The DELIMITED phrase may be omitted only immediately preceding the INTO phrase",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.39.2-9",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence. Added a function-identifier sender (FUNCTION UPPER-CASE) which is transferred at both ([AB*C]); a CD-record receiver runs at 2002 (cd-strok.cob prints [ABZ]).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.39.2 SR9",
+      "quote": "The data item referenced by identifier-3 is the receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.43.3 SR10",
+      "quote": "The data item referenced by identifier-3 is the receiving operand",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\s9-func.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-strok.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-12",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The rule sits under FORMAT 3 (2002) and FORMAT 2 (2023), which are identical phrase for phrase; the removed ON OVERFLOW form is 2002 Format 1 and has no NESTED phrase. A prototype definition has no statements, so the function and method witnesses cover the non-program cases.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR12",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR13",
+      "quote": "The NESTED phrase may be specified only in a program definition",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-14",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Program-prototype format only, identical in both editions; the REPOSITORY program-specifier is the same. No ON OVERFLOW or communication reach (the rule names no data operand).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR14",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR16",
+      "quote": "Program-prototype-name-1 shall be specified in a program-specifier in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-17",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format 3 only (identifier-4 appears in no other 2002 format), identical to 2023 Format 2. The 2002 communication-section references in CALL are SR3 and SR7 (identifier-2, identifier-3), not identifier-4.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR17",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR20",
+      "quote": "BY CONTENT may be omitted when identifier-4 is an object property",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.40.2-4",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format 2 identical apart from ROUNDED becoming rounded-phrase (a widening). Probed at 2002: alphanumeric-edited, alphabetic, boolean and national-edited GIVING refused COBOL1675; usage-national numeric and numeric-edited GIVING accepted; identical at 2023. Communication reach attacked: 2002 Annex A lists the clauses that refer to the communication section, and this statement is not among them (only CALL SR3/SR7 and INVOKE SR9/SR11 are); an operand that is a CD-record item is checked identically, probe cd-subgiv.cob refused at --std 2002 with the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.40.2 SR4",
+      "quote": "Identifier-3 shall reference a numeric data item or a numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.44.3 SR4",
+      "quote": "Identifier-3 shall reference a numeric data item or a numeric-edited data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sb-aned.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sb-alpha.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sb-bool.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sb-natedit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\sb-natnum.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-subgiv.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.42.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "TERMINATE format and SR2 identical; GLOBAL on FD is the same. 2023 SR3 (exception-checking PERFORM) is a 2023 addition. No communication reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.42.2 SR2",
+      "quote": "the file description entry associated with report-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.46.3 SR2",
+      "quote": "the file description entry associated with report-name-1 shall contain a GLOBAL clause",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.43.2-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "UNLOCK format and SR1 identical; sort and merge files are both SD files in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.43.2 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.47.3 SR1",
+      "quote": "File-name-1 shall not refer to a sort file or a merge file",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format and SR2 identical. Probed the categories that are not alphanumeric at 2002: alphabetic, alphanumeric-edited and boolean senders, an alphabetic delimiter, a numeric OR delimiter (identifier-3), an alphabetic DELIMITER IN: all refused COBOL1651 at both. Communication reach attacked: 2002 Annex A lists the clauses that refer to the communication section, and this statement is not among them (only CALL SR3/SR7 and INVOKE SR9/SR11 are); an operand that is a CD-record item is checked identically, probe cd-unsalpha.cob refused at --std 2002 with the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR2",
+      "quote": "Identifier-1, identifier-2, identifier-3, and identifier-5 shall reference data items of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR2",
+      "quote": "Identifier-1, identifier-2, identifier-3, and identifier-5 shall reference data items of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-alphasend.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-anedsend.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-boolsend.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-alphadel.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-ordelnum.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u2-delinalpha.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-unsalpha.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-3",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence over the same seven operands. Probed the other operands: national literal delimiter, national DELIMITER IN and national receiver with an alphanumeric sender all refused COBOL2306 at both.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR3",
+      "quote": "then all shall be of category national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR3",
+      "quote": "then all shall be of category national",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u3-natlit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u3-natdelin.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u3-natrecv.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-4",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence. Probed at 2002: alphanumeric-edited, national-edited and boolean-display receivers refused COBOL1626, a usage-national numeric receiver accepted, a usage-national 9P receiver refused; identical at 2023. Communication reach attacked: 2002 Annex A lists the clauses that refer to the communication section, and this statement is not among them (only CALL SR3/SR7 and INVOKE SR9/SR11 are); an operand that is a CD-record item is checked identically, probe cd-unsedit.cob refused at --std 2002 with the same diagnostic.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR4",
+      "quote": "Numeric items shall not be specified with the symbol 'P' in their picture character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR4",
+      "quote": "Numeric items shall not be specified with the symbol 'P' in their picture character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "14.8.4, CALL statement, syntax rule 3 and syntax rule 7 refer to the communication section",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u4-anedit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u4-natedit.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u4-bool.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u4-natnum.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\u4-natnump.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-17\\cd-unsedit.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.44.2-7",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical sentence and an identical format for the INTO phrase; the rule is structural with no operand class dependence. The reader's probes stand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.44.2 SR7",
+      "quote": "The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.48.3 SR7",
+      "quote": "The DELIMITER IN phrase and the COUNT IN phrase may be specified only if the DELIMITED BY phrase is specified",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "725fac0110bd704dfecea8c0dc7bfca70f2420c2b1880d836a8fdbd7ff275dfd",
+  "read": "61df8cbccd272f5ac855b4a725be506833b28009802968d9144775d82addaf40",
+  "refute": "af4315dbb8cdf49bfcbc30a9884ddbd423b53364631bf6a553ba6297a51747ed"
+ }
+}

@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-SR-14.8.29.2-5",
+ "rule-digest": "f4252edf5429",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-14.9.30.3-4"
+  ],
+  "bridge": true,
+  "answers": {
+   "behaviour-switch": {
+    "flag": "indexed-read-previous-after-open-at-end",
+    "answer": "The switch (DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord) decides only which record §2002:14.8.29.3 GR18 selects for a READ PREVIOUS that is the first operation after OPEN on an indexed file. A syntax rule on lock phrases under LOCK MODE AUTOMATIC; the run-time switch does not reach it. No change. Lead, not this row: at --std 2002 the switch returns the lowest record (probe prev-open-ix.cob: P1=K002|00) where §2002:14.8.26.3 GR12 (FPI = lowest-ordinal characters) with §2002:14.8.29.3 GR18c2 (key less than or equal to the FPI) find no record, so '10' and at end; that is a GR18 defect."
+   }
+  },
+  "source": "lineage-reads-2002/q-29.json",
+  "digests": {
+   "SR-14.9.30.3-4": "f4252edf5429"
+  }
+ }
+}

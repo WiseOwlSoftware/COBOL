@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-DOC-B.1-36",
+ "rule-digest": "2aeafe303c2b",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "DOC-A.1-41"
+  ],
+  "bridge": true,
+  "answers": {
+   "cross-reference": {
+    "flag": "9.2.3",
+    "answer": "I read §2002:9.2.3. The CRT status values (0000, 1xxx, 2xxx, 8000, 8001, 9xxx) and the 9xxx sentence ('An implementor-defined condition exists. The numeric value xxx is defined by the implementor') are the same as 2023's. 2023 drops only 2002's introductory four-condition summary, which restates the same list. Scope is unchanged. The screen facility is declined at --std 2002 under §2002:B.3 item 1 with §2002:3.1.5 (the reader's licence-2002), so nothing a 2002 program can show changes."
+   }
+  },
+  "source": "lineage-reads-2002/q-44.json",
+  "digests": {
+   "DOC-A.1-41": "2aeafe303c2b"
+  }
+ }
+}

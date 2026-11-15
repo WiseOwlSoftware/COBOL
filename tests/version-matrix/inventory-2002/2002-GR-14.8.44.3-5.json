@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-5",
+ "rule-digest": "b76a3d361690",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-14.9.48.4-5"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character position (newer: undefined); character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined)",
+    "answer": "character position: §2002:4 (4.31) 'a single character -- either an alphanumeric character or a national character' (storage); 2023 splits it into storage (3.29) and location (3.30). GR5's 'relative character position within the area referenced by identifier-1' counts the same positions in an alphanumeric or national sender. character / coded character set: 2002 senses 4.26 to 4.29 and 4.40, undefined in 2023 clause 3, used in their ordinary sense. The scope is unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-33.json",
+  "digests": {
+   "GR-14.9.48.4-5": "b76a3d361690"
+  }
+ }
+}

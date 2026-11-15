@@ -1,0 +1,22 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-17",
+ "rule-digest": "7d7f37fd7524",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "GR-13.18.14.4-17"
+  ],
+  "bridge": true,
+  "answers": {
+   "absent-from-2014": {
+    "flag": "its whole text is not in the 2014 transcription",
+    "answer": "2014 has the same rule word for word (specs/ISO_COBOL_2014.md line 13735), split by a '## Page 338' marker between a) and b); a transcription page break. Re-read against §2002:13.16.14.3 GR17 (FORMAT 2, screen items): the 2002 scope is the screen item default position, licensed non-support at 2002 and declined there (COBOL1560), so scope and evidence are unchanged."
+   }
+  },
+  "source": "lineage-reads-2002/q-12.json",
+  "digests": {
+   "GR-13.18.14.4-17": "7d7f37fd7524"
+  }
+ }
+}

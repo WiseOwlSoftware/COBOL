@@ -1,0 +1,1569 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice p-15 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "p-15",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-14.8.22.2-8",
+   "2002-SR-14.8.23.2-11",
+   "2002-SR-14.8.23.2-12",
+   "2002-SR-14.8.23.2-2",
+   "2002-SR-14.8.23.2-6",
+   "2002-SR-14.8.23.2-8",
+   "2002-SR-14.8.24.2-3",
+   "2002-SR-14.8.24.2-4",
+   "2002-SR-14.8.24.2-6",
+   "2002-SR-14.8.24.2-7",
+   "2002-SR-14.8.25.2-2",
+   "2002-SR-14.8.25.2-3",
+   "2002-SR-14.8.26.2-2",
+   "2002-SR-14.8.26.2-3",
+   "2002-SR-14.8.26.2-4",
+   "2002-SR-14.8.26.2-5",
+   "2002-SR-14.8.27.2-1",
+   "2002-SR-14.8.27.2-10",
+   "2002-SR-14.8.27.2-11",
+   "2002-SR-14.8.27.2-2",
+   "2002-SR-14.8.27.2-3",
+   "2002-SR-14.8.27.2-5",
+   "2002-SR-14.8.27.2-6",
+   "2002-SR-14.8.27.2-7",
+   "2002-SR-14.8.28.2-3"
+  ]
+ },
+ "read": {
+  "slice": "p-15",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.22.2-8",
+    "to": [
+     "SR-14.9.23.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.22",
+    "clause-2023": "14.9.23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.22.2 SR8",
+      "quote": "Identifier-2 shall reference an alphanumeric or national data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR8",
+      "quote": "Identifier-2 shall reference an alphanumeric or national data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.22.2 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.23.3 SR9",
+      "quote": "shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INVOKE identifier-1 (universal) identifier-2: identifier-2 in file, working-storage, local-storage, linkage sections",
+     "identifier-2 referencing a communication-section item (a record item after a CD), which 2002 INVOKE contemplates (SR9 names the communication section)"
+    ],
+    "evidence-2002": [
+     "WS/LS identifier-2 alphanumeric, national, national group, alphanumeric group: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\8.3.3.5-National-literals\\pb1136_invoke_selector_forms.cob (PASS at 2002); boolean and national-edited refused at 2002: pb1136-invoke-identifier-2-boolean.cob, pb850-invoke-identifier-2-national-edited.cob (COBOL0866)",
+     "CD record item: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-invoke.cob (1=HI at 2002) and E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-invoke-neg.cob (PIC 9(5) CD item refused COBOL0866 at 2002)"
+    ],
+    "reason": "Format identical except class-name-1 renamed object-class-name-1 (no effect on identifier-2). Fifth-cause check: the 2002 INVOKE expressly admits communication-section operands (SR9, SR11; Annex A lists INVOKE SR9 and SR11), and nothing restricts identifier-2's section, so in 2002 SR8 also governs an identifier-2 that is a record item under a CD. 2023 has no communication section. Probe: both the legal and the refused CD case behave correctly at --std 2002.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-invoke.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for INVOKE identifier-2 referencing a communication-section record item (cd-invoke.cob / cd-invoke-neg.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-invoke.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-invoke-neg.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-11",
+    "to": [
+     "SR-14.9.24.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR11",
+      "quote": "No pair of file-names in a MERGE statement may be specified in the same SAME AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR11",
+      "quote": "No pair of file-names in a MERGE statement may be specified in the same SAME AREA, SAME SORT AREA, or SAME SORT-MERGE AREA clause.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE file-names (SD file-name-1, USING file-name-2/3, GIVING file-name-4) against SAME AREA / SAME SORT AREA / SAME SORT-MERGE AREA / SAME RECORD AREA clauses"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.24-MERGE\\pb1139-merge-same-area.cob and pb1139-merge-same-record-area.cob (refused COBOL1757 at 2002 and 2023), pb1139_same_clauses_legal.cob (compiles at 2002)"
+    ],
+    "reason": "MERGE general format identical in both editions; SAME clause forms and the ALPHABET FOR NATIONAL forms (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name, literal-phrase) are identical; MERGE operands are file-names only, so no communication-section or debugging reach. 2023 changes only SR1 (where MERGE may appear) and SR4 (key restrictions for 2023-only data), neither of which this rule leans on.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-12",
+    "to": [
+     "SR-14.9.24.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR12",
+      "quote": "If the GIVING phrase is specified and the file description entry for file-name-4 describes variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR12",
+      "quote": "If the GIVING phrase is specified and the file description entry for file-name-4 describes variable-length records",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE ... GIVING file-name-4: record sizes of the SD against the GIVING file, fixed and variable"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.24-MERGE\\pb995_sort_merge_record_size_ranges.cob (PASS at 2002) and pb995-merge-record-size-using-giving.cob (refused COBOL1757 at 2002)"
+    ],
+    "reason": "MERGE general format identical in both editions; SAME clause forms and the ALPHABET FOR NATIONAL forms (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name, literal-phrase) are identical; MERGE operands are file-names only, so no communication-section or debugging reach. 2023 changes only SR1 (where MERGE may appear) and SR4 (key restrictions for 2023-only data), neither of which this rule leans on. Record-size forms of 2002 (RECORD CONTAINS / VARYING) are a subset of 2023's; 2023 only adds dynamic-length forms (a widening).",
+    "probe": null,
+    "widening": "2023 also measures records with 2023-only dynamic-length items"
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-2",
+    "to": [
+     "SR-14.9.24.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR2",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR2",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE file-name-1 must be an SD file"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.24-MERGE\\l1c18-merge-file-not-sort-merge.cob (refused COBOL1757 at 2002) and every positive MERGE witness (l1c18_merge_key_order_ties.cob PASS at 2002)"
+    ],
+    "reason": "MERGE general format identical in both editions; SAME clause forms and the ALPHABET FOR NATIONAL forms (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name, literal-phrase) are identical; MERGE operands are file-names only, so no communication-section or debugging reach. 2023 changes only SR1 (where MERGE may appear) and SR4 (key restrictions for 2023-only data), neither of which this rule leans on.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-6",
+    "to": [
+     "SR-14.9.24.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR6",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR6",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE COLLATING SEQUENCE IS alphabet-name-1 alphabet-name-2 and FOR NATIONAL IS alphabet-name-2"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.24-MERGE\\l1c18-merge-collating-national-is-alnum.cob (refused COBOL5989 at 2002)"
+    ],
+    "reason": "MERGE general format identical in both editions; SAME clause forms and the ALPHABET FOR NATIONAL forms (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name, literal-phrase) are identical; MERGE operands are file-names only, so no communication-section or debugging reach. 2023 changes only SR1 (where MERGE may appear) and SR4 (key restrictions for 2023-only data), neither of which this rule leans on.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-8",
+    "to": [
+     "SR-14.9.24.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.23",
+    "clause-2023": "14.9.24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR8",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR8",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MERGE OUTPUT PROCEDURE IS procedure-name-1 THROUGH/THRU procedure-name-2"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.24-MERGE\\l1c18_merge_key_order_ties.cob (both spellings, PASS at 2002)"
+    ],
+    "reason": "MERGE general format identical in both editions; SAME clause forms and the ALPHABET FOR NATIONAL forms (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name, literal-phrase) are identical; MERGE operands are file-names only, so no communication-section or debugging reach. 2023 changes only SR1 (where MERGE may appear) and SR4 (key restrictions for 2023-only data), neither of which this rule leans on.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-3",
+    "to": [
+     "SR-14.9.25.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR3",
+      "quote": "Literal-1 and the data item referenced by identifier-1 are sending operands.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR3",
+      "quote": "Literal-1 and the data item referenced by identifier-1 are sending operands.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MOVE format 1 literal-1 / identifier-1 from file, WS, LS, linkage, report counters, inline invocations",
+     "identifier-1 referencing a communication-section item (CD field or CD record item)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\8.4.3.1-Identifier\\pb428_inline_method_invocation.cob (PASS at 2002) and the pb428 refusals (identical at 2002)",
+     "CD: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (MOVE SQ TO W-A gives SQ=QUEUE-A at 2002)"
+    ],
+    "reason": "Format 1 identical (2023 SR1 adds message-tag, a 2023-only class). In 2002 any identifier may reference a data item of the communication section: the record description entries after a CD are ordinary data description entries (A.1.1.2), and the CD's own data-names (SYMBOLIC QUEUE, TEXT LENGTH, MESSAGE COUNT, ...) are data items with implicit descriptions (A.1.2.3). 2023 has no communication section, so the 2023 row's witnesses (all working-storage) say nothing about that part of the 2002 scope. Probe at --std 2002: MOVE from the input CD's SYMBOLIC QUEUE field reads its value correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE with a communication-section sending operand (cd-ops.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-4",
+    "to": [
+     "SR-14.9.25.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR4",
+      "quote": "Identifier-2 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR4",
+      "quote": "Identifier-2 is a receiving operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MOVE format 1 identifier-2 in file, WS, LS, linkage, PAGE-COUNTER/LINE-COUNTER",
+     "identifier-2 referencing a communication-section item (CD field, input or output CD record item)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\8.4.3.1-Identifier\\pb429_page_counter_receiving.cob (PASS at 2002) and pb429-line-counter-receiving.cob (refused COBOL2197 at 2002)",
+     "CD: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (MOVE \"QUEUE-A\" TO SQ, MOVE \"ABCDE\" TO IA, MOVE ZERO TO OB all store correctly at 2002)"
+    ],
+    "reason": "Format 1 identical. In 2002 any identifier may reference a data item of the communication section: the record description entries after a CD are ordinary data description entries (A.1.1.2), and the CD's own data-names (SYMBOLIC QUEUE, TEXT LENGTH, MESSAGE COUNT, ...) are data items with implicit descriptions (A.1.2.3). 2023 has no communication section, so the 2023 row's witnesses (all working-storage) say nothing about that part of the 2002 scope. Probe at --std 2002: every CD receiver stores the moved value.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE to a communication-section receiving operand (cd-ops.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-6",
+    "to": [
+     "SR-14.9.25.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR6",
+      "quote": "The figurative constant ZERO shall not be moved to an alphabetic data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR6",
+      "quote": "The figurative constant ZERO shall not be moved to an alphabetic data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MOVE ZERO (ZEROS, ZEROES) to an alphabetic item in file, WS, LS, linkage",
+     "MOVE ZERO to an alphabetic item in a record under a CD",
+     "INITIALIZE ... REPLACING ALPHABETIC BY ZERO (through INITIALIZE's reference to MOVE)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.25-MOVE\\pb416-move-zero-to-alphabetic.cob and 14.9.20-INITIALIZE\\pb416-initialize-replacing-zero-to-alphabetic.cob (refused at 2002)",
+     "CD: not shown by the 2023 row; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-zero-cd-alphabetic.cob (refused COBOL0819 at 2002)"
+    ],
+    "reason": "Format 1 and the figurative-constant formats identical. In 2002 any identifier may reference a data item of the communication section: the record description entries after a CD are ordinary data description entries (A.1.1.2), and the CD's own data-names (SYMBOLIC QUEUE, TEXT LENGTH, MESSAGE COUNT, ...) are data items with implicit descriptions (A.1.2.3). 2023 has no communication section, so the 2023 row's witnesses (all working-storage) say nothing about that part of the 2002 scope. Probe at --std 2002: MOVE ZERO TO IA (PIC A(5) in the input CD record) is refused with COBOL0819.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-zero-cd-alphabetic.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MOVE ZERO to an alphabetic item of a CD record (neg-move-zero-cd-alphabetic.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-zero-cd-alphabetic.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.24.2-7",
+    "to": [
+     "SR-14.9.25.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.24",
+    "clause-2023": "14.9.25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.24.2 SR7",
+      "quote": "Any figurative constant for which the associated character or characters are not boolean characters shall not be moved to a boolean data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.25.3 SR7",
+      "quote": "Any figurative constant for which the associated character or characters are not boolean characters shall not be moved to a boolean data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MOVE figurative constant to a boolean item in file, WS, LS, linkage",
+     "MOVE figurative constant to a boolean item in a record under an output CD (A.1.2.2 SR9 sets no size or class restriction; the Annex A NOTE that boolean support is omitted is informative)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.25-MOVE\\move-space-to-boolean.cob (refused COBOL0819 at 2002); legal ZERO / ALL boolean-literal shown by probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob",
+     "CD: not shown by the 2023 row; probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-space-cd-boolean.cob (refused COBOL0819 at 2002) and E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (MOVE ZERO TO OB gives 0000, MOVE ALL B\"1\" gives 1111)"
+    ],
+    "reason": "Format 1 identical; 'boolean character' defined the same (0 or 1). In 2002 any identifier may reference a data item of the communication section: the record description entries after a CD are ordinary data description entries (A.1.1.2), and the CD's own data-names (SYMBOLIC QUEUE, TEXT LENGTH, MESSAGE COUNT, ...) are data items with implicit descriptions (A.1.2.3). 2023 has no communication section, so the 2023 row's witnesses (all working-storage) say nothing about that part of the 2002 scope. Probe at --std 2002: SPACE to a PIC 1(4) item of the output CD record is refused, ZERO and ALL B\"1\" are accepted and store correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-space-cd-boolean.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a figurative constant moved to a boolean item of an output CD record (neg-move-space-cd-boolean.cob and cd-ops.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-move-space-cd-boolean.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.25.2-2",
+    "to": [
+     "SR-14.9.26.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.25",
+    "clause-2023": "14.9.26",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.2 SR2",
+      "quote": "Identifier-3 shall reference a data item of category numeric or numeric-edited.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.3 SR2",
+      "quote": "Identifier-3 shall reference a data item of category numeric or numeric-edited.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MULTIPLY format 2 GIVING identifier-3 in file, WS, LS, linkage",
+     "GIVING identifier-3 referencing a communication-section item"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.26-MULTIPLY\\l1c19-multiply-giving-alphanumeric.cob (refused COBOL1675 at 2002)",
+     "CD: not shown by the 2023 row; probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (GIVING OC numeric = 0042, GIVING OD numeric-edited = '  36') and E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-multiply-giving-cd-alnum.cob (GIVING the alphanumeric SYMBOLIC QUEUE field refused COBOL1675)"
+    ],
+    "reason": "Formats identical (2023 rounded-phrase replaces ROUNDED, a widening). In 2002 any identifier may reference a data item of the communication section: the record description entries after a CD are ordinary data description entries (A.1.1.2), and the CD's own data-names (SYMBOLIC QUEUE, TEXT LENGTH, MESSAGE COUNT, ...) are data items with implicit descriptions (A.1.2.3). 2023 has no communication section, so the 2023 row's witnesses (all working-storage) say nothing about that part of the 2002 scope. Probe at --std 2002: both legal and illegal CD receivers handled correctly.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-multiply-giving-cd-alnum.cob",
+    "widening": "2023 rounded-phrase (ROUNDED MODE) is 2023-only",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for MULTIPLY GIVING a communication-section item (cd-ops.cob, neg-multiply-giving-cd-alnum.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-multiply-giving-cd-alnum.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.25.2-3",
+    "to": [
+     "SR-14.9.26.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.25",
+    "clause-2023": "14.9.26",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.2 SR3",
+      "quote": "Literal-1 and literal-2 shall be numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.3 SR3",
+      "quote": "Literal-1 and literal-2 shall be numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR1",
+      "quote": "If the literal is restricted to a numeric literal, the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "MULTIPLY literal-1 (formats 1 and 2) and literal-2 (format 2): numeric literals, ZERO the only figurative constant"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.26-MULTIPLY\\l1c19-multiply-alphanumeric-literal.cob and -2.cob (refused COBOL0844 at 2002); ZERO accepted and SPACE refused at 2002 by probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-multiply-zero-literal-ok.cob, neg-multiply-space-literal.cob"
+    ],
+    "reason": "Literals cannot reach the communication section. Formats identical; the figurative-constant restriction for numeric-literal positions is word-identical (2002 8.3.1.2.5.2 SR1a, 2023 8.3.3.6.3 SR1a).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-2",
+    "to": [
+     "SR-14.9.27.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR2",
+      "quote": "The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is sequential",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR2",
+      "quote": "The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is sequential",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPEN EXTEND file-name-1: sequential access, no LINAGE"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.27-OPEN\\pb318_open_extend_sequential_access.cob (PASS at 2002) and pb318-open-extend-access-linage.cob (refused COBOL2372 at 2002)"
+    ],
+    "reason": "OPEN general format identical in both editions (modes, sharing-phrase, retry-phrase, WITH NO REWIND). OPEN operands are file-names, so no communication-section or debugging reach. 2023 adds SR3 (exception-checking PERFORM) and SR7 (APPLY COMMIT), both for 2023-only constructs; the 2002 rule list is otherwise the same.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-3",
+    "to": [
+     "SR-14.9.27.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR3",
+      "quote": "The files referenced in the OPEN statement need not all have the same organization or access.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR4",
+      "quote": "The files referenced in the OPEN statement need not all have the same organization or access.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "one OPEN naming files of mixed organization and access"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.27-OPEN\\l1_open_mixed_org_access.cob (PASS at 2002)"
+    ],
+    "reason": "OPEN general format identical in both editions (modes, sharing-phrase, retry-phrase, WITH NO REWIND). OPEN operands are file-names, so no communication-section or debugging reach. 2023 adds SR3 (exception-checking PERFORM) and SR7 (APPLY COMMIT), both for 2023-only constructs; the 2002 rule list is otherwise the same.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-4",
+    "to": [
+     "SR-14.9.27.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR4",
+      "quote": "The NO REWIND phrase may be specified only for sequential files.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR5",
+      "quote": "The NO REWIND phrase may be specified only for sequential files.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPEN ... WITH NO REWIND on sequential, relative and indexed files"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.27-OPEN\\pb317-open-norewind-relative.cob (refused COBOL1802 at 2002)"
+    ],
+    "reason": "OPEN general format identical in both editions (modes, sharing-phrase, retry-phrase, WITH NO REWIND). OPEN operands are file-names, so no communication-section or debugging reach. 2023 adds SR3 (exception-checking PERFORM) and SR7 (APPLY COMMIT), both for 2023-only constructs; the 2002 rule list is otherwise the same.",
+    "probe": null,
+    "widening": "2023's line-sequential organization is 2023-only"
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-5",
+    "to": [
+     "SR-14.9.27.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.26",
+    "clause-2023": "14.9.27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR5",
+      "quote": "The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR6",
+      "quote": "The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPEN I-O / EXTEND ... WITH NO REWIND"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.27-OPEN\\pb317-open-norewind-extend.cob (refused COBOL1803 at 2002)"
+    ],
+    "reason": "OPEN general format identical in both editions (modes, sharing-phrase, retry-phrase, WITH NO REWIND). OPEN operands are file-names, so no communication-section or debugging reach. 2023 adds SR3 (exception-checking PERFORM) and SR7 (APPLY COMMIT), both for 2023-only constructs; the 2002 rule list is otherwise the same.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-1",
+    "to": [
+     "SR-14.9.28.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR1",
+      "quote": "If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR1",
+      "quote": "If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "until-phrase and varying-phrase without WITH TEST, out-of-line and inline"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\l1_perform_test_before_default.cob (PASS at 2002)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. No operand, so no communication reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats None against [[1, 2]]": "The 2002 PERFORM has two formats, out-of-line and inline (§2002:14.8.27.1), with one unbanded syntax-rule list; they are 2023 formats 1 and 2 phrase for phrase (2023 adds UNTIL EXIT and format 3, both absent from 2002). The 2023 band FORMATS 1 AND 2 therefore reaches every 2002 PERFORM; no 2002 format falls outside it. SR1 applies to until-phrase and varying-phrase of both formats."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR1",
+      "quote": "If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-15"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-10",
+    "to": [
+     "SR-14.9.28.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR10",
+      "quote": "At least six AFTER phrases shall be permitted in varying-phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR9",
+      "quote": "At least six AFTER phrases shall be permitted in varying-phrase.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "varying-phrase with six AFTER phrases"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\l1_perform_varying_six_after.cob (PASS at 2002)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. A capacity rule; no operand reach.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats None against [[1, 2]]": "The 2002 PERFORM has two formats, out-of-line and inline (§2002:14.8.27.1), with one unbanded syntax-rule list; they are 2023 formats 1 and 2 phrase for phrase (2023 adds UNTIL EXIT and format 3, both absent from 2002). The 2023 band FORMATS 1 AND 2 therefore reaches every 2002 PERFORM; no 2002 format falls outside it. SR10 is a capacity rule for varying-phrase in either format."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR10",
+      "quote": "At least six AFTER phrases shall be permitted in varying-phrase",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-15"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-11",
+    "to": [
+     "SR-14.9.28.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR11",
+      "quote": "Procedure-name-1 shall be the name of either a paragraph or a section in the same source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR12",
+      "quote": "Procedure-name-1 shall be the name of either a paragraph or a section in the same source element",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "out-of-line PERFORM procedure-name-1 in programs, functions and methods (source elements)"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb390-perform-unknown-procedure-name-1.cob (refused COBOL1639 at 2002) and 8.4.4-Condition-name\\pb390_procedure_and_condition_operands.cob (PASS at 2002)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. Procedure-names cannot be communication-section items. A PERFORM on a 2002 debugging line is, when compiled, an ordinary statement under the same rule.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats None against [[1]]": "2002 SR11 sits in the unbanded list but names procedure-name-1, which exists only in the out-of-line format (§2002:14.8.27.1 Format 1), the 2023 format 1 that SR-14.9.28.3-12 is banded to. Same reach."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR11",
+      "quote": "Procedure-name-1 shall be the name of either a paragraph or a section in the same source element",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-15"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-2",
+    "to": [
+     "SR-14.9.28.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR2",
+      "quote": "Each identifier shall reference a numeric elementary item described in the data division. Identifier-1 shall be an integer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR2",
+      "quote": "Each identifier shall reference a numeric elementary item described in the data division. Identifier-1 shall be an integer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 (TIMES) and identifiers 2-7 (VARYING/AFTER/FROM/BY) in file, WS, LS, linkage",
+     "the same identifiers referencing communication-section items (CD fields and CD record items)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb86_perform_times_function_count.cob (PASS at 2002), pb86-perform-times-non-integer-*.cob, pb212/pb215 VARYING refusals (all refused at 2002)",
+     "CD: not shown by the 2023 row; probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (PERFORM MC TIMES with MESSAGE COUNT 3 gives N=0003; VARYING IN4 BY TL gives 1,3,5,7), E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-varying-cd-alnum.cob (COBOL2120), E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-times-cd-nonint.cob (COBOL1646)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. In 2002 each PERFORM identifier may reference a communication-section item, including the CD's implicitly described integer fields (MESSAGE COUNT, TEXT LENGTH) and numeric items of a CD record. 2023 has no communication section, so the 2023 row's working-storage witnesses do not show that part. Probe at --std 2002: legal CD operands run correctly and illegal ones are refused.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for PERFORM TIMES / VARYING operands that are communication-section items (cd-ops.cob and the two neg-perform-*-cd-* probes can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-varying-cd-alnum.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-times-cd-nonint.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-3",
+    "to": [
+     "SR-14.9.28.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR3",
+      "quote": "Each literal shall be numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR3",
+      "quote": "Each literal shall be numeric.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "literal-1 to literal-4 of varying-phrase (integer-1 of TIMES is governed separately)"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb432_varying_brace_group.cob (PASS at 2002) and pb432-varying-from-nonnumeric-literal.cob (refused COBOL0844 at 2002)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. Literals cannot reach the communication section.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-5",
+    "to": [
+     "SR-14.9.28.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR5",
+      "quote": "The identifier in the associated FROM and BY phrases shall reference an integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR4",
+      "quote": "The identifier in the associated FROM and BY phrases shall reference an integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "VARYING/AFTER index-name with FROM/BY identifier (a), FROM literal (b), BY literal (c): WS items",
+     "FROM/BY identifier referencing a communication-section item"
+    ],
+    "evidence-2002": [
+     "non-CD: positive covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb432_varying_brace_group.cob (PASS at 2002); the 2023 refusal witness pb432-varying-operand-rules.cob shows only BY zero, so a), b), c) were probed at 2002: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-idx-from-ws-nonint.cob, neg-perform-idx-by-ws-nonint.cob, neg-perform-idx-from-lit-zero.cob, neg-perform-idx-by-lit-nonint.cob (each refused COBOL2120 naming its letter)",
+     "CD: not shown by the 2023 row; probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (VARYING TX FROM TL1 BY TL gives 1,3,5) and E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-idx-from-cd-nonint.cob (COBOL2120 SR4 a)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. In 2002 each PERFORM identifier may reference a communication-section item, including the CD's implicitly described integer fields (MESSAGE COUNT, TEXT LENGTH) and numeric items of a CD record. 2023 has no communication section, so the 2023 row's working-storage witnesses do not show that part. Probe at --std 2002: integer CD items are accepted as FROM/BY of an index-name and a PIC 9V9 CD item is refused.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-idx-from-cd-nonint.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an index-name VARYING with a communication-section FROM/BY identifier (cd-ops.cob, neg-perform-idx-from-cd-nonint.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-idx-from-cd-nonint.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-6",
+    "to": [
+     "SR-14.9.28.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR6",
+      "quote": "The identifier in the associated VARYING or AFTER phrase shall reference an integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR5",
+      "quote": "The identifier in the associated VARYING or AFTER phrase shall reference an integer data item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2k",
+      "quote": "whose implicit description is that of an integer of 6 digits, without an operational sign, occupying character positions 82 through 87",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FROM index-name with VARYING/AFTER identifier (a), BY identifier (b), BY literal (c): WS items",
+     "VARYING/AFTER or BY identifier referencing a communication-section item"
+    ],
+    "evidence-2002": [
+     "non-CD: positive covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb432_varying_brace_group.cob (PASS at 2002); a), b), c) probed at 2002: E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-ws-nonint-from-idx.cob, neg-perform-from-idx-by-ws-nonint.cob, neg-perform-from-idx-by-lit-nonint.cob (each refused COBOL2120 naming its letter)",
+     "CD: not shown by the 2023 row; probes E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob (VARYING IN4 FROM TX BY TL2 gives 2,3) and E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-cd-nonint-from-idx.cob (COBOL2120 SR5 a)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. In 2002 each PERFORM identifier may reference a communication-section item, including the CD's implicitly described integer fields (MESSAGE COUNT, TEXT LENGTH) and numeric items of a CD record. 2023 has no communication section, so the 2023 row's working-storage witnesses do not show that part. Probe at --std 2002: integer CD items are accepted with an index-name FROM and a PIC 9V9 CD item is refused.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-cd-nonint-from-idx.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for FROM index-name with a communication-section VARYING/BY identifier (cd-ops.cob, neg-perform-cd-nonint-from-idx.cob can serve)",
+    "compiler-at-2002": "correct (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-ops.cob, E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\neg-perform-cd-nonint-from-idx.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-7",
+    "to": [
+     "SR-14.9.28.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.27",
+    "clause-2023": "14.9.28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR7",
+      "quote": "The literal in the BY phrase shall not be zero.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR6",
+      "quote": "The literal in the BY phrase shall not be zero.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "literal-2 / literal-4 of the BY phrases"
+    ],
+    "evidence-2002": [
+     "covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.28-PERFORM\\pb432-varying-operand-rules.cob (refused COBOL2120 SR6 at 2002)"
+    ],
+    "reason": "The 2002 PERFORM has one rule list for its two formats; 2023 formats 1 and 2 are the same formats (2023 adds UNTIL EXIT and the format 3 exception-checking PERFORM, both 2023-only) and bands this rule under FORMATS 1 AND 2 (or FORMAT 1 for procedure-names), which covers every 2002 PERFORM. Literals cannot reach the communication section.",
+    "probe": null,
+    "widening": null,
+    "flags-answered": {
+     "band-formats: band-formats None against [[1, 2]]": "The 2002 PERFORM has two formats, out-of-line and inline (§2002:14.8.27.1), with one unbanded syntax-rule list; they are 2023 formats 1 and 2 phrase for phrase (2023 adds UNTIL EXIT and format 3, both absent from 2002). The 2023 band FORMATS 1 AND 2 therefore reaches every 2002 PERFORM; no 2002 format falls outside it. SR7 governs the BY literals of varying-phrase in either format."
+    },
+    "answer-citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR7",
+      "quote": "The literal in the BY phrase shall not be zero",
+      "check": "OK"
+     }
+    ],
+    "from-slice": "p-15"
+   },
+   {
+    "rule-id": "2002-SR-14.8.28.2-3",
+    "to": [
+     "SR-14.9.29.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.28",
+    "clause-2023": "14.9.29",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.28.2 SR3",
+      "quote": "Identifier-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.29.3 SR3",
+      "quote": "Identifier-1 is a sending operand.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.28.2 SR2",
+      "quote": "Identifier-1 shall be an object reference; the predefined object references NULL and SUPER shall not be specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR13",
+      "quote": "may be specified only for an elementary data item with level 1 or subordinate to a type declaration that includes the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR14",
+      "quote": "The USAGE OBJECT REFERENCE clause shall not be specified in the file section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry.",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RAISE identifier-1: object references in WS, LS, linkage, SELF, EXCEPTION-OBJECT",
+     "identifier-1 a level 1 USAGE OBJECT REFERENCE entry following an output CD (2002 bars object references only from the file section)"
+    ],
+    "evidence-2002": [
+     "non-CD: covered by E:\\COBOL-wt\\coderead85-tree-d\\conformance-suite\\cases\\14.9.29-RAISE\\l1c23_raise_identifier_sending.cob (PASS at 2002)",
+     "CD: not shown; probe E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-raise.cob is REFUSED at 2002 (COBOL0899 not-yet-implemented on the declaration) so the RAISE case cannot be exercised"
+    ],
+    "reason": "Format and SR1-SR3 identical (2023 adds SR4 for its exception-checking PERFORM). Fifth-cause candidate in the data division: a 2002 object reference may be described anywhere but the file section, and records after an output CD are ordinary data description entries with no class restriction, so a level 1 object reference under an output CD is legal 2002 and can be RAISEd. The compiler refuses the declaration at --std 2002 (COBOL0899 'a shared record area of that shape is recognized but not yet implemented', ClassifyRedefinesClassesPass.cs:245-253, ImplicitCommunicationRecord), while the same pointer-class record in an FD compiles (fd-pointer.cob NULL-OK, cd-pointer.cob refused): the PB981 out-of-line record treatment was not extended to the CD's implicit redefinition.",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-raise.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for RAISE of a level 1 object reference after an output CD is a refusal of the declaration (COBOL0899), a defect to fix before a witness can run",
+    "compiler-at-2002": "wrong (E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-raise.cob; sibling E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-pointer.cob refused vs E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\fd-pointer.cob accepted)",
+    "defect": {
+     "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\probes-p-15\\cd-pointer.cob (and cd-raise.cob)",
+     "expected": "accepted and run (NULL-OK): §2002:13.16.58.2 SR13 admits USAGE POINTER / OBJECT REFERENCE on a level 1 elementary entry and SR14 excludes only the file section; §2002:A.1.2.2 SR9 puts no class restriction on records after an output CD",
+     "observed": "error COBOL0899: the record area of 'CPTR' is shared - the record description entries following a CD entry implicitly redefine its record area (ISO/IEC 1989:2002 A.1.2.2) - and 'CPTR' is of a pointer class ... a shared record area of that shape is recognized but not yet implemented (exit 65); the same 01 USAGE POINTER in an FD compiles and prints NULL-OK",
+     "code-site": "E:\\COBOL-wt\\coderead85-tree-d\\src\\WiseOwl.Cobol.Compiler\\Binding\\Passes\\ClassifyRedefinesClassesPass.cs:245-253; DiagnosticCatalog.ImplicitRecordAreaShape (its comment says pointer-class records are out-of-line since PB981, which the CD path does not do)"
+    }
+   }
+  ]
+ },
+ "refute": {
+  "slice": "p-15",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.23.2-11",
+    "verdict": "UPHELD",
+    "reason": "MERGE general format identical phrase by phrase in 14.8.23.1 and 14.9.24.2; operands are file-names only (no CD, no cd-name). The SAME clause it leans on (2002 12.3.6, 2023 12.4.6.4) has the same three formats and the same syntax rules 1-9, read side by side. No obsolete or removed form in either clause.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR11",
+      "quote": "No pair of file-names in a MERGE statement may be specified in the same SAME AREA",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR11",
+      "quote": "No pair of file-names in a MERGE statement may be specified in the same SAME AREA",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.6.2 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR6",
+      "quote": "A given file-name that represents a sort or merge file may be specified in one record-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-12",
+    "verdict": "UPHELD",
+    "reason": "Same words and MERGE format. What makes a file 'describe variable-length records' rests on the RECORD clause / SD entry: the SD format (2002 13.3.5.1 inline record forms, 2023 13.4.6.2 record-clause) has the same three record forms, and the record-size rule changed only 'variable-length data item' (2002) to 'occurs-depending table' (2023). In a file-section record the only 2002 variable-length data items are ODO tables (ANY LENGTH is linkage-only), so the measured sizes are the same; 2023's dynamic-length cases are a widening.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR12",
+      "quote": "If the GIVING phrase is specified and the file description entry for file-name-4 describes variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR12",
+      "quote": "If the GIVING phrase is specified and the file description entry for file-name-4 describes variable-length records",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.41.3 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any variable-length data item subordinate to the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.43.4 GR3",
+      "quote": "plus the sum of the maximum number of bytes in any occurs-depending table subordinate to the record",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same words, same MERGE format; the SD entry has the same syntax rules 1-4 in 2002 13.3.5.2 and 2023 13.4.6.3. No CD or debugging reach for a file-name.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR2",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR2",
+      "quote": "File-name-1 shall be described in a sort-merge file description entry in the data division.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-6",
+    "verdict": "UPHELD",
+    "reason": "COLLATING SEQUENCE phrase identical in both MERGE formats. The alphabet-name-clause it leans on (2002 12.2.6.1, 2023 12.3.7) has the same national branch (LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase), compared option by option. Nothing 2002-only.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR6",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR6",
+      "quote": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.23.2-8",
+    "verdict": "UPHELD",
+    "reason": "A spelling equivalence in an identical OUTPUT PROCEDURE phrase; it leans on nothing that changed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.23.2 SR8",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.24.3 SR8",
+      "quote": "The words THROUGH and THRU are equivalent.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.25.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "The term the rule leans on, 'numeric literal', covers a smaller set in 2002. A 2002 floating-point numeric literal has a significand of 1 through 31 digits and an exponent of at most three digits; 2023 allows 36 and four. So MULTIPLY 1.00000000000000000000000000000000E0 BY W-N (33-digit significand) or MULTIPLY 1.0E0001 BY W-N has a literal-1 that is a numeric literal in 2023 and is not one in 2002. The 2002 rule therefore refuses a program the 2023 rule accepts, and the 2023 CONFORMS verdict says nothing about that refusal. The screen did not catch it because the definition lives in 8.3, not in the definitions clause. Probe: --std 2002 compiles both silently (exit 0) and runs (W-N=0002 and W-N=0020). That is a compiler defect at 2002, shared with the 2002 8.3.1.2.2.2 formation rows.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.25.2 SR3",
+      "quote": "Literal-1 and literal-2 shall be numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.26.3 SR3",
+      "quote": "Literal-1 and literal-2 shall be numeric literals.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "The significand shall be 1 through 31 digits in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.3.3 SR2",
+      "quote": "The significand shall be from 1 to 36 digits in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "shall have a maximum of three digits and no decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.3.3 SR3",
+      "quote": "shall have a maximum of four digits and no decimal point",
+      "check": "OK"
+     }
+    ],
+    "class": "other (term-definition change outside clause 4: 'numeric literal' floating-point bounds 31/3 in 2002 vs 36/4 in 2023; the 2002 rule refuses more)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-15\\mul-fl-sig33.cob (also mul-fl-exp4.cob, mul-fl-giving-exp4.cob for literal-1 of format 2; all accepted at --std 2002)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-2",
+    "verdict": "UPHELD",
+    "reason": "OPEN format identical (modes, sharing-phrase, retry-phrase, NO REWIND). The full rule, including the LINAGE condition, is word-identical. File-names have no CD reach; the LINAGE clause and access modes are the same in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR2",
+      "quote": "and the LINAGE clause is not specified in the file description entry for file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR2",
+      "quote": "and the LINAGE clause is not specified in the file description entry for file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-3",
+    "verdict": "UPHELD",
+    "reason": "A permission over an identical format; the 2002 organizations and access modes are a subset of 2023's.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR3",
+      "quote": "The files referenced in the OPEN statement need not all have the same organization or access.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR4",
+      "quote": "The files referenced in the OPEN statement need not all have the same organization or access.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-4",
+    "verdict": "UPHELD",
+    "reason": "Identical format and words. 2002 has no file organization 2023 lacks (no 2002-only tape or multiple-file form), so 'sequential files' is the same 2002 set or a subset.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR4",
+      "quote": "The NO REWIND phrase may be specified only for sequential files.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR5",
+      "quote": "The NO REWIND phrase may be specified only for sequential files.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.26.2-5",
+    "verdict": "UPHELD",
+    "reason": "Identical format and words; the four open modes are the same.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.2 SR5",
+      "quote": "The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.3 SR6",
+      "quote": "The NO REWIND phrase may be specified only when the INPUT or OUTPUT phrase is specified.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-1",
+    "verdict": "UPHELD",
+    "reason": "The until-phrase and varying-phrase of 2002 are contained in 2023's (2023 adds UNTIL EXIT), and 2023 places the rule under FORMATS 1 AND 2. No operand.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR1",
+      "quote": "If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR1",
+      "quote": "If neither the TEST BEFORE nor the TEST AFTER phrase is specified, the TEST BEFORE phrase is assumed.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-10",
+    "verdict": "UPHELD",
+    "reason": "A capacity minimum over an identical varying-phrase.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR10",
+      "quote": "At least six AFTER phrases shall be permitted in varying-phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR9",
+      "quote": "At least six AFTER phrases shall be permitted in varying-phrase.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-11",
+    "verdict": "UPHELD",
+    "reason": "Same words, same format 1. I attacked one 2002-only reach: a paragraph written on debugging lines exists only when WITH DEBUGGING MODE is specified. The rule applies to the text after debugging lines become source or comment lines (12.2.4.3 GR4/GR5), unlike the COPY/REPLACE rules overturned in p-07. The compiler handles both cases at --std 2002: without DEBUGGING MODE it refuses PERFORM P1 with COBOL1639; with it, it runs IN-P1. 2002 has no USE FOR DEBUGGING.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR11",
+      "quote": "Procedure-name-1 shall be the name of either a paragraph or a section in the same source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR12",
+      "quote": "Procedure-name-1 shall be the name of either a paragraph or a section in the same source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR5",
+      "quote": "any debugging lines are compiled as if they were comment lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "all debugging lines are compiled as if the debugging indicator was replaced by three spaces",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-15\\perf-dline-nodebug.cob (and perf-dline-debug.cob)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-3",
+    "verdict": "OVERTURNED",
+    "reason": "Same cause as MULTIPLY SR3. 'Numeric' literals of the varying-phrase include floating-point numeric literals, whose 2002 bounds (significand 1-31 digits, exponent at most 3 digits) are narrower than 2023's (36, 4). So PERFORM VARYING I FROM 1 BY 1.0E0000 has a numeric BY literal in 2023, while in 2002 that literal is not a numeric literal at all. The 2002 rule refuses what 2023 accepts, and the 2023 verdict cannot show that refusal. Probe: --std 2002 compiles silently and runs (W-G=000003).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR3",
+      "quote": "Each literal shall be numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR3",
+      "quote": "Each literal shall be numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "shall have a maximum of three digits and no decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.3.3 SR3",
+      "quote": "shall have a maximum of four digits and no decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "The significand shall be 1 through 31 digits in length.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.3.3 SR2",
+      "quote": "The significand shall be from 1 to 36 digits in length.",
+      "check": "OK"
+     }
+    ],
+    "class": "other (term-definition change outside clause 4: floating-point numeric literal bounds; the 2002 rule refuses more)",
+    "probe": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-15\\perf-fl-exp4.cob"
+   },
+   {
+    "rule-id": "2002-SR-14.8.27.2-7",
+    "verdict": "UPHELD",
+    "reason": "The requirement concerns the literal's value, and zero is zero under both editions' formation rules. A literal that is ill-formed in 2002 (4-digit exponent) is refused by the formation rule and by PERFORM SR3, not by this rule. Same words, same BY phrases.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.27.2 SR7",
+      "quote": "The literal in the BY phrase shall not be zero.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.28.3 SR6",
+      "quote": "The literal in the BY phrase shall not be zero.",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "defect-candidate": {
+   "program": "E:\\COBOL-coord\\scratch\\op-20261114\\read-2002\\out\\refute-p-15\\mul-fl-sig33.cob (MULTIPLY 1.00000000000000000000000000000000E0 BY W-N), mul-fl-exp4.cob (MULTIPLY 1.0E0001 BY W-N), perf-fl-exp4.cob (BY 1.0E0000)",
+   "expected": "refused at --std 2002: §2002:8.3.1.2.2.2 'The significand shall be 1 through 31 digits in length.' and 'shall have a maximum of three digits and no decimal point'",
+   "observed": "--std 2002: no diagnostic, exit 0, runs (W-N=0002, W-N=0020, W-G=000003); identical to --std 2023"
+  }
+ },
+ "imported": {
+  "asked": "d43173085da8f6c8cd88dfba606fe1fce7f4f994eec3979f1426e042aba4991b",
+  "read": "a85d7709c60167ce7934ec7faed025d118d76f543ee6785a1a43c676254cfe75",
+  "refute": "7ff3e78d83333e70f9e01d9f7599566f3271d0a00cf885dfcb186854516ff29d"
+ }
+}

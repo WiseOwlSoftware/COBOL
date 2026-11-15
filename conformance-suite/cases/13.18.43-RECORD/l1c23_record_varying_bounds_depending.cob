@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c23_record_varying_bounds_depending
       *> rules: [SR-13.18.43.3-6, GR-13.18.43.4-7, GR-13.18.43.4-12]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

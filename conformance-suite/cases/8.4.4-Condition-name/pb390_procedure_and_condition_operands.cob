@@ -2,7 +2,7 @@
       *> id: pb390_procedure_and_condition_operands
       *> rules: [SR-8.4.4.3-1, SR-14.9.25.3-12, SR-14.9.28.3-12,
       *>    SR-14.9.28.3-13, SR-14.9.39.3-6, FMT-8.4.4.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

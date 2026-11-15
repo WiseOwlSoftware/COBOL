@@ -1,0 +1,26 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.3.2-2",
+ "rule-digest": "91afd79ef573",
+ "next": {
+  "kind": "KEPT",
+  "edition": 2023,
+  "to": [
+   "SR-8.3.3.4.3-2"
+  ],
+  "bridge": true,
+  "answers": {
+   "definition-dropped": {
+    "flag": "character | in a coded character set (newer: undefined); character | in a screen item (newer: undefined); character | in cobol character repertoire (newer: undefined); character | in computer storage (newer: undefined); coded character set (newer: undefined)",
+    "answer": "§2002:4 defines 'character' in four senses (in a coded character set, in a screen item, in the COBOL character repertoire, in computer storage) and 'coded character set' as \"A set of unambiguous rules that establishes a character set\" (taken from ISO/IEC 10646-1); 2023 drops these entries and takes the terms from its normative reference ISO/IEC 10646 (§2023:2), in the same sense. SR2 rests on 'boolean character', defined alike in §2002:4 (\"A unit of information that consists of the value zero or one\"); the 'character' entries do not change which literals SR2 governs."
+   },
+   "pending-clause": {
+    "flag": "§2002:8.1.1 (changed, undecided)",
+    "answer": "Not dependent: §2002:8.1.2 puts \"the content of boolean and hexadecimal literals\" in the COBOL character repertoire, not the computer's coded character set of 8.1.1, and 8.1.1's differing text (2023's added single coded values and currency prohibition) says nothing of boolean literals; the refusal of B\"012\" is shown at --std 2002 (w73a-boolean-literal-non-boolean-character)."
+   }
+  },
+  "source": "lineage-reads-2002/q-04.json",
+  "digests": {
+   "SR-8.3.3.4.3-2": "91afd79ef573"
+  }
+ }
+}
