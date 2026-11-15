@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-1",
+ "rule-digest": "3803d737a706",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-length-and-scan",
+ "notes": "§2002:14.8.21.3 GR1: a zero-length ODO group (count 0, §2002:13.16.36.3 GR8a) ends INSPECT at once, so the tally stays 05. Identifier-1 takes its sending length even in format 3, where it is also receiving: an ODO group with its object inside, at count 2, under TALLYING ALL \"A\" REPLACING ALL \"A\" BY \"B\" tallies 2 and replaces only the current extent, giving [5BBAAA], not the receiving maximum [5BBBBB] (§2002:13.16.36.3 GR8b). The --std 2002 run of g2-inspect-length-and-scan matched the derived output."
+}

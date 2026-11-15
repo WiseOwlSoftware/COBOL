@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.65.2-1",
+ "rule-digest": "248e8624b5f5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Reverse; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#CaseArgumentZeroLength; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.65@2002-REVERSE-FUNCTION/pb5622-reverse-zero-length-2002",
+ "notes": "§2002:15.65.2 AR1: the static screen (MinWidth(1)) sees only a width known at bind time; an argument that is zero-length at run time (a group whose only content is an OCCURS 0 TO n DEPENDING ON table at 0 occurrences) reaches CobolIntrinsics.Reverse, which now sets EC-ARGUMENT-FUNCTION (§2002:15.2 AR13) through the one CaseArgumentZeroLength guard; with checking off the result is the zero-length value (row DOC-A.1-90). Witnessed at --std 2002 with checking on (declarative fires) and off. kb/Work PB5622."
+}

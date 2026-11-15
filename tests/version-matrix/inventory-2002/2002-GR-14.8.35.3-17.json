@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-17",
+ "rule-digest": "ce759f9d2290",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/SetAmount.cs#Land; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#UpByAmountDec; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetPointerUpDown",
+ "test-ref": "conformance:cases/14.8.35@2002-SET-STATEMENT/set-pointer-by-standard-sdidi-amount; unit:SetAmountTests.ASdidiIntegerPastTheCarrier_IsBeyondCarrier",
+ "notes": "§2002:14.8.35.3 GR17: an address that would leave the implementor's pointer range sets EC-RANGE-PTR and identifier-9 is unchanged. An integral standard-arithmetic amount past the Int128 carrier (10 ** 40) answers SetAmountLanding.BeyondCarrier, which CobolPtr maps to EC-RANGE-PTR; it used to end the run with EC-SIZE-OVERFLOW from the scale-6 landing (kb/Work PB5619)."
+}

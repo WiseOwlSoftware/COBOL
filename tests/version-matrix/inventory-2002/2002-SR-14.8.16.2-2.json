@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.16.2-2",
+ "rule-digest": "05fa3075759b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#RefusedOutOfSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#StatementPosition; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#EndsImperativeRun; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+ "test-ref": "conformance:cases/14.8.16@2002-GO-TO-STATEMENT/g2-goto-last-before-conditional; conformance:cases/14.8.16@2002-GO-TO-STATEMENT/g2-goto-not-last-send; conformance:cases/14.8.16@2002-GO-TO-STATEMENT/g2-goto-not-last-exit-function; conformance:cases/14.8.16@2002-GO-TO-STATEMENT/g2-goto-not-last-scope-terminated-call",
+ "notes": "§2002:14.8.16.2 SR2 with §2002:14.4 and table 13: a GO TO before CALL ON OVERFLOW, RECEIVE NO DATA or IF ends its sequence and is accepted (prints L1 P1 P2 P3 P4 2); a GO TO before SEND, EXIT FUNCTION or CALL ... END-CALL is refused COBOL2967; all at --std 2002."
+}

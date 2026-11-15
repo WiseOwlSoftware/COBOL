@@ -216,6 +216,36 @@ public sealed class CobolLocaleTests
         });
     }
 
+    /// <summary>kb/Work PB5622: the LOCALE-phrase and CHARACTER CLASSIFICATION carriers of UPPER-CASE / LOWER-CASE agree
+    /// with CobolIntrinsics' own on §2023:15.97.3 AR1 / §2023:15.57.3 AR1 (argument-1 at least one character position;
+    /// §2023:15.3 AR14 sets EC-ARGUMENT-FUNCTION): a zero-length argument raises it under checking ON, on every overload;
+    /// the internal ANYCASE fold, whose operands may legally be zero length, never raises.</summary>
+    [Fact]
+    public void CaseMapping_ZeroLengthArgument_RaisesArgumentFunction_OnEveryCarrier_ButNotTheAnycaseFold()
+    {
+        RunUnit.Run(ru =>
+        {
+            ru.Locale.Set(LocaleCategory.All, "");
+            ExceptionState.ArgumentFunctionChecking = true;
+            try
+            {
+                foreach (var call in new Func<string>[]
+                {
+                    () => CobolLocale.UpperCase("", "fr-FR"),
+                    () => CobolLocale.LowerCase("", "fr-FR"),
+                    () => CobolLocale.UpperCase("", (LocaleFacts?)null),
+                    () => CobolLocale.LowerCase("", (LocaleFacts?)null),
+                    () => CobolLocale.UpperCase("", LocaleFacts.For("en-US")),
+                    () => CobolLocale.LowerCase("", LocaleFacts.For("en-US")),
+                })
+                    Assert.Equal("EC-ARGUMENT-FUNCTION", Assert.Throws<CobolFatalException>(call).EcName);
+                Assert.Equal("", CobolLocale.FoldLower("", null));
+                Assert.Equal("", CobolLocale.FoldLower(null, LocaleFacts.For("en-US")));
+            }
+            finally { ExceptionState.ArgumentFunctionChecking = false; }
+        });
+    }
+
     /// <summary>The ONE §2023:8.2.1 gate for the classification consumers (T5): a classification naming a DECLARED but
     /// UNAVAILABLE locale resolves (the compiler never checks availability — L1) and every operation requiring it —
     /// a class test, a case function without a phrase — raises EC-LOCALE-MISSING at use when checking is on, the coded

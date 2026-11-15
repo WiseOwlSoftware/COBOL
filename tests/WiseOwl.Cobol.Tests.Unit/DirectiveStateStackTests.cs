@@ -39,6 +39,9 @@ public sealed class DirectiveStateStackTests
         [Constructs.PropagateDirective2002] = PropagateIsRestored,
         [Constructs.Flag02Directive2014] = () => FlagIsRestored("FLAG-02", FlagOption.Flag02EcProgramExceptions),
         [Constructs.Flag14Directive2023] = () => FlagIsRestored("FLAG-14", FlagOption.Flag14ReadPrevious),
+        [Constructs.Flag85DirectiveWindow] = () => RemovedFlagDirectiveIsRestored(FlagDirective.Flag85, FlagOption.Flag85Numval),
+        [Constructs.FlagNativeArithmeticDirectiveWindow] =
+            () => RemovedFlagDirectiveIsRestored(FlagDirective.FlagNativeArithmetic, FlagOption.FlagNativeArithmeticOperation),
         [Constructs.CobolWordsDirective2023] = CobolWordsAreRestored,
         [Constructs.LeapSecondDirective2002] = LeapSecondIsRestored,
         [Constructs.DefineDirective2002] = DefineIsRestored,
@@ -117,6 +120,21 @@ public sealed class DirectiveStateStackTests
         var s = FlagState.Build(d.FlagEvents);
         Assert.True(s.IsOnAt(Line(d, "IN"), option));
         Assert.False(s.IsOnAt(Line(d, "OUT"), option));
+    }
+
+    /// <summary>kb/Work PB5600 — FLAG-85 and FLAG-NATIVE-ARITHMETIC were removed at 2023 (Annex E.2 item 21) and PUSH / POP
+    /// exist only at 2023, so no SOURCE can write both and the case drives the ONE stack the stage uses over the stage's
+    /// own events: PUSH (line 1), the toggle (line 2), POP (line 4) — in force on line 3, restored to the default from line 5
+    /// (§2023:7.3.22.4 GR1, §2023:7.3.20.4 GR1: the saved state is restored).</summary>
+    private static void RemovedFlagDirectiveIsRestored(FlagDirective directive, FlagOption option)
+    {
+        string row = FlagDirectiveLine.Row(directive);
+        var log = new DirectiveEventLog<FlagEvent>();
+        log.Add(row, 2, new FlagEvent(2, directive, true, []));
+        var timeline = log.ToTimeline([new(1, DirectiveStackKind.Push, row), new(4, DirectiveStackKind.Pop, row)]);
+        var s = FlagState.Build(timeline);
+        Assert.True(s.IsOnAt(3, option));    // the control: the toggle was in force inside
+        Assert.False(s.IsOnAt(5, option));   // after the POP the saved (default OFF) state is back
     }
 
     private static void CobolWordsAreRestored()

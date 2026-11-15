@@ -1,10 +1,23 @@
 *>--- conformance-case
 *> id: l1m8_rewrite_unsuccessful_no_update
 *> rules: [GR-14.9.35.4-14]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
+      *> AT 2002 (the same program and .out, judged on the 2002 text):
+      *>   §2002:14.8.33.3 GR14 "If the execution of the REWRITE
+      *>   statement is unsuccessful, no logical record updating takes
+      *>   place, the content of the record area is unaffected" (OK).
+      *>   The statuses are the 2002 rules' own: L1 '49' GR2, L2 '43'
+      *>   GR4, L3 '23' GR20, L4 '21' GR21, L5 '23' GR22, L6 '22'
+      *>   GR24 c) with "the updating operation does not take place,
+      *>   and the content of the record area is unaffected" (GR24);
+      *>   GR12 keeps the file position indicator, so L2's READ gets
+      *>   record 1 (each §2002:14.8.33.3, cite.py: OK). The '4x'
+      *>   statuses are fatal and the implementor may continue "to the
+      *>   end of the statement" (§2002:9.1.12, OK). The 2023 rule
+      *>   numbers below are 2023's own.
       *> ISO §2023:14.9.35.4 14) — an unsuccessful REWRITE updates no record,
       *> leaves the record area as it was, and sets the I-O status
       *> GR14: "If the execution of the REWRITE statement is

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-23",
+ "rule-digest": "43377f9b0ca5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Fill; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#DecodeFrame; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Replace; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#KeySuppressionOf",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/g2rw08_alt_key_order",
+ "notes": "§2002:14.8.33.3 GR23 with §2002:14.8.29.3 GR23/GR29: a changed duplicate alternate key puts the record last in its new set (A1 02 03 01, lowest prime key last), an unchanged key keeps its order (A2 01 02 03; no-key-change REWRITE keeps both); g2rw08 at --std 2002 equal to the ten derived lines."
+}
