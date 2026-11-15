@@ -2228,7 +2228,7 @@ result. Run the long legs ONE AT A TIME.
   witness B2's `Removed(descriptor, message)` were both folded into it at their landings. Its SEVERITY picks
   accept-inert (Warning: MCS 1578, VALIDATE 1580 — Annex A.3 processor-dependent
   elements, whose §2023:4.2.6 licence is accept-and-flag) versus refuse (Error: A.4.2 screen 1560/1707, A.4.8 1705,
-  A.4.13 1706, A.4.14 1708, the declined EC names 1710 — Annex A.4
+  A.4.14 1708, the declined EC names 1710 — Annex A.4
   optional modules, whose A.4.1
   licence admits the syntax ONLY when support is claimed). **`DiagnosticDescriptor.PermissiveInert` is the ONE
   place the `--permissive` policy lives**, read by the one refuse rule `EditionContext.Refuses` and never tested at

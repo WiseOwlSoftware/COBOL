@@ -1168,8 +1168,8 @@ that no SELECT names is rejected by §2023:13.4.5.3 SR1 / §2023:13.4.6.3 SR1 (C
   `SequentialIoBinder.BindRead` asks it BEFORE rerouting a relative file to `KeyedIoBinder.BindRead`, so both arms
   are under the one rule. **SR3 b) has no screen because none is reachable:** the record-name-1 alternative names
   "a logical record in the file section" (§2023:14.9.51.3 SR5, §2023:14.9.35.3 SR1) and this entry has none, while the
-  `FILE file-name-1` alternative is Annex A.4.13, declined (COBOL1706, `docs/CONFORMANCE.md` §5 row A.4.13). The
-  consequence is documented there: a record-less file is INPUT-ONLY in this implementation.
+  `FILE file-name-1` alternative (Annex A.4.13, claimed: kb/Work PB5579, "The FILE phrase of WRITE and REWRITE" below) is the one
+  form of WRITE and REWRITE such a file binds, and its FROM operand is the record released.
 - **The size is "the maximum size established by the RECORD clause"** — format 1's integer-1, format 3's
   integer-5, format 2's integer-3. A format-2 clause with no `TO` phrase establishes none (§2023:13.18.43.4 GR10
   defers to "the greatest number of bytes described for a record in that file", and none is described), and
@@ -1772,8 +1772,8 @@ the programmer actually wrote (`the implicit MOVE of RELEASE … FROM to SRT-REC
   or national function"*, and only §2023:14.9.32.3 SR4 forbids a zero-length literal-1. `FromPhraseRules` is one
   record per verb carrying the admitted CATEGORIES and the nullable zero-length clause; a scalar "must be
   alphanumeric" column would have REJECTED LEGAL SOURCE on the REWRITE arm. The FILE-phrase readings
-  (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8) are unreachable — the FILE arm is Annex A.4.13 item 2, declined
-  COBOL1706 earlier. Diagnostics: COBOL1914, COBOL1915.
+  (§2023:14.9.51.3 SR10, §2023:14.9.35.3 SR8, an alphanumeric or national function for both verbs) are the rows
+  `FromPhraseRules.WriteFile` and `FromPhraseRules.RewriteFile`, asked by `MoveBinder.BindFilePhraseRecord`. Diagnostics: COBOL1914, COBOL1915.
 - **The phrase is ONE grammar rule, and its edition edge is ONE gate** (kb/Work PB2650). §2023:14.9.51.2, §2023:14.9.35.2
   and §2023:14.9.32.2 print the same `FROM { identifier-1 | literal-1 }`, so the three statements share
   `recordFromPhrase : FROM sendingOperand`, and `VersionConformancePass.ParseArm.VisitRecordFromPhrase` refuses
@@ -2835,15 +2835,14 @@ failure branches were fired once before it was trusted.
 
 ## Declined optional elements of the I-O statements and the file description entry
 
-Two Annex A.4 modules of the file-handling surface are OPTIONAL language elements (§2023:4.2.7) for which this
-implementation claims NO support, per the owner's documented-non-support decision recorded in
+One Annex A.4 module of the file-handling surface (A.4.8) is an OPTIONAL language element (§2023:4.2.7) for which this
+implementation claims NO support (A.4.13, the FILE phrase of WRITE and REWRITE, is claimed: see the section after this one), per the owner's documented-non-support decision recorded in
 `docs/CONFORMANCE.md` §5. They are **recognized and refused by name at bind**, never parse-errored and never
 compiled inert:
 
 | Module | Elements | Where it parses | Refusal |
 | --- | --- | --- | --- |
 | A.4.8 | FORMAT clause (§2023:13.18.24) on an FD; SELECT WHEN clause (§2023:13.18.51) on a record description entry | `formatClause` in `fileDescriptionClause`; `selectWhenClause` in `dataDescriptionClause` (`Core/CobolData.g4`) | `COBOL1705`, from `DataBinder` — the FD clause loop and `BindEntry` |
-| A.4.13 | the `FILE file-name-1` alternative of WRITE (§2023:14.9.51.2, **both** formats) and REWRITE (§2023:14.9.35.2) | the `FILE fileName` alternative of `writeStatement` / `rewriteStatement` (`Core/CobolIO.g4`) | `COBOL1706`, from `SequentialIoBinder.DeclinedFilePhrase` — ONE site, both verbs |
 
 **Why recognize-and-refuse, and why an ERROR rather than the accept-inert band.** Annex A.4.1: *"An
 implementation shall accept the syntax and provide the functionality for an optional element only when
@@ -2857,9 +2856,8 @@ The severity is the point of difference from `COBOL1579/1580`, which ACCEPT thei
 and warn. Those facilities are **additive** — a program means what it says with the message or validate
 behavior simply absent. These two are not: an inert FORMAT changes which bytes reach the medium
 (§2023:13.18.24.4 GR1 — external media format), an inert SELECT WHEN selects the wrong record description entry
-(§2023:13.18.51.4 GR1/GR2, with the §2023:9.1.13.7 rule-5 status-45 path), and the FILE phrase carries its own
-implicit-record model (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9) that a whole-record-area write does not implement.
-Compiling them inert is a **wrong answer**, not a missing facility.
+(§2023:13.18.51.4 GR1/GR2, with the §2023:9.1.13.7 rule-5 status-45 path), and a SELECT WHEN selected by nothing is the same
+wrong answer. Compiling them inert is a **wrong answer**, not a missing facility.
 
 **READ has no FILE alternative to decline.** Both READ formats print a bare `READ file-name-1` (§2023:14.9.30.2), and
 no edition prints `READ FILE file-name-1`, so it is not an Annex A.4.13 element and `readStatement` carries no
@@ -2875,7 +2873,7 @@ is the migration seam for constructs an edition REMOVED (`EditionContext.Removed
 element has no pre-removal semantics to preserve.
 
 **Edition posture.** The decline is edition-INVARIANT — the module is unclaimed at 85, 2002, 2014 and 2023
-alike, and the negative witnesses carry `*> reject-at: 85 2002 2014 2023`. One lexical consequence differs at
+alike. One lexical consequence differs at
 85: §2023:8.9 reserves `FORMAT` only from 2002 (`ReservedWords.Table`, `r85=false`), so at `--std 85` the word is a
 legal user-defined name. That is preserved by the `nameSlot` row in `tests/version-matrix/cobol-words.json`
 — measured: `01 FORMAT PIC X(4).` plus a subscripted `FORMAT-E (2)` compiles and RUNS at `--std 85`, and
@@ -2884,12 +2882,49 @@ owed: that register's contract is source that COMPILES CLEAN at its introducing 
 declined element never does — the same reason VALIDATE, the SCREEN SECTION, MCS and COMMIT/ROLLBACK have no
 rows either.
 
-**What is NOT declined.** A.4.1 NOTE 1: *"The higher-level constructs or cross-referenced topics are not
-optional."* The WRITE and REWRITE statements themselves are mandatory, fully supported surface; only one
-alternative of `{ record-name-1 | FILE file-name-1 }` is declined. `tests/conformance/85/`
-`a413_declined_phrase_positive_control` is the run-and-compare witness for that half, and it also pins the
-optional word `RECORD` of §2023:14.9.35.2 (not underlined in the printed format, therefore optional) which this
-grammar did not accept at all before 2026-09-02.
+## The FILE phrase of WRITE and REWRITE (Annex A.4.13, claimed from COBOL-2002; kb/Work PB5579)
+
+`WRITE { record-name-1 | FILE file-name-1 } FROM { identifier-1 | literal-1 }` and `REWRITE { record-name-1 | FILE file-name-1 }
+[RECORD] FROM …` (§2023:14.9.51.2, §2023:14.9.35.2; §2002:14.8.47.1, §2002:14.8.33.1). §2002:3.1.1 makes the element required of a
+2002 implementation, and no later edition withdraws it, so it is claimed at every edition from 2002 and refused below (COBOL0900,
+construct `write-rewrite-file-phrase-2002`, gated in `VersionConformancePass`'s `VisitWriteStatement` / `VisitRewriteStatement`). It
+replaced the decline `COBOL1706` (retired, never reallocated), which itself replaced a live arm that wrote the whole record area.
+
+**The model is the standard's own.** §2002:14.8.47.3 GR5 and §2002:14.8.33.3 GR8 (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9) make the statement
+`MOVE identifier-1 TO implicit-record-1` then `WRITE implicit-record-1`, the implicit record being "as though … a record description entry
+subordinate to the file description entry having the same description as identifier-1" (the class, category, usage and length of the
+returned value of a function; of literal-1). A MOVE between two items of one description is the identity copy, so **the record released is
+the image of the FROM operand itself**: `MoveBinder.BindFilePhraseRecord` returns the operand's own `Place` as the statement's record
+(`BoundWrite.Record`, `BoundRewrite.Record`, the keyed twins) and binds no MOVE. A function value and a reference-modified item are held
+in the intermediate result item `SendingValueTemp.Materialize` provides, and a literal in an item of its own description
+(`SendingValueTemp.MaterializeLiteral`); both stores are pre-ops ahead of the statement. Every emitter then sends
+`OperandText.RecordSendImage(record)` through the one record-area channel (`SequentialIoEmitter.SentRecordImage`); the operand is not one
+of the file's records, so `FileModel.TransfersPastRecord` is false and the image is sent as it stands. An operand that IS one of the file's
+records (§2023:14.9.51.4 GR7) takes the record's own path, the area image past a shorter record (D-WRT1), exactly as `WRITE record-name-1`.
+
+**One binder site, both formats and both verbs.** `SequentialIoBinder.BindFileFormat` (file-name-1 through `StatementValidation.ResolveFile`,
+which asks the report-file rule; the sort-merge file is refused by `UnsupportedOrg`) is called from `ResolveWriteRecord` and
+`ResolveRewriteRecord` BEFORE the sequential/keyed reroute, so the sequential, relative and indexed arms inherit it. The FROM phrase's
+implicit MOVE of the record-name arm is a deferred bind (`bindFrom`) handed to `KeyedIoBinder.BindWrite` / `BindRewrite`; the FILE arm
+binds none.
+
+**The FILE phrase's syntax rules** (`BindFilePhraseRecord`): FROM is required (§2002:14.8.47.2 SR7, §2002:14.8.33.2 SR10 — COBOL7351); literal-1
+is an alphanumeric, boolean or national literal and no figurative constant, and identifier-1's description holds no USAGE OBJECT REFERENCE
+item (SR7 b), SR8; SR10 b), SR12 — COBOL7352); a function is alphanumeric or national (SR10 / SR8 — COBOL1914, the one FROM-phrase screen,
+`MoveBinder.ScreenFromFunctionClass`); a bit item is statically byte-aligned (SR9 / SR7 — COBOL7353, `ParameterConformance.ScreenBitAlignment`, the
+walk CALL BY REFERENCE and function activation ask); identifier-1 is a valid MOVE sender (the §2023:14.9.25.3 SR1 class check). File-name-1
+is no report file or sort-merge file (SR12 of WRITE, SR11 of REWRITE).
+
+**Determinations.** (1) A FIXED-length file takes the operand's image padded with spaces to the record width, or cut to it — the runtime's rule
+for any short or long record, and §2002:14.8.47.3 GR12's "undefined" bytes — so no I-O status 44 is raised for a length that differs
+from integer-1, which §2023:13.18.43.4 GR14 states for a RECORD IS VARYING clause only. (2) A RECORD VARYING file's length is the DEPENDING ON item's
+content (GR13 a)) or the image's length, and GR14's bounds are the runtime's: status 44. (3) A file with no record description entries
+(§2023:13.4.5.3 SR3 b)) binds only this form, and READ … INTO is how the program reads its records (SR3 c)).
+
+**What is NOT withdrawn.** A.4.1 NOTE 1: *"The higher-level constructs or cross-referenced topics are not optional."* The WRITE and REWRITE
+statements, and the optional word `RECORD` of §2023:14.9.35.2, are mandatory surface at every edition that prints them. Witnesses:
+`pb5579_write_file_sequential`, `pb5579_write_file_indexed_relative`, `pb5579_rewrite_file`, `pb5579_write_file_from_own_record` and the refusals
+`pb5579-*` under `conformance-suite/cases/14.9.51-WRITE` and `14.9.35-REWRITE`.
 
 ## The `record-name-1` operand — ONE rule for WRITE, REWRITE and RELEASE
 
@@ -3057,7 +3092,7 @@ category.
 - Sections 13.18.13 CODE-SET, 13.18.34 LINAGE, 13.18.43 RECORD VARYING DEPENDING ON, 13.18.41 implicit default record.
 - Section 9.1.6 fixed file attributes (the attributes fixed when a physical file is created), with 14.9.27.4 GR10 (the OPEN statement's comparison against them and its '39'), GR17 and GR18 (the two cases in which the OPEN statement CREATES the file), 9.1.13.6 item 7 (the '39' status itself) and Annex A.1 items 50 and 129 (the two required, required-to-be-documented validated-set determinations — DELETE FILE's and OPEN's, which are not the same answer). See D10.
 - Sections 14.9.30 READ, 14.9.35 REWRITE, 14.9.41 START, 14.9.51 WRITE, 14.9.10 DELETE and DELETE FILE, 14.9.40 and 14.9.24 SORT and MERGE, 8.8.4.2.4 numeric-key value compare, 8.8.4.2.7 alphanumeric compare with shorter-operand space-extension, 14.9.49 USE statement (declarative).
-- Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1, A.4.8 items 1–2, A.4.13 items 1–2) — the declined-element section above; §2023:13.18.24 FORMAT clause and §2023:13.18.51 SELECT WHEN clause are the two A.4.8 clauses, §2023:14.9.51.2 / §2023:14.9.35.2 carry the A.4.13 FILE phrase.
+- Section 4.2.7 optional language elements and Annex A.4 (A.4.1 general + NOTE 1, A.4.8 items 1–2) — the declined-element section above; §2023:13.18.24 FORMAT clause and §2023:13.18.51 SELECT WHEN clause are the two A.4.8 clauses; §2023:14.9.51.2 / §2023:14.9.35.2 carry the A.4.13 FILE phrase, claimed ("The FILE phrase of WRITE and REWRITE").
 
 ## Open questions — RESOLVED (`DESIGN.md` §15 #3 + §18, owner-confirmed 2026-06-08)
 

@@ -1,0 +1,6 @@
+RW3 44
+[0123456789]
+RW10 00
+[ABCDEFGHIJ]
+R5 invalid 23
+R2 rewritten 00

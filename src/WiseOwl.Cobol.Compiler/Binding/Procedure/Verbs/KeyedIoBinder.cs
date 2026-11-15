@@ -182,7 +182,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// LOCK]). The print-control phrases (ADVANCING / END-OF-PAGE) apply to sequential print files only and fail
     /// loud here.</summary>
     public BoundStatement BindWrite(Core.WriteStatementContext w, FileModel file, Place record,
-        BoundRecordLock lock_, RetrySpec? retry)
+        BoundRecordLock lock_, RetrySpec? retry, Func<BoundMove?> bindFrom)
     {
         if (w.writeBeforeAfter() is not null || ConditionalPhrases.HasFamily(w.conditionalPhrases(), ConditionalPhraseFamily.EndOfPage))
             // ⛔ A SYNTAX RULE, NOT A DEFERRAL (kb/Work PB909): SR3 is SR2's mirror, and COBOL1720 is where SR2
@@ -195,8 +195,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
                 + "Format 2 prints no print-control phrase");
         KeyedInvalidKey? invalid = KeyedInvalidPhrase(w.conditionalPhrases());
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Write, w.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
-        return new BoundKeyedWrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()), invalid)
+        return new BoundKeyedWrite(file, record, bindFrom(), invalid)
         { Lock = lock_, Retry = retry };
     }
 
@@ -204,7 +203,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
     /// specified for a relative-organization file in SEQUENTIAL access mode (its rewrite has no key condition —
     /// only '43'/'49' logic errors, which route to exception processing).</summary>
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record,
-        BoundRecordLock lock_, RetrySpec? retry)
+        BoundRecordLock lock_, RetrySpec? retry, Func<BoundMove?> bindFrom)
     {
         // §2023:14.9.35.3 SR2, arm (b) — "… or a file with relative organization and sequential access mode". Arm (a),
         // sequential ORGANIZATION, never reaches here and is screened at SequentialIoBinder.BindRewrite, which
@@ -222,8 +221,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
             invalid = KeyedInvalidPhrase(rw.conditionalPhrases());
         }
         ctx.ExceptionPhrases.Require(file, InvalidKeyVerb.Rewrite, rw.conditionalPhrases());   // COBOL-85's mandatory INVALID KEY (PB5076)
-        return new BoundKeyedRewrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand()), invalid)
+        return new BoundKeyedRewrite(file, record, bindFrom(), invalid)
         { Lock = lock_, Retry = retry };
     }
 

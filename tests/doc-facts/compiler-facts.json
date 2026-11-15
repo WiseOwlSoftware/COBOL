@@ -488,7 +488,6 @@
     "COBOL1703",
     "COBOL1704",
     "COBOL1705",
-    "COBOL1706",
     "COBOL1707",
     "COBOL1708",
     "COBOL1710",
@@ -977,6 +976,9 @@
     "COBOL7234",
     "COBOL7240",
     "COBOL7282",
+    "COBOL7351",
+    "COBOL7352",
+    "COBOL7353",
     "COBOL7354",
     "COBOL7355"
   ],

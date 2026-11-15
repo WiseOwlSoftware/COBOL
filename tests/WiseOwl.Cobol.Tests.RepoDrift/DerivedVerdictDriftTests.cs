@@ -290,11 +290,6 @@ public sealed class DerivedVerdictDriftTests
             "Annex A.4.10 items 1 and 3 are Not claimed; item 2 IS supported (CONFORMANCE.md §5, kb/Work PB285)");
 
     [Fact]
-    public void NoRewriteOrWriteFilePhraseRow_Diverges() =>
-        AssertHeldAtTheDerivedVerdict("rewrite-write-file-only",
-            "Annex A.4.13 REWRITE FILE and WRITE FILE is Not claimed (CONFORMANCE.md §5)");
-
-    [Fact]
     public void NoValidateConditionedRow_Diverges() =>
         AssertHeldAtTheDerivedVerdict("validate-only",
             "Annex A.4.14 VALIDATE is Not claimed (CONFORMANCE.md §5, §4 item 3)");
@@ -567,35 +562,6 @@ public sealed class DerivedVerdictDriftTests
         // One row, one determination: these two are standard-binary-only's.
         Assert.DoesNotContain("AR-15.43.3-3", ids);
         Assert.DoesNotContain("AR-15.58.3-3", ids);
-    }
-
-    [Fact]
-    public void TheRewriteWriteFileSelector_IsStillSharp()
-    {
-        var (ids, _) = Select("rewrite-write-file-only");
-        Assert.InRange(ids.Count, 8, 20);   // 12 when it landed
-
-        // The second alternative, which no "FILE phrase" text arm reaches: SR-14.9.35.3-11 is "File-name-1 shall
-        // not reference a report file or a sort-merge file description entry." — and its leading capital F is
-        // why the pattern carries (?i) in the DATA rather than trusting the reader's options. Case-sensitively
-        // the arm returns 11.
-        Assert.Contains("SR-14.9.35.3-11", ids);
-        Assert.Contains("SR-14.9.51.3-7", ids);
-
-        // ⛔ THE MIRROR ARMS. These are conditioned on the FILE phrase being NOT specified, i.e. they govern
-        // plain `REWRITE/WRITE record-name-1`, fully supported surface. They match the pattern and are held out
-        // by one exclusion; if either returns, two supported rules have been declared unsupported.
-        Assert.DoesNotContain("SR-14.9.35.3-9", ids);
-        Assert.DoesNotContain("SR-14.9.51.3-11", ids);
-        // ⛔ THE SCOPE GATE. `file-name-1` is STATEMENT-LOCAL: in §2023:13.4.5.4 it is the FD's own subject. This row
-        // is a genuine ungated match, so it is the anchor that actually proves the AND-gate is still there —
-        // ungated the selector takes 176 rules of DELETE, OPEN, CLOSE, READ, START, UNLOCK and every FD clause.
-        Assert.DoesNotContain("GR-13.4.5.4-1", ids);
-        // The asymmetric twin: WRITE's SR-12 says "the write file", which SR1 defines as covering the
-        // record-name arm too. The asymmetry is the standard's own wording, not a reading.
-        Assert.DoesNotContain("SR-14.9.51.3-12", ids);
-        // Belongs to A.4.8 and also covers READ statements.
-        Assert.DoesNotContain("DOC-A.1-173", ids);
     }
 
     [Fact]

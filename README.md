@@ -195,8 +195,7 @@ item, and a documentation audit (`scripts/doc_audits.py`, `scripts/docchecks/reg
 
 - The VALIDATE statement (A.4.14) compiles with a warning by documented choice under §2023:4.2.7 (COBOL1580); the
   facility's data-division clauses (COBOL1708) and its EC-VALIDATE exception names (COBOL1710) are refused.
-- Screen handling (A.4.2; COBOL1560, COBOL1707), FORMAT and SELECT WHEN file handling (A.4.8, COBOL1705) and
-  WRITE FILE and REWRITE FILE (A.4.13, COBOL1706) are refused with errors, which is how Annex A.4.1 reads for an
+- Screen handling (A.4.2; COBOL1560, COBOL1707), and FORMAT and SELECT WHEN file handling (A.4.8, COBOL1705) are refused with errors, which is how Annex A.4.1 reads for an
   optional module whose support is not claimed.
 - ARITHMETIC IS STANDARD-BINARY (A.3 item 2) is refused (COBOL0806).
 - FLOAT-BINARY-128 (A.3 item 17, which leaves the FLOAT-BINARY clause of A.3 item 12 partial) and the standard decimal

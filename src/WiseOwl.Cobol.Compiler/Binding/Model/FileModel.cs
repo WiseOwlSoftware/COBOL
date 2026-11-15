@@ -1155,9 +1155,13 @@ public sealed class FileModel
     /// D-FRA), and (4) can be narrower than the area, whose widest such record <see cref="AreaRecord"/> is: it is a
     /// narrower description, or it holds an OCCURS DEPENDING table, whose current size is that of its occurrences at the time
     /// of execution (§2023:13.18.43.4 GR13 c)) and so is the area's width only when the table is at its maximum (kb/Work
-    /// PB5217: an ODO record of a fixed-length file sent at one occurrence wrote spaces where the area held the rest).</para></summary>
+    /// PB5217: an ODO record of a fixed-length file sent at one occurrence wrote spaces where the area held the rest).</para>
+    /// <para>(0) The statement's record is one of the file's. The implicit record of a <c>WRITE FILE</c> / <c>REWRITE FILE</c>
+    /// (§2023:14.9.51.4 GR8, §2023:14.9.35.4 GR9; kb/Work PB5579) is the FROM operand under its own description, an item that
+    /// overlays nothing in the area, so there is no area content to send past it: the statement sends that item's image and
+    /// the runtime pads it as it pads any short record.</para></summary>
     public bool TransfersPastRecord(DataItem record) =>
-        Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
+        Records.Contains(record) && Organization != FileOrganization.LineSequential && !IsOutOfLineRecord(record)
         && AreaRecord is { } area
         && (Model.RecordLayout.PhysicalWidth(area) > Model.RecordLayout.PhysicalWidth(record) || HasVaryingTableBeneath(record))
         && (Varying?.DependingName is not null || !RecordSizeVaries);
