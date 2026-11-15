@@ -4,7 +4,8 @@ govern something else in the older edition (kb/Work PB5589, PB5584).
 
     python scripts/selftests/spec/lineage_screen/test_screen.py   # its cases (the case layout, kb/Work PB5428)
     python scripts/spec/lineage_screen.py --write [YEAR]       # docs/rearchitecture/spec-lineage-screen-<year>.json
-    python scripts/spec/lineage_screen.py --check [YEAR]       # stale, an unanswered flag, a lost fixture pair: RED
+    python scripts/spec/lineage_screen.py --check [YEAR]       # stale, a table that no longer fits, a lost fixture pair:
+                                                               # RED; a stored record a flag now asks anew: owed
     python scripts/spec/lineage_screen.py --measure YEAR --labels 'GLOB'   # each trigger against labelled sample reads
 
 DESIGN-spec-conformance-review.md section 10.5 is the design. A pair of the candidate pairing (`lineage.candidates`) has
@@ -18,8 +19,10 @@ show: a rule whose meaning rests on a clause of the older text no catalog row ho
 §2002:8.8.1.3.2's 32-digit standard arithmetic), on a term the older definitions clause defines, on a behaviour the compiler
 switches by edition, on a band of formats, on a record entry the older edition lets a CD entry hold, or on rules it names
 without stating. A flag is a question the read must answer: a change record for a flagged pair stands only when its
-decision answers each flag by the trigger's name, with why the older rule still states that requirement (`next.answers`,
-`unanswered`), which the writer and this module's `--check` refuse otherwise.
+decision answers each flag by the trigger's name for the flag's detail, with why the older rule still states that
+requirement (`next.answers`, `answer_problems`), which the writers refuse otherwise, record by record (`unanswered`:
+audit_batch.py change-batch and record_verdicts.py). A STORED record a flag later asks a new question is owed a re-read
+(`owed_records`), printed by `--check`, never red (kb/Work PB5597).
 
 THE TRIGGERS ARE DATA: one table per older edition (`scripts/spec/data/lineage-screen-triggers-<year>.json`, `triggers`), each
 row naming its `mechanism` (one of `MECHANISMS`, the only code), its parameters, its `source` and the `reason` its flag

@@ -1660,10 +1660,18 @@ in 2002 than the words alone show. In 2002 terms, a flagged rule:
 - is held by evidence no text shows (the S1 run's refusal of a construct the rule names).
 
 A flag is a question the read must answer. A change record for a flagged pair stands only when its decision answers each
-flag by the trigger's name, with why the 2002 rule still states that requirement (`next.answers`, the schema's change
-record key). The writer refuses a batch that holds a record leaving a flag unanswered, and the gate's LINEAGE SCREEN audit
-(`lineage_screen.py --check`, also a step of CI's audits job) refuses such a stored record (`unanswered`). An UNFLAGGED
-pair is not thereby the same requirement: it is read like every other.
+flag by the trigger's name, for the flag's DETAIL as the screen gives it, with why the 2002 rule still states that
+requirement (`next.answers`, the schema's change record key: `{trigger: {"flag": detail, "answer": why}}`,
+`lineage.answer_shaped`). An answer is keyed to the flag's content (kb/Work PB5597, branch review R2-2 of PB5589): a later,
+different question under the same trigger (another pending clause, another behaviour) is unanswered until it is read.
+The writers refuse each RECORD that leaves a flag unanswered, alone (`lineage_screen.unanswered`): `audit_batch.py
+change-batch`, which lists it in `<out>.refused.json` and writes the rest (kb/Work PB5597, review R2-4), and
+`record_verdicts.py`, the one recording path, whatever wrote the batch. So every stored record answered its flags when it
+was written, and a flag the screen raises on a stored record later is the screen's change: the gate's LINEAGE SCREEN audit
+(`lineage_screen.py --check`, also a step of CI's audits job) lists it as OWED a re-read (`owed_records`), never red
+(review R2-1: otherwise a compiler change adding a behaviour would turn every stored 2002 record red). The reads answer
+the flags (section 10.6, `import-reads`). An UNFLAGGED pair is not thereby the same requirement: it is read like every
+other.
 
 **The triggers are data.** One table per older edition, `scripts/spec/data/lineage-screen-triggers-<year>.json`. Each
 `triggers` row names a trigger, its `mechanism`, its `params`, its `source` and the `reason` its flag gives. The
@@ -1686,15 +1694,18 @@ clause number and every pair whose text names its title (`undecided_judgment`); 
 differently at 2002 and 2023 and that the table places in no 2002 clause flags every pair. Each is listed as OWED
 (`undecided`: the screen file's `owed`, printed by `--check`) and neither turns the gate red: a flag already asks the read
 the question the missing judgment would have narrowed, so a compiler change that adds a behaviour costs the next landing
-only the regeneration of the committed screen, `--write`, which is mechanical. A judgment that a clause governs nothing
+only the regeneration of the committed screen, `--write`, which is mechanical; on a STORED record the new flag is listed
+as owed a re-read, never red (above). A judgment that a clause governs nothing
 (empty `governs` and `invokes`, with its `why`) is a decision and flags nothing. On 2026-11-14 the table judges 25 of the
 36 changed or removed clauses and promotes 1 near one; 11 are owed.
 
 **The committed screen** is `docs/rearchitecture/spec-lineage-screen-<year>.json`: the pending diff (each clause's class,
 ratio, counterpart and differing word runs), the definitions map, each trigger's flags by rule, the measured-only marks,
 the fixture's result and what the table owes. `--check` fails when it is stale, when the table no longer fits the texts
-(a judgment of an identical or non-pending clause, a judgment with no why, a behaviour placed that does not differ), when
-a stored record leaves a flag unanswered, or when a `caught` fixture pair is unflagged.
+(a judgment of an identical or non-pending clause, a judgment with no why, a behaviour placed that does not differ), or
+when a `caught` fixture pair is unflagged; it prints each stored record a flag now asks a new question as owed. A
+trigger's parameter holding a control character is refused when the table loads (`control_characters`: a JSON `\b` is a
+backspace, which no rule text holds; review R2-3 found the communication-reach confinement written so, and dead).
 
 **The regression fixture** is `tests/version-matrix/lineage-screen-labels-<year>.json`: samples of pairs read blind and
 whole, each labelled SAME, DIFFERENT or DOUBTFUL by the read that decided it, each sample with its expectation. `caught`
@@ -1706,3 +1717,91 @@ catches, never that it suffices. A later sample is added as a sample of its own.
 **Measured on 2026-11-14 (2002).** Of 1,770 candidate pairs the screen flags 1,220. The first sample's 16 DIFFERENT pairs
 are all flagged; of the second sample's 16 known misses, 3 are flagged (by the fail-closed judgments); 30 of the 168 SAME
 pairs of both samples are flagged.
+
+### 10.6 The read records: what a read decision becomes, at the row's own edition (kb/Work PB5597)
+
+**The owner's rule** (2026-11-14): "2002 spec covers 2002 rules. It should not matter to the 2002 rules whether or not 2023
+removes/adds/changes a clause." So an older edition's rule is judged on its own text at its own `--std`, the next
+edition's rule is only a POINTER to the code and to candidate tests, and a row closes on evidence produced AT ITS OWN
+EDITION. The 2002 rules are decided by reading (section 10.5): a reader states what the rule governs in the 2002 text
+(`scope-2002`), the evidence at `--std 2002` (`evidence-2002`) and a verdict, SAME, DIFFERENT or DOUBTFUL; a refuter attacks
+every SAME (UPHELD, OVERTURNED, DOUBTFUL). The briefs that define the fields are the fleet's (op-20261114 read-2002).
+
+**The import is a step of the audit run, not a second pipeline.** `python scripts/spec/audit_batch.py import-reads --edition
+2002 --reads DIR [--asked DIR] --state NEW` takes a directory of `<slice>-read.json` and `<slice>-refute.json` files (and
+the slices' inputs, `<slice>.json`, whose `flags` are the questions each slice asked) and does two things, as `seed` starts
+a run from decisions made elsewhere. (1) It writes the DURABLE RECORD: each slice verbatim, with the slice's questions and
+the SHA-256 of every source, as `tests/version-matrix/lineage-reads-<year>/<slice>.json` (`lineage_reads.import_records`),
+tracked beside the derivation refuter records (`tests/version-matrix/derivation-refutations/`) and the screen's labelled
+samples, under the same `tests/version-matrix/` entries of `scripts/build_targets.json` and `lane_classification.py`'s
+TOOLING_READS, so a change of a read record is a change of the inventory's evidence. The 1985 audit's results stayed in
+scratch, named only by each record's `source` (`audit-1985/state-route`); a read record is in the repository, so each change
+record names the record that justifies it (`next.source` is `lineage-reads-<year>/<slice>.json`) and the record names its
+reading. (2) It writes an audit run's state: the map pass holds each reader's answer (SAME, DIFFERS for a DIFFERENT; a
+DOUBTFUL leaves the rule OPEN), with its answers to the lineage screen's flags and its record as its source, and the verify
+pass each refuter's (UPHELD; REFUTED for an OVERTURNED; UNSURE for a DOUBTFUL). `dispositions` makes a SAME its refuter
+upheld CARRIES and carries the answers and the source into its change, so `change-batch --state` writes it. An imported
+run's passes are the reads': no plan, submit, retry, collect or withdraw runs in it (`reads.json`), and no Message Batches
+call is made anywhere on the path. Whichever slices exist are imported; a slice still being written is imported again
+when it changes (an unchanged one is not rewritten).
+
+**One normalization, which fails loudly** (`lineage_reads.load`, `normal_read`, `normal_refute`, `normal_slice`). The
+shapes vary between slices: a citations list may be one string, `flags-answered` a list of `<trigger>[ <detail>]: <answer>`
+lines or a map of `<trigger>[: <detail>]` to the answer, several answers to one trigger (one per term). A record it cannot
+interpret (a verdict outside the brief's, no `to`, a refute of a rule the reader did not decide SAME, a rule read twice or
+in two slices) refuses the whole import, by slice and rule, and nothing is written. A judgment of the compiler that names
+none of correct, wrong or not probed is kept as written and its row listed `uninterpretable`, never defaulted.
+
+**What may become a KEPT record** (`lineage_reads.decide`, which the writer and the audit share):
+1. the reader's verdict is SAME and the refuter's is UPHELD; a SAME with no refuter record is refused (`no refuter record`);
+2. every flag the lineage screen raises on the pair is answered for its detail (section 10.5). The read's `flags-answered`
+   is the only source: an answer counts for a flag when it names the trigger and the detail it answered (its own head's,
+   or the one the slice asked) is the screen's. The reads of the first slices were asked the earlier script's flags
+   (`changed-definition-term`, `target-not-CONFORMS-OK` and the like), not the screen's, so most flagged pairs are refused
+   `flag unanswered`, to be read again with the screen's flags; none is answered by a script;
+3. the evidence is at the row's own edition, for an edition whose schema entry says `own-edition-evidence` (2002;
+   `inventory_schema.Edition.own_evidence`): every next-edition rule the record carries into has a conformance-suite case
+   among its witnesses that runs at the edition (`lineage_reads.Witnesses`, the generator's own reading of the suite: the
+   case's `accept`, its flag's `at`, or, for a refusal test, its `wiseowl/diagnostics/` entry's `refuse-at` names the
+   edition; `generate.check_cases` refuses it there unless every rule it cites has the edition in its band). The gate runs
+   every case of every edition's manifest and every refusal at every edition it names, so on a green tree such a case
+   passes there. A unit or C# test is no witness at an older edition: it does not run there.
+`change-batch` refuses each record that fails 2 or 3 ALONE (kb/Work PB5597, review R2-4 of PB5589: no step of an audit run
+produced `answers`, so a run holding one flagged pair was refused whole); it writes the rest and lists each refused record
+with every reason in `<out>.refused.json`.
+
+**What the other verdicts become.** A DIFFERENT, or a SAME the refuter OVERTURNED, is never KEPT. Each is a work item of
+`reads-decisions.json`, which the import writes into the run's state (a generated view of the read records, never tracked:
+rule 8): `needs-own-witness` when the reader or the refuter showed the compiler correct at the edition (its probe is the
+candidate witness), `defect` when it showed it wrong (the records worker matches it to a kb/Work note), `undecided` for a
+DOUBTFUL or when nobody showed the compiler, `uninterpretable` as above. No inventory record is written for any of them
+here: `record_verdicts.py --edition 2002` records each once its witness or its note exists.
+
+**The band widening.** `python scripts/spec/lineage_reads.py widen --edition 2002 --state RUN --out PLAN` plans, for each
+read rule refused only for its evidence, what each of its targets' suite cases can do at the edition (`case_status`: it
+runs there; `widen`, a case accepted or flagged elsewhere; `widen-refusal`, a refusal test refused elsewhere; `band`, a case
+citing a rule whose band lacks the edition, which the generator would refuse; `missing`), and classes each row
+`widenable` or `needs-own-witness`. With `--apply --compiler EXE --scratch DIR` it adds the edition to each widenable case's
+header (`accept` and the flag's `at`, a flagged case's control with it; the method of the S1 measurement, kb/Work PB5574) or
+refusal entry, runs the generator and reverts what it refuses, runs the harness (`run.py`) at the edition on the
+generator's manifest entries and reverts what does not PASS, and compiles each widened refusal test at the edition and
+reverts what is not refused with its expected diagnostic. The widened cases land in their own branch, whose gate is the
+proof; only then are the KEPT records written.
+
+**The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job):
+every read record interprets; every stored change record whose source names a read record is that read's decision (the
+record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's rules); and,
+for an edition that closes on own-edition evidence, every stored KEPT record, whatever its source, still has a witness at
+the edition. A later change that narrows a witness's band, or rewrites a read under a stored record, turns it red.
+
+**The edition parameter.** Every step takes the edition. For 1985, whose KEPT records were written by its own audit
+before the own-edition rule existed, the schema names no `own-edition-evidence`, and `lineage_reads.py own-edition
+--edition 1985 --out FILE` measures the stored records against the rule without changing them.
+
+**Measured on 2026-11-15** (56 slices read, 1,399 rules; the reads still being written are imported when they change):
+kept before the evidence check 272; refused 597 (`flag unanswered` 313, `no refuter record` 284); work items 530
+(`needs-own-witness` 288, `defect` 187, `undecided` 54, `uninterpretable` 1). `change-batch` on that run writes 197 KEPT
+records and refuses 388 alone (a flag unanswered 313, no witness at 2002 159, a record counted under each reason it has);
+`record_verdicts.py --edition 2002 --dry-run` accepts all 197 (GAP 3,297 to 3,101). Of the 75 rows refused only for their
+evidence, `widen` finds 58 widenable (63 cases to widen, 6 refusal entries) and 17 that need a witness of their own. 1985:
+of 1,373 stored KEPT records, 887 have a witness at 85 for at least one target and 671 for every target; 486 have none.

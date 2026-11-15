@@ -45,7 +45,7 @@
       "facets": ["toolchain"],
       "inputs": {
         "conformance-suite/": "the generator and the modules it imports (harness/generate.py, config.py, cobol_source.py), every test's header and expected outputs (cases/, wiseowl/cases/), WiseOwl's refusals and compile options (wiseowl/diagnostics/, wiseowl/options/), the adapters, profiles and baselines it checks, and implementor-defined.json (traced)",
-        "tests/version-matrix/": "the traceability inventory of every held edition (inventory/, inventory-1985/, inventory-2002/), inventory-schema.json, the construct catalogue (constructs/), reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced), and the files the schema names",
+        "tests/version-matrix/": "the traceability inventory of every held edition (inventory/, inventory-1985/, inventory-2002/), inventory-schema.json, the construct catalogue (constructs/), reserved-words.json, annex-a2-undefined.json and conformance-register.json (traced), and the files the schema names; the evidence records beside them (derivation-refutations/, lineage-screen-labels-<year>.json, the read records lineage-reads-<year>/ of kb/Work PB5597) are under the same entry, read by the gate's audits, not by the generator",
         "docs/rearchitecture/spec-rule-catalog.json": "the inventory view (scripts/spec/inventory_view.py; traced)",
         "docs/rearchitecture/spec-rule-catalog-1985.json": "the inventory view of 1985 (traced)",
         "docs/rearchitecture/spec-rule-catalog-2002.json": "the inventory view of 2002 (scripts/spec/inventory_view.py, every held edition generate.py joins; traced, kb/Work PB5256)",

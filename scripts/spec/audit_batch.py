@@ -1214,9 +1214,10 @@ def change_batch(a: argparse.Namespace) -> int:
     A record follows only from a decision of a read (kb/Work PB5589: two blind samples proved a script cannot decide that
     two editions' identical words state one requirement), so the command without `--state` is refused by name. A record for
     a pair the edition's lineage screen flags (lineage_screen.py) stands only when its decision answers each flag by the
-    trigger's name for the flag's detail (`next.answers`), and a KEPT record only when every rule it carries into has a
-    conformance-suite witness that runs at the record's OWN edition (lineage_reads.Witnesses; owner 2026-11-14: "2002
-    spec covers 2002 rules"). Each record that fails either is REFUSED ALONE, never the batch (kb/Work PB5597, branch
+    trigger's name for the flag's detail (`next.answers`), and, for an edition whose schema entry names
+    `own-edition-evidence` (2002), a KEPT record only when every rule it carries into has a conformance-suite witness
+    that runs at the record's OWN edition (lineage_reads.Witnesses; owner 2026-11-14: "2002 spec covers 2002 rules").
+    Each record that fails either is REFUSED ALONE, never the batch (kb/Work PB5597, branch
     review R2-4 of PB5589): it is left out, listed with every reason in `<out>.refused.json`, and the rest are written."""
     if not a.state:
         raise SystemExit(f"{TOOL}: change-batch --edition {a.edition} needs --state, the audit run whose decisions it "
@@ -1230,7 +1231,7 @@ def change_batch(a: argparse.Namespace) -> int:
     records = change_records(ed, dispositions(state), a.source or f"audit-{a.edition}/{state.name}", held)
     screen = lineage_screen.committed(a.edition)
     chained = change_kinds().chained.name
-    w = witnesses_of(ed.next_held) if any(r["next"]["kind"] == chained for r in records) else None
+    w = witnesses_of(ed.next_held) if ed.own_evidence and any(r["next"]["kind"] == chained for r in records) else None
     kept, refused = [], []
     for r in records:
         why = lineage_screen.unanswered([r], screen)

@@ -385,8 +385,9 @@ def _generator() -> Any:
 @dataclasses.dataclass(frozen=True)
 class CaseInfo:
     """One conformance-suite case as the generator reads it: its test-ref key (`cases/<folder>/<id>` or
-    `wiseowl/cases/<folder>/<id>`), the editions it runs at (`accept` and its flag's `at`), the editions it is ACCEPTED
-    at, whether it has a flag, the rules it cites and its control."""
+    `wiseowl/cases/<folder>/<id>`), the editions it runs at (`accept`, its flag's `at` and, for a REFUSAL test, its
+    `wiseowl/diagnostics/` entry's `refuse-at`: the gate compiles it there and requires the refusal), each of the three,
+    the rules it cites, its control and its refusal entry's file (None for a test with none)."""
     key: str
     path: pathlib.Path
     runs: tuple[str, ...]
@@ -394,6 +395,10 @@ class CaseInfo:
     flag_at: tuple[str, ...]
     rules: tuple[str, ...]
     control: str | None
+    refuse_at: tuple[str, ...] = ()
+    refusal: pathlib.Path | None = None
+    expect: str = ""
+    source_format: str = "fixed"
 
 
 class Witnesses:
@@ -417,8 +422,12 @@ class Witnesses:
         for c in reader.cases:
             key = pathlib.PurePath(c.path).with_suffix("").as_posix()
             at = tuple(c.flag.at) if c.flag is not None else ()
-            cases[key] = CaseInfo(key, g.SUITE / c.path, tuple(dict.fromkeys((*c.accept, *at))), tuple(c.accept), at,
-                                  tuple(c.rules), c.control)
+            refusal = inputs.diagnostics.get(c.test_id)
+            refuse_at = tuple(str(e) for e in refusal["refuse-at"]) if refusal else ()
+            cases[key] = CaseInfo(key, g.SUITE / c.path, tuple(dict.fromkeys((*c.accept, *at, *refuse_at))),
+                                  tuple(c.accept), at, tuple(c.rules), c.control, refuse_at,
+                                  g.SUITE / g.sidecar_path(g.DIAGNOSTICS_DIR, c.test_id) if refusal else None,
+                                  refusal["expect"] if refusal else "", c.source_format)
         schema = inventory_schema.load_schema()
         rows = inventory_view.inventory(newer, schema)
         refs = {r["rule-id"]: schema.split(r.get("test-ref", "") or "", schema.test_ref_sep) for r in rows}
@@ -502,8 +511,9 @@ def work_of(judgment: Judgment | None, probe: str | None, who: str) -> tuple[str
 
 def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
            witnesses: Witnesses | None) -> list[Decision]:
-    """Each read rule's `Decision` (module docstring). `witnesses` None leaves the evidence unchecked (the audit run's
-    import, whose writer checks it); the screen is the edition's committed one."""
+    """Each read rule's `Decision` (module docstring). The evidence is checked for an edition whose records close on
+    own-edition evidence (`Edition.own_evidence`) when `witnesses` is given; None leaves it to the writer (the audit
+    run's import). `screen` is the edition's committed lineage screen."""
     flags = (screen or {}).get("marks", {})
     out = []
     for s in slices:
@@ -527,7 +537,7 @@ def decide(ed: Edition, slices: Iterable[Slice], screen: dict[str, Any] | None,
             else:
                 answers, unanswered = answers_for(r, s.asked.get(rid, {}), flags.get(rid, {}))
                 refused = [(FLAG_UNANSWERED, u) for u in unanswered]
-                if witnesses is not None:
+                if witnesses is not None and ed.own_evidence:
                     refused += [(NO_OWN_WITNESS, f"{t}: no conformance-suite witness runs at {ed.spelling}")
                                 for t in witnesses.missing(ed, r.to)]
                 out.append(Decision(**base, answers=answers, refused=tuple(refused)))
@@ -547,12 +557,31 @@ def summary(decisions: list[Decision]) -> dict[str, Any]:
 
 # -- widening the witnesses ---------------------------------------------------------------------------------------------
 
+#: What a suite case of a kept-but-unwitnessed row can do at the edition (`widen_plan`).
+RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-refusal", "band", "no-edition", "missing"
+
+
+def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str:
+    """`RUNS` at the edition spelled `sp`; `WIDEN` (a case accepted or flagged at other editions) or `WIDEN_REFUSAL` (a
+    refusal test refused at other editions) when every rule it cites exists at `sp` (the generator's own band check,
+    `generate.check_cases`), else `BAND`; `NO_EDITION` for a case placed at no edition; `MISSING` for a test-ref naming
+    no case."""
+    if c is None:
+        return MISSING
+    if sp in c.runs:
+        return RUNS
+    if not c.runs:
+        return NO_EDITION
+    if any(sp not in bands.get(r, [sp]) for r in c.rules):
+        return BAND
+    return WIDEN if (c.accept or c.flag_at) else WIDEN_REFUSAL
+
+
 def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses) -> dict[str, Any]:
-    """For each read rule that is refused ONLY for its evidence (a SAME, upheld, every flag answered), each next-edition
-    rule it carries into: its suite cases and what each can do at `ed` (`runs` there; `widen`, a case accepted or
-    flagged elsewhere whose every cited rule exists at `ed`, the generator's own band check; `band`, a case citing a
-    rule whose band lacks `ed`; `refusal`, a case with no accepted or flagged edition; `missing`, a test-ref naming no
-    case). A row is `has-witness`, `widenable` (each rule it lacks evidence for has a case to widen) or `needs-own-witness`."""
+    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered), each next-edition rule it
+    carries into: its suite cases and what each can do at `ed` (`case_status`). A row is `has-witness`, `widenable`
+    (each rule it lacks evidence for has a case to widen) or `needs-own-witness` (some rule has none: the row's witness
+    must be written at its own edition)."""
     sp = ed.spelling
     cases: dict[str, dict[str, Any]] = {}
     rows = []
@@ -561,55 +590,50 @@ def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses) -> dict[str
             continue
         per_rule = {}
         for t in d.to:
-            got = []
-            for k in w.suite_cases(t):
+            ks = w.suite_cases(t)
+            for k in ks:
                 c = w.cases.get(k)
-                if c is None:
-                    status = "missing"
-                elif sp in c.runs:
-                    status = "runs"
-                elif not c.runs:
-                    status = "refusal"
-                elif any(sp not in w.bands.get(r, [sp]) for r in c.rules):
-                    status = "band"
-                else:
-                    status = "widen"
-                cases.setdefault(k, {"status": status, "rules": list(c.rules) if c else []})
-                got.append(k)
-            per_rule[t] = got
+                cases.setdefault(k, {"status": case_status(c, sp, w.bands), "rules": list(c.rules) if c else []})
+            per_rule[t] = ks
         statuses = {t: {cases[k]["status"] for k in ks} for t, ks in per_rule.items()}
-        lacking = [t for t, st in statuses.items() if "runs" not in st]
-        state = ("has-witness" if not lacking else "widenable" if all("widen" in statuses[t] for t in lacking)
-                 else "needs-own-witness")
+        lacking = [t for t, st in statuses.items() if RUNS not in st]
+        state = ("has-witness" if not lacking else
+                 "widenable" if all(statuses[t] & {WIDEN, WIDEN_REFUSAL} for t in lacking) else "needs-own-witness")
         rows.append({"rule-id": d.rule_id, "to": list(d.to), "state": state, "cases": per_rule})
     return {"edition": ed.year, "rows": rows, "cases": cases,
             "counts": {"rows": dict(sorted(collections.Counter(r["state"] for r in rows).items())),
                        "cases": dict(sorted(collections.Counter(c["status"] for c in cases.values()).items()))}}
 
 
-def add_edition(value: str, spelling: str, order: list[str]) -> str:
-    """A header's edition list `[a, b]` with `spelling` added, in the editions' order (the spelling the header keeps)."""
-    eds = [e.strip() for e in value.strip().strip("[]").split(",") if e.strip()]
-    return "[" + ", ".join(sorted(set(eds) | {spelling}, key=order.index)) + "]"
+def add_edition(values: Iterable[str], spelling: str, order: list[str]) -> list[str]:
+    """An edition list with `spelling` added, in the editions' order."""
+    return sorted(set(values) | {spelling}, key=order.index)
 
 
 HEADER_FIELD = re.compile(r"^(?P<lead>\s*\*>\s*)(?P<key>accept|flag):(?P<value>.*)$")
+EDITION_LIST = re.compile(r"\[[^\]]*\]")
+
+
+def _listed(text: str) -> list[str]:
+    return [e.strip().strip('"') for e in text.strip().strip("[]").split(",") if e.strip()]
 
 
 def widen_case(path: pathlib.Path, spelling: str, order: list[str]) -> list[tuple[str, str]]:
-    """Add `spelling` to the case's `accept` list and to its flag's `at` list (the S1 method, kb/Work PB5574's
-    measurement): the header lines changed, as (old, new). The file's bytes are otherwise kept."""
-    raw = path.read_text(encoding="utf-8")
-    lines = raw.split("\n")
+    """Add `spelling` to the case header's `accept` list and to its flag's `at` list (the S1 measurement's method, kb/Work
+    PB5574): the lines changed, as (old, new); the file's bytes are otherwise kept."""
+    lines = path.read_text(encoding="utf-8").split("\n")
     edits = []
-    for i, line in enumerate(lines[:80]):
+    for i, line in enumerate(lines):
         m = HEADER_FIELD.match(line)
-        if not m:
+        if m is None:
+            if line.strip() == "*>---" or line.rstrip().endswith("*>---"):
+                break
             continue
         if m["key"] == "accept":
-            new = f"{m['lead']}accept:{' ' if m['value'].startswith(' ') else ''}{add_edition(m['value'], spelling, order)}"
+            new = line.replace(m["value"].strip(), "[" + ", ".join(add_edition(_listed(m["value"]), spelling, order)) + "]", 1)
         else:
-            new = re.sub(r"at:\s*\[[^\]]*\]", lambda a: "at: " + add_edition(a.group(0)[3:], spelling, order), line)
+            new = re.sub(r"at:\s*(\[[^\]]*\])", lambda a: "at: [" + ", ".join(
+                add_edition(_listed(a.group(1)), spelling, order)) + "]", line, count=1)
         if new != line:
             edits.append((line, new))
             lines[i] = new
@@ -618,101 +642,151 @@ def widen_case(path: pathlib.Path, spelling: str, order: list[str]) -> list[tupl
     return edits
 
 
-def revert_case(path: pathlib.Path, edits: list[tuple[str, str]]) -> None:
+def widen_refusal(sidecar: pathlib.Path, spelling: str, order: list[str]) -> list[tuple[str, str]]:
+    """Add `spelling` to a refusal entry's `refuse-at` (wiseowl/diagnostics/<id>.json), the file's form otherwise kept."""
+    raw = sidecar.read_text(encoding="utf-8")
+    m = re.search(r'"refuse-at"\s*:\s*(\[[^\]]*\])', raw)
+    if m is None:
+        raise SystemExit(f"{TOOL}: {sidecar} holds no refuse-at list")
+    new = '"refuse-at": [' + ", ".join(f'"{e}"' for e in add_edition(json.loads(m.group(1)), spelling, order)) + "]"
+    if new == m.group(0):
+        return []
+    sidecar.write_text(raw.replace(m.group(0), new, 1), encoding="utf-8", newline="")
+    return [(m.group(0), new)]
+
+
+def revert(path: pathlib.Path, edits: list[tuple[str, str]]) -> None:
     raw = path.read_text(encoding="utf-8")
     for old, new in reversed(edits):
         if new not in raw:
-            raise SystemExit(f"{TOOL}: {path}: the widened line {new!r} is no longer there to revert")
+            raise SystemExit(f"{TOOL}: {path}: the widened text {new!r} is no longer there to revert")
         raw = raw.replace(new, old, 1)
     path.write_text(raw, encoding="utf-8", newline="")
 
 
+def refused_at(c: CaseInfo, spelling: str, compiler: pathlib.Path, scratch: pathlib.Path) -> str | None:
+    """Why the refusal test `c` does not refuse at the edition (None when it does): compiled at `--std` with `compiler`,
+    the compilation must fail and report the entry's code or text, as the gate's refusal row requires."""
+    out = scratch / "refusals" / c.key.replace("/", "_")
+    out.mkdir(parents=True, exist_ok=True)
+    r = subprocess.run([str(compiler), str(c.path), "--std", spelling, "--source-format", c.source_format,
+                        "-o", str(out / "p.dll")], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                       cwd=c.path.parent, timeout=600)
+    if r.returncode == 0:
+        return f"accepted at {spelling}"
+    return None if c.expect in r.stdout + r.stderr else f"refused at {spelling} without {c.expect!r}"
+
+
 def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathlib.Path, scratch: pathlib.Path) -> dict[str, Any]:
-    """Widen every `widen` case of `plan` to `ed`, then keep only those the generator accepts and the harness passes at
-    `ed` with `compiler`: the others are reverted, each with why. Writes nothing but case headers in the suite."""
+    """Widen every `WIDEN` and `WIDEN_REFUSAL` case of `plan` to `ed` (a flagged case's control with it), then keep only
+    what the generator accepts and what passes at `ed` with `compiler` (an accepted or flagged case through the harness,
+    run.py, on the generator's own manifest entries; a refusal test by its compilation): the rest is reverted, each with
+    why. It edits case headers and refusal entries only. The gate's run of the edition's suite is the proof that lands."""
     order = inventory_schema.load_schema().editions
-    widened: dict[str, list[tuple[str, str]]] = {}
+    sp = ed.spelling
+    widened: dict[str, list[tuple[pathlib.Path, list[tuple[str, str]]]]] = {}
     for k, c in sorted(plan["cases"].items()):
-        if c["status"] == "widen":
-            info = w.cases[k]
-            edits = widen_case(info.path, ed.spelling, order)
-            if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")):
-                edits_ctl = widen_case(ctl.path, ed.spelling, order) if ed.spelling not in ctl.accept else []
-                widened[ctl.key] = edits_ctl
-            widened[k] = edits
+        info = w.cases.get(k)
+        if c["status"] == WIDEN:
+            group = [(info.path, widen_case(info.path, sp, order))]
+            if info.flag_at and info.control and (ctl := w.cases.get(f"{k.rsplit('/', 1)[0]}/{info.control}")) \
+                    and sp not in ctl.accept:
+                group.append((ctl.path, widen_case(ctl.path, sp, order)))
+            widened[k] = group
+        elif c["status"] == WIDEN_REFUSAL:
+            widened[k] = [(info.refusal, widen_refusal(info.refusal, sp, order))]
     reverted: dict[str, str] = {}
+
+    def undo(k: str, why: str) -> None:
+        for path, edits in reversed(widened.pop(k)):
+            revert(path, edits)
+        reverted[k] = why
+
     gen = scratch / "suites"
-    run = subprocess.run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
-                         capture_output=True, text=True, encoding="utf-8", cwd=REPO)
+
+    def generate() -> subprocess.CompletedProcess[str]:
+        return subprocess.run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
+                              capture_output=True, text=True, encoding="utf-8", cwd=REPO)
+
+    run = generate()
     refused = {m.group(1) for m in re.finditer(r"REFUSED\s+((?:wiseowl/)?cases/[^:]+?)\.(?:cob|cbl):", run.stdout)}
-    for k in sorted(refused & set(widened)):
-        revert_case(w.cases[k].path, widened.pop(k))
-        reverted[k] = "the generator refuses it at the edition"
-    if refused - set(widened) - set(reverted):
-        raise SystemExit(f"{TOOL}: the generator refuses cases this run did not widen: {sorted(refused - set(reverted))[:5]}")
-    if run.returncode != 0 and not refused:
-        raise SystemExit(f"{TOOL}: generate.py failed:\n{run.stdout[-2000:]}{run.stderr[-2000:]}")
-    if reverted:
-        run = subprocess.run([sys.executable, str(SUITE / "harness" / "generate.py"), "--out", str(gen)],
-                             capture_output=True, text=True, encoding="utf-8", cwd=REPO)
-        if run.returncode != 0:
-            raise SystemExit(f"{TOOL}: generate.py still refuses after the reverts:\n{run.stdout[-2000:]}")
-    manifest = json.loads((gen / "wiseowl" / "manifest.json").read_text(encoding="utf-8"))
-    ids = {pathlib.PurePath(k).name for k in widened}
-    entries = [t for t in manifest["editions"][ed.spelling] if t["id"] in ids]
-    suites = scratch / "run-suites" / ed.spelling
-    suites.mkdir(parents=True, exist_ok=True)
-    (suites / "manifest.json").write_text(json.dumps({"edition": ed.spelling, "generator": manifest["generator"],
-                                                      "tests": entries}, indent=1), encoding="utf-8")
-    results = scratch / "results"
-    subprocess.run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
-                    f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", ed.spelling,
-                    "--out", str(results)], cwd=REPO, check=False)
-    verdicts = {t["id"]: t["verdict"] for t in json.loads((results / "results.json").read_text(encoding="utf-8"))["tests"]
-                if t.get("edition") == ed.spelling}
-    for k in sorted(widened):
-        v = verdicts.get(pathlib.PurePath(k).name)
-        if v != "PASS":
-            revert_case(w.cases[k].path, widened.pop(k))
-            reverted[k] = f"the harness's verdict at {ed.spelling} is {v}"
+    if stray := sorted(refused - set(widened)):
+        raise SystemExit(f"{TOOL}: the generator refuses cases this run did not widen: {stray[:5]}")
+    for k in sorted(refused):
+        undo(k, f"the generator refuses it at {sp}")
+    if refused:
+        run = generate()
+    if run.returncode != 0:
+        raise SystemExit(f"{TOOL}: generate.py refuses the tree:\n{run.stdout[-2000:]}{run.stderr[-2000:]}")
+    accepted = [k for k in widened if plan["cases"][k]["status"] == WIDEN]
+    if accepted:
+        manifest = json.loads((gen / "wiseowl" / "manifest.json").read_text(encoding="utf-8"))
+        ids = {pathlib.PurePath(k).name for k in accepted}
+        suites = scratch / "run-suites" / sp
+        suites.mkdir(parents=True, exist_ok=True)
+        (suites / "manifest.json").write_text(json.dumps(
+            {"edition": sp, "generator": manifest["generator"],
+             "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1), encoding="utf-8")
+        results = scratch / "results"
+        subprocess.run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
+                        f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", sp,
+                        "--out", str(results)], cwd=REPO, check=False)
+        verdicts = {t["id"]: t["verdict"] for t in json.loads((results / "results.json").read_text(encoding="utf-8"))["tests"]
+                    if t.get("edition") == sp}
+        for k in accepted:
+            if (v := verdicts.get(pathlib.PurePath(k).name)) != "PASS":
+                undo(k, f"the harness's verdict at {sp} is {v}")
+    for k in [k for k in widened if plan["cases"][k]["status"] == WIDEN_REFUSAL]:
+        if why := refused_at(w.cases[k], sp, compiler, scratch):
+            undo(k, why)
     return {"widened": sorted(widened), "reverted": reverted}
 
 
 # -- the audit ----------------------------------------------------------------------------------------------------------
 
 def stored_errors(ed: Edition, rows: Iterable[dict[str, Any]], slices: list[Slice], w: Witnesses | None) -> list[str]:
-    """Why a STORED change record whose source names a read record of `ed` does not stand: the record is missing, its read
-    is not a SAME its refuter UPHELD, it carries into other rules than the read, or (with `w`) a rule it carries into has
-    no witness at the edition."""
+    """Why a STORED change record of `ed` does not stand: one whose source names a read record is that record's decision
+    (the record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's
+    rules); and, for an edition whose records close on own-edition evidence (`Edition.own_evidence`), with `w`, every
+    stored KEPT record, whatever its source, still has a witness at the edition for each rule it carries into."""
     by_slice = {s.name: s for s in slices}
     prefix = f"lineage-reads-{ed.year}/"
     errs = []
     for r in rows:
         nxt = r.get("next") or {}
         src = nxt.get("source") or ""
-        if not nxt.get("kind") or not src.startswith(prefix):
+        if not nxt.get("kind"):
             continue
-        rid, name = r["rule-id"], src[len(prefix):].removesuffix(".json")
-        s = by_slice.get(name)
-        read = s.reads.get(rid) if s else None
-        f = s.refutes.get(rid) if s else None
-        if read is None:
-            errs.append(f"{rid}: its source {src} holds no read of the rule")
-        elif nxt["kind"] != KEPT:
-            errs.append(f"{rid}: a {nxt['kind']} record from a read: a read writes KEPT records only")
-        elif read.verdict != "SAME" or f is None or f.verdict != "UPHELD":
-            errs.append(f"{rid}: its read is {read.verdict} and its refuter {f.verdict if f else 'absent'}: a KEPT record "
-                        "needs a SAME the refuter UPHELD")
-        elif list(read.to) != list(nxt.get("to") or []):
-            errs.append(f"{rid}: it carries into {nxt.get('to')}, its read into {list(read.to)}")
-        elif w is not None and (gone := w.missing(ed, nxt["to"])):
-            errs.append(f"{rid}: no conformance-suite witness of {gone} runs at {ed.spelling} any more: the evidence at "
-                        "the row's own edition is gone (widen the band again or give the rule a witness of its own)")
+        rid = r["rule-id"]
+        if src.startswith(prefix):
+            name = src[len(prefix):].removesuffix(".json")
+            s = by_slice.get(name)
+            read = s.reads.get(rid) if s else None
+            f = s.refutes.get(rid) if s else None
+            if read is None:
+                errs.append(f"{rid}: its source {src} holds no read of the rule")
+                continue
+            if nxt["kind"] != KEPT:
+                errs.append(f"{rid}: a {nxt['kind']} record from a read: a read writes KEPT records only")
+                continue
+            if read.verdict != "SAME" or f is None or f.verdict != "UPHELD":
+                errs.append(f"{rid}: its read is {read.verdict} and its refuter {f.verdict if f else 'absent'}: a KEPT "
+                            "record needs a SAME the refuter UPHELD")
+                continue
+            if list(read.to) != list(nxt.get("to") or []):
+                errs.append(f"{rid}: it carries into {nxt.get('to')}, its read into {list(read.to)}")
+                continue
+        if nxt["kind"] == KEPT and ed.own_evidence and w is not None and (gone := w.missing(ed, nxt.get("to") or [])):
+            errs.append(f"{rid}: no conformance-suite witness of {gone} runs at {ed.spelling}: a KEPT record of {ed.year} "
+                        "closes on evidence produced at its own edition (widen the band again, or give the rule a "
+                        "witness of its own and re-decide the record)")
     return errs
 
 
 def read_years(repo: pathlib.Path = REPO) -> list[int]:
-    return [y for y in inventory_schema.HELD if reads_dir(y, repo).is_dir()]
+    """The held editions this audit holds: those with read records, and those whose records close on own-edition evidence."""
+    return [e.year for e in inventory_schema.load_schema().all_editions
+            if e.held and not e.newest and (reads_dir(e.year, repo).is_dir() or e.own_evidence)]
 
 
 def check(years: list[int]) -> int:
@@ -722,9 +796,12 @@ def check(years: list[int]) -> int:
         slices = load(y)
         rows = inventory_view.inventory(y)
         from_reads = [r for r in rows if ((r.get("next") or {}).get("source") or "").startswith(f"lineage-reads-{y}/")]
-        errs = stored_errors(ed, rows, slices, Witnesses.of(ed.next_held) if from_reads else None)
+        kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
+        w = Witnesses.of(ed.next_held) if ed.own_evidence and kept else None
+        errs = stored_errors(ed, rows, slices, w)
         print(f"{y}: {len(slices)} read record(s), {sum(len(s.reads) for s in slices)} rule(s) read; {len(from_reads)} "
-              f"stored record(s) from reads")
+              f"stored record(s) from reads; {len(kept)} KEPT record(s)"
+              + (", each held to a witness at its own edition" if ed.own_evidence else ""))
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:

@@ -45,9 +45,13 @@ AUDITS = (
     # adjudication of its change records starts from the catalogs as they are.
     ("LINEAGE CANDIDATES", ["scripts/spec/lineage.py", "--candidates", "--check"]),
     # kb/Work PB5589: every held edition with a lineage-screen trigger table has its screen current (the pending-clause
-    # diff, the definitions, each trigger's flags), every stored change record answers the flags on its pair, and the
-    # regression fixture's caught DIFFERENT pairs are all flagged. What the table owes is printed, never red.
+    # diff, the definitions, each trigger's flags) and the regression fixture's caught DIFFERENT pairs are all flagged.
+    # What the table owes, and each stored record a flag now asks a new question (kb/Work PB5597), is printed, never red.
     ("LINEAGE SCREEN", ["scripts/spec/lineage_screen.py", "--check"]),
+    # kb/Work PB5597: every read record of an older edition's rules interprets (the one normalization), every stored
+    # change record whose source names one is that read's decision (a SAME its refuter upheld), and every stored KEPT
+    # record of an edition that closes on own-edition evidence (2002) still has a suite witness that runs there.
+    ("LINEAGE READS", ["scripts/spec/lineage_reads.py", "--check"]),
     # kb/Work PB689, PB5256: the independent count critic, every held ISO edition: each rule block holds exactly the
     # ordinals its transcription prints, but where the catalog records a finding that explains the difference.
     ("CATALOG COVERAGE", ["scripts/spec/audit_catalog_coverage.py", "--held", "--check"]),
