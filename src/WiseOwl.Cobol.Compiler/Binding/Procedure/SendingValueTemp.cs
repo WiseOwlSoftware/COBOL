@@ -425,22 +425,24 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// description entry … having the same class, category, usage, and length as literal-1". The returned place is the
     /// item the literal is MOVEd into (a pre-op, ahead of the carrying statement) and whose image the statement releases.
     /// <see cref="Materialize"/> leaves a literal alone, and rightly: its callers hold a VALUE against a later change, which
-    /// a literal's cannot suffer. Null for a zero-length literal, which no item describes.</summary>
+    /// a literal's cannot suffer. A zero-length literal is held in a dynamic-length item (§2023:8.5.1.10) whose current length
+    /// is 0 — §2023:14.9.51.4 GR14 sizes the record from the literal's own length and a length-0 record is legal.
+    /// A boolean literal is <c>PIC 1(n)</c> with the USAGE DISPLAY a missing USAGE clause implies (§2023:13.18.24.4 GR2c,
+    /// §2023:13.18.60.3 SR13 b)): one character position per digit, never the packed USAGE BIT.</summary>
     internal Place? MaterializeLiteral(BoundStringLiteral literal, string tag)
     {
-        if (literal.Value.Length == 0) return null;
         var (category, usage) = literal.Category switch
         {
             PicCategory.National => (PicCategory.National, Usage.National),
-            PicCategory.Boolean => (PicCategory.Boolean, Usage.Bit),
+            PicCategory.Boolean => (PicCategory.Boolean, Usage.Display),
             _ => (PicCategory.Alphanumeric, Usage.Display),
         };
         var model = new DataItem
         {
             Level = 1, CobolName = "__LITERAL-MODEL", ClrName = "__literalModel",
-            Pic = new PicInfo(category, usage, Length: literal.Value.Length, Digits: 0, Scale: 0, Signed: false),
+            Pic = new PicInfo(category, usage, Length: Math.Max(literal.Value.Length, 1), Digits: 0, Scale: 0, Signed: false),
         };
-        return Positioned(null, () => FreezeAs(literal, new TempModel(model, DynLimit: 0), tag));
+        return Positioned(null, () => FreezeAs(literal, new TempModel(model, DynLimit: literal.Value.Length == 0 ? 1 : 0), tag));
     }
 
     /// <summary>The body of <see cref="Freeze"/> once the intermediate's description is known.</summary>
