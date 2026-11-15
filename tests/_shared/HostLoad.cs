@@ -51,31 +51,42 @@ internal static class HostLoad
     /// <summary>How many durable flushes <see cref="DurableFlushLine"/> times.</summary>
     internal const int FlushProbes = 5;
 
-    /// <summary>The time a durable flush (<c>FlushFileBuffers</c> / <c>fsync</c>) of a small file takes on the volume of
-    /// <paramref name="directory"/>, as one line for a non-observation (kb/Work PB5147). A process that spent its budget
-    /// off the processor on a host that was not busy was blocked, and a program whose every statement flushes a file
-    /// (the MCS device of a SEND flushes it before the store commits it) is blocked in exactly that call when the volume
-    /// flushes slowly; the line says how slowly, so the next reader reads the stall off the line instead of guessing it.
-    /// The probe file is created in, and removed from, that directory; an instrument that cannot probe says so.</summary>
+    /// <summary>The time the two durable barriers of a small file take on the volume of <paramref name="directory"/>, as one
+    /// line (kb/Work PB5147): a flush (<c>FlushFileBuffers</c> / <c>fsync</c>) after a write, and a write-through append
+    /// (<c>FILE_FLAG_WRITE_THROUGH</c> / <c>O_SYNC</c>), the barrier an MCS device's SEND makes (<c>McsStore.Transmit</c>).
+    /// A process that spent its budget off the processor on a host that was not busy was blocked, and a program whose
+    /// every statement makes a barrier is blocked in exactly that call when the volume is slow; the line says how slow
+    /// each barrier is, so the reader reads the stall, and what the device's barrier costs against a flush, off the line.
+    /// The probe files are created in, and removed from, that directory; an instrument that cannot probe says so.</summary>
     public static string DurableFlushLine(string? directory)
     {
         string dir = RunDirectory(directory);
-        string probe = Path.Combine(dir, ".flush-probe-" + Guid.NewGuid().ToString("N"));
         try
         {
-            var times = new List<TimeSpan>(FlushProbes);
-            using (var handle = File.OpenHandle(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None, FileOptions.DeleteOnClose))
+            var flushes = new List<TimeSpan>(FlushProbes);
+            var appends = new List<TimeSpan>(FlushProbes);
+            byte[] one = [1];
+            using (var handle = File.OpenHandle(ProbeFile(dir), FileMode.CreateNew, FileAccess.Write, FileShare.None, FileOptions.DeleteOnClose))
             {
-                byte[] one = [1];
                 for (int i = 0; i < FlushProbes; i++)
                 {
-                    RandomAccess.Write(handle, one, 0);
+                    RandomAccess.Write(handle, one, i);
                     long start = System.Diagnostics.Stopwatch.GetTimestamp();
                     RandomAccess.FlushToDisk(handle);
-                    times.Add(System.Diagnostics.Stopwatch.GetElapsedTime(start));
+                    flushes.Add(System.Diagnostics.Stopwatch.GetElapsedTime(start));
                 }
             }
-            return DescribeFlushes(times);
+            using (var handle = File.OpenHandle(ProbeFile(dir), FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                FileOptions.DeleteOnClose | FileOptions.WriteThrough))
+            {
+                for (int i = 0; i < FlushProbes; i++)
+                {
+                    long start = System.Diagnostics.Stopwatch.GetTimestamp();
+                    RandomAccess.Write(handle, one, i);   // each append extends the file, as a device's SEND does
+                    appends.Add(System.Diagnostics.Stopwatch.GetElapsedTime(start));
+                }
+            }
+            return DescribeFlushes(flushes, appends);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException)
         {
@@ -83,21 +94,27 @@ internal static class HostLoad
         }
     }
 
+    private static string ProbeFile(string dir) => Path.Combine(dir, ".flush-probe-" + Guid.NewGuid().ToString("N"));
+
     /// <summary>The directory a child started with <paramref name="workingDirectory"/> runs in: that directory, or, when the
     /// start names none, the one the child inherits, the current directory of this process (which may be on another volume
     /// than the temp directory, so the probe must not read the temp directory's flush time for it).</summary>
     internal static string RunDirectory(string? workingDirectory) =>
         string.IsNullOrEmpty(workingDirectory) ? Environment.CurrentDirectory : workingDirectory;
 
-    /// <summary>The line for the flush times of the probes: their median and their largest, in milliseconds.</summary>
-    internal static string DescribeFlushes(IReadOnlyList<TimeSpan> times)
+    /// <summary>The line for the probes' times: the median and the largest of the flushes and of the write-through appends, in
+    /// milliseconds.</summary>
+    internal static string DescribeFlushes(IReadOnlyList<TimeSpan> flushes, IReadOnlyList<TimeSpan> appends)
     {
-        if (times.Count == 0) return "durable flush on the run volume: not probed";
+        if (flushes.Count == 0 || appends.Count == 0) return "durable flush on the run volume: not probed";
+        return $"durable flush on the run volume: {Spread(flushes)}; write-through append: {Spread(appends)}";
+    }
+
+    private static string Spread(IReadOnlyList<TimeSpan> times)
+    {
         var ordered = times.Order().ToArray();
-        double median = ordered[ordered.Length / 2].TotalMilliseconds;
-        double worst = ordered[^1].TotalMilliseconds;
         return string.Create(CultureInfo.InvariantCulture,
-            $"durable flush on the run volume: median {median:0.0} ms, worst {worst:0.0} ms of {ordered.Length} probes");
+            $"median {ordered[ordered.Length / 2].TotalMilliseconds:0.0} ms, worst {ordered[^1].TotalMilliseconds:0.0} ms of {ordered.Length} probes");
     }
 
     /// <summary>Linux's 1-, 5- and 15-minute run-queue averages (<c>/proc/loadavg</c>): how many processes wanted a
