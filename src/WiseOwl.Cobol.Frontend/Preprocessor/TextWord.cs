@@ -181,9 +181,9 @@ internal static class TextWordScanner
                 pos += ReferenceFormatProcessor.DebugLineCarrier.Length;       // the debugging line's text is scanned
                 continue;
             }
-            if (IsCommentEntryCarrierAt(text, pos))
+            if (IsCommentEntryCarrierAt(text, pos) || IsCopyNoteAt(text, pos))
             {
-                while (pos < n && text[pos] != '\n') pos++;                    // a carried comment-entry line is a single space
+                while (pos < n && text[pos] != '\n') pos++;                    // a carried comment-entry line and a COPY note are a single space
                 continue;
             }
 
@@ -236,6 +236,11 @@ internal static class TextWordScanner
     /// that only a later stage can decide (docs/CONFORMANCE.md D-CE2). <see cref="TryNext"/> skips what it starts.</summary>
     private static bool IsCommentEntryCarrierAt(string text, int pos)
         => string.CompareOrdinal(text, pos, CommentEntryCarrier.Prefix, 0, CommentEntryCarrier.Prefix.Length) == 0;
+
+    /// <summary>Whether the compiler's own note for a COPY statement that brought in no text (<see cref="CopyProcessor.NotePrefix"/>)
+    /// begins at <paramref name="pos"/>.</summary>
+    private static bool IsCopyNoteAt(string text, int pos)
+        => string.CompareOrdinal(text, pos, CopyProcessor.NotePrefix, 0, CopyProcessor.NotePrefix.Length) == 0;
 
     private static bool IsDebugLineCarrierAt(string text, int pos)
         => string.CompareOrdinal(text, pos, ReferenceFormatProcessor.DebugLineCarrier, 0,

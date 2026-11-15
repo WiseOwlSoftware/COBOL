@@ -124,11 +124,15 @@ public sealed class Frontend
             var passLineMap = new SourceLineMap(processed.Lines);
             LineMap = passLineMap;
             var passAreas = new FixedFormAreas(passLineMap, formats);
-            var (tree, parsed, sourceDebuggingLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
+            int diagnosticsBeforeLexing = passDiagnostics.Diagnostics.Count;
+            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics, passAreas);
             // A debugging line the §2023:6.5 walk passed over as a comment between the parts of a literal, and that the unit's
             // WITH DEBUGGING MODE makes source, is a source line there (kb/Work PB2490).
             referenceFormatGates.OnSourceDebuggingLines(
                 sourceDebuggingLines.Select(t => passLineMap.Origin(t.Line)).OfType<SourceOrigin>());
+            // The COBOL-85 `*>` the text stages left in the text, judged now that the debugging comment treatment has said which
+            // of it is comment (kb/Work PB5588).
+            referenceFormatGates.ReportSurvivingFloatingComments(commentLines, diagnosticsBeforeLexing);
             bool mayMatter = directives.HasLineScopedEvents() || encounters.Directives.Any(e => e.ChangesState)
                 || formats.Values.Any(f => f.DirectiveLines.Count > 0);
             // The ops are read off the parse tree even when the parse reported errors: the state an op restores is what
@@ -396,8 +400,10 @@ public sealed class Frontend
         text = resolved.Text.Text;
         var lineOrigins = resolved.Text.Lines;
         // ⛔ COBOL-85 HAS NO FLOATING COMMENT INDICATOR (kb/Work PB5470): its fixed-form conversion left `*>` in the text as an
-        // ordinary text-word for COPY and REPLACE to read, so what survives to here is refused once, as the 2002 introduction.
-        SurvivingFloatingComments.Report(resolved.Text, referenceFormatGates);
+        // ordinary text-word for COPY and REPLACE to read, so what survives to here is the 2002 introduction. It is NOTED here and
+        // refused once, in Parse, after the debugging comment treatment: a debugging section's and a debugging line's text is
+        // compiled as comment lines without WITH DEBUGGING MODE, and a comment line holds any character (kb/Work PB5588).
+        SurvivingFloatingComments.Note(resolved.Text, referenceFormatGates);
 
         // >>LEAP-SECOND (ISO §2023:7.3.17): the ON/OFF toggles the binder folds at each compilation unit's first line — the
         // §2023:15.3 date/time consumers' fact (kb/Work PB65 — it used to be consumed and discarded; kb/Work PB1378 — it is
@@ -443,7 +449,7 @@ public sealed class Frontend
     /// error was reported); the tree of a parse that reported errors is the parser's RECOVERED one, for the one reader that
     /// can use it (<see cref="Parse"/>'s §2023:14.9.28.4 GR14 op placement) and never an answer to hand on.
     /// </summary>
-    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParse(
+    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParse(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
         // The pass's earlier stages (line entry, COPY, directives) reported into <diagnostics> already; the attempt bags below
@@ -466,7 +472,7 @@ public sealed class Frontend
         while (true)
         {
             var attemptDiagnostics = new DiagnosticBag();
-            var (tree, parsed, sourceDebuggingLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts);
+            var (tree, parsed, sourceDebuggingLines, commentLines) = LexAndParseOnce(text, sourcePath, cobolWordsMap, retypes, edition, priorErrors, attemptDiagnostics, cuts);
             if (tree.TokenRetypes.LexesDifferentlyFrom(retypes, edition))
             {
                 retypes = tree.TokenRetypes;
@@ -474,13 +480,13 @@ public sealed class Frontend
             }
             foreach (var d in attemptDiagnostics.Diagnostics) diagnostics.Add(d);
             diagnostics.AddCompileOutput(attemptDiagnostics.CompileOutput);
-            return (tree, parsed, sourceDebuggingLines);
+            return (tree, parsed, sourceDebuggingLines, commentLines);
         }
     }
 
     /// <summary>One lex + parse of <paramref name="text"/> with <paramref name="retypes"/> priming the lexer (see
     /// <see cref="LexAndParse"/>), reporting into <paramref name="diagnostics"/>.</summary>
-    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines) LexAndParseOnce(
+    private (CobolParserCore.CompilationUnitContext Tree, bool Parsed, IReadOnlyList<IToken> SourceDebuggingLines, IReadOnlySet<int> CommentLines) LexAndParseOnce(
         string text, string sourcePath, CobolWordsMap cobolWordsMap, TokenRetypes retypes, EditionInfo edition,
         bool priorErrors, DiagnosticBag diagnostics, IMarginRCutLocator cuts)
     {
@@ -495,6 +501,7 @@ public sealed class Frontend
         // stream) and the final stream's own (kb/Work PB2490).
         var sourceDebuggingLines = new List<IToken>();
         var misplacedDebuggingLines = new List<IToken>();   // the final stream's own (§1985:VI.7.3)
+        var commentLines = new HashSet<int>();   // the text lines the final stream makes comment (kb/Work PB5588)
         LexerErrorListener lexErrors;
         while (true)
         {
@@ -504,8 +511,10 @@ public sealed class Frontend
             tokens = new CommonTokenStream(lexer);
             var streamSourceLines = new List<IToken>();
             misplacedDebuggingLines.Clear();
+            commentLines.Clear();
             if (DebuggingLineRewriter.Rewrite(tokens, streamSourceLines, misplacedDebuggingLines,
-                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002)) is not { } sourceRegionLine)
+                    debuggingSectionsAreComments: ConstructRegistry.IsAvailable(edition, Constructs.UseForDebuggingRemoved2002),
+                    commentLines: commentLines) is not { } sourceRegionLine)
             {
                 sourceDebuggingLines.AddRange(streamSourceLines);
                 break;
@@ -613,7 +622,7 @@ public sealed class Frontend
                     sourcePath, cuts, diagnostics);
         }
 
-        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines);
+        return (tree, parser.NumberOfSyntaxErrors == 0 && !embeddedBlocks.Any, sourceDebuggingLines, commentLines);
     }
 
     /// <summary>§1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
