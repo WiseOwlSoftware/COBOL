@@ -361,6 +361,13 @@
    ],
    "why": "compile-time arithmetic: the directives of §2002:7.2 and the constant entry §2002:13.9"
   },
+  "compile-time-arithmetic-is-standard-decimal": {
+   "sections": [
+    "7.2",
+    "13.9"
+   ],
+   "why": "compile-time arithmetic: the directives of §2002:7.2 and the constant entry §2002:13.9"
+  },
   "indexed-read-previous-after-open-at-end": {
    "sections": [
     "14.8.29"
