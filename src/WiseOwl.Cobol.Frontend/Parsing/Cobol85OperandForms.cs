@@ -78,23 +78,34 @@ public static class Cobol85OperandForms
 
     /// <summary>Whether a written subscript has one of the X3.23-1985 forms (§1985:IV.4.3.8.2.2): integer-1, positive if
     /// signed (§1985:IV.4.3.8.2.3 SR6), or a data-name or index-name optionally followed by + or - an unsigned nonzero
-    /// integer (§1985:III.2). The SHAPE half: <c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c> asks the description
-    /// half (SR5) of the subscripts this passes, so neither reports a subscript the other has.</summary>
+    /// integer (§1985:III.2). The data-name is never <see cref="IsSubscripted">subscripted</see> (SR5: "Data-name-2 may be
+    /// qualified"), so <c>ELEM (IE (2))</c> is an arithmetic expression, the 2002 form (kb/Work PB5564). The SHAPE half: <c>SubscriptBinder.ScreenCobol85SubscriptDataNames</c> asks the description half (SR5) of
+    /// the subscripts this passes, so neither reports a subscript the other has.</summary>
     public static bool IsSubscript(Core.SubscriptItemContext item)
     {
         if (item.functionArgument()?.arithmeticExpression() is not { } arith) return true;   // ALL / a non-arithmetic operand: another rule's
         var terms = arith.additiveExpression().multiplicativeExpression();
         var first = SolePrimary(terms[0]);
+        bool dataName = first?.dataReference() is { } name && !IsSubscripted(name);
         return terms.Length switch
         {
-            1 => first?.dataReference() is not null
+            1 => dataName
                 || (terms[0].powerExpression() is [var power] && power.unaryExpression() is [var unary]
                     && IsInteger(unary, Cobol85IntegerSign.Positive)),
-            2 => first?.dataReference() is not null
+            2 => dataName
                 && SolePrimary(terms[1])?.numericLiteral() is { } integer2 && IsInteger(integer2, Cobol85IntegerSign.None),
             _ => false,
         };
     }
+
+    /// <summary>⛔ A SUBSCRIPTED DATA REFERENCE IS NO X3.23-1985 <c>data-name</c> (kb/Work PB5564): §1985:III.2, a 'data-name' in a
+    /// general format "must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of
+    /// the format", and the subscript's data-name-2 is permitted qualification only (§1985:IV.4.3.8.2.3 SR5). A subscript on
+    /// the word or on any qualifier (<c>IE (2)</c>, <c>IE OF G (2)</c>) makes the written subscript an arithmetic expression,
+    /// the 2002 form. Only the subscript is asked: a reference-modified operand is alphanumeric, §2023:8.8.1.1's refusal
+    /// (COBOL0844) at every edition, so a 2002 refusal beside it would name an edition that does not admit it either.</summary>
+    private static bool IsSubscripted(Core.DataReferenceContext reference) =>
+        reference.dataReferenceSuffix().Any(s => s.subscriptPart() is not null || s.qualification()?.subscriptPart().Length > 0);
 
     /// <summary>The data reference a subscript is when its first term is one, alone or before <c>{+|-} integer</c>; null
     /// otherwise.</summary>
