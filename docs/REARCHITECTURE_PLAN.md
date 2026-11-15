@@ -39,9 +39,18 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   PB5602's and PB5620's landings merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **2,282 GAP** (2,562 before
   the first 2002 golden-lane landing), 324 adjudicated: CONFORMS 314, DIVERGES 9, PARTIAL 1. The 2002 golden lane (gl2002, kb/Work PB5597) gives
   each 2002 row a witness of its own at `--std 2002`; 24 of its 85 input files are integrated so far.
+- **▶ ONE OWN-EDITION RULE FOR EVERY OLDER EDITION (kb/Work PB5675, 2026-11-15).** A KEPT row of 1985 or 2002 closes
+  only on its chain AND a witness of its own, a suite case that runs at its own edition (design section 10.6; the
+  2002-only switch `own-edition-evidence` is gone). At this branch's base 1985 stood at **32 GAP**, 2002 at 2,258 and
+  2023 at 0; after it 1985 stands at **835 GAP** (803 inherited without an own-edition witness, 14 never adjudicated,
+  18 open), 2002 at 2,258 and 2023 at 0. This is the count becoming true, not a regression: 570 of the 1,373 stored 1985
+  KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
+  some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
+  terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
+  verdicts, never as new KEPT records (its word-identical pairing is empty).
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
-  NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2. The 2026-11-12 method: code-read waves over rows whose witness exists
+  NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded by the line above for the GAP count). The 2026-11-12 method: code-read waves over rows whose witness exists
   (pipeline `coderead-85-pipe.js`, Opus readers and refuters, each closing verdict refuted before it counts); rows held
   from earlier waves decided by adjudicators and recorded through `record_verdicts.py --edition 1985`; mismatching
   drafts re-run and triaged; and the COPY drafts unblocked by kb/Work PB5067 (landed). The dated records are the

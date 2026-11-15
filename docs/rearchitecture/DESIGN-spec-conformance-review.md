@@ -1768,8 +1768,9 @@ none of correct, wrong or not probed is kept as written and its row listed `unin
    pair (the slices `t-*` and `u-*` read the rules no word-identical twin pairs: their `to` is a nearest-rule POINTER, or
    empty) is never KEPT: its SAME is the work item `own-verdict-from-pointer` (the row is recorded with its own verdict,
    citing the pointer's witness once it runs at the edition), and the import leaves it OPEN in the run;
-4. the evidence is at the row's own edition and of the KIND the rule needs, for an edition whose schema entry says
-   `own-edition-evidence` (2002; `inventory_schema.Edition.own_evidence`; review R1-1). `lineage_reads.Witnesses` is the
+4. the evidence is at the row's own edition and of the KIND the rule needs, at EVERY older edition (review R1-1; kb/Work
+   PB5675: one rule, and no schema key names it; owner 2026-11-15: "the same argument for the 2002 rules applies
+   equally to the 1985 rules"). `lineage_reads.Witnesses` is the
    generator's own reading of the suite. A case ACCEPTED at the edition (its `accept` names it; `generate.check_cases`
    refuses it there unless every rule it cites has the edition in its band) runs a program whose output the gate
    compares, and witnesses any rule. A DIAGNOSIS at the edition (a flagged case's `at`, a refusal test's
@@ -1788,7 +1789,10 @@ none of correct, wrong or not probed is kept as written and its row listed `unin
    the rule states (a form only its general format shows). A general, argument or returned-value rule witnessed only by a
    refusal is refused `no own-edition witness` (the review found 160 of 222 kept records resting on refusals alone, three
    of them behaviour rules such as START with no KEY). A unit or C# test is no witness at an older edition: it does not
-   run there. One function holds 3 and 4 (`lineage_reads.kept_problems`), shared by the import, the writer and the audit.
+   run there. One function holds 3 and 4 for a NEW record (`lineage_reads.kept_witnesses`: `pairing_problems`, then
+   the candidate search `Witnesses.search` through the targets' cases), shared by the import's decisions and the writer.
+   The cases it finds are the record's OWN WITNESS: the writer writes them as the row's `test-ref` (`conformance:<key>`,
+   the one form that runs at an older edition; `lineage.next_errors` refuses another on a KEPT row).
 `change-batch` refuses each record that fails 2, 3 or 4 ALONE (kb/Work PB5597, review R2-4 of PB5589: no step of an audit run
 produced `answers`, so a run holding one flagged pair was refused whole); it writes the rest and lists each refused record
 with every reason in `<out>.refused.json`.
@@ -1820,16 +1824,40 @@ band is evidence only in the COMMITTED tree: a case file or refusal entry the wo
 uncommitted one ran nowhere. The widened cases land in their own branch, whose gate is the
 proof; only then are the KEPT records written.
 
-**The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job):
-every read record interprets and still matches the digests it was imported with; every stored change record whose source
-names a read record is that read's decision (the record holds a read of the rule, the read is a SAME its refuter UPHELD,
-the record is KEPT into the read's rules); and, for an edition that closes on own-edition evidence, every stored KEPT
-record, whatever its source, passes `kept_problems`: the pairing's targets, each witnessed at the edition by a case of the
-kind the rule needs. A later change that narrows a witness's band, or rewrites a read under a stored record, turns it red.
+**A KEPT row closes on its own witness, at every older edition (kb/Work PB5675).** The chain says the older rule states
+the newer one's requirement; it does not show the compiler meets it at the older `--std`. So a chained row's state
+(`lineage.state_of`, mirrored by the C# `SpecTraceabilityInventoryDriftTests.StateAt`) is OK only when its chain is
+closed (section 10.2) AND it carries a spec-derived `test-ref` of its own (`Schema.has_spec_derived_test`, the predicate
+a newest row closes on). The state reads only the row's own fields, so every view stays a join of the store with the
+catalog and no view reads the suite. Nothing in the evidence test reads the direction or the target of the lineage
+pointer: the targets are where the writer LOOKS for candidate cases, and once found the cases are the row's own. A
+chained row with no witness of its own is a GAP, and every per-edition report counts such rows apart from the rows
+nobody adjudicated (`inventory_view.gap_causes`: the session probe's `invent` line, `inventory_view.py --summary` and
+the ledger's per-edition line). A stored record's witness is written by `python scripts/spec/lineage_reads.py
+witness-batch --edition YEAR --out BATCH`, the writer's candidate search over the stored record's targets (the read's
+licence where the record came from one), one witness-only record per row it finds a witness for at EVERY target, applied
+by `record_verdicts.py --edition YEAR`; a second run writes nothing. The audit of a STORED record asks no pairing: the
+pairing is word-identical text, and it is the writer's test of a NEW record only.
 
-**The edition parameter.** Every step takes the edition. For 1985, whose KEPT records were written by its own audit
-before the own-edition rule existed, the schema names no `own-edition-evidence`, and `lineage_reads.py own-edition
---edition 1985 --out FILE` measures the stored records against the rule without changing them.
+**The audit.** `python scripts/spec/lineage_reads.py --check` (the gate's LINEAGE READS, and a step of CI's audits job),
+over every older held edition, one reading of the suite shared by all: every read record interprets and still matches
+the digests it was imported with; every stored change record whose source names a read record is that read's decision
+(the record holds a read of the rule, the read is a SAME its refuter UPHELD, the record is KEPT into the read's rules);
+and every stored KEPT row's own witnesses are each a conformance-suite case that runs at the row's edition, ACCEPTED
+there, or only diagnosed there for a diagnosable rule or a read whose licence passes `licence_problem`
+(`Witnesses.own_problems`, which reads the row's references and its rule, never a target). A later change that narrows
+a witness's band, moves or deletes its case, or rewrites a read under a stored record, turns it red, naming the row and
+the case: an evidence loss is never one more GAP. The WITNESS LOSS audit (`audit_witness_loss.py --check`) compares
+every held edition's rows with the merge base's, so a witness erased from a chained row is red as a newest row's is.
+
+**1985, the earliest edition.** The 1985 pairing pairs none of its 2,274 rules (its wording never matches 2023's word
+for word), so the writer refuses every new 1985 KEPT record (`targets are not the pairing's`). That is intended: 1985 is
+the earliest edition and inherits from nothing, and its rows are recorded with their own verdicts, each with a test-ref
+that runs at 85, never as new KEPT records. The 1,373 KEPT records its own audit stored before the rule stand as
+records; each closes only on a witness of its own, which `witness-batch` found for 570 of them (every target witnessed
+at 85); 232 have a witness for some targets and 571 for none, so they are GAP (measured 2026-11-15: 1985 from 32 GAP to
+835, the count becoming true). The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
+terms is still owed, so 835 is a lower bound.
 
 **Measured on 2026-11-15** at the head of review round 2 (all 69 slices then written, the `t-*` slices included; 1,720
 rules): kept before the evidence check 300; refused 632, every one for a flag the screen raises and the slice never asked
@@ -1839,5 +1867,4 @@ targets or the evidence 361; a record counted under each reason it has). The gra
 that a refusal alone had witnessed; the licence check refused none of the kept declined facilities (every licence they
 state opens with a checked 2002 citation; the 107 values that begin `none` or `not needed` are refused). `record_verdicts.py
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
-finds 66 widenable and 30 that need a witness of their own. 1985, held to the same kinds: of 1,373 stored KEPT records,
-802 have a witness of the kind the rule needs at 85 for at least one target and 570 for every target; 571 have none.
+finds 66 widenable and 30 that need a witness of their own.
