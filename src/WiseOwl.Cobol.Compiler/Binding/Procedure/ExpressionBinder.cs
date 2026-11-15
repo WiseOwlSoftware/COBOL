@@ -187,7 +187,7 @@ internal static class OperandContextRules
 /// FieldOperand with the keyword-omitted-function, LINAGE-COUNTER §2023:8.4.3.14, RW-counter §2023:8.4.3.15 and
 /// index-name §2023:13.18.38 interceptions), the EXPRESSION spine (<see cref="BindExpr"/> / BindChain / BindPower /
 /// BindPrimary / the breadth-first <see cref="BindOperandExpr"/> wrapper descent / NumLiteral, with
-/// <see cref="CheckLiteral"/> carrying its DECIMAL-POINT normalization + edition digit-cap window AS-IS — the
+/// <see cref="CheckLiteral"/> carrying its DECIMAL-POINT normalization + exponent-range window AS-IS (the digit capacity is asked by LiteralScreen) — the
 /// sanctioned binder-side pattern), and the RECEIVING family (<see cref="ResolveReceiving"/> — THE one
 /// receiving-side chokepoint — ResolveReceiving / ResolveReceivingAtStore / Receivers×3 / RoundingOf §2023:14.7.4). Host edges that remain
 /// (host.Intrinsic / host.Rw) flip at 10t; the generic tree static Children STAYS on
@@ -280,11 +280,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>A <c>literal</c> node as an operand: the non-numeric forms through the ONE
-    /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal under the edition digit cap
-    /// (ISO §2023:8.3.3.3.2).</summary>
+    /// <see cref="NonNumericLiteralOperand"/> mapping, else a numeric literal (its digit capacity is asked by
+    /// LiteralScreen, ISO §2023:8.3.3.3.2).</summary>
     public BoundOperand LiteralOperand(Core.LiteralContext lit)
     {
-        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the digit-cap and exponent-range screens stand at the literal
+        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the exponent-range screen stands at the literal
         return NonNumericLiteralOperand(lit.nonNumericLiteral())
             ?? NumericLiteralOperand(lit.GetText());
     }
@@ -548,7 +548,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The bound operand <paramref name="alias"/> stands for: the SAME shape the equivalent written literal
     /// produces (the <see cref="ConcatOperand"/> precedent) — a numeric constant through <see cref="NumericLiteralOperand"/>,
-    /// so the edition digit-cap window applies to the substituted literal exactly as to a written one — and a
+    /// whose digit capacity the constant entry and the evaluator ask, not this site — and a
     /// symbolic-character as <see cref="SymbolicOperand"/>, the bare figurative.</summary>
     internal BoundOperand AliasOperand(LiteralAlias alias) =>
         alias.Constant is { } k
@@ -1243,7 +1243,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// docs/rearchitecture/DESIGN-binder-bound-tree.md's funnel entry table rather than left to be rediscovered.</param>
     private BoundExpr NumLiteral(Core.LiteralContext lit, string? positionRule = null)
     {
-        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the literal's own position, for the digit-cap and range screens
+        using var _ = ctx.Edition.At(lit);   // kb/Work PB4406 — the literal's own position, for the range screen
         return NonNumericInNumericContext(lit.nonNumericLiteral(), lit.GetText(), positionRule)
             ?? NumericLiteralExpr(lit.GetText());
     }
@@ -1363,8 +1363,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §2023:12.3.7.4 GR14 a) — the comma form
-    /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
-    /// (ISO §2023:8.3.3.3.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
+    /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and bound a floating-point literal's
+    /// exponent. The ONE literal chokepoint for the expression paths. The digit count (ISO §2023:8.3.3.3.2 — 1..18 at
+    /// COBOL-85, 1..31 at 2002+) is not asked here: it is a property of the literal as written, asked once for every
+    /// position by <c>LiteralScreen</c> (kb/Work PB5529).</summary>
     public string CheckLiteral(string text)
     {
         text = ctx.Data.SpecialNames.NormalizeNumericLiteral(text);
@@ -1398,8 +1400,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                     + "1E-6176 to 9.99E+6144 (ISO §2023:8.3.3.3.3 r3; §2023:8.8.1.5.2 r2; CONFORMANCE.md §7)");
             return text;
         }
-        int digits = text.Count(char.IsAsciiDigit);
-        ctx.Edition.CheckDigitCapacity(digits, $"numeric literal '{text}'");
         return text;
     }
 
