@@ -59,3 +59,11 @@ split across two lines. Rejoining it fixed the audit. The second gate: `=== BUIL
 differ`: every one is an ADDED line naming exactly the new cases at 2002, with no CSHARP, DIAGNOSTICS or REMOVED
 line.
 
+**Merged with PB5602 (queued ahead).** The queue would have removed this pull request for a merge conflict with
+worktree-wf_7d5ef379-5e3-25 (kb/Work PB5602 landed), so its head was merged in. The one conflict, PB5602's
+`inventory_rows`, keeps the landed list and this branch's 2002-GR-12.3.4.4.3-2. With PB5602's fix in, the two DIVERGES
+records that named it were wrong: the repros `r2c_reckey_subscripted_seq.cob` and `r5_relkey_subscripted.cob` now print
+`R:ZA`/`R:AB` and `R3=AAAA`/`INV1` at --std 2002. New golden `g2acc03_subscripted_key_access` (12.3.4.4@2002) witnesses
+the subscripted arms of GR2 c) and GR3 a) and b): an indexed file written QC, ZA, MB reads back as ZA, MB, QC under a
+RECORD KEY of IXS-K(2). `record_verdicts.py --edition 2002` re-recorded 2002-GR-12.3.4.4.3-2 and -3 CONFORMS, and GAP
+went from 2,323 to 2,321 at the merged head (2,321 GAP, CONFORMS 275, DIVERGES 10). Both rows leave PB5602's `inventory_rows`.

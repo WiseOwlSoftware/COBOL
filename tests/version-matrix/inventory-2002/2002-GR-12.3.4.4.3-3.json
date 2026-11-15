@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-12.3.4.4.3-3",
  "rule-digest": "109b123a8096",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape",
- "notes": "kb/Work PB5602: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) a subscripted RELATIVE KEY (legal at 2002) is refused COBOL2024, so the subscripted arm of GR3 a) cannot run."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenOperandOccurrence",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic; conformance:cases/12.3.4.4@2002-ACCESS-MODE-CLAUSE/g2acc03_subscripted_key_access",
+ "notes": "§2002:12.3.4.4.3 GR3: under random access the relative key value (a) and the record key value (b) pick the record (l1c12_access_mode_random_dynamic). The subscripted arms, RELATIVE KEY RK(2) and RECORD KEY IXR-K(2), were refused COBOL2024 until kb/Work PB5602 landed; g2acc03 reads record 3 at RK(2) = 3 and finds none at RK(2) = 1 with RK(1) = RK(3) = 3, and reads MB at IXR-K(2) = B. Both cases (2002) run at --std 2002 on the merged head of golden-2002-1 matched their derived .out."
 }

@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-12.3.4.4.3-2",
  "rule-digest": "762981f4f2a5",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape",
- "notes": "kb/Work PB5602: at --std 2002 (golden-2002-1 re-probe on main b15bb9088f) a subscripted RECORD KEY (legal at 2002) is refused COBOL2024, so the subscripted key-of-reference arm of GR2 c) cannot run."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenOperandOccurrence",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_sequential_default; conformance:cases/12.3.4.4@2002-ACCESS-MODE-CLAUSE/g2acc03_subscripted_key_access",
+ "notes": "§2002:12.3.4.4.3 GR2: sequential access reads sequential files in write order, relative files in ascending RRN and indexed files ascending within the key of reference (l1c12_access_mode_sequential_default). The subscripted key-of-reference arm of c), RECORD KEY IXS-K(2), was refused COBOL2024 until kb/Work PB5602 landed; g2acc03 now reads records written QC, ZA, MB in the order ZA, MB, QC. Both cases (2002) run at --std 2002 on the merged head of golden-2002-1 matched their derived .out."
 }
