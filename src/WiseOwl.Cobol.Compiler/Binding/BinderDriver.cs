@@ -259,10 +259,9 @@ internal sealed class BinderDriver
         // The declined-optional-element pass (ISO Annex A.4.1) — a THIRD sibling on the same footing: it answers
         // "does this implementation claim support for this optional module", which is orthogonal to both the
         // edition axis (VersionConformancePass) and the directive axis (FlagConformancePass). It refuses the
-        // DATA DIVISION surfaces of the declined A.4.14 VALIDATE facility by name (COBOL1708); the declined
-        // STATEMENTS keep their own bind-time
-        // recognize-and-warn arm, and the declined modules' EXCEPTION-NAMES are refused in the one written-name
-        // funnel (EcNameResolution → COBOL1710). A no-op below COBOL-2002.
+        // DATA DIVISION clauses of the A.4.14 VALIDATE facility that no stage builds yet, by name (COBOL1708; kb/Work PB5577); the
+        // statement itself binds (ValidateBinder), and a declined module's EXCEPTION-NAMES are refused in the one written-name
+        // funnel (EcNameResolution; EC-SCREEN). A no-op below COBOL-2002.
         global::WiseOwl.Cobol.Validation.DeclinedFacilityPass.Run(ctx, edition);
 
         // The closed-general-format pass (ISO §2023:4.2.2) — a FOURTH sibling on the same footing, and the one that

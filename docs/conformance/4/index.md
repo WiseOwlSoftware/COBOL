@@ -9,14 +9,8 @@ WHICH annex licenses the decline, and the distinction is normative, not stylisti
 * A **processor-dependent** element (Annex A.3, §2023:4.2.6) may be accepted, and §2023:4.2.6 ¶3 makes the compile-time
   **warning mechanism** mandatory — so the MCS *statements* and the RECORD DELIMITER
   *clause* is accepted-inert with a named **Warning** (COBOL1778) and the program still runs.
-  ⛔ **The VALIDATE statement (COBOL1580) is in this band but NOT under this licence** (kb/Work PB709):
-  VALIDATE is Annex A.4.14 and is not listed in Annex A.3 at all, so §2023:4.2.6 mandates nothing about it. §2023:4.2.7
-  requires only that its non-support be identified here (item 3 below, and §5 row A.4.14); accepting it inert
-  and naming it, rather than refusing it, is a documented CHOICE, taken because the facility is additive — a
-  program with a VALIDATE statement has a well-defined meaning with the facility inert — and because §2023:4.2.13
-  additionally makes it obsolete at COBOL-2023. Citing §2023:4.2.6 for it would claim a mandate the standard does
-  not give and would misdescribe the posture: a decline under the processor-dependent clause reads "we could
-  not", a decline under the optional clause reads "we chose not to, and documented it".
+  (The VALIDATE statement was accepted inert with the warning COBOL1580 until kb/Work PB5577 implemented it in stages; item 3 below records which
+  stages exist.)
 * An **optional** element (Annex A.4, §2023:4.2.7) is different: A.4.1 says an implementation "shall accept the syntax
   and provide the functionality for an optional element **only when support for that language element is claimed
   by the implementor**". For a module, or the part of one, that §5 does not claim, accepting the syntax is itself the

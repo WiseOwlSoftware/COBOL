@@ -1,7 +1,6 @@
       *>--- conformance-case
       *> id: dns_validate_picture_locale_witness
       *> rules: [GR-13.18.40.4-19]
-      *> accept: [2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -15,28 +14,11 @@
       *> opens with the same first sentence, so a shortened quote
       *> resolves to the Format-1 twin. The locale sentence is unique
       *> to rule 19, which sits under the printed FORMAT 2 heading.
-      *> The rule's whole trigger is the VALIDATE statement, and the
-      *> VALIDATE facility is DECLINED: OPTIONAL (§2023:4.2.7, Annex A.4.14)
-      *> and, at COBOL-2023, also OBSOLETE (§2023:4.2.13, Annex F.2 item 5) —
-      *> docs/CONFORMANCE.md §4 item 3. No format validation stage ever
-      *> executes, so GR19 has no occasion to apply.
-      *> WITNESS: the named COBOL1580 non-support warning, which is
-      *> the WHOLE discriminating evidence (pinned by
-      *> DocumentedNonSupportWitnessTests). The .out pins INERTNESS
-      *> ONLY — control passes through the VALIDATE and N reaches 1.
-      *> AN UNCHANGED SUBJECT IS NOT EVIDENCE THAT NO FORMAT VALIDATION
-      *> STAGE RAN. §2023:14.9.50.4 GR5 — "the execution of the VALIDATE
-      *> statement does not terminate and the content of the invalid
-      *> data item does not change" — and §2023:13.18.17.4 GR1 — "The data
-      *> item itself remains unchanged" — make an unchanged subject the
-      *> CONFORMING outcome too, and §2023:14.9.50.4 GR6 writes into an
-      *> operand only through a DESTINATION clause (stage two) and a
-      *> VALIDATE-STATUS item (stage five), neither of which this entry
-      *> declares. A behavioural discriminator would have to be GR6
-      *> e)'s EC-VALIDATE-FORMAT under >>TURN EC-VALIDATE CHECKING ON,
-      *> never the subject's content. M is compared against its own
-      *> saved image rather than displayed, so the expectation pins
-      *> SHAPE-independence, not a locale's currency string.
+      *> The rule's whole trigger is the VALIDATE statement. The statement is implemented (kb/Work PB5577,
+      *> docs/rearchitecture/DESIGN-validate-facility.md), but the format check of an EDITED picture (a currency symbol and the
+      *> locale's monetary specification, which is what GR19 adds) is a later stage of that design, so VALIDATE of an operand
+      *> holding an edited item is refused (COBOL7363): a validation that passed it as valid would report a record the
+      *> standard calls invalid (§2023:14.9.50.4 GR6 a). The program is otherwise legal; this pins the refusal, not GR19.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1VALW01.
        ENVIRONMENT DIVISION.

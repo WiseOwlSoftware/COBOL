@@ -485,13 +485,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// constructs an edition REMOVED. A declined optional element has no pre-removal semantics to preserve —
     /// but SOME declines do have an INERT reading, and whether this one does is the descriptor's
     /// <see cref="DiagnosticDescriptor.PermissiveInert"/> fact, read in <see cref="Refuses"/> and nowhere else. The
-    /// axis is whether an accepted element could change the answer the source states. A decline whose sibling
-    /// STATEMENT is already accept-inert (the A.4.14 VALIDATE clauses beside COBOL1580) can be tolerated under
-    /// <c>--permissive</c> and bound to a no-op. A declined
-    /// module's exception-name (COBOL1710) is tolerated too, but it RESOLVES as an ordinary exception-name:
-    /// no statement of the declined facility sets its condition (§2023:14.6.13.1.1), so only a RAISE of the name
-    /// raises it, exactly as written (§2023:14.9.29.4 GR1), and its USE declarative or WHEN phrase then runs — an
-    /// observable result, but the one the source states (docs/CONFORMANCE.md §4). A decline that would REBIND the
+    /// axis is whether an accepted element could change the answer the source states. A decline of a clause the
+    /// facility's statement does not yet act on (the A.4.14 VALIDATE clauses, COBOL1708, while kb/Work PB5577 builds the stages) can be tolerated under
+    /// <c>--permissive</c> and bound to a no-op. (A declined module's exception-name was tolerated too, and RESOLVED as an ordinary
+    /// exception-name, while the EC-VALIDATE family was declined: COBOL1710, retired with PB5577.) A decline that would REBIND the
     /// source to a different construct cannot: an inert A.4.2 screen ACCEPT is re-read as the device ACCEPT
     /// and moves the wrong data (COBOL1560/1707), an inert FORMAT clause changes which bytes reach the
     /// medium (1705), an inert WRITE FILE writes the wrong record (1706). Those four are
