@@ -34,19 +34,6 @@ internal static class FileEntryIdentity
     private static string AlternateEntry(AlternateKeyClause a) =>
         $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}";
 
-    /// <summary>⛔ THE ORDER AN EXTERNAL CONNECTOR'S ALTERNATE KEYS ARE REGISTERED AND ADDRESSED IN (kb/Work PB5567): the keys sorted
-    /// by their §2023:12.4.5.3 GR1 k) entry, as the identity's ALT segment is, so two describers that list the same alternate keys in
-    /// another order (§1985:IX.2.3.3 SR1) agree on which connector key each one names. Entry i of the result is the connector index
-    /// of <see cref="FileModel.AlternateKeys"/>[i]; equal entries keep their declaration order.</summary>
-    public static int[] AlternateKeyConnectorOrder(FileModel f)
-    {
-        var entries = f.AlternateKeys.Select(a => AlternateEntry(a.Clause)).ToArray();
-        var byEntry = Enumerable.Range(0, entries.Length).OrderBy(i => entries[i], StringComparer.Ordinal).ToArray();
-        var connectorIndex = new int[entries.Length];
-        for (int position = 0; position < byEntry.Length; position++) connectorIndex[byEntry[position]] = position;
-        return connectorIndex;
-    }
-
     /// <summary>⛔ THE ONE §2023:12.4.5.3 GR1 IDENTITY of an external file connector's file control entry — the string two
     /// describers' <c>ExternalStore.Describe</c> registrations compare for EC-EXTERNAL-FILE-MISMATCH (§2023:14.8.4.4: "the
     /// rules specified in 12.4.5, File control entry General rule 1 apply"). One segment per GR1 item that the entry

@@ -397,24 +397,10 @@ public sealed class FileModel
     /// resolved list, so the two are not index-aligned in exactly the case a syntax rule has to talk about.</summary>
     public List<AlternateKeyClause> AlternateKeyNames { get; } = [];
 
-    /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).
+    /// <summary>The resolved alternate keys, in declaration order (the CLAUSE index: the connector's key index is the emitter's <c>ConnectorKeyIndex</c>, which orders the keys by their physical descriptors).
     /// <c>Suppress</c> is the §2023:12.4.5.6.4 GR6 key suppression value sized to the key (null = no SUPPRESS WHEN
     /// phrase, or an operand §2023:12.4.5.6.3 SR7 refused).</summary>
     public List<(RecordKey Key, bool Duplicates, KeySuppression? Suppress, AlternateKeyClause Clause)> AlternateKeys { get; } = [];
-
-    /// <summary>For an EXTERNAL file: the connector's key index of each <see cref="AlternateKeys"/> entry, so the connector index of
-    /// the i-th alternate is <c>AlternateKeyConnectorIndex[i]</c>; null for any other file (its connector is private to the entry
-    /// and takes the declaration order). Every describer of one external connector shares ONE connector, and
-    /// §2023:12.4.5.3 GR1 k) / §1985:IX.2.3.3 SR1 leave the order of the ALTERNATE RECORD KEY clauses out of their specification, so
-    /// the connector's order is the one <c>FileEntryIdentity.AlternateKeyConnectorOrder</c> derives from the identity alone, the
-    /// same for every describer. Set by <c>BackendAnswers</c> beside <see cref="SelectFingerprint"/>; read by the emitter that
-    /// registers the keys and by the verbs that name one (<see cref="ConnectorKeyIndex"/>).</summary>
-    public int[]? AlternateKeyConnectorIndex { get; set; }
-
-    /// <summary>The connector's index of the key of reference <paramref name="keyIndex"/> (−1 = prime, i = the i-th alternate in
-    /// declaration order): <see cref="AlternateKeyConnectorIndex"/> applied to an alternate.</summary>
-    public int ConnectorKeyIndex(int keyIndex) =>
-        keyIndex >= 0 && AlternateKeyConnectorIndex is { } map && keyIndex < map.Length ? map[keyIndex] : keyIndex;
 
     /// <summary>The SOURCE-form keys of this file that a reference <paramref name="recordKeyName"/>
     /// <paramref name="qualifiers"/> names — the ONE answer to ISO §2023:14.9.30.3 SR11 / §2023:14.9.41.3 SR7 / §2023:12.4.5.7.3

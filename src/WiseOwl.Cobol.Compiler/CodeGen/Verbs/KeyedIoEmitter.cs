@@ -70,25 +70,54 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             return;
         }
         w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
-        // In the CONNECTOR'S order (FileModel.AlternateKeyConnectorIndex): the verbs below name a key by that index, and every
-        // describer of an external connector must agree on it whatever order its clauses were written in (kb/Work PB5567).
-        foreach (int i in Enumerable.Range(0, file.AlternateKeys.Count).OrderBy(file.ConnectorKeyIndex))
+        // In the CONNECTOR'S order (ConnectorKeyIndex): the verbs below name a key by that index.
+        var registrations = AlternateRegistrations(file);
+        foreach (int i in Enumerable.Range(0, registrations.Count).OrderBy(i => ConnectorKeyIndex(file, i)))
         {
-            var (alt, dups, suppress, _) = file.AlternateKeys[i];
-            if (KeySegments(alt, file.FixedFormRecords) is not { } altKey)
+            if (registrations[i] is not { } args)
             {
-                w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.Face}' not "
+                w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{file.AlternateKeys[i].Key.Face}' not "
                     + "locatable in the record image (ISO §2023:12.4.5.6)"));
                 continue;
             }
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, args.Key, args.Duplicates, args.Collation, args.Suppress)};");
+        }
+        SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §2023:14.9.30.4 GR15 + §2023:13.18.13.4 GR2
+    }
+
+    /// <summary>Each ALTERNATE RECORD KEY clause's registration arguments, as <see cref="RuntimeApi.FileAddAlternateKey"/> takes them, in
+    /// declaration order; null for a key with no locatable window.</summary>
+    private List<(string Key, string Duplicates, string Collation, string Suppress)?> AlternateRegistrations(FileModel file)
+    {
+        var list = new List<(string, string, string, string)?>(file.AlternateKeys.Count);
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+        {
+            var (alt, dups, suppress, _) = file.AlternateKeys[i];
+            if (KeySegments(alt, file.FixedFormRecords) is not { } altKey) { list.Add(null); continue; }
             var altCollation = i < file.AlternateKeyCollations.Count ? file.AlternateKeyCollations[i] : null;
             // §2023:12.4.5.6.4 GR6 — the key suppression value, already sized to the key (FileControlBinder.KeySuppressionOf);
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, altKey, dups ? "true" : "false", CollationLit(altCollation), sup)};");
+            list.Add((altKey, dups ? "true" : "false", CollationLit(altCollation), sup));
         }
-        SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §2023:14.9.30.4 GR15 + §2023:13.18.13.4 GR2
+        return list;
+    }
+
+    /// <summary>⛔ THE CONNECTOR'S KEY INDEX of the file's i-th ALTERNATE RECORD KEY clause (kb/Work PB5567); -1 (the prime key) and a
+    /// non-indexed file's index pass through. The physical file's key table is the order the keys are registered in and
+    /// <c>FixedFileAttributes.Conflicts</c> compares it positionally, so every description of one physical file must register the
+    /// same keys in the same order whatever order its clauses were written in (§2023:12.4.5.3 GR1 k) / §1985:IX.2.3.3 SR1 leave the
+    /// clause order out of the specification) and whether or not its entry is EXTERNAL (one external connector is shared by every
+    /// describer, and the verbs name a key by this index). The order is the registration arguments themselves (key windows,
+    /// DUPLICATES, collation, suppression value) sorted ordinally, so it derives from the physical key descriptors alone, never from a
+    /// data-name or a clause position; equal descriptors keep declaration order and a key with no locatable window goes last.</summary>
+    private int ConnectorKeyIndex(FileModel file, int clauseIndex)
+    {
+        if (clauseIndex < 0 || file.Organization != FileOrganization.Indexed) return clauseIndex;
+        var registrations = AlternateRegistrations(file);
+        string Descriptor(int i) => registrations[i] is { } a ? $"0|{a.Key}|{a.Duplicates}|{a.Collation}|{a.Suppress}" : "1";
+        return Enumerable.Range(0, registrations.Count).OrderBy(Descriptor, StringComparer.Ordinal).ToList().IndexOf(clauseIndex);
     }
 
     /// <summary>A record key's byte windows as the connector takes them (<see cref="RuntimeApi.KeySegments"/>): one
@@ -197,7 +226,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 string keyImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // the WHOLE area (kb/Work PB5217)
                 string? keyExtents = area is not null ? OperandText.RecordSendExtents(area) : null;
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, file.ConnectorKeyIndex(rd.KeyIndex), keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
+                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, ConnectorKeyIndex(file, rd.KeyIndex), keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
                 break;
         }
         using (w.Block($"if ({IoStatusClass.Successful(st)})"))
@@ -501,7 +530,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             string areaImage = SeqIo.RecordAreaSendImage(file) ?? "\"\"";   // THE ONE record-area channel, the WHOLE area (kb/Work PB327, PB5217)
             string? areaExtents = places.RecordArea(file) is { } extentArea
                 ? OperandText.RecordSendExtents(extentArea) : null;   // its extent table (D-FRA (v); kb/Work PB1053)
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, file.ConnectorKeyIndex(sta.KeyIndex), CsLiteral(sta.Op), areaImage, len, areaExtents)};");
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, ConnectorKeyIndex(file, sta.KeyIndex), CsLiteral(sta.Op), areaImage, len, areaExtents)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
