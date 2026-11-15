@@ -347,7 +347,7 @@ public static partial class ConstructRegistry
         new("value-table-format-2002", "the Format 2 (table) VALUE clause", 2002, null, null, "COBOL0900", "ISO §2023:13.18.63.2 Format 2 (table); a COBOL-2002 addition; §2023:13.18.63.4 GR12"),
         new("word-length-63-2023", "COBOL word up to 63 characters", 2023, null, null, "COBOL1567", "ISO §2023:8.3.2.1; Annex E.3.3 item 11 (the 63-character relaxation)"),
         new("write-before-and-after-advancing-2023", "WRITE BEFORE AFTER ADVANCING", 2023, null, null, "COBOL0900", "ISO §2023:14.9.51.2 Format 1 / §2023:14.9.51.4 GR25e-f; Annex E.3.3 item 2 (SR17 forbids PAGE with the pair)"),
-        new("write-rewrite-file-phrase-2002", "the FILE phrase of a WRITE or REWRITE statement", 2002, null, null, "COBOL0900", "ISO §2023:14.9.51.2 and §2023:14.9.35.2 (FILE file-name-1); the ISO/IEC 1989:2002 formats 14.8.47.1 and 14.8.33.1 print it; §1985:VII.4.7.2 and §1985:VII.4.5.2 print record-name-1 alone"),
+        new("write-rewrite-file-phrase-2002", "the FILE phrase of a WRITE or REWRITE statement", 2002, null, null, "COBOL0900", "ISO §2023:14.9.51.2 and §2023:14.9.35.2 (FILE file-name-1) with the rules that exist only for it, §2023:14.9.51.3 SR7 and SR10, §2023:14.9.51.4 GR8, §2023:14.9.35.3 SR10 and §2023:14.9.35.4 GR9; the ISO/IEC 1989:2002 formats 14.8.47.1 and 14.8.33.1 print it; §1985:VII.4.7.2 and §1985:VII.4.5.2 print record-name-1 alone"),
         new("zero-length-literal-2014", "the zero-length literal", 2014, null, null, "COBOL0900", "ISO §2023:8.3.3.1; a COBOL-2014 introduction (derived: VCR row 7.30)"),
     ];
 }

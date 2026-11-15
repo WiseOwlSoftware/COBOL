@@ -3,7 +3,7 @@
  "description": "The FILE file-name-1 alternative of WRITE and REWRITE ({ record-name-1 | FILE file-name-1 } FROM { identifier-1 | literal-1 }, Annex A.4.13 items 1 and 2) - the record released is the FROM operand under the description of the operand (the implicit record of §2023:14.9.51.4 GR8 / §2023:14.9.35.4 GR9; §2002:14.8.47.3 GR5 / §2002:14.8.33.3 GR8). X3.23-1985 prints WRITE record-name-1 and REWRITE record-name-1 only. kb/Work PB5579. Gated in ONE place, VersionConformancePass.ParseArm.VisitWriteStatement / VisitRewriteStatement.",
  "display": "the FILE phrase of a WRITE or REWRITE statement",
  "diagnosticCode": "COBOL0900",
- "citation": "ISO §2023:14.9.51.2 and §2023:14.9.35.2 (FILE file-name-1); the ISO/IEC 1989:2002 formats 14.8.47.1 and 14.8.33.1 print it; §1985:VII.4.7.2 and §1985:VII.4.5.2 print record-name-1 alone",
+ "citation": "ISO §2023:14.9.51.2 and §2023:14.9.35.2 (FILE file-name-1) with the rules that exist only for it, §2023:14.9.51.3 SR7 and SR10, §2023:14.9.51.4 GR8, §2023:14.9.35.3 SR10 and §2023:14.9.35.4 GR9; the ISO/IEC 1989:2002 formats 14.8.47.1 and 14.8.33.1 print it; §1985:VII.4.7.2 and §1985:VII.4.5.2 print record-name-1 alone",
  "introducedIn": 2002,
  "removedIn": null,
  "expectDiagnostic": "COBOL0900",
