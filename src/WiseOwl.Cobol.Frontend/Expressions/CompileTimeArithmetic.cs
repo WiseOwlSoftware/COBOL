@@ -97,8 +97,9 @@ public abstract class CompileTimeArithmetic
         /// serves a value that arrives wider.</summary>
         public override CobolDec? Enter(CobolDec value) => InRange(value.TruncateToSignificantDigits(Digits));
 
-        /// <summary>Each result is "the exact sum / product / quotient truncated to 32 significant digits" and a
-        /// subtraction "shall be equivalent to the evaluation of (operand-1 + (- operand-2))" (§2002:8.8.1.3.3). The
+        /// <summary>Each sum, product and quotient is the exact result truncated to 32 significant digits
+        /// (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5) and a subtraction is the sum with the negated second operand
+        /// (§2002:8.8.1.3.3). The
         /// engine truncates to its own 34 digits first; truncation composes, so cutting that to 32 is the exact result's
         /// 32-digit truncation.</summary>
         public override CobolDec? Apply(char op, CobolDec left, CobolDec right) => InRange(Guard(() => op switch
