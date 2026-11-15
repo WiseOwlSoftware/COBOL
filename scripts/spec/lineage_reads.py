@@ -8,7 +8,8 @@ review.md section 10.6).
                                                     # the IMPORT: DIR's <slice>-read.json and <slice>-refute.json become
                                                     # the tracked read records and an audit run's state (audit_batch.py)
     python scripts/spec/lineage_reads.py --check [YEAR]                 # the gate's LINEAGE READS audit
-    python scripts/spec/lineage_reads.py widen --edition YEAR --state DIR --out PLAN [--apply --compiler EXE]
+    python scripts/spec/lineage_reads.py widen --edition YEAR [--state DIR] --out PLAN [--apply --compiler EXE --scratch DIR]
+                                                    # widen the witnesses of the KEPT rows with none of their own
     python scripts/spec/lineage_reads.py witness-batch --edition YEAR --out BATCH  # the stored KEPT rows' own witnesses
 
 THE OWNER'S RULE (2026-11-14): "2002 spec covers 2002 rules. It should not matter to the 2002 rules whether or not 2023
@@ -847,6 +848,69 @@ RUNS, WIDEN, WIDEN_REFUSAL, BAND, NO_EDITION, MISSING = "runs", "widen", "widen-
 UNCOMMITTED = "uncommitted"
 #: What a widening that does not hold leaves: the row needs a witness of its own at the edition.
 NEEDS_OWN = "needs an own witness"
+#: A planned row's state: a widening gives every lacking target a witness (`WIDENABLE`); none does for some target
+#: (`NEEDS_OWN_WITNESS`, the work kind of the same name); the search already finds a witness for every target, so
+#: `witness-batch` writes it and nothing need widen (`WITNESSED`: a stored row only, kb/Work PB5730).
+WIDENABLE, WITNESSED = "widenable", "witness-batch"
+#: WHY a lacking target of a row has no widening that helps it (kb/Work PB5730), one reason per case by its
+#: `case_status` (`REASON_OF`), and `NO_CASE` for a target whose test-ref names no suite case: the input of the witness
+#: lane, which writes the row's own witness.
+NO_CASE, BAND_HELD, NOT_EVIDENCE, DIAGNOSIS_ONLY, PLACED_NOWHERE, NOT_COMMITTED = (
+    "no-case", "band", "not-evidence", "diagnosis-only", "no-edition", "uncommitted")
+REASON_OF = {
+    MISSING: NO_CASE,            # the test-ref names no case: the target has no suite case at all
+    BAND: BAND_HELD,             # its cases cite a rule the edition does not have: the generator refuses it there
+    WIDEN: NOT_EVIDENCE,         # a flag (or a refusal, below) is no evidence for the rule's kind (`EvidenceTable`)
+    WIDEN_REFUSAL: NOT_EVIDENCE,
+    RUNS: DIAGNOSIS_ONLY,        # it runs at the edition already, but as a diagnosis, for a rule whose kind takes none
+    NO_EDITION: PLACED_NOWHERE,  # the case is placed at no edition
+    UNCOMMITTED: NOT_COMMITTED,  # its band is the working tree's, which no gate ran
+}
+
+
+@dataclasses.dataclass(frozen=True)
+class Unwitnessed:
+    """A KEPT row of an edition with no witness of its own: its rule, the targets it carries into (where the candidate
+    cases are looked for) and where it comes from (`source`: a stored record's `next.source`, or the read record of a
+    read decision)."""
+    rule_id: str
+    to: tuple[str, ...]
+    source: str
+
+
+def bare_kept(rows: Iterable[dict[str, Any]], schema: inventory_schema.Schema) -> tuple[int, list[dict[str, Any]]]:
+    """Of an edition's inventory `rows`, the number of STORED KEPT records and those that carry no witness of their own
+    (`lineage.own_witness_refs`): the walk `witness-batch` and `widen` share."""
+    kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
+    return len(kept), [r for r in kept if not lineage.own_witness_refs(r, schema)]
+
+
+def unwitnessed(rows: Iterable[dict[str, Any]], decisions: Iterable[Decision],
+                schema: inventory_schema.Schema) -> list[Unwitnessed]:
+    """THE POPULATION `widen` plans (kb/Work PB5730): the KEPT rows of the edition that lack a witness of their own, from
+    BOTH sources through this one function: the STORED KEPT records with no own `test-ref` (`bare_kept`, 1985's 1,373
+    records of its comparison audit among them) and the READ DECISIONS refused only for their evidence
+    (`NO_OWN_WITNESS`: a SAME, upheld, every flag answered, the pairing's targets). A rule both sources name is planned
+    once, as its stored record; the two must then carry into the same targets, or the tool stops naming the rule."""
+    out: dict[str, Unwitnessed] = {}
+    for r in bare_kept(rows, schema)[1]:
+        nxt = r["next"]
+        out[r["rule-id"]] = Unwitnessed(r["rule-id"], tuple(nxt.get("to") or ()), nxt.get("source") or "")
+    for d in decisions:
+        if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
+            continue
+        if (prior := out.get(d.rule_id)) is None:
+            out[d.rule_id] = Unwitnessed(d.rule_id, tuple(d.to), d.source)
+        elif sorted(prior.to) != sorted(d.to):
+            raise SystemExit(f"{TOOL}: {d.rule_id}: its stored KEPT record ({prior.source}) carries into "
+                             f"{sorted(prior.to)}, its read ({d.source}) into {sorted(d.to)}: one row, two populations")
+    return list(out.values())
+
+
+def lacking_reasons(ks: list[str], statuses: dict[str, dict[str, Any]]) -> list[str]:
+    """Why a lacking target whose suite cases `ks` give it no helping widening still needs a witness of its own: the
+    closed set `REASON_OF`, one per distinct cause among its cases, or `NO_CASE` when it has none."""
+    return sorted({REASON_OF[statuses[k]["status"]] for k in ks}) if ks else [NO_CASE]
 
 
 def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str:
@@ -867,34 +931,40 @@ def case_status(c: CaseInfo | None, sp: str, bands: dict[str, list[str]]) -> str
     return WIDEN if (c.accept or c.flag_at) else WIDEN_REFUSAL
 
 
-def widen_plan(ed: Edition, decisions: list[Decision], w: Witnesses, lin: Lineage) -> dict[str, Any]:
-    """For each read rule refused ONLY for its evidence (a SAME, upheld, every flag answered, the pairing's targets), each
-    target that lacks a witness of the kind the rule needs: its suite cases and what each can do at `ed`
+def widen_plan(ed: Edition, population: Iterable[Unwitnessed], w: Witnesses, lin: Lineage) -> dict[str, Any]:
+    """For each row of `population` (`unwitnessed`: the KEPT rows of `ed` with no witness of their own, stored or read),
+    each target that lacks a witness of the kind the rule needs: its suite cases and what each can do at `ed`
     (`case_status`). A widening helps a target when it would give it such a witness: an ACCEPTED case always; a
     diagnosis (a flag or a refusal) only for a kind the evidence table names, or a declined facility (review R1-1). A row
-    is `widenable` (every lacking target has a case that helps) or `needs-own-witness`."""
+    is `WIDENABLE` (every lacking target has a case that helps), `NEEDS_OWN_WITNESS` (with `reasons`: for each target no
+    widening helps, why, `lacking_reasons`), or `WITNESSED` (no target lacks one: `witness-batch` writes it). The counts
+    give rows by state and by reason (a row under each reason it carries) and cases by status."""
     sp = ed.spelling
     cases: dict[str, dict[str, Any]] = {}
     rows = []
-    for d in decisions:
-        if d.work or not d.refused or any(r != NO_OWN_WITNESS for r, _ in d.refused):
-            continue
-        kind = lin.kinds.get(d.rule_id, "")
-        lacking = [t for t in d.to if w.search(ed, lin.diagnosable(d.rule_id), [t], None, lin.table)[1]]
-        per_rule, helps = {}, {}
+    for u in population:
+        kind = lin.kinds.get(u.rule_id, "")
+        lacking = [t for t in u.to if w.search(ed, lin.diagnosable(u.rule_id), [t], None, lin.table)[1]]
+        per_rule, reasons = {}, {}
         for t in lacking:
             ks = w.suite_cases(t)
             for k in ks:
                 c = w.cases.get(k)
                 cases.setdefault(k, {"status": case_status(c, sp, w.bands), "rules": list(c.rules) if c else []})
-            diagnosis_counts = lin.diagnosable(d.rule_id) or w.verdicts.get(t) == lin.table.declined
-            helps[t] = any(cases[k]["status"] == WIDEN and (w.cases[k].accept or diagnosis_counts)
-                           or cases[k]["status"] == WIDEN_REFUSAL and diagnosis_counts for k in ks)
+            diagnosis_counts = lin.diagnosable(u.rule_id) or w.verdicts.get(t) == lin.table.declined
+            if not any(cases[k]["status"] == WIDEN and (w.cases[k].accept or diagnosis_counts)
+                       or cases[k]["status"] == WIDEN_REFUSAL and diagnosis_counts for k in ks):
+                reasons[t] = lacking_reasons(ks, cases)
             per_rule[t] = ks
-        rows.append({"rule-id": d.rule_id, "to": list(d.to), "kind": kind, "cases": per_rule,
-                     "state": "widenable" if lacking and all(helps.values()) else "needs-own-witness"})
+        row = {"rule-id": u.rule_id, "to": list(u.to), "source": u.source, "kind": kind, "cases": per_rule,
+               "state": WITNESSED if not lacking else NEEDS_OWN_WITNESS if reasons else WIDENABLE}
+        if reasons:
+            row["reasons"] = reasons
+        rows.append(row)
     return {"edition": ed.year, "rows": rows, "cases": cases,
             "counts": {"rows": dict(sorted(collections.Counter(r["state"] for r in rows).items())),
+                       "reasons": dict(sorted(collections.Counter(
+                           x for r in rows for x in {x for v in r.get("reasons", {}).values() for x in v}).items())),
                        "cases": dict(sorted(collections.Counter(c["status"] for c in cases.values()).items()))}}
 
 
@@ -1162,8 +1232,7 @@ def witness_batch(year: int, out: pathlib.Path) -> int:
     w, lin = Witnesses.of(ed.next_held), Lineage.of(ed)
     lic = licences(load(year))
     prefix = f"lineage-reads-{year}/"
-    kept = [r for r in inventory_view.inventory(year, schema) if (r.get("next") or {}).get("kind") == KEPT]
-    bare = [r for r in kept if not lineage.own_witness_refs(r, schema)]
+    kept, bare = bare_kept(inventory_view.inventory(year, schema), schema)
     records, some, none = [], 0, 0
     for r in bare:
         to = r["next"].get("to") or []
@@ -1180,11 +1249,26 @@ def witness_batch(year: int, out: pathlib.Path) -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"batch": f"own-edition-witnesses-{year}", "records": records}, indent=1,
                               ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
-    print(f"witness-batch {year}: {len(kept)} stored KEPT row(s), {len(kept) - len(bare)} with a witness of their own; "
+    print(f"witness-batch {year}: {kept} stored KEPT row(s), {kept - len(bare)} with a witness of their own; "
           f"of the {len(bare)} without one, a witness at {ed.spelling} of the kind the rule needs for every rule it "
           f"carries into: {len(records)} (written -> {out}); for some: {some}; for none: {none}\n"
           f"  apply: python scripts/spec/record_verdicts.py --edition {year} {out}")
     return 0
+
+
+def widen_reads(year: int, state: pathlib.Path | None, tracked: pathlib.Path | None = None) -> list[Slice]:
+    """The read records whose decisions `widen` plans beside the stored rows (kb/Work PB5730): the audit run's (`state`,
+    the run import-reads wrote), or none when the edition has no read records (`tracked`, its tracked records'
+    directory). An edition WITH read records and no `state` stops the tool, saying so: its decisions would be silently
+    missing from the plan."""
+    if state is not None:
+        run = json.loads((state / "reads.json").read_text(encoding="utf-8"))
+        return load(year, pathlib.Path(run["record"]))
+    d = tracked or reads_dir(year)
+    if held := load(year, d):
+        raise SystemExit(f"{TOOL}: widen --edition {year}: {year} has {len(held)} read record(s) ({d}), whose decisions "
+                         "are planned from the audit run import-reads wrote: give it as --state RUN")
+    return []
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1195,7 +1279,8 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd")
     wd = sub.add_parser("widen", help="plan (and with --apply, make) the band widening of the kept rows' witnesses")
     wd.add_argument("--edition", type=int, required=True)
-    wd.add_argument("--state", required=True, help="the audit run import-reads wrote (its read records)")
+    wd.add_argument("--state", help="the audit run import-reads wrote (its read records); required when the edition has "
+                                    "read records, needless when it has none (its stored KEPT rows are planned either way)")
     wd.add_argument("--out", required=True, help="the plan (JSON) to write")
     wd.add_argument("--apply", action="store_true", help="edit the suite's case headers, keeping what passes at the edition")
     wd.add_argument("--compiler", help="with --apply: the cobol executable the harness runs")
@@ -1208,17 +1293,20 @@ def main(argv: list[str] | None = None) -> int:
         return witness_batch(a.edition, pathlib.Path(a.out))
     if a.cmd == "widen":
         ed = edition(a.edition)
-        state = json.loads((pathlib.Path(a.state) / "reads.json").read_text(encoding="utf-8"))
-        slices = load(a.edition, pathlib.Path(state["record"]))
+        if ed.newest:
+            raise SystemExit(f"{TOOL}: widen --edition {a.edition}: the newest edition has no chained rows")
+        slices = widen_reads(a.edition, pathlib.Path(a.state) if a.state else None)
         w, lin = Witnesses.of(ed.next_held), Lineage.of(ed)
-        plan = widen_plan(ed, decide(ed, slices, lineage_screen.committed(a.edition), w, lin), w, lin)
+        decisions = decide(ed, slices, lineage_screen.committed(a.edition), w, lin) if slices else []
+        schema = inventory_schema.load_schema()
+        plan = widen_plan(ed, unwitnessed(inventory_view.inventory(a.edition, schema), decisions, schema), w, lin)
         if a.apply:
             if not a.compiler or not a.scratch:
                 raise SystemExit(f"{TOOL}: widen --apply needs --compiler and --scratch")
             plan["applied"] = widen_apply(plan, w, ed, pathlib.Path(a.compiler), pathlib.Path(a.scratch))
         pathlib.Path(a.out).write_text(json.dumps(plan, indent=1) + "\n", encoding="utf-8", newline="\n")
-        print(f"widen {a.edition}{'' if a.apply else ' (dry run: nothing edited)'}: rows {plan['counts']['rows']}; cases "
-              f"{plan['counts']['cases']} -> {a.out}")
+        print(f"widen {a.edition}{'' if a.apply else ' (dry run: nothing edited)'}: rows {plan['counts']['rows']}; rows "
+              f"needing an own witness, by reason {plan['counts']['reasons']}; cases {plan['counts']['cases']} -> {a.out}")
         if a.apply:
             got = plan["applied"]
             print(f"  {'resumed an unfinished run: ' if got['resumed'] else ''}proven and written {len(got['widened'])} "
