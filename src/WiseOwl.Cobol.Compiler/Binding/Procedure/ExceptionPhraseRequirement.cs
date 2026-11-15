@@ -5,6 +5,7 @@ using WiseOwl.Cobol.Binding.Model;
 using WiseOwl.Cobol.Editions.Diagnostics;
 using WiseOwl.Cobol.Frontend.Generated;
 using WiseOwl.Cobol.Frontend.Parsing;
+using WiseOwl.Cobol.Runtime.IO;
 
 namespace WiseOwl.Cobol.Binding.Procedure;
 
@@ -23,7 +24,7 @@ using Core = CobolParserCore;
 /// FLAG-14 d asks of the same statements) and, for a sequential file's READ, the AT END phrase. WHEN a procedure is
 /// "applicable" is the USE statement's scope (§1985:VII.4.6.4 GR5 a to e: the procedure runs for the named file, or for any
 /// file open in the named mode): a declarative that names the file, or one scoped to an open mode (INPUT, OUTPUT, I-O,
-/// EXTEND), for the file may be in any mode when a statement executes, one the statement does not suit included (a READ
+/// EXTEND), for the file may be in any mode it can be opened in when a statement executes, one the statement does not suit included (a READ
 /// of a file open OUTPUT raises status 47, which a USE ON OUTPUT procedure takes; CCVS-85's SQ148A is that program).
 /// A declarative of a containing program counts when it is written with the GLOBAL phrase, the only kind a contained
 /// program's statement selects outside its own program (§1985:X.5.5.4 GR1 b and c; <c>BinderDriver.ContainerUsesOf</c>
@@ -70,7 +71,11 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
     /// file, or it is scoped to an open mode (INPUT, OUTPUT, I-O, EXTEND). The file may be in ANY mode when a statement
     /// executes, a mode the statement does not suit included: a READ of a file open OUTPUT raises status 47, which a USE
     /// ON OUTPUT procedure takes (§1985:VII.4.6.4 GR5 c), and CCVS-85's SQ148A is written on exactly that. So a mode
-    /// declarative is applicable to every statement of every file it could cover.</summary>
+    /// declarative is applicable to every statement of every file that can be open in that mode: INPUT, OUTPUT and I-O
+    /// cover every file (a DELETE, REWRITE or START of a file open in the mode raises its exception to that procedure), but
+    /// EXTEND only a file that can be opened EXTEND (<see cref="FileModel.CanOpenExtend"/>; §1985:VIII.4.8.4 GR5: the procedure
+    /// runs "for any file open in the extend mode"), so a keyed file's USE ... ON EXTEND procedure never excuses its phrase
+    /// (kb/Work PB5413).</summary>
     private bool HasApplicableUse(FileModel file)
     {
         foreach (var d in ctx.Table.Declaratives)
@@ -81,7 +86,8 @@ internal sealed class ExceptionPhraseRequirement(BinderContext ctx)
         return false;
 
         static bool Covers(BoundDeclarative d, FileModel file) =>
-            d.Files.Any(f => ReferenceEquals(f, file)) || d.ModeIndex is not null;
+            d.Files.Any(f => ReferenceEquals(f, file))
+            || (d.ModeIndex is { } mode && (mode != (int)FileOpenMode.Extend || file.CanOpenExtend));
     }
 
     /// <summary>One row of the rule: the statement's name, the phrase the rule names, and the 1985 syntax rule that words
