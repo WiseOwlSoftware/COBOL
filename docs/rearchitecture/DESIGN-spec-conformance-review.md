@@ -1884,7 +1884,7 @@ with `bridge: true`), and gives a KEPT row its targets' state (`lineage.state_of
   with this row's own witness). A shared verdict is never presented as an adjudicated one. Where the line-mates a row
   could share from disagree in verdict, nothing is shared: the row needs its own adjudication. How provenance is stored
   is part of the switch's design.
-- **D4. 1985 is the earliest edition: its rows end with ADJUDICATED verdicts of their own.**
+- **D4. 1985 is the earliest edition: it has no predecessor to share from, and every NEW 1985 verdict is an adjudicated one. Whether the 1985 rows closed today on a verdict shared from the 2023 adjudication must each be adjudicated on the 1985 code is kb/Work PB5692's question, decided on its measurement; until then their provenance is `shared`.**
 - **D5. One record format at every landed head.** The change of format is ONE change, the switch; nothing is withdrawn
   before it; no copy of the retired content survives it (CLAUDE.md rule 4).
 - **D6. 2014 is planned only.** The owner, 2026-11-15, asked "We also need to do 2014, don't we?" and then said "If so,
@@ -1906,15 +1906,18 @@ Each requirement carries the acceptance case a design is tested against, with th
   verdict on a 1985 row whose KEPT targets carry different verdicts.
 - **Q2. The edition-gate proofs after the switch are the proofs of today.** An edge is proven only by a relation that IS
   a change (new, removed, or altered with its citation), never by an as-is relation, and a general format proves only a
-  whole diagram new or removed (today's rules, `scripts/spec/edition_gates.py`'s module text). Acceptance, each shown
-  today by `python scripts/spec/edition_gates.py --check` and `--list`:
+  whole diagram new or removed (today's rules, `scripts/spec/edition_gates.py`'s module text). Acceptance (the first
+  two shown today by `python scripts/spec/edition_gates.py --check` and `--list`; the last two as marked):
   - `GR-14.5.3.2-1`, named by 12 1985 KEPT records, does not prove `end-accept-2002` or `end-display-2002` (both held
     open today, `HELD_OPEN`: "§2023:14.5.3.2 GR1 is KEPT");
   - `GR-12.4.5.10.3-3` does not prove `file-organization-record-sequential-2023` (held open today);
-  - a window citing `FMT-14.9.25.2` (MOVE's format, named by one 1985 KEPT record) from 2002 is refused;
-  - the 385 2023 rules named only by many-to-many 1985 KEPT records (of the 853 named only by KEPT records, 4 of them
-    general formats; counted by the review's `splitmerge.py` over `tests/version-matrix/inventory-1985/`) do not become
-    change evidence.
+  - a window citing `FMT-14.9.25.2` (MOVE's format, named by one 1985 KEPT record) from 2002 is refused. No gate
+    cites it today: this case is a self-test the switch must write (plant the window, see it refused);
+  - the 385 2023 rules named only by many-to-many 1985 KEPT records do not become change evidence. The figure is a
+    MEASUREMENT (853 rules named only by KEPT records, 385 of them by a multi-target record or by several records, 4 of
+    those general formats) by the reviewer's script
+    `E:/COBOL-coord/scratch/my-20261115/review-w20262048-a/splitmerge.py`, which is not in the repository; the switch
+    brings the count into a tracked tool.
 - **Q3. No proven edge is lost.** Acceptance: the 9 edges at 2014 and 2023 that rest on a 1985 CHANGED or REMOVED record
   today (`edition_gates.py --list`: 5 ends at 2014, 4 ends at 2023) keep a proof after the switch, among them
   `constructs/communication-facility-removed-2014 [1985, 2014) end 2014: §1985:XIV.2.2.2: 1985-FMT-XIV.2.2.2 REMOVED`,
@@ -1932,11 +1935,25 @@ Each requirement carries the acceptance case a design is tested against, with th
   rule each related to one later rule S, which says nothing of a removal, since a removed rule has no later rule).
   Acceptance: an implementer finds an answer, or "undetermined: read the pair", for every combination of as-is,
   altered, new and removed in each form.
+- **Q7. A shared verdict follows its basis.** A row closed on a verdict shared from a line-mate does not stay closed
+  silently when the basis moves: when the as-is relation it rests on is re-recorded altered or goes STALE, or the
+  line-mate's adjudicated verdict changes in kind, the sharing row reopens, or an audit is red until it is re-judged.
+  Today's chain state does this, because `lineage.state_of` reads the target row's state live, so a switch without it
+  is a regression. Acceptance, both cases; today's behaviour is shown by the C# test
+  `SpecTraceabilityInventoryDriftTests.TheseChecks_ActuallyFail_OnAFabricatedInventory` (its `StateAt` assertions) and
+  by `python scripts/spec/lineage.py --self-test`:
+  1. Rule A is word-identical in 2002 and 2023, and the 2002 row is closed on a shared CONFORMS. A later read records A's
+     relation altered: the 2002 row must not stay closed. Today the same row with its record CHANGED and no verdict of its
+     own is a GAP (`StateAt(kept with { Next = new("CHANGED", ...) })` is `GAP`), and a target whose text changed under
+     its id makes the record STALE and the INVENTORY VIEW audit red (`lineage.stale_targets`).
+  2. The same row, and the 2023 row is re-adjudicated DIVERGES: the 2002 row must not stay closed. Today a KEPT row whose
+     target is not OK is a GAP (`StateAt(kept, ..., Target(..., verdict: ""))` is `GAP`; the self-test's "a KEPT row
+     into two rules is a GAP while either is").
 
 #### 10.7.3 OPEN
 
-- **Is a shared verdict enough to close a row?** Kb/Work PB5692. Until it is decided, rows closed today on a shared
-  basis stay closed as kb/Work PB5597 and PB5675 close them, and the views show their provenance.
+- **Is a shared verdict enough to close a row?** Kb/Work PB5692. Until the switch, a shared verdict is a stored KEPT
+  record, and the views count KEPT rows as they do today; a provenance field in the views arrives with the switch.
 - **The gate derivation and the migration mechanics, to the requirements above.** Kb/Work PB5682.
 - **The `examined` field for the existing reads and the tool-written difference trigger** (Q5). Kb/Work PB5693.
 
