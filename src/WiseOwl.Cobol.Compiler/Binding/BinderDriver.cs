@@ -309,6 +309,7 @@ internal sealed class BinderDriver
         // The run unit's rules for an EXTERNAL file connector's file control entries, at every edition: their agreement
         // and the externality of the items their clauses name (ExternalFileConnectorRules; kb/Work PB5069).
         ExternalFileConnectorRules.Check(units, edition);
+        ExternalFileConnectorRules.ShareAdvancing(units);   // the connector's print-file fact is the group's, not each describer's (kb/Work PB5570)
         // The external RECORD half of the data-name uniqueness rule, over every source element of the group (kb/Work PB5427).
         ExternalRecordNameRules.Check([.. units.Select(u => new ExternalRecordNameRules.Element(u, u.Data)),
             .. classes.SelectMany(c => new[] { new ExternalRecordNameRules.Element(null, c.Data), new ExternalRecordNameRules.Element(null, c.FactoryData) })], edition);
