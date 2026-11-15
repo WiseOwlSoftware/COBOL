@@ -1,4 +1,4 @@
-## PB5572, PB5573, PB5564: three --std 85 under-rejections in the version conformance pass (a declarative RELEASE/RETURN with no range, a reference-modified control name, a subscripted subscript)
+## Entry 3661 — 2026-11-15 00:00 PST — PB5572, PB5573, PB5564: three --std 85 under-rejections in the version conformance pass (a declarative RELEASE/RETURN with no range, a reference-modified control name, a subscripted subscript)
 
 **PB5572, a RELEASE or RETURN in the declaratives.** Re-probe on ed86914443: `r10c.cob` (a USE AFTER ERROR procedure that
 RELEASEs, no SORT in the program) printed `RELEASED IN DECLARATIVE`, `AFTER OPEN`, and its RETURN twin took AT END, both exit 0
@@ -42,3 +42,4 @@ accepted at 85, writes `X (E OF T OF G (2))`, a subscripted subscript, so PB5564
 SR5 requires. It moves to accept 2002 with the same output (the change's edition-gate sweep). Run 000003-20261115T072658Z:
 `=== BUILD-LOCAL GATE: GREEN — Conformance 25,187/25,187 ran · Unit 40,785/40,785 ran · RepoDrift 177/177 ran ·
 Characterization up to date ... ===`.
+
