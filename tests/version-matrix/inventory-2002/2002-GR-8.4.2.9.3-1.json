@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.9.3-1",
+ "rule-digest": "b8b4f78abf3e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindPropertyClauses; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#ScreenPropertyMethodHeader",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/pb5598-active-class-property-2002",
+ "notes": "Same text as the 2023 twin; an ACTIVE-CLASS object property used as a sending item now reaches the get-method invocation at 2002 (kb/Work PB5598); the golden prints SAME twice from SET B TO ME OF A and SET B TO SELFREF OF A."
+}

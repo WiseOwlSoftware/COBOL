@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.40.3-1",
+ "rule-digest": "36746f092228",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindPropertyClauses",
+ "test-ref": "conformance:cases/13.16.40@2002-PROPERTY-CLAUSE/pb5598-active-class-property-2002",
+ "notes": "The PROPERTY clause on an object-class subject (here ACTIVE-CLASS) defines the get method at 2002; the 2023-only SR6 refusal is gated at Has(2014) (kb/Work PB5598). The golden's ME (PROPERTY WITH NO SET) is read through ME OF A. The edited-category and CONSTANT-RECORD arms are not witnessed by this golden."
+}
