@@ -56,9 +56,14 @@ public static class DebuggingLineRewriter
     /// <para>When <paramref name="sourceLines"/> is given, the marker of every other debugging line the stream keeps as
     /// SOURCE is added to it (kb/Work PB2490): the lines the caller may still have to diagnose, because a source line is
     /// not a comment line and the logical conversion passed it over as one. The list is that of THIS stream — the final
-    /// one's is complete apart from the region lines the caller blanked on the way.</para></summary>
+    /// one's is complete apart from the region lines the caller blanked on the way.</para>
+    /// <para>When <paramref name="commentLines"/> is given, the line of the text (the lexer's, 1-based) of every line this pass
+    /// makes comment is added to it (kb/Work PB5588): each hidden debugging line, and each line of a hidden debugging section,
+    /// "compiled as if they were comment lines" (§1985:VI.4.3.4 GR5, §1985:XV.2.1.3 GR2). The lexer skips a floating comment, so
+    /// no token says what a comment line held; a reader of the TEXT that must not judge a comment line (the COBOL-85 gate of
+    /// <c>*&gt;</c>, <c>SurvivingFloatingComments</c>) asks this set, the one place that decides it.</para></summary>
     public static IToken? Rewrite(CommonTokenStream tokenStream, List<IToken>? sourceLines = null, List<IToken>? misplacedLines = null,
-        bool debuggingSectionsAreComments = false)
+        bool debuggingSectionsAreComments = false, HashSet<int>? commentLines = null)
     {
         tokenStream.Fill();
         var tokens = tokenStream.GetTokens();
@@ -72,6 +77,7 @@ public static class DebuggingLineRewriter
         var kept = new List<int>();                          // the region lines that are source (token indices)
         var misplaced = new List<int>();                     // the lines that stand where no debugging line may (token indices)
         var keptSource = new List<int>();                    // the other lines that are source (token indices)
+        var comment = commentLines ?? [];                    // the text lines this pass makes comment
         int nextLine = 0;
         for (int v = 0; v < visible.Count; v++)
         {
@@ -89,7 +95,7 @@ public static class DebuggingLineRewriter
                         : new UnitFrame(inheritedMode: false));
                     break;
                 case CobolLexer.END when v + 1 < visible.Count && IsUnitKind(tokens[visible[v + 1]].Type):
-                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
+                    if (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment);
                     break;
                 case CobolLexer.DECLARATIVES when debuggingSectionsAreComments && units.Count > 0
                     && v + 1 < visible.Count && tokens[visible[v + 1]].Type == CobolLexer.DOT
@@ -110,8 +116,8 @@ public static class DebuggingLineRewriter
             }
         }
         while (nextLine < lines.Count) (units.Count > 0 ? units.Peek() : outside).Lines.Add(lines[nextLine++]);
-        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced);
-        Resolve(tokens, outside, kept, keptSource, misplaced);
+        while (units.Count > 0) Resolve(tokens, units.Pop(), kept, keptSource, misplaced, comment);
+        Resolve(tokens, outside, kept, keptSource, misplaced, comment);
         tokenStream.Seek(0);
         sourceLines?.AddRange(keptSource.Select(i => tokens[i]));
         misplacedLines?.AddRange(misplaced.Order().Select(i => tokens[i]));
@@ -149,6 +155,11 @@ public static class DebuggingLineRewriter
     /// marker's line, to <see cref="End"/> exclusive. A region line (<see cref="Region"/>) owns the marker alone — its
     /// text was skipped, not lexed.</summary>
     private readonly record struct Extent(int Start, int End, bool Region);
+
+    /// <summary>A stretch of a DECLARATIVES portion that is comment text: the tokens <see cref="First"/> to <see cref="Last"/>
+    /// (hidden-channel text between them included) and the last line of the text it covers, which also holds what the lexer
+    /// skipped (a floating comment) after the last token.</summary>
+    private readonly record struct HiddenSection(int First, int Last, int LastLine);
 
     private static List<Extent> DebugLines(IList<IToken> tokens)
     {
@@ -226,11 +237,11 @@ public static class DebuggingLineRewriter
     /// the SECTION of an <c>EXIT SECTION</c> statement is no header) to the next header or the portion's <c>END DECLARATIVES</c>, and is a debugging
     /// section when its first sentence begins <c>USE FOR DEBUGGING</c>. When no section of the portion is any other, the portion's own header and
     /// its END DECLARATIVES are returned too.</summary>
-    private static List<(int First, int Last)> DebuggingSections(IList<IToken> tokens, List<int> visible, int at)
+    private static List<HiddenSection> DebuggingSections(IList<IToken> tokens, List<int> visible, int at)
     {
         bool IsHeader(int i) => i + 1 < visible.Count && tokens[visible[i + 1]].Type == CobolLexer.SECTION && tokens[visible[i]].Type != CobolLexer.EXIT;
         bool IsEnd(int i) => i + 1 < visible.Count && tokens[visible[i]].Type == CobolLexer.END && tokens[visible[i + 1]].Type == CobolLexer.DECLARATIVES;
-        var found = new List<(int First, int Last)>();
+        var found = new List<HiddenSection>();
         int sections = 0, i = at + 2;
         while (i < visible.Count && !IsEnd(i))
         {
@@ -243,26 +254,31 @@ public static class DebuggingLineRewriter
             if (period + 3 < next
                 && tokens[visible[period + 1]].Type == CobolLexer.USE && tokens[visible[period + 2]].Type == CobolLexer.FOR
                 && tokens[visible[period + 3]].Type == CobolLexer.DEBUGGING)
-                found.Add((visible[i], next < visible.Count ? visible[next] - 1 : tokens.Count - 1));
+                found.Add(next < visible.Count
+                    ? new HiddenSection(visible[i], visible[next] - 1, Math.Max(tokens[visible[next] - 1].Line, tokens[visible[next]].Line - 1))   // to the line before the next header: a comment line between sections is the section's
+                    : new HiddenSection(visible[i], tokens.Count - 1, tokens[^1].Line));
             i = next;
         }
         if (found.Count > 0 && found.Count == sections && i < visible.Count)
         {
             int last = i + 1 < visible.Count && i + 2 < visible.Count && tokens[visible[i + 2]].Type == CobolLexer.DOT ? i + 2 : i + 1;
-            found.Add((visible[at], visible[at + 1]));
-            found.Add((visible[i], visible[last]));
+            found.Add(new HiddenSection(visible[at], visible[at + 1], tokens[visible[at + 1]].Line));   // the portion's own header and END DECLARATIVES: their own lines
+            found.Add(new HiddenSection(visible[i], visible[last], tokens[visible[last]].Line));
         }
         return found;
     }
 
     private static void Resolve(IList<IToken> tokens, UnitFrame unit, List<int> keptRegionLines, List<int> keptSourceLines,
-        List<int> misplacedLines)
+        List<int> misplacedLines, HashSet<int> commentLines)
     {
         if (!unit.Mode)
-            foreach (var (first, last) in unit.DebuggingSections)
+            foreach (var (first, last, lastLine) in unit.DebuggingSections)
+            {
                 for (int i = first; i <= last; i++)
                     if (tokens[i].Channel == TokenConstants.DefaultChannel && tokens[i].Type != TokenConstants.EOF)
                         tokens[i] = new CommonToken(tokens[i]) { Channel = CobolLexer.ABSENT_DEBUG_LINE };
+                for (int line = tokens[first].Line; line <= lastLine; line++) commentLines.Add(line);
+            }
         // §1985:VI.7.3: "A debugging line is only permitted in the separately compiled program after the OBJECT-COMPUTER
         // paragraph." Mode or no mode, a line that begins before that paragraph's end is misplaced; the caller diagnoses it
         // where the edition has the rule.
@@ -274,7 +290,11 @@ public static class DebuggingLineRewriter
                 (line.Region ? keptRegionLines : keptSourceLines).Add(line.Start);   // a region line's text was skipped: the caller lexes it again
             return;
         }
-        foreach (var line in unit.Lines) Hide(tokens, line);
+        foreach (var line in unit.Lines)
+        {
+            Hide(tokens, line);
+            commentLines.Add(tokens[line.Start].Line);
+        }
     }
 
     /// <summary>A debugging line that is a comment: its marker and its text tokens leave for the
@@ -314,6 +334,6 @@ public static class DebuggingLineRewriter
         public bool Mode => inheritedMode || DeclaresMode;
         public List<Extent> Lines { get; } = [];
         /// <summary>The USE FOR DEBUGGING sections of the unit (token extents), comment text when the unit has no mode.</summary>
-        public List<(int First, int Last)> DebuggingSections { get; } = [];
+        public List<HiddenSection> DebuggingSections { get; } = [];
     }
 }

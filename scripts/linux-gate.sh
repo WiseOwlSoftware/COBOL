@@ -518,7 +518,14 @@ if [ ! -f WiseOwl.Cobol.sln ]; then
 fi
 # ⛔ THE TOOLCHAIN (kb/Work PB4007): CI runs exactly toolchain.env's versions, so a Linux run under any other measures
 # what CI will not run; the Windows gate holds its own host to the manifest the same way (gate_host.Host.toolchain).
-if ! toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)"; then
+# A tool whose version could not be read just now (check's exit 3, toolchain.EXIT_UNREAD: it did not answer, could not
+# start, or answered no version) is its own cause, never an install to make (kb/Work PB5616).
+toolchain_rc=0
+toolchain_report="$("$PY" scripts/toolchain.py check --scope gate 2>&1)" || toolchain_rc=$?
+if [ "$toolchain_rc" -eq 3 ]; then
+  printf '%s\n' "$toolchain_report"
+  echo "=== LINUX GATE: NOT RUN [toolchain-unread] (this host could not read a tool's version just now; it is not shown to be missing, so install nothing — the lines above say what happened) ==="; exit 2
+elif [ "$toolchain_rc" -ne 0 ]; then
   printf '%s\n' "$toolchain_report"
   echo "=== LINUX GATE: NOT RUN [toolchain] (this host's tools are not toolchain.env's — run scripts/wsl/setup-wsl.sh) ==="; exit 2
 fi

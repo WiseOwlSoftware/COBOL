@@ -276,7 +276,26 @@ public sealed class ReferenceFormatLogicalConversionTests
         var bag = new DiagnosticBag();
         var gates = new ReferenceFormatDiagnostics(std, false, bag);
         var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
-        SurvivingFloatingComments.Report(m, gates);
+        SurvivingFloatingComments.Note(m, gates);
+        gates.ReportSurvivingFloatingComments(new HashSet<int>(), 0);
         Assert.Equal(expected, Codes(bag).Count(c => c == "COBOL0900"));
+    }
+
+    [Theory] // kb/Work PB5588: a line the debugging comment treatment made comment (§1985:XV.2.1.3 GR2, §1985:VI.4.3.4 GR5) holds
+    // any characters (§1985:III, Comment Line), so its `*>` is no introduction, whether or not a character stands before it; the
+    // gate reads the lines of the TEXT, so the same characters on the line beside it still are one.
+    [InlineData("000100     MOVE A TO X. *> c\n000200     MOVE A TO X.\n", 1, 0, 0)]
+    [InlineData("000100     MOVE A TO X.*> c\n000200     MOVE A TO X.\n", 1, 0, 0)]
+    [InlineData("000100     MOVE A TO X. *> c\n000200     MOVE A TO X.\n", 2, 1, 0)]
+    [InlineData("000100     MOVE A TO X.*> c\n000200     MOVE A TO X.\n", 2, 1, 1)]
+    public void SurvivingFloatingComment_OnACommentLine_IsNoIntroduction(string src, int commentLine, int introductions, int unseparated)
+    {
+        var bag = new DiagnosticBag();
+        var gates = new ReferenceFormatDiagnostics(85, false, bag);
+        var m = ReferenceFormatProcessor.NormalizeToFreeFormMapped(src, gates, "t.cob", InitialReferenceFormat.Fixed);
+        SurvivingFloatingComments.Note(m, gates);
+        gates.ReportSurvivingFloatingComments(new HashSet<int> { commentLine }, 0);
+        Assert.Equal(introductions, Codes(bag).Count(c => c == "COBOL0900"));
+        Assert.Equal(unseparated, Codes(bag).Count(c => c == "COBOL2495"));
     }
 }

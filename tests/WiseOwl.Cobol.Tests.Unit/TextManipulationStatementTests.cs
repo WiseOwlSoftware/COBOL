@@ -278,6 +278,20 @@ public sealed class TextManipulationStatementTests : IDisposable
         Assert.Contains(missing.Diagnostics, d => d.Code == "CBL3620");
     }
 
+    [Theory] // kb/Work PB5588: the note the compiler writes for a COPY that brought in no text is its own comment, a line no
+             // reader of the text takes for the program's: at COBOL-85 the floating-comment gate (SurvivingFloatingComments) read
+             // the plain `*>` it was once spelled with as the 2002 indicator, a second error beside the CBL3620.
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void CopyNotFound_LeavesANoteThatIsNoProgramText(int edition)
+    {
+        var (text, bag) = Run(" COPY NOSUCH.\n MOVE 1 TO X.\n", edition);
+        Assert.Contains(bag.Diagnostics, d => d.Code == "CBL3620");
+        Assert.Contains(CopyProcessor.NotePrefix, text, StringComparison.Ordinal);
+        Assert.False(TextWordScanner.HoldsComment(text), text);
+        Assert.Equal(["MOVE", "1", "TO", "X", "."], TextWordScanner.MatchWords(text).Select(w => w.Value));
+    }
+
     [Fact] // §2023:6.5 2): a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the
            // replacement produces no blank line (the NIST SM208A shape); an operand that never matches produces nothing.
     public void ReplaceResult_ABlankLineInPseudoText2_IsDiscarded_AndAnUnmatchedOperandProducesNothing()
