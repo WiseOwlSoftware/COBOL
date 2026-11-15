@@ -96,11 +96,11 @@ def case_02_the_import_writes_the_durable_records_verbatim_or_nothing(expect):
     src, asked, out = d / "out", d / "in", d / "records"
     src.mkdir()
     asked.mkdir()
-    (src / "p-01-read.json").write_text(json.dumps(F.record()["read"] | {"cases": [F.read("2002-GR-1.1.3-1")]}), encoding="utf-8")
+    (src / "p-01-read.json").write_text(json.dumps(F.record()["read"] | {"cases": [F.read("2002-GR-1.1.3-1")]}), encoding="utf-8", newline="\n")
     (src / "p-01-refute.json").write_text(json.dumps({"slice": "p-01", "cases": [F.refute("2002-GR-1.1.3-1")],
-                                                      "disputed-different": []}), encoding="utf-8")
-    (src / "q-01-read.json").write_text(json.dumps({"slice": "q-01", "cases": [F.read("2002-GR-1.1.3-2")]}), encoding="utf-8")
-    (asked / "q-01.json").write_text(json.dumps({"ids": ["2002-GR-1.1.3-2"], "flags": {}}), encoding="utf-8")
+                                                      "disputed-different": []}), encoding="utf-8", newline="\n")
+    (src / "q-01-read.json").write_text(json.dumps({"slice": "q-01", "cases": [F.read("2002-GR-1.1.3-2")]}), encoding="utf-8", newline="\n")
+    (asked / "q-01.json").write_text(json.dumps({"ids": ["2002-GR-1.1.3-2"], "flags": {}}), encoding="utf-8", newline="\n")
     expect.equal("every slice that exists is imported, a missing refuter record is no error",
                  R.import_records(2002, src, asked, out), ["p-01", "q-01"])
     doc = json.loads((out / "p-01.json").read_text(encoding="utf-8"))
@@ -110,23 +110,23 @@ def case_02_the_import_writes_the_durable_records_verbatim_or_nothing(expect):
     expect.equal("an import of unchanged sources rewrites nothing", R.import_records(2002, src, asked, out), [])
     expect.equal("load normalizes every record", sorted(s.name for s in R.load(2002, out)), ["p-01", "q-01"])
     (src / "q-02-read.json").write_text(json.dumps({"slice": "q-02", "cases": [F.read("2002-GR-1.1.3-3", "NEW")]}),
-                                        encoding="utf-8")
+                                        encoding="utf-8", newline="\n")
     before = sorted(p.name for p in out.iterdir())
     expect("a malformed slice refuses the whole import, naming slice and rule, and writes nothing",
            F.raises(lambda: R.import_records(2002, src, asked, out), "q-02", "2002-GR-1.1.3-3")
            and sorted(p.name for p in out.iterdir()) == before)
     (src / "q-02-read.json").write_text(json.dumps({"slice": "q-02", "cases": [F.read("2002-GR-9.9.9-9")]}),
-                                        encoding="utf-8")
+                                        encoding="utf-8", newline="\n")
     expect("a read of a rule the edition's catalog does not hold refuses the import, and writes nothing",
            raises_unknown := F.raises(lambda: R.import_records(2002, src, asked, out, {"2002-GR-1.1.3-1", "2002-GR-1.1.3-2"}),
                                       "q-02", "2002-GR-9.9.9-9", "no rule of the 2002 catalog"))
     expect("(nothing written)", raises_unknown and sorted(p.name for p in out.iterdir()) == before)
     (src / "q-02-read.json").unlink()
-    (src / "q-03-refute.json").write_text("{}", encoding="utf-8")
+    (src / "q-03-refute.json").write_text("{}", encoding="utf-8", newline="\n")
     expect("a refuter record with no reader's record is refused", F.raises(lambda: R.import_records(2002, src, asked, out),
                                                                          "q-03-refute.json"))
     (src / "q-03-refute.json").unlink()
-    (out / "q-09.json").write_text(json.dumps(F.record("q-09", [F.read("2002-GR-1.1.3-1")])), encoding="utf-8")
+    (out / "q-09.json").write_text(json.dumps(F.record("q-09", [F.read("2002-GR-1.1.3-1")])), encoding="utf-8", newline="\n")
     expect("a rule two slices read is refused at load", F.raises(lambda: R.load(2002, out), "read again"))
 
 

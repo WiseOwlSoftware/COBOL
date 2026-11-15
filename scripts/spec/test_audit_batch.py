@@ -398,10 +398,10 @@ def main() -> int:
         answered = {f"{n}: {dt}": f"planted: the 2002 rule still states it ({n})" for n, dt in marks[f["rule-id"]].items()}
         (reads / "p-01-read.json").write_text(json.dumps({"slice": "p-01", "cases": [
             a_read(u), a_read(v), a_read(x), a_read(f, **{"flags-answered": answered}), a_read(g),
-            a_read(d, "DIFFERENT", probe="d.cob", **{"compiler-at-2002": "correct: d.cob"})]}), encoding="utf-8")
+            a_read(d, "DIFFERENT", probe="d.cob", **{"compiler-at-2002": "correct: d.cob"})]}), encoding="utf-8", newline="\n")
         (reads / "p-01-refute.json").write_text(json.dumps({"slice": "p-01", "disputed-different": [], "cases": [
             {"rule-id": p["rule-id"], "verdict": "UPHELD", "reason": "planted", "citations": [], "class": None,
-             "probe": None} for p in (u, v, f, g)]}), encoding="utf-8")
+             "probe": None} for p in (u, v, f, g)]}), encoding="utf-8", newline="\n")
         imported, records = root / "imported", root / "records"
         code, out = run(["import-reads", "--edition", "2002", "--reads", str(reads), "--record", str(records),
                          "--state", str(imported)], fake)

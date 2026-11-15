@@ -731,7 +731,7 @@ def widen_apply(plan: dict[str, Any], w: Witnesses, ed: Edition, compiler: pathl
         suites.mkdir(parents=True, exist_ok=True)
         (suites / "manifest.json").write_text(json.dumps(
             {"edition": sp, "generator": manifest["generator"],
-             "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1), encoding="utf-8")
+             "tests": [t for t in manifest["editions"][sp] if t["id"] in ids]}, indent=1), encoding="utf-8", newline="\n")
         results = scratch / "results"
         subprocess.run([sys.executable, str(SUITE / "harness" / "run.py"), "--compiler", "wiseowl", "--set",
                         f"cobol={compiler}", "--suites", str(scratch / "run-suites"), "--editions", sp,
@@ -829,7 +829,7 @@ def own_edition(year: int, out: pathlib.Path) -> int:
     doc = {"edition": year, "kept": len(rows), "some-target-witnessed": len(some), "every-target-witnessed": len(every),
            "none": len(none), "rules-with-none": none,
            "rules-some-not-every": sorted(set(some) - set(every))}
-    out.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+    out.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8", newline="\n")
     print(f"{year}: {len(rows)} stored KEPT record(s); a witness at {ed.spelling} for at least one target: {len(some)}; for "
           f"every target: {len(every)}; for none: {len(none)} -> {out}")
     return 0
@@ -864,7 +864,7 @@ def main(argv: list[str] | None = None) -> int:
             if not a.compiler or not a.scratch:
                 raise SystemExit(f"{TOOL}: widen --apply needs --compiler and --scratch")
             plan["applied"] = widen_apply(plan, w, ed, pathlib.Path(a.compiler), pathlib.Path(a.scratch))
-        pathlib.Path(a.out).write_text(json.dumps(plan, indent=1) + "\n", encoding="utf-8")
+        pathlib.Path(a.out).write_text(json.dumps(plan, indent=1) + "\n", encoding="utf-8", newline="\n")
         print(f"widen {a.edition}{'' if a.apply else ' (dry run: nothing edited)'}: rows {plan['counts']['rows']}; cases "
               f"{plan['counts']['cases']} -> {a.out}")
         if a.apply:
