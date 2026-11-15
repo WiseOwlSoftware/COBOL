@@ -1,4 +1,4 @@
-## PB5589: the lineage screen flags the 2002 pairs whose identical words govern more in 2002; one change-record writer, from read decisions only; PB5094 claims resolve in every edition
+## Entry 3657 — 2026-11-14 23:06 PST — PB5589: the lineage screen flags the 2002 pairs whose identical words govern more in 2002; one change-record writer, from read decisions only; PB5094 claims resolve in every edition
 
 **What landed.** `scripts/spec/lineage_screen.py` flags the 2002 candidate pairs whose identical words are known to govern
 more in 2002 than they show, by a table of triggers (`scripts/spec/data/lineage-screen-triggers-2002.json`), each a row
@@ -18,3 +18,4 @@ unresolved 2002 claims under the old register check and none under the new one.
 
 **Not done.** No 2002 record is written. 11 pending-clause judgments are owed and fail closed meanwhile. Coverage of the
 older editions' defective rows waits on PB5094's second half (38 1985 rows).
+
