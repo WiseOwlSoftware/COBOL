@@ -1,4 +1,4 @@
-## PB5575: compile-time arithmetic at --std 2002 is the 32-digit truncating standard arithmetic
+## Entry 3674 — 2026-11-15 03:47 PST — PB5575: compile-time arithmetic at --std 2002 is the 32-digit truncating standard arithmetic
 
 Wave 20262043, group C. `CompileTimeArithmetic.For` knew two modes, a 34-digit SDIDI for 2002 and 2014 and System.Decimal for 2023. The standards say three things. §2002:7.2.5.2 GR1: "Standard arithmetic shall be used for all arithmetic operations", whose standard intermediate data item has "a precision of 32 decimal digits" (§2002:8.8.1.3.1.1) and whose sum, product and quotient are "the exact ... truncated to 32 significant digits" (§2002:8.8.1.3.2, §2002:8.8.1.3.4, §2002:8.8.1.3.5). §2014:7.3.5.2 GR1: "as if ARITHMETIC IS STANDARD-DECIMAL were in effect at compile time". 2023: implementor-defined.
 
@@ -11,3 +11,4 @@ Wave 20262043, group C. `CompileTimeArithmetic.For` knew two modes, a 34-digit S
 **Rows.** Seven 2002 rows recorded CONFORMS in the inventory-2002 store (batch `pb5575-ct-arith-2002`, GAP 3297 to 3290): 7.2.5.2 GR1, 7.2.9.2 SR2, 7.2.9.3 GR3, 7.2.10.3 GR4, 7.2.13.3 GR2 and GR3, 13.9.3 GR3. `work.py check` refuses a 2002 id in `closes_rows` (PB5094), so the note's `closes_rows_reason` names them. The 25 run-time rows stay in `inventory_rows`: the run-time ARITHMETIC IS STANDARD engine and the intrinsic functions still use the 34-digit model, which is its own redesign (a precision and range parameter on the engine with the two models as instances).
 
 **Found on the way.** §2014:D.16.1 says the default intermediate rounding is truncation; this compiler's 2014 standard-decimal rounds NEAREST-AWAY-FROM-ZERO (the 2023 default). Recorded in the note's addendum for the 2014 lane.
+
