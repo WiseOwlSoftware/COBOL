@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_national_of_argument_classes
 *> rules: [AR-15.66.3-1]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

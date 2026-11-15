@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c35_unstring_or_delimiter_sequence
       *> rules: [GR-14.9.48.4-10]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

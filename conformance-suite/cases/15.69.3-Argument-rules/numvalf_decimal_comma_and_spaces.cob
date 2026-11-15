@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: numvalf_decimal_comma_and_spaces
 *> rules: [AR-15.69.3-4, AR-15.69.3-5, RV-15.69.4-1, FMT-15.69.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb111_class_object_computer
 *> rules: [GR-12.3.6.4-8, GR-12.3.6.4-11, GR-14.6.6-2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1759_high_value_record_round_trip_85
       *> rules: [GR-8.3.3.6.4-6]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

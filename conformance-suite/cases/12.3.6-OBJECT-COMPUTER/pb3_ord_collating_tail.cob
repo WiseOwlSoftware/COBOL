@@ -2,7 +2,7 @@
 *> id: pb3_ord_collating_tail
 *> rules: [GR-12.3.6.4-2, GR-12.3.6.4-9, GR-12.3.6.4-11, RV-15.70.4-1,
 *>    FMT-12.3.6.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

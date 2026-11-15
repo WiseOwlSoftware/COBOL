@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_release_from_sender_available
 *> rules: [SR-14.9.32.3-1, GR-14.9.32.4-5]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

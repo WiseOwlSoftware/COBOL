@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb664_string_operand_screen
       *> rules: [SR-14.9.43.3-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

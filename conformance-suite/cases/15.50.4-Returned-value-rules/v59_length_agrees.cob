@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: v59_length_agrees
 *> rules: [RV-15.50.4-3]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

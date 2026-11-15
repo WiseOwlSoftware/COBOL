@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1_intrinsic_formats
 *> rules: [AR-15.75.3-5, FMT-15.71.2, FMT-15.72.2, FMT-15.74.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

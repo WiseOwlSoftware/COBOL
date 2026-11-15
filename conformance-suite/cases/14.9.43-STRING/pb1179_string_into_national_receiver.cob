@@ -2,7 +2,7 @@
 *> id: pb1179_string_into_national_receiver
 *> rules: [GR-14.9.43.4-1, GR-14.9.43.4-2, GR-14.9.43.4-3,
 *>    GR-14.9.43.4-6, GR-14.9.43.4-7]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c11_linage_counter_external_global
       *> rules: [GR-13.4.5.4-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

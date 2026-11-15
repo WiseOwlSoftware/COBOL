@@ -2,7 +2,7 @@
       *> id: pb1129_rd_code_literal
       *> rules: [SR-13.18.12.3-1, GR-13.18.12.4-1, GR-13.18.12.4-2,
       *>    FMT-13.14.2, FMT-13.18.12.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

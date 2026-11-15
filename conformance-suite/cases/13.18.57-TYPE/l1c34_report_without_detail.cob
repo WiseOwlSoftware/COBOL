@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c34_report_without_detail
       *> rules: [SR-13.18.57.3-16]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

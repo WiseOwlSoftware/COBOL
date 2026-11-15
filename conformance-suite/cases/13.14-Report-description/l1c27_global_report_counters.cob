@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c27_global_report_counters
       *> rules: [GR-13.14.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

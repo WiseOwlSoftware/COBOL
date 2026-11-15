@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb45_function_in_sending_operands
 *> rules: [GR-14.9.2.4-1, GR-14.9.2.4-2, GR-14.9.12.4-5, FMT-14.9.2.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

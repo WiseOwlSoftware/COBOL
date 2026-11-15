@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c12_generate_detail_and_summary
       *> rules: [GR-14.9.16.4-2, FMT-14.9.16.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

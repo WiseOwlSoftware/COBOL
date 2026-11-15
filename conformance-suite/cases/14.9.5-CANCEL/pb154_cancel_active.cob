@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb154_cancel_active
       *> rules: [GR-14.9.5.4-5, DOC-A.1-18]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

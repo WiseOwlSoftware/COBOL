@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1125_inspect_tallying_next_counter_extent
 *> rules: [GR-14.9.22.4-10, FMT-14.9.22.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

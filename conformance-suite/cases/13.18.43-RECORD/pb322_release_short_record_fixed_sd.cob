@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb322_release_short_record_fixed_sd
       *> rules: [GR-13.18.43.4-5, GR-14.9.32.4-6, DOC-A.1-147]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

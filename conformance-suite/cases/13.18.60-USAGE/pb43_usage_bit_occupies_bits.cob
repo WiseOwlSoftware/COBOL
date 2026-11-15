@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb43_usage_bit_occupies_bits
 *> rules: [GR-13.18.60.4-5, RV-15.50.4-5]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

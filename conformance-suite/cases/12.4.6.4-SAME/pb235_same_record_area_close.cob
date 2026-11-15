@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb235_same_record_area_close
       *> rules: [GR-12.4.6.4.4-2, GR-14.9.6.4-7, DOC-A.1-24]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

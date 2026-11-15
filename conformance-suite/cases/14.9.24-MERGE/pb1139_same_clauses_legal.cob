@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1139_same_clauses_legal
       *> rules: [SR-14.9.24.3-11, SR-14.9.40.3-10]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

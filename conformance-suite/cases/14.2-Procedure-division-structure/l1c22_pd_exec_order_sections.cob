@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c22_pd_exec_order_sections
       *> rules: [GR-14.2.3-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

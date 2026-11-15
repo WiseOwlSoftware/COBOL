@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_if_else_next_sentence_omissible
       *> rules: [SR-14.9.19.3-3]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

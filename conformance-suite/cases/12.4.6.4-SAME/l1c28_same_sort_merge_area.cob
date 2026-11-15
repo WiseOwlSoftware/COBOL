@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c28_same_sort_merge_area
       *> rules: [SR-12.4.6.4.3-1, GR-12.4.6.4.4-4, GR-12.4.6.4.4-5]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

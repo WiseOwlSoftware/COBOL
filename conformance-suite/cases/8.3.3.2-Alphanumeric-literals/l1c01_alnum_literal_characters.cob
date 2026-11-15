@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c01_alnum_literal_characters
       *> rules: [SR-8.3.3.2.3-2, SR-8.3.3.2.3-4]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
