@@ -61,7 +61,7 @@
       *> twice, if a counter is cleared, or if an adjective does not
       *> carry to the operands that follow it.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INS02.
+       PROGRAM-ID. G2INS06.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01  S  PIC X(5) VALUE "abbcb".

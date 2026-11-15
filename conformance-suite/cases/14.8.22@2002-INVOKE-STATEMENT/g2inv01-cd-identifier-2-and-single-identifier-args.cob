@@ -28,7 +28,7 @@
       *>   "AB" is a literal: not valid BY REFERENCE, so BY CONTENT
       *>   (SR14a), and SHOW receives AB (6=AB).
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INV01.
+       PROGRAM-ID. G2INV09.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
@@ -66,7 +66,7 @@
            DISPLAY "6=" WITH NO ADVANCING.
            INVOKE O "SHOW" USING "AB".
            STOP RUN.
-       END PROGRAM G2INV01.
+       END PROGRAM G2INV09.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. G2INV01C INHERITS FROM BASE.

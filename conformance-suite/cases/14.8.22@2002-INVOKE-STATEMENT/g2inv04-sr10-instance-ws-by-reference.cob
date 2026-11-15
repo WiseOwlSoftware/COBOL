@@ -10,7 +10,7 @@
       *> object's working-storage and is written BY REFERENCE, so it is
       *> identifier-3: refused at the INVOKE line in RUNIT.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INV04.
+       PROGRAM-ID. G2INV12.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
@@ -23,7 +23,7 @@
            INVOKE G2INV04C "NEW" RETURNING T.
            INVOKE T "RUNIT".
            STOP RUN.
-       END PROGRAM G2INV04.
+       END PROGRAM G2INV12.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. G2INV04C INHERITS FROM BASE.

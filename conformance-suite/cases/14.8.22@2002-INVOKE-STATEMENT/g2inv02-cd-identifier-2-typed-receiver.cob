@@ -11,7 +11,7 @@
       *> refused at its line. The accepted universal form is
       *> g2inv01-cd-identifier-2-and-single-identifier-args.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INV02.
+       PROGRAM-ID. G2INV10.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
@@ -30,7 +30,7 @@
            MOVE "GREET" TO MNAME.
            INVOKE O MNAME.
            STOP RUN.
-       END PROGRAM G2INV02.
+       END PROGRAM G2INV10.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. G2INV02C INHERITS FROM BASE.

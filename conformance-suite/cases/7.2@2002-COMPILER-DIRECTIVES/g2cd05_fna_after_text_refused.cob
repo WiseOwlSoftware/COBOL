@@ -10,7 +10,7 @@
       *> program text (DISPLAY "B") on its line; refused at 2002 at that
       *> line.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2CD05.
+       PROGRAM-ID. G2CD07.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01 X PIC 9 VALUE 0.

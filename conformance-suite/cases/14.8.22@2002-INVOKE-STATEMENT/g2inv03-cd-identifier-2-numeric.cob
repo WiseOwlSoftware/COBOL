@@ -11,7 +11,7 @@
       *> holds). The accepted alphanumeric and national forms are
       *> g2inv01-cd-identifier-2-and-single-identifier-args.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INV03.
+       PROGRAM-ID. G2INV11.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
@@ -32,7 +32,7 @@
            MOVE 1 TO MNUM.
            INVOKE U MNUM.
            STOP RUN.
-       END PROGRAM G2INV03.
+       END PROGRAM G2INV11.
 
        IDENTIFICATION DIVISION.
        CLASS-ID. G2INV03C INHERITS FROM BASE.

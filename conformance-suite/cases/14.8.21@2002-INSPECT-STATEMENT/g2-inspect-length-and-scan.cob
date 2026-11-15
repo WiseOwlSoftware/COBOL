@@ -51,7 +51,7 @@
       *> of H is taken as a receiving item's, or if any scan starts
       *> anywhere but the leftmost position.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2INS01.
+       PROGRAM-ID. G2INS05.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
        01  N  PIC 9 VALUE 0.
