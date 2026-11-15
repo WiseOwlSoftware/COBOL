@@ -37,8 +37,8 @@ lines derived from §2002:13.16.15.3 GR3), `12.3.4.13@2002-RELATIVE-KEY-CLAUSE/p
 invalid-key status 23), `12.3.4.12@2002-RECORD-KEY-CLAUSE/pb5602-indexed-keys-subscripted-2002` (RECORD KEY K(2), ALTERNATE KEY A(1) WITH DUPLICATES: statuses 00/02/00/10/23, START, READ
 KEY IS, a second 01 in the FD), `.../pb5602-record-key-source-subscripted-2002`, `12.3.4.6@2002-COLLATING-SEQUENCE-CLAUSE/pb5602-collating-key-subscripted-2002`, and thirteen refusals
 under `conformance-suite/wiseowl/diagnostics/pb5602-*.json` (non-literal subscript, occurrence out of range, unsubscripted table element, READ and START naming another occurrence,
-and the subscripted operands refused at 85, 2014 and 2023). Nine existing refusals drop 2002 from their `refuse-at` (the 2002 text has no such rule); their programs stay refused at 2002
-by COBOL2270.
+and the subscripted operands refused at 85, 2014 and 2023). Eleven existing refusals drop 2002 from their `refuse-at` (the 2002 text has no such rule); ten of the programs stay refused at 2002
+by COBOL2270 and the START on `IX-ELEM (1)` is a legal generic key there (§2002:14.8.37.2 SR6 b), which has no OCCURS ban).
 
 **Rows**: twelve 2002 rows recorded CONFORMS by one `record_verdicts` batch (GAP 3297 to 3285); `2002-GR-13.16.55.3-6/-7` now run but their verdicts are not about the subscript and stay open.
 The first gate run (000002) was RED on the 2002 arms of seven refusal goldens and on the backend contract (a text-returning member on `FileModel`); both are fixed in this change.
