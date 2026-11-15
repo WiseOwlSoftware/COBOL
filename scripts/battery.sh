@@ -109,6 +109,12 @@ MARKS=$?
 note "$(printf '%-16s %s' 'conflicts:' "$(grep -E '^=== CONFLICT MARKERS' "$OUT/citations.log" | tail -1)")"
 [ "$MARKS" -eq 0 ] || { note "conflicts:       ⛔ an unresolved merge-conflict marker — see $OUT/citations.log"; RC=1; }
 
+# ⛔ AND NO TWO TRACKED PATHS THAT DIFFER ONLY IN LETTER CASE (kb/Work PB5694), the gate driver's CASE COLLISIONS audit.
+"$PY" scripts/case_collisions.py --check >> "$OUT/citations.log" 2>&1
+CASES=$?
+note "$(printf '%-16s %s' 'case names:' "$(grep -E '^=== CASE COLLISIONS' "$OUT/citations.log" | tail -1)")"
+[ "$CASES" -eq 0 ] || { note "case names:      ⛔ two tracked paths differ only in letter case — see $OUT/citations.log"; RC=1; }
+
 # ⛔ AND THE DOCUMENTATION AUDITS (kb/Work PB4453), the gate driver's DOC AUDITS, ANNEX A.1 REGISTER and DERIVATION REGISTER:
 # no compiler test reads a Markdown file, so what a document says is checked here.
 "$PY" scripts/doc_audits.py --check >> "$OUT/citations.log" 2>&1
