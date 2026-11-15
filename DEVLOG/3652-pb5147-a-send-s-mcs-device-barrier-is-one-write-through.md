@@ -1,4 +1,4 @@
-## PB5147: a SEND's MCS device barrier is one write-through write, not a flush per statement
+## Entry 3652 — 2026-11-14 21:57 PST — PB5147: a SEND's MCS device barrier is one write-through write, not a flush per statement
 
 **Re-probe.** `CM102M_ReportsNoFailure` passed on this host's Debug build in 1 m 39 s, its probe line `durable flush on the run
 volume: median 1.6 ms, worst 2.2 ms of 5 probes`. The merge-group stall does not reproduce on a local SSD, so the evidence is the
@@ -22,3 +22,4 @@ while page 2 kept its committed end. The design doc's step 2 says this now.
 **Guard.** `McsDeviceBarrierDriftTests` (Roslyn over `Runtime/Communication`) fails on a flush of the MCS that is not under a
 device's creation and on a device write through a handle not opened write-through; restoring the old `Transmit` failed both.
 No inventory row is involved (`closes_rows: []`); PB5147 is landed.
+
