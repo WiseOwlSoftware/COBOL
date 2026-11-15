@@ -1,4 +1,4 @@
-## At --std 85 a *> in a debugging section or debugging line is comment text, and a failed COPY draws no second error (PB5588)
+## Entry 3667 — 2026-11-15 01:49 PST — At --std 85 a *> in a debugging section or debugging line is comment text, and a failed COPY draws no second error (PB5588)
 
 **PB5588.** At `--std 85` without WITH DEBUGGING MODE, `*>` inside a USE FOR DEBUGGING section or on a debugging line was refused COBOL0900 as the 2002 floating comment indicator, although the standard compiles that text "as if they were comment lines" (§1985:XV.2.1.3 GR2, §1985:VI.4.3.4 GR5) and a comment line holds any characters (§1985:III, Comment Line). Re-probed first on this build: `dfloat.cob` (section) and `ddline.cob` (line) both gave COBOL0900 and exit 65; the control with the same characters in a `*` comment line compiled.
 
@@ -13,3 +13,4 @@
 **Rows.** `1985-GR-XV.2.1.3-2` PARTIAL to CONFORMS (GAP 39 to 38); `1985-GR-VI.4.3.4-5` gains the witnesses; `1985-GR-XII.2.4-6` re-sited to `SurvivingFloatingComments.Note`.
 
 **Branch review round 1.** R1-1 (blocking, fixed): the gate reports after the lex and parse, so the lexer stage's `priorErrors` no longer knew of its error and the PB3845 word-character screen was skipped when the surviving `*>` was the only frontend error. `LexAndParseOnce` now asks `ReferenceFormatDiagnostics.HasProgramTextFloatingComment(commentLines)` once the debugging rewrite has said which lines are comment (a noted `*>` exists only where the edition has no such indicator, an always-error gate); `WordCharacterScreenTests.ASurvivingFloatingComment_DoesNotHideTheScreen` fails without the line and passes with it. Leads fixed: R1-2 (the doc comment of `OneCopyResult` back on its record), R1-3 (`Note` takes the text line from `MappedText.LineIndexAt`), R1-4 (row `1985-GR-XV.2.1.3-2` keeps its seven GR2 sites beside the three gate sites).
+
