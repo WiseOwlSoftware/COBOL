@@ -155,9 +155,12 @@ internal sealed class VersionConformancePass
     /// The RANGE is the procedure's paragraphs and every statement executed as the result of a transfer of control in it
     /// (§1985:XI.4.4.4 GR7, GR10), so it is the execution model <see cref="ProcedureReach.Closure{TOrigin}"/> with a GO TO followed, seeded from the
     /// procedures of the statements that name this file — not the lexical span the "shall not appear in" rules of
-    /// <see cref="GateSortMergeProcedures"/> ask. A statement of the declaratives is not asked: the range includes "all statements in
-    /// declarative procedures that are executed as a result of" the range's statements, which is a run-time fact. At COBOL-2002 and later the
-    /// same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN (kb/Work PB1036).</summary>
+    /// <see cref="GateSortMergeProcedures"/> ask. ⚖ A STATEMENT OF THE DECLARATIVES is in the range when it is one of "all statements in
+    /// declarative procedures that are executed as a result of" the range's statements (§1985:XI.4.4.4 GR7 for an input procedure,
+    /// GR10 for an output one), a run-time fact wherever an input (output) procedure for its file exists, so there it is not asked;
+    /// where the program has NONE, the range is empty, no declarative can run inside it, and the statement is outside every range
+    /// at compile time, so it is refused like any other (kb/Work PB5572). At COBOL-2002 and later the same misuse is the run-time exception EC-SORT-MERGE-RELEASE / EC-SORT-MERGE-RETURN
+    /// (kb/Work PB1036).</summary>
     private void GateReleaseReturnRange(BoundProgram prog)
     {
         var inputs = new List<(PcRange Range, FileModel File)>();
@@ -174,8 +177,8 @@ internal sealed class VersionConformancePass
                 case BoundMerge mg:
                     if (mg.OutputProcedure is { } mop) outputs.Add((mop, mg.File));
                     break;
-                case BoundRelease rl when pc >= prog.EntryPc: uses.Add((rl, rl.File, true, pc)); break;
-                case BoundReturn rt when pc >= prog.EntryPc: uses.Add((rt, rt.File, false, pc)); break;
+                case BoundRelease rl: uses.Add((rl, rl.File, true, pc)); break;
+                case BoundReturn rt: uses.Add((rt, rt.File, false, pc)); break;
             }
             foreach (var c in s.StatementChildren()) Collect(c, pc);
         }
@@ -190,6 +193,7 @@ internal sealed class VersionConformancePass
                 ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
                     (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
             if (range.ContainsKey(pc)) continue;
+            if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
             using var _ = _sink.At(node.At);
             string verb = release ? "RELEASE" : "RETURN";
             _sink.Report(new EditionDiagnostic(DiagnosticCatalog.ReleaseReturnPlacement.Code, EditionSeverity.Error,
@@ -1825,7 +1829,35 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.ReportControlOperandForms2002,
                     $"the word {word.GetText().ToUpperInvariant()} before a TYPE clause's control operand (report group description)");
             }
+            if (ctx.dataReference() is { } name) GateCobol85ControlName(name, "TYPE clause's control operand (report group description)");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The operands of the CONTROL clause of a report description entry (ISO §2023:13.18.16; kb/Work PB5573): each
+        /// data-name-1 is a control name, asked by <see cref="GateCobol85ControlName"/>.</summary>
+        public override object? VisitReportControlClause(CobolParserCore.ReportControlClauseContext ctx)
+        {
+            foreach (var name in ctx.dataReference()) GateCobol85ControlName(name, "CONTROL clause operand (report description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>⛔ THE 1985 FORM OF A CONTROL NAME, ASKED IN ONE PLACE FOR BOTH CLAUSES THAT WRITE ONE (kb/Work PB5573): the
+        /// CONTROL clause's data-name-1 and the TYPE clause's CONTROL HEADING / CONTROL FOOTING operand. §1985:III.2: a 'data-name'
+        /// "must not be reference-modified, subscripted, or qualified unless specifically permitted by the rules of the format",
+        /// and §1985:XIII.3.7.3 SR1 permits qualification only ("Data-name-1 may be qualified"); ISO/IEC 1989:2002 adds reference
+        /// modification to both (13.16.15.2 SR4, 13.16.55.2 SR10; §2023:13.18.16.3 SR4, §2023:13.18.57.3 SR10). So the reference
+        /// modifier is the 2002 form, read where every reference reads it (<c>ReferenceResolver.ReadWritten</c>: on the word or on
+        /// a qualifier, <c>WS-KEY OF WS-REC (1:1)</c>). A subscript is not asked: a subscripted control name is refused at every
+        /// edition (COBOL1699, COBOL0899), so a 2002 refusal beside it would name an edition that does not admit it either.
+        /// ⚖ A QUALIFIED TYPE operand stays COBOL-85: the printed folio XIII-55 is missing from our copy (kb/Work PB4952), and the
+        /// rule its reconstruction carries back, that each operand "shall be the same as one of the operands of the CONTROL clause"
+        /// (§2002:13.16.55.2 SR10), asks for the spelling SR1 permits there, qualifiers included; refusing it would leave a control
+        /// name that needs qualification to be unique with no control heading or footing at all.</summary>
+        private void GateCobol85ControlName(CobolParserCore.DataReferenceContext name, string where)
+        {
+            if (!ReferenceResolver.ReadWritten(name).IsReferenceModified) return;
+            using var _ = Sink.At(name);
+            _p.Check(Constructs.ReportControlReferenceModification2002, $"the reference-modified {where} {WrittenSource.Of(name)}");
         }
 
         /// <summary>The '+' symbol for PLUS in a relative LINE or NEXT GROUP operand (ISO §2023:13.18.35.3 SR1, §2023:13.18.37.3

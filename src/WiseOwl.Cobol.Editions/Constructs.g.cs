@@ -223,6 +223,7 @@ public static class Constructs
     public const string ReplacingPartialWord2002 = "replacing-partial-word-2002";
     public const string ReportCodeIs2002 = "report-code-is-2002";
     public const string ReportControlOperandForms2002 = "report-control-operand-forms-2002";
+    public const string ReportControlReferenceModification2002 = "report-control-reference-modification-2002";
     public const string ReportFiller2002 = "report-filler-2002";
     public const string ReportGroupSign2002 = "report-group-sign-2002";
     public const string ReportLineNextPage2002 = "report-line-next-page-2002";

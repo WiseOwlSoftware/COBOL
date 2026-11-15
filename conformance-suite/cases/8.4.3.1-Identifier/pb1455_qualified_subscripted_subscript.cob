@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1455_qualified_subscripted_subscript
       *> rules: [SR-8.4.3.1.3-3, FMT-8.4.2.2.2]
-      *> accept: [85]
+      *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -15,6 +15,8 @@
       *> The splitter that decides whether a '(' belongs to the name before it asked only the LAST word - `T`, a
       *> group with no OCCURS - so `X (E OF T OF G (2))` became two subscripts of X and was refused COBOL2270.
       *> 8.4.2.3.3 SR2 asks it of qualified-data-name-1, which here is `E OF T OF G`, a table element.
+      *> Accepted from 2002: a subscripted subscript is the 2002 arithmetic-expression subscript, refused at
+      *> 85 (§1985:IV.4.3.8.2.3 SR5 permits data-name-2 qualification only; kb/Work PB5564).
       *>
       *> EXPECTED OUTPUT, computed from the rules (8.4.2.3.4 GR1b: the subscript is the value of the expression):
       *>   BBBB    E OF T OF G (2) = 2, so X (2)
