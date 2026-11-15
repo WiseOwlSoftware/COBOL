@@ -19,3 +19,5 @@ ME OF A, SELFREF OF A and A :: "GETME") and its refused twin `pb5598-active-clas
 resumption.
 
 Four older refusals (pb1273-property-active-class, pb1503-get-property-active-class, pb1503-set-property-active-class, pb428-inline-invocation-returning-active-class) listed 2002 in refuse-at; they now name 2014 and 2023, where the bans are text. RefModCategoryDriftTests exempts a bare 8.4.2.4 preceded by the 2002 edition, since that clause is a real one in 2002. The first gate was RED on exactly these five cases.
+
+Review round 1 (R1-1): OoBindStandardInvoke, the BASE New and FactoryObject arm, still refused an inline invocation at 2002 with the 2014 ACTIVE-CLASS ban. The ban is now gated at Has(2014) there too; below 2014 the invocation delivers into a temporary described as the result class view (CompilerTemps.ForInvocationObject), since BASE's ACTIVE-CLASS returning item has no 2002 description to clone. Golden pb5598-base-inline-new-2002 (SET B TO class :: "NEW" at 2002 prints CREATED) and refused twin pb5598-base-inline-new-refused (COBOL2140 at 2014 and 2023).

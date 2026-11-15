@@ -31,6 +31,12 @@ internal sealed class CompilerTemps(DataBinder data)
     internal DataItem ForInvocation(DataItem model, string method) =>
         Create(model, "__INV-TEMP-", "__inv", method);
 
+    /// <summary>The §2002:8.4.2.4.2 temporary of an inline invocation of the standard class BASE's New or FactoryObject
+    /// below the 2014 ACTIVE-CLASS ban (kb/Work PB5598): described <paramref name="result"/>, the class view the method's
+    /// ACTIVE-CLASS returning item stands for, since that item has no description of its own to clone.</summary>
+    internal DataItem ForInvocationObject(ObjectRefDescriptor result) =>
+        ForObjectReference(result, "__INV-TEMP-", "__inv");
+
     /// <summary>Synthesize the temporary an OBJECT-VIEW references (§2023:8.4.3.5.4 GR1, kb/Work PB1425): "This reference
     /// of identifier-1 is treated at compile-time as though it had the description specified by the AS phrase", so the
     /// temporary is a USAGE OBJECT REFERENCE item described <paramref name="view"/>.</summary>
