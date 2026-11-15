@@ -76,14 +76,18 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// from (<c>__set…</c> / <c>__cap…</c> / <c>__pv…</c>).</param>
     public string LandAmount(NumX x, SetAmountRule rule, string detail, out string valueVar, string prefix)
     {
-        x = num.Landed(NumericRenderer.DeU(x), ReceiverContext.None);
+        x = num.LandedAmount(x);
         int id = ctx.Names.NextSet();
         valueVar = $"__{prefix}{id}";
         string raw = $"__amt{id}";
-        if (x.Real)
+        switch (x.Carrier)
         {
-            ctx.Writer.Line($"double {raw} = ({x.Expr});");
-            return RuntimeApi.IndexTryAmountReal(raw, rule, detail, valueVar);
+            case NumXCarrier.Binary64:
+                ctx.Writer.Line($"double {raw} = ({x.Expr});");
+                return RuntimeApi.IndexTryAmountReal(raw, rule, detail, valueVar);
+            case NumXCarrier.Sdidi:
+                ctx.Writer.Line($"CobolDec {raw} = {x.Expr};");
+                return RuntimeApi.IndexTryAmountDec(raw, rule, detail, valueVar);
         }
         ctx.Writer.Line($"Int128 {raw} = (Int128)({x.Expr});");
         return RuntimeApi.IndexTryAmount(raw, $"{x.Scale}", rule, detail, valueVar);

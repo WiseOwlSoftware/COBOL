@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-16",
+ "rule-digest": "1f26debd6298",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/SetAmount.cs#Land; src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#UpByAmountDec; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetPointerUpDown",
+ "test-ref": "conformance:cases/14.8.35@2002-SET-STATEMENT/set-pointer-by-standard-sdidi-amount; unit:SetAmountTests.ASdidiFraction_IsNotAnInteger",
+ "notes": "§2002:14.8.35.3 GR16: arithmetic-expression-3 that does not evaluate to an integer sets EC-SIZE-ADDRESS, the SET is unsuccessful and identifier-9 is unchanged. Under ARITHMETIC IS STANDARD the amount stays a standard intermediate value (NumericRenderer.LandedAmount) and SetAmount.Land(CobolDec) tests integrality on its own exponent, so 1 + 1/10**20 raises the condition; it used to land at scale 6 and read as 1 (kb/Work PB5619)."
+}

@@ -1056,7 +1056,10 @@ arithmetic store and the MOVE store each had the `Dec` arm, these did not. The r
 `NumericRenderer.Landed(x, rcv)` is THE landing of an intermediate into the Int128 lane at the receiver's working
 scale (`WorkingScale(SdidiLandingScaleFloor)`, checked — moved out of `IntrinsicRenderer`, which delegates; the
 constant was called `NumvalScaleFloor` until kb/Work PB251 showed the name was a fiction — §2023:15.67 prescribes no
-working scale, so the floor is an implementor choice for THIS landing and nothing else); the NATIVE DIVIDE … REMAINDER
+working scale, so the floor is an implementor choice for THIS landing and nothing else); a SET-family amount (SET index / pointer / capacity, START … WITH LENGTH) does NOT take this landing: it needs the value's
+fraction and its full magnitude, so `NumericRenderer.LandedAmount` leaves an SDIDI value an SDIDI and each consumer dispatches on
+`NumX.Carrier` into the runtime's `SetAmount.Land(CobolDec, …)` overload (kb/Work PB5619: at scale 6 a 1E-20 fraction vanished and
+`10 ** 40` ended the run with EC-SIZE-OVERFLOW instead of the format's range condition); the NATIVE DIVIDE … REMAINDER
 lane, which once landed a float sender truncated at `FloatWorkingScale` through a `FixedLane` of its own (PB85), now
 divides such a sender as it is (`ArithmeticEmitter.CarriedSubsidiaryQuotient`, kb/Work PB3829); the sign condition
 tests `Int128.Sign(dec.Sig)` (`RuntimeApi.DecSign` — exact at every exponent, never a landing);

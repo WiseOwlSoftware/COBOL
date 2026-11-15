@@ -123,7 +123,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// each pointer moves by n bytes (GR20; character positions in this model). Every §2023:14.9.39.4 rule over the
     /// statement lives in the runtime's <c>CobolPtr</c> — GR18's NULL trap, GR19's integrality test on the
     /// AMOUNT (EC-SIZE-ADDRESS) and GR20's range test on the RESULTING ADDRESS (EC-RANGE-PTR).
-    /// <para>⛔ TWO lanes, not three, and the shape is <see cref="SetEmitter.LandAmount"/>'s by construction:
+    /// <para>⛔ THREE lanes (NATIVE float, SDIDI under a standard mode — kb/Work PB5619 — and the exact scaled Int128), and the shape is <see cref="SetEmitter.LandAmount"/>'s by construction:
     /// a NATIVE-FLOAT amount keeps its <c>double</c> so the integrality test runs on the double, and every other
     /// amount arrives as its EXACT scaled <c>Int128</c> with its scale. The former third lane rendered
     /// <c>long __ptrBy = (long)(…)</c>, which WRAPPED the magnitude GR20 rejects — measured,
@@ -134,8 +134,16 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         var w = ctx.Writer;
         // The amount lands through the ONE landing (kb/Work PB84): `SET P UP BY A ** 2` — an SDIDI intermediate
         // under native arithmetic since PB69, and every STANDARD-DECIMAL expression — was `(long)(CobolDec)`.
-        NumX x = num.Landed(NumericRenderer.DeU(num.Render(s.Amount, ReceiverContext.None)), ReceiverContext.None);
+        NumX x = num.LandedAmount(num.Render(s.Amount, ReceiverContext.None));
         string tmp = $"__ptrBy{ctx.Names.NextPtr()}";
+        if (x.Dec)
+        {
+            w.Line($"CobolDec {tmp} = {x.Expr};");
+            foreach (var t in s.Targets)
+                w.Line(PlaceRenderer.Write(t, RuntimeApi.PtrUpByAmountDec(PlaceRenderer.Read(t), tmp, s.Down))
+                    + "   // SET pointer UP/DOWN BY SDIDI (ISO §2023:14.9.39.4 GR19/GR20)");
+            return;
+        }
         if (x.Real)
         {
             w.Line($"double {tmp} = ({x.Expr});");

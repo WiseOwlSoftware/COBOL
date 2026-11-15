@@ -81,6 +81,31 @@ public static class SetAmount
         return SetAmountLanding.Integer;
     }
 
+    /// <summary>The STANDARD-DECIMAL lane: an amount that arrived as an SDIDI value (<see cref="CobolDec"/>, value =
+    /// Sig × 10^Exp — every arithmetic expression under a standard arithmetic mode, kb/Work PB5619). The integrality test
+    /// runs on the SDIDI's OWN exponent, so a fraction 1E-20 below an integer is still seen
+    /// (§2002:14.8.35.3 GR16: "If arithmetic-expression-3 does not evaluate to an integer, the EC-SIZE-ADDRESS exception");
+    /// landing it first at a fixed working scale truncated that fraction away and overflowed the carrier on
+    /// <c>10 ** 40</c>, whose value is an integer past <see cref="Int128"/> and therefore the format's RANGE rule
+    /// (<see cref="SetAmountLanding.BeyondCarrier"/>), never a size error.</summary>
+    public static SetAmountLanding Land(CobolDec amount, out Int128 whole)
+    {
+        whole = Int128.Zero;
+        if (amount.Sig == 0) return SetAmountLanding.Integer;
+        if (amount.Exp >= 0)
+        {
+            if (!CobolNum.WideningFits(amount.Sig, amount.Exp)) return SetAmountLanding.BeyondCarrier;
+            whole = amount.Exp == 0 ? amount.Sig : amount.Sig * Pow10.AsWide(amount.Exp);
+            return SetAmountLanding.Integer;
+        }
+        // 10^39 exceeds every Int128 significand, so a nonzero Sig is never divisible by it.
+        if (-amount.Exp > 38) return SetAmountLanding.NotAnInteger;
+        Int128 pow = Pow10.AsWide(-amount.Exp);
+        if (amount.Sig % pow != 0) return SetAmountLanding.NotAnInteger;
+        whole = amount.Sig / pow;
+        return SetAmountLanding.Integer;
+    }
+
     /// <summary>The NATIVE-FLOAT lane: the integrality test runs on the <c>double</c> ITSELF. An emitter-side
     /// <c>(long)(double)</c> narrowing truncates the fraction the test is looking for and wraps the magnitude
     /// the range rule rejects, so the double travels intact to here (kb/Work PB151, PB459, PB465).</summary>
