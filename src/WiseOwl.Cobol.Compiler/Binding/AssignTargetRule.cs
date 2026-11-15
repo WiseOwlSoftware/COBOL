@@ -34,7 +34,7 @@ using WiseOwl.Cobol.Runtime;
 ///   <item>Anything else — three or more operands, a literal before another operand, or a leading word that
 ///   is not a provided device class — is COBOL2256.</item>
 /// </list>
-/// <para>⛔ TWO OF THE REFUSALS ARE DEFERRED, NOT REPORTED (kb/Work PB5587): the figurative-constant arm of SR4 and the list
+/// <para>⛔ THREE OF THE REFUSALS ARE DEFERRED, NOT REPORTED (kb/Work PB5587): the figurative-constant and numeric-literal arms of SR4 and the list
 /// of COBOL2256 are the 2023 rules of an entry whose format the 1985 sort-merge entry does not share — §1985:XI.2.3.2
 /// prints <c>ASSIGN TO {implementor-name-1 | literal-1} …</c> and §1985:XI.2.3.3 carries no restriction of literal-1 — and
 /// whether the entry is a sort-merge file's is known only when its SD is read, after this reader has run. They are
@@ -80,6 +80,15 @@ internal static class AssignTargetRule
     /// <see cref="WordText"/>.</summary>
     private static string Text(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext t, FileModel file)
     {
+        if (t.numericLiteral() is { } num)
+        {
+            // A numeric literal is no alphanumeric literal (SR4), and like the figurative constant that refusal belongs to the
+            // entry's FORMAT: §1985:XI.2.3.3 has no rule making literal-1 nonnumeric, so Screen decides (kb/Work PB5587).
+            using (edition.At(num))
+                file.EntryShapeFindings.Add(new(DiagnosticCatalog.AssignLiteralShape, edition.Cursor,
+                    $"ASSIGN TO {num.GetText()}: literal-1 shall be an alphanumeric literal (ISO §2023:12.4.5.2 SR4)"));
+            return "";
+        }
         if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord());
         void Refuse(string why) =>
             Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §2023:12.4.5.2 SR4)");
