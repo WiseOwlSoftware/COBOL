@@ -1,4 +1,4 @@
-## golden-2002-2: 86 own-edition witnesses at --std 2002 from 12 gl2002 files; 87 CONFORMS + 2 DIVERGES 2002 records; GAP 2258 -> 2172
+## Entry 3692 — 2026-11-15 11:48 PST — golden-2002-2: 86 own-edition witnesses at --std 2002 from 12 gl2002 files; 87 CONFORMS + 2 DIVERGES 2002 records; GAP 2258 -> 2172
 
 The second landing of the 2002 golden lane (gl2002, kb/Work PB5597). It integrates 12 of the lane's 85 writer files:
 inspect-p2, communication-description, intrinsic-functions, cancel, stop, open, move-p2, initiate, same-as-p2,
@@ -41,3 +41,4 @@ SIGN SR1) and pb5210 (the existing-golden row of OPEN GR24). Each runs at 2002 i
 
 **Held:** `g2-subscript-cd-destination-no-table`. Its fixer moved it from row 2002-SR-8.4.1.2.2-2 to 2002-SR-A.1.2.2-11,
 and no row of these reports records that rule.
+
