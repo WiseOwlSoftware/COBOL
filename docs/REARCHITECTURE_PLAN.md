@@ -25,11 +25,12 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 ### Where we are
 
 - **▶ WHO RUNS WHAT (owner 2026-10-30: "Focus on fixing compiler bugs and getting to 100% deliverable"; "We should
-  try and fix all single point bottlenecks").** Since 2026-11-12 the orchestrator loop runs on account 1 (the operator on
-  account 2 released it) with the campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
+  try and fix all single point bottlenecks").** The orchestrator loop runs on account 2 (the operator
+  session) since 2026-11-14 17:49 PST. The operator runs the 2002 lanes (the golden lane gl2002, the read records, the fix
+  loop); the Mythos session on account 1 runs 1985 (kb/Work PB5730, the gl1985 witness lane, then the 1985 code
+  adjudications of PB5683). The campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
   restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
-  one file per determination with an untracked rendered view). The loop was stopped on the afternoon of 2026-11-12 for a
-  Claude Code CLI update; the next attended session restarts it. The 2023 inventory reached ZERO GAP on 2026-11-05
+  one file per determination with an untracked rendered view) are as their notes state. The 2023 inventory reached ZERO GAP on 2026-11-05
   (kb/Work A11 closed DOC-A.1-17). **It reads 1 GAP since 2026-11-15, and that is not a regression in the compiler:**
   `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or
   more receivers edits it again, wrong at `--std 2023` too) already existed. The record was corrected to DIVERGES naming
@@ -63,7 +64,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
-  verdicts, never as new KEPT records (its word-identical pairing is empty).
+  verdicts, never as new KEPT records (its word-identical pairing is empty). Since the PB5692 ruling of
+  2026-11-15 a shared verdict does not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at
+  `--std 85` (kb/Work PB5683), and until the record-format switch (kb/Work PB5682) shows a verdict's provenance, the
+  rows counted closed on a shared verdict are not evidence that 1985 is done.
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's
@@ -80,6 +84,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   reset account 1 on 2026-11-12 (kb/Work PB5357, dated files of that day); until its reset on Sunday 2026-11-15 at 02:00 PST
   he approved on account 1 only Mythos for orchestrator loop units and for workers on Mythos-grade jobs. Any other Mythos
   or Fable dispatch, and every one on account 2, needs the owner's explicit approval for that dispatch.
+  For the week of 2026-11-15 the owner lets both accounts spend ahead of the day line and pause at 90 % (kb/Work PB5357,
+  the dated file of 2026-11-15).
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
   Every gate of a change a test can read runs on Windows the WHOLE population of every test target (`scripts/build_targets.json`)
   (`scripts/gate.py`, one shape since 2026-10-11, kb/Work PB3015 Q1a, PB3022), the classes red at its previous run or
