@@ -1,4 +1,4 @@
-## PB5616: the toolchain probe keeps what happened, and a tool that did not answer is NOT RUN [toolchain-unread], never "absent"
+## Entry 3666 — 2026-11-15 01:47 PST — PB5616: the toolchain probe keeps what happened, and a tool that did not answer is NOT RUN [toolchain-unread], never "absent"
 
 A gate on the dev box at 2026-11-15 08:38Z ended `NOT RUN [toolchain] — ... dotnet-sdk absent (toolchain.env 10.0.404).
 Install the manifest's versions` (run 000004-20261115T083827Z), between runs that read `dotnet-sdk 10.0.404` on the
@@ -19,3 +19,4 @@ origin/main. On the branch it prints `UNREAD dotnet-sdk did not answer within 60
 
 No retry was added and the 60 s limit was not changed. The 08:38Z cause is still unknown, and PB5616 stays `half` until
 the next occurrence's record names the cause.
+
