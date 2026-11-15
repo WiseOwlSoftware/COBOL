@@ -2292,9 +2292,15 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>SOURCE-COMPUTER followed by a second period and no entry (kb/Work PB5170); see <see cref="GateLonePeriod"/>.</summary>
+        /// <summary>SOURCE-COMPUTER followed by a second period and no entry (kb/Work PB5170); see <see cref="GateLonePeriod"/>.
+        /// <para>The WITH DEBUGGING MODE clause WITHOUT computer-name-1 is the OBJECT-COMPUTER clauses' 2002 relaxation:
+        /// §1985:VI.4.3.2 prints <c>[ computer-name [ WITH DEBUGGING MODE ] . ]</c>, the clause inside the name's bracket,
+        /// and §2002:12.2.4.1 two independent brackets (kb/Work PB5609). The clause's own obsolete/removed gate is
+        /// <see cref="VisitDebuggingModeClause"/>.</para></summary>
         public override object? VisitSourceComputerParagraph(CobolParserCore.SourceComputerParagraphContext ctx)
         {
+            if (ctx.computerName() is null && ctx.debuggingModeClause() is not null)
+                _p.Check(Constructs.ComputerNameOptional2002, "the SOURCE-COMPUTER WITH DEBUGGING MODE clause without computer-name-1");
             GateLonePeriod(ctx, "SOURCE-COMPUTER");
             return base.VisitChildren(ctx);
         }
