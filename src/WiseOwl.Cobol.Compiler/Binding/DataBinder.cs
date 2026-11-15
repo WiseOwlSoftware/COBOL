@@ -2283,7 +2283,7 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // over every typed entry the composed subject holds: a member's own TYPE clause was expanded in its
         // declaration (ExpandTemplate) and is never re-expanded in a copy, so this site is the only one that sees
         // the record the copy lands in.
-        bool screenExternalRecord = !InTypeDeclaration(item) && IsInExternalRecord(item);
+        bool screenExternalRecord = !InTypeDeclaration(item) && IsInExternalRecord(item, State.Files);
         // VCR 16, the STRENGTH half (§2023:13.16.3 SR13 ¶2; Annex E.2 item 10; the P13 review finding C9): "If the
         // CONSTANT RECORD clause is specified with the EXTERNAL clause, there shall also be a TYPE clause that
         // specifies a STRONGLY typed definition." The declaration-site check (BindEntry) can verify only TYPE
@@ -2951,14 +2951,17 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         return State.Files.Declared.Any(f => f.Records.Contains(root));
     }
 
-    /// <summary>Whether the RECORD an item belongs to is an external item (ISO §2023:13.18.22.3 SR5; §2023:13.18.22.4 GR4 b)):
-    /// the record carries the EXTERNAL clause itself, takes it from an external type declaration (GR3), or is the
-    /// record of an <c>FD … IS EXTERNAL</c> file, whose record descriptions are external though they write no clause.</summary>
-    private bool IsInExternalRecord(DataItem item)
+    /// <summary>⛔ THE ONE TEST OF THE EXTERNAL ATTRIBUTE (kb/Work PB5427 made the three copies one): whether the RECORD an item
+    /// belongs to is an external item. ISO §2023:8.6.3: a working-storage record "is given the external attribute by the presence
+    /// of the EXTERNAL clause in its data description entry" (or by an EXTERNAL type, §2023:13.18.22.4 GR3), and the records of an
+    /// <c>FD … IS EXTERNAL</c> file are external though they write no clause (§2023:13.18.22.4 GR4 b)). Every item subordinate to
+    /// an external record attains the attribute too. Read by the declaration walk, <c>OdoResolvePass</c> and
+    /// <c>ExternalRecordNameRules</c>, which asks it of a frozen unit's <paramref name="files"/>.</summary>
+    internal static bool IsInExternalRecord(DataItem item, FileSlice files)
     {
         var root = item;
         while (root.Parent is { } p) root = p;
-        return root.HasExternalClause || root.ExternalFromType || State.Files.Declared.Any(f => f.IsExternal && f.Records.Contains(root));
+        return root.HasExternalClause || root.ExternalFromType || files.Declared.Any(f => f.IsExternal && f.Records.Contains(root));
     }
 
     /// <summary>True when the item's description (subordinates included) contains a USAGE OBJECT REFERENCE
