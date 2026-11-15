@@ -1,0 +1,9 @@
+**2026-11-14, the 1985 re-read 5 batch 2 (records-rs5b): the landing of this note closed 5 1985 rows, now recorded CONFORMS.**
+
+- `1985-FMT-VI.6.25.2`: read PARTIAL before; re-read CONFORMS on main dc1f2dcce8 and upheld by an independent refuter (`E:/COBOL-coord/scratch/op-20261114/out-reread5/rs-08.json`, `rs-08-refute.json`).
+- `1985-FMT-VI.6.6.2`: read PARTIAL before; re-read CONFORMS on main dc1f2dcce8 and upheld by an independent refuter (`E:/COBOL-coord/scratch/op-20261114/out-reread5/rs-09.json`, `rs-09-refute.json`).
+- `1985-FMT-VI.6.8.2`: read PARTIAL before; re-read CONFORMS on main dc1f2dcce8 and upheld by an independent refuter (`E:/COBOL-coord/scratch/op-20261114/out-reread5/rs-09.json`, `rs-09-refute.json`).
+- `1985-FMT-VIII.4.3.2`: read PARTIAL before; re-read CONFORMS on main dc1f2dcce8 and upheld by an independent refuter (`E:/COBOL-coord/scratch/op-20261114/out-reread5/rs-11.json`, `rs-11-refute.json`).
+- `1985-FMT-VIII.4.5.2`: read PARTIAL before; re-read CONFORMS on main dc1f2dcce8 and upheld by an independent refuter (`E:/COBOL-coord/scratch/op-20261114/out-reread5/rs-11.json`, `rs-11-refute.json`).
+
+The row is closed by this landing; the note's `closes_rows` is its owner's to restate (`python scripts/orchestrator/compact_notes.py` folds this file in).
