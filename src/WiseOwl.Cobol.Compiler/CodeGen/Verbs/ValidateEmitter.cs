@@ -35,6 +35,12 @@ internal sealed class ValidateEmitter(EmitContext ctx, ConditionRenderer cond, E
             return;
         }
 
+        if (!v.Elements.Any())
+        {
+            w.Line("// VALIDATE: no element of the operand has a stage-one check, so no stage applies and none is raised (ISO §2023:14.9.50.4 GR4)");
+            return;
+        }
+
         int id = ctx.Names.NextEc();
         var indicators = new Dictionary<ValidateElement, string>(ReferenceEqualityComparer.Instance);
         foreach (var element in v.Elements)

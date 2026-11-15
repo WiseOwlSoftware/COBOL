@@ -28,3 +28,8 @@ records are unclassified (kb/Work PB4996), so none can take a verdict yet.
 
 **Not built.** The format check of an edited picture (no picture-conformance predicate exists in the runtime), DEFAULT, DESTINATION, CLASS and the 88-level VALID/INVALID entries,
 INVALID WHEN, PRESENT WHEN format 2, the held ODO count, RECORD VARYING padding and VALIDATE-STATUS: S2 to S5 of the design.
+
+### Review round 1 (two blocking findings)
+
+- R1-1: `ValidateEmitter` emitted `if ()` for an operand with no element carrying a stage-one test (all alphanumeric) and the backend C# compile failed. Fixed: with no element nothing is emitted (§2023:14.9.50.4 GR4: a stage with nothing applying is omitted). Golden `pb5577-validate-no-checked-element` (checking on, runs at 2002, 2014, 2023).
+- R1-2: an edited item (numeric-edited, alphanumeric or national edited) got no stage-one test, so a garbage record was reported valid. Fixed: `ValidateBinder.Expand` refuses an operand holding one with COBOL7363 until the edited-picture check lands (S4), so a partial validation is never reported as complete. Refusal golden `pb5577-validate-edited-operand-unbuilt`; the design doc section 4 states the refusal.

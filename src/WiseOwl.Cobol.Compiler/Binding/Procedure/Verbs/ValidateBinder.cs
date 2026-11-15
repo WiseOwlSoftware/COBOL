@@ -77,6 +77,13 @@ internal sealed class ValidateBinder(BinderContext ctx, StatementBinder host)
         var item = cur.Item;
         if (item.IsElementary)
         {
+            if (item.Pic is { } pic && (pic.Category == PicCategory.NumericEdited || pic.IsCharacterEdited))
+            {
+                // §2023:14.9.50.4 GR6 a: the check against the PICTURE of an edited item is not built (design section 6, S4); passing it
+                // as valid would report a record the standard calls invalid, so the operand is refused.
+                Unbuilt(written, $"the edited item '{item.CobolName ?? "FILLER"}' has a format check this stage does not build");
+                return false;
+            }
             var place = cur.ToPlace();
             if (IntrinsicArgumentRules.ClassOfPlace(place) is not (CobolClass.Index or CobolClass.Object or CobolClass.Pointer or CobolClass.MessageTag)
                 && FormatTest(place, item) is { } test)

@@ -73,7 +73,7 @@ array, stack-allocated for a fixed table, pooled for ODO). The indicator is not 
    moved, READ, REDEFINES) one is tested on its characters. A failing item is InvalidFormat and its content is not changed (GR5). NOT YET:
    the format check of an EDITED picture (numeric-edited and alphanumeric-edited: insertion characters present, the locale's monetary
    specification, §2023:13.18.40.4 GR19) needs a picture-conformance predicate the runtime does not have (the de-editing of §2023:14.6.13.2
-   rule 4 is a MOVE-time decode, not a validator); it belongs with S4 and is registered in kb/Work PB5577. The DEFAULT
+   rule 4 is a MOVE-time decode, not a validator); it belongs with S4 and is registered in kb/Work PB5577; until then an operand holding an edited item is refused (COBOL7363), never reported valid. The DEFAULT
    value is established for every item §2002:13.16.16 covers, even with no DEFAULT clause. EC-DATA-INCOMPATIBLE raised by
    the format test is non-fatal inside VALIDATE (GR6).
 2. **Input distribution.** DESTINATION receivers get the item by an implicit MOVE: the existing MOVE path.
