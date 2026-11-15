@@ -1,4 +1,4 @@
-## Leads of wave 20262043 filed in kb/Work (PB5653-PB5660)
+## Entry 3681 — 2026-11-15 06:13 PST — Leads of wave 20262043 filed in kb/Work (PB5653-PB5660)
 
 Notes filed (one per mechanism), from the group reports of PB5604, PB5575, PB5579, PB5602, PB5598 and PB5578:
 - PB5653: implicit DEBUG-SUB-n registers and the implied FD record area built as bare PicInfo values (PB5617's root, two more sites).
@@ -12,3 +12,4 @@ Notes filed (one per mechanism), from the group reports of PB5604, PB5575, PB557
 
 Appended beside open notes: PB5579 (zero-length-literal golden cannot see length 0), PB5578 (VCR row 7.78 witnesses; golden pins undefined record area).
 Skipped as filed: PB5094 (year-prefixed closes_rows), PB5578's round-1 leads (its landing file).
+
