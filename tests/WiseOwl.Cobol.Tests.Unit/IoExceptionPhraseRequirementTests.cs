@@ -92,7 +92,7 @@ public sealed class IoExceptionPhraseRequirementTests
     public static TheoryData<string, string> UseAndStatement()
     {
         var data = new TheoryData<string, string>();
-        foreach (string use in new[] { "XF", "I-O", "INPUT", "OUTPUT", "EXTEND" })
+        foreach (string use in new[] { "XF", "I-O", "INPUT", "OUTPUT" })
             foreach (string statement in new[] { "READ XF.", "WRITE XREC.", "REWRITE XREC.", "DELETE XF.", "START XF KEY IS EQUAL TO XK." })
                 data.Add(use, statement);
         return data;
@@ -102,6 +102,71 @@ public sealed class IoExceptionPhraseRequirementTests
     [MemberData(nameof(UseAndStatement))]
     public void UseDeclarativeForTheFileOrAMode_CoversEveryStatement(string useOn, string statement)
         => AssertAccepted(Check(85, Indexed(useOn, statement)));
+
+    // A USE ... ON EXTEND procedure runs for a file open in the extend mode (§1985:VIII.4.8.4 GR5), and only a file in the
+    // sequential access mode (§1985:IX.4.4.3 SR1), without LINAGE (§1985:VII.4.3.3 SR3), is ever opened EXTEND (kb/Work PB5413).
+    // So the declarative excuses no phrase of a random or dynamic access file, and does for a sequential-access one.
+    public static TheoryData<string> ExtendStatements() =>
+        ["READ XF.", "WRITE XREC.", "REWRITE XREC.", "DELETE XF.", "START XF KEY IS EQUAL TO XK."];
+
+    [Theory]
+    [MemberData(nameof(ExtendStatements))]
+    public void UseOnExtend_DoesNotCoverADynamicAccessIndexedFile(string statement)
+        => AssertRefused(Check(85, Indexed("EXTEND", statement)), "COBOL6826");
+
+    [Theory]
+    [InlineData("RANDOM", "DELETE RELF.")]
+    [InlineData("DYNAMIC", "REWRITE RREC.")]
+    [InlineData("DYNAMIC", "WRITE RREC.")]
+    [InlineData("RANDOM", "READ RELF.")]
+    public void UseOnExtend_DoesNotCoverARelativeFileInRandomOrDynamicAccess(string access, string statement)
+        => AssertRefused(Check(85, WithUseOnExtend(Relative(access, statement))), "COBOL6826");
+
+    [Theory]
+    [InlineData("RANDOM", "READ RELF.")]
+    [InlineData("RANDOM", "WRITE RREC.")]
+    public void UseOnInputOrOutput_StillCoversARelativeFileInRandomAccess(string access, string statement)
+    {
+        AssertAccepted(Check(85, WithUse(Relative(access, statement), "INPUT")));
+        AssertAccepted(Check(85, WithUse(Relative(access, statement), "OUTPUT")));
+    }
+
+    [Fact]
+    public void UseOnExtend_CoversASequentialAccessIndexedFile()
+        => AssertAccepted(Check(85, WithUseOnExtend(SequentialAccessIndexed("WRITE XREC."))));
+
+    [Fact]
+    public void UseOnExtend_DoesNotCoverASequentialFileWithLinage()
+    {
+        string[] source =
+        [
+            "IDENTIFICATION DIVISION.", "PROGRAM-ID. IOP4.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.", "FILE-CONTROL.",
+            "    SELECT SF ASSIGN TO \"SF.DAT\" ORGANIZATION IS SEQUENTIAL.",
+            "DATA DIVISION.", "FILE SECTION.", "FD  SF LINAGE IS 10 LINES.", "01  SREC PIC X(4).",
+            "PROCEDURE DIVISION.", "DECLARATIVES.", "U1 SECTION.", "    USE AFTER STANDARD EXCEPTION PROCEDURE ON EXTEND.",
+            "U1-P.", "    EXIT.", "END DECLARATIVES.", "MAIN-SECT SECTION.", "MAIN-PARA.", "    OPEN INPUT SF.", "    READ SF.",
+            "    CLOSE SF.", "    STOP RUN.",
+        ];
+        AssertRefused(Check(85, source), "COBOL6826");
+    }
+
+    private static string[] SequentialAccessIndexed(string statement) =>
+    [
+        "IDENTIFICATION DIVISION.", "PROGRAM-ID. IOP5.", "ENVIRONMENT DIVISION.", "INPUT-OUTPUT SECTION.", "FILE-CONTROL.",
+        "    SELECT XF ASSIGN TO \"XF.DAT\" ORGANIZATION IS INDEXED", "        ACCESS MODE IS SEQUENTIAL RECORD KEY IS XK.",
+        "DATA DIVISION.", "FILE SECTION.", "FD  XF.", "01  XREC.", "    05 XK PIC X(2).", "    05 XD PIC X(2).",
+        "PROCEDURE DIVISION.", "MAIN-PARA.", "    OPEN EXTEND XF.", "    " + statement, "    CLOSE XF.", "    STOP RUN.",
+    ];
+
+    private static string[] WithUseOnExtend(string[] source) => WithUse(source, "EXTEND");
+
+    /// <summary>Inserts one DECLARATIVES section (USE ... ON <paramref name="useOn"/>) before the first paragraph of the PROCEDURE DIVISION.</summary>
+    private static string[] WithUse(string[] source, string useOn)
+    {
+        int at = Array.IndexOf(source, "PROCEDURE DIVISION.") + 1;
+        return [.. source[..at], "DECLARATIVES.", "U1 SECTION.", $"    USE AFTER STANDARD EXCEPTION PROCEDURE ON {useOn}.",
+            "U1-P.", "    EXIT.", "END DECLARATIVES.", "MAIN-SECT SECTION.", .. source[at..]];
+    }
 
     [Theory]
     [InlineData("READ XF.")]
