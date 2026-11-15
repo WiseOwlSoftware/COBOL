@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-XIV.3.6.4-18",
  "rule-digest": "eacde3468ae1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Communication/McsStore.cs#Transmit; src/WiseOwl.Cobol.Runtime/Communication/MessageControlSession.cs#Send",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-18",
+ "notes": "§1985:XIV.3.6.4 GR18 applies to a device that does not support the superimposition of two or more characters at the same position. Closed on the argued arm unpopulatable-antecedent (docs/CONFORMANCE.md section 8, DRV-1985-GR-XIV.3.6.4-18, signed claude: 2026-11-14 by the records-85-held registrar session): GR2 governs every WiseOwl device, which takes variable-length messages (section 3.3 \"Communication devices\"; McsStore.Transmit, the only device writer, writes each complete message at the committed end; ADVANCING and REPLACING LINE are ignored, GR12), so no device is the line-oriented character-imaging device GR16 to GR18 classify, and the observed DDDEEEEEFF (three segments, contiguous) is GR2's result. This replaces the false step \"one message is one line\" / \"no earlier characters share its line\" that the PB5373 class 2 refuter found (pb5373-class2.jsonl: DOUBTFUL for -18). An independent cobol-refuter pass UPHELD the restated derivation (tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl; probes ioterm.cob, gr17.cob, send2/snd.cob). CONTINGENT on that device model. Previous verdict: none (held). Recorded 2026-11-14 by records-85-held from the final held-row adjudication (op-20261114/held-adjudicated.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,
