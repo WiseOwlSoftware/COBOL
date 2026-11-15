@@ -7,9 +7,11 @@
 *> portable: unverified
 *>---
 *> ISO/IEC 1989:2023 13.18.13.4 GR4 (ISO/IEC 1989:2002 13.16.13.3 GR4): "If record description entries associated with the file contain a SELECT WHEN
-*> clause, a record description entry is selected by evaluation of those SELECT WHEN clauses." 13.18.51.4 GR1 evaluates the clauses "for READ statements,
-*> for REWRITE statements with the FILE phrase, and for WRITE statements with the FILE phrase, if the associated file description entry also contains a
-*> CODE-SET clause or FORMAT clause"; a file with SELECT WHEN clauses is therefore converted by the alphabet on a REWRITE as on a WRITE. The file is
+*> clause, a record description entry is selected by evaluation of those SELECT WHEN clauses." §2002:13.16.49.3 GR1 evaluates the clauses "for READ, REWRITE, and WRITE
+*> statements associated with that file when a CODE-SET clause or FORMAT clause is specified"; from 2014
+*> §2023:13.18.51.4 GR2 gives them effect only for READ statements and the statements with the FILE phrase, so REWRITE REC-A is converted by the entry it names, REC-A, which
+*> is also the entry the conditions select (one output at every edition: the edition-dependent selection is witnessed by select_when_record_name_write_by_edition). A file with SELECT WHEN clauses
+*> is converted by the alphabet on a REWRITE as on a WRITE. The file is
 *> opened I-O (SR9 of 14.9.27.3 forbids that only with a FORMAT clause), its first record is rewritten, and the medium is read through a file
 *> description without CODE-SET: the rewritten record holds CCSID 37 codes (C1 C3 C4 F2 F3 = 193 195 196 242 243), and the file reads back through
 *> the CODE-SET file as ACD23. Why it can fail: the REWRITE puts the native characters on the medium, a mixed-code file that reads back as other characters.

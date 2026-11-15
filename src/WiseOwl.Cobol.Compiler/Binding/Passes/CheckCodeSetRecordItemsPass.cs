@@ -43,9 +43,10 @@ namespace WiseOwl.Cobol.Binding.Passes;
 /// pipeline's phase contract (<c>BindPipeline.ValidateDag</c>) asserts it at startup.</para>
 ///
 /// <para><b>What stayed behind.</b> Everything in <c>BindCodeSetClause</c> that reads the CLAUSE rather than the
-/// records — SR1/SR2 alphabet resolution and class, SR3's "not both alphabets" sentence, and the GR2/GR6 medium
-/// decision — still runs at the FD, because those facts are complete the moment the clause is read. Only the
-/// selected CLASS travels, on <see cref="FileModel.CodeSetRecordClass"/>.</para>
+/// records — SR1/SR2 alphabet resolution and class and the GR2/GR6 medium decision — still runs at the FD, because those
+/// facts are complete the moment the clause is read. Only the selected CLASS travels, on <see cref="FileModel.CodeSetRecordClass"/>, and
+/// <see cref="FileModel.CodeSetBothAlphabets"/> carries SR3's "not both alphabets" fact here: that sentence is lifted for a file whose records
+/// have SELECT WHEN clauses (kb/Work PB5578), which the FD does not know until its records are read, so <c>Run</c> refuses it.</para>
 ///
 /// <para><b>Edition axis.</b> Plain syntax rules at every edition the CODE-SET clause exists in (85 through 2023);
 /// the binder is edition-agnostic and the clause's own gates are <c>VersionConformancePass</c>'s.</para>

@@ -381,18 +381,19 @@ public static class CobolFile
     /// see <see cref="WriteAdvanceKind"/> for why a WRITE's presentation shape may not pick its own entry
     /// (kb/Work PB683). <paramref name="nationalRecord"/> is the category of the record the statement sends
     /// (§2023:14.9.51.4 GR21 / GR22: record-name-1 "implicitly or explicitly as national"), which only a LINE SEQUENTIAL
-    /// file's rules key on (kb/Work PB1191).</summary>
+    /// file's rules key on (kb/Work PB1191). <paramref name="namedEntry"/> is the record description entry record-name-1 names, for a file
+    /// whose records are translated by entry (<see cref="RecordFormat.BySelectWhen"/>: the statement selects the entry by its SELECT WHEN clauses).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default,
-        RecordExtents? areaExtents = null, bool nationalRecord = false)
-        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance, areaExtents, nationalRecord);
+        RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
+        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance, areaExtents, nationalRecord, namedEntry);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§2023:14.9.35 GR11/GR12).
     /// <paramref name="nationalRecord"/> is the category of the record the statement sends, as for
     /// <see cref="WriteShared"/> (§2023:14.9.35.4 GR17 c)'s space fill, kb/Work PB1191).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount, RecordExtents? areaExtents = null, bool nationalRecord = false)
-        => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount, areaExtents, nationalRecord);
+        FileRetryKind retryKind, long retryAmount, RecordExtents? areaExtents = null, bool nationalRecord = false, int namedEntry = RecordFormat.BySelectWhen)
+        => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount, areaExtents, nationalRecord, namedEntry);
 
     /// <summary>Governed DELETE RECORD for a sharing-active connector (§2023:14.9.10 GR6/GR7).</summary>
     public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount,

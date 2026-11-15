@@ -182,6 +182,12 @@ public abstract class FileConnector
     /// rules come first). Cleared by the registry when the statement ends.</summary>
     internal Func<string?>? CommitGate { get; set; }
 
+    /// <summary>The record description entry the WRITE or REWRITE now executing names, or <see cref="RecordFormat.BySelectWhen"/>: a file's SELECT WHEN clauses
+    /// are evaluated for the statements the edition says (§2023:13.18.51.4 GR2 — READ, REWRITE and WRITE with the FILE phrase; §2002:13.16.49.3 GR1 — every
+    /// READ, REWRITE and WRITE), so a record-name-1 statement of 2014 and after is formatted by the entry it names. Set by the registry around the
+    /// statement and cleared when it ends, like <see cref="CommitGate"/>.</summary>
+    internal int NamedRecordEntry { get; set; } = RecordFormat.BySelectWhen;
+
     /// <summary>The failing status of <see cref="CommitGate"/>, or null: the call every organization's WRITE and
     /// REWRITE makes once its own rules have passed and before it changes anything.</summary>
     private protected string? RefusedAtCommit() => CommitGate?.Invoke();

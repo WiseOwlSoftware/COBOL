@@ -122,6 +122,9 @@ public sealed class RecordFormat
     /// <summary>What a selector returns when no record description entry is selected (SELECT WHEN GR4: I-O status 45).</summary>
     public const int NoSelection = -1;
 
+    /// <summary>The entry argument of <see cref="ToExternal"/> that asks for the SELECT WHEN selection (the statement names no record description entry).</summary>
+    public const int BySelectWhen = -1;
+
     /// <summary>The CODE-SET conversion of alphanumeric characters this file applies item by item, or null.</summary>
     private readonly CodeSetConversion? _codeSet;
 
@@ -191,12 +194,15 @@ public sealed class RecordFormat
 
     /// <summary>Translate a record about to be written: select its record description entry, format its selected items and
     /// convert its display items (ISO §2023:13.18.24.4 GR2, GR8; §2023:13.18.13.4 GR4, GR5 — formatting first on output).</summary>
+    /// <param name="namedEntry">The index of the record description entry the statement names (a record-name-1 WRITE or REWRITE of 2014 and after,
+    /// whose SELECT WHEN clauses "have no effect", §2023:13.18.51.4 GR2), or <see cref="BySelectWhen"/>.</param>
     /// <returns><see cref="Failure.None"/> and the external image, or the reason there is none.</returns>
-    public Failure ToExternal(string internalImage, out string external)
+    public Failure ToExternal(string internalImage, out string external, int namedEntry = BySelectWhen)
     {
         external = "";
         int index = 0;
-        if (_plans.Length > 1)
+        if (namedEntry != BySelectWhen) index = namedEntry;
+        else if (_plans.Length > 1)
         {
             index = Select!(internalImage);
             if (index < 0 || index >= _plans.Length) return Failure.NoRecordSelected;

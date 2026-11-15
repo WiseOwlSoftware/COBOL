@@ -267,7 +267,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         ScreenFormatFromOperand(file, fromMove, "WRITE");
         return new BoundWrite(file, record, fromMove,
             advancing, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
-        { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
+        { Lock = wlock, Retry = wretry, InvalidKey = winvalid, FilePhrase = w.fileName() is not null };
     }
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
@@ -413,7 +413,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         ScreenFormatFromOperand(file, rewriteFrom, "REWRITE");
         return new BoundRewrite(file, record, rewriteFrom,
             UnsupportedOrg(file, "REWRITE"))
-        { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
+        { Lock = rlock, Retry = rretry, InvalidKey = rinvalid, FilePhrase = rw.fileName() is not null };
     }
 
     /// <summary>FORMAT clause SR2 and SR3 over the identifier of a FROM phrase: "The REDEFINES clause and the RENAMES clause shall not be

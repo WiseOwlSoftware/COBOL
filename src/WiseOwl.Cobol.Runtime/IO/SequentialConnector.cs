@@ -1448,7 +1448,7 @@ public sealed partial class SequentialConnector : FileConnector
     /// statement's status, or null.</summary>
     private string? ExternalRecord(ref string image, ref int length, ref bool national, ref RecordExtents? extents)
     {
-        var failure = Format!.ToExternal(image, out string external);
+        var failure = Format!.ToExternal(image, out string external, NamedRecordEntry);
         if (failure is not RecordFormat.Failure.None) return RefusalStatus(failure);
         // A fixed-length file's record is as long as its records are (§2023:13.18.43.4 GR6) and the fill is the medium's space, so it is made HERE,
         // while the record is still the one the alphabet converts.

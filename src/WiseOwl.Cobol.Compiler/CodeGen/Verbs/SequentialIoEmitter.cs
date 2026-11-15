@@ -582,6 +582,21 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         w.Line("});");
     }
 
+    /// <summary>The index, among the file's written record description entries, of the one a WRITE or REWRITE of record-name-1 names, or null when the
+    /// statement selects its entry by the SELECT WHEN conditions: the FILE phrase's statement always does (§2023:13.18.51.4 GR2: the clauses have effect
+    /// for "REWRITE statements with the FILE phrase, and WRITE statements with the FILE phrase"), and so does every statement at <c>--std 2002</c>
+    /// (§2002:13.16.49.3 GR1: "evaluated for READ, REWRITE, and WRITE statements associated with that file"), which
+    /// <see cref="DialectBehavior.SelectWhenOnlyForFilePhraseStatements"/> separates. A file with one entry has nothing to select (kb/Work PB5578).</summary>
+    private string? NamedRecordEntry(FileModel file, Place record, bool filePhrase)
+    {
+        if (filePhrase || !file.TranslatesByRecord) return null;
+        if (!DialectBehaviors.IsActive(DialectBehavior.SelectWhenOnlyForFilePhraseStatements, ctx.Data.DialectLevel)) return null;
+        var records = file.WrittenRecords.ToList();
+        if (records.Count < 2) return null;
+        int index = records.IndexOf(Root(record.Item));
+        return index < 0 ? null : index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     private static DataItem Root(DataItem item)
     {
         while (item.Parent is { } parent) item = parent;
@@ -922,7 +937,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // §2023:14.9.51.4 GR21 / GR22 key the line sequential strip, fill and character set on RECORD-NAME-1's category,
         // so the statement carries it (kb/Work PB1191). The image sent is record-name-1's own on a line sequential
         // file (FileModel.TransfersPastRecord is false for it), so the category is the Place's.
-        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr), OperandText.RecordSendExtents(wr.Record), FileModel.IsNationalRecord(wr.Record.Item))};");
+        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr), OperandText.RecordSendExtents(wr.Record), FileModel.IsNationalRecord(wr.Record.Item), NamedRecordEntry(wr.File, wr.Record, wr.FilePhrase))};");
         EndReleasedRecord(wr.File, wr.Record, released, lenArg, RuntimeApi.FileStatus(name));
         // The §2023:9.1.14 status SNAPSHOT for a --permissive INVALID KEY phrase (kb/Work PB691). Taken HERE, before
         // the FILE STATUS store and the USE hook, for the same reason the end-of-page flag is read in the `if`
@@ -1170,7 +1185,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // clause: held in a local so the statement and the store after it see the SAME record (kb/Work PB1195).
         string? released = BeginReleasedRecord(rw.File, rw.Record, ref image);
         // §2023:14.9.35.4 GR17 c)'s space fill keys on record-name-1's category, carried by the statement (kb/Work PB1191).
-        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record), FileModel.IsNationalRecord(rw.Record.Item))};");
+        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordSendExtents(rw.Record), FileModel.IsNationalRecord(rw.Record.Item), NamedRecordEntry(rw.File, rw.Record, rw.FilePhrase))};");
         EndReleasedRecord(rw.File, rw.Record, released, rwLenArg, RuntimeApi.FileStatus(FileKeyExpr(rw.File)));
         // The §2023:9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
         // the USE hook — the WRITE arm above carries the full reasoning (kb/Work PB691).

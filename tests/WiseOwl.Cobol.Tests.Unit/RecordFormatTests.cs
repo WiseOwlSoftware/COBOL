@@ -146,6 +146,20 @@ public sealed class RecordFormatTests
     }
 
     [Fact]
+    public void ToExternal_WithANamedEntry_FormatsByThatEntryAndNeverEvaluatesTheSelector()
+    {
+        // §2023:13.18.51.4 GR2: a WRITE or REWRITE of record-name-1 is formatted by the entry it names; the clauses have no effect, so a tag no clause selects is no status 45.
+        var format = TwoRecords(RecordFormatKinds.Character);
+        Assert.Equal(RecordFormat.Failure.None, format.ToExternal("ZHEY!", out string named, namedEntry: 1));
+        Assert.Equal("ZHEY!", named);
+        // The named entry decides the format whatever the tag says: entry 0 formats bytes 1-4 as a signed number, and "B" would have selected entry 1.
+        var signed = Zoned(4, true);
+        Assert.Equal(RecordFormat.Failure.None, format.ToExternal("B" + Image(7, signed), out string asFirst, namedEntry: 0));
+        Assert.Equal("B+0007", asFirst);
+        Assert.Equal(RecordFormat.Failure.NoRecordSelected, format.ToExternal("ZHEY!", out _, RecordFormat.BySelectWhen));
+    }
+
+    [Fact]
     public void CodeSet_ConvertsDisplayItemsAndTheTextFormattingMade_FormattingFirstOnOutput()
     {
         // GR5 of the CODE-SET clause: formatting first, then conversion on output; conversion first, then formatting on input.
