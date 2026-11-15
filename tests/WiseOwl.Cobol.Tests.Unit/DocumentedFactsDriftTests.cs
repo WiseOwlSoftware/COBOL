@@ -80,9 +80,11 @@ public sealed class DocumentedFactsDriftTests
             // DOC-A.1-92.
             ["functionDeviceFormRowNames"] = Strings(new[] { FunctionDeviceForm.Argument, FunctionDeviceForm.FixedDigits, FunctionDeviceForm.Literal }
                 .SelectMany(FunctionDeviceFormDriftTests.RowsDeclaring)),
-            // docs/VERSION_CHANGE_REFERENCE.md's <!-- behavior:id --> anchors.
+            // docs/VERSION_CHANGE_REFERENCE.md's <!-- behavior:id --> anchors, and the edition each behaviour changed in, which
+            // the rule lineage's screen reads (scripts/spec/lineage_screen.py, kb/Work PB5589: a behaviour that changed after
+            // an older edition marks that edition's rules in its clause).
             ["dialectBehaviors"] = new JsonArray([.. DialectBehaviors.All.ToArray().OrderBy(r => r.Id, StringComparer.Ordinal)
-                .Select(r => (JsonNode?)new JsonObject { ["id"] = r.Id, ["vcrRow"] = r.VcrRow })]),
+                .Select(r => (JsonNode?)new JsonObject { ["id"] = r.Id, ["vcrRow"] = r.VcrRow, ["changedIn"] = r.ChangedIn })]),
             // docs/CONFORMANCE.md §3.2.
             ["nonstandardExtensionIds"] = Strings(NonstandardExtensionRegister.Entries.Select(e => e.Id)),
             // DOC-A.1-189, DOC-A.1-190 and DOC-A.1-191.

@@ -57,6 +57,7 @@ import inventory_schema  # noqa: E402  (the newest held edition: its store)
 import inventory_store  # noqa: E402  (the store's history pathspecs)
 import inventory_view  # noqa: E402  (the one view of the inventory, in the tree and at a commit)
 import work  # noqa: E402  (same directory; this is the register's ONE reader)
+import work_inventory  # noqa: E402  (the rows the register is checked against: every held edition's)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -435,7 +436,7 @@ def main() -> int:
         return self_test()
 
     resolving = resolving_verdicts()
-    rows = inventory_view.inventory()
+    rows, _ = work_inventory.held_rows(inventory_schema.load_schema())   # every held edition's (kb/Work PB5094)
     state_now = {r["rule-id"]: r.get("state") or "" for r in rows}
     items = work.load()
 
