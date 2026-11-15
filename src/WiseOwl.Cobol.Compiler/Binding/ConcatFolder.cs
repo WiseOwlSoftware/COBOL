@@ -233,13 +233,17 @@ internal static class ConcatFolder
     /// <summary>One operand as §2023:8.8.3 classes it. <see cref="Class"/> is the literal's class, or null for a figurative
     /// constant — whose class is its partner's (GR1a) — and for an operand already refused (so a refusal never
     /// cascades into a class mismatch). A literal carries its decoded <see cref="Value"/>; a symbolic-character its
-    /// one character; a keyword figurative its parse node, whose character depends on the pair's class.</summary>
+    /// one character; a keyword figurative its parse node, whose character depends on the pair's class.
+    /// <see cref="NationalOnly"/> marks a symbolic-character declared <c>SYMBOLIC CHARACTERS FOR NATIONAL</c>: a figurative
+    /// constant (so <see cref="Class"/> stays null, §2023:8.8.3.3 GR1a) whose ONE value is a national character
+    /// (§2023:12.3.7.4 GR11c) and so has no alphanumeric character value.</summary>
     private readonly record struct Term(PicCategory? Class, string Value, Core.FigurativeConstantContext? Keyword,
-        bool Refused, string Described)
+        bool Refused, string Described, bool NationalOnly = false)
     {
         public static Term Literal(PicCategory cls, string value, string described) => new(cls, value, null, false, described);
         public static Term Figurative(Core.FigurativeConstantContext fig) => new(null, "", fig, false, $"figurative constant '{Spelling(fig)}'");
-        public static Term Symbolic(string value, string word) => new(null, value, null, false, $"symbolic-character '{word}'");
+        public static Term Symbolic(string value, bool national, string word) =>
+            new(null, value, null, false, $"{(national ? "national " : "")}symbolic-character '{word}'", national);
         public static Term Refusal(string written) => new(null, "", null, true, written);
     }
 
@@ -324,7 +328,7 @@ internal static class ConcatFolder
                     + "specify none, as a concatenation-expression operand included (ISO §2023:12.3.7.3 SR11)");
                 return Term.Refusal(word);
             }
-            if (env.SymbolicValue(op, word) is { } ch) return Term.Symbolic(ch, word);
+            if (env.SymbolicOf(op, word) is { } sym) return Term.Symbolic(sym.Value, sym.National, word);
         }
         report?.Error(DiagnosticCatalog.ConcatOperandNotLiteral, $"'{word}' is not a literal — a concatenation-expression "
             + "operand is a literal or a figurative constant, and the only words that stand for one are a constant-name "
@@ -339,9 +343,12 @@ internal static class ConcatFolder
     {
         if (t.Refused) return;
         if (t.Class is not null) { sb.Append(t.Value); return; }
-        char? c = t.Keyword is { } fig ? FigurativeChar(fig, pair, env)
-            : pair is PicCategory.Boolean ? null : t.Value[0];
-        if (c is { } ch) { sb.Append(ch); return; }
+        // A symbolic-character is ONE character; a NATIONAL one (§2023:12.3.7.4 GR11c) has no alphanumeric value.
+        if (t.Keyword is null)
+        {
+            if (pair is not PicCategory.Boolean && (!t.NationalOnly || pair is PicCategory.National)) { sb.Append(t.Value); return; }
+        }
+        else if (FigurativeChar(t.Keyword, pair, env) is { } ch) { sb.Append(ch); return; }
         report?.Error(DiagnosticCatalog.ConcatClassMismatch, $"{t.Described} has no {Name(pair)} character value "
             + $"in a concatenation expression of class {Name(pair)} — both operands shall be of the same class "
             + "(ISO §2023:8.8.3.2 SR1)");
