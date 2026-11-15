@@ -29,3 +29,5 @@ says: it exists in 2023 alone (it had claimed 2002 and 2014). The pb993 witness 
 Full code: the arms agree (guard, `__IoCheckEc`, uncovered-fatal shape); item 8's rollback is moot below 2023 (APPLY COMMIT is
 2023-only). Performance: compile-time only. Duplication: the 2002 twins repeat a program because an older-edition rule id
 cannot share a test with newer ones.
+
+**Review round 1 (R1-1).** `EmitUseHook`'s one `verbDisposes` flag had been turned off below 2023 and so also lost the deferral of the uncovered-fatal termination to the SORT's disposition: at 2002/2014 the GIVING WRITE terminated the run unit before the boundary break, with the name SORT/MERGE. Split into `sortMergeTransfer` (all editions: defers the termination, item 8 off) and `verbDisposes` (2023 only: `__verbRule`). Test: `SortMergeStatementEcTests.TheGivingWriteBoundary_PrecedesTheUncoveredTermination_AtEveryEdition` (2002, 2014, 2023).

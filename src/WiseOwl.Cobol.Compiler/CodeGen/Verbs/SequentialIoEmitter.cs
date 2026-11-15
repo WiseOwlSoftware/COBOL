@@ -66,14 +66,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// arm below asks its question before the declarative dispatch and runs the ROLLBACK after it, before a RESUME
     /// transfers control or DOC-A.1-103 ends the run unit.</para>
     public UseHookResult EmitUseHook(FileModel file, string verb, bool atEndHandled = false, bool invalidKeyHandled = false,
-        bool onExceptionHandled = false, string? notNormalLabel = null, bool verbDisposes = false,
+        bool onExceptionHandled = false, string? notNormalLabel = null, bool sortMergeTransfer = false, bool verbDisposes = false,
         string? useCompletedVar = null, bool successArm = false)
     {
         return Hook();
 
         // Item 8's question where no EC-I-O name is enabled for the file at this statement (checking not enabled), or
         // null — nothing emitted — where item 8 cannot apply.
-        string? Item8Question() => Item8Applies(file, verbDisposes, onExceptionHandled, successArm)
+        string? Item8Question() => Item8Applies(file, sortMergeTransfer, onExceptionHandled, successArm)
             ? EmitItem8Question(FileKeyExpr(file), "false")
             : null;
 
@@ -82,7 +82,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         {
             var w = ctx.Writer;
             if (successArm && ec.IoMaskFor(file) == 0) return default;
-            // verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). verbDisposes
+            // sortMergeTransfer / verbDisposes / useCompletedVar — the SORT/MERGE implicit transfers only (kb/Work PB993). sortMergeTransfer
+            // defers the uncovered-fatal termination to the verb's own disposition (the GIVING WRITE boundary) and turns item 8 off;
+            // verbDisposes (2023 only, EcEmitter.SortMergeDisposesFatalConditions)
             // tells __IoCheckEc that the VERB's rules dispose of a fatal status (§2023:14.6.13.1.3 2) precedes 5)/7)), so
             // it must not end the run unit; useCompletedVar, where the verb's rule turns on it, declares a bool that is
             // true when an applicable procedure ran and completed normally (§2023:14.9.24.4 GR7 a), GR12 a)/b)). A
@@ -104,7 +106,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (ec.IoMaskFor(file) is not 0 and var mask)
             {
                 int id = EmitIoCheckEc(FileKeyExpr(file), file, mask, atEndHandled, invalidKeyHandled, onExceptionHandled,
-                    verbDisposes, successArm);
+                    sortMergeTransfer, verbDisposes, successArm);
                 NotNormal(id);
                 Completed($"__ior{id} == DispatchResult.Normal || __ior{id} == DispatchResult.HandledNonfatal");
                 // Checking enabled for THIS status's condition has already terminated (or dispatched) inside __IoCheckEc;
@@ -148,7 +150,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // none ran), and a statement's own ON EXCEPTION phrase covers every family (§2023:14.9.10.4 GR20 c): the early
             // return above). The test is on the STATUS VALUE (§2023:9.1.13.1 fatal classes) and the CLAUSE, both fixed per
             // file at compile time, so a program whose files all carry FILE STATUS emits nothing new.
-            // ⛔ A SORT/MERGE IMPLICIT TRANSFER (`verbDisposes`) ASKS THE SAME QUESTION (kb/Work PB2700). Each as-if
+            // ⛔ A SORT/MERGE IMPLICIT TRANSFER (`sortMergeTransfer`) ASKS THE SAME QUESTION, AT EVERY EDITION (kb/Work PB2700). Each as-if
             // statement is performed "as if" that statement "had been executed" (§2023:14.9.40.4 GR12, GR15; §2023:14.9.24.4 GR7,
             // GR12), so §2023:9.1.13.1's action for its fatal status is the one the explicit statement gets; the verb's rules
             // say what becomes of the SORT/MERGE when the run unit continues. The verb's disposition
@@ -157,7 +159,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             UncoveredFatal? Uncovered(string? noProcedure)
             {
                 if (file.FileStatusName is not null || onExceptionHandled || successArm) return null;
-                if (verbDisposes) return new UncoveredFatal(noProcedure);
+                if (sortMergeTransfer) return new UncoveredFatal(noProcedure);
                 EmitUncoveredFatalTermination(file, verb, noProcedure);
                 return null;
             }
@@ -208,10 +210,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// (<see cref="Item8Applies"/>; <paramref name="file"/> null is another element's file, whose commit control only
     /// the runtime knows).</summary>
     private int EmitIoCheckEc(string fileKey, FileModel? file, int mask, bool atEnd, bool invalidKey, bool onException,
-        bool verbDisposes, bool successArm)
+        bool sortMergeTransfer, bool verbDisposes, bool successArm)
     {
         var w = ctx.Writer;
-        string? item8 = Item8Applies(file, verbDisposes, onException, successArm)
+        string? item8 = Item8Applies(file, sortMergeTransfer, onException, successArm)
             ? EmitItem8Question(fileKey, CheckingEnabled(fileKey, mask))
             : null;
         int id = ctx.Names.NextEc();
@@ -239,7 +241,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// then a ROLLBACK statement is executed unconditionally."</i> Its three parts, each a place in the hook:
     /// <list type="bullet">
     /// <item><b>Where it can apply</b> (this method, compile-time facts): never on a SORT/MERGE implicit transfer
-    /// (<paramref name="verbDisposes"/>; item 2, <i>"If the executed statement is a MERGE or SORT statement, then the
+    /// (<paramref name="sortMergeTransfer"/>; item 2, <i>"If the executed statement is a MERGE or SORT statement, then the
     /// rules for those statements apply"</i>, so item 8 is never reached), never where the statement's ON EXCEPTION
     /// phrase processes the condition (item 1; §2023:14.9.10.4 GR20 c)), never on a success arm (no fatal status), and on an
     /// explicit statement only for a keyed file the element's clause names. <paramref name="file"/> null is another
@@ -253,8 +255,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// condition to §2023:9.1.13's rules first) and BEFORE a RESUME transfers control or DOC-A.1-103 ends the run unit, so
     /// no exit from the hook skips it.</item>
     /// </list></summary>
-    private static bool Item8Applies(FileModel? file, bool verbDisposes, bool onExceptionHandled, bool successArm) =>
-        !verbDisposes && !onExceptionHandled && !successArm && (file is null || file.SubjectToApplyCommit);
+    private static bool Item8Applies(FileModel? file, bool sortMergeTransfer, bool onExceptionHandled, bool successArm) =>
+        !sortMergeTransfer && !onExceptionHandled && !successArm && (file is null || file.SubjectToApplyCommit);
 
     /// <summary>Item 8's question (<see cref="Item8Applies"/>), asked at the raise: declares and returns the bool that the
     /// ROLLBACK is due. <paramref name="checkingEnabled"/> is the C# test that checking for the raised condition is
@@ -307,7 +309,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             return plain.EcId is { } plainId ? $"__ior{plainId} == DispatchResult.NoHandler" : $"!{plain.RanVar}";
         }
         int id = EmitIoCheckEc(fileKeyExpr, named, mask, atEnd: false, invalidKey: false, onException: false,
-            verbDisposes: false, successArm: false);
+            sortMergeTransfer: false, verbDisposes: false, successArm: false);
         return $"__ior{id} == DispatchResult.NoHandler";
     }
 

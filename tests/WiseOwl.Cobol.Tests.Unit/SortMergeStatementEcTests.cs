@@ -1,10 +1,15 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using WiseOwl.Cobol.Binding;
 using WiseOwl.Cobol.Binding.Bound;
 using WiseOwl.Cobol.CodeGen;
+using WiseOwl.Cobol.Frontend.Diagnostics;
+using WiseOwl.Cobol.Frontend.Preprocessor;
 using WiseOwl.Cobol.Runtime.Exceptions;
 using WiseOwl.Cobol.Runtime.IO;
+using WiseOwl.Cobol.Tests.Shared;
 using Xunit;
+using CnFrontend = WiseOwl.Cobol.Frontend.Frontend;
 
 namespace WiseOwl.Cobol.Tests.Unit;
 
@@ -279,6 +284,59 @@ public sealed class SortMergeStatementEcTests
         Assert.Equal(disposes, EcEmitter.VerbDisposes(Node(typeof(BoundMerge)), dialectLevel));
         Assert.Equal(disposes, EcEmitter.SortMergeDisposesFatalConditions(dialectLevel));
         Assert.False(EcEmitter.VerbDisposes(Node(typeof(BoundRelease)), dialectLevel));
+    }
+
+    /// <summary>§2002:14.8.36.3 14) and §2023:14.9.40.4 GR15: the GIVING WRITE's boundary status ('24' or '34') ends the
+    /// writing and the SORT continues, so at EVERY edition the generated disposition breaks on the boundary BEFORE the
+    /// uncovered-fatal termination (DOC-A.1-103), and the termination names its as-if statement. Below 2023 only the
+    /// verb rule (__verbRule) is off (§2002:14.5.12.1.2, §2014:14.6.12.1.2): the deferral of the termination to the
+    /// verb's disposition stays (kb/Work PB5612 review R1-1).</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void TheGivingWriteBoundary_PrecedesTheUncoveredTermination_AtEveryEdition(int dialectLevel)
+    {
+        const string source = """
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. PB5612R1.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT OUTF ASSIGN TO "pb5612r1.dat".
+                       SELECT SW ASSIGN TO "pb5612r1.wrk".
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD OUTF.
+                   01 OUT-REC PIC X(4).
+                   SD SW.
+                   01 SW-REC PIC X(4).
+                   WORKING-STORAGE SECTION.
+                   PROCEDURE DIVISION.
+                   MAIN-P.
+                       SORT SW ON ASCENDING KEY SW-REC
+                           INPUT PROCEDURE P-IN GIVING OUTF.
+                       STOP RUN.
+                   P-IN.
+                       RELEASE SW-REC.
+            """;
+        string path = Path.Combine(Path.GetTempPath(), $"pb5612r1_{Guid.NewGuid():N}.cob");
+        File.WriteAllText(path, source);
+        string cs;
+        try
+        {
+            var diags = new DiagnosticBag();
+            var frontend = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = dialectLevel };
+            var tree = frontend.Parse(path, diags);
+            Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
+            cs = new CSharpEmitter().EmitBound(new BinderDriver().Bind(tree!, new EditionContext(dialectLevel), frontend.Directives), "DRIFTPROBE");
+        }
+        finally { FileHarness.TryDelete(path); }
+        int boundary = cs.IndexOf("== \"24\"", StringComparison.Ordinal);
+        int termination = cs.IndexOf("TerminateOnUncoveredFatalStatus(\"PB5612R1::OUTF\", \"SORT GIVING implicit WRITE\")", StringComparison.Ordinal);
+        Assert.True(boundary >= 0 && termination > boundary, "the boundary break must precede the termination:\n" + cs);
+        Assert.Contains("GIVING implicit WRITE", cs);
+        Assert.DoesNotContain("\"SORT/MERGE\"", cs);
     }
 
     /// <summary>§2023:14.9.40.4 GR9 / §2023:14.9.24.4 GR7, GR12 raise -FILE-OPEN only for a file "in an open mode": a
