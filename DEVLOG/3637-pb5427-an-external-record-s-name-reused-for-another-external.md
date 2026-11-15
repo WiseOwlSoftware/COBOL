@@ -1,4 +1,4 @@
-## PB5427: an external record's name reused for another external data item is refused (COBOL7282)
+## Entry 3637 — 2026-11-14 18:55 PST — PB5427: an external record's name reused for another external data item is refused (COBOL7282)
 
 Wave 20262038 group F finished PB5427. At --std 85 and 2023, `01 EXR EXTERNAL PIC X` in one program and `01 OTHER-EXT EXTERNAL. 05 EXR` in a contained program compiled and ran, and the two EXRs were different external areas (the note's `u2` and `u5`; re-run on this branch before the fix, both compiled and ran at both editions).
 
@@ -11,3 +11,4 @@ Wave 20262038 group F finished PB5427. At --std 85 and 2023, `01 EXR EXTERNAL PI
 **Rows.** The 1985 row `1985-SR-IV.4.3.8.1-4` stays PARTIAL: its notes and witnesses now record the EXTERNAL half, and the reader's open question about names subordinate to a GLOBAL record is not claimed. `closes_rows` is empty with the reason written in the note. GAP 169 before and after.
 
 **Self-review.** Architecture: one group rule, and one test of the external attribute: `DataBinder.IsInExternalRecord` is now static, takes the file slice, and replaces the private copy in `OdoResolvePass` (`HasExternalAttribute`) as well, so the new rule adds no third copy. Performance: nothing runs when the group declares no external record. Citations: the first draft cited §2023:13.18.22.3 SR5 for "external record"; `cite.py` placed the quoted sentence in §2023:8.6.3 and the comment now cites that.
+
