@@ -1410,7 +1410,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // An INHERITED GLOBAL file stores into the OWNER's status item (§2023:12.4.5.8.4 GR1 NOTE 1 - the item is updated by
         // contained-program references to the global file-name even though it is a LOCAL name of the owner): the item
         // is one of the file's clause operands, which the contained unit's table holds like every other (kb/Work PB4454).
-        Place? place = file.FileStatusItem is { } own ? places.Of(own) : null;
+        Place? place = places.FileStatusOf(file);
         if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.

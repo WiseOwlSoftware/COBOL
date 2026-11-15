@@ -181,6 +181,9 @@
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::ClauseDataNameSubscripted": [
+      "WiseOwl.Cobol.Binding.FileControlBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::ClauseResolutionForest": [
       "WiseOwl.Cobol.Binding.Passes.CheckStrongTypeDeclarationsPass",
       "WiseOwl.Cobol.Binding.Passes.DynamicResolvePass",
@@ -693,6 +696,10 @@
       "WiseOwl.Cobol.Binding.Passes.CheckGlobalNameUniquenessPass"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenImmediateMemberLevel": [
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::ScreenOperandOccurrence": [
+      "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::ScreenPictureDigitCapacity": [

@@ -161,9 +161,10 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     private List<(int Offset, int Width, string Layout)>? KeyWindows(Binding.Model.RecordKey key, bool fixedForm)
     {
         var windows = new List<(int Offset, int Width, string Layout)>(key.Segments.Count);
-        foreach (var segment in key.Segments)
+        for (int i = 0; i < key.Segments.Count; i++)
         {
-            if (KeyWindow(segment, fixedForm) is not var (off, layout)) return null;
+            var segment = key.Segments[i];
+            if (KeyWindow(segment, key.OccurrenceOf(i), fixedForm) is not var (off, layout)) return null;
             windows.Add((off, segment.ByteWidth, layout));
         }
         return windows;
@@ -174,11 +175,11 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// the key's FIXED-run offset and the connector locates the key per record (kb/Work PB1025; docs/CONFORMANCE.md
     /// §3 D-KWV). ONE reader, <see cref="Binding.Model.RecordLayout.KeyWindowOf"/>, the same one the SORT/MERGE
     /// key and the §2023:12.4.5.12.3 SR4 / §2023:12.4.5.6.3 SR5 screens read. Null when the key has no locatable window.</summary>
-    private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key, bool fixedForm)
+    private (int Offset, string Layout)? KeyWindow(Binding.Model.DataItem key, IReadOnlyList<int> occurrence, bool fixedForm)
     {
         var root = key;
         while (root.Parent is { } p) root = p;
-        if (Binding.Model.RecordLayout.KeyWindowOf(root, key, key.ByteWidth) is { FollowsVariable: true } win
+        if (Binding.Model.RecordLayout.KeyWindowOf(root, key, key.ByteWidth, occurrence) is { FollowsVariable: true } win
             && places.Of(root) is { } place)
             // ⛔ In a file of FIXED-length records (D-FRA (vi)) every record has the one fixed form, so the key sits at
             // ONE position — the fixed-run offset plus the MAXIMUM extent of every member that precedes it
@@ -187,7 +188,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
             return fixedForm ? ((int)(win.MaxEnd - key.ByteWidth), "null")
                 : (win.Offset, RuntimeApi.ContiguousLayoutOf(PlaceRenderer.Read(place)));
         // Every other key keeps the area offset it has always registered (§2023:12.4.5.12.4 GR4's byte positions).
-        return Binding.Model.RecordLayout.OffsetOf(key) is { } off ? (off, "null") : null;
+        return Binding.Model.RecordLayout.OffsetOf(key, occurrence) is { } off ? (off, "null") : null;
     }
 
     /// <summary>The §2023:12.4.5.7 key collating sequence as a runtime <c>CobolCollation</c> expression — the program's
@@ -279,7 +280,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
                 // §2023:14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
                 // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
                 if (rd.Kind != ReadKind.Random && file.Organization == FileOrganization.Relative
-                    && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
+                    && places.RelativeKeyOf(file) is { } rkPlace)
                     arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
             }
             if (tooLong is null) SuccessSteps();
@@ -374,7 +375,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
         // §2023:14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
-            && file.RelativeKeyItem is { } rk && places.Of(rk) is { } rkPlace)
+            && places.RelativeKeyOf(file) is { } rkPlace)
             using (w.Block($"if ({IoStatusClass.Successful(st)})"))
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
@@ -581,7 +582,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Place
     /// typed field — §2023:12.4.5.13; the item is OUTSIDE the record, SR3), or null when the file has none.</summary>
     private string? Rrn(FileModel file)
     {
-        if (file.RelativeKeyItem is not { } rk || places.Of(rk) is not { } place) return null;
+        if (places.RelativeKeyOf(file) is not { } place) return null;
         return RuntimeApi.HostInt64(NumericRenderer.Align(num.FieldNum(place), 0));
     }
 }

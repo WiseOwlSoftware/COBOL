@@ -31,6 +31,14 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// positions).</summary>
     public int MaxDigits => Year < 2002 ? 18 : 31;
 
+    /// <summary>⛔ WHETHER A data-name-n CLAUSE OPERAND MAY BE WRITTEN SUBSCRIPTED (kb/Work PB5602): COBOL-2002 reads data-name-n as "a
+    /// user-defined word, including qualification and subscription if needed" (§2002:5.1.3), and its FILE STATUS, RECORD KEY,
+    /// ALTERNATE RECORD KEY, RELATIVE KEY, COLLATING SEQUENCE and CONTROL clauses say only that the operand "may be qualified". The
+    /// COBOL-2014 text prints the restriction (§2014:13.18.16.2 SR3 "Data-name-1 shall not be subscripted"), COBOL-2023's is "shall not
+    /// be subject to any OCCURS clauses" (§2023:13.18.16.3 SR3), and COBOL-85 keeps its own reading, which the register leaves open.
+    /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
+    public bool SubscriptedClauseOperands => Year == 2002;
+
     /// <summary>⛔ THE ONE HOME OF THE EXCESS ARM OF THE DIGIT CAPACITY (kb/Work PB5529): the descriptor a count of
     /// <paramref name="digits"/> digit positions earns when it passes <see cref="MaxDigits"/> — more than 31 is
     /// <see cref="Diagnostics.DiagnosticCatalog.DigitCapacityOver31"/> at every edition, 19–31 at COBOL-85 is

@@ -664,7 +664,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // carries its record's layout and is located per record at run time (D-KWV); it used to be refused by
             // name here (kb/Work PB981), which rejected legal source whenever trailing fixed material kept it
             // within the minimum record size.
-            if (Model.RecordLayout.KeyWindowOf(root, item, len) is not { } win)
+            if (Model.RecordLayout.KeyWindowOf(root, item, len, []) is not { } win)
                 return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
                     + $"clause ({SortKeyAdmission.Clause(rules)} b) and f))");
             // §2023:14.9.40.3 SR6 g) / §2023:14.9.24.3 SR4 g): with variable-length records every key lies within the first
@@ -849,9 +849,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         {
             (int Offset, int End)? run = null;
             bool contiguous = true;
-            foreach (var s in prime.Segments)
+            for (int i = 0; i < prime.Segments.Count; i++)
             {
-                if (Model.RecordLayout.KeyWindowOf(SortRootOf(s), s, s.ByteWidth) is not { } w) return (false, null);
+                var s = prime.Segments[i];
+                if (Model.RecordLayout.KeyWindowOf(SortRootOf(s), s, s.ByteWidth, prime.OccurrenceOf(i)) is not { } w) return (false, null);
                 contiguous &= run is not { } r || w.Offset == r.End;
                 run = (run?.Offset ?? w.Offset, w.Offset + w.Bytes);
             }

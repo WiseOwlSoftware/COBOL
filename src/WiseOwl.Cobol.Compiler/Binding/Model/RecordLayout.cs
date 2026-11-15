@@ -231,17 +231,22 @@ internal static class RecordLayout
     /// synthesized class anchors at the first record). Null when the target does not live in
     /// <paramref name="root"/>'s area, or sits under an OCCURS (not a legal key, §2023:14.9.40.3 SR6b/SR6f).
     /// (← <c>SortOffsetInRecord</c>/<c>SortPlainOffset</c>, on the ONE <see cref="OffsetOf"/> walk.)</summary>
-    public static int? OffsetInRecord(DataItem root, DataItem target)
+    public static int? OffsetInRecord(DataItem root, DataItem target) => OffsetInRecordOfFirstOccurrence(root, target, tableElementAllowed: false);
+
+    /// <summary>The walk of <see cref="OffsetInRecord(DataItem, DataItem)"/>, optionally for a table element's FIRST occurrence — the
+    /// start every occurrence's offset adds its <see cref="OccurrenceDisplacement"/> to (kb/Work PB5602). The REDEFINES-class branch
+    /// is the same walk: a class member's <see cref="DataItem.ClassOffset"/> counts a table element from its first occurrence too.</summary>
+    private static int? OffsetInRecordOfFirstOccurrence(DataItem root, DataItem target, bool tableElementAllowed)
     {
         // ⛔ THE OCCURS BAIL IS ASKED OF THE DATA DESCRIPTION, AHEAD OF BOTH BRANCHES (kb/Work PB1173). It lived in
         // the plain walk (OffsetOf) only, so the class branch below — taken by EVERY 01 of a multi-record SD/FD,
         // which is a member of the synthesized REDEFINES class (PB836) — returned the FIRST occurrence's position
         // for an item under OCCURS and a key under a table was accepted with its occurrence discarded. An item
         // subject to OCCURS has no one position in the record whatever its storage form.
-        if (target.IsTableElement) return null;   // §2023:8.4.2.3.3 SR2's own-or-ancestor question, asked of DataItem (PB877)
+        if (target.IsTableElement && !tableElementAllowed) return null;   // §2023:8.4.2.3.3 SR2's own-or-ancestor question, asked of DataItem (PB877)
         // A level-66 alias is positioned where its data-name-2 is (§2023:13.18.45.4 GR1/GR2; see FirstOccurrenceOffsetOf),
         // and data-name-2 may itself be a member of a REDEFINES class, which the branch below places.
-        if (target.Renames is { From: { } renamed }) return OffsetInRecord(root, renamed);
+        if (target.Renames is { From: { } renamed }) return OffsetInRecordOfFirstOccurrence(root, renamed, tableElementAllowed);
         if (target.Class is { } cls)
         {
             if (ReferenceEquals(cls.Canonical, root)) return target.ClassOffset;
@@ -256,7 +261,8 @@ internal static class RecordLayout
         {
             for (DataItem? n = target; n is not null; n = n.Parent)
                 if (ReferenceEquals(n, root))
-                    return OffsetOf(target);   // under root (an 01 ⇒ area offset 0): the area offset IS the window
+                    // under root (an 01 ⇒ area offset 0): the area offset IS the window
+                    return target.IsTableElement ? OffsetInRootWithEveryIndexOne(target) : OffsetOf(target);
             return null;
         }
     }
@@ -284,24 +290,64 @@ internal static class RecordLayout
     /// furthest byte the key can occupy in any record, which is what "contained within the first n bytes" has to
     /// hold for. Every other key keeps <see cref="OffsetInRecord"/>'s fixed window, unchanged.</para>
     /// <para>Null when the key does not lie in <paramref name="root"/>'s area, or is subject to OCCURS.</para></summary>
-    public static KeyWindow? KeyWindowOf(DataItem root, DataItem key, int bytes)
+    public static KeyWindow? KeyWindowOf(DataItem root, DataItem key, int bytes, IReadOnlyList<int> occurrence)
     {
-        if (OffsetInRecord(root, key) is not { } off) return null;
+        if (OffsetInRecord(root, key, occurrence) is not { } off) return null;
         if (FileModel.IsVariableLengthRecord(root) && ContiguousPlaceOf(root, key) is { Preceding: > 0 } p)
-            return new KeyWindow(p.FixedOffset, bytes, true, p.FixedOffset + p.PrecedingMaxBytes + bytes);
+        {
+            int shift = OccurrenceDisplacement(key, occurrence);
+            return new KeyWindow(p.FixedOffset + shift, bytes, true, p.FixedOffset + shift + p.PrecedingMaxBytes + bytes);
+        }
         return new KeyWindow(off, bytes, false, off + bytes);
+    }
+
+    /// <summary>⛔ THE BYTES FROM A TABLE ELEMENT'S FIRST OCCURRENCE TO THE OCCURRENCE THE INTEGER-LITERAL SUBSCRIPTS SELECT
+    /// (kb/Work PB5602): the sum, over the OCCURS levels of <paramref name="item"/> outermost first, of the occurrence number
+    /// less one times that level's physical occurrence width — the stride <see cref="StorageExtent.OfEveryOccurrence"/> records
+    /// per level. Zero for no subscripts. The caller has screened the subscripts (<c>DataBinder.ScreenOperandOccurrence</c>).</summary>
+    public static int OccurrenceDisplacement(DataItem item, IReadOnlyList<int> occurrence)
+    {
+        if (occurrence.Count == 0) return 0;
+        var levels = item.SubscriptLevels();
+        int bytes = 0;
+        for (int i = 0; i < levels.Count && i < occurrence.Count; i++)
+            bytes += (occurrence[i] - 1) * PhysicalOccurrenceWidth(levels[i]);
+        return bytes;
+    }
+
+    /// <summary>The offset of <paramref name="item"/> in its 01 record when it is written with the integer-literal
+    /// <paramref name="occurrence"/> subscripts (COBOL-2002, §2002:5.1.3; kb/Work PB5602): <see cref="OffsetOf"/> for no subscripts,
+    /// else the offset of the item's first occurrence (the same walk as <see cref="OffsetInRecord(DataItem, DataItem)"/>, REDEFINES
+    /// classes included) plus <see cref="OccurrenceDisplacement"/>. Null for an item that is not a table element.</summary>
+    public static int? OffsetOf(DataItem item, IReadOnlyList<int> occurrence)
+    {
+        if (occurrence.Count == 0) return OffsetOf(item);
+        if (!item.IsTableElement) return null;
+        var root = item;
+        while (root.Parent is { } parent) root = parent;
+        return OffsetInRecordOfFirstOccurrence(root, item, tableElementAllowed: true) is { } first
+            ? first + OccurrenceDisplacement(item, occurrence) : null;
+    }
+
+    /// <summary><see cref="OffsetInRecord(DataItem, DataItem)"/> for the occurrence the subscripts select (kb/Work PB5602): the
+    /// plain walk's first occurrence plus <see cref="OccurrenceDisplacement"/> when the item lies in <paramref name="root"/>.</summary>
+    public static int? OffsetInRecord(DataItem root, DataItem target, IReadOnlyList<int> occurrence)
+    {
+        if (occurrence.Count == 0) return OffsetInRecord(root, target);
+        return target.IsTableElement && OffsetInRecordOfFirstOccurrence(root, target, tableElementAllowed: true) is { } first
+            ? first + OccurrenceDisplacement(target, occurrence) : null;
     }
 
     /// <summary><see cref="KeyWindowOf"/> for a key of <paramref name="file"/>'s own file control entry — the form
     /// every rule that reads a RECORD KEY or ALTERNATE RECORD KEY asks (§2023:12.4.5.12.3 SR4, §2023:12.4.5.6.3 SR4 and SR5):
     /// the key's window in the record that holds it, null when <paramref name="key"/> is null, is not in a record of
     /// the file (its SR2 reports that), or is subject to OCCURS (its SR1 reports that).</summary>
-    public static KeyWindow? KeyWindowInFile(FileModel file, DataItem? key)
+    public static KeyWindow? KeyWindowInFile(FileModel file, DataItem? key, IReadOnlyList<int> occurrence)
     {
         if (key is null || !IsInRecordOfFile(file, key)) return null;
         var root = key;
         while (root.Parent is { } p) root = p;
-        return KeyWindowOf(root, key, key.ByteWidth);
+        return KeyWindowOf(root, key, key.ByteWidth, occurrence);
     }
 
     /// <summary>The walk behind <see cref="KeyWindowOf"/>: <paramref name="key"/>'s offset in
@@ -376,17 +422,17 @@ internal static class RecordLayout
     /// — is what makes the second form a key, and it is why the positional arm demands the SAME byte width
     /// rather than a smaller one: GR4 promotes the key's whole span, never a prefix of it. A prefix is SR6 b)'s
     /// generic key, which START admits and READ does not (see <see cref="GenericKeyIndex"/>).</summary>
-    public static int? KeyIndexOfKeyItem(FileModel file, DataItem operand)
+    public static int? KeyIndexOfKeyItem(FileModel file, DataItem operand, IReadOnlyList<int> occurrence)
     {
-        if (file.PrimeKey?.Item is { } prime && ReferenceEquals(prime, operand)) return -1;
+        if (file.PrimeKey is { } prime && prime.Names(operand, occurrence)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
-            if (ReferenceEquals(file.AlternateKeys[i].Key.Item, operand)) return i;
+            if (file.AlternateKeys[i].Key.Names(operand, occurrence)) return i;
         // §2023:12.4.5.12.4 GR4's implicit keys — the same byte window in ANOTHER record description of the file
         // (a REDEFINES of the key, or a same-position item in a secondary 01). The operand shall live in a
         // record description entry OF THIS FILE: GR4 speaks of the file's own record description entries, and
         // without that test offset 0 in ANY 01 anywhere — WORKING-STORAGE included — collided with offset 0 in
         // the record (kb/Work PB354 part 1).
-        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;
+        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand, occurrence) is not { } off) return null;
         return KeyIndexAtOffset(file, off, key => key.ByteWidth == operand.ByteWidth);
     }
 
@@ -402,9 +448,9 @@ internal static class RecordLayout
     /// (kb/Work PB1099) has no data item of its own to coincide with, and <see cref="KeyIndexAtOffset"/> passes
     /// over it — the same exclusion START's §2023:14.9.41.3 SR6 a) and READ's §2023:14.9.30.3 SR11 get, since a SOURCE-form
     /// key is named only by its record-key-name (§2023:14.9.41.3 SR7).</para></summary>
-    public static int? GenericKeyIndex(FileModel file, DataItem operand)
+    public static int? GenericKeyIndex(FileModel file, DataItem operand, IReadOnlyList<int> occurrence)
     {
-        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand) is not { } off) return null;   // b) 1.
+        if (!IsInRecordOfFile(file, operand) || OffsetOf(operand, occurrence) is not { } off) return null;   // b) 1.
         return KeyIndexAtOffset(file, off,
             key => SameClassCategoryUsage(operand, key)                                        // b) 2.
                 && operand.ByteWidth <= key.ByteWidth);                                        // b) 3.
@@ -451,9 +497,9 @@ internal static class RecordLayout
     {
         // Only data-name-1 keys: a SOURCE-form key (Item null) is no data item, so no operand's byte positions are
         // it (§2023:14.9.41.3 SR6 b) 1. "defined without the SOURCE phrase"; kb/Work PB1099).
-        if (file.PrimeKey?.Item is { } prime && OffsetOf(prime) == off && admits(prime)) return -1;
+        if (file.PrimeKey is { Item: { } prime } primeKey && OffsetOf(prime, primeKey.Subscripts) == off && admits(prime)) return -1;
         for (int i = 0; i < file.AlternateKeys.Count; i++)
-            if (file.AlternateKeys[i].Key.Item is { } alt && OffsetOf(alt) == off && admits(alt)) return i;
+            if (file.AlternateKeys[i].Key is { Item: { } alt } altKey && OffsetOf(alt, altKey.Subscripts) == off && admits(alt)) return i;
         return null;
     }
 

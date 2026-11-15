@@ -286,15 +286,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
             foreach (var f in data.Files.Declared.Where(f => f.IsExternal))
             {
-                string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
-                    : CsLiteral(item?.ExternalItemIdentity() ?? "!");   // "!" = present but NOT an external item (§2023:14.8.4.2 violation face)
+                string ItemRef(string? clauseName, string? identity) => clauseName is null ? "null"
+                    : CsLiteral(identity ?? "!");   // "!" = present but NOT an external item (§2023:14.8.4.2 violation face)
                 string linage = f.Linage is null ? "null"
                     : CsLiteral(string.Join(";", f.Linage.Operands.Select(op => op.DataName is null
                         ? $"={op.Literal}"
                         : op.Item?.ExternalItemIdentity() ?? "!")));
                 w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
-                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem)}, "
-                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem)}, LinageRef: {linage}, "
+                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem?.ExternalItemIdentity(f.FileStatusSubscripts))}, "
+                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts))}, LinageRef: {linage}, "
                     + $"SelectFingerprint: {CsLiteral(f.SelectFingerprint ?? throw new InvalidOperationException($"OoEmitter: the EXTERNAL file '{f.ExternalName}' has no bound entry identity (BackendAnswers writes one for every EXTERNAL file)"))}), {selfMask});   // §2023:14.8.4.2 / §2023:14.8.4.4 / §2023:12.4.5.3 GR1");
             }
         }
