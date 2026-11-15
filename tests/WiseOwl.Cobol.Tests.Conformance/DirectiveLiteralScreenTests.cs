@@ -134,4 +134,22 @@ public sealed class DirectiveLiteralScreenTests
             Assert.Single(errors, e => e.Contains("COBOL0900") && e.Contains("zero-length literal"));
         }
     }
+
+    /// <summary>The digit capacity of a numeric literal (§2023:8.3.3.3.2: an implementor shall allow 1 through 31 digits) is an
+    /// edition and implementor-limit question, not syntax, so it is asked in a COMPILED branch only (kb/Work PB5529): a
+    /// 32-digit DEFINE value is refused where it is compiled and left alone in an omitted branch.</summary>
+    [Theory]
+    [InlineData(">>DEFINE Y AS 12345678901234567890123456789012", false)]
+    [InlineData(">>IF 1 = 2\n>>DEFINE Y AS 12345678901234567890123456789012\n>>END-IF", true)]
+    [InlineData(">>IF NOSUCH IS DEFINED\n>>DEFINE Y AS 12345678901234567890123456789012\n>>END-IF", true)]
+    public void NumericLiteralDigitCapacity_IsAskedInACompiledBranchOnly(string directives, bool legal)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Program("DLC", directives), 2023);
+        if (legal) Assert.True(ok, string.Join("\n", errors));
+        else
+        {
+            Assert.False(ok);
+            Assert.Contains(errors, e => e.Contains("COBOL0801"));
+        }
+    }
 }

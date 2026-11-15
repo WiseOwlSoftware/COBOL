@@ -54,7 +54,7 @@
        01 X4 PIC X(4).
        PROCEDURE DIVISION.
        MAIN.
-           MOVE FUNCTION LENGTH("é中x") TO L
+           COMPUTE L = FUNCTION LENGTH("é中x")
            DISPLAY "LEN-1=" L
            MOVE "é中x" TO X3
            COMPUTE R = FUNCTION ORD(X3(1:1))
@@ -62,16 +62,16 @@
            COMPUTE R = FUNCTION ORD(X3(2:1))
            DISPLAY "ORD-CJK=" R
            DISPLAY "[" X3 "]"
-           MOVE FUNCTION LENGTH("A＂＂B") TO L
+           COMPUTE L = FUNCTION LENGTH("A＂＂B")
            DISPLAY "LEN-FW=" L
            MOVE "A＂＂B" TO X4
            COMPUTE R = FUNCTION ORD(X4(2:1))
            DISPLAY "ORD-FW=" R
-           MOVE FUNCTION LENGTH("A""B") TO L
+           COMPUTE L = FUNCTION LENGTH("A""B")
            DISPLAY "LEN-DQ=" L
            MOVE "A""B" TO X3
            COMPUTE R = FUNCTION ORD(X3(2:1))
            DISPLAY "ORD-DQ=" R
-           MOVE FUNCTION LENGTH("A''B") TO L
+           COMPUTE L = FUNCTION LENGTH("A''B")
            DISPLAY "LEN-AP=" L
            STOP RUN.

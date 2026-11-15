@@ -23,6 +23,20 @@ public sealed class FileControlKeyRuleSpecTests
 {
     private static readonly int[] AllEditions = [85, 2002, 2014, 2023];
 
+    /// <summary>The COBOL-85 text of a rule §1985 numbers and words itself (kb/Work PB5361): the SR2 rows of the two key clauses, which
+    /// at <c>--std 85</c> cite §1985:IX.2.7.3 SR2 and §1985:IX.2.5.3 SR2 and say "the category alphanumeric" (COBOL-85 has no national
+    /// category). A citation not listed is the 2023 text's at every edition.</summary>
+    private static readonly Dictionary<string, string> Citations85 = new(StringComparer.Ordinal)
+    {
+        ["§2023:12.4.5.12.3 SR2"] = "§1985:IX.2.7.3 SR2",
+        ["§2023:12.4.5.6.3 SR2"] = "§1985:IX.2.5.3 SR2",
+        ["category alphanumeric or category national"] = "the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
+        ["category alphanumeric or national"] = "the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
+    };
+
+    private static string CitationAt(string citation2023, int edition) =>
+        edition < 2002 && Citations85.TryGetValue(citation2023, out string? c85) ? c85 : citation2023;
+
     private static IReadOnlyList<string> Diagnostics(string source, int edition)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Fckr_");
@@ -215,11 +229,12 @@ public sealed class FileControlKeyRuleSpecTests
 
     [Theory]
     [MemberData(nameof(Cases))]
-    public void IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb(string name, string citation, string parts)
+    public void IndexedEntryRule_ReportsAtEveryEdition_WithOrWithoutAKeyedVerb(string name, string citation2023, string parts)
     {
         string[] p = parts.Split('|');
         foreach (int edition in AllEditions)
         {
+            string citation = CitationAt(citation2023, edition);
             int entryOnly = Diagnostics(Indexed(p[0], p[1], p[2], EntryOnlyBody), edition)
                 .Count(e => e.Contains(citation, StringComparison.Ordinal));
             int withVerb = Diagnostics(Indexed(p[0], p[1], p[2], WithKeyedVerbBody), edition)

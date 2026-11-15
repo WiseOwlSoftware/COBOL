@@ -223,6 +223,11 @@ internal sealed record FileControlKeyRule(
     Func<FileModel, FileKeyOperand, string> Message,
     DiagnosticDescriptor? Code = null)
 {
+    /// <summary>The <see cref="RuleId"/> of the 2023 rows a COBOL-85 row REPLACES at COBOL-85 (kb/Work PB5361): the same obligation
+    /// under the 1985 numbering and wording, so the program is told the rule its edition prints and is not told twice. Set only on
+    /// a row of <c>Rules1985</c>; <c>FileControlKeyRules.RulesFor</c> drops the superseded rows below COBOL-2002.</summary>
+    public string? Supersedes { get; init; }
+
     /// <summary>The descriptor <see cref="FileControlKeyRules.Screen"/> reports this row under.</summary>
     public DiagnosticDescriptor Diagnostic => Code ?? DiagnosticCatalog.FileKeyClauseRule;
 }
@@ -783,6 +788,47 @@ internal static class FileControlKeyRules
     /// exist, so every operand is a data-name-1.</summary>
     private static readonly FileControlKeyRule[] Rules1985 =
     [
+        // ⛔ SR2 OF BOTH KEY CLAUSES, THE 1985 PRINTING (kb/Work PB5361): "Data-name-1 must reference a data item of the category
+        // alphanumeric within a record description entry associated with the file-name to which the … clause is subordinate" —
+        // two obligations (a category and a location), so two rows each, as §2023:12.4.5.12.3 SR2 / §2023:12.4.5.6.3 SR2. They
+        // REPLACE those rows below COBOL-2002 (Supersedes), so a key outside the file's records, or a sum counter named as a key
+        // (§1985:XIII.3.9.3 SR10d makes it a data-name), is refused under the rule its edition's text prints. COBOL-85 has no
+        // national category, so the category row asks for alphanumeric alone.
+        new("1985-SR-IX.2.7.3-2", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR2",
+            "alphanumeric within a record description entry associated with the file-name to which the RECORD KEY clause is subordinate",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            f => f.HasFd && f.Records.Count > 0,
+            (f, op) => op.Name is not null && !RecordLayout.IsInRecordOfFile(f, op.Item),
+            (f, op) => $"{op.ClauseFace} {op.Written} {(op.Item is null ? "references nothing described in this program" : "references an item outside this file's record descriptions")}; "
+                + $"{op.OperandFace} must reference a data item within a record description entry associated with "
+                + $"'{f.SelectName}' (ANSI §1985:IX.2.7.3 SR2)")
+        { Supersedes = "SR-12.4.5.12.3-2" },
+        new("1985-SR-IX.2.7.3-2", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR2",
+            "must reference a data item of the category alphanumeric",
+            FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
+            _ => true,
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i),
+            (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} must reference "
+                + "a data item of the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)")
+        { Supersedes = "SR-12.4.5.12.3-2" },
+        new("1985-SR-IX.2.5.3-2", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR2",
+            "alphanumeric within a record description entry associated with the file-name to which the ALTERNATE RECORD KEY clause is subordinate",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            f => f.HasFd && f.Records.Count > 0,
+            (f, op) => !RecordLayout.IsInRecordOfFile(f, op.Item),
+            (f, op) => $"{op.ClauseFace} {op.Written} {(op.Item is null ? "references nothing described in this program" : "references an item outside this file's record descriptions")}; "
+                + $"{op.OperandFace} must be defined within a record description entry associated with "
+                + $"'{f.SelectName}' (ANSI §1985:IX.2.5.3 SR2)")
+        { Supersedes = "SR-12.4.5.6.3-2" },
+        new("1985-SR-IX.2.5.3-2", "IX.2.5.3", "ANSI §1985:IX.2.5.3 SR2",
+            "must be defined as a data item of the category alphanumeric",
+            FileKinds.Indexed, FileKeyRole.AlternateRecordKey,
+            _ => true,
+            (_, op) => op.Item is { } i && !ItemCategory.IsAlphanumeric(i),
+            (_, op) => $"{op.ClauseFace} {op.Written} is {ItemCategory.Face(op.Item!)}; {op.OperandFace} must be defined "
+                + "as a data item of the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)")
+        { Supersedes = "SR-12.4.5.6.3-2" },
+
         new("1985-SR-IX.2.7.3-3", "IX.2.7.3", "ANSI §1985:IX.2.7.3 SR3",
             "must not reference a group item that contains a variable occurrence data item",
             FileKinds.Indexed, FileKeyRole.PrimeRecordKey,
@@ -842,7 +888,8 @@ internal static class FileControlKeyRules
         _ => Rules,
     };
 
-    private static readonly FileControlKeyRule[] Rules85 = [.. Rules, .. Rules1985];
+    private static readonly FileControlKeyRule[] Rules85 =
+        [.. Rules.Where(r => Rules1985.All(n => n.Supersedes != r.RuleId)), .. Rules1985];
 
     private static readonly FileControlKeyRule[] Rules02 = [.. Rules, .. Rules2002];
 

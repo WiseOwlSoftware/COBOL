@@ -1156,14 +1156,16 @@
       "WiseOwl.Cobol.Binding.NameResolution"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntryReferenceRefused": [
-      "WiseOwl.Cobol.Binding.DataBinder",
-      "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
       "WiseOwl.Cobol.Binding.Procedure.ConditionBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportGroupTypeWords": [
       "WiseOwl.Cobol.Binding.Procedure.ReportWriterBinder"
+    ],
+    "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportItemOperandRefused": [
+      "WiseOwl.Cobol.Binding.DataBinder",
+      "WiseOwl.Cobol.Binding.FileControlBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ResolveReports": [
       "WiseOwl.Cobol.Binding.Passes.ResolveReportsPass"
@@ -1172,7 +1174,6 @@
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::SumCounterOperand85": [
-      "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.Passes.OdoResolvePass"
     ],
     "WiseOwl.Cobol.Binding.SpecialNamesBinder::BindSpecialNames": [

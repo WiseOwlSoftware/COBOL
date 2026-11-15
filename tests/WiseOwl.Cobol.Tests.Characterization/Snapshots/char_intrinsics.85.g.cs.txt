@@ -15,12 +15,14 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
     internal static readonly NumProfile _P_0 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     internal static readonly NumProfile _P_1 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     internal static readonly NumProfile _P_2 = new NumProfile { Digits = 3, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
+    internal static readonly NumProfile _P_5 = new NumProfile { Digits = 1, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 };
     private long WS_A = 7L;   // WS-A
     private long WS_B = 12L;   // WS-B
     private long WS_R = 0L;   // WS-R
     private string WS_T = CobolString.Store("abc", 5);   // WS-T
     private string WS_U = new string(' ', 5);   // WS-U
-    private string __sendval5_MOVE = "";   // __SENDVAL-5
+    private long WS_L = 0L;   // WS-L
+    private string __sendval6_MOVE = "";   // __SENDVAL-6
 
     public void Call(CobolArg[] __args, CobolArg? __ret)
     {
@@ -62,14 +64,26 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                     }
                     catch (CobolSizeError) { __sizeErr0 = true; }
                     catch (global::System.OverflowException) { __sizeErr0 = true; }
-                    __sendval5_MOVE = CobolDynString.Store(CobolIntrinsics.UpperCase(WS_T), 32767);
-                    if (__sendval5_MOVE.Length == 0) {
+                    __sendval6_MOVE = CobolDynString.Store(CobolIntrinsics.UpperCase(WS_T), 32767);
+                    if (__sendval6_MOVE.Length == 0) {
                     WS_U = new string(' ', 5);
                     } else {
-                    WS_U = CobolString.Store(__sendval5_MOVE, 5);
+                    WS_U = CobolString.Store(__sendval6_MOVE, 5);
                     }
                     global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_R, _P_2, false) + WS_U);
-                    global::System.Console.WriteLine("5");
+                    bool __sizeErr1 = false;
+                    try
+                    {
+                        try
+                        {
+                            WS_L = (long)(CobolNum.Store(5L, 0, _P_5, CobolRounding.Truncation));
+                        }
+                        catch (CobolSizeError) { __sizeErr1 = true; }
+                        catch (global::System.OverflowException) { __sizeErr1 = true; }
+                    }
+                    catch (CobolSizeError) { __sizeErr1 = true; }
+                    catch (global::System.OverflowException) { __sizeErr1 = true; }
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_L, _P_5, false));
                     throw new StopRun();
                 }
                 default:

@@ -1,18 +1,20 @@
       *>--- conformance-case
       *> id: pb1047-two-globals-one-element-ambiguous
-      *> rules: [GR-8.4.6.2.1-3]
+      *> rules: [GR-8.4.6.2.1-3, GR-13.18.27.4-1]
       *> source-format: fixed
       *> portable: unverified
       *>---
-      *> ISO §2023:8.4.6.2.1 3) b) 1. narrows a duplicated name to ONE source
-      *> element - the nearest that declares it - and no further: two
-      *> global X items in that one element remain ambiguous, so the
-      *> bare reference is refused (COBOL1639) exactly as two local
-      *> ones would be (kb/Work PB1047; positive twin:
-      *> 85/pb1047_nearest_declaring_element).
-      *> RULE: cite.py --check 8.4.6.2.1 "The item in source element A
-      *>   if the name is declared in source element A" -> OK
-      *>   §2023:8.4.6.2.1 3) b) 1.
+      *> kb/Work PB1047 / PB5150: two global X items in ONE source element. §2023:8.4.6.2.1 3) b) 1. narrows a name duplicated
+      *> ACROSS nested source elements to the nearest element that declares it (positive twin:
+      *> 85/pb1047_nearest_declaring_element); it does not make two same-named globals of ONE element legal. §2023:8.4.2.1
+      *> forbids them at the DECLARATION: "The same name shall not be used both as the name of an item possessing the global
+      *> attribute and as the name of any other data item described in the source element that describes that global data
+      *> item", and the subordinates of a GLOBAL record possess the attribute (§2023:13.18.27.4 GR1: "All data-names
+      *> subordinate to a global name are global names"). The refusal is COBOL6862 at the later X, before any reference
+      *> (it was COBOL1639, at the reference, before kb/Work PB5150 adjudicated the screen).
+      *> RULE: cite.py --check "§2023:8.4.2.1" "The same name shall not be used both as the name of an item possessing the
+      *>   global attribute" -> OK; cite.py --check "§2023:13.18.27.4 GR1" "All data-names subordinate to a global name are
+      *>   global names" -> OK.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1047A.
        DATA DIVISION.

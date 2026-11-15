@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-3",
  "rule-digest": "0ca2a524eada",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SectionInfo.cs#IsDebugging; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DebuggingProcedureReferenced",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-3",
+ "notes": "§1985:XV.3.2.3 SR3: \"Statements appearing outside of the set of debugging sections must not reference procedure-names defined within the set of debugging sections.\" Every statement's procedure-name reference passes ProcedureTableBuilder.ResolveProcedureOperand into StatementValidation.CheckDeclarativesBoundary, whose first arm refuses (COBOL6946) a target in a section marked IsDebugging (set only for a compiled debugging section) from any section not so marked, with no PERFORM exemption. The witness PERFORMs a debugging paragraph from the main section. Probes at --std 85: GO TO, GO TO DEPENDING, ALTER (both operands), PERFORM of the section, PERFORM THRU, PERFORM TIMES/UNTIL/VARYING, a qualified name, SORT INPUT/OUTPUT and MERGE OUTPUT PROCEDURE from the main portion, and PERFORM from a USE AFTER ERROR section, all refuse; a debugging section PERFORMing another's paragraph and GO TO within itself compile and run; without DEBUGGING MODE the name is undefined. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

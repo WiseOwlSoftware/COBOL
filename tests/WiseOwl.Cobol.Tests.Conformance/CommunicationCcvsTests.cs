@@ -57,10 +57,10 @@ public sealed class CommunicationCcvsTests(ITestOutputHelper output)
         // budget states that wait on top of the unit (kb/Work PB5154).
         string dir = Run("CM102M", budget: ObservationBudget.OneProcessWaiting(TimeSpan.FromSeconds(3 * 30),
             "CM102M, which waits three 30-second delays on its own clock"));
-        // ⛔ THE RUN VOLUME'S FLUSH TIME ON EVERY RUN, NOT ONLY ON A TIMEOUT (kb/Work PB5147): CM102M's work beside its 90 s wait is 544 durable device
-        // flushes (one per SEND), and on GitHub's Windows runners that work varies from 3 s to 31 s in runs that pass (and 88 s in the two that timed out)
-        // while Linux's stays under 1 s. The 210 s budget absorbs the variation, so the timeout's probe line never fires; this line puts the volume's flush
-        // time beside the test's duration in every run's results, which is what decides whether the flush is the stall.
+        // ⛔ THE RUN VOLUME'S BARRIER TIMES ON EVERY RUN, NOT ONLY ON A TIMEOUT (kb/Work PB5147): CM102M's work beside its 90 s wait is 544 durable device
+        // writes (one per SEND). Each SEND flushed its device until PB5147, and on GitHub's Windows runners that work varied from 3 s to 31 s in runs that passed
+        // (and 88 s in the two that timed out) while Linux's stayed under 1 s; the device's barrier is now a write-through write. This line puts the volume's
+        // flush time and its write-through append time beside the test's duration in every run's results, so a runner's barrier cost is read, not guessed.
         output.WriteLine(HostLoad.DurableFlushLine(dir));
         try
         {

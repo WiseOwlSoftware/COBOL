@@ -7,10 +7,12 @@
        01 WS-R PIC 9(3).
        01 WS-T PIC X(5) VALUE "abc".
        01 WS-U PIC X(5).
+       01 WS-L PIC 9.
        PROCEDURE DIVISION.
        MAIN-PARA.
            COMPUTE WS-R = FUNCTION MAX(WS-A WS-B).
            MOVE FUNCTION UPPER-CASE(WS-T) TO WS-U.
            DISPLAY WS-R WS-U.
-           DISPLAY FUNCTION LENGTH(WS-T).
+           COMPUTE WS-L = FUNCTION LENGTH(WS-T).
+           DISPLAY WS-L.
            STOP RUN.

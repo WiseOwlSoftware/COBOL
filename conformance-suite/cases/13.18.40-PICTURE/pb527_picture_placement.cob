@@ -31,14 +31,17 @@
        01  N           PIC 9(2) VALUE 07.
            88  N-88    VALUE 07.
        01  E           PIC X(5).
+       01  LEN         PIC 9.
        PROCEDURE DIVISION.
        MAIN.
            MOVE "QRS" TO A
            MOVE 42 TO B
            MOVE "WXYZ" TO C
            MOVE "HELLO" TO E
-           DISPLAY "G=[" G "] L=" FUNCTION LENGTH(G)
-           DISPLAY "R=[" R "] L=" FUNCTION LENGTH(R)
+           COMPUTE LEN = FUNCTION LENGTH(G)
+           DISPLAY "G=[" G "] L=" LEN
+           COMPUTE LEN = FUNCTION LENGTH(R)
+           DISPLAY "R=[" R "] L=" LEN
            DISPLAY "E=[" E "]"
            IF N-88 DISPLAY "N88=T" ELSE DISPLAY "N88=F" END-IF
            STOP RUN.

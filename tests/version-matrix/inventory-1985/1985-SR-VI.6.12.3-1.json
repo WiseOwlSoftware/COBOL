@@ -1,10 +1,10 @@
 {
  "rule-id": "1985-SR-VI.6.12.3-1",
  "rule-digest": "d57eb850d782",
- "verdict": "CONFORMS",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindEnter; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#EnterStatementNotProvided; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#enterStatement",
  "test-ref": "conformance:cases/VI.6.12@1985-ENTER-STATEMENT/1985-SR-VI_6_12_3-1",
- "notes": "§1985:VI.6.12.3 SR1: 'Language-name-1 is specified by the implementor.' WiseOwl specifies no language: the ENTER statement is not provided (§1985:I.1.5.2.5.5 leaves it to the implementor; GnuCOBOL refuses it, CLAUDE.md rule 1; docs/conformance/3.7.1). StatementBinder#BindEnter refuses every ENTER at 85 with COBOL7240, so ENTER FORTRAN SUBRTN. no longer compiles to nothing (kb/Work PB5308); witness: the refusal 1985-SR-VI_6_12_3-1 (refuse-at 85, COBOL7240) and the declined construct row enter-removed-2002.",
+ "notes": "§1985:VI.6.12.3 SR1: \"Language-name-1 is specified by the implementor.\" WiseOwl does not provide the ENTER statement: §1985:I.1.5.2.5.5 \"An implementation of Standard COBOL may include the ENTER statement or not, at the option of the implementor\", and docs/conformance/3.7.1 records the decision. StatementBinder#BindEnter refuses every ENTER at 85 with COBOL7240 (kb/Work PB5308), the other-language sentence and ENTER COBOL alike; the witness is that refusal. Recorder's correction (records-read6, 2026-11-14): the row read CONFORMS on the reading that an ENTER is provided with no language, which the compiler's own refusal of ENTER COBOL. contradicts; kb/Work PB5373 class 3 decides that a rule whose subject is an element WiseOwl declines by a documented decision is DOCUMENTED-NON-SUPPORT witnessed by the element's named diagnostic, and records the ENTER rows \"with 1985-SR-VI.6.12.3-1 and -3 when PB5308 lands\" (it has). The read-6 refuter of the ENTER general rules (op-20261114/out-read6/rd-03-refute.json) found this CONFORMS wrong in category for -3 and the same for -1 under one consistent reading of §1985:I.1.5.2.5.5. Previous verdict: CONFORMS.",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

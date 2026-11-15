@@ -224,8 +224,13 @@ internal sealed partial class ControlFlowBinder
         // data item), so the WRITTEN shape decides, through the one sole-primary reader every sender position asks
         // (ConditionBinder.SoleFunctionCall, SetSenders.Classify); a PARENTHESIZED function stays an arithmetic expression
         // (§2023:8.8.1.1) and keeps the Classify verdict.
-        bool functionIdentifier = e is not BoundExprError && op.arithmeticExpression() is { } written
-            && ConditionBinder.SoleFunctionCall(written) is not null;
+        var soleFunction = e is not BoundExprError && op.arithmeticExpression() is { } written
+            ? ConditionBinder.SoleFunctionCall(written) : null;
+        bool functionIdentifier = soleFunction is not null;
+        // FROM and BY print an identifier, not an arithmetic expression, so a numeric or integer function there is the COBOL-85
+        // placement rule's (§1985:IV.4.3.8.3.3 SR4; IntrinsicBinder.ScreenIdentifierPlacement, kb/Work PB5108).
+        if (soleFunction is not null)
+            host.Intrinsic.ScreenIdentifierPlacement(soleFunction, e is BoundUdfEvaluatedExpr window ? window.Inner : e);
         // ⛔ ONLY A SOLE PRIMARY OR ONE SIGNED LITERAL IS A MEMBER OF THE BRACE GROUP (§2023:8.8.1.1, §2023:8.3.3.3.2 rule 2; kb/Work PB4865):
         // the binder drops grouping parentheses and a separated unary sign, so Classify sees only the BoundNumRef or literal
         // underneath and would admit `BY (FUNCTION TWO)`, `BY + FUNCTION TWO` or `FROM + (1)` as the identifier or literal

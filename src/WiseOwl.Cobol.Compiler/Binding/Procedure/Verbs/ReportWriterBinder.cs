@@ -213,7 +213,9 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
     private BoundOperand SourceIdentifierOperand(Antlr4.Runtime.ParserRuleContext identifier) => identifier switch
     {
         Core.DataReferenceContext dref => host.Expr.FieldOperand(dref),
-        Core.FunctionCallContext fc => host.Intrinsic.IntrinsicOperand(fc),
+        // Not IntrinsicOperand: a numeric function here is already the 85 SOURCE row's (report-source-expression-2002, asked by
+        // VersionConformancePass.GateReportSourceFunctions), so the placement screen would report the one operand twice (kb/Work PB5108).
+        Core.FunctionCallContext fc => IntrinsicBinder.OperandOf(host.Intrinsic.BindIntrinsic(fc), functionValue: true),
         _ => host.Oo.OoIdentifierOperand(identifier),
     };
 
@@ -413,8 +415,11 @@ internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host
         // SR1's data-name form, through the ONE funnel: it owns the qualified spelling ("It may be qualified by
         // a report-name") AND the §2023:8.4.2.2.3 SR1 ambiguity this loop used to resolve by writing order (PB365).
         string where = $"GENERATE {name}{(qualifier is null ? "" : $" OF {qualifier}")}";
-        if (ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, name, qualifier, where,
-                out var report, out var group, ctx.Data) != ReportGroupResolution.Match.None)
+        var match = ReportGroupResolution.Resolve(ctx.Edition, ctx.Data.State.Reports.Visible, name, qualifier, where,
+            out var report, out var group, ctx.Data);
+        // Ambiguous is already refused (COBOL1920): stop there, bind nothing on a guessed group (kb/Work PB5542).
+        if (match == ReportGroupResolution.Match.Ambiguous) return BoundRejected.Reported(ctx.Edition);
+        if (match == ReportGroupResolution.Match.Found)
         {
             if (group!.Kind != ReportGroupKindModel.Detail)
                 ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"{where}: the named report group is not a "

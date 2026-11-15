@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-SR-XV.3.2.3-5",
  "rule-digest": "43b39b4ed6ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddNamedDebugSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#FinalizeDebug; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveDebugProcedure; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#DebuggingProcedureReferenced",
+ "test-ref": "conformance:cases/XV.3.2@1985-USE-FOR-DEBUGGING-STATEMENT/1985-SR-XV_3_2_3-5",
+ "notes": "§1985:XV.3.2.3 SR5: \"Procedure-names defined within debugging sections must not appear within USE FOR DEBUGGING statements.\" FinalizeDebug resolves each bare or qualified operand through ResolveDebugProcedure, and AddNamedDebugSubject refuses (COBOL6946) a procedure whose section IsDebugging before recording any subject. The witness names a paragraph of another debugging section. Probes at --std 85: another debugging section's name, the section's own paragraph, its own section-name and a qualified D1-P OF D1 all refuse; ALL REFERENCES OF a debugging paragraph refuses as a non-data operand (COBOL5848); paragraphs and the section-name of a USE AFTER ERROR section are legal subjects and fire before the USE procedure after a failed OPEN. Read 6 (2026-11-14, records-read6): the row had no verdict and no test-ref although its witness existed; the reader read CONFORMS and an independent refuter UPHELD it (op-20261114/out-read6/rd-NN.json and rd-NN-refute.json).",
  "next": {
   "kind": "REMOVED",
   "edition": 2023,

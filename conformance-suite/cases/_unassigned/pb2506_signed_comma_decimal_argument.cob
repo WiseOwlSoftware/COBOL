@@ -1,10 +1,13 @@
       *>--- conformance-case
       *> id: pb2506_signed_comma_decimal_argument
       *> rules: []
-      *> accept: [85]
+      *> accept: [2002, 2014, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> kb/Work PB5108: accepted from 2002 only. Its statements put a numeric or integer function where an identifier stands
+      *> (a MOVE sender, a DISPLAY operand), which X3.23-1985 Amendment 1 admits only inside an arithmetic expression
+      *> (IV 4.3.8.3.3 SR4); 2002 Annex F.2 item 60 removed that restriction.
       *> kb/Work PB2506. ISO 12.3.7.4 GR14 a): under DECIMAL-POINT IS
       *> COMMA "the character written in numeric literals to represent
       *> the decimal separator shall be the comma"; 8.3.3.3.2 2): "If a

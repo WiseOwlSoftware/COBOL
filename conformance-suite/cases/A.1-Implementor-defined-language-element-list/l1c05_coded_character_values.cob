@@ -97,5 +97,5 @@
            MOVE E-CUR(1:1) TO W-C. MOVE "DOLLAR" TO W-L. PERFORM SHOW.
            STOP RUN.
        SHOW.
-           MOVE FUNCTION ORD(W-C) TO W-O.
+           COMPUTE W-O = FUNCTION ORD(W-C).
            DISPLAY W-L "=" W-O.

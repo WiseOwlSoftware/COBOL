@@ -1,0 +1,13 @@
+{
+ "id": "numeric-function-identifier-operand-2002",
+ "status": "active",
+ "description": "A numeric or integer function-identifier written where the general format prints an identifier (MOVE and DISPLAY operands, a PERFORM ... TIMES count, GO TO ... DEPENDING, a WRITE ADVANCING count, the sending operands of ADD, SUBTRACT, MULTIPLY and DIVIDE) rather than inside an arithmetic expression (kb/Work PB5108). X3.23-1985 with Amendment 1 (the 1989 Intrinsic Function module): \"A function-identifier which references an integer or numeric function may be used only in an arithmetic expression\" (§1985:IV.4.3.8.3.3 SR4; §1989:A.2.3 GR2 and GR3). ISO/IEC 1989:2002 Annex F.2 item 60 QUOTES the change: \"Function use expanded. The restrictions that numeric and integer functions could be used only in arithmetic expressions was removed ... Numeric and integer functions may now be used anywhere a numeric sender is allowed\" (§2002:F.2); the 2023 text is §2023:15.2 (a function may be used anywhere a sending data item of its class and category may be specified). An ALPHANUMERIC function is the identifier SR3 admits wherever an identifier is, so only a numeric or integer one is this row's: its category is a fact of the bind, so the gate is IntrinsicBinder.ScreenIdentifierPlacement, asked by the one function-identifier-as-identifier door (IntrinsicOperand) and by ExpressionBinder.BindArithmeticStatementOperand for the arithmetic verbs. A function inside COMPUTE, a relation or a subscript is an arithmetic expression and is not this row's; a CALL USING argument is call-function-identifier-argument-2002's and a SOURCE operand report-source-expression-2002's.",
+ "display": "a numeric or integer function-identifier where an identifier is written (not in an arithmetic expression)",
+ "diagnosticCode": "COBOL0900",
+ "citation": "§1985:IV.4.3.8.3.3 SR4; §2002:F.2 (item 60); ISO §2023:15.2",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 relaxation: ISO/IEC 1989:2002 Annex F.2 item 60 removes the 1989 addendum's restriction that numeric and integer functions are used only in arithmetic expressions (kb/Work PB5108)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMNFO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE FUNCTION SQRT (4) TO N.\n    DISPLAY N.\n    STOP RUN.\n"
+}

@@ -4634,6 +4634,23 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         return matches is [var (_, family)] && family.Register.SubscriptArity == 0 ? family.Register : null;
     }
 
+    /// <summary>⛔ THE ONE ASK OF A DATA DIVISION CLAUSE'S OPERAND THAT NO DATA ITEM ANSWERS BUT A REPORT ENTRY MAY (kb/Work PB5361):
+    /// the edition's two verdicts in one place, so a clause arm cannot take the 2002 section rule at COBOL-85 or forget the 85 reading.
+    /// At COBOL-85 a sum counter is the clause's own data-name (<see cref="SumCounterOperand85"/>), returned in
+    /// <paramref name="counter"/> for the clause's own rules to judge (a record key outside the file's records, a LINAGE operand
+    /// that is signed); from COBOL-2002 on, and for a name that is no counter, <see cref="ReportEntryReferenceRefused"/> speaks and
+    /// the method returns true. Every clause arm that resolves a data-name operand in a section other than the report section asks
+    /// this — <c>DataBinder.ResolveClauseOperand</c> and the file-control key arms — and
+    /// <c>ReportEntryReferenceRefusalDriftTests</c> pins the callers of the raw refusal.</summary>
+    /// <returns>True when the reference was refused (reported); otherwise <paramref name="counter"/> is the COBOL-85 sum counter
+    /// or null, and the caller's own verdict stands.</returns>
+    internal bool ReportItemOperandRefused(NameCandidates<DataItem> survivors, string subject, string name,
+                                           IReadOnlyList<string> qualifiers, out DataItem? counter, bool inReportSection = false)
+    {
+        counter = survivors.Count == 0 && !inReportSection ? SumCounterOperand85(name, qualifiers, subject) : null;
+        return counter is null && ReportEntryReferenceRefused(survivors, subject, name, qualifiers, inReportSection);
+    }
+
     /// <summary>⛔ THE ONE REFUSAL OF A REFERENCE TO A REPORT SECTION ENTRY WHERE NONE IS ADMITTED (kb/Work PB1046) — a
     /// procedure division statement, a clause of any section of the data division other than the report section, or a
     /// report section clause whose operand §2023:13.15.3 SR7 does not list (<paramref name="inReportSection"/>). ISO §2023:13.8.6.2.3: "Report items shall not be accessed or referred to by any clauses in any other section of the

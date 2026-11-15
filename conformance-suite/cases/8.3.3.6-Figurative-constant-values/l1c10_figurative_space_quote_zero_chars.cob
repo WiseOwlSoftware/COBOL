@@ -70,12 +70,12 @@
            DISPLAY "ZR=[" X3 "]".
            IF X3 = "000" DISPLAY "ZREQ=Y" ELSE DISPLAY "ZREQ=N".
            MOVE " " TO X1.
-           MOVE FUNCTION ORD (X1) TO O1.
+           COMPUTE O1 = FUNCTION ORD (X1).
            MOVE SPACE TO X1.
-           MOVE FUNCTION ORD (X1) TO O2.
+           COMPUTE O2 = FUNCTION ORD (X1).
            MOVE ZERO TO X1.
-           MOVE FUNCTION ORD (X1) TO O3.
+           COMPUTE O3 = FUNCTION ORD (X1).
            MOVE QUOTE TO X1.
-           MOVE FUNCTION ORD (X1) TO O4.
+           COMPUTE O4 = FUNCTION ORD (X1).
            DISPLAY "ORD=" O1 " " O2 " " O3 " " O4.
            STOP RUN.
