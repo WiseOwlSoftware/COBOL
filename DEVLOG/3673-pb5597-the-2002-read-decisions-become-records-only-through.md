@@ -1,4 +1,4 @@
-## PB5597: the 2002 read decisions become records only through an audit run, on evidence at their own edition; PB5589's review leads R2-1 to R2-4 fixed
+## Entry 3673 — 2026-11-15 03:00 PST — PB5597: the 2002 read decisions become records only through an audit run, on evidence at their own edition; PB5589's review leads R2-1 to R2-4 fixed
 
 **What landed.** `audit_batch.py import-reads` takes a directory of a reading fleet's `<slice>-read.json` and
 `<slice>-refute.json` files and does two things. It writes the durable record of each slice, verbatim with its questions
@@ -41,3 +41,4 @@ and 571 have none.
 **Not done.** The real import, the band widening and the 2002 records are the records worker's. So are the answers
 to the 632 rows whose screen flags their slices never asked, and the own verdicts of the 55 unpaired SAME reads. 1985's state rules and records
 are unchanged.
+
