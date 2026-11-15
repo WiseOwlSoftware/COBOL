@@ -333,6 +333,9 @@ public static class CobolFile
     /// <summary>Declare a file's record format (<see cref="FileRegistry.RegisterRecordFormat"/>).</summary>
     public static void RegisterRecordFormat(string name, RecordFormat format) => _reg.RegisterRecordFormat(name, format);
 
+    /// <summary>Whether the record description entry a file's SELECT WHEN clauses select for an image is national (<see cref="FileRegistry.SelectedRecordIsNational"/>).</summary>
+    public static bool SelectedRecordIsNational(string name, string internalImage) => _reg.SelectedRecordIsNational(name, internalImage);
+
     /// <summary>Declare a file's SELECT WHEN selector (<see cref="FileRegistry.RegisterRecordSelector"/>).</summary>
     public static void RegisterRecordSelector(string name, Func<string, int> selector) => _reg.RegisterRecordSelector(name, selector);
 

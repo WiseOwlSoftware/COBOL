@@ -2349,8 +2349,17 @@ internal static class RuntimeApi
     /// kb/Work PB1140) — <c>CobolSort.FillTo</c>. <paramref name="national"/> is
     /// <c>FileModel.ShortRecordFillNational</c> of the file the record moves to; <paramref name="extents"/> is the
     /// returned record's extent table on the GIVING side (null on the USING side, whose record has none).</summary>
-    public static string SortFillTo(string image, string width, bool national, string? extents = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.FillTo)}({image}, {width}, {(national ? "true" : "false")}{(extents is null ? "" : $", {extents}")})";
+    public static string SortFillTo(string image, string width, string national, string? extents = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.FillTo)}({image}, {width}, {national}{(extents is null ? "" : $", {extents}")})";
+
+    /// <summary>The C# expression for whether the short-record fill of a SORT/MERGE transfer INTO <paramref name="file"/> is national
+    /// (§2023:14.9.40.4 GR7, GR16; §2023:14.9.24.4 GR2, GR13): a literal where the file's one record description decides it
+    /// (<c>FileModel.ShortRecordFillNational</c>), and the run-time answer where several record description entries carry SELECT WHEN clauses and
+    /// "the rules of the SELECT WHEN clause are applied to the record to select its description" (<c>CobolFile.SelectedRecordIsNational</c>).</summary>
+    public static string ShortRecordFillNational(FileModel file, string fileKey, string image) =>
+        file.TranslatesByRecord && file.HasSelectWhen && file.Records.Count > 1
+            ? $"{nameof(CobolFile)}.{nameof(CobolFile.SelectedRecordIsNational)}({fileKey}, {image})"
+            : file.ShortRecordFillNational ? "true" : "false";
 
     /// <summary>The <c>CobolSort.Key[]</c> array literal over per-key "new(…)" element fragments.</summary>
     public static string SortKeyArray(IEnumerable<string> keyElements) =>

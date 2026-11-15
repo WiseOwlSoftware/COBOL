@@ -36,7 +36,8 @@ internal static class RecordPlans
     /// <summary>Whether the entry holds a table whose occurrences depend on a data item (OCCURS DEPENDING ON) or are dynamic — its
     /// image then has no fixed layout a plan can describe.</summary>
     public static bool HasVariableLayout(DataItem record) =>
-        FileModel.IsVariableLengthRecord(record) || Descendants(record).Any(d => d.OccursSpec is { IsDynamic: true } || d.IsDynamicTable);
+        FileModel.IsVariableLengthRecord(record)
+        || Descendants(record).Any(d => d.OccursSpec is { IsDynamic: true } or { DependingName: not null } || d.IsDynamicTable);
 
     private static IEnumerable<DataItem> Descendants(DataItem item)
     {
@@ -116,10 +117,11 @@ internal static class RecordPlans
         if (item.IsElementary)
         {
             bool bit = BitLayout.IsBitLeaf(item);
-            int start = bit
-                ? BitLayout.StartBitOf(record, item)
-                : (RecordLayout.OffsetInRootWithEveryIndexOne(item) ?? 0) * 8;
-            if (bit && start < 0) return;   // a bit item the layout walk cannot place (reported where the layout is)
+            // A record holding usage bit items is laid out by the bit walk (§2023:8.5.1.6.3), which places every item of it, the characters after
+            // a run of bits included; any other record by the byte walk (an overlay the bit walk cannot place falls back to it).
+            int start = record.HasBitDescendant ? BitLayout.StartBitOf(record, item) : -1;
+            if (start < 0 && bit) return;   // a bit item the layout walk cannot place (reported where the layout is)
+            if (start < 0) start = (RecordLayout.OffsetInRootWithEveryIndexOne(item) ?? 0) * 8;
             // Both walks answer the FIRST occurrence's place, so a table's later occurrences are all in the delta.
             windows.Add((start + bitDelta, bit ? item.Pic!.Length : item.ByteWidth * 8, item));
             return;

@@ -1840,6 +1840,11 @@ public sealed class FileRegistry
                 .Format = format;
     }
 
+    /// <summary>Whether the record description entry the file's SELECT WHEN clauses select for <paramref name="internalImage"/> is described as national
+    /// (<see cref="RecordFormat.SelectedIsNational"/>): the space a short record of a SORT or MERGE transfer is filled with.</summary>
+    public bool SelectedRecordIsNational(string name, string internalImage) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector { Format: { } format } && format.SelectedIsNational(internalImage);
+
     /// <summary>Declare the SELECT WHEN selector of the file's record format (§2023:13.18.51.4 GR3): the compiled evaluation of the
     /// clauses' conditions over an internal image, in the order the record description entries are written.</summary>
     public void RegisterRecordSelector(string name, Func<string, int> selector)

@@ -1,0 +1,12 @@
+{
+ "id": "select-when-clause-2002",
+ "description": "The SELECT WHEN clause of a record description entry (the condition-name condition under which the entry is associated with a record during input and output operations), ISO/IEC 1989:2002 13.16.49 and 2023 13.18.51 - introduced 2002 (SELECT WHEN has no COBOL-85 form). kb/Work PB5578.",
+ "display": "the SELECT WHEN clause",
+ "diagnosticCode": "COBOL0900",
+ "citation": "ISO §2023:13.18.51; ISO/IEC 1989:2002 §13.16.49",
+ "introducedIn": 2002,
+ "removedIn": null,
+ "expectDiagnostic": "COBOL0900",
+ "vcr": "2002 introduction (derive from the 2002 standard)",
+ "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SWH9CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F1 ASSIGN TO \"swh9cl.dat\".\nDATA DIVISION.\nFILE SECTION.\nFD F1 RECORD IS VARYING IN SIZE FROM 1 TO 20 CHARACTERS\n    FORMAT CHARACTER DATA.\n01 R1 SELECT WHEN IS-A.\n    05 R1-KEY PIC X.\n        88 IS-A VALUE \"A\".\n    05 R1-TXT PIC X(4).\n01 R2 SELECT WHEN OTHER.\n    05 R2-KEY PIC X.\n    05 R2-NUM PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+}

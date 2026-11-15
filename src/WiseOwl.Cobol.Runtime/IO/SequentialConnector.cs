@@ -1430,8 +1430,8 @@ public sealed partial class SequentialConnector : FileConnector
     /// read (<see cref="InternalRecord"/>).</summary>
     internal RecordFormat? Format { get; set; }
 
-    /// <summary>The length ON THE MEDIUM of the record the last READ delivered, for a file with a <see cref="Format"/>:
-    /// §2023:14.9.35.4 GR16 compares the record being replaced by its bytes, and the physical record is the formatted one.</summary>
+    /// <summary>The length ON THE MEDIUM of the record the last READ delivered, for a file with a <see cref="Format"/>: the RECORD clause bounds the record
+    /// on the medium, so the '04' of a record outside its bounds (§2023:14.9.30.4 GR14) is asked of this length.</summary>
     private int _lastExternalLength = -1;
 
     /// <summary>A record the <see cref="Format"/> could not translate, carried from <see cref="InternalRecord"/> to the READ that
@@ -1441,7 +1441,7 @@ public sealed partial class SequentialConnector : FileConnector
         public string Status { get; } = status;
     }
 
-    /// <summary>Translate the record a WRITE or REWRITE is about to put on the medium (ISO §2023:13.18.24.4 GR8; §2023:13.18.51.4 GR3).
+    /// <summary>Translate the record a WRITE is about to put on the medium (ISO §2023:13.18.24.4 GR8; §2023:13.18.51.4 GR3).
     /// The image becomes the external record at its own length — the RECORD clause bounds the length AFTER the FORMAT clause's
     /// changes (§2023:14.9.51.4 GR14) — so the DEPENDING length, which counts the record area's bytes, no longer applies, and the
     /// extent table of a variable-length group, which describes the record area, has no external twin. Returns the unsuccessful
@@ -1450,7 +1450,9 @@ public sealed partial class SequentialConnector : FileConnector
     {
         var failure = Format!.ToExternal(image, out string external);
         if (failure is not RecordFormat.Failure.None) return RefusalStatus(failure);
-        image = external;
+        // A fixed-length file's record is as long as its records are (§2023:13.18.43.4 GR6) and the fill is the medium's space, so it is made HERE,
+        // while the record is still the one the alphabet converts.
+        image = IsVarying ? external : Format.PadToWidth(external, RecordWidth, national);
         length = -1;
         national = false;   // the external image is characters: a national item crosses the medium as its byte pairs
         extents = null;
@@ -1860,13 +1862,14 @@ public sealed partial class SequentialConnector : FileConnector
             // character IN THE RECORD (NOTE 3) — a subsequent READ continues the remainder up to the line delimiter.
             // _lineRemainder models that FPI: service a pending remainder before reading a new physical line.
             string? line;
+            string? onMedium = null;   // a FORMAT file's line as it stands on the medium: the line character set is about THAT text, not the record area's
             if (_lineRemainder is not null)
             {
                 line = _lineRemainder;
                 _lineRemainder = null;
                 _lastReadLinePartial = true;   // a served remainder is only PART of its physical line (§2023:14.9.35 GR17a)
             }
-            else if (NextFrame(out _, out _) is { } physical) line = InternalRecord(physical);   // FORMAT: the record area's form (§2023:13.18.24.4 GR9)
+            else if (NextFrame(out _, out _) is { } physical) { onMedium = physical; line = InternalRecord(physical); }   // FORMAT: the record area's form (§2023:13.18.24.4 GR9)
             else return ReadUnsuccessful(FileStatusCode.AtEnd);   // GR24 b)
             // The bound is the maximum size the RECORD DESCRIPTIONS specify (GR15's own words), which is the
             // record area's width except for a variable-length record (MaxRecordSize — kb/Work PB981).
@@ -1891,7 +1894,7 @@ public sealed partial class SequentialConnector : FileConnector
             // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
             // RecordWidth wide, so the fitted image is the same subject as before.
             string delivered = lineTooLong ? CurrentRecord : line;
-            lineBadChar = RecordAreaOutsideLineCharacterSet(delivered.Length > RecordWidth ? delivered : image, NationalRecordArea);
+            lineBadChar = RecordAreaOutsideLineCharacterSet(Format is not null ? onMedium ?? "" : delivered.Length > RecordWidth ? delivered : image, NationalRecordArea && Format is null);
         }
         else if (NextFrame(out _, out RecordExtents? extents) is { } physicalRecord)
         {
@@ -2143,7 +2146,8 @@ public sealed partial class SequentialConnector : FileConnector
     {
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §2023:14.9.35.4 GR3 / §2023:14.9.10.4 GR1
         if (!PrevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
-        if (Format is not null && ExternalRecord(ref image, ref length, ref national, ref extents) is { } untranslated) return Status = untranslated;
+        // A file with a FORMAT clause is never opened I-O (§2023:14.9.27.3 SR9: "The I-O phrase shall not be specified if the FORMAT clause is specified"), so
+        // no REWRITE reaches it: the rewrite arms below translate nothing.
         // §2023:13.18.43.4 GR13 — the number of bytes in the record: data-name-1's content (a), else the bytes in the
         // record (b/c), which the compiler passes for a fixed-length file. −1 is the image's own length.
         int len = length >= 0 ? length : IsVarying ? image.Length : RecordWidth;
@@ -2165,7 +2169,7 @@ public sealed partial class SequentialConnector : FileConnector
     {
         // The bytes of the record being replaced are the PHYSICAL record's (CurrentRecord), not LastReadLength, which a READ of a record
         // longer than the RECORD VARYING maximum caps at the maximum (the delivered length, kb/Work PB5480).
-        if (len != (Format is null ? CurrentRecord.Length : _lastExternalLength)) return Status = FileStatusCode.RecordSizeViolation;   // '44' GR16 — the record being replaced is the one ON THE MEDIUM
+        if (len != CurrentRecord.Length) return Status = FileStatusCode.RecordSizeViolation;   // '44' GR16
         if (_lastReadBlockStart < 0 || _reader is not { BaseStream: { CanSeek: true, CanWrite: true } stream })
             return NotRewritableInPlace();
         string record = FitRecord(image, len, national);

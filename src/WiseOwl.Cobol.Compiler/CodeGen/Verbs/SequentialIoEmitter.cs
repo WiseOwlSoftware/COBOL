@@ -550,7 +550,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         if (!file.TranslatesByRecord) return;
         var records = file.WrittenRecords.ToList();
-        string plans = string.Join(", ", records.Select(r => RenderPlan(RecordPlans.Of(r))));
+        string plans = string.Join(", ", records.Select(r => RenderPlan(RecordPlans.Of(r), FileModel.IsNationalRecord(r))));
         var kinds = file.Format ?? RecordFormatKinds.None;
         string kindsExpr = kinds is RecordFormatKinds.None ? "RecordFormatKinds.None"
             : string.Join(" | ", new[] { (RecordFormatKinds.Bit, "Bit"), (RecordFormatKinds.Character, "Character"), (RecordFormatKinds.Numeric, "Numeric") }
@@ -589,8 +589,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     }
 
     /// <summary>One record description entry's plan as the runtime's <c>RecordPlan</c> constructor call.</summary>
-    private string RenderPlan(RecordPlanModel plan) =>
-        $"new {nameof(RecordPlan)}({plan.Width}, " + string.Join(", ", plan.Steps.Select(RenderStep)) + ")";
+    private string RenderPlan(RecordPlanModel plan, bool national) =>
+        $"new {nameof(RecordPlan)}({plan.Width}, " + string.Join(", ", plan.Steps.Select(RenderStep)) + ")" + (national ? " { National = true }" : "");
 
     private string RenderStep(PlanStep step)
     {

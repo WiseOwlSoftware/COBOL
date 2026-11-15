@@ -76,6 +76,11 @@ public sealed class RecordPlan
     /// <summary>The bytes of the record description's internal image.</summary>
     public int Width { get; }
 
+    /// <summary>Whether the entry is described as national — "a national data item or … an elementary data item of usage national and of category
+    /// numeric, numeric-edited, or boolean" (§2023:14.9.40.4 GR7 a): the record a SORT or MERGE transfer fills with national spaces, not
+    /// alphanumeric ones, when it is shorter than a fixed-length file's records.</summary>
+    public bool National { get; init; }
+
     /// <summary>The plan of a record description whose image is <paramref name="width"/> bytes.</summary>
     public RecordPlan(int width, params RecordStep[] steps)
     {
@@ -157,8 +162,27 @@ public sealed class RecordFormat
         NotRepresentable,
     }
 
-    /// <summary>The plans, for a statement that needs the selected entry's width (the compiler's record-length rules).</summary>
-    internal RecordPlan PlanOf(int index) => _plans[index];
+    /// <summary>Whether the record description entry SELECTED for <paramref name="internalImage"/> is described as national — the fill a short
+    /// record of a SORT or MERGE transfer takes (ISO §2023:14.9.40.4 GR7 b, GR16 b; §2023:14.9.24.4 GR2 b, GR13 b: "the rules of the SELECT WHEN
+    /// clause are applied to the record to select its description"). False when none is selected: that record is refused by the statement
+    /// that writes it, with I-O status 45.</summary>
+    public bool SelectedIsNational(string internalImage)
+    {
+        int index = _plans.Length == 1 ? 0 : Select!(internalImage);
+        return index >= 0 && index < _plans.Length && _plans[index].National;
+    }
+
+    /// <summary>The record on the medium, padded on the right to <paramref name="width"/> as a FIXED-length file's record is
+    /// (§2023:13.18.43.4 GR6): with the space of the medium's coded character set when the record is alphanumeric — the CODE-SET alphabet
+    /// replaces the native space like every other character of the record (§2023:13.18.13.4 GR6 b) — and the national space when it is national
+    /// (§2023:14.9.51.4 GR22).</summary>
+    public string PadToWidth(string external, int width, bool national)
+    {
+        if (external.Length >= width) return external;
+        if (national) return RecordFill.Fit(external, width, national: true);
+        if (!Converted(" ", out string space)) space = " ";   // an alphabet with no space cannot have written the record (the statement refused it)
+        return external.PadRight(width, space[0]);
+    }
 
     // ── Internal → external (WRITE, REWRITE) ─────────────────────────────────────────────────────────────────────────
 

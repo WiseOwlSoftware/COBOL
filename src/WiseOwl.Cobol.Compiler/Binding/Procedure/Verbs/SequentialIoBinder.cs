@@ -246,8 +246,9 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         var advancing = BindAdvancing(adv);
         // kb/Work PB5201: the file's positioning is a property of the PROGRAM (any WRITE of it names ADVANCING), not of the history of the run.
         if (advancing is not null) file.WrittenWithAdvancing = true;
-        return new BoundWrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand()),
+        var fromMove = host.Move.BindFromPhrase(FromPhraseRules.Write, file, record, w.recordFromPhrase()?.sendingOperand());
+        ScreenFormatFromOperand(file, fromMove, "WRITE");
+        return new BoundWrite(file, record, fromMove,
             advancing, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
         { Lock = wlock, Retry = wretry, InvalidKey = winvalid };
     }
@@ -377,10 +378,39 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
                 "a file with sequential organization", "ISO §2023:14.9.35.3 SR2");
             rinvalid = keyedIo.KeyedInvalidPhrase(rw.conditionalPhrases());
         }
-        return new BoundRewrite(file, record,
-            host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand()),
+        var rewriteFrom = host.Move.BindFromPhrase(FromPhraseRules.Rewrite, file, record, rw.recordFromPhrase()?.sendingOperand());
+        ScreenFormatFromOperand(file, rewriteFrom, "REWRITE");
+        return new BoundRewrite(file, record, rewriteFrom,
             UnsupportedOrg(file, "REWRITE"))
         { Lock = rlock, Retry = rretry, InvalidKey = rinvalid };
+    }
+
+    /// <summary>FORMAT clause SR2 and SR3 over the identifier of a FROM phrase: "The REDEFINES clause and the RENAMES clause shall not be
+    /// specified in a record description entry associated with a file description entry in which a FORMAT clause is specified or in the data
+    /// description entry of the identifier specified in a FROM phrase in a REWRITE or WRITE statement referencing that file description
+    /// entry", and "Data items of class index, message-tag, object, and pointer shall not be specified" in either (ISO §2023:13.18.24.3 SR2,
+    /// SR3; ISO/IEC 1989:2002 §13.16.22.2). The identifier's entry is its own description and the entries beneath it. A literal has none.</summary>
+    private void ScreenFormatFromOperand(FileModel file, BoundMove? from, string verb)
+    {
+        if (file.Format is null || from?.Source is not BoundFieldOperand { Place.Item: { } item }) return;
+        int level = ctx.Edition.DialectLevel;
+        if (item.Renames is not null)
+            ctx.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
+                $"the FROM identifier '{item.CobolName}' of this {verb} is a RENAMES entry, and file '{file.CobolName}' has a FORMAT clause ({RecordFormatCitations.Format(level, "SR2")})");
+        Walk(item);
+
+        void Walk(DataItem d)
+        {
+            if (d.RedefinesTargetName is not null)
+                ctx.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
+                    $"'{d.CobolName ?? "FILLER"}' has a REDEFINES clause and is in the data description entry of the FROM identifier '{item.CobolName}' of this {verb}, and file "
+                    + $"'{file.CobolName}' has a FORMAT clause ({RecordFormatCitations.Format(level, "SR2")})");
+            if (Passes.ResolveRecordFormatPass.ClassOfItem(d) is { } excluded)
+                ctx.Edition.Error(DiagnosticCatalog.FormatClauseViolation,
+                    $"'{d.CobolName ?? "FILLER"}' is a data item of class {excluded} in the data description entry of the FROM identifier '{item.CobolName}' of this {verb}, and file "
+                    + $"'{file.CobolName}' has a FORMAT clause ({RecordFormatCitations.Format(level, "SR3")})");
+            foreach (var child in d.Children) Walk(child);
+        }
     }
 
     /// <summary>The §2023:14.9.51.3 SR18 test — does this WRITE's print-control phrase name the PAGE operand?
