@@ -1,4 +1,4 @@
-## PB5345: the type 6 power screen reads a literal base, one item as base and exponent, and a power under a negation or in an integral sum
+## Entry 3638 — 2026-11-14 19:05 PST — PB5345: the type 6 power screen reads a literal base, one item as base and exponent, and a power under a negation or in an integral sum
 
 Re-probe first: on a fresh Debug build `FUNCTION MOD (2 ** M, 7)`, `M ** M` (M PIC S9), `- (N ** -1)` and `(N ** -1) + 1` compiled and ran, while `N ** -1` was refused with COBOL1627. §2023:15.3 type 6 and §1989:A.2.2 AR4 ask for an expression that "will always result in an integer value"; each of those has a valuation whose value is not an integer, so the screen failed open.
 
@@ -7,3 +7,4 @@ The power arm was a root-only call in `NotAlwaysIntegral`. It now lives in `Coll
 Fail-open shapes are now a table, not prose: `IntrinsicTypeSixPowerShapesDriftTests` compiles 24 power shapes and checks each is refused or admitted as recorded (expression base, power under a product, literal base below 2, two powers, power plus a non-integral constant, power sharing its scaled item), and forces a verdict for every concrete `BoundExpr` node type (it flagged `BoundIntrinsicCall` and `BoundOdoExtent` when first run). Goldens: refusal `pb5345-power-literal-base`, complement `pb5345_power_failopen_shapes`. No inventory row closes; `docs/INTRINSICS_DESIGN.md` carries the current shape list.
 
 Review round 1 (R1-1, R1-2, R1-3). R1-1: ExactValue folds a power only for an integer exponent, so a literal base to a fraction literal (`2 ** 0.5`, `3 ** 0.5 + 1`) and to a negative integer beyond MaxFoldedExponent failed open; `PowerWitness` now reads them (an integer only for a positive fraction and a base that is a perfect q-th power, `IsPerfectRoot`; a negative base at a fraction stays admitted), five rows added to the shape table. R1-2: the power arm of `CollectAdditive` sets `spine.Residue`, so `IsNeverNegativeWhereItemsAreNot` keeps its "no other term" contract. R1-3: the table test fails on any diagnostic other than COBOL1627.
+
