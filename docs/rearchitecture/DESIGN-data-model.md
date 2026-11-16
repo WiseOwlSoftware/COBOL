@@ -284,6 +284,13 @@ build; there was a predicate that stopped short.
   lives in `ClassifyRedefinesClassesPass` + `ComputeTier`, applied through the ONE
   `RedefinesClass.Classify` mutator, with the reason threaded to references by `ExpressionBinder.RefFailure`.
   The de-facto loud backstop is `PlaceBuilder.PlaceForItem` returning null → the caller fails loud.
+  - **One area per overlay nest (kb/Work PB5729).** `ClassifyRedefinesClassesPass.Run` dissolves a class whose ANCHOR lies
+    inside another class's subtree into the outer class. The ancestor test is `DataItem.RedefinesTarget` (any redefiner: a
+    written clause OR the file section's implicit redefinition of a second or later level-01 record), never the clause-text
+    field `RedefinesTargetName`: a `05 H REDEFINES A` under the SECOND record of a multi-record FD is nested in the
+    record-area class, and tested by the clause text it kept its own class while `AssignClassBitOffsets` also made `A` a
+    non-canonical view of the record-area class, so `StorageFormPass.Classify` forwarded `A` to itself (stack overflow, or
+    CS0103 for a numeric `A`).
   - **What P11 Step C consolidated** is the SEPARATE *classless* mixed-usage-GROUP image island — a plain group
     (not a REDEFINES pun) whose leaves are not uniformly character-imageable (a float/COMP-5/INDEX/BINARY-* leaf
     under `DataItem.IsImageCapable`, or a COMP/binary leaf under the stricter `DataItem.IsCharacterImage`) has no
