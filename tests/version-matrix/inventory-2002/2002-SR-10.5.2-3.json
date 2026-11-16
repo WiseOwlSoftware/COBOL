@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-10.5.2-3",
+ "rule-digest": "6ec27430c445",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#CheckPrototypeSignaturePairs; src/WiseOwl.Cobol.Compiler/Binding/PrototypeSignatures.cs#Same",
+ "test-ref": "conformance:cases/10.5@2002-COBOL-COMPILATION-GROUP/g2002-sr-10-5-2-3-function-signatures-differ",
+ "notes": "§2002:10.5.2 SR3 requires a function definition and its same-named function prototype to have the same signature, which §2002:8.13 says includes the description of the returning item; a prototype RETURNING PIC X against a definition RETURNING PIC X(2) is refused at --std 2002 (COBOL1513), and the matching pair beside it (g2002-sr-10-5-2-3-function-signatures-same) prints R=0042 as derived."
+}

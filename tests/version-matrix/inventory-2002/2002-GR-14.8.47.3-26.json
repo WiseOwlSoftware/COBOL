@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-26",
+ "rule-digest": "84b1c8f17dbb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#NextSequentialSlot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.8.47@2002-WRITE-STATEMENT/g2_write_relative_extend_key",
+ "notes": "§2002:14.8.47.3 GR26: an extend-mode relative WRITE numbers records from highest RRN + 1 (6 after 2 and 5), then consecutively, and moves each RRN into the RELATIVE KEY through record-name-1 and through WRITE FILE file-name-1 (a preset of 999 becomes 007). The --std 2002 run of the pinned build dc1f2dcce8 matched the derived .out."
+}

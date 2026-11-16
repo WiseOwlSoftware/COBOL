@@ -40,3 +40,4 @@
   ordinals as under `-std=default`. GnuCOBOL therefore states no correspondence beyond the basic letters for national
   data, and nothing below the ISO text decides the extended letters; the Unicode choice stands on Annex D's NOTE.
   IBM Enterprise COBOL and Micro Focus: unmeasured (neither is installed on this host).
+  At 2002 pinned by `g2lwr01-no-correspondence-unchanged` and `g2upr01-no-correspondence-unchanged` (`--std 2002`).

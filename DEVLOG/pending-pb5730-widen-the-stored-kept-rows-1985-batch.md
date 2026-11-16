@@ -1,4 +1,4 @@
-## PB5730: widen plans the stored KEPT rows, and the 1985 widening batch closes 64 rows (835 to 771 GAP)
+## PB5730: widen plans the stored KEPT rows, and the 1985 widening batch closes 64 rows (1985 GAP 844 to 780 on main)
 
 **The mechanism.** `lineage_reads.py widen` planned only from read decisions, and 1985 has no read records: its 1,373
 KEPT records are stored records of its comparison audit, so the 803 without a witness of their own had no widening path.
@@ -14,7 +14,8 @@ at 85 that `generate.py --check` refused. Both refusals now live in `generate.ch
 `check_cases`, with a generator self-test; the batch was run again from an untouched tree.
 
 **The batch.** 74 of 365 candidate cases proven at 85 and written; `witness-batch` wrote 64 records; 1985 from 835 to
-771 GAP; a second witness-batch writes nothing; LINEAGE READS green. The 291 not proven: 258 later-construct, 33
+771 GAP at the branch's base, and from 844 to 780 on the tree merged with main at landing (main's registrar
+landing records-sample-pb5692 had raised it 835 to 844; `inventory_view.py --summary`); a second witness-batch writes nothing; LINEAGE READS green. The 291 not proven: 258 later-construct, 33
 harness (run-time expectation at 85), 0 suspected defects. The 419 rows whose widening did not hold go to the witness
 lane.
 

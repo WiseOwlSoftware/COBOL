@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-6",
+ "rule-digest": "c688de14fa82",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#LowValue; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CharacterContext; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetFigurative",
+ "test-ref": "conformance:cases/8.3.1.2.5@2002-FIGURATIVE-CONSTANT-VALUES/g2002_figurative_low_all_symbolic_cd",
+ "notes": "§2002:8.3.1.2.5.3 GR6 (partial witness): at runtime LOW-VALUE is ordinal 1 of its class's program collating sequence, so under AL/NAL it is B in alphanumeric contexts (working-storage and CD record fields, CHAR(1), a relation) and C in national ones; the run at --std 2002 matched. Only the runtime paragraph and the national/alphanumeric paragraph of GR6 are pinned; the compile-time/SPECIAL-NAMES paragraph and the LC_COLLATE paragraph have no leg in this case."
+}

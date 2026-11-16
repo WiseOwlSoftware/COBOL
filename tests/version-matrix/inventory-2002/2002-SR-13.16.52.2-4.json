@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.52.2-4",
+ "rule-digest": "814bf3db81da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumAddendRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveSumAddend",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_sum_cd_identifier_expression; conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum05_sum_cd_addend_not_numeric",
+ "notes": "§2002:13.16.52.2 SR4: numeric CD-record and WS identifier addends accepted and summed per GENERATE (GR7c) into CF FINAL (0015, 0020); an alphabetic CD addend is refused COBOL2045 at --std 2002."
+}

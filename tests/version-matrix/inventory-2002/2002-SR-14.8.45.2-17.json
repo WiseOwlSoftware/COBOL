@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-17",
+ "rule-digest": "456f49faec0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.8.45@2002-USE-STATEMENT/g2use01-eo-interface-in-repository",
+ "notes": "§2002:14.8.45.2 SR17 (PB5625 reading A): an interface specified in REPOSITORY is accepted as interface-name-1 in USE AFTER EXCEPTION OBJECT and USE AFTER EO, and a RAISE of an implementing instance runs the declarative (§2002:14.8.45.3 GR13b): IFACE-1, AFTER-1, IFACE-2, AFTER-2; an interface of the group absent from REPOSITORY is refused COBOL0859 (g2use02). Pinned build at --std 2002 matched."
+}

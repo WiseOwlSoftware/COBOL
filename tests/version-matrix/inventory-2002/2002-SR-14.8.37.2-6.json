@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.37.2-6",
+ "rule-digest": "ce0e37ec0baa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+ "test-ref": "conformance:cases/14.8.37@2002-START-STATEMENT/g2st01-indexed-key-operand-length",
+ "notes": "§2002:14.8.37.2 SR6: the prime key, an alternate national key and items at their leftmost positions of the same class, category and usage (X(3) over X(6), N(2) over N(6)) are accepted and position R3, R2, R3, R4; PIC 9(2) USAGE NATIONAL over the national key (class numeric, PB5625 reading B) is refused COBOL0862 (g2st02). Pinned build at --std 2002 matched."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.3.1.2.5.3-9",
+ "rule-digest": "53d077a096ab",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic",
+ "test-ref": "conformance:cases/8.3.1.2.5@2002-FIGURATIVE-CONSTANT-VALUES/g2002_figurative_low_all_symbolic_cd",
+ "notes": "§2002:8.3.1.2.5.3 GR9 with §2002:12.2.6.3 GR11b: STAR and HASH (ordinals 1 and 2 IN SY) fill *** and ### on MOVE and on a CD record VALUE, and give one character each in DISPLAY; the run at --std 2002 matched."
+}

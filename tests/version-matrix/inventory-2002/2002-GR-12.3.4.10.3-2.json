@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.10.3-2",
+ "rule-digest": "f91efcf5b708",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#paddingCharacterClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPaddingCharacterClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+ "test-ref": "conformance:cases/12.3.4.10@2002-PADDING-CHARACTER-CLAUSE/g2pad01_padding_operands_and_null_facility",
+ "notes": "§2002:12.3.4.10.3 GR2: \"If the PADDING CHARACTER clause is not applicable to the device type to which the file is assigned, the creation or recognition of padding characters shall not occur.\" No WiseOwl device takes padding (docs/conformance/3.6; §2002:B.3, §2002:3.1.5); at --std 2002 g2pad01 reads back every record, all-padding ones included, with no fill (pinned build dc1f2dcce8, MATCH)."
+}

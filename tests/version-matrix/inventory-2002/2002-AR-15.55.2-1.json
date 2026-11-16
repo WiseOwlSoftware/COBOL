@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.55.2-1",
+ "rule-digest": "e2740f06a95f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.55@2002-NUMVAL-C-FUNCTION/g2-numval-c-alphanumeric-or-national",
+ "notes": "§2002:15.55.2 AR1: alphanumeric and national argument-1 (items, an alphanumeric group item per §2002:8.5.2, literals, an input-CD record item) are accepted and return the represented value (§2002:15.55.3 RV1, RV2); the --std 2002 run of the pinned build dc1f2dcce8 matched."
+}

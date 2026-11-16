@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.10.2-1",
+ "rule-digest": "4f0f08f10c90",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#CapturePadding; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#OneCharacter; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#SymbolicCharacter; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Padding.cs#ReportPaddingLiteral; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#PaddingCharacterOperand",
+ "test-ref": "conformance:cases/12.3.4.10@2002-PADDING-CHARACTER-CLAUSE/g2pad02_padding_literal_two_characters",
+ "notes": "§2002:12.3.4.10.2 SR1: \"Literal-1 shall be a one-character alphanumeric literal.\" At --std 2002 g2pad02 (PADDING CHARACTER IS \"**\") is refused COBOL6848 at its line 19, and g2pad01 accepts \"*\" and SPACE (§2002:8.3.1.2.5.2 SR1) and runs to its derived output (pinned build dc1f2dcce8, MATCH)."
+}

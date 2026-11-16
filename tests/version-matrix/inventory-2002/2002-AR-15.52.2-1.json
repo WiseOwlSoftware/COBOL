@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.52.2-1",
+ "rule-digest": "3841c7edf4e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.52@2002-MOD-FUNCTION/g2-mod-integer-arguments",
+ "notes": "§2002:15.52.2 AR1 with §2002:15.2 AR5: integer literals, integer DISPLAY and COMP items and always-integral expressions are accepted and give §2002:15.52.3 RV1's floor-based values (+1, +4, -4, -1, +4, +9, +2, +0) at --std 2002; the non-integer literal is refused (COBOL1627, g2-mod-noninteger-refused)."
+}

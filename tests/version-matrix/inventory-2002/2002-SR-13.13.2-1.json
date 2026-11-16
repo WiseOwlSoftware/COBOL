@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.13.2-1",
+ "rule-digest": "35756f452b14",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry",
+ "test-ref": "conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-elementary-clauses; conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-in-cd-refused",
+ "notes": "§2002:13.13.2 SR1 grants report group entries in the report section only: G2RGD01's report groups are accepted and print at --std 2002 (output equals the derived .out), and G2RGD03's TYPE DETAIL entry under a CD is refused at 2002 (COBOL5506 at line 21)."
+}

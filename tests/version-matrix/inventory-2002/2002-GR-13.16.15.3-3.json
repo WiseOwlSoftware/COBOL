@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.15.3-3",
+ "rule-digest": "b9c98ef7c94a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2ctl01_hierarchy_order_cd_control; conformance:cases/13.16.15@2002-CONTROL-CLAUSE/pb5602-control-subscripted-2002",
+ "notes": "§2002:13.16.15.3 GR3: the first GENERATE saves the priors, and later ones test major to minor and break that level and every lower one. The CD-record control CD-B breaks only the minor level where it is minor and both levels where it is major. The --std 2002 run matched the derived output; pb5602-control-subscripted-2002 covers the working-storage reach."
+}

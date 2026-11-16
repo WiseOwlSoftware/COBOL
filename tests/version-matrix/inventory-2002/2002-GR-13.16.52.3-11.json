@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.52.3-11",
+ "rule-digest": "4a0c630dd01e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PlanOf",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_sum_absent_addend_present_when_odo",
+ "notes": "§2002:13.16.52.3 GR11: an addend absent by PRESENT WHEN or OCCURS DEPENDING is not added; DP absent twice gives TP 007 and DX's absent occurrences give TX 013 006 002 (GR8 a) per occurrence). The --std 2002 run of g2sum04 matched the derived output."
+}

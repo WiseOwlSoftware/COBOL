@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.8.2-3",
+ "rule-digest": "13c9790a692c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation",
+ "test-ref": "conformance:cases/15.8@2002-ANNUITY-FUNCTION/g2-annuity-argument-classes",
+ "notes": "§2002:15.8.2 AR3: a positive integer argument-2 as item, expression and literal is accepted at --std 2002 (+1.3333 +1.1429 +0.3333); a zero and a negative value set EC-ARGUMENT-FUNCTION (§2002:15.2), the checked declarative runs twice and RESUME continues, matching the derived .out; a non-integer item is refused with COBOL1627 (g2-annuity-arg2-noninteger-refused)."
+}

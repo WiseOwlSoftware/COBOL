@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.52.2-5",
+ "rule-digest": "3cabf02c8d46",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveSumAddend; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SubscriptWordsOfReference; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportSubscripts",
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_sum_cd_identifier_expression",
+ "notes": "§2002:13.16.52.2 SR5: expression addends naming a CD-record item (CN + 1) and CD + WS items (CN + WK) accepted and summed per GENERATE to 0017 and 0035; --std 2002 output matched the derived .out."
+}
