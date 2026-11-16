@@ -846,9 +846,11 @@ null for all three shapes, so every format saw "no identifier" and refused `SET 
 `SET TX TO FUNCTION MAX(IA IB)` as an arithmetic expression: one sniff, one arm of the dispatch fixed (PB456), the other
 three shapes never reached.
 
+**An alphabetic item stands as an alphanumeric one at COBOL-2002 alone, asked in ONE place (kb/Work PB5615).** §2002:8.5.2.1: "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand. Where an alphabetic data item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item." §2014:E.2 item 2 withdrew it and §2023 has no such sentence. The edition fact is `EditionInfo.AlphabeticIsAlphanumeric` (Year == 2002); the Place reader `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` and the function-argument class screen `IntrinsicArgumentRules.Violation(rule, op, edition)` ask it, so SET ADDRESS OF PROGRAM / FUNCTION, CALL and CANCEL targets, STRING and UNSTRING operands, INVOKE identifier-2, READ / RETURN INTO identifier-1, every function argument position whose class set holds alphanumeric, and the RECEIVE / SEND screens (`CommunicationBinder`) share it. The file-control clause operands (record keys, FILE STATUS, ASSIGN USING, SORT keys) still take the `DataItem` overloads, which keep category alone.
+
 **The name operand of an address-identifier is one rule in one place (kb/Work PB1417 + PB1452).** §2023:8.4.3.12.3 SR1 and
 §2023:8.4.3.13.3 SR1 print the same sentence — "Identifier-1 shall be of category alphanumeric or national" — and
-`SetBinder.ScreenAddressName` asks it of the data item, through `ItemCategory.IsAlphanumericOrNational(Place)` (the
+`SetBinder.ScreenAddressName` asks it of the data item, through `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` (the
 `Place` form reads a reference-modified view's §2023:8.4.3.3.4 GR6 category). Both sites used to test the raw
 `Item.Pic?.Category`: null for a GROUP (refused as "category (none)"), and equal to alphanumeric for a PIC A item
 (accepted). Identifier-1 is any identifier format too, so both grammar rules take `functionCall | inlineMethodInvocation
@@ -863,7 +865,7 @@ function ARGUMENT; §2023:8.5.2.1 makes the class and the category of the group 
 an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
 ("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §2023:14.9.4.3 SR1, CANCEL §2023:14.9.5.3 SR1, the
 report CODE clause §2023:13.18.12.3 SR2; §2023:8.5.2.1: a class or category named in the rules "refers to the category unless class
-is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place)` / `IsAlphanumeric(DataItem)` and prints
+is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)` / `IsAlphanumeric(DataItem)` and prints
 `ItemCategory.Face`; a PAIR rule worded in CLASS (EVALUATE's range-expression §2023:14.9.13.3 SR4, "the same class") asks
 `IntrinsicArgumentRules.SameClass`, which takes a strongly-typed group to be of the class of another operand only when that
 operand is a strongly-typed group of the same type. The three screens used to ask the lattice (CALL and CANCEL accepted the
