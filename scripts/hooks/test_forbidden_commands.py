@@ -235,6 +235,37 @@ CASES = [
     ("wsl -d Ubuntu -e bash -lc 'git stash'", True),
     ("bash -euc 'git stash'", True),                                       # `-c` among single-letter options
     ("bash -C run.sh", False),                                             # `-C` is noclobber, not a payload
+    # 7. a recursive delete whose target the shell expands (kb/Work PB5764, MANDATORY-PRACTICES P17): each spelling of
+    # the recursive flag, each kind of expansion, each place a command line comes from; and the forms that stay allowed
+    ('rd=$R/$id; rm -rf "$rd"; mkdir -p "$rd"', True),                    # the shape the probing agents wrote
+    ("rm -rf $B/$id", True),                                              # unquoted
+    ("rm -r $d", True),
+    ('rm -R "${d}"', True),
+    ('rm -fr "$R/$id"', True),
+    ('rm --recursive "$d"', True),
+    ('rm -rf "$d"/*', True),
+    ("rm -rf $(cat dirs.txt)", True),                                     # a command substitution
+    ("rm -rf `pwd`/x", True),                                             # a backquote
+    ('rm "$d" -rf', True),                                                # rm reads an option after an operand
+    ('rd=/e/scratch/x; rm -rf "$rd"', True),                              # a variable set to a literal is still a variable
+    ('sudo rm -rf "$d"', True),
+    ('X=1 rm -rf "$d"', True),
+    ('for d in a b; do rm -rf "$d"; done', True),                         # a loop's body
+    ("bash -c 'rm -rf \"$d\"'", True),                                    # a -c payload expands it when it runs
+    ('cmd /c "rmdir /s /q %D%"', True),                                   # cmd.exe's own variable
+    ('cmd /c "rd /S %TEMP%' + BS + 'x"', True),
+    ("rm -rf /e/scratch/runs/x", False),                                  # a literal path
+    ("rm -rf 'E:/x/$y'", False),                                          # a `$` in single quotes is literal
+    ('rm -rf "' + BS + '$d"', False),                                     # and so is an escaped one
+    ('rm "$f"', False),                                                   # one file, not recursive
+    ('rm -f "$f"', False),
+    ('rm -- -r "$f"', False),                                             # after `--`, `-r` is a file name
+    ('d=$R/x; ls "$d"; rm -rf /e/scratch/x', False),                      # the variable is another command's
+    ('echo rm -rf "$d"', False),                                          # the command is echo
+    ("grep -n 'rm -rf \"$d\"' run.sh", False),                            # quoted text is text
+    ('git rm -r "$d"', False),                                            # git's own removal, one commit from recovery
+    ('cmd /c "rmdir /q %D%"', False),                                     # not recursive
+    ('cmd /c "rmdir /s /q E:' + BS + 'x"', False),                        # literal
 ]
 
 
@@ -274,6 +305,22 @@ PS_CASES = [
     ('cmd /c "git stash"', True),
     ("pwsh -EncodedCommand " + base64.b64encode("git stash".encode("utf-16-le")).decode(), True),
     ("pwsh -EncodedCommand " + base64.b64encode("git status".encode("utf-16-le")).decode(), False),
+    # 7. PowerShell's recursive delete of an expanded path (kb/Work PB5764): every alias, every prefix of -Recurse
+    ("Remove-Item -Recurse -Force $d", True),
+    ('Remove-Item -Recurse "$root' + BS + 'x"', True),                   # a variable in double quotes
+    ("rm -r $d", True),
+    ("ri -Recurse -Path $d", True),
+    ("del $env:TEMP" + BS + "x -Recurse", True),
+    ("rd -rec $(Join-Path $a b)", True),
+    ("rmdir -Recurse ${d}", True),
+    ("Remove-Item -LiteralPath:$d -Recurse", True),
+    ('cmd /c "rd /s /q %TEMP%' + BS + 'x"', True),
+    ("Remove-Item -Recurse -Force 'E:/x/y'", False),                     # literal
+    ("Remove-Item -Recurse 'E:/x/$y'", False),                           # single quotes are literal
+    ("Remove-Item $f", False),                                           # not recursive
+    ("Remove-Item -Recurse:$false $d", False),
+    ("Remove-Item -Recurse E:/x -Filter $pat", False),                   # the variable is a filter, not the target
+    ('Write-Output "rm -r $d"', False),
 ]
 
 
