@@ -1,6 +1,10 @@
 {
  "rule-id": "1985-GR-IV.4.4.2-L2.1",
  "rule-digest": "cb72f5e756fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher",
+ "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-IV.4.4.2-L2.1",
+ "notes": "CONFORMS on a derivation of its own (2026-11-16, kb/Work PB5791): the item defines a state of the user's program after which the 1985 text makes the flow of control undefined. The code location is where a paragraph's successor is laid out, which is what this implementation does there; the rule obliges it to nothing.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

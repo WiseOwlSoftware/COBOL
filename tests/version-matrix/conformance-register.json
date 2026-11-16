@@ -1002,6 +1002,13 @@
  ],
  "derivations": [
   {
+   "key": "DRV-1985-GR-IV.4.4.2-L2.1",
+   "arm": "definitional",
+   "names": "defines when a statement of the user's program has no next executable statement: the last statement of a declarative section whose paragraph is not being executed under the control of another statement",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.3.4.4-1",
    "arm": "unpopulatable-antecedent",
    "names": "the set of source program listings is empty: the cobol command has no listing option, and a compilation writes only the assembly, its runtime configuration and the generated C# source, with diagnostics on standard error (section 7, A.1 item 117: the compiler never produces a source listing)",

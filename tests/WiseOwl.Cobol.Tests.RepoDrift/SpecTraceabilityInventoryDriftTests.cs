@@ -1583,10 +1583,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // tests/version-matrix/derivation-refutations/pb5822-1985-kept-2.jsonl and pb5822-1985-kept-3.jsonl (and, for the first two, pb5822-1985-kept.jsonl).
             "1985-GR-VII.4.3.4-22", "1985-GR-XIII.4.5.4-15", "1985-GR-XIII.4.5.4-9",
             "1985-GR-VI.5.13.4-3", "1985-GR-VI.5.13.4-4",
-            // ⚙ One more, added deliberately (kb/Work PB5792, signature `claude: 2026-11-16`): 1985-GR-X.2.3.3-3 on
-            // `unpopulatable-antecedent` (no program can observe a contained program's object code), standing on the UPHELD record of
-            // tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl.
-            "1985-GR-X.2.3.3-3",
+            // ⚙ Two more, added deliberately (kb/Work PB5791 and PB5792, signature `claude: 2026-11-16`): 1985-GR-X.2.3.3-3 on
+            // `unpopulatable-antecedent` (no program can observe a contained program's object code) and 1985-GR-IV.4.4.2-L2.1 on
+            // `definitional`, each standing on the UPHELD record of tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl.
+            "1985-GR-X.2.3.3-3", "1985-GR-IV.4.4.2-L2.1",
         ];
 
         var s = LoadSchema();
