@@ -265,11 +265,18 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         }
         if (place is RefModPlace)
         {
-            // A reference-modified identifier-1 is the single receiver, of category alphanumeric (ISO §2023:8.4.3.3.4 GR6 —
-            // a reference-modifier defines a unique alphanumeric data item); no VALUE clause attaches to it, so
-            // GR5c1b and GR5c1c are both false and GR5c1a does not name alphanumeric.
-            var rq = Qualify(InitializeCategory.Alphanumeric, effectiveValue: null, spec);
-            if (SenderFor(rq, InitializeCategory.Alphanumeric, effectiveValue: null, spec) is { } src)
+            // A reference-modified identifier-1 is the single receiver: the unique data item reference modification
+            // creates (ISO §2023:8.4.3.3.4 GR5), of the category of identifier-1 EXCEPT that GR6's three lettered
+            // rewrites apply — alphanumeric-edited and numeric / numeric-edited (non-national) become alphanumeric,
+            // national-edited and national numeric become national. GR6's list names neither alphabetic nor boolean, so
+            // an alphabetic slice stays category alphabetic and a REPLACING ALPHABETIC phrase reaches it, while
+            // REPLACING ALPHANUMERIC does not (§1985:IV.4.3.8.4.4 GR5 keeps alphabetic the same way; §1985:VI.6.17.4 GR2
+            // initializes an item only if it belongs to the category named). The category is the ONE reader's
+            // (Table16Operand.Of(Place), which RefModPlace.Category feeds). No VALUE clause attaches to the slice, so
+            // GR5c1b and GR5c1c are both false.
+            var sliceCategory = RefModInitializeCategory(place);
+            var rq = Qualify(sliceCategory, effectiveValue: null, spec);
+            if (SenderFor(rq, sliceCategory, effectiveValue: null, spec) is { } src)
                 actions.Add(Store(place, src));
             return;
         }
@@ -828,6 +835,17 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         }
         actions.Add(new InitializeOccurrenceSelect(vars, arms, otherwise));
     }
+
+    /// <summary>The INITIALIZE category of the unique data item a reference-modified identifier-1 denotes (ISO
+    /// §2023:8.4.3.3.4 GR5-GR6), read from <see cref="Table16Operand.Of(Place)"/> so that a slice's category has one
+    /// reader. A reference-modified group is an elementary alphanumeric item (§2023:8.4.3.3.3 SR1).</summary>
+    private static InitializeCategory RefModInitializeCategory(Place slice) => Table16Operand.Of(slice) switch
+    {
+        { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
+        { Category: PicCategory.National } => InitializeCategory.National,
+        { Category: PicCategory.Boolean } => InitializeCategory.Boolean,
+        _ => InitializeCategory.Alphanumeric,
+    };
 
     /// <summary>The INITIALIZE category of an elementary item (ISO §2023:8.5.2 via §2023:14.9.20.2 category-name), or null
     /// when the item is excluded (GR5a1 — an index data item is not a valid MOVE receiver; only SET stores it,
