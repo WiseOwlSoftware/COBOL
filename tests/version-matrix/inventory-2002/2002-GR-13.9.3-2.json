@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.9.3-2",
+ "rule-digest": "f94b6d47c2b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantFrom; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantStringLiteral; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/13.9@2002-CONSTANT-ENTRY/g2002_constant_entries_under_cd",
+ "notes": "§2002:13.9.3 GR2: constants AS \"LIT\", 12.5, N\"AB\" and FROM CV1 under a CD behave as alphanumeric, numeric (with scale), national and numeric literals (KS=[LIT  ], KS-EQ, KN=25.00, NAT-EQ, KCV=0042). The --std 2002 run with the pinned compiler (dc1f2dcce8) matched the derived output."
+}

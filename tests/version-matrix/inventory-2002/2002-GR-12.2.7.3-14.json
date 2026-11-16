@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.7.3-14",
+ "rule-digest": "34b8b4d61c34",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsRepositoryIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#TryIntrinsicOfThisCompilation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/FunctionWord.cs#FunctionWord; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#IsFunctionBearing",
+ "test-ref": "conformance:cases/12.2.7@2002-REPOSITORY-PARAGRAPH/g2rep01_function_all_intrinsic_2002_list",
+ "notes": "§2002:12.2.7.3 GR14 makes FUNCTION ALL INTRINSIC name every §2002:8.11 intrinsic, so nine of them (ABS..UPPER-CASE) are called without FUNCTION (GR13) with the derived values, and TRIM and SECONDS-PAST-MIDNIGHT, absent from §2002:8.11, stay data-names; the pinned compiler at --std 2002 printed exactly the derived output."
+}

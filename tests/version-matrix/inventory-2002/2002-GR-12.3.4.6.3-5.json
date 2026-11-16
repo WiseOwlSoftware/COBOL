@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
  "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/pb1074_file_collating_key_class",
- "notes": "§2002:12.3.4.6.3 GR5: with only alphabet-name-1 (EQV, A ALSO B) the national key takes the native national sequence, so N\"A\" and N\"B\" are distinct keys and both WRITEs give 00; pb1074_file_collating_key_class at --std 2002 on the pinned build matched."
+ "notes": "§2002:12.3.4.6.3 GR5: file G names only alphanumeric alphabet-name-1 EQV (A ALSO B); its national prime key takes the native national sequence, so N\"A\" and N\"B\" are unequal and both WRITEs give 00 (EQV would make the second 22); pb1074_file_collating_key_class at --std 2002 matched its .out. Earlier record (kept): §2002:12.3.4.6.3 GR5: with only alphabet-name-1 (EQV, A ALSO B) the national key takes the native national sequence, so N\"A\" and N\"B\" are distinct keys and both WRITEs give 00; pb1074_file_collating_key_class at --std 2002 on the pinned build matched."
 }

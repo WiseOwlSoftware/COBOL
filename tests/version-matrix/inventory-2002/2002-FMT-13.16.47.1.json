@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.47.1",
+ "rule-digest": "7d9f122f2a7f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sameAsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSameAsClause; src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#SameAsTargetName",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "05 SA SAME AS WT (WT a level-1 working-storage group, §2002:13.16.47.2 SR7) in the CD record: SA gets WT-A X(2) and WT-B 9(2) (§2002:13.16.47.3 GR1), so \"QQ\" and 7 give QQ07 and LENGTH(SA)=04. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}
