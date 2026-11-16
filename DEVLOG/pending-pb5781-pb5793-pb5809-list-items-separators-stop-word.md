@@ -51,3 +51,8 @@ Self-review (architecture, code, performance, duplication): one list reader for 
 honours, instead of a field the direct walk alone read; no allocation added on the argument path when nothing is given away
 (the parse's list is returned); the lexer decision is an action, not a predicate (kb/Work PB1715). Codes: COBOL7558 used;
 COBOL7559 and COBOL7560 returned.
+
+Merging main brought in the imported 1985 code reads, two of which (`1989-FMT-A.2.18.2`, `1989-FMT-A.2.21.2`, slice
+1985-081) named `IntrinsicBinder.cs#ArgsOf`, which PB5781 deleted; `EveryCodeReadLocation_ResolvesInTheTree` was red at the
+review finisher's first gate. Their probes (`fmtok.cob`, `fmtbad.cob`) re-run at the branch head print the recorded values
+and refusals, so both reads were re-imported (`code_reads.py import --replace`) re-sited to `ArgumentsOf` at the new pin.
