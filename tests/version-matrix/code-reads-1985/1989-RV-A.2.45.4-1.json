@@ -1,0 +1,126 @@
+{
+ "rule-id": "1989-RV-A.2.45.4-1",
+ "rule-digest": "db72579b7805",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-084",
+  "sources": {
+   "reader": "d76922e7053ef1d27c6000be16dd9e134f4a1aae704e2597c600d7d4d09c7a16",
+   "refuter": "848dd86ce04d1a205cf1eaf2249f22ed29255b8c08462ae840eef6ff3df92b73"
+  },
+  "imported": {
+   "reader": "6c8683f2f2261834c1c8b39d3bd98995d6b28d217921a5de8b266e8d7b40627b",
+   "refuter": "307f87776c2f74e831b1ee1e9573f2b1fe7c175f8c1e257df9410ad33c8b6b60"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.45.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (with the 1989 Intrinsic Function amendment), FUNCTION VARIANCE (argument-1 ...) must return an approximation of the population variance (the square of the standard deviation of A.2.41.4 RV2: the sum of squared deviations from the arithmetic mean divided by n) of the argument series, for every numeric argument form: literals, arithmetic expressions, signed, scaled, packed and binary items, and table(ALL) references with or without OCCURS DEPENDING ON.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Variance; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#VarianceExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#TryVariance; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#NarrowResult; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#AllArgs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: sig.IntroducedIn (85 for the 1989 Intrinsic Function module rows) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (DISPLAY/MOVE operand) is refused (COBOL0900), per 1985 IV.4.3.8.3.3 SR4; 2002+ accepts it. Not consulted inside COMPUTE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a COMPUTE with no SIZE ERROR phrase catches every size condition and continues (1985 VI.6.4.2 GR3); 2002+ takes the fatal-EC shape. Statement-level, around the function value, not inside it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "num.StandardDecimal (arithmetic mode): the ARITHMETIC clause does not exist at 85, so 85 always takes the native arms, the same arms the latest edition takes by default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs and the runtime CobolIntrinsics.*.cs for Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior: the renderer's function dispatch and every runtime body consult no edition (the runtime Intrinsics folder has none); the generated C# at --std 85 and --std 2023 differs only in the assembly Edition attribute and the COMPUTE size-error wrapper (diff of var85-002/var85.g.cs vs var85-003, trig85-001 vs trig85-002)",
+  "behaviour-differs-by-edition": "no: the function's value comes from the same emitted call at 85 and 2023 (generated C# identical apart from the Edition attribute); only the surrounding COMPUTE's unphrased size-error handling and the refusal of a numeric function as an identifier operand differ",
+  "witnesses-cover": "part: the witnesses use only literal lists (one, two and three values); ALL subscripts, ODO extents, items of every usage, scaled (P) items, expressions and large magnitudes are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/var85-002/var85.cob",
+    "printed": "VODO1= 00000.0000000000 (E(ALL), ODO N=1); VODO3= 00004.6666666666 (N=3: 1 2 6); VODO11= 00000.0000000000 (E(ALL) E(ALL), N=1); V2D= 00012.5000000000 (C(ALL ALL): 1 2 3 10); V2ROW= 00012.2500000000 (C(2 ALL))",
+    "expected": "ODO extent from the object (AR4); 14/3 = 4.666..; 50/4 = 12.5; 12.25; one occurrence gives 0 (RV3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/var85-002/var85.cob",
+    "printed": "V1234= 00001.2500000000; V7= 0; VNEG1(-3.25)= 0; VAB(-1.50 2.50)= 00004.0000000000; VEXPR(A+B, A*B, 0)= 00004.1805555555; VPKBN(COMP-3 1.125, COMP -7)= 00016.5039062500; VSCALE(9PP 300 100)= 10000.0000000000; VSAME(1 1 1 1)= 0; VZERO(0 0 0)= 0; SDSQ= 00001.2500000000",
+    "expected": "1.25; 0; 0; 4; 4.180555...; 16.50390625; 10000; 0; 0; 1.25 (RV2: square of the standard deviation)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/varth2-001/varth2.cob",
+    "printed": "VARIANCE(A, 0-A)/A for A = 7E17, 9E17, 9.9E17 gives A exactly; A = 123456789012345678 gives 123456789012345673; A = 999999999999999990 gives SIZE ERROR",
+    "expected": "an approximation of A**2 (characteristics implementor-defined, A.2.3 GR2); the binary64 approximation of 9.9999999999999998E35 is 1E36, and 1E36/A has 19 digits, so the receiver's size condition follows from the approximation"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/varbig-001/varbig.cob",
+    "printed": "VBIG (VARIANCE(BIG NBIG)/1E9/1E9)= 0 with VBIG SIZE ERROR; VBIG0 (VARIANCE(BIG 0)/1E18)= +250000000000000000; V1E20D1E9= 000000100000000000",
+    "expected": "binary64 approximation 1E36, quotient 1E18 exceeds 18 digits (size error); 2.5E17; 1E11"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r01_noargs.cob, r02_alnumlit.cob, r03_alnumitem.cob, r10_numedit-002, r14_varnoall.cob, r17_varrefmod.cob, r15_ok_varall-002",
+    "printed": "COBOL1504 (0 arguments) and COBOL0900 empty list; COBOL1627 class alphanumeric (literal, PIC X item, numeric-edited item); COBOL2270 unsubscripted table T; COBOL1629 ref-mod of a numeric function; VARIANCE(T(ALL) 1) compiles and runs (EXIT 0)",
+    "expected": "refused: argument-1 must be class numeric (A.2.45.3 AR1), at least one argument; T(ALL) accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-084/r07_floatlit.cob, r06_dispacos.cob, r16_nokeyword.cob",
+    "printed": "COBOL0900 floating-point literal 1.5E0 requires COBOL-2002; DISPLAY FUNCTION ACOS(0) refused at 85 (SR4); VARIANCE(1 2) without the FUNCTION keyword gives COBOL1639 undefined name",
+    "expected": "refused at 85: floating literals, a numeric function as an identifier operand and keyword-less references are later-edition forms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.45.4 RV1",
+    "check": "OK  §1989:A.2.45.4 RV1  (cite.py --check with quoted words: \"The returned value is the approximation of the variance of the argument-1 series\")"
+   },
+   {
+    "cite": "§1989:A.2.45.4 RV2",
+    "check": "OK  §1989:A.2.45.4 RV2  (cite.py --check with quoted words: \"defined as the square of the standard deviation\")"
+   },
+   {
+    "cite": "§1989:A.2.41.4 RV2",
+    "check": "OK  §1989:A.2.41.4 RV2  (cite.py --check with quoted words: \"divided by the number of values in the argument-1 series\")"
+   },
+   {
+    "cite": "§1989:A.2.3 GR2",
+    "check": "OK  §1989:A.2.3 GR2  (cite.py --check with quoted words: \"Those characteristics of the returned value not otherwise specified for a given function are defined by the implementor\")"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (cite.py --check with quoted words: \"the range of values is determined by the object of the OCCURS DEPENDING ON clause\")"
+   }
+  ],
+  "notes": "An all-exact argument list is formed exactly as (n*sum d**2 - (sum d)**2)/n**2 and narrowed once to binary64 (CobolIntrinsics.Float.cs#Variance -> NarrowResult), an implementor-defined approximation A.2.3 GR2 admits. The size condition for VARIANCE(BIG NBIG)/1E18 follows from that approximation (1E36), not from a lost value; it is recorded so a reader does not take it for a defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (var85-003)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.45.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "Read §1989 A.2.45 whole with A.2.2 (argument types, ALL subscripts, ODO) and A.2.41.4 RV2. Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-084/ at --std 85: varx-003: VARIANCE(.1 .4)=.022500000000; (SPPP9 -.003, 0)=.000002250000; (E(ALL) N=1, F(ALL) M=2 values 7.5 1 3)=7.388888888888; (E(ALL) N=1, F(ALL) M=1: 7.5 1)=10.5625; COMPUTE X = VARIANCE(X 1) from X=3 gives 1; VARIANCE(pi 0)=2.467401100272; VARIANCE(999999999999999998 -999999999999999999)/1E9/1E9 gives 0 (size condition: the binary64 approximation 1E36 gives 1E18, while the exact 9.99999999999999997E35/1E18 fits 18 digits; same mechanism the reader recorded, admitted by RV1 'approximation' and A.2.3 GR2). fnnames-001: data items named VARIANCE/ACOS/ASIN/ANNUITY with FUNCTION VARIANCE(VARIANCE 2)=1 (function names are not reserved at 85). varrm-001: VARIANCE(N(1:1) 3) COBOL1627 class alphanumeric (ref-mod of numeric is alphanumeric). lit19-001: 19-digit literal argument COBOL0802. repo-001: REPOSITORY FUNCTION ALL INTRINSIC COBOL0900 requires COBOL-2002. rndmode-001: ROUNDED MODE COBOL0803 requires 2014. cite.py: OK §1989:A.2.45.4 RV2 ('defined as the square of the standard deviation'); OK §1989:A.2.41.4 RV2 ('divided by the number of values in the argument-1 series'); OK §1989:A.2.2 AR4 ('the range of values is determined by the object of the OCCURS DEPENDING ON clause'); OK §1989:A.2.3 GR2 ('Those characteristics of the returned value not otherwise specified for a given function are defined by the implementor').",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs (line ~338, RepositoryFunction2002): REPOSITORY FUNCTION ALL INTRINSIC / keyword-less form refused at 85 (probed; same refusal arm is correct)"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,103 @@
+{
+ "rule-id": "1989-RV-A.2.30.4-1",
+ "rule-digest": "b9ce1d908672",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-182",
+  "sources": {
+   "reader": "773c070de287ebd159d3f15ec902758163d0fe8397e7c19041c094fffbadff16",
+   "refuter": "406e8c77483c8e6ae995c907e73a7f3bd2c7588b96deccdf1a9ec955eb164813"
+  },
+  "imported": {
+   "reader": "79a97eff034752264ad65fa9d4485ef7915a4b0abac1d1b80c7a6dce0271ac58",
+   "refuter": "e24d15f959c3707c691ceeb9a676aad765028272f1f5064591dfd6f5755406b8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.30.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION NUMVAL-C must return the numeric value argument-1 represents in either AR1 format, ignoring the currency string cs (argument-2, any nonnumeric literal or alphanumeric item of one or more characters, else the program's currency symbol) and the commas before the decimal point, with DECIMAL-POINT IS COMMA reversing comma and point.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: introduction gate",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+    "switches": "DialectBehaviors.IsActive(NumvalCCurrencyContentRules, year): at 85 argument-2's content is not screened (no digit/*/+/-/,/./CR/DB ban) and CurrencyContentUnrestricted is set; also the ANYCASE and LOCALE keywords are COBOL-2002 constructs refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec",
+    "switches": "passes contentUnrestricted: true to NumvalCDec when the binder set CurrencyContentUnrestricted (the 85 arm)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a currency string containing '.', ',', digits or the letters CR/DB (\"Fr.\", \"CRC\") is admitted and scanned as written at 85 (§1989:A.2.30.3 AR1/AR4 constrain only its class) and refused at 2023 with COBOL1627 (§2023:15.68.3 r2); ANYCASE and LOCALE are refused at 85.",
+  "witnesses-cover": "part: g85_f38_05 covers the default currency symbol with a few amounts; multi-character argument-2 data items, trailing CR/DB, the 18-digit value, reference modification and ODO arguments, CURRENCY SIGN plus DECIMAL-POINT IS COMMA, and the 1985-only currency strings are covered by these probes (pb5161_numval_c_currency_content_85 also witnesses the last).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p3numvalc.cob",
+    "printed": "C1=1234567.89 (\"$1,234,567.89\") C2=-1000 (\" - $ 1,000 \") C3=-0.05 (\"$.05CR\") C4=-12345.6 (\"USD 12,345.6 DB\", cs data item USD) C6=1 (\"+ 1.\") C7=-17 (\"17 -\") C8=-5000.25 (\"#5,000.25-\", cs \"#\") C9=3.5 (\"EUR 3.5\" \"EUR\") K1=OK",
+    "expected": "the represented values with cs and commas ignored"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p3numvalc.cob",
+    "printed": "C5=999999999999999999 (\"999,999,999,999,999,999\")",
+    "expected": "999999999999999999"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p3numvalc.cob",
+    "printed": "O1=12 (REC(2:CNT) of an ODO record = \"$1,2\") R1=1234 (S1(3:6) = \"$1,234\") R2=1234 (S4(1:9) with CS(1:3))",
+    "expected": "12, 1234, 1234"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p4comma.cob",
+    "printed": "D2=-1234567,5 (\"F1.234.567,5 CR\" under CURRENCY SIGN IS \"F\" DECIMAL-POINT IS COMMA) D4=3,25 (\"F 3,25\")",
+    "expected": "§1989:A.2.30.3 AR2 and AR5: reversed separators, the program currency symbol as cs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p5cs85.cob",
+    "printed": "--std 85: E1=12345.67 (\"Fr.12,345.67\" \"Fr.\") E2=-8.5 (\" Fr. 8.5 CR\" with CS=\"Fr.\") E3=-100 (\"CRC 100 CR\" with CS2=\"CRC\") E4=-1000.5 (\"- CRC1,000.5\" \"CRC\"); --std 2023: COBOL1627 on the two literal currency strings",
+    "expected": "85 admits any one-or-more-character cs and returns the value; 2023 refuses those literals"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/r1.cob",
+    "printed": "COBOL0900: the ANYCASE keyword of NUMVAL-C requires COBOL-2002; r2.cob: COBOL0900 for LOCALE",
+    "expected": "the 2002 keywords refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.30.4 RV1",
+    "check": "OK  §1989:A.2.30.4 RV1  (2.30.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "The value comes from the same exact NvScan parse as NUMVAL, with cs and grouping commas skipped. The only edition arm, NumvalCCurrencyContentRules, is the right one at 85: a currency string the 2002+ text bans is admitted and the value is still returned correctly, including a cs containing '.' or the letters CR.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.30.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "q4numval.cob at --std 85: NUMVAL-C(\"1,2,3\") -> 123 (one-digit groups); (\"12,34.5\") -> 1234.5; (\"USD  12\" CS) with CS PIC X(5) 'USD' (trailing spaces in cs) -> 12; (\" $ 7.25\" CS2) with cs ' $ ' -> 7.25; (\"+$.5\") -> 0.5; (\"$9 CR \") -> -9; (\"-1,000\") without cs -> -1000; (\"$1,000.\") -> 1000; (\"XX5\" \"XX\") -> 5. The reader's p5cs85 already covers the 1985-only currency strings and r1/r2 the 2002 keywords. q8nved.cob: a numeric-edited argument-1 refused COBOL1627 (argument rule, category reading as for NUMVAL). cite.py: 'OK  §1989:A.2.30.4 RV1  (2.30.4 Returned Values)  the text is in RV1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

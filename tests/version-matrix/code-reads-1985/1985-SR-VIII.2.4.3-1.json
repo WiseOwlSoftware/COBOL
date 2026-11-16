@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-VIII.2.4.3-1",
+ "rule-digest": "8de075e4809d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "6cae6f92455404f408a60c4e7dcd998a1e72ed8d1f5b002f3c07aeed82280da8",
+   "refuter": "a2027fece636901a05df8f1019f1a85424ccc7cce59e1edb205e4b1b223d49d5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.2.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the RELATIVE KEY data-name-1 of the ACCESS MODE clause (SEQUENTIAL, RANDOM or DYNAMIC) must be accepted when written with IN/OF qualifiers (one or more levels, up to a file-name), resolved to the item the qualifiers select, and used as the relative key by the I-O statements; an unqualified non-unique or wrongly qualified name must be refused, and, data-name-1 being a data-name, a subscript is not admitted.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#relativeKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataNameSubscripted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenClauseOperandShape; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "below 2002 the RELATIVE KEY clause must directly follow the ACCESS MODE clause (2002 F.2 item 112 freed it); qualification is untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataNameSubscripted",
+    "switches": "EditionInfo.SubscriptedClauseOperands (true only at 2002): whether a subscript on the data-name operand is kept; at 85 it is refused, as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence",
+    "switches": "the 2002 occurrence screen; returns at once at 85 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the RELATIVE KEY phrase is part of the ACCESS MODE clause, so a free-standing RELATIVE KEY clause is refused (COBOL0900) and accepted at 2023; qualification behaves the same",
+  "witnesses-cover": "part: g85_f23_01 exercises one qualified key; multi-level qualification, a file-name qualifier, SEQUENTIAL and DYNAMIC access with START, and the refusal half are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/rkq1.cob",
+    "printed": "SF KEY AFTER WRITES 0002 / RLF AAAA 00 / RLF 2 MISSING 23 / DF CCCC KEY 0008 / DF BBBB KEY 0007 / SF TTTT KEY 0002",
+    "expected": "RK OF GRP-A (random), RK IN INNER-B IN GRP-B (dynamic, START EQUAL and >), RK OF OREC OF OF-FILE (sequential) each resolved to the qualified item and used as the relative key"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/rkq2.cob",
+    "printed": "COBOL1639 for unqualified non-unique RK; COBOL1639 for RK OF NOSUCH; COBOL2024 for TK (1) (subscript refused); RK OF GRP-B accepted",
+    "expected": "ambiguous and wrongly qualified names refused; a data-name takes no subscript"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/rkq3.cob",
+    "printed": "--std 85: COBOL0900 'a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002'; --std 2023: exit 0",
+    "expected": "the 2002 free-standing clause refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/rkq2.cob",
+    "printed": "--std 2023: the same three refusals",
+    "expected": "same at 2023"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.3 SR1",
+    "check": "OK  §1985:VIII.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Qualification goes through the one clause-operand capture (KeyReference) and resolution (ResolveClauseOperand) every edition shares. The 1985 placement of the phrase inside ACCESS MODE is a separate parse-arm gate. rkq1's sequential file keeps its key in another file's record area; that is legal (SR3 bars only the file's own records).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same qualification behaviour",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.2.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Grepped Validation/ for VisitRelativeKeyClause/VisitAccessMode*: only VersionConformancePass#VisitRelativeKeyClause (placement gate), as the reader listed. Probes the reader did not try (--std 85): rk1.cob RELATIVE KEY IS RK OF INNER-B OF GRP-B (two levels, written across a continuation line, RANDOM) and RK IN HOLD-F (data-name qualified directly by a file-name, skipping the 01, DYNAMIC; key in another file's record) -> ran: 'A3 AAAA 00', 'B5 BBBB 00', and START KEY NOT LESS THAN RK OF HOLD-REC then READ NEXT -> 'BN BBBB 00 KEY 0005' (the qualified item is the key the I-O uses and is updated by READ NEXT). rk2.cob qualifiers in reversed hierarchy (RK OF GRP-B OF INNER-B) -> COBOL1639; RK OF AF (a file whose records hold no RK) -> COBOL1639; the 1985 abbreviated 'ACCESS SEQUENTIAL RELATIVE RK OF CFX-REC' parsed and reached only SR3's COBOL0863 (key in the file's own record). cite.py: OK  §1985:VIII.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

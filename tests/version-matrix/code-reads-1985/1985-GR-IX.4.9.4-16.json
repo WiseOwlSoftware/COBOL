@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-16",
+ "rule-digest": "dd3e74715770",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-011",
+  "sources": {
+   "reader": "091e3b25e3d00b1a40bd0009ebeae128d3db24f1dc25c012a419ab97b24c8613",
+   "refuter": "1a816b12394bef79e79a2accf7a8521e70c9d4b42ce4dd9c00d4b4cc911a6bc8"
+  },
+  "imported": {
+   "reader": "3722a1694e718446fe5904eedf5b338cf9d985649a475eb9199b149d0ee0d5f9",
+   "refuter": "c1a734e8963134e101c3eb42f231e4c5310009a97995835b56ce1db43c0a5af8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-16",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, an indexed WRITE must refuse (invalid key, '22') a record whose ALTERNATE RECORD KEY value duplicates a stored one unless that key carries DUPLICATES, and for a DUPLICATES key the records sharing a value must be retrieved sequentially (READ NEXT under that key of reference) in the order they were released, across every access mode (sequential, random, dynamic), open mode (OUTPUT, I-O, EXTEND) and file session; the witnesses cover only dynamic access in one OUTPUT session (l1c38) plus survival across CLOSE (pb2693).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Duplicates; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Release; src/WiseOwl.Cobol.Runtime/IO/Store/KeyOrders.cs#CompositeKeyOrder; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "the FILE-CONTROL key-clause rule table: below 2002 the 2023 rows plus the 1985 rows (e.g. §1985:IX.2.5.3 SR2, alternate key must be alphanumeric: COBOL0863) - a syntax screen on the key, not GR16's semantics",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly: at 1985 a random READ of a duplicate set also answers '02' (READ status, not GR16's order)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior over IndexedConnector.cs, KeyedStore.cs, Store/KeyOrders.cs, RecordFraming.cs: WRITE/ReleaseOrdinals/Release/CompositeKeyOrder consult no edition; the release-ordinal ordering is one arm for every edition.",
+  "behaviour-differs-by-edition": "no: the duplicate-order mechanism (one fresh release ordinal stamped in every key slot, composite key part+ordinal) is edition-free; only the key's legal category (1985 alphanumeric only) and READ's random '02' differ",
+  "witnesses-cover": "part: l1c38 covers dynamic access in one OUTPUT session; not exercised there: ACCESS SEQUENTIAL, OPEN EXTEND and OPEN I-O adding to an existing duplicate set, variable-length (RECORD VARYING / ODO) records",
+  "probes": [
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c1/p1.cob",
+    "printed": "W1 00/W2 02/W3 00/W4 IK 22 (AU dup, no DUPLICATES)/W5 02/W6 02/W7 02 (OPEN I-O second session, dynamic, prime order P01<P05..); READ NEXT by AN: P50 AA 02, P20 AA 02, P01 AA 02, P30 AA 00, P90 BB 02, P99 BB 00, EOF",
+    "expected": "GR16: dup under DUPLICATES key retrieved in release order (P50,P20,P01,P30 not prime order); non-DUPLICATES alternate dup refused with invalid key '22'; '02' on write per §1985:IX.1.3.4 status 02 item 2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c1/p1num.cob",
+    "printed": "error COBOL0863: ALTERNATE RECORD KEY 'AN' is a category-numeric item; data-name-1 must be defined as a data item of the category alphanumeric (ANSI §1985:IX.2.5.3 SR2)",
+    "expected": "1985 arm: a numeric alternate key (legal from 2002) is refused"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c1/p2.cob",
+    "printed": "RECORD VARYING 6..20 + ODO, ACCESS SEQUENTIAL: W1 00/W2 02/W3 00/W4 02, OPEN EXTEND W5 02; START AD=ZZ, READ NEXT: A10 ZZ 09 02, A20 ZZ 07 02, A40 ZZ 08 02, A50 ZZ 07 00, EOF; failed OPEN INPUT of absent file G -> 35, WRITE then -> 48",
+    "expected": "release order within ZZ including the EXTEND record last, lengths preserved; WRITE on a file not open for output is unsuccessful"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR16",
+    "check": "OK  §1985:IX.4.9.4 GR16  (4.9.4 General Rules)  the text is in GR16"
+   }
+  ],
+  "notes": "WRITE stamps one fresh release ordinal into every key slot (ReleaseOrdinals) and alternate trees are keyed by value+ordinal (CompositeKeyOrder), so a duplicate set reads back in release order regardless of prime order, access mode, open mode or session. The non-DUPLICATES refusal is Duplicates() -> '22'. No edition arm on this path; probes at --std 85 all printed the release order.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-16",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "refute-1985-011/c1/r1.cob (--std 85, DYNAMIC, two DUPLICATES alt keys, OPEN OUTPUT then I-O): DELETE of the first of the AN set then WRITE of the same record puts it last; REWRITE changing AM only keeps AN order and moves the record last in AM's set; random READ KEY IS AN returns the first released (P20), READ NEXT continues P40,P50,P10 = release order; AM set P40,P50,P20,P10 = release order. c3.cob: SUPPRESS WHEN refused at 85 (COBOL0900); c2.cob RECORD KEY WITH DUPLICATES refused (COBOL1970); 'ALTERNATE KEY' without RECORD refused (1985 format underlines RECORD, spec line 18688). Indexed key order is native at 85 (ResolveFileCollating: no clause -> native; §1985 Fixed File Attributes). OK  §1985:IX.4.9.4 GR16 the text is in GR16; OK  §1985:IX.4.9.4 GR17 the text is in GR17.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

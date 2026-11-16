@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-4",
+ "rule-digest": "990067189ee7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "0ec347dcfd58680934812ddd6628d6b7316af536075f7edee93062c314218320",
+   "refuter": "61a53c3d0004bf332caa677d96f55ba3d3bba2dab274386421b1d2801f6a6b35"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "DIVIDE format 4 (INTO ... GIVING identifier-3 [ROUNDED] REMAINDER identifier-4) stores the quotient of operand 2 / operand 1 in the one identifier-3, then the remainder (dividend minus the truncated, unedited quotient with identifier-3's digits, decimal point and sign presence times the divisor, GR6) in identifier-4 by truncation (GR7), with identifier-4's subscript evaluated just before that store; under ON SIZE ERROR a quotient size error leaves both and a remainder size error leaves identifier-4 (GR8); the witness covers integer and one-decimal unsigned items and the subscript timing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#NativeSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#CarriedSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FixedPointSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary",
+    "switches": "DialectLevel < 2002 with an unsigned fixed-point identifier-3: the subsidiary quotient takes the absolute value (§1985 GR6 'same presence or absence of a sign'); 2002+ keeps it signed",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "UnphrasedSizeErrorIsFatal by DialectLevel: 1985 catches an unphrased zero divisor and continues with both receivers unchanged",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition in ArithmeticEmitter.cs (lines 264, 719) and ArithmeticBinder.cs (none); ResolveReceivingAtStore/IdentifiedAtStore carry no edition test.",
+  "behaviour-differs-by-edition": "yes: an unsigned identifier-3 with a negative quotient forms the remainder from the magnitude at 1985 and from the signed quotient at 2002+; the unphrased zero divisor continues at 1985 and is fatal at 2023",
+  "witnesses-cover": "part: g85_bf14_04 L6-L8 cover unsigned positive operands and the identifier-4 subscript; negative operands, ROUNDED, edited identifier-3/4 and the GR8 size-error halves are not exercised there (pb5182 witness and probes here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d45.cob",
+    "printed": "F4 +03.3 +0.10 / F4R +01.8 +0.20 / F4E - 1.8 -0.20",
+    "expected": "10/3: Q 3.3, R 10-9.9 = .10; 11/6 ROUNDED: Q 1.8, remainder from truncated 1.8 = .20; -11/6 into -Z9.9 ROUNDED: - 1.8 and -0.20 (edited quotient: unedited intermediate, GR6)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d45.cob; d45b.cob",
+    "printed": "SEQ 7 8 (25 into PIC 9: both unchanged); SER4 9 8 (remainder 15 into PIC 9: quotient stored, remainder unchanged); SEZ 7 8 (zero divisor)",
+    "expected": "GR8a both unchanged; GR8b identifier-4 unchanged"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dzero.cob",
+    "printed": "NEG 03 32 for DIVIDE -17 BY 5 GIVING Q PIC 99 REMAINDER R PIC 99",
+    "expected": "1985 GR6: intermediate unsigned like Q, 3; remainder -17 - 15 = -32, stored unsigned 32"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.11@1985-DIVIDE-STATEMENT/pb5182-unsigned-quotient-remainder-1985.cob",
+    "printed": "U OK / UR OK / E OK / S OK / M OK / D OK",
+    "expected": "all six OK (the helper reported DIFFERS although both texts are the same six lines: a line-ending or trailing-byte difference, not content)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej1.cob; rej2.cob; rej8.cob",
+    "printed": "COBOL1689 two GIVING receivers with REMAINDER; COBOL1675 group REMAINDER receiver; COBOL2269 ROUNDED after REMAINDER",
+    "expected": "format 4 prints one identifier-3 and no ROUNDED on identifier-4; SR1 elementary numeric or numeric edited"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dodo.cob",
+    "printed": "ODO 07 ... +1.0 (T (N) with N the ODO object); ODO2 2 +1.0 (DIVIDE 3 INTO 7 GIVING N REMAINDER T (N): T (2) set after N becomes 2)",
+    "expected": "subscript of identifier-4 evaluated immediately before the remainder is stored"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR4",
+    "check": "OK  §1985:VI.6.11.4 GR4  (6.11.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.11.4 GR6",
+    "check": "OK  §1985:VI.6.11.4 GR6  (6.11.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.6.11.4 GR8b",
+    "check": "OK  §1985:VI.6.11.4 GR8b  (6.11.4 General Rules)  the text is in GR8b"
+   }
+  ],
+  "notes": "identifier-4 is resolved through ResolveReceivingAtStore so its subscript is identified at the store; the quotient is stored first and the remainder store is gated on the size-error flag under the phrase. The one 1985 arm (UnsignedSubsidiary) implements GR6's sign clause and is witnessed by pb5182 and dzero NEG.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "refute-1985-107/r45-001 at --std 85, aimed at GR6's 'same number of digits, decimal point location and presence or absence of a sign' over forms the reader did not try (the UE/SE/CR/UQ/UP/URU lines are written in format 5, which the binder builds into the same BoundDivideRemainder; QP, QV, RE, QBSE, RSE are format 4): UE  1.8 -21.80 (identifier-3 PIC Z9.9, an UNSIGNED numeric-edited item: intermediate 1.8 unsigned, remainder -11 - 10.8; UnsignedSubsidiary takes the edited item's HoldsSign) against SE - 1.8 -00.20 and CR  1.8CR -00.20 (signed edited items keep the signed intermediate); QP 140 020 (identifier-3 PIC 99P: intermediate 140, remainder 1000 - 980); QV .007 .500000 (PIC PP9); UP 90 -185 (unsigned PIC 9P with -95); UQ 3.5 -14.00 (unsigned 9V9); RE -1.8 -0.20 (edited identifier-4); URU -1.8 0.20 (unsigned identifier-4 takes the magnitude, GR7 truncation); QBSE 7 8 (COMP identifier-3 25 > PIC 9: GR8a both unchanged); RSE 7 8 (ROUNDED 9.9 -> 10 makes the quotient size error: GR8a); RBSE 9 8 (COMP identifier-4 remainder 15: GR8b); AL 03 1 (identifier-3 aliases the dividend, remainder from the initial value); AL4 3 01 (identifier-4 aliases the divisor). Class c: fn3.cob numeric function as operand refused at 1985. cite.py: OK §1985:VI.6.11.4 GR6 the text is in GR6; OK §1985:VI.6.11.4 GR8a the text is in GR8a.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: numeric function-identifier operand refused before 2002"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-XIII.3.14.3-1",
+ "rule-digest": "7f484576824b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-164",
+  "sources": {
+   "reader": "6d8a53cec0accaefe2bb291e691ac63c7183c9fe3c9773a098fc5de8702ddabb",
+   "refuter": "416d110d13e37c263a308110960fcca2febb2009618d9486ee0ec1fba4bb829e"
+  },
+  "imported": {
+   "reader": "458bbcad0788643aa8f9e97e1d8dbe9fe64464c5a09dc1621254cde75acf00d6",
+   "refuter": "2555a9e2955f104dd144bb3c0cf17d6173624b656187d860a01f842a43524cb9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.14.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every data description entry in the Report Section must begin with a level-number (01-49, one or two digits); an entry that begins with a clause or with a data-name is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#levelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#EntryName",
+  "edition-consulted": [],
+  "edition-search": "reportGroupEntry is `levelNumber (dataName)? reportGroupBody DOT` with no predicate on the level-number; grep of CobolReportWriter.g4 and CobolData.g4#levelNumber for edition predicates found none on the level-number; the only edition-dependent predicate on the entry (entryNameHere) sits on the optional name after it.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf09_07 covers a COLUMN entry with no level-number; not an entry beginning with a data-name, nor single-digit level-numbers in the Report Section",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/rwnolevel.cob",
+    "printed": "COBOL0001: unexpected 'COLUMN' (85 and 2023 alike)",
+    "expected": "refused: no level-number"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/rwnamefirst.cob",
+    "printed": "COBOL0001: unexpected 'LX'",
+    "expected": "refused: a data-name written before the level-number"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-164/src/rwsingle.cob",
+    "printed": "exit 0; report line '42 Z'",
+    "expected": "single-digit level-numbers 1, 5, 9 are level-numbers: accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.14.3 SR1",
+    "check": "OK  §1985:XIII.3.14.3 SR1  (3.14.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The requirement is structural: the grammar has no report-entry production without levelNumber, so any entry lacking one is a parse error. The refusal is the generic COBOL0001 rather than a named diagnostic; it is correct but not specific.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.14.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85, refusal forms the reader did not try: rlv2.cob the FIRST entry after RD written as 'TYPE IS DETAIL.' with no level-number: COBOL0001 unexpected 'TYPE'; rlv3.cob a printable item written 'COLUMN 3 PIC X(2) VALUE ...' under a 05 line entry: COBOL0001 unexpected 'COLUMN'; rlv1.cob '005 LINE PLUS 1' (three digits, not a level-number in the 1985 sense of one or two digits): COBOL1746. The grammar CobolReportWriter.g4#reportGroupEntry has no alternative without levelNumber and no edition predicate on it, so the rule is enforced the same at every edition, which matches the 1985 text. cite.py: OK  §1985:XIII.3.14.3 SR1  (3.14.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

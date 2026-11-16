@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-4",
+ "rule-digest": "524e352c4942",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "2e9d50785c387e0d2a063c30559b53875f7fba7ee2968fd3862b6dde5ebbc9c2",
+   "refuter": "7d0fceed07002bfd49acab3770913b2ba32bd71e300b2ece0374fd18cc830e46"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 USE AFTER STANDARD ERROR PROCEDURE and USE AFTER STANDARD EXCEPTION PROCEDURE must be accepted and bound identically for every operand form (file-name list, INPUT, OUTPUT, I-O, EXTEND), so that the two spellings select the same declarative and count as the same statement for SR3 (one file-name per USE) and SR6 (one USE per open mode).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "below 2002 refuses Format 1 without AFTER or without PROCEDURE (COBOL0900) and Formats 3/4 (EXCEPTION CONDITION, EXCEPTION OBJECT); both ERROR and EXCEPTION spellings pass untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter; 85 emits the plain try/finally body for every Format 1 declarative whatever its spelling",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/DialectLevel in ProcedureTableBuilder.DeclBindUse (only ctx.Edition.Error/At reporting), the useStatement grammar alternative (EXCEPTION | ERROR) with no predicate, VisitUseStatement in VersionConformancePass, DialectLevel in DispatchEmitter/EcEmitter",
+  "behaviour-differs-by-edition": "no: the grammar's (EXCEPTION | ERROR) alternative and DeclBindUse never read which word was written, at any edition",
+  "witnesses-cover": "part: g85_bf27_05 shows each spelling on an explicit file-name; the mode operands and the synonymy's effect on SR3/SR6 duplicate checks are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p3use.cob",
+    "printed": "D1-ERROR S=35 (OPEN INPUT FS) / D2-EXCEPTION-INPUT M=35, M=35 N=35 (OPEN INPUT FM FN) / D3-ERROR-IO twice (OPEN I-O FM FN) / D1-ERROR R=23, X=23 (random READs) / AFTER R=23 X=23",
+    "expected": "ERROR ON file-names, EXCEPTION ON INPUT and ERROR ON I-O each fire for their files (§1985:VIII.4.8.4 GR5 a, b, d); explicit file-name takes precedence over INPUT (GR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupfile.cob",
+    "printed": "error COBOL0897: declarative section 'DB': file 'F1' already has a USE procedure in this procedure division",
+    "expected": "USE ... ERROR ON F1 plus USE ... EXCEPTION ON F1 is the same file-name in two USE AFTER EXCEPTION statements: refused (§1985:VIII.4.8.3 SR3 read with SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4dupmix.cob",
+    "printed": "error COBOL0897: declarative section 'DB': this open mode already has a USE procedure",
+    "expected": "ERROR ON INPUT plus EXCEPTION ON INPUT is INPUT twice: refused (SR6 read with SR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4noproc.cob",
+    "printed": "error COBOL0900: a USE AFTER STANDARD EXCEPTION/ERROR statement without the word PROCEDURE requires COBOL-2002",
+    "expected": "PROCEDURE is underlined in the 1985 format (§1985:VIII.4.8.2), so its omission is refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p4ec.cob",
+    "printed": "error COBOL0878: exception-name EC-I-O was introduced by ISO/IEC 1989:2002; error COBOL0877: USE AFTER EXCEPTION CONDITION requires COBOL-2002",
+    "expected": "the 2002 Format 3 is not in the 1985 USE format: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR4",
+    "check": "OK  §1985:VIII.4.8.3 SR4  (4.8.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The synonymy is structural: the grammar alternative (EXCEPTION | ERROR) carries no label and DeclBindUse reads only GLOBAL, the operand and its mode, so both spellings bind to the same DeclScope and share the SR3/SR6 registries (_useFiles, _useModes). Probes show each spelling dispatching and the two spellings colliding as duplicates.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attacked the synonymy where the word is consulted indirectly: the 1985 rules that require INVALID KEY / AT END 'if no applicable USE AFTER STANDARD EXCEPTION procedure' (§1985:VIII.4.7.3 SR3 etc.) must be satisfied by an ERROR spelling. r3err-001 (USE AFTER STANDARD ERROR on OUTPUT, INPUT, I-O, EXTEND; WRITE, START, READ, DELETE, REWRITE on relative dynamic and sequential files with no INVALID KEY) compiled and printed DO 22 / DI 23 / DI 23 / DIO 23 / DIO 23 / END; r3exc-001 (same with EXCEPTION) printed identical output. Class c (the IPC-module GLOBAL form §1985:X.5.5.2): r3glob-001 (USE GLOBAL ... ERROR ON INPUT in container, failed OPEN in contained program) and r3glox-001 (EXCEPTION) both print OUTER-GLOBAL 35 / INNER 35 / BACK. r5glob2-001: USE GLOBAL ERROR ON INPUT plus USE EXCEPTION ON INPUT in one Procedure Division refused COBOL0897, so the spellings also collide across GLOBAL. cite.py: OK §1985:VIII.4.8.3 SR4; OK §1985:VIII.4.7.3 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

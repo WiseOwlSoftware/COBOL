@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.3",
+ "rule-digest": "6a8dbe6cd93c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-044",
+  "sources": {
+   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
+   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+  },
+  "imported": {
+   "reader": "e7ea7615fbdd8338c8b18185c55222fd60086a1ed9b7aa9a46bf1f2f524c2ff9",
+   "refuter": "f3798603651d2f7e56b10787188718858ebffb85e1ef5d828be16619db11f8dc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 IN and OF must be accepted interchangeably at every qualifier position of every qualification format (data-name/condition-name chains, file-name and cd-name qualifiers, paragraph IN section, LINE-COUNTER/PAGE-COUNTER/LINAGE-COUNTER qualifiers), with identical meaning.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk",
+  "edition-consulted": [],
+  "edition-search": "the grammar alternatives spell (OF | IN) with no semantic predicate; grep of the qualification binders (DataBinder, ProcedureTableBuilder, CounterResolver) shows no edition test and no branch on the OF/IN token (the binder reads only the qualifier words).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: witnesses mix IN/OF in data-name and condition-name chains; not exercised: IN for a paragraph's section, for LINE-COUNTER's report-name, for a cd-name or file-name qualifier",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pos.cob",
+    "printed": "X IN G IN R1B OF F2 receives 600; X OF G IN F2 and X OF R1B IN F2 both print 600; X-BIG IN X IN F2 -> C4 T",
+    "expected": "mixed IN/OF chains mean the same item"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85cd.cob",
+    "printed": "MOVE \"CDQ2\" TO QN IN CI then DISPLAY QN OF CI -> CDQ2",
+    "expected": "IN cd-name = OF cd-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pn.cob",
+    "printed": "B-X B-Y C-X A-Y B-X B-Y B-Y B-Z END",
+    "expected": "PERFORM P-X IN S-B and P-X OF S-C reach each section's copy; PERFORM ... IN S-B THRU P-Z OF S-B; GO TO P-END OF S-C"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85lc.cob",
+    "printed": "LC1 02 / LC2 01; report lines 01 01 00, 02 02 00 | 01 02",
+    "expected": "LINE-COUNTER IN R2 = LINE-COUNTER OF R2, in the Procedure Division and in a SOURCE clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.3",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.3  (4.3.8.1 Qualification)  the text is in SRL2.3"
+   }
+  ],
+  "notes": "Every qualification production spells (OF | IN) as one alternative and the binder never looks at which keyword was written, so equivalence holds by construction at every edition; probes exercised IN in data, condition, cd, paragraph and report-counter qualification.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.3",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "I tried IN at the positions the reader left out. Format 3: COPY T2 IN LIBA resolved (r10copy 'AAA BBB'). Format 4: LINAGE-COUNTER IN F1 = OF F1 = 003 (r2sup). Format 5 in a SOURCE clause: PAGE-COUNTER IN R1 and LINE-COUNTER OF R1 (r2sup report lines '01 01 / 02 01'). Format 6: TOT IN CFT OF R1 = TOT IN R1 = 010, and GENERATE DT IN R1 = DT OF R1 (r1rep). An 85-only form: a condition-name under a CD, E-ONE IN EKEY IN CIREC OF CI = E-ONE OF CI (r13cdc 'C1 F / C2 F / C3 T'). The grammar productions (qualification, procedureName, reportGroupReference, the counter alternatives of dataReference) all spell (OF | IN) or (IN | OF). cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.3 ... the text is in SRL2.3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

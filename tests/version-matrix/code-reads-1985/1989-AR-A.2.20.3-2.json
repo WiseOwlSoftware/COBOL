@@ -1,0 +1,77 @@
+{
+ "rule-id": "1989-AR-A.2.20.3-2",
+ "rule-digest": "88b5544434b8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-168",
+  "sources": {
+   "reader": "b551ea886eb91325bf0b18c7570bc33dc965181476db010001f2ccf68c73885a",
+   "refuter": "6171d2fefbc665a7fad83b00e577138b5135981f88bda74b1e0eda7ed1d0a637"
+  },
+  "imported": {
+   "reader": "337aac4a0eb5bf427b7f81f7cc7d67ef6c5d4fb4d47b165a0e007dc1bc961f35",
+   "refuter": "be179bf8b1ea2a60354f0a923cf31f4982ab18f8faab7ba57c8450d52539ec5d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.20.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 LOG's argument-1 value must be greater than zero; for a positive value the natural logarithm is returned, and for a value not greater than zero the result of the reference is undefined (§1989:A.2.2 AR4), so the compiler must evaluate positive arguments correctly and may do anything defined-or-not for others (1985 has no exception condition to raise).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DomainArg; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#DomainArg; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#RealResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn > ctx.Edition.DialectLevel refuses a function not yet introduced (DiagnosticCatalog.IntrinsicFunctionNotYetIntroduced); the 1989 functions carry IntroducedIn 85 in IntrinsicCatalog, so --std 85 admits them",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior|CobolVersion over IntrinsicRenderer.cs#RenderFloat/DomainArg, RuntimeApi.cs#DomainArg and CobolIntrinsics.Float.cs#Log: none; the domain screen (IntrinsicDomain.Positive in IntrinsicCatalog) and the NaN-to-EC-ARGUMENT-FUNCTION raise in RealResult are the same at every edition, and EC checking is off unless enabled (1985 has no >>TURN)",
+  "behaviour-differs-by-edition": "no: LOG(0)/LOG10(-1) store 0 at both --std 85 and --std 2023 with checking off",
+  "witnesses-cover": "part: g85_bf39_01 covers positive arguments only; the out-of-range half (undefined) is not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/num-pos.cob",
+    "printed": "LOG(PIC 9PP 300)=5.703782, LOG(-S2 packed -100)=4.605170, LOG(LOG10(100000))=1.609438, LOG(ZERO+1)=0",
+    "expected": "natural logarithm of each positive argument (A.2.20.4 RV1)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-168/src/log-domain.cob",
+    "printed": "--std 85 and --std 2023 alike: exit 0; LOG(0) and LOG10(-1) store 0000.000000 (no SIZE ERROR), LOG(M1+2)=0; log-lit0.cob (LOG(0), LOG10(-5) literals on an unexecuted branch) compiles and runs, prints NOT-REFERENCED-OK",
+    "expected": "a value not greater than zero is outside the permissible range: the result of the reference is undefined (§1989:A.2.2 AR4), so any value conforms; a positive argument gives the logarithm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.20.3 AR2",
+    "check": "OK  §1989:A.2.20.3 AR2  (2.20.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4 (quote: then the result of such a reference is undefined)"
+   },
+   {
+    "cite": "§1989:A.2.20.4 RV1",
+    "check": "OK  §1989:A.2.20.4 RV1  (2.20.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "The positive half is exact to the 6 places probed (ln 300, ln 100, ln 5). Zero and negative arguments leave execution running with result 0, which the 1985 text permits as an undefined result; a literal 0 on an unexecuted branch is not refused, which is right since the rule constrains the value at reference time.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.20.3-2",
+  "refutation": "UPHELD",
+  "classes": "f",
+  "evidence": "Rule: value must be greater than zero; otherwise §1989:A.2.2 says the result of the reference is undefined, so only the positive range is constrained. Probed the positive extremes the reader skipped: logext-002 LOG(1E-18 via PIC SV9(18))=-41.446531, LOG(999999999999999999)=41.446531, LOG(e to 18 digits)=1.000000, all correct to 6 places; reader's log-domain probe shows nonpositive values run to completion (undefined result permitted). No compile-time refusal of LOG(0) exists, which is right since the constraint is on the value at reference. cite.py: OK §1989:A.2.20.3 AR2 the text is in AR2; OK §1989:A.2.2 the text is in the clause; it lies in AR4 (the 'then the result of such a reference is undefined' sentence follows item 4).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

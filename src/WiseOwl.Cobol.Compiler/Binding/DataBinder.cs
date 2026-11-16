@@ -5847,9 +5847,12 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
 
     /// <summary>Every data item a consumer may ask a <see cref="Place"/> of by item (<c>PlaceTablePass</c>, kb/Work PB2375): the
     /// forest, and the LINKAGE formals and the RETURNING item with their subordinates - a formal a method declares can sit
-    /// outside <see cref="ForestSlice.Roots"/>. Each item once.</summary>
-    internal IEnumerable<DataItem> PlaceableItems() => AllItems()
-        .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []).SelectMany(DataItem.SelfAndDescendantsOf))
+    /// outside <see cref="ForestSlice.Roots"/>. Each item once, and each with its level-66 entries
+    /// (<see cref="DataItem.SelfDescendantsAndAliasesOf"/>): a FILE STATUS, RELATIVE KEY, LINAGE, RECORD DEPENDING ON or
+    /// CONTROL operand may name one, and its place is asked by item (kb/Work PB5801).</summary>
+    internal IEnumerable<DataItem> PlaceableItems() => State.Forest.Roots
+        .Concat(Linkage.Formals.Select(f => f.Item).Concat(Linkage.Returning is { } ret ? [ret] : []))
+        .SelectMany(DataItem.SelfDescendantsAndAliasesOf)
         .Distinct(ReferenceEqualityComparer.Instance).Cast<DataItem>();
 
     /// <summary>The roots (a level-01 entry with no data-name too: ISO §2023:13.18.20.3 SR2 assumes FILLER, and its named
@@ -5999,7 +6002,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // §2023:8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
         // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
         // report entry of a nearer source element is the referenced item (kb/Work PB4196).
-        return new NameCandidates<DataItem>(Symbols.NearestDeclaringData(survivors, name, quals));
+        var tier = Symbols.NearestDeclaringData(survivors, name, quals);
+        // ⛔ A REPORT SECTION ENTRY OF THE SAME SPELLING AND SOURCE ELEMENT IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775): its
+        // data-name is a user-defined name, so "uniqueness must then be established through qualification for each user-defined name
+        // explicitly referenced" (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1) counts it, and `MOVE "Z" TO DA` over a Working-Storage
+        // DA and a report group DA is nonunique, never the storage item (the report entry is named by DA OF the-report). It counts
+        // WITH the items and resolves to none, and only beside one: a name the report section alone declares is the report-item
+        // refusal's (ReportSectionBinder.ReportEntryReferenceRefused).
+        int reportEntries = tier.Count == 0 ? 0 : ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(tier), name, quals);
+        return new NameCandidates<DataItem>(tier, reportEntries);
     }
 
     /// <summary>⛔ ISO §2023:8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
@@ -6201,10 +6212,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // One verdict for every name class §2023:8.4.2.2.3 SR1 covers (kb/Work PB919): only the noun differs.
         string what = typeof(T) == typeof(IndexDeclaration) ? "an index-name"
             : typeof(T) == typeof(KeyNameReading) ? "a record key or data item" : "a data item";
+        // The rule is the edition's own (kb/Work PB5627): COBOL-85 prints "uniqueness must then be established through qualification
+        // for each user-defined name explicitly referenced" (§1985:IV.4.3.8.1 SR3), and §2023:8.4.2.2.3 SR1 is the later text.
+        string rule = Edition.DialectLevel < 2002
+            ? "ISO §1985:IV.4.3.8.1 SR3: \"uniqueness must then be established through qualification for each user-defined "
+                + "name explicitly referenced\""
+            : "ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined name that is explicitly referenced, uniqueness "
+                + "shall be established through a sequence of qualifiers that precludes any ambiguity of reference\"";
         string msg = $"{clauseFace} '{written}' does not uniquely identify {what} — {candidates.Count} "
-            + "declarations match the written reference (ISO §2023:8.4.2.2.3 SR1: \"For each non unique user-defined "
-            + "name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "
-            + "that precludes any ambiguity of reference\")";
+            + $"declarations match the written reference ({rule})";
         if (verdict is null)
             Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
         else

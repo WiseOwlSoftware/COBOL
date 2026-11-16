@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-RV-A.2.23.4-3",
+ "rule-digest": "51d71964dc81",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-180",
+  "sources": {
+   "reader": "b5874b3639f0d78b2869cfd0326da0530db24cab4e135f6db89df4567e71ba0b",
+   "refuter": "bbae1edda13178c47e7bf070f2019b28f1f8b3a3c1be48f6bd6c487443c94d19"
+  },
+  "imported": {
+   "reader": "da93ae9bb539bdb3b72c69eee794f60d365c1e08e0725a373b0ce6a559b0d89e",
+   "refuter": "88f39d4ff830d795753c8690a0881871cd048cc5c3e292fa13abc11340a927c7"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.23.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "When FUNCTION MAX is alphanumeric (all arguments alphabetic or alphanumeric class, including groups, numeric-edited items, reference-modified and ALL-subscripted operands and ODO groups at their current size), the returned value has the size of the selected argument-1.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#OperandCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the function's IntroducedIn (85 for MAX, MEAN, MEDIAN) against DialectLevel: COBOL1502 before it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) selects which argument predicates are asked; the class screen, not the returned-value path",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs, CobolIntrinsics.ExactValue.cs and CobolTable.cs found none on the MAX/MEAN/MEDIAN arms; the edition is read only in IntrinsicBinder (availability window, identifier-placement screen, argument predicates) and through the arithmetic mode",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f33_02 covers PIC A and PIC X items and literals; not exercised there are group, ODO-group, reference-modified and ALL(ref-mod) arguments and a size read through FUNCTION LENGTH (probed here)",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxtie.cob",
+    "printed": "A3=[AB ] A4=[AB   ] A5=[AB] A6=[AB   ] A9=[AB ] AA=[AB   ] AB=[AB] AC=[ ] L1=03 L2=05 N1=+999999999999999999 N2=-999999999999999999 N3=+000000000000000000 N4=SIZE N5=5 A1=[B   ] A2=[B  ]",
+    "expected": "size of the selected argument: 3, 5, 2, 5, 3 (ODO N=3), 5 (ODO N=5), 2, 1; FUNCTION LENGTH of MAX(W-A W-X)=3 and of MAX(W-X W-A)=5; TE(ALL)(1:3) selected element size 3"
+   },
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxpcs2.cob",
+    "printed": "Q1=[B] Q2=[C] Q3=[B  ] Q4=[ ] Q5=[A]",
+    "expected": "Q1 size 1 (ref-mod (1:1) per element), Q3 size 3, Q4 size 1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-180/src/maxlater.cob",
+    "printed": "COBOL0900 floating-point numeric literal 1.5E1 requires COBOL-2002 (lines 9, 11, 12); COBOL0900 national literal N\"AB\" requires COBOL-2002 plus COBOL1627 class mismatch (line 10)",
+    "expected": "a national argument (the 2002 national MAX type) is refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.23.4 RV3",
+    "check": "OK  §1989:A.2.23.4 RV3  (2.23.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   }
+  ],
+  "notes": "MaxString returns the selected string itself, so its length is the selected operand's length at run time, which covers ODO groups and reference modification. The MAX-to-alphanumeric typing is IntrinsicResultType.Resolve via the catalog row's FollowsUniformArguments rule, edition-blind.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.23.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Aimed at the returned size where it is observable beyond DISPLAY: maxsz-001 J1 MOVE MAX (W-A W-X) TO X(5) JUSTIFIED RIGHT gives [  AB ] (size 3 of the selected PIC A(3)), J2 MAX (W-X W-A) gives [AB   ] (size 5); S1 STRING ... DELIMITED BY SIZE gives [AB |]; numeric-edited arguments are class alphanumeric and typed alphanumeric: E1 MAX (NEA PIC 9.9 = '9.0', NEB PIC ZZ9 = '100') returns '9.0' by the character comparison (a numeric comparison would pick 100), L1 LENGTH 03, E2 MAX (NE1 ZZ9 '  5', NE2 Z9.9 ' 5.0') returns ' 5.0', L2 04. maxnest-001 N3 MAX (FUNCTION UPPER-CASE (W-Y X(4)) W-A W-X) gives size 4, L1 04, N4 MAX (W-X FUNCTION REVERSE (W-A)) gives size 5, R1 reference modification (2:2) of the result 'B '. degen-001 G1 MAX (W-A) size 3, G2 ODO ALL of one element size 2. numplace: numeric MAX as an identifier refused at 85 (numplace-001 COBOL0900), accepted at 2023 (numplace-002). cite.py: OK §1989:A.2.23.4 RV3 'the size of the returned value is the same as the size of the selected argument-1'; OK §1989:A.2.2 AR3 'A data item of the class alphabetic or alphanumeric or a nonnumeric literal must be specified'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

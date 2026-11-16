@@ -248,6 +248,16 @@ class Outcome:
     #: EACH TARGET'S KEY at the measured tree, by assembly (kb/Work PB5218; `Host.target_keys`): what the store and an
     #: earlier run's passes are matched on. Set by a full-lane gate; empty in another lane or when git cannot say.
     keys: dict[str, str] = field(default_factory=dict)
+    #: EACH TARGET'S KEY at the tree measured at the END (`tree_end`), by assembly (kb/Work PB4333; `PassCarry.end_keys`):
+    #: equal to `keys` when the tree did not move. A pass is KEYED TO ITS TARGET'S INPUTS, never to the whole tree: a target
+    #: whose key at the end equals its key at the start had no declared input change while it ran, so its pass stands
+    #: even when an input of no target (a plan file committed mid-gate) moved the tree. A target missing here (its key
+    #: could not be resolved at the end) records nothing.
+    keys_end: dict[str, str] = field(default_factory=dict)
+    #: THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py): the harness key, whether a pass set stood
+    #: there, how many Conformance cases it carried and how many ran by which rule, and how many it recorded; empty when
+    #: it was not prepared (Conformance up to date, or no suite) and the whole population ran.
+    differential: dict = field(default_factory=dict)
     #: The targets the store showed UP TO DATE, by assembly: the pass that stands (its worktree, run, counts, evidence).
     up_to_date: dict[str, dict] = field(default_factory=dict)
     #: The assemblies whose pass THIS gate recorded in the store.

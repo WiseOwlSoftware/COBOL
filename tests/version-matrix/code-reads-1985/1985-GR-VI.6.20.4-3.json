@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-GR-VI.6.20.4-3",
+ "rule-digest": "cf5941430cfb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "64f0cab49acfdd7f717f84912a85a0f24080ba816fe983b3dd9d070fbcae471c",
+   "refuter": "824fd7228eabd24161dc83efbd62be689094ad4db9aa17c6ea1d703814e13d11"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.20.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MULTIPLY must obey the scope-of-statements rules (END-MULTIPLY; a conditional MULTIPLY ended by ELSE or a period), the ROUNDED phrase (§1985:VI.6.4.1, rounding before the size check), the ON SIZE ERROR phrase (§1985:VI.6.4.2: phrase taken, affected receivers unchanged, others stored; without it control passes to the end of the statement and NOT ON SIZE ERROR is ignored), the arithmetic-statement rules (§1985:VI.6.4.4: 18-digit operands and composite) and the multiple-results rules (§1985:VI.6.4.6).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitMultiplyGiving; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error is caught per receiver and the statement completes (catchesEveryCondition); from 2002 it is a fatal exception condition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "CompositeMembers.ReceivingItems85 with Edition.Year < 2002: the composite is the receiving items only (§1985:VI.6.20.3 SR3), capped at Edition.MaxDigits = 18 at 85 (all operands, 31, from 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectBehavior/Edition.Year/MaxDigits on the MULTIPLY path (ArithmeticBinder, StatementValidation, ArithmeticEmitter); the 19-digit literal refusal (COBOL0802) and ROUNDED MODE IS gate (COBOL0803) are the literal screen's and the construct gate's, both refusing at 85",
+  "behaviour-differs-by-edition": "yes: without ON SIZE ERROR, 85 completes the statement (affected receivers undefined) where 2002+ raises a fatal EC-SIZE; the composite is the receiving items capped at 18 at 85 and all operands capped at 31 from 2002; ROUNDED MODE IS exists only from 2014",
+  "witnesses-cover": "part: g85_bf14_05 L5-L9 cover ROUNDED, a size error on one of two receivers, NOT ON SIZE ERROR and END-MULTIPLY inside IF; not exercised: rounding that causes the size error, the unphrased size error at 85, ELSE ending a conditional MULTIPLY, the 18-digit composite and literal caps",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1.cob",
+    "printed": "M1=6 000300000009000000 M2=21 M3=18 1.7 M4=600 M5 SIZE M6=20 180 9 M7 SIZE 3 M8=3 M9=[-  7.50] [***7] 008 M10=[   0.00] M11=+500000000000000000 M12 SIZE +500000000000000000 M13 SIZE 123456789.500000000 M14=000000000.000000000",
+    "expected": "M5/M6: 9 * 20 overflows R1 only: phrase taken, R1 20 unchanged, R2 180 and R3 9 stored; M7: 3.2 * 3 = 9.6 ROUNDED to 10, then size error, R3 unchanged 3; M8: unphrased size error on R1, R3 still stored and the next statement runs. All match."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1e.cob",
+    "printed": "S1 SIZE / S2 50 / S3 ELSE / (S4 prints nothing)",
+    "expected": "ELSE ends a conditional MULTIPLY (scope of statements); N unchanged after a phrased size error; NOT ON SIZE ERROR ignored when a size error occurs without ON SIZE ERROR"
+   },
+   {
+    "class": "b,c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1d.cob",
+    "printed": "COBOL0805 composite spans 20 digits over the 18-digit 1985 cap (§1985:VI.6.4.4 item 2); COBOL0802 19-digit literal refused at 85",
+    "expected": "receiving-item composite of 9(10) and V9(10) is 20 > 18 (SR3); an operand over 18 digits refused (§1985:VI.6.4.4 SR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1c.cob",
+    "printed": "COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "a later edition's phrase refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1b.cob",
+    "printed": "COBOL1675 numeric-edited BY receiver; COBOL0844 alphanumeric item and alphanumeric literal operands; COBOL1689 literal after BY without GIVING; COBOL1675 alphanumeric GIVING receiver",
+    "expected": "§1985:VI.6.20.3 SR1/SR2 refusals; a literal cannot be a format 1 receiver"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.20.4 GR3",
+    "check": "OK  §1985:VI.6.20.4 GR3  (6.20.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.4.2",
+    "check": "OK  §1985:VI.6.4.2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in the clause; it lies in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.4.1",
+    "check": "OK  §1985:VI.6.4.1  (6.4.1 The ROUNDED Phrase)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.4.4 SR2",
+    "check": "OK  §1985:VI.6.4.4  (6.4.4 The Arithmetic Statements)  the text is in the clause; it lies in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.20.3 SR3",
+    "check": "OK  §1985:VI.6.20.3 SR3  (6.20.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The 1985 arms differ from 2023 (non-fatal unphrased size error, a receivers-only composite at 18 digits, no ROUNDED MODE) and each probe took the 1985 arm correctly. Overlapping operands (VI.6.4.5) are undefined and add no testable requirement beyond the GR1/GR2 temporaries.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.20.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rmul1.cob at --std 85 (rmul1-001): a delimited MULTIPLY nested in ON SIZE ERROR with the outer NOT ON SIZE ERROR after its END-MULTIPLY: no outer size error N7 OUTER-NOT 54, outer and inner size errors N8 INNER 50 (scope of statements, §1985:IV.6.4.3); GO TO from the phrase N9 50; unphrased size error with NOT ON SIZE ERROR N10 DONE; BINARY and numeric-edited receivers size-checked against the PICTURE (N4, N6). Compile-only at 85: rmul3 an unterminated IF in ON SIZE ERROR refused COBOL2796; rmul5 an unterminated nested MULTIPLY ON SIZE ERROR refused COBOL2796; rmul4 NOT ON SIZE ERROR written before ON SIZE ERROR refused COBOL0900 (the 1985 format prints ON first). cite.py: OK §1985:IV.6.4.3 'the next phrase of the nearest preceding unterminated statement'; OK §1985:IV.6.4.2.3.1 'is a conditional statement that is delimited by its explicit scope terminator'; OK §1985:VI.6.4.2. The diagnostics cite §2023 text for 1985 refusals (COBOL2796): a message nit, not a behaviour defect.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

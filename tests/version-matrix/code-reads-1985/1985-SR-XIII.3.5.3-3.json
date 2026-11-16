@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.3-3",
+ "rule-digest": "d9f2ed853c46",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-077",
+  "sources": {
+   "reader": "3cb4542b61ada33c0173cefd725f25af623649e53faecddd82ffc6696695755c",
+   "refuter": "eab952bdb839d2f59ee994b3b51c0e6e5679aebd111e5f68b7579ced52a74a5a"
+  },
+  "imported": {
+   "reader": "d7a87601e43382b565a71068c5158967971e085a146c79af4835790b5ff7143d",
+   "refuter": "7fd2c129dd0bbf84274635517c8c38cba2bbeab7533cef6ee2656708fab4afdc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "No qualifier above report-name may be written for LINE-COUNTER, PAGE-COUNTER, or a Report Section data-name (sum counter, report group): qualification by report-name (and, for a subordinate entry, by the group names above it) is accepted, and a file-name above or in place of the report-name is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFor",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion in CounterResolver.cs, ReportScope.cs, ReportWriterBinder.CounterExpr/CounterPlace: none; the grammar's LINE_COUNTER/PAGE_COUNTER ((OF|IN) cobolWord)? and reportGroupReference allow one qualifier at every edition. (ReportSectionBinder.cs:4634's DialectLevel arm is a Report Section sum-counter lookup, not the qualifier ceiling.)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise legal report-name qualification of counters and groups; refusal of a qualifier above report-name (file-name) is not exercised (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_ok.cob",
+    "printed": "PC=0001 PC=0001 LC=0003 T1=0002 T2=0002 T3=0002; GENERATE DET-A OF R-A accepted",
+    "expected": "legal forms accepted with correct values"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_pc_file.cob",
+    "printed": "COBOL5506 unexpected 'OF' (PAGE-COUNTER OF R-A OF RPT)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_lc_file.cob",
+    "printed": "COBOL5506 unexpected 'IN' (LINE-COUNTER IN R-A IN RPT)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_pc_fileonly.cob",
+    "printed": "COBOL2729 PAGE-COUNTER OF 'RPT': the qualifier shall name a report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_sum_file.cob",
+    "printed": "COBOL2145 'TOT OF R-A OF RPT': none is subordinate to the qualifiers written",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_sum_file2.cob",
+    "printed": "COBOL2145 'TOT OF CF-K OF R-A OF RPT'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_sum_fileonly.cob",
+    "printed": "COBOL2145 'TOT OF RPT'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_gen_file.cob",
+    "printed": "COBOL2269 unexpected 'OF' (GENERATE DET-A OF R-A OF RPT)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr3_gen_fileonly.cob",
+    "printed": "COBOL1757 'DET-A' names neither a detail report group nor an RD (GENERATE DET-A OF RPT)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.3 SR3",
+    "check": "OK  §1985:XIII.3.5.3 SR3  (3.5.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The counter and report-group grammar forms admit one qualifier, which ReportOf and ReportGroupResolution require to be a report-name; sum counters walk their real hierarchy with the report-name last, so a file-name above it fails. Two refusals are parse errors rather than rule-named diagnostics, but the source is refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probed the qualification sites the reader did not try. Legal forms accepted, with the right values: sr3_upon_use_ok has SUM WS-V UPON DET-A OF R-A, a rolled SUM TOT OF CF-K OF R-A in CF FINAL, USE BEFORE REPORTING CF-K OF R-A and GENERATE DET-A OF R-A; its report lines are 2,2,0004,0004 and the declarative prints DECL-TOT=0004. A file-name above the report-name is refused at each site: sr3_upon_file (UPON DET-A OF R-A OF RPT) gives COBOL2046; sr3_use_file (USE BEFORE REPORTING CF-K OF R-A OF RPT) gives COBOL0307, a parse refusal; sr3_sumroll_file (SUM TOT OF CF-K OF R-A OF RPT) gives COBOL2730. I also tested the COBOL-85-only arm the reader's edition list omits: a sum counter as an OCCURS DEPENDING ON object in WORKING-STORAGE, through ReportSectionBinder.SumCounterOperand85 (DialectLevel < 2002). DEPENDING ON TOT OF CF-K OF R-A is accepted and runs (TB=ZZZ| after MOVE 3 TO TOT); TOT OF CF-K OF R-A OF RPT and TOT OF RPT are refused with COBOL0851. So the 85 arm also caps the qualifiers at the report-name. cite.py: 'OK  §1985:XIII.3.5.3 SR3 ...'; 'OK  §1985:XIII.3.19.3 SR2 ...' (the reader-adjacent UPON qualification text).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85: Edition.DialectLevel >= 2002 returns null; below 2002 a sum counter is a data-name operand of data division clauses (ODO), resolved through ReportScope.SumCountersNamed's qualifier walk (the arm conforms: probed)",
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused: DialectLevel < 2002 picks the §1985:XIII.3.9.3 SR10d wording (diagnostic text only)"
+  ],
+  "corrected": ""
+ }
+}

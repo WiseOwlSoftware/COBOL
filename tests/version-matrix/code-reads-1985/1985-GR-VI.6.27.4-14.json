@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-14",
+ "rule-digest": "a6a17a1a95b8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-019",
+  "sources": {
+   "reader": "cac08827760b8caaf05d2d24cc3ecb7e6585b892b5d4949fa57ccdb12c87e9e7",
+   "refuter": "915b665368ad697fd9e06b3a65595021e012c10acde06b17ad688f066fd6a0e9"
+  },
+  "imported": {
+   "reader": "62a11f9b07300b930b5dce1c12b913c12241c808c1153c2012cdd2d8027d808a",
+   "refuter": "358783a4e96814555d87f727aed58646056314ae965ca36042fd27292a4d72e7"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-VI.6.27.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "The compiler must not initialize the POINTER or TALLYING items: the statement starts from whatever the user left in identifier-7 and identifier-8.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+  "edition-consulted": [],
+  "edition-search": "Grepped StringUnstringBinder.cs, StringEmitter.cs, ReceivingStore.cs, CobolStringOps.cs and EcEmitter.cs#EmitOverflow for Edition|CobolVersion|Std|Dialect|Construct|ReservedWord: StringEmitter, ReceivingStore and CobolStringOps have none; the binder's ctx.Edition uses are the diagnostic sink only (BoundRejected.Report / BoundOperandError.Report -> edition.Error), no switch; EcEmitter#EmitOverflow reads the >>TURN checking state, not the edition. Grepped VersionConformancePass.cs for UNSTRING: only VisitUnstringStatement (SR7 sender ref-mod) and VisitConditionalPhrases (phrase order).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness presets the pointer; it shows no out-of-range or negative user value",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p15.cob",
+    "printed": "P0 OVF P=00 T=005",
+    "expected": "the user's pointer 0 is used as given (overflow, GR17a); tally 5 kept"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p13b.cob",
+    "printed": "NEG OVF PN=-01 [   ]",
+    "expected": "a negative user pointer is used as given: overflow, pointer unchanged, no transfer"
+   },
+   {
+    "class": "b",
+    "file": "conformance-suite/cases/14.9.48-UNSTRING/l1c35_unstring_tallying_accessed.cob",
+    "printed": "T1 T=08 (start 5 + 3 areas)",
+    "expected": "the start value is the user's"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR14",
+    "check": "OK  §1985:VI.6.27.4 GR14  (║6.27.4 General Rules║)  the text is in GR14"
+   }
+  ],
+  "notes": "EmitUnstring reads the POINTER item's content (or 1 when absent) and adds the count to the TALLYING item's content; nothing zeroes either. No edition switch."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-14",
+  "refutation": "UPHELD",
+  "classes": "f",
+  "evidence": "r1 D (P preset 3 used as given, P=06), r2 E (PTR preset 1, P=10), r3 C (P preset 6, T preset 0: P=07 T=1); reader's 0 and -1 probes. Nothing in the emitted path initializes either item. cite.py: OK §1985:VI.6.27.4 GR14.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

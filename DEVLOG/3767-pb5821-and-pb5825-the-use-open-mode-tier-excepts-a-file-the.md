@@ -1,0 +1,12 @@
+## Entry 3767 — 2026-11-16 08:14 PST — PB5821 and PB5825: the USE open-mode tier excepts a file the container names, and sees the mode the file is open in
+
+Both notes sit in `UseTierEmitter.EmitScopeTiers`, the one renderer of the USE file-name tier and open-mode tier for `__IoCheck`, `__IoCheckEc` and `__RunGlobalUse`.
+
+**PB5821.** Re-probe on this build (`p2nest.cob`, `--std 85`): the contained program's failing OPEN INPUT of FG printed `OUTER-GLOBAL-INPUT 35`. The outward walk (`globalOnly`) dropped the container's non-GLOBAL `USE ... ON FG` before the file-name tier, so FG fell through to the container's USE GLOBAL ON INPUT. §2023:14.9.49.4 GR6b excepts "those files referenced by file-name-1 in another USE statement specifying the same condition", and the declarative naming FG is not GLOBAL, so no declarative of the container qualifies. The fix: when `globalOnly`, the open-mode tier is guarded by `__f != <key>` for every file a non-GLOBAL declarative of that container names. The one emitter serves the sequential, indexed, relative and Report Writer formats alike, so the Report Writer sibling (`1985-GR-XIII.4.8.4-4`) is the same arm.
+
+**PB5825.** Re-probe (`m6mode.cob`): OPEN INPUT of a file open OUTPUT or EXTEND failed `41` and ran no declarative, because `FileConnector.OpenModeView` answers the attempted mode only (PB5200). §2023:14.9.49.4 GR6c and GR6e apply the OUTPUT and EXTEND procedures to a file "open in" the mode. New `FileConnector.OpenedModeView` (-1 when not open), reached through `FileRegistry.OpenedModeOf` and `CobolFile.OpenedModeOf`; the mode tier emits ONE switch over `FileConnector.UseModeView` (the attempted mode when the unit has a procedure for it, else the mode the file is open in). Where both modes have a procedure the text names no order, and the attempted mode's runs, as before. The WHEN EXCEPTION open-mode arm of the exception-checking PERFORM reads both views too (the same rule's sibling).
+
+**Goldens.** `14.9.49-USE/pb5821_use_global_input_excepts_named_file` and `pb5825_use_output_for_file_open_output`, each accepted at 85, 2002, 2014 and 2023 with one `.out`; the rule has no edition boundary, so there is no refused-below twin. Both probes now print the expected lines at all four editions.
+
+**Rows.** `GR-14.9.49.4-5` and `-6` re-recorded PARTIAL to CONFORMS (GAP 37 to 35).
+

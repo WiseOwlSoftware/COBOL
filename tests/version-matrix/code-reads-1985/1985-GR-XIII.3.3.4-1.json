@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-XIII.3.3.4-1",
+ "rule-digest": "45d5c15327fe",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "7cf01f248bb3348c515a17f0ec90cc7d4e2d6daeff56037f4760c356d238e801",
+   "refuter": "15c13f88fbc496533ba5c48058c080b2848dbc39f718c4639b3ddd813ab1354f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD whose REPORT clause names several reports writes all of them to the one file: each report is INITIATEd, GENERATEd and TERMINATEd independently over the shared file connector, in execution order, with or without CODE clauses.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReport",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion in ResolveReports (owning-file lookup) and ReportWriterEmitter.cs: the only hit is line 593, which stamps CobolReport.Edition for DialectBehaviors unrelated to file sharing; none switches the multi-report binding",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1050 covers two reports with CODE clauses terminated together; reports without CODE, one TERMINATEd while the other continues, and declaration order differing from the clause order are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep.cob",
+    "printed": "[AAA 1 ] [BBB 1 ] [BBB 2 ] [AAA 2 ] (REPORTS ARE R-A R-B, RDs declared R-B first, INITIATE R-A R-B, TERMINATE R-B before the last GENERATE DE-A)",
+    "expected": "both reports on the one file, records in execution order; R-A continues after R-B is terminated"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/fdrep_twice.cob",
+    "printed": "error COBOL2714: ... already named by the REPORT clause of file 'PRT'",
+    "expected": "a report-name in two REPORT clauses refused (SR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.3.4 GR1",
+    "check": "OK  §1985:XIII.3.3.4 GR1  (3.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Each RD gets its own engine over the one connector the FD registers, bound by the FD's REPORT clause regardless of order; no edition switch on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "multi_code-001 (--std 85): FD PRT REPORTS ARE R-A R-B, R-A CODE \"A1\" paged (PAGE LIMIT 4), R-B CODE \"B2\" unpaged, GENERATEs interleaved, R-B TERMINATEd and re-INITIATEd while R-A continues: every line of both reports reaches the one file in execution order with its own code (A1HD-A, A1AAA 1, B2BBB 1, ... B2BBB 7, A1AAA 7), R-A's page advance written as a form feed on the shared stream. The rule only says the file contains more than one report, which holds. cite.py: 'OK  §1985:XIII.3.3.4 GR1  (3.3.4 General Rules)  the text is in GR1'. The uncoded blank lines of 1985-GR-XIII.3.2.4-2 would make such a file inseparable by code when a report skips lines; that is recorded there.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

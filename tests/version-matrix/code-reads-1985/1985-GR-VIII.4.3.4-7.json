@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-7",
+ "rule-digest": "21a1e9827a26",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-132",
+  "sources": {
+   "reader": "565ab41613f172f4f04dfc492196238647aeeac1cd25d6a2732d504114b4efb9",
+   "refuter": "55a4e5b140cda29191a8ef067d5cd10f9b392c843988601140796bc5057947e0"
+  },
+  "imported": {
+   "reader": "3a9a04f6e75f3c050cf928618cf81d022f03d4b6ab093870bea4dac209301c5b",
+   "refuter": "6e2870269962d36eb06fac8c5d57bf5b4cac4455ca620e4ec4b0bd9652e58b1b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every execution of a relative-file DELETE must update the I-O status of the file (00 success, 23 no such record, 43 sequential access without a prior successful READ, 49 file not open I-O) and store it in the FILE STATUS item before any declarative or phrase runs.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteSharedInStatement; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "sharing default ALL OTHER at 85 (no 51 lock conflict arises between a 1985 program's connectors)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehaviors over RelativeConnector.cs, FileRegistry.cs DELETE bodies and KeyedIoEmitter#EmitDelete; the status codes are chosen without an edition; every status set is a 1985 status (VIII.1.3.4 defines 00, 23, 43, 49)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f23_02/03 cover statuses; this probe adds 49 on a never-opened file and 43 twice in a row",
+  "probes": [
+   {
+    "class": "b,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/pdel.cob",
+    "printed": "FUSE=49 D0=49; D2=00; D2B-IK=23; DK0-IK=23 (key 0); DK9-NIK=00 (key 9999); D49=49 (open INPUT); Q43=43; QD1B=43; QD3=00",
+    "expected": "status updated by each DELETE (GR7) to the VIII.1.3.4 value"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR7",
+    "check": "OK  §1985:VIII.4.3.4 GR7  (4.3.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VIII.4.3.4 GR2",
+    "check": "OK  §1985:VIII.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "EmitDelete calls SeqIo.EmitStoreFileStatus right after the governed runtime call, before the USE hook and the phrase pair, so the declarative sees the new status (FUSE=49, QUSE=43). Identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "refute-1985-132/rseq.cob (rseq-001), sequential access with USE procedure: DELETE open OUTPUT 49 and open EXTEND 49 (USE ran first: QUSE=49); READ then WRITE on ANOTHER file then DELETE 00 (GR2 counts file-name-1 only); READ, REWRITE 00, DELETE 43; READ, START 00, DELETE 43; READ, failed WRITE 48, DELETE 43; DELETE inside IF with END-DELETE 00. rctl.cob: RELATIVE KEY 9(18) at 999999999999999999 and at 0 give 23. Each status is a §1985:VIII.1.3.4 value (43 text: 'the last input-output statement executed for the file ... was not a successfully executed READ'). The '43' gate drops at the FileConnector.Status setter for every outcome, re-armed only by ReadSucceeded. Not probed: a sequential DELETE whose READ record another connector removed (runtime answers 23); 1985 is silent on two connectors over one file, so that is implementor latitude, not evidence. cite.py: OK §1985:VIII.4.3.4 GR7; OK §1985:VIII.4.3.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-17",
+ "rule-digest": "055addc9002f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-133",
+  "sources": {
+   "reader": "8c88ffe28e2472ad4ab2c358fa8e0582bac02f3729ba242a4c6d66454a28e31e",
+   "refuter": "ef7a10a801de3da8a44b31d0304eebb4cbbc57407e0c57d79715b2567e47bf8b"
+  },
+  "imported": {
+   "reader": "0b7b699f6bba26c3fa988add264dbe291d18d1745278eecee1b35d06a4d15079",
+   "refuter": "cfa556ba99e889a005730a676e1902477798bfadfae4ebfdf57f46f917a3def0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an OPEN naming several file-names (in one or several mode groups, of any organizations) behaves as one OPEN per file-name in source order: each file gets its own mode and status, each unsuccessful one runs its USE procedure before the next file is opened, and a later file-name sees the effect of an earlier one (a file created by an earlier OUTPUT, a file opened by an earlier occurrence of the same name).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [],
+  "edition-search": "SequentialIoBinder.BindOpen (one BoundOpen per file-name in a BoundImplicitSeries, source order) and SequentialIoEmitter.EmitOpen (a per-file loop) read: no EditionContext, DialectLevel, CobolVersion or DialectBehavior reference in either; the only edition gate on the statement is VersionConformancePass's refusal of the 2002 SHARING phrase, which is not this rule.",
+  "behaviour-differs-by-edition": "no for the decomposition; the outcome of a later file-name on the same physical file differs because the 2002 sharing facility (Table 19) is off at 85",
+  "witnesses-cover": "part: g85_f19_03 covers two mode groups and the failure order on two absent files; same-physical-file ordering, one file-name written twice, and mixed organizations in one statement are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr17_order-001",
+    "printed": "OUTPUT QA INPUT QB 00 00 / USE ENTERED 0000993599 / INPUT QD OUTPUT QC 35 00 / USE ENTERED 4100003599 / INPUT QA QA 41 / MIXED 00 00 00",
+    "expected": "QA creates the file before QB opens it; QD fails (35) and its USE runs while QC is still unopened (QC-S 99); the second QA is 41; sequential+relative in one OPEN all 00 (SR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr17_order-002",
+    "printed": "at --std 2023: OUTPUT QA INPUT QB 00 61",
+    "expected": "the 2023 Table 19 arm, absent at 85"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/g85_f19_03-001",
+    "printed": "EXPECT: MATCH (g85_f19_03.out)",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR17",
+    "check": "OK  §1985:VIII.4.4.4 GR17  (4.4.4 General Rules)  the text is in GR17"
+   }
+  ],
+  "notes": "The binder decomposes the statement into one BoundOpen per file-name and the emitter writes, per file, BeginOpen, the open, the FILE STATUS store and the USE hook, so the per-file order and the USE-before-next-file order follow from the code shape at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-17",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe runs/r17_useopen-001: OPEN INPUT QD OUTPUT QC, where QD is absent and QD's USE procedure itself OPENs QC OUTPUT. It printed USE QD 35 QC 99 / USE OPENED QC 00 / USE QC 41 / AFTER OPEN QD 35 QC 41 / WRITE QC 00. That is exactly the separate-statement order: QD's status and USE run before QC is opened, and QC's later open sees the earlier effect (41). Class c: on a relative file at 85, REVERSED is refused COBOL2210, WITH NO REWIND COBOL1802, RETRY COBOL5506 and WITH LOCK COBOL5506. cite.py: OK  §1985:VIII.4.4.4 GR17  (4.4.4 General Rules)  the text is in GR17",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

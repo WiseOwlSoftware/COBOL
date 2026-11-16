@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-IX.4.2.4-3",
+ "rule-digest": "f4b536dd500a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-007",
+  "sources": {
+   "reader": "1290c16924a69b66758bfada8555bbb4fea7f9d51b7f458e54c7ce5b78fd4a05",
+   "refuter": "613c822c869be30f20ba72b6ba07bce073a9faceeb08eb1d86231c89e7f04a4f"
+  },
+  "imported": {
+   "reader": "65af70d58f1e28bcefb785001930fa8cc8f7b016a0fb5ca989cffb95eda511c6",
+   "refuter": "0800aacf2cfe8dbae60c0094923e8165ea9d5ef15e38712882ff43c9438b2ccb"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.2.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 every execution of CLOSE on an indexed file, successful or not, in every access mode and with or without LOCK, stores a fresh I-O status in the FILE STATUS item ('00' success, '42' not open, '30' permanent error), replacing the previous statement's value.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#CloseCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "Constructs.CloseWithLockRemoved2023: CLOSE WITH LOCK accepted at 85/2002/2014, refused COBOL0902 at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (from 2002): at 85 the lock is set on the physical file's state, from 2002 on the connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behavior, the OPEN-side test of that lock ('38')",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehaviors./Edition/CobolVersion in FileRegistry.cs, FileConnector.cs, KeyedConnector.cs, IndexedConnector.cs, SequentialIoEmitter.cs#EmitClose and VersionConformancePass.cs: the plain CLOSE path (SequentialIoEmitter#EmitClose -> FileRegistry#CloseByFormat/#CloseCell -> FileConnector#Close -> KeyedConnector#CloseCore) consults no edition; only the WITH LOCK arm does.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb141_close_forms and pb140_close_status close sequential files; indexed files in random, dynamic and sequential access are not exercised by them",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close1.cob",
+    "printed": "BEFORE-CLOSE=22 CLOSE-OUT=00; R9=23 CLOSE-IO=00; IX2-ATEND=10 IX2-CLOSE=00; LOCK-CLOSE=00",
+    "expected": "each CLOSE replaces the prior '22'/'23'/'10' with its own '00'"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close2.cob",
+    "printed": "OPT-READ=10 OPT-CLOSE=00; OPT-START=23 OPT-LOCK=00",
+    "expected": "the status is updated on an absent optional file's CLOSE and CLOSE WITH LOCK"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.2.4 GR3",
+    "check": "OK  §1985:IX.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The emitter stores the connector's status after every CLOSE (EmitClose -> EmitStoreFileStatus). The '30' arm (FileConnector#MappedCloseCore, a refused promotion) was read, not probed: inducing a host failure was out of scope."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.2.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "cite.py OK §1985:IX.4.2.4 GR3. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/cls1.cob --std 85: the status is replaced on every CLOSE in each access mode - dynamic after 41 -> 00, random after READ 00 then CLOSE WITH LOCK 00, sequential after 38 -> 42, EXTERNAL file's shared status 00 from the nested program's CLOSE; absent optional sequential-access CLOSE WITH LOCK after 05 -> 00. The '30' arm is not inducible on this host (reader read it).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

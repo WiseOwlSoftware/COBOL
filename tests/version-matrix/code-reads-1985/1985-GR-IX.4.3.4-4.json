@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IX.4.3.4-4",
+ "rule-digest": "461293e81777",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-093",
+  "sources": {
+   "reader": "87566458a341535548f3b5a6dd7a32e41f8d29615141383f437bce21afb35729",
+   "refuter": "a4be79958e3090192e4df035e3d0235625d8e66c250d53fd8d46b0f100d23cda"
+  },
+  "imported": {
+   "reader": "9fe12770d74b9149d1a368f47fb3f0d7790b3c3018a42c4d68c49ef0f99771a0",
+   "refuter": "7bdb95f54445f77120d56e98b4030d1c2285db78e056f8170773e23211dc7ccc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful DELETE the record is gone for every later access: random READ by prime or alternate key gives 23 or another record, sequential READ skips it, a second DELETE of it is an invalid key, and the removal survives CLOSE and re-OPEN; its key may be written again.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AttachStore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AttachStore",
+    "switches": "FileConnector.SharingFacilityInEffect (DialectBehavior.FileSharingFacility, off at 85): whether the attached store is published for sharing with other run units; the removal itself and its visibility inside the run unit take the same code",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of KeyedStore.cs and StoreTable.cs for Edition|CobolVersion|Dialect finds none; IndexedConnector.cs hits are AttachStore's sharing flag and READ-only rows",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf31_02 covers dynamic access: random READ 23, second DELETE invalid, sequential pass after re-open; access through an alternate key, sequential-access deletion and rewriting the deleted key are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/del1.cob",
+    "printed": "ALT A01 00 K02A01 / READ K01 IK 23 / WRITE K01 AGAIN 00; sequential file after deleting S02: LEFT S01AAA, S03CCC, S04DDD, END",
+    "expected": "deleted record not reachable by alternate key, random READ 23, sequential READ after re-open skips it"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-093/del2.cob",
+    "printed": "after CLOSE/OPEN INPUT: LEFT 001AAA, LEFT 002BBB, END (999 deleted in dynamic access)",
+    "expected": "removal persists past CLOSE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.4 GR4",
+    "check": "OK  §1985:IX.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "Removal takes the record's prime and alternate entries in one store statement, so no key path reaches it afterwards; probes through the alternate index, random, sequential and after re-open agree.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-093/dyn1.cob (dyn1-002): after deleting 002 (ahead of the position READ NEXT of 001 left) the next READ NEXT returns 003, not 002; after deleting 003 READ NEXT gives 004; START on the alternate key BBB (shared by deleted 003 and 004) then READ NEXT gives 004 only. The deleted records are unreachable by sequential, positioned and alternate-key access. cite.py: OK §1985:IX.4.3.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

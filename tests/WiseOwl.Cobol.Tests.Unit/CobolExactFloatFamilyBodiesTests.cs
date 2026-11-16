@@ -60,7 +60,7 @@ public sealed class CobolExactFloatFamilyBodiesTests
         Assert.False(binary.IsFloatContent);
         CobolExact fixedRate = CobolIntrinsics.AnnuityExact(Away, CobolExact.From(1, 1), three);
         Assert.False(fixedRate.TryBinary64(out _));
-        Assert.Equal(CobolIntrinsics.AnnuityDec(Away, CobolDec.From(1, 1), three), fixedRate.Image);
+        Assert.Equal(CobolIntrinsics.AnnuityDec(DecArithmetic.Sdidi(Away), CobolDec.From(1, 1), three), fixedRate.Image);
     }
 
     [Fact]

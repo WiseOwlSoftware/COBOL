@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-4",
+ "rule-digest": "957122158ce4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-052",
+  "sources": {
+   "reader": "3be98b2cba5ceaaa0b1595abfeba4c0b68a42e1005a6a26da4080046d04dbc8d",
+   "refuter": "7aea4d4b87dda59a79d45f2f6b6870c745f49ba47e57992df35852d9d7a7f9fd"
+  },
+  "imported": {
+   "reader": "598eec59b38c97df8ece57d9ba12dd2b550dfbfc7c1dda7a239c923a4a72f06c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.11.3-4",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 data-name-2 and data-name-3 of a RENAMES entry must each name an elementary item or a group of elementary items in the record the 66 entry belongs to, must not be the same data-name, and must not name another level-66 entry or a level-77, level-88 or level-01 entry; each such violation must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesOperand; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRenamesWindowOrder; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsWithinRegion",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "Edition.DialectLevel >= 2002: from 2002 RegionClauseCandidates returns SubtreeCandidates(record) (storage-tree items of the record only); below 2002 it returns QualifiedCandidates over the whole scope and ResolveRedefinesPass.Run filters by IsWithinRegion (kb/Work PB5165)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at --std 85 the whole-scope candidate set includes the record's own level-66 aliases, so `66 Y RENAMES X.` with X a 66 of the same record compiles and runs; at --std 2023 the subtree candidate set excludes 66 entries and the same program is refused COBOL1655",
+  "witnesses-cover": "part: the witnesses cover a legal RENAMES and an operand that names nothing; the 66/77/88/01 operand refusals and the same-data-name refusal are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4a.cob",
+    "printed": "exit 0: [AB] (66 Y RENAMES X, X itself a 66 RENAMES A)",
+    "expected": "refusal: \"A 66 level entry cannot rename another 66 level entry\""
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4j.cob",
+    "printed": "66 Y RENAMES X THRU C refused COBOL2740 'the beginning of data-name-3 precedes the beginning of data-name-2'; 66 Z RENAMES A THRU X refused COBOL1655 'the record's leaves do not tile the alias's storage window'",
+    "expected": "refusal naming the 66 operand; refused, but for an unrelated reason"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4b.cob",
+    "printed": "error COBOL1655: 'A-AB' does not name an item of the record",
+    "expected": "refusal: cannot rename an 88"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4c.cob",
+    "printed": "error COBOL2740: data-name-2 'R' refers to an entry described with level-number 1",
+    "expected": "refusal: cannot rename an 01"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4d.cob",
+    "printed": "error COBOL1655: 'K' does not name an item of the record",
+    "expected": "refusal: cannot rename a 77"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4e.cob",
+    "printed": "error COBOL2740: A THRU A: the end of data-name-3 does not follow the end of data-name-2",
+    "expected": "refusal: data-name-2 and data-name-3 cannot be the same data-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4i.cob",
+    "printed": "error COBOL1639: 'A' does not uniquely identify a data item; 2 declarations match",
+    "expected": "refusal at 1985: an unqualified non-unique operand (no implicit qualification below 2002)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4h.cob",
+    "printed": "exit 0: [01KQ7|Q7|Q|ZZ] / [1|2]",
+    "expected": "legal: signed elementary item THRU group, a group alone, a fully qualified elementary item, a qualified operand in a second record; MOVE to the group alias writes the group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r4f.cob",
+    "printed": "exit 0: [ABCD] (A OF G1 THRU A OF G2)",
+    "expected": "two distinct items spelled with one data-name; read as legal (distinct operands in order), noted only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.3 SR4",
+    "check": "OK  §1985:VI.5.11.3 SR4  (║5.11.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "77, 88, 01 and other-record operands are refused at --std 85, and A THRU A is refused by the window-order screen. The 1985 candidate arm added for PB5165 (whole-scope QualifiedCandidates, filtered by IsWithinRegion) admits a level-66 alias of the same record as data-name-2, because the alias is registered by name under its record and ScreenRenamesOperand asks only for level 1 or 77; the 66 leg of that screen relied on the 2002+ subtree walk never reaching an alias.",
+  "seeded": true,
+  "harm": "under-rejects",
+  "cause": "a",
+  "at-2023": "refused: error COBOL1655: 'Y' RENAMES X: 'X' does not name an item of the record (ISO §2023:13.18.45.3 SR4; §2023:8.4.2.1)",
+  "repro": "WORKING-STORAGE: 01 R. 05 A PIC X(2) VALUE \"AB\". 05 B PIC X(2) VALUE \"CD\". 66 X RENAMES A. 66 Y RENAMES X. PROCEDURE DIVISION: DISPLAY \"[\" Y \"]\" STOP RUN. (file r4a.cob, fixed form, --std 85)",
+  "expected": "§1985:VI.5.11.3 SR4: \"A 66 level entry cannot rename another 66 level entry nor can it rename a 77, 88, or 01 level entry.\" A refusal.",
+  "observed": "--std 85: exit 0, no diagnostic, prints [AB]",
+  "known_note": "none (kb/Work PB5165 introduced the whole-scope 1985 arm for RENAMES operands; it does not mention level-66 operands)"
+ },
+ "work": "PB5772"
+}

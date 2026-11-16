@@ -56,6 +56,6 @@ public sealed class CobolDecSqrtTests
         // 1.118033988749894848204586834365638, 35th digit 1 ⇒ every mode keeps …5638. The former Math.Sqrt
         // detour carried ~16 correct digits.
         Assert.Equal(D("1118033988749894848204586834365638", -33),
-            CobolIntrinsics.StdDevDec(CobolRounding.NearestAwayFromZero, D("1", 0), D("2", 0), D("3", 0), D("4", 0)));
+            CobolIntrinsics.StdDevDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D("1", 0), D("2", 0), D("3", 0), D("4", 0)));
     }
 }

@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-7",
+ "rule-digest": "cd84a0b6bda5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-090",
+  "sources": {
+   "reader": "6ab038ea6035d8f9ae4367c0d745ed9e52de3169af37c155f45817b22effaac4",
+   "refuter": "dc715fbd8dfc0a125afb51673dcf17c36c19afbfa88e462ab1fae41831d4fcd7"
+  },
+  "imported": {
+   "reader": "0c24a484c3bc81c575bf0999afbf3470d07f2dd62212e5cf6b6b22346f057d7b",
+   "refuter": "f6a1c5ead0db7ddab4fee1aa227bb6f61dabfc445431d2a3979b737ad4f37f67"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.3.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file's FILE STATUS clause follows the Sequential I-O clause (§1985:VII.2.5): data-name-1 may be qualified and must be a two-character alphanumeric item outside the File, Report and Communication Sections (else refused), and the item named in the file's own entry is updated with the indexed I-O status (§1985:IX.1.3.4) every time that file's I-O status is updated, by every statement.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#FileStatusShapeFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem (Edition.SubscriptedClauseOperands)",
+    "switches": "true only at 2002 (EditionInfo.SubscriptedClauseOperands => Year == 2002): an item subject to OCCURS is refused except at 2002",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenClauseOperandOccurrence",
+    "switches": "screens written subscripts only at 2002; at 85 the subscript was already refused at capture (COBOL2024)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 2002 the FILE STATUS operand may be subscripted (kb/Work PB5602); 85 refuses it as 2023 does",
+  "witnesses-cover": "part: g85_f17_06 covers the statuses one dynamic file stores (00, 02, 22, 23, 10); not covered: qualification, the SR2 refusals, two files with distinct items (GR2 of VII.2.5.4), CLOSE/START updates, a USE procedure seeing the stored status, a Linkage Section item",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p5_fs.cob",
+    "printed": "OPEN F1 G1=00 G2=XX / WRITE F1 G1=00 G2=XX / W DUP 22 / CLOSE F1 G1=00 / USE G1=42 G2=XX / CLOSE AGAIN G1=42 / USE G1=42 G2=35 / OPEN F2 G1=42 G2=35 / START G1=00 / READ NEXT G1=00 A001 / AT END G1=10",
+    "expected": "ST OF G1 (a two-character group) and ST IN G2 (qualified) each updated only by their own file, before the USE procedure runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p5b_fsbad.cob",
+    "printed": "COBOL2455 for PIC 99 (category numeric), PIC X(3), an item in the File Section, an item subject to OCCURS, PIC X",
+    "expected": "§1985:VII.2.5.3 SR2 refusals"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p5c_fssub.cob",
+    "printed": "error COBOL2024: FILE STATUS 'S-OCC(1)' is written with a subscript",
+    "expected": "1985 prints data-name-1 (qualifiable, not subscriptable): refused; the 2002 subscripted form is not a 1985 form"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p5d_fslink.cob",
+    "printed": "LINKAGE ST 35 / CALLER SEES 35",
+    "expected": "a Linkage Section status item is allowed and is updated after the failed OPEN INPUT (35)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.4 GR7",
+    "check": "OK  §1985:IX.2.3.4 GR7  (2.3.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The binder screens the clause's SR2 conjuncts post-build and refuses a subscripted operand at capture; the emitter stores the connector's status into the item after each statement and before the USE hook. The diagnostics cite §2023 clause numbers at --std 85 (wording only; the rule they enforce is the 1985 one).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.3.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "r5_fsbad.cob (--compile-only, --std 85): FILE STATUS naming a Communication Section item (CD ... FOR INPUT, a 1985-only section) -> COBOL2455 'defined in the communication section'; naming a Report Section entry -> COBOL5092 refused; PIC XB (alphanumeric-edited) -> COBOL2455; PIC AA (alphabetic) -> COBOL2455. r5c_fstwo.cob: FILE STATUS IS GS GT (a second data-name, not a 1985 form) -> COBOL1970 refused. r5b_fsgrp.cob (run): a two-character group of two PIC 9 items is accepted (a group is category alphanumeric) and updated: USE 35 3/5 (updated before the USE procedure), OPEN2 00, IK2 22 (updated before the INVALID KEY phrase), CLOSE 00. The diagnostics cite §2023 clause numbers at --std 85 (wording only). cite.py: OK §1985:IX.2.3.4 GR7; OK §1985:VII.2.5.3 SR2; OK §1985:VII.2.5.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

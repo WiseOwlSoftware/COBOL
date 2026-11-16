@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
+ "rule-digest": "8cc54f61181a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-044",
+  "sources": {
+   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
+   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+  },
+  "imported": {
+   "reader": "625bc2f1867591ddea5ffd9741501e1a922048075e94be94b3de80ff44441005",
+   "refuter": "357c68c69d467301ad21034d758b2a27a38d7a01ef21dfa7ffa5f45a79776a62"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an explicitly referenced paragraph-name duplicated within its section must be refused, a paragraph qualified by section-name must not admit the word SECTION, an unqualified paragraph-name must resolve to its own section's paragraph when referenced from within that section, and a paragraph or section of another (containing or contained) program must not be referenceable.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureNameMap.cs#IsDuplicated; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectAmbiguousProcedureName",
+  "edition-consulted": [],
+  "edition-search": "grep of ProcedureTableBuilder.cs, ProcedureNameMap.cs and StatementValidation.cs#RejectAmbiguousProcedureName for CobolVersion|DialectLevel|Edition.Edition|Year|ConstructRegistry: only Edition.At (diagnostic cursor). The grammar's procedureName admits reservedGatedWord (the per-edition reserved-word gate, not specific to this rule).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: witnesses exercise legal qualified and in-section unqualified references and an unreferenced duplicate; not exercised at 85: refusal of a referenced in-section duplicate, the SECTION word after the qualifier, and cross-program procedure references",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pn.cob",
+    "printed": "B-X B-Y C-X A-Y B-X B-Y B-Y B-Z END",
+    "expected": "P-X IN S-B / OF S-C reach each copy; unqualified P-Y inside S-B reaches B-Y and inside S-A reaches A-Y; THRU and GO TO qualified"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pndup.cob",
+    "printed": "COBOL2122 PERFORM 'P-DUP': that paragraph-name is declared 2 times within section 'S-B' ... explicitly referenced here",
+    "expected": "refused: a referenced paragraph-name must not be duplicated within a section"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pnsec.cob",
+    "printed": "85 and 2023: COBOL0307 unexpected 'SECTION' at PERFORM P-OK OF S-B SECTION",
+    "expected": "refused: the word SECTION must not appear"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pnx.cob",
+    "printed": "COBOL1639 PERFORM 'INNER-P' names no procedure (line 6); GO TO 'OUTER-P' names no procedure (line 14)",
+    "expected": "refused: a paragraph-name of another program may not be referenced"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.6",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.6  (4.3.8.1 Qualification)  the text is in SRL2.6"
+   }
+  ],
+  "notes": "ResolveProcedureWord is the one resolution for every procedure-name operand: qualified looks in the named section's map, unqualified prefers the current section, and an in-section duplicate returns an ambiguity reported as COBOL2122; the maps are per source element so another program's names resolve to nothing. The grammar has no SECTION after the qualifier, so it is a parse refusal at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.6",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "r5pn at 85 gave these results. PERFORM P-D from SA, where P-D is in SB and SC: COBOL2121 (not unique). PERFORM P-E OF SB, written qualified but duplicated within SB: COBOL2122. PERFORM IN-S, a section of the contained program, and PERFORM SC from the contained program, a section of the containing program: COBOL1639 'names no procedure'. The reader probed paragraphs only; I probed section-names. r6nosec: duplicated paragraphs in a Procedure Division with no sections, explicitly referenced, drew COBOL2121. r2sup: unqualified PY inside SB, and PX IN SA, both reached the right copies. cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.6 ... the text is in SRL2.6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-14",
+ "rule-digest": "a74abea7b3a3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-122",
+  "sources": {
+   "reader": "e080077ceb22eb3ac6c92be5015810d857cc8d3cf6a696bc9fa190575cf5ea16",
+   "refuter": "e0d8f312c8a0bd9394cb49e16d45a1cd9d915e81877ed8cb4981c381cd08e34a"
+  },
+  "imported": {
+   "reader": "26b84ba652bc0aec727728470f51b843d8d2f1dc25f0febef21740cd2daef319",
+   "refuter": "57df7dab29745e712cc18dfd81d7a665e00be4ab661a6db7ee0e76e524c0a21c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every successful OPEN INPUT or OPEN I-O of a sequential file must set the file position indicator to 1, so the next sequential READ returns the first record whatever an earlier open, READ, at end, failed READ or REVERSED open left behind; this holds for fixed and RECORD VARYING files.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenReader; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReversedPhraseEffect",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "SharingFacilityInEffect: no Table 19 arbitration at 85, and sibling connectors release buffered records before the OPEN body runs",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenFileSpec",
+    "switches": "REVERSED is admitted only at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the position reset in SequentialConnector.OpenCore (_readOffset, _readOrdinal, Reversed cleared) and FileConnector.OpenOnceEntered (LastReadUnsuccessful cleared) consults no edition; grep for Edition and DialectBehavior in those members found none",
+  "behaviour-differs-by-edition": "no: same reset code at every edition; only 85 has the REVERSED phrase, which positions at the end for that OPEN and is cleared by the next OPEN",
+  "witnesses-cover": "part: g85_bf24_10 covers fixed records with INPUT and I-O re-opens; it does not cover RECORD VARYING, a re-open after an at end and a 46, a re-open after REVERSED, NO REWIND, or the I-O REWRITE path",
+  "probes": [
+   {
+    "class": "a,b,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p14a.cob",
+    "printed": "EOF 10 / USE 46 / AFTER-EOF=46 / A1=SEQ001 00 / REV1=SEQ003 00 / A2=SEQ001 00 / NR-OPEN=07 / NR1=SEQ001 00 / USE 43 / IO-REW-NOREAD=43 / IO1=SEQ001 00 / IO-REW=00 / IO2=SEQ001 00 / IO3=NEW002 00 / V-SECOND=09 DEFGHIJKL / V-FIRST=03 ABC 00",
+    "expected": "each fresh INPUT or I-O open reads record 1 (SEQ001, the 3-character ABC); REVERSED reads the last record first (GR11c, GR12) and the next plain open reads record 1; a REWRITE with no prior READ is 43"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-122/p14c.cob",
+    "printed": "--std 85: REV1=SEQ002; --std 2023: error COBOL0902 the OPEN REVERSED phrase was removed in COBOL-2002",
+    "expected": "REVERSED is accepted at 85 and starts at the last record; a later edition refuses it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR14",
+    "check": "OK  §1985:VII.4.3.4 GR14  (4.3.4 General Rules)  the text is in GR14"
+   }
+  ],
+  "notes": "SequentialConnector.OpenCore zeroes the read offset and ordinal and clears Reversed. The INPUT and I-O arms take a fresh reader. FileConnector.OpenOnceEntered clears LastReadUnsuccessful, so an earlier 46 or at end does not carry over the OPEN. At 85 the READ with no AT END and no USE is refused COBOL6826, citing §1985:VII.4.4.3 SR2, so the probe declares a USE procedure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-14",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "r14b.cob: two connectors on one physical file at 85 (no sharing facility): F1 read two records, then OPEN INPUT F2 printed F2-OPEN=00 / F2-FIRST=A001 (its own indicator at 1) while F1-NEXT=A003 kept its own position; r17d.cob refuses OPEN I-O ... WITH NO REWIND (COBOL1803), the format allows NO REWIND only with INPUT and OUTPUT. A file written with WRITE ... AFTER ADVANCING (r14d.cob) reads back misaligned ('[\\nADV00]' then '[1\\nADV0]', with a runtime notice); the indicator is at 1 (each fresh OPEN reads the same first bytes, IN-1 and IO-1 agree), so the misread is a record-framing defect of the print stream (see the GR17 case), not of GR14's positioning. cite.py: OK §1985:VII.4.3.4 GR14 (the text is in GR14).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

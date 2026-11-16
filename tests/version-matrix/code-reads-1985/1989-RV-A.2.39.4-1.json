@@ -1,0 +1,96 @@
+{
+ "rule-id": "1989-RV-A.2.39.4-1",
+ "rule-digest": "a4fd76fd1b1a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-083",
+  "sources": {
+   "reader": "8cddf3defbf6ae2225c30c8eeab4ab2dc0dd44d9a5d0fca3066105d865219485",
+   "refuter": "be400553f381c0f7f3fef8da8a3c3518bebf2f769e51ab8723856fde4a129e2c"
+  },
+  "imported": {
+   "reader": "355a0851e45f4a195f10489e9baea4c6b826ceadc55e607272fc8e6fbee536b8",
+   "refuter": "32a442ff96f9a3647de17b34acd073d429382f5d43cf7f6a5de8dc080fbc9b5b"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.39.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION SIN(argument-1) of any class-numeric argument (radians; literal, expression, any usage, up to 18 digits, ODO element) returns an approximation of its sine that is never below -1 or above +1.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sin; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#SinReduced; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 edition window: sig.IntroducedIn (85 for the 1989 module rows, IntrinsicCatalog.cs#Build) against ctx.Edition.DialectLevel; COBOL1502/1503 outside it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry NumericFunctionIdentifierOperand2002: at 85 a numeric/integer function written where an identifier stands (MOVE sender) is refused (COBOL0900), per §1989:A.2.3 GR2/GR3; never reached inside an arithmetic expression",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "Edition.DigitCapacityExcess: 18-digit cap on items and literals at 85 (31 later); bounds the argument range only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "num.StandardDecimal (OPTIONS ARITHMETIC, a 2002+ paragraph, so always native at 85): the native dispatch is the one a 2023 program with no ARITHMETIC clause takes",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs for Edition|DialectLevel|CobolVersion|ArithmeticMode|StandardDecimal; the runtime bodies take no edition input",
+  "behaviour-differs-by-edition": "no: the exact-argument Sin body (quadrant reduction on the exact value) is the same at 85 and 2023",
+  "witnesses-cover": "part: the witness covers ill-conditioned arguments near multiples of pi/2 and an 18-digit integer; not zero, negative COMP-3, expressions, ODO element, or a sweep testing the [-1, +1] bound",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/trig1.cob",
+    "printed": "SIN-0=0 SIN-1=0.8414709848078965 SIN-M1=-0.8414709848078965 SIN-BIG(999999999999999999)=-0.6361102088353705 SIN-H=+1.00000000000000000 SIN-MH=-1.00000000000000000 SIN-NEG(COMP-3 -123456.789)=0.9986640823434471 SIN-EXP(-1.5+0.5)=-0.8414709848078965; sweep of 10812 arguments -20..20 step 0.0037: OUT-OF-RANGE=0 for both the stored and the in-condition value (dir trig1-001)",
+    "expected": "mpmath: sin(999999999999999999)=-0.63611020883537049, sin(-123456.789)=0.99866408234344710, sin(1.57079632679489662)=1-3E-37 (rounds to 1); every value in [-1, +1]"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/deg1.cob",
+    "printed": "SIN(T(I)) on an ODO element -2.5 = -0.5984721441",
+    "expected": "sin(-2.5)=-0.5984721441039564"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref1.cob",
+    "printed": "COBOL1627 alphanumeric argument; COBOL1504 two arguments",
+    "expected": "refused (§1989:A.2.39.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-083/ref2.cob",
+    "printed": "COBOL0900 USAGE FLOAT-LONG at 85; COBOL1639 for SIN(R) without the FUNCTION keyword",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.39.4 RV1",
+    "check": "OK  §1989:A.2.39.4 RV1  (2.39.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Math.Sin and the reduced-quadrant SinDd/CosDd forms stay inside [-1, +1]. The sweep found no stored or compared value outside it. Output was identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (at2023-trig1.txt)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.39.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rtrig1-003 (--std 85): (SIN(x) - 1) * 1E17 into S9(17)V9 COMP-3 is 0 (never positive) for 17-decimal arguments 1.57079632679489656/61/62/70 and -4.7123889803846, and (SIN(-H2) + 1) * 1E17 is 0 (never negative); IF SIN(H2) > 1 and IF SIN(-H2) < -1 never fire; SIN(S9(18) COMP -999999999999999999) = 0.63611020883537050 (mpmath 0.636110208835370488); SIN(3*H2) = -1.0; SIN(0) = 0; SIN(ACOS(-1)) = 1.2E-16 (correct for the binary64 pi); sweep -1000..1000 step 0.0013 (1.5 million arguments, in-condition values) found 0 outside [-1,+1]. FUNCTION PI refused COBOL1502 at 85 (a 2002 function) and floating literal 1.0E1 refused COBOL0900 (rref1-001). cite.py: 'OK  §1989:A.2.39.4 RV1  (2.39.4 Returned Values)  the text is in RV1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

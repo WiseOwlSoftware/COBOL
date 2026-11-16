@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VII.3.3.3-3",
+ "rule-digest": "5bdf0530e6cf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-120",
+  "sources": {
+   "reader": "cbbdf8586ff28793043e60f6cd114c8c15b2ea3cdca8f232204cf7e71c2724dc",
+   "refuter": "3b701de0aff4f477041120fc005c7101301723cd7e9a3477268fb9f521bf9346"
+  },
+  "imported": {
+   "reader": "d9e9e8c4fc57e859f0500faae32fd898c9feb27aa202b1e114da014ec931819d",
+   "refuter": "69d6acc4f455c5a09531c5f2b9166d9b4a260cfdb85c8b465284fd030c8adea3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a BLOCK CONTAINS ... CHARACTERS clause states the physical record size in character positions whatever the usage of the record's items; the physical record is implementor-defined and not visible to the program, so the compiler must accept the CHARACTERS phrase over records of any usage (DISPLAY, COMP, COMP-3, signed separate, variable length) and deliver every logical record unchanged and in order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindBlockContainsClause",
+    "switches": "Edition.DialectLevel >= 2002 gates the ordered-pair refusal COBOL2009 (2002+ SR1); at 85 the pair is not ordered",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandPass",
+    "switches": "IntegerOperandRules.Classify/ZeroMessage by edition.DialectLevel: the nonzero rule and its citation (§1985:III.2 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep BlockContains|FileDescriptionIdentity.Block over src (non-generated): the clause is read only by the binder, IntegerOperandPass and the external-agreement identity; no CodeGen or runtime member reads it, so the I-O path has no edition arm for it",
+  "behaviour-differs-by-edition": "no for this rule: the CHARACTERS phrase models nothing at any edition; the surrounding SR1 order check is 2002+ only",
+  "witnesses-cover": "part: g85_f18_01 covers DISPLAY/COMP/PACKED-DECIMAL in CHARACTERS on sequential files; not a block smaller than the record, a RECORD VARYING file, SIGN SEPARATE items, or a relative file",
+  "probes": [
+   {
+    "class": "a,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/blk01.cob",
+    "printed": "FA ABCDE -1234 -54321 -012 / FA VWXYZ +0032 +00007 +999 / FB 03 01 01Z / FB 10 08 08Q      Z / FB 17 15 15Q      Z      Z / FC C1 C2 END / FD D1 D2 END / FR R1 R2 END (blk01-003, exit 0)",
+    "expected": "every logical record read back as written, in order, then AT END; the physical block (3 CHARACTERS for a 12-character record, 10 TO 5 CHARACTERS on a varying file) not observable"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/blk02.cob",
+    "printed": "COBOL2386 BLOCK CONTAINS 0 CHARACTERS: the integer operand 0 shall be nonzero (§1985:III.2); BLOCK CONTAINS 5 with neither RECORDS nor CHARACTERS accepted",
+    "expected": "0 refused (§1985:III.2 integer neither signed nor zero); GR3 itself has no refusal half"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-120/blk01.cob",
+    "printed": "--std 2023 (blk01-004): COBOL2009 for 10 TO 5 and 100 TO 100 (§2023:13.18.10.3 SR1); at 85 both accepted",
+    "expected": "85 has no ordering syntax rule for the pair"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.3.3 GR3",
+    "check": "OK  §1985:VII.3.3.3 GR3  (3.3.3 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.3.3.3 GR1",
+    "check": "OK  §1985:VII.3.3.3 GR1  (3.3.3 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The host's sequential and relative connectors have no physical blocking, so the CHARACTERS unit governs nothing observable; the compiler screens the integers and leaves the I-O unchanged, which every probe confirms across usages and organizations. Lead outside this rule: BLOCK CONTAINS 5 with neither RECORDS nor CHARACTERS compiles at --std 85, while the 1985 format prints {RECORDS | CHARACTERS} in braces (row 1985-FMT-VII.3.3.2; grammar makes the pair optional); not rendered from the PDF here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Rendered PDF p397 (VII-23): the format is BLOCK CONTAINS [integer-1 TO] integer-2 {RECORDS | CHARACTERS} with RECORDS underlined and CHARACTERS not, so by §1985:IV.2.1.4 CHARACTERS is the implicitly selected default and BLOCK CONTAINS 7 alone means 7 CHARACTERS (the reader's lead that the omitted phrase under-rejects is wrong; accepting it is right). Probes at --std 85 under refute-1985-120/: blkrw.cob (report-file FD BLOCK CONTAINS 2 TO 132 CHARACTERS, and BLOCK CONTAINS 7 over an X(3)+COMP-3 record) exit 0, report lines 'ABC' twice, F6 XYZ -123 / PQR +045 read back; blkz2.cob BLOCK CONTAINS 0 TO 10 CHARACTERS and 0 TO 0 RECORDS each COBOL2386 (integer-1 zero refused too, not only integer-2); blkz.cob +2 refused COBOL0001/1970, 10.5 refused COBOL5506; blksd.cob BLOCK CONTAINS in an SD refused COBOL1970 (1985 SD format has no such clause). Read FileControlBinder.FileSection.cs#BindBlockContainsClause: the only edition arm is the 2002+ ordered-pair check; no CodeGen/runtime member reads the clause, which is right since the physical record is not observable. cite.py: 'OK  §1985:VII.3.3.3 GR3  (3.3.3 General Rules)  the text is in GR3'; 'OK  §1985:IV.2.1.4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in the clause'; 'OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

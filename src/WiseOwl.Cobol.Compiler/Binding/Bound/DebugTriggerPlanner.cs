@@ -237,7 +237,9 @@ internal static class DebugTriggerPlanner
     /// PAGE-COUNTER's receiving place carries the report's counter item.</summary>
     private static Hit? Find(Reach reach, BoundDebugTarget target)
     {
-        if (target.Item is { } item && reach.Places.FirstOrDefault(p => ReferenceEquals(p.Item, item)) is { } place) return new Hit(place);
+        // A reference is to the data-name it is written with, under any decoration (Place.NamedItem, kb/Work PB5801 review R1-1):
+        // a level-66 alias target is referenced by its own name, and the item it renames is not referenced by the alias's.
+        if (target.Item is { } item && reach.Places.FirstOrDefault(p => ReferenceEquals(p.NamedItem, item)) is { } place) return new Hit(place);
         return reach.Registers.Any(target.NamesRegister) ? new Hit(null) : null;
     }
 

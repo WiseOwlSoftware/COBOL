@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VIII.4.9.4-13",
+ "rule-digest": "5e1a1809cd36",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-030",
+  "sources": {
+   "reader": "6a54b92703dd89d91d8c2c8249243252dc12c32561af6395a54c23c9404933b8",
+   "refuter": "7153369b207d74fd7316f2cab1a1f5813e4a99b184d1b7973a87bc2b7478b0dc"
+  },
+  "imported": {
+   "reader": "3b69a81496aef2ff5a340980190cd773ce19719f11c1e0e98914278d7d089477",
+   "refuter": "309115767552e345478940ac43460543b1a4721fa6bf7d2aa1c8d7d60b4e8b68"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.9.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "For a relative file open I-O with RANDOM or DYNAMIC access, WRITE must insert the record area's content at the relative record number the program placed in the RELATIVE KEY item (not at a sequential number), leave the key item as the program set it, and refuse an occupied slot (22) or an out-of-boundary number (24 at 1985, per GR14/GR15 and VIII.1.3.4) with the record area unaffected.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SetRelativeKey; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteSharedInStatement; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#WriteAnyOrg; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehaviors.IsActive(DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError, Edition) (active from 2014): a random/dynamic key < 1 or > int.MaxValue answers '34' permanent error from 2014, '24' invalid key below it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterRelative",
+    "switches": "stores the compiled edition on the connector (FileConnector.Edition) that the gate above reads",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Edition.Year < 2002): §1985:VIII.4.9.3 SR3 requires INVALID KEY or an applicable USE on a relative WRITE (COBOL6826); not part of GR13's semantics",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehavior|Edition|CobolVersion over RelativeConnector.cs, KeyedConnector.cs, FileRegistry.cs write path and KeyedIoEmitter.cs (KeyedIoEmitter consults none).",
+  "behaviour-differs-by-edition": "yes: only the out-of-range key (0) differs: 24 invalid key at 85, 34 permanent error (sticky) at 2023; the insertion itself is the same code at every edition",
+  "witnesses-cover": "part: the witness covers DYNAMIC access into empty slots only; RANDOM access, a COMP key item, a duplicate slot, key 0 and the largest key value are not exercised",
+  "probes": [
+   {
+    "class": "b,d,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p13rand.cob",
+    "printed": "W0 48 / W7 OK / W7 00 0007 / W3 00 0003 / WD INVALID / WD 22 DUPL +099 / WZ INVALID / WZ 24 ZERO / W9 00 / R7 00 R007 -012 / R3 00 R003 +033 / R9 00 R9K9 / R4 INVALID / R4 23 / SN INVALID / SN 24 / S5 00 05",
+    "expected": "RANDOM I-O inserts at 7, 3 and 9999 (key unchanged), read back by key; slot 4 absent (23); duplicate 7 -> 22 with INVALID KEY and record area unaffected (GR14 a, GR15); key 0 -> 24 (GR14 b); WRITE before OPEN -> 48"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p13rand.cob (--std 2023)",
+    "printed": "WZ 34 ZERO, then 34 on every later statement on the file",
+    "expected": "the 2023 arm (GR29 b) '34'); shows the 85 arm differs and is the 1985 text's '24'"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-030/p5fpi.cob",
+    "printed": "W3 00 0003 / W5 00 then READ NEXT 0005 W05",
+    "expected": "DYNAMIC I-O inserts at the key the program set"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.4 GR13",
+    "check": "OK  §1985:VIII.4.9.4 GR13  (4.9.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VIII.4.9.4 GR14",
+    "check": "OK  §1985:VIII.4.9.4 GR14  (4.9.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:VIII.4.9.4 GR15",
+    "check": "OK  §1985:VIII.4.9.4 GR15  (4.9.4 General Rules)  the text is in GR15"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c"
+   }
+  ],
+  "notes": "KeyedIoEmitter.EmitWrite stages the RELATIVE KEY value through FileSetRelativeKey for random/dynamic access and does not move a number back (only the sequential arm does); RelativeConnector.Write takes _pendingKey as the slot. The one edition arm (key out of range) takes the 1985 '24'.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same insertion behaviour; key 0 answers 34 instead of 24",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.9.4-13",
+  "refutation": "UPHELD",
+  "classes": "b,c,e,f",
+  "evidence": "Probes at --std 85 under refute-1985-030: rfpi.cob (DYNAMIC I-O: WRITE 2 -> 00 key 002; DELETE 5 then WRITE 5 -> 00, READ NEXT gives NEW005: a vacated slot is not 'a record which already exists'); rbig.cob (RANDOM I-O, PIC 9(10) COMP-3 key: 2147483647 -> 00 and read back BIG1, 2147483648 -> INVALID KEY 24 with key and record area unchanged, RBIG.REL 28 KB so the store is sparse); rlock.cob (WRITE ... WITH NO LOCK, a 2002 phrase, refused at 85: COBOL0900). RelativeConnector.Write takes _pendingKey as the slot; the only edition switch on the random arm is RelativeWriteKeyOutOfRangeIsPermanentError (24 below 2014), which the reader listed. cite.py: OK §1985:VIII.4.9.4 GR13 'records are to be inserted in the associated file'; OK §1985:VIII.4.9.4 GR14; OK §1985:VIII.1.3.4 (GRL2.3c, status 24).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

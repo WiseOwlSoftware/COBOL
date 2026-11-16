@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-4",
+ "rule-digest": "c458ad37989c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-100",
+  "sources": {
+   "reader": "9e5378ca97e05fd5bba8e43b47606534d2137f69cec1c0ac4622461e31655677",
+   "refuter": "d533c8ba750d4760f54937eb28a6e16e363a8fe9911fbefaff634446f6c2abe6"
+  },
+  "imported": {
+   "reader": "1562a503c516432d88e127a0127aa50d4e0b6a7134dc12e13b63c6cd55cc5319",
+   "refuter": "5f0fa92211f304e6f4d117216e52f0422ee5f9f36d61059a54c01872e5a69497"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a USE names file-name-1 explicitly, only that declarative may run for an exception on that file, whatever its organization, access mode, and the open mode it is in or being opened in, and whatever INPUT/OUTPUT/I-O/EXTEND USE also exists.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "refuses USE Format 3/4 (EC model, COBOL0877) and Format 1 without AFTER/PROCEDURE below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter to an EC-free __RunUse; 1985 takes the bare try/finally invoker (same dispatch, same return to the caller)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "UseTierEmitter.EmitScopeTiers (file-name tier then open-mode tier), DispatchEmitter.EmitUseMachinery (__IoCheck), ProgramEmitter.EmitRunGlobalUse/ChainHasGlobalUse consult no edition: grep of Edition|CobolVersion|DialectLevel|DialectBehavior|IsAtLeast over DispatchEmitter.cs, UseTierEmitter.cs, EcEmitter.cs, ProgramEmitter.cs, SequentialIoEmitter.cs, KeyedIoEmitter.cs, IoStatusClass.cs, ProcedureTableBuilder.cs; UseTierEmitter's remarks record the tiers as edition-invariant by determination (kb/Work PB344). The file-name tier's switch (__f) returns before the mode tier is reached.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_03 exercises the named files open I-O (WRITE 22) and INPUT (READ 10); not OUTPUT, EXTEND, a failed OPEN, a relative file, or START",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr4_explicit.cob",
+    "printed": "USE-FILES STEP 01..07 before each step line; statuses 21 (OUTPUT out of order), 21 (EXTEND low key), 10 (INPUT at end), 22 (relative OUTPUT dup), 23 (relative I-O missing), 35 (failed OPEN INPUT, sequential), 23 (START missing); no mode USE line",
+    "expected": "only the explicit file USE runs, in every mode and organization"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr4_dup.cob",
+    "printed": "COBOL0897: file 'IX-A' already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)",
+    "expected": "§1985:IX.4.8.3 SR3 refusal of one file-name in two USE statements"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.4.8@1985-USE-STATEMENT/g85_bf28_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.4 GR4",
+    "check": "OK  §1985:IX.4.8.4 GR4  (4.8.4 General Rules)  the text is in GR4",
+    "quoted": "no other USE statement applies to file-name-1"
+   },
+   {
+    "cite": "§1985:IX.4.8.3 SR3",
+    "check": "OK  §1985:IX.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3",
+    "quoted": "The same file-name must not appear in more than one USE AFTER EXCEPTION statement"
+   }
+  ],
+  "notes": "The file-name tier is emitted first and each case returns, so a mode USE can never run for a named file. COBOL0897's message cites §2023 at --std 85, a citation-label nit outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.8.4-4",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,e",
+  "evidence": "r1_prec.cob (r1_prec-001): the container R1OUT has USE GLOBAL ... ON GF (GF is an FD IS GLOBAL file) and contained R1C has USE ... ON INPUT. C's READ of GF (open INPUT, key absent) printed C-INPUT then C RESUMED 23: the compiler ran C's mode declarative for a file another USE names explicitly. GR4 read literally ('no other USE statement applies to file-name-1') and GR5b's own exception ('except those files referenced by file-name-1 in another USE statement specifying the same condition') both say C's INPUT declarative does not apply to GF, so it does not qualify and X.5.5.4 GR1b selects OUTER-GF-NAMED. The compiler's reading is that GR4/GR5b reach only USE statements of the same Procedure Division (as the corrected SR3 is scoped: 'within the same Procedure Division') and X.5.5.4 GR1a then picks C's own declarative first. The 1985 text does not settle which. Within one program the reader's verdict holds: every single-program probe and r5_named.cob (r5_named-001: named USE runs for 47/48/46 and no mode USE exists) agree. cite.py: 'OK  §1985:IX.4.8.4 GR4  (4.8.4 General Rules)  the text is in GR4' for 'no other USE statement applies to file-name-1'; 'OK  §1985:IX.4.8.4 GR5b  (4.8.4 General Rules)  the text is in GR5b' for 'except those files referenced by file-name-1 in another USE statement specifying the same condition'; 'OK  §1985:X.5.5.4 GR1a  (║5.5.4 General Rules║)  the text is in GR1a' for 'The declarative within the program that contains the statement which caused the qualifying condition'; 'OK  §1985:IX.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3'. No kb/Work note found (grep 'USE GLOBAL.{0,120}(file-name|named)').",
+  "edition-sites-missed": [],
+  "corrected": "Undecided between two readings: if GR4 binds across programs, C-INPUT is wrong (expected OUTER-GF-NAMED 23) and the verdict is non-conforming (wrong-answer, cause b: UseTierEmitter.EmitScopeTiers selects the program's own tiers before the GLOBAL walk at every edition). If GR4 is scoped to its own Procedure Division, CONFORMS stands."
+ },
+ "work": "PB5812"
+}

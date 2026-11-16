@@ -1,0 +1,57 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-2",
+ "rule-digest": "f8e901a03688",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-095",
+  "sources": {
+   "reader": "9a2ce2b731564d79fdb18fed5634bd5b41a2329f4f9a6f0d1eaeafa5176eaa61",
+   "refuter": "c1b6810ed6330f619b4728026e7f448015f803896c57f72d4a002cb599b888ab"
+  },
+  "imported": {
+   "reader": "749531892db5a60c16f44bc3a90ec56463607fb69b9e6f81481f9820b39d66dc",
+   "refuter": "0766f75663299b2b097bfab7b60542e07b100af2f0c9ae4d2d9181d170a3c323"
+  }
+ },
+ "reader": {
+  "verdict": "CONFORMS",
+  "edition-search": "grep -n 'Edition|DialectLevel' in LinkageBinder.cs (only the diagnostic sink data.Edition) and FileModel.IsExternal; the rebasing onto the cell keyed FD::<externalized name> in CallBindExternalAndGlobal is edition-free",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.4.4-2",
+  "requirement": "At --std 85 a successful OPEN makes the file's record area available, and an EXTERNAL file connector has one record area for the whole run unit, shared by every program (contained or separately compiled) that describes the connector, whatever its record descriptions are named.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsExternal",
+  "edition-consulted": [],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf24_03 covers a contained program with identical record descriptions in random access; separately compiled programs, differently named or shaped records and several 01 entries are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p2.cob",
+    "printed": "SUB-SEES=K001MAIN01; MAIN-SEES=K003SLAST3 K003SLAST3; R1=K002SUBW02; SUB2-READ=K003SLAST3; END; R3=K003SLAST3",
+    "expected": "three separately compiled programs (not nested), with different record names and shapes and two 01s in the caller, share one area: the sub sees the caller's MOVE, the caller sees the sub's, and a READ in a second sub fills the caller's area (the connector is shared too)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR2",
+    "check": "OK  §1985:IX.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "CallBindExternalAndGlobal rebases an EXTERNAL FD's character records onto one run-unit cell keyed FD::<externalized file name>, so every describer aliases one area. A first attempt with different RECORD KEY data-names was refused COBOL6847 citing §1985:IX.2.3.4 GR1 f (same data description entry for data-name-1), the 1985 consistency rule, not this one."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe r2c.cob (class c, a later edition's FD ... IS EXTERNAL AS literal): refused at 85, COBOL0900 'the AS externalized-name phrase requires COBOL-2002 (targeting COBOL-85)'. The reader's p2 probe (three separately compiled programs, different record names and shapes, two 01s, one shared area and connector) stands; no edition site on the rebasing path (LinkageBinder.CallBindExternalAndGlobal). cite.py: OK §1985:IX.4.4.4 GR2 'only one record area associated with the file connector'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

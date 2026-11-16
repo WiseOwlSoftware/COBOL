@@ -5,6 +5,7 @@ a reader and a refuter (kb/Work PB5759, PB5683, PB5692; DESIGN-spec-conformance-
     python scripts/spec/code_reads.py import --edition YEAR --reads DIR --pin COMMIT [--record DIR] [--replace]
     python scripts/spec/code_reads.py work --edition YEAR RULE-ID PBnnnn          # the mechanism note of a record
     python scripts/spec/code_reads.py adjudicate --edition YEAR RULE-ID --verdict V --reason TEXT --ref PATH [--work PBnnnn]
+    python scripts/spec/code_reads.py withdraw --edition YEAR RULE-ID --reason TEXT  # remove a read defective as a read
     python scripts/spec/code_reads.py plan --edition YEAR [--witnessed] [--json]  # the KEPT rows still owed a read
     python scripts/spec/code_reads.py --check [YEAR]                              # the gate's CODE READS audit
 
@@ -27,8 +28,10 @@ kb/Work note of the mechanism, required of a contradicted record; written by `wo
 record must carry is `READER_REQUIRED` and `reader_problems`, decided field by field from the reader brief; a missing or
 malformed required field refuses the whole import, naming the slice, the rule and the field.
 
-TWO ACCEPTANCES beyond the inventory's shape (kb/Work PB5759, the Mythos lane's decision of 2026-11-15: nothing is read twice
-and no fact is dropped). (1) A REMARK AFTER A LOCATION: a `code-location` entry may be `path#Member (a remark)`, one
+THREE ACCEPTANCES beyond the inventory's shape (kb/Work PB5759, the Mythos lane's decision of 2026-11-15: nothing is read twice
+and no fact is dropped; PB5842 the third). (3) A CITATION OF ANOTHER HELD EDITION is accepted and checked against its own
+edition's text (`citation_problems`), beside at least one citation of the rule's own edition, of the edition its catalog
+citation names, or of `§1989:`; a read that cites only another edition is refused, naming the rule. (1) A REMARK AFTER A LOCATION: a `code-location` entry may be `path#Member (a remark)`, one
 parenthesised remark after white space (`take_remarks`); the record holds the location list in the inventory's shape and the
 remarks in the reader's `location-remarks` map, location to remark, and the remark decides nothing. (2) A READER WHO DID NOT
 DECIDE: the verdict `UNDECIDED` is accepted as "no verdict" (`code_read_store.READER_UNDECIDED`): the record is `undecided`.
@@ -40,8 +43,8 @@ imports (`code_read_store.py`, whose docstring says why the code reads are two f
 
 THE AUDIT (`--check`, the gate's CODE READS) reads every store of an older held edition and is RED on: a record that does
 not parse to the shape (`record_problems`, the import's own checks); a rule the edition does not have; a citation that
-does not parse (`citation.parse`), is of another edition than the rule's own (or the amendment's for an amendment rule,
-as the catalog's own `citation` names it), or does not check (`cite.resolve`); a code-location of no inventory shape
+does not parse (`citation.parse`), is of an edition the repository does not hold, does not check (`cite.resolve`), or a
+read none of whose citations is of the rule's own edition, its catalog citation's or `§1989:`; a code-location of no inventory shape
 (`inventory_schema.witness_shape_error`); a held part edited since its import; a digest of the wrong shape; an
 adjudication whose `ref` is no file of the tree; a contradicted record whose `work` is no note of kb/Work. Stale, undecided
 and owed are counted, never red. That every site of a code-location still RESOLVES is the battery gate's question, asked
@@ -148,17 +151,23 @@ def _text(case: dict[str, Any], key: str, required: bool) -> str | None:
     return None
 
 
-def citation_problems(cites: Any, rule: dict[str, Any], year: int) -> list[str]:
-    """Why a reader's `citations` do not stand: each a `{cite, check}` whose `cite` parses (`citation.parse`), is of the
-    rule's own edition (`year`, or the edition the catalog's own `citation` of the rule names: the amendment's `§1989:` for
-    an amendment rule) and checks (`cite.resolve`, the structure: clause, rule list, ordinal, sub-item)."""
+def citation_problems(cites: Any, rule: dict[str, Any], year: int, held: Iterable[int] = ()) -> list[str]:
+    """Why a reader's `citations` do not stand: each a `{cite, check}` whose `cite` parses (`citation.parse`), is of a text
+    the repository holds and checks (`cite.resolve`, the structure: clause, rule list, ordinal, sub-item). THREE EDITIONS
+    ANCHOR a read: the rule's own (`year`), the one the catalog's own `citation` of the rule names, and the 1989 amendment
+    (`§1989:`); a read must carry at least one citation of them, because a read that cites only another edition judged
+    nothing by its own text. A citation of ANOTHER held edition (`held`, the schema's years) is accepted beside them and is
+    checked against its own edition's text exactly as the others are (kb/Work PB5842: a defect wrong at 2023 too is cited
+    at 2023)."""
     if not isinstance(cites, list) or not cites:
         return [f"`citations` must be a non-empty list of {{cite, check}}, not {cites!r}"]
-    own = {year}
+    anchors = {year, 1989}
     try:
-        own.add(citation.parse(rule["citation"]).edition)
+        anchors.add(citation.parse(rule["citation"]).edition)
     except (KeyError, citation.CitationError):
         pass   # a catalog row with no citation of its own: only the edition's
+    allowed = anchors | set(held)
+    anchored = False
     out = []
     for c in cites:
         if not isinstance(c, dict) or (bad := _text(c, "cite", True) or _text(c, "check", True)):
@@ -169,11 +178,17 @@ def citation_problems(cites: Any, rule: dict[str, Any], year: int) -> list[str]:
         except citation.CitationError as e:
             out.append(f"citation {c['cite']!r} does not parse: {e}")
             continue
-        if parsed.edition not in own:
-            out.append(f"citation {c['cite']!r} is of {parsed.edition}, not of the rule's own text ({sorted(own)})")
+        if parsed.edition not in allowed:
+            out.append(f"citation {c['cite']!r} is of {parsed.edition}, an edition the repository does not hold "
+                       f"({sorted(allowed)})")
             continue
         if (v := cite.resolve(parsed)).kind != "ok":
             out.append(f"citation {c['cite']!r} does not check: {v.kind}: {v.message}")
+            continue
+        anchored = anchored or parsed.edition in anchors
+    if not anchored and not out:
+        out.append(f"no citation is of the rule's own text ({sorted(anchors)}): a read that cites only another edition "
+                   f"judged nothing by {rule.get('rule-id', 'its rule')}'s own text")
     return out
 
 
@@ -302,7 +317,8 @@ def reader_problems(case: Any, ctx: Context) -> list[str]:
     if not isinstance(case.get("seeded"), bool):
         out.append(f"`seeded` must be a boolean (the case's own value), not {case.get('seeded')!r}")
     if rule is not None:
-        out += citation_problems(case.get("citations"), rule, ctx.ed.year)
+        out += citation_problems(case.get("citations"), rule, ctx.ed.year,
+                                 [e.year for e in ctx.schema.all_editions if e.held])
     if verdict in ctx.schema.verdicts and verdict != CONFORMS:   # an UNDECIDED reader owes no defect
         out += [e for k in NONCONFORMING_TEXT if (e := _text(case, k, True))]
         if (case.get("cause") or "").strip() not in CAUSES:
@@ -583,6 +599,16 @@ def adjudicate(ctx: Context, directory: pathlib.Path, rid: str, verdict: str, re
     return records
 
 
+def withdraw(ctx: Context, directory: pathlib.Path, rid: str, reason: str) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    """The store without `rid`'s record, and the record removed. For a read that is defective AS A READ (a location that
+    resolves nowhere), never for one someone disagrees with (`adjudicate`); the row is owed a read again (kb/Work PB5842)."""
+    if not reason.strip():
+        raise SystemExit(f"{TOOL}: withdraw {rid}: --reason is empty")
+    records, record = _one(ctx, directory, rid)
+    del records[rid]
+    return records, record
+
+
 # -- the plan, the counts, the audit ----------------------------------------------------------------------------------------
 
 def owed(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
@@ -646,6 +672,10 @@ def main(argv: list[str] | None = None) -> int:
     ad.add_argument("--ref", required=True, help="the tracked file that decides it (repository-relative)")
     ad.add_argument("--work", help="the kb/Work note of the mechanism (required of a verdict that is not CONFORMS)")
     ad.add_argument("--replace", action="store_true")
+    wd = sub.add_parser("withdraw", help="remove the record of a read that is defective as a read (its row is owed again)")
+    wd.add_argument("--edition", type=int, required=True)
+    wd.add_argument("rule")
+    wd.add_argument("--reason", required=True)
     pl = sub.add_parser("plan", help="the KEPT rows still owed a read: what the campaign's slices are built from")
     pl.add_argument("--edition", type=int, required=True)
     pl.add_argument("--witnessed", action="store_true", help="only the rows that carry a test-ref of their own")
@@ -676,6 +706,12 @@ def main(argv: list[str] | None = None) -> int:
               + " · ".join(f"{by.get(o, 0)} {o}" for o in OUTCOMES))
         for rid in replaced:
             print(f"  replaced the earlier record of {rid}")
+        return 0
+    if a.cmd == "withdraw":
+        records, removed = withdraw(ctx, tracked, a.rule, a.reason)
+        store.write(records, tracked)
+        print(f"withdraw {a.rule}: removed the record of slice {removed['read']['slice']} at pin {removed['read']['pin']} "
+              f"({outcome(removed, ctx)}); reason: {a.reason.strip()}; the row is owed a read again")
         return 0
     if a.cmd == "work":
         store.write(attach_work(ctx, tracked, a.rule, a.note), tracked)

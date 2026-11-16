@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-7",
+ "rule-digest": "4995d26f25ee",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-023",
+  "sources": {
+   "reader": "2a1b9ce771cb26875d4537a3ada881b7fa908e3c37f01e788153bb24311ccd4c",
+   "refuter": "bfe58dd96295a9a99e558e5cd0636af6b9ca2168b0e8e14aa3571a83c253fa28"
+  },
+  "imported": {
+   "reader": "66e4c0149392fe130c3aab745c6d6ed068090aedd9048df8ffb15665ce652bd3",
+   "refuter": "ea41c7dc7655240e1400368ca0aae77af51465dd5f0301079a11b3a882d448ca"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the values of data-name-1/-3/-4 are read when OPEN OUTPUT executes (first logical page) and again when a WRITE ADVANCING PAGE executes or a page overflow occurs (next logical page), and a change between those times does not affect the current page.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#LinageOpExpr; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage",
+  "edition-consulted": [],
+  "edition-search": "Same greps as GR6: no Edition / CobolVersion / DialectBehavior read on the emitter's LinageArg/LinageOpExpr or the connector's page methods. The data-name values ride each statement's LinagePage argument and are adopted only in BeginLinagePage (OPEN OUTPUT) and BeginNextLogicalPage (ADVANCING PAGE, overflow).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb526 changes data-name-1 to 0 before an overflow (the violation half); a valid change of body, top and bottom margins taking effect only on the next page, after OPEN and at ADVANCING PAGE, is exercised only by the probes.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk1.cob",
+    "printed": "OPEN with body 4/top 1/bottom 1, then MOVE body 2/top 0/bottom 2: W01 LC=2, W02 LC=3, W03 LC=4, W04 overflow LC=1, W05 LC=2, W06 overflow LC=1; file bytes \\r\\n(top 1)\\r\\n 01 02 03 \\r\\n(bottom 1) 04 05 \\r\\n\\r\\n(bottom 2) 06 (no top margin)",
+    "expected": "page 1 uses OPEN-time values 4/1/1 (GR7a); page 2 on uses the values at the overflow, 2/0/2 (GR7b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk2.cob",
+    "printed": "body 5 at OPEN, MOVE body 3 top 1 then WRITE AFTER ADVANCING PAGE: PAGE LC=001, bytes \\r\\n(top 1) PG; next overflow after 3 body lines (W07 LC=1)",
+    "expected": "values at ADVANCING PAGE apply to the next logical page (GR7b)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk2.cob",
+    "printed": "body 1 with footing 2 at BEFORE ADVANCING PAGE: record presented (overprint on the open line), rest of body travelled, then FS=90 LC=000",
+    "expected": "re-read at the page transition after positioning on the current page; invalid values undefined at 1985"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/lnk2.cob",
+    "printed": "COMP-3 page-size and COMP footing operands give body 5/footing 5 as stored",
+    "expected": "unsigned integer items of any usage are read by value"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR7a",
+    "check": "OK  §1985:VII.3.7.4 GR7a  (║3.7.4 General Rules║)  the text is in GR7a [quote: are used to specify the number of lines that are to comprise each of the indicated sections for the first logical page]"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR7b",
+    "check": "OK  §1985:VII.3.7.4 GR7b  (║3.7.4 General Rules║)  the text is in GR7b [quote: are used to specify the number of lines that are to comprise each of the indicated sections for the next logical page]"
+   }
+  ],
+  "notes": "Measured on the medium: the page after an overflow takes the new body, top and bottom margins and the page in progress keeps the old ones (its bottom margin is the old 1). ADVANCING PAGE goes through the same BeginNextLogicalPage, so one transition serves both GR7b times.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output, byte-identical print files",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,f",
+  "evidence": "BeginNextLogicalPage travels the rest of the OLD page (old body, old bottom) before EvaluateLinage adopts the new values; the overflow decision in PositionOnLogicalPage uses the old _pageBody. Probe rl1.cob at --std 85: shrinking data-name-1 from 6 to 2 while the counter is at 6 does not overflow the current page (A5 ADVANCING 0 stays LC=6), the next overflow adopts body 2 (A7 LC=2, A8 overflows to LC=1). rl2.cob: data-name-3 top 2 at OPEN, changed to 0 before the first WRITE, still gives page 1 two top lines and later pages none (GR7a/GR7b). cite.py: OK §1985:VII.3.7.4 GR7b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

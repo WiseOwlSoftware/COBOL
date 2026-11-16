@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.4-1",
+ "rule-digest": "0e44d573b3ab",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-038",
+  "sources": {
+   "reader": "f3b868e25767543825ae53dd3a4e4af7e83b7881dfd29be45762d6d448c0beb2",
+   "refuter": "e30ccc4e1b9ad9e6428a667465d43f8ee6c7eb14c985ef145f14d12cf4b5c867"
+  },
+  "imported": {
+   "reader": "409841974aa45da34cb14d9edb11b25af8473481941264653e74fd215b959097",
+   "refuter": "cc15b0c09ab6b2b7f6ad0b7f27aef3a9f7eabbb19ceeb2d72f60918cacf57602"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-XIII.3.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "GR1 is a presentation pointer: the RD admits the CODE, CONTROL and PAGE clauses (each specified by its own clause from XIII-14 on), and with SR2 they may follow report-name-1 in any order, each once; the compiler must accept every order and give each clause its own semantics.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportCodeClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause",
+    "switches": "Edition.DialectLevel < 2002 refuses the identifier-1 operand (COBOL2713); 2002+ accepts it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Screen85CodeLiteral",
+    "switches": "below 2002 literal-1 must be exactly two characters (1985 SR1); 2002+ any length",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportCodeClause",
+    "switches": "ConstructRegistry report-code-is-2002: the word IS after CODE refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#ReservedWords",
+    "switches": "CODE reserved at all four editions",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "2002 PAGE forms (LAST CONTROL HEADING, COLUMNS) refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the CODE clause is CODE literal-1 (no IS, no identifier, two characters) and the PAGE clause lacks LAST CH / COLUMNS; the clause ordering itself is edition-neutral (grammar reportDescriptionClause*, binder UnrepeatedElements)",
+  "witnesses-cover": "part: the witness writes CODE alone; CODE/CONTROL/PAGE together in a non-alphabetical order and a repeated clause are not exercised",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p1code.cob",
+    "printed": "RD with PAGE, then CONTROL, then CODE \"Q7\" accepted; L01 [Q7  PH] L02 [Q7DET 1  02] L03 [Q7DET 2  03] L04 [Q7CF] L05 [Q7DET 3  05] <FF> L06 [Q7  PH] L07 [Q7DET 4  02] L08 [Q7CF]",
+    "expected": "order immaterial (SR2); each clause takes effect"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p16rep.cob",
+    "printed": "COBOL2423 RD 'R-A': the CODE clause is written 2 times",
+    "expected": "each clause a bracket written once"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p14lch.cob",
+    "printed": "COBOL0900 the LAST CONTROL HEADING phrase of the PAGE clause requires COBOL-2002",
+    "expected": "refused: not in the 1985 PAGE format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p15col.cob",
+    "printed": "COBOL0900 the page width (COLS or COLUMNS) requires COBOL-2002",
+    "expected": "refused: not in the 1985 PAGE format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.4 GR1",
+    "check": "OK  §1985:XIII.3.5.4 GR1  (3.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.5.3 SR2",
+    "check": "OK  §1985:XIII.3.5.3 SR2  (3.5.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The rule places no behaviour of its own; it is decided by showing the three clauses are accepted at 85 in a non-alphabetical order with their effects intact, a repeat is refused, and 2002-only phrases inside them are refused."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r1order.cob (refute-1985-038/r1order-001): two RDs on one file; R-A written CONTROLS ARE FINAL WS-K, CODE \"AA\", PAGE 8 with no LIMIT/LINES word and the PAGE phrases in the order FOOTING, LAST DETAIL, HEADING, FIRST DETAIL; R-B written PAGE LIMITS ARE 5 LINE, CODE, CONTROL IS. Output: R-A PH 1, D A 2-3, CF 4, D B 5-6, page advance (6+1>LD 6), PH 1, D B 2, CF 3, CZ 4; R-B E 1-2, CB 3, E 4-5, page advance, E 1, CB 2; every record carries its report's code. Each clause took its own effect in every order. Refusals: r1big PAGE 1000 LINES -> COBOL2744 (SR2 of PAGE); r1dup two PAGE clauses -> COBOL2423; r1ctl CONTROL then CONTROLS -> COBOL2423. cite.py: OK §1985:XIII.3.5.4 GR1; OK §1985:XIII.3.5.3 SR2; OK §1985:XIII.3.8.3 SR1. The IPC format (X-22, 4.4.2) adds only IS GLOBAL, which the reader's p11glob already ran.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

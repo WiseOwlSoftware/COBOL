@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-VII.3.7.3-1",
+ "rule-digest": "9fc11e8c6078",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-063",
+  "sources": {
+   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
+   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+  },
+  "imported": {
+   "reader": "0c9c4693786ccdf2e55da8ec4fa3c9bf8657fad5b3942196bdc593d08b608f4d",
+   "refuter": "d41ef4feaaee3c63876e45eff3435c1348dbf60519771dfb9d89668e277422e8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every data-name operand of LINAGE (page body, FOOTING, TOP, BOTTOM), qualified or not, must be refused unless it references an elementary unsigned numeric integer data item: a group, a non-numeric (alphanumeric, numeric-edited) item, an index item, a fractional item and a signed item are each refused at compile time.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#LinageOperandShapeFault; src/WiseOwl.Cobol.Compiler/Binding/LinageClauseRules.cs#Operand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Rule1985.cs#CitationAt (via LinageClauseRules.Operand)",
+    "switches": "only the citation text: below 2002 the diagnostic cites ANSI §1985:VII.3.7.3 SR1 instead of §2023:13.18.34.3 SR2",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read ResolveLinage and LinageOperandShapeFault whole: the screen itself has no edition test; the only Edition use is Edition.Error/At (diagnostic sink) and the CitationAt citation switch.",
+  "behaviour-differs-by-edition": "no (only the cited designation; 2023 adds its own SR1 no-OCCURS rule, which also fires at 85)",
+  "witnesses-cover": "part: pb524_linage_operand_shapes witnesses only the legal side (DISPLAY and COMP unsigned integers); the refusal half (group, alphanumeric, edited, index, fractional, signed) is covered by the probes here",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_bad.cob",
+    "printed": "COBOL2025 x6: G-GRP 'a group item, not an elementary item'; A-ALN 'category-alphanumeric item, not a numeric data item'; S-SGN (FOOTING) 'signed numeric data item'; V-FRC (TOP) 'digits to the right of the decimal point'; I-IDX (BOTTOM) 'index data item'; E-EDT 'category-numeric-edited item'; each cites ANSI §1985:VII.3.7.3 SR1 (plus an unrelated COBOL0900 for the probe's numeric VALUE on the edited item)",
+    "expected": "each operand refused: must reference elementary unsigned numeric integer data items"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_ok.cob",
+    "printed": "LC 003 (qualified DISPLAY, COMP and COMP-3 unsigned integer operands, TOP/BOTTOM 0, accepted and run)",
+    "expected": "accepted (SR1 met, SR2 qualification allowed); LINAGE-COUNTER 3 after two WRITEs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_occ.cob",
+    "printed": "COBOL2024 'T-L (2)' written with a subscript; COBOL2025 'T-L' subject to an OCCURS clause (cites ISO §2023:13.18.34.3 SR1)",
+    "expected": "both refused: the 1985 format prints data-name (qualified only, SR2) and an unsubscripted table element reference is illegal (§1985:IV.4.3.8.2.3 SR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_bad.cob (--std 2023)",
+    "printed": "the same six COBOL2025 refusals",
+    "expected": "same arm as latest"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.3 SR1",
+    "check": "OK  §1985:VII.3.7.3 SR1  (║3.7.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VII.3.7.3 SR2",
+    "check": "OK  §1985:VII.3.7.3 SR2  (║3.7.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.2.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.2.3 SR4  (4.3.8.2.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "One screen serves every edition; at 85 the citation is the 1985 one. The OCCURS refusal of an unsubscripted table element is correct at 85 (IV.4.3.8.2.3 SR4) but cites ISO §2023:13.18.34.3 SR1, a rule 1985 does not print (cosmetic citation drift, not a verdict on this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.7.3-1",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-063/lin_r1.cob --std 85 --compile-only: BLANK WHEN ZERO PIC 99 refused COBOL2025 'category-numeric-edited' (correct by §1985:VI.5.4.4 GR2), PIC PP9 refused (fractional), level-88 refused COBOL1639, SIGN LEADING SEPARATE refused (signed); the 66 RN-66 RENAMES C-W (C-W PIC 99, WS) accepted by the screen. refute-1985-063/lin_r3.cob (FD F3 LINAGE IS RN-66 LINES WITH FOOTING AT 2 ..., OPEN OUTPUT, two WRITEs) --std 85 --run: EXIT 1, 'Unhandled exception: System.InvalidOperationException: no Place was built for data item 'RN-66' when binding finished' at SequentialIoEmitter.LinageOpExpr (line 675) from EmitOpen; identical at --std 2023 (lin_r3-002). The same RENAMES item works as a MOVE/DISPLAY operand (ren_disp.cob: 'RN 03 N 03'), so the crash is the LINAGE operand path. lin_r2.cob: LINAGE 9 FOOTING AT 010 refused, LINAGE 010 FOOTING 9 accepted (numeric compare). cite.py: OK §1985:VII.3.7.3 SR1 'must reference elementary unsigned numeric integer data items'; OK §1985:VI.5.11.4 GR2 'all of the data attributes of data-name-2 become the data attributes for data-name-1'; OK §1985:VI.5.11.3 SR4 (66 may rename an elementary item of the record); OK §1985:VI.5.4.4 GR2.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#PlaceableItems: the item set the PlaceTable is built from (no edition switch) omits a level-66 RENAMES item, so a LINAGE data-name that resolves to one has no Place"
+  ],
+  "corrected": "NON-CONFORMING (crashes, rejects-legal-source; cause b, same at 2023): a LINAGE data-name operand that is a 66-level RENAMES of one elementary unsigned integer item is legal under SR1 (VI.5.11.4 GR2 gives it data-name-2's attributes) and passes the screen, but code generation throws in SequentialIoEmitter.LinageOpExpr because places.Of(RN-66) has no entry. Repro: refute-1985-063/lin_r3.cob. No kb/Work note found (PB978, PB5658, PB2548 checked; none covers it)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "THE COMPILER CRASHES ON LEGAL SOURCE. A level 66 item that renames one elementary item, named as FILE STATUS, LINAGE, DEPENDING ON, RELATIVE KEY or a report CONTROL, ends the compiler with an unhandled `System.InvalidOperationException` (\"no Place was built for data item\"), at 85 and at 2023, with no COBOL diagnostic. Each use is legal: \"all of the data attributes of data-name-2 become the data attributes for data-name-1\" (`§1985:VI.5.11.4 GR2`). I ran the FILE STATUS case. Not probed: SORT and MERGE keys, SUM operands, RECORD KEY. For `1985-SR-XIII.3.7.3-2` the row's own check is right for every operand that compiles.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5801"
+}

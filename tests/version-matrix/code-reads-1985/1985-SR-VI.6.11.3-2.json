@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VI.6.11.3-2",
+ "rule-digest": "5bf79201b988",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "2b1239080389458b7064571fe3cf00aae630d1f5ed6fb003391cc8f73d6366dd",
+   "refuter": "8769c0e63ff005e01ca60dc86714daa0eab5662b76134881df993ca8bfe4cf2c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.11.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every literal operand of DIVIDE formats 1-5 (literal-1 and literal-2) must be a numeric literal or, by §1985:IV.4.2.2.2.3, the figurative constant ZERO/ZEROS/ZEROES (ALL being redundant at 1985); a nonnumeric literal, ALL literal, SPACE, HIGH-VALUE, LOW-VALUE, QUOTE or symbolic-character is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsNumeric",
+    "switches": "ConstructRegistry figurative-all-zero-numeric-removed-2002: ALL ZERO as a numeric-literal operand is accepted at 1985 (ALL redundant) and refused with COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: ALL ZERO(S) in a literal slot is accepted at 1985 and refused at 2023; every other operand class is treated alike",
+  "witnesses-cover": "part: pb155-divide-figurative (SPACE in format 1) and pb155-add-string-literal (ADD, not DIVIDE); not exercised: literal-2 slots, formats 2-5, HIGH/LOW-VALUE, QUOTE, ALL literal, symbolic-character, ZERO and ALL ZERO acceptance",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c6ok.cob",
+    "printed": "F1 +0025.00 / F1N -0010.00 / SIZE ZERO / SZ2 / F2 +0002.50 / F3 +0002.50 2.50 / F4 +0003.33 +0000.01 / F5 +0003.33 +0000.01 / F3Z +0000.00 / ALLZ +0000.00 / DEC +0002.00",
+    "expected": "numeric literals (signed, decimal) and ZERO/ZEROS/ZEROES/ALL ZERO accepted in literal-1 and literal-2 of all five formats; division by ZERO takes ON SIZE ERROR"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c6bad.cob",
+    "printed": "ten COBOL0844 errors, one per statement: \"2\", SPACE, HIGH-VALUE, LOW-VALUES (literal-2), QUOTE, ALL \"1\" (literal-2), symbolic-character STAR, \"3\" (format 5 literal-2), \"10\" (format 4 literal-2), SPACES",
+    "expected": "each refused: not a numeric literal and not ZERO"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c6big.cob",
+    "printed": "+333333333333333333 +000000000000000000 / -499999999999999999 -000000000000000001 / SIZE 0 / SIZE BIG",
+    "expected": "18-digit literals (the 1985 maximum), negative literal, zero divisor and an overflowing quotient behave per VI.6.11.4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c6allz.cob",
+    "printed": "--std 85: +0000; --std 2023: error COBOL0902 ... ALL ZERO ... removed in COBOL-2002",
+    "expected": "1985 admits ALL ZEROS (ALL redundant, IV.4.2.2.2.3 rule 3); 2023 does not"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.3 SR2",
+    "check": "OK  §1985:VI.6.11.3 SR2  (6.11.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3",
+    "check": "OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in SRL3.1"
+   }
+  ],
+  "notes": "The grammar is a superset (sendingOperand / arithmeticPhraseOperand); the binder's one numeric-context literal reading refuses every non-numeric literal and figurative except ZERO, and the ALL ZERO edge is the one edition-gated arm. Diagnostics cite §2023:8.8.1.1, not the 1985 rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.11.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.11.2 formats 1-5 and IV.4.2.2.2.3 exceptions (1) and (3). Probes --std 85: r6flt DIVIDE 1.5E1 INTO X refused COBOL0900 (floating-point literal is 2002); r6big 19-digit and r6big2 20-digit literals refused COBOL0802 (not a 1985 numeric literal, 18-digit maximum); r6all0 DIVIDE ALL \"0\" refused COBOL0844 (ALL literal is not ZERO); r6hex X\"31\" and r6nat N\"1\" refused COBOL0844 + COBOL0900; r6ok DIVIDE -.5 INTO X and DIVIDE 4 INTO +8 GIVING Q print -000000200.0000 +000000002.0000. (A first batch used S9(18)V9, 19 digits, my error; rerun with S9(9)V9(4).) cite.py: 'OK  §1985:VI.6.11.3 SR2  (6.11.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:IV.4.2.2.2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in the clause; it lies in SRL3.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

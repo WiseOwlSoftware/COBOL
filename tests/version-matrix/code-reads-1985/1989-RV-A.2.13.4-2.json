@@ -1,0 +1,74 @@
+{
+ "rule-id": "1989-RV-A.2.13.4-2",
+ "rule-digest": "a60bd50a7801",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "27a839c108a76cc14d50317e4fe2b16e913c0d7cb3e9e0b63b915c971789f587",
+   "refuter": "230b342ad483231460451edc94a765b0b64cd847f5209e426cb8ed317a95a30d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.13.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the value DAY-OF-INTEGER returns is an integer of the form YYYYDDD: the Gregorian year times 1000 plus the day of that year (001-365/366), so a 9(4)/9(3) split of a 9(7) receiver gives the year and the day.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearAndDayOf; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85): admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "DialectBehavior.IntegerDateFormBounded inactive at 85: the YYYY part may exceed 9999 (YYYYDDD with a five-digit year)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "as for RV1; the year*1000+day composition in CobolDate.DayOfInteger takes no edition input.",
+  "behaviour-differs-by-edition": "yes: only past 9999-12-31, where 85 returns e.g. 10000001 (year 10000, day 001) and 2023 returns 0; the form year*1000+day is the same code.",
+  "witnesses-cover": "part: g85_f35_03 checks the form through a 9(4)/9(3) REDEFINES at 2000366; the leap-day day 366 and the day-001 forms are covered, a year of more than four digits is not.",
+  "probes": [
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/doi2.cob",
+    "printed": "D1=01601001 D366=01602001 DMAX=09999365 D3067672=10000001 D12001=+000000000013601001",
+    "expected": "YYYYDDD: 1601001, 1602001, 9999365, 10000001 (year 10000 day 1), 13601001 (year 13601 day 1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.13@1985-DAY-OF-INTEGER-FUNCTION/g85_f35_03.cob (witness, read)",
+    "printed": "SPLIT YYYY=2000 DDD=366 (the witness's recorded output)",
+    "expected": "YYYY=2000 DDD=366"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.13.4 RV2",
+    "check": "OK  §1989:A.2.13.4 RV2  (2.13.4 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "The returned value is year*1000 + day of year from one Gregorian day count; the 1985 arm only lifts the 9999 cap, which the 1989 text never set. A year beyond 9999 yields more than seven digits, which RV2's YYYY reads as four digits; with no upper bound in the 1989 argument rule, the five-digit year is the only value the rule can mean, so this is recorded as conforming.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.13.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "Same probe rdoi1-001: every value is year*1000 + day of year, including day 366 of 3600 and year 1900's day 365. The only contestable point is a year above 9999 (five or more digits of YYYY): under the reading that RV2's four-letter YYYY implicitly bounds the argument, such an argument violates a constraint and the result is undefined (§1989 A.1.2.2), so any value conforms; under the reader's reading the value year*1000+day is the only one RV2 can mean. Either reading leaves the compiler conforming. cite.py: OK  §1989:A.2.13.4 RV2  (2.13.4 Returned Values)  the text is in RV2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

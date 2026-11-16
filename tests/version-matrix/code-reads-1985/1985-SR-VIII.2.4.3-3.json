@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VIII.2.4.3-3",
+ "rule-digest": "9528e02350f7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-065",
+  "sources": {
+   "reader": "66f332126c0c206103e030806e532fcfacdaf4b7490128589ff01dd02a46e1c6",
+   "refuter": "f825c12005b3e32f1ec902150273b86d6da02878634e3a8cde542efec0612be3"
+  },
+  "imported": {
+   "reader": "2b6bb71293d839c489f7d7c9c357f0542a98b1a9422dc4bef6d751cf6eada6b3",
+   "refuter": "e99c39a0a3588576f2380f5321f241448ee324790090af562d49cce897770e62"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.2.4.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "The RELATIVE KEY data-name-1 must not be defined in any record description entry of the file it keys (any 01 under its FD, including a second record and a RENAMES of one), but it may be in working storage or in another file's record, and a qualified name picks out which same-named item is meant.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#IsInRecordOfFile; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "below 2002 Rules85; the SR-12.4.5.13.3-3 row is kept unchanged",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a key in the file's only record; a second record, a RENAMES, a qualified name that resolves into the record, and the legal key in another file's record were not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p5a.cob (run p5a-001)",
+    "printed": "COBOL0863 for K1 (first record), K2 (second 01 of the FD), KQ OF RL3-REC (qualified into the record)",
+    "expected": "all three refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p5c.cob (run p5c-001)",
+    "printed": "COBOL0863 for 66 K-REN RENAMES K-A",
+    "expected": "refused: the RENAMES entry belongs to the file's record description"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p5b.cob (run p5b-001)",
+    "printed": "R4=FOUR / R3=9999DATA K=0002",
+    "expected": "key in another (sequential) file's record and KQ OF WS-G accepted; record 2 found by the working-storage key, not the record's KQ"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.3 SR3",
+    "check": "OK  §1985:VIII.2.4.3 SR3  (2.4.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "IsInRecordOfFile walks to the root and asks whether it is one of the file's records, so every 01 of the FD (and its RENAMES) is covered and other files' records are not. Edition-free apart from table selection, which keeps the row at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.2.4.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r5a at --std 85: a key that REDEFINES a field of the file's record, and a key three levels deep in the record, both refused COBOL0863 'shall not be defined within a record description of file'. r5b: a key in another file's record, where that file shares the record area through SAME RECORD AREA, accepted and ran (K=0003 / DONE), which the text allows because the record description belongs to the other file-name. cite.py: OK §1985:VIII.2.4.3 SR3 (2.4.3 Syntax Rules) the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

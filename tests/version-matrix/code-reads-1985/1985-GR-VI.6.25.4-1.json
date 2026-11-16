@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-1",
+ "rule-digest": "1640121d1e1d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-112",
+  "sources": {
+   "reader": "8f802580a88c911ec6d56f6023b7c440e54bde1edb428b3440113771717f7829",
+   "refuter": "1b03a63a95ca9f894a10cb97c9351fdb30a86649ceb1f21d45d6872f18d746d0"
+  },
+  "imported": {
+   "reader": "929a8e570de0faa85870594990e8f0f7cd01b41c83850c1eb223525d2d4d5e87",
+   "refuter": "3bedbdeeda9ae2204f0bbfd03be64dc6ffefc6fe4c109661e94dfe9341e31070"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "In STRING, identifier-1/literal-1 (including figurative constants) must be treated as sending items and left unchanged, and identifier-3 as the receiving item (a receiving position: a literal or figurative is refused there), for elementary and group receivers, with the SR2-SR6 class restrictions of 1985 applied at their positions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
+  "edition-consulted": [],
+  "edition-search": "grep Edition.Edition/Year/ConstructRegistry/DialectBehavior/CobolVersion over StringUnstringBinder.cs and StringEmitter.cs: no hits; the sending/receiving roles are fixed by the grammar (strUnstrOperand vs receivingIdentifier) and ResolveReceiving.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c31_string_operand_roles covers identifier senders into an elementary receiver; not exercised: figurative senders, a group receiver, a numeric DISPLAY integer receiver, a reference-modified sender, the refusal of a literal or figurative as identifier-3",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/strroles.cob",
+    "printed": "P1 R1=AB- 42\".....| S1=AB*CD S2=42 DL=*; P2 RG=AB*CDx| RG2=CDx; P3 RN=1112 P=05; P4 SS=B- ; P5 R1=EFEFEFGHIJKL",
+    "expected": "senders and delimiter unchanged; SPACE and QUOTE as one-character senders; group receiver filled left to right; numeric DISPLAY receiver changed only at the pointer positions; overlapping sender/receiver (P5) is undefined by the standard"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/strref.cob",
+    "printed": "COBOL5506 unexpected '\"LIT\"' after INTO; COBOL5506 unexpected 'ZERO' after INTO",
+    "expected": "a literal cannot be identifier-3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/strref2.cob",
+    "printed": "COBOL1651 edited, JUSTIFIED, reference-modified identifier-3; COBOL1626 numeric literal and COMP sender; COBOL1651 non-integer sender",
+    "expected": "§1985:VI.6.25.3 SR2-SR4, SR6 refusals"
+   },
+   {
+    "class": "c",
+    "file": "strroles-002 at --std 2023",
+    "printed": "EXPECT: MATCH",
+    "expected": "no edition difference"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR1",
+    "check": "OK  §1985:VI.6.25.4 GR1  (║6.25.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar separates the sending operands (strUnstrOperand) from the INTO receivingIdentifier, and BindString resolves identifier-3 at the receiving chokepoint. Diagnostics cite §2023 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-112/src/strfn.cob at 85: an alphanumeric function as identifier-1 (STRING FUNCTION UPPER-CASE (S1) DELIMITED BY '*' S1 ...) R1=ABab*cd....., S1 unchanged; subscripted receiver RE (K) WITH POINTER 2: RT=-----WXY---- P=05. strfnref.cob: a function-identifier as identifier-3 refused (COBOL5506 at INTO FUNCTION; a function 'can not be receiving operands', §1985 Amendment 1 A 2.3), SPACE as identifier-3 refused COBOL5506. strfnint.cob: an integer function as a sender refused COBOL1626 at 85 and 2023. strnat.cob: national literal N\"AB\" as a sender refused at 85 (COBOL0900 requires COBOL-2002). cite.py: OK  §1985:VI.6.25.4 GR1  the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

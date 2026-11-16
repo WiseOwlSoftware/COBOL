@@ -1,0 +1,112 @@
+{
+ "rule-id": "1989-FMT-A.2.10.2",
+ "rule-digest": "d49c43f31317",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-174",
+  "sources": {
+   "reader": "8a2dec28f86e235a9e21fb901ad02fb325a9f759c756cb55241e4581382feff4",
+   "refuter": "f3a1dcd4089b1d6fc6f6ff97d0c1f808a1c18a7466120fc3fb72152d1b93cf74"
+  },
+  "imported": {
+   "reader": "9e65a1790c17fa5e3db6999dc2a0e19b4cfa1a6f06fd22bc57e1d3e345f8f5ac",
+   "refuter": "8947174d024b0f020d464ef12ce75ae882547a1f4554cad4b403917b520bbdba"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.10.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept FUNCTION COS ( argument-1 ) with exactly one argument, as a numeric function inside an arithmetic expression, and refuse the forms the 1985 function-identifier format and the COS definition exclude: no argument list, an empty '( )' list, two or more arguments, a reference-modifier on the numeric result, and (SR4) the function written where an identifier rather than an arithmetic expression stands.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ResultRefMod; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct FunctionEmptyArgumentList2002: an empty '( )' list is refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: COS IntroducedIn 85 vs ctx.Edition.DialectLevel; admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct NumericFunctionIdentifierOperand2002: a numeric function written as an identifier operand (MOVE FUNCTION COS (0) TO R) is refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "construct RepositoryFunction2002: below 2002 COS (0) without FUNCTION stays a data reference",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' list and a numeric function as an identifier operand are refused (the 1985 format braces the argument; §1985:IV.4.3.8.3.3 SR4), both admitted from 2002; the one-argument form itself is the same code",
+  "witnesses-cover": "part: g85_f34_03 covers literal, item and expression arguments inside COMPUTE; no witness exercises the refusal half (no list, empty list, two arguments, ref-mod, identifier position, keyword omitted)",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cos-ok.cob",
+    "printed": "ODO=-1.0000 NOSPACE= 1.0000 ZERO+1= 2.0000 COND=OK NEG=-1.0000",
+    "expected": "accepted; cosine in [-1, +1] (§1989:A.2.10.4)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cos-bad.cob",
+    "printed": "COBOL1504 'takes 1 argument(s); 0 given' (FUNCTION COS), '2 given' for (1 2) and (1, 2); COBOL1629 for FUNCTION COS (0) (1:2); COBOL0900 'numeric or integer function-identifier where an identifier is written ... requires COBOL-2002' for MOVE FUNCTION COS (0) TO R",
+    "expected": "all refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cos-empty.cob",
+    "printed": "COBOL1504 0 given and COBOL0900 'an empty function argument list ( ) requires COBOL-2002'",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/cos-nokw.cob",
+    "printed": "COBOL1639 'COS (0)' is not defined (plus COBOL0900 on the subscript)",
+    "expected": "refused: the word FUNCTION is required in 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK  §1985:IV.4.3.8.3.2  (4.3.8.3.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR2",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR2  (4.3.8.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1989:A.2.10.1",
+    "check": "OK  §1989:A.2.10.1  (2.10.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.2.1.4",
+    "check": "OK  §1985:IV.2.1.4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in the clause"
+   }
+  ],
+  "notes": "The format clause §1989:A.2.10.2 itself is too short for cite.py's four-word quotation check; the citations above anchor the description, the 1985 function-identifier format and its syntax rules. The grammar is edition-neutral; arity comes from the catalog row (min 1, max 1), and the 1985-only refusals ride construct rows checked in VersionConformancePass and ScreenIdentifierPlacement.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.10.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "cos-pos.cob at --std 85: DISPLAY FUNCTION COS (0), ADD FUNCTION COS (0) TO R, MULTIPLY FUNCTION COS (0) BY R, PERFORM P2 FUNCTION COS (0) TIMES each COBOL0900 (identifier operand requires COBOL-2002, §1985:IV.4.3.8.3.3 SR4) and E (FUNCTION COS (0)) COBOL0900 (arithmetic-expression subscript requires 2002); the reader probed only MOVE. cos-ok2.cob: a data item named COS as the argument (DN= 1.0000), COS in an EVALUATE subject (EVAL=OK), nested COS (1.0000), COS(pi) = -1.0000. cite.py: OK §1985:IV.4.3.8.3.3 SR4 'may be used only in an arithmetic expression'; OK §1985:IV.4.2.2.1.4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

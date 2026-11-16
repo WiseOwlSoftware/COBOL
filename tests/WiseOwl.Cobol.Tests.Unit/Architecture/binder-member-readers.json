@@ -99,6 +99,7 @@
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
       "WiseOwl.Cobol.Binding.ReferenceResolver",
+      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.SubscriptBinder",
       "WiseOwl.Cobol.Binding.Validation.SearchAllFormat2Rules",
       "WiseOwl.Cobol.Binding.Validation.StatementValidation",
@@ -591,6 +592,7 @@
       "WiseOwl.Cobol.Binding.FileControlBinder",
       "WiseOwl.Cobol.Binding.NameResolution",
       "WiseOwl.Cobol.Binding.Procedure.KeyedIoBinder",
+      "WiseOwl.Cobol.Binding.ReportGroupResolution",
       "WiseOwl.Cobol.Binding.ReportSectionBinder"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::QualifiedConditionCandidates": [
@@ -1163,6 +1165,7 @@
       "WiseOwl.Cobol.Binding.DataBinder"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntriesInTierOf": [
+      "WiseOwl.Cobol.Binding.DataBinder",
       "WiseOwl.Cobol.Binding.NameResolution"
     ],
     "WiseOwl.Cobol.Binding.ReportSectionBinder::ReportEntryReferenceRefused": [

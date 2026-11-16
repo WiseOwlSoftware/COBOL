@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-11",
+ "rule-digest": "e15e2b43dfd9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-126",
+  "sources": {
+   "reader": "20e9170bc5f4459a0cadc85ee07856342193ac4a9994c0f1a7c4d2bffcfdb769",
+   "refuter": "36f42f5698e704443f96abc322584ae83c422491de9c6ccc64124a0dc2d3e306"
+  },
+  "imported": {
+   "reader": "f03bf60c3f38d22990094ca2fd512fb63371f1eab55e9ce99a7bfcf745a5dbb6",
+   "refuter": "652c7da91df790456f1d3530cf7420c5c94b1adc96502e9e4b66f4c7f0105c34"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an END-WRITE written after a WRITE statement (with or without the END-OF-PAGE / NOT END-OF-PAGE phrases) ends that WRITE's scope: statements after it are not part of imperative-statement-1/2, a nested WRITE's END-WRITE closes the most recent unterminated WRITE (§1985:IV.6.4.3), and an END-WRITE matching no WRITE is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrase; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Diagnostics/DiagnosticDescriptors.cs#COBOL0306",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "END-WRITE reserved-word row: reserved at 85, 2002, 2014 and 2023 alike",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "refuses the 2002 WITH LOCK / WITH NO LOCK phrase a 1985 WRITE ... END-WRITE must not carry (COBOL0900); not on the END-WRITE path itself",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep END_WRITE|EndWrite|END-WRITE over src *.cs: only the reserved-word row and generated parser; the grammar rule writeStatement takes END_WRITE? at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the two witnesses exercise END-IF scope termination, not END-WRITE; nothing in them writes a WRITE with END-OF-PAGE ended by END-WRITE, a nested WRITE, or a stray END-WRITE",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr11.cob",
+    "printed": "WRITE ... AT END-OF-PAGE ... NOT AT END-OF-PAGE ... END-WRITE inside IF/PERFORM: 'EOP AT n' then 'AFTER END-WRITE n' for n=1..4; 'PLAIN END-WRITE 00'; WRITE PR AT EOP ADD 1 TO N END-WRITE ADD 5 TO N -> N 6; a conditional WRITE in IF ended by ELSE -> EOP2, ELSE not taken",
+    "expected": "GR11: the statements after END-WRITE run outside the phrase; IV.6.4.3: the next phrase of the containing statement ends an unterminated WRITE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr11d.cob",
+    "printed": "N 71 (outer EOP +1, inner WRITE EOP +10 ended by its END-WRITE, +20 still in the outer phrase, outer END-WRITE, +40)",
+    "expected": "§1985:IV.6.4.3: each END-WRITE terminates the most recently preceding unterminated WRITE -> 71"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr11b.cob",
+    "printed": "error COBOL0306: unexpected 'END-WRITE'. END-WRITE appears without a matching WRITE statement.",
+    "expected": "a second END-WRITE matches no WRITE and is a syntax error"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/wrgr11c.cob",
+    "printed": "error COBOL0900: a record-lock phrase (WITH LOCK / WITH NO LOCK ...) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 1985 WRITE format has no lock phrase before END-WRITE: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR11",
+    "check": "OK  §1985:VII.4.7.4 GR11  (4.7.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "Scope termination is purely syntactic: writeStatement ends in END_WRITE? and the phrase bodies are statementBlocks, so the parse tree carries the scope and no edition switch touches it. Catalog GR11 is the Amendment 2 renumbering of the printed GR10.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-126/src/rw11.cob (run rw11-001, --std 85): (A) outer WRITE AT EOP with an inner WRITE ... END-WRITE and a NOT AT EOP after the inner END-WRITE, ended by one outer END-WRITE: N 71 (the NOT AT EOP attached to the outer WRITE and was not run; the inner END-WRITE closed only the inner WRITE, §1985:IV.6.4.3); (B) WRITE AT EOP ... NOT AT EOP ... END-WRITE ADD 4 -> M 06; (C) a WRITE ... END-OF-PAGE ... NOT END-OF-PAGE ... END-WRITE inside READ ... AT END, followed by ADD 10 still in the AT END phrase and a NOT AT END of the READ: K 12; (D) WRITE EOP ... END-WRITE inside IF before ELSE: K 20. The 2002 lock phrase and the 2002 FROM literal are refused at 85 (reader probes wrgr11c, wrgr7). cite.py: OK §1985:VII.4.7.4 GR11; OK §1985:IV.6.4.3 (reader).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

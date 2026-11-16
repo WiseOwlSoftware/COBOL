@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.3.9.4-1",
+ "rule-digest": "e5511fe5ce5c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-039",
+  "sources": {
+   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
+   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+  },
+  "imported": {
+   "reader": "c1526c53ace62d627014f9613e3b94cc2fb686bb950c9df2838efab076c557f4",
+   "refuter": "fe033d38225eb5d7cc4c4f32aa76a2146bab61748060a5b7e461da2555768682"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.9.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each format 1 (level 01) entry begins a report group that consists of it and every entry subordinate to it, up to the next 01 or RD, whether it has one, two or three hierarchic levels, and whatever level-numbers 02-49 the subordinates use. A GENERATE presents exactly that group's lines, and an entry before any 01 is refused (SR4a).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntries; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
+  "edition-consulted": [],
+  "edition-search": "grep of ReportSectionBinder.cs lines 1895-2720 (BindReportEntries, BindReportEntry) for DialectLevel, Constructs., ConstructRegistry, DialectBehavior, Cobol85, 1985: only Edition.At cursor scopes; no edition arm on the grouping path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c27 covers two groups (level 1 and 01) with 3/5 subordinates; deeper levels (05, 49), a three-level group with SOURCE, and the refusal were not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/13.15-Report-group-description/l1c27_report_group_level1_extent.cob",
+    "printed": "|C / | D / |A B / |C / | D (helper reports DIFFERS only because DISPLAY keeps the PIC X(20) trailing spaces the .out trims; the case states trailing spaces are not significant)",
+    "expected": "the witness's golden"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r5grp.cob",
+    "printed": "C 01 / A  02 / ' B' / C 03 / blank / END",
+    "expected": "D2 (01 + 05 items) one line; D1 (01, 02 LINE x2, 03 items) two lines; D3 written '1' with a 49 item, LINE PLUS 2; each GENERATE presents only its own group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r5first.cob",
+    "printed": "error COBOL2772: RD 'R1': report group entry before any 01-level entry",
+    "expected": "refused (§1985:XIII.3.9.3 SR4a)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.4 GR1",
+    "check": "OK  §1985:XIII.3.9.4 GR1  (3.9.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "BindReportEntries splits the entries at each level-1 entry and BindReportEntry walks the subordinates into the group's lines. The grouping is the same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.9.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "At --std 85 (refute-1985-039): p5one (a one-level report group, '01 D0 TYPE DE.' alone, SR4 'one, two, or three hierarchic levels'; CONTROL WS-B, CF with SUM WS-N UPON D0) -> compiles, GENERATE D0 prints nothing and leaves LINE-COUNTER 0, the CF fires on the break with 009 and at TERMINATE with 006: the group is the 01 entry alone and still drives control breaks and SUM UPON; p5four (four levels 01/02 LINE/03 group/04 elementary) -> COBOL2247 citing §1985:XIII.3.9.3 SR4b/c; p5f2empty (format 2 entry with no format 3 subordinate) -> COBOL2247 SR4c; p5f3grp (a PICTURE/COLUMN entry with a subordinate) -> COBOL2247; p5f2lvl49 (format 2 entry at level 49) -> COBOL2247 §1985:XIII.3.9.3 SR3; p5lvl50 -> COBOL1746. The reader covered levels 02/03/05/49 within groups, a '1' level-number and an entry before any 01. cite.py: OK §1985:XIII.3.9.4 GR1 'The report group is defined by the contents of this entry and all of its subordinate entries.'",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-SR-VI.5.14.3-7",
+ "rule-digest": "84d00c138c77",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-053",
+  "sources": {
+   "reader": "3dda3f9c45a552503ddf958a1c713d25573016bf498999c6d589ba62f715a59d",
+   "refuter": "5406f19ea7d01bec10f9510f7137b2db96db53eb8dfc134552e9d5d219f94767"
+  },
+  "imported": {
+   "reader": "526e71c9a6f3fd8d81743ec572840192ebf1c59f0e239c9806c32bdab93708ce",
+   "refuter": "366d947f8eb5fcdf7c7c1e0e29895ac67cc4a57401565cae2d8f04570d1c2be7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.14.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a level-88 entry must be refused when it follows an elementary item whose usage is INDEX, whether the item writes USAGE INDEX itself (01, 77 or subordinate levels) or inherits it from a group's USAGE INDEX (§1985:VI.5.14.4 GR1). Condition-names on other items must stay accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#Sr24Exclusions; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsIndexMessageTagObjectOrPointer",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|CobolVersion|ConstructRegistry|Edition over CheckConditionNameAssociationsPass.cs and ItemCategory.cs: the only uses are Edition.At / Edition.Error (location and sink). The exclusion table is edition-free",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers an 01 USAGE INDEX item followed by an 88. Group-inherited INDEX, a 77-level index item and the accepted control are not exercised.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/idx1.cob",
+    "printed": "COBOL1976 on IX-ONE (01 USAGE IS INDEX), GA-ONE (elementary item inheriting group USAGE INDEX), GB-TWO (INDEX written under an INDEX group, VALUES 2 THRU 3), IY-Z (77 INDEX)",
+    "expected": "every elementary index item refused as a conditional variable (§1985:VI.5.14.3 SR7)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/idx2.cob",
+    "printed": "IDX-OK / CN-OK",
+    "expected": "index items without condition-names, used in SET, still work, and an 88 on a numeric display item is accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.3 SR7",
+    "check": "OK  §1985:VI.5.14.3 SR7  (5.14.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.3.4 GR2",
+    "check": "OK  §1985:VI.5.3.4 GR2  (5.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "IsIndexMessageTagObjectOrPointer reads both the written usage (OwnUsage) and the resolved one (Pic.Usage), so an inherited group INDEX is caught. Under §1985:VI.5.3.4 GR2 c, a group USAGE INDEX followed by an 88 is excluded anyway. The diagnostic cites §2023 SR24 e / SR11, but the behaviour matches the 1985 rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.14.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rix1 (--std 85 compile-only): COBOL1976 on an 88 after an INDEX item with OCCURS 3, after an 01 INDEX REDEFINES PIC X(8), after 05 INDEX (no USAGE keyword) with VALUES ARE 1 THRU 4, and after LINKAGE SECTION 01 and subordinate INDEX items. All refused; the reader's accepted control (88 on a display numeric) stands. The diagnostic cites §2023 text, not §1985, but the refused set is the 1985 one (also §1985:VI.5.3.4 GR2d). cite.py: OK §1985:VI.5.14.3 SR7; OK §1985:VI.5.3.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-3",
+ "rule-digest": "0ff0e043aba6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "4064fca2814708d491da4e25dceb9824eacd54b5dc5c811ca65bf30cea00d862",
+   "refuter": "757a91090db149bf0e1eb09d2aea8f87b94dd958ffedbc9589620e625ac7e659"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "DIVIDE format 3 (DIVIDE {identifier-1|literal-1} BY {identifier-2|literal-2} GIVING {identifier-3 [ROUNDED]}...) divides operand 1 by operand 2 and stores the quotient in each identifier-3; BY without GIVING exists in no format; the witness covers unsigned receivers and a receiver that aliases the divisor.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideByPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "UnphrasedSizeErrorIsFatal by DialectLevel: 1985 continues after an unphrased size error",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase",
+    "switches": "ROUNDED MODE IS refused before 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "same greps as GR2: the format-3 arm of BindDivide and EmitDivide carry no edition test.",
+  "behaviour-differs-by-edition": "yes: only the unphrased size-error disposition and the ROUNDED MODE refusal; the division is the same code",
+  "witnesses-cover": "part: g85_bf14_04 L4/L5 cover unsigned receivers and aliasing; negative, edited and 18-digit operands and zero divisor are probed here",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d23.cob",
+    "printed": "F3 -000.25 -  0.25 0.2 / F3L +003.14    3.14 / SE3 +011.00 / BIG3 333333333333333333",
+    "expected": "-7.5 / 30 = -0.25 (unsigned 9V9 truncated 0.2); 22/7 rounded 3.14; B BY zero with ON SIZE ERROR leaves R1; 999999999999999999 / 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej7.cob; rej12.cob; rej4.cob",
+    "printed": "COBOL1689 two BY operands; COBOL1689 DIVIDE BY without GIVING; COBOL0844 alphanumeric literal",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej5.cob",
+    "printed": "COBOL0803 ROUNDED MODE IS requires COBOL-2014",
+    "expected": "refused at 1985"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dodo.cob",
+    "printed": "DIVIDE HDR BY 4 GIVING T (1) T (2) with T OCCURS 1 TO 5 DEPENDING ON N: stored in both elements",
+    "expected": "quotient stored in each subscripted ODO element (12.5 overflows S9V9: undefined without the phrase)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d23.cob",
+    "printed": "not applicable: DIVIDE reaches no file",
+    "expected": "n/a"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR3",
+    "check": "OK  §1985:VI.6.11.4 GR3  (6.11.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "BY+GIVING binds BoundDivideGiving(dividend=operand 1, divisor=BY operand), the direction the rule states; the same EmitDivide forms the quotient. Witness g85_bf14_04 matched; every probe matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "refute-1985-107/r23-001 at --std 85: MR3 3 003000000 (DIVIDE 12 BY 4 GIVING I T (I): T (3) set after I, §1985:VI.6.4.6); NT -2 (DIVIDE -10 BY 4 truncated); PVR .008 (DIVIDE 1000 BY 133333 GIVING PIC PP9 ROUNDED); LZ3 09 (5 BY literal 0, ON SIZE ERROR taken, receiver unchanged); X18 .333333333333333333 (1 BY 3 into V9(18)); AL3 05 (DIVIDE 20 BY U1 GIVING U1, divisor aliasing the receiver). Class c: fn3.cob FUNCTION NUMVAL as identifier-1 of BY refused COBOL0900 (§1985:IV.4.3.8.3.3 SR4); ix2.cob index-name as operand refused COBOL1637. cite.py: OK §1985:VI.6.11.4 GR3 the text is in GR3.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: numeric function-identifier operand refused before 2002"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VI.5.7.3-1",
+ "rule-digest": "7f484576824b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-054",
+  "sources": {
+   "reader": "0f0ae4c03aa58b621b5ba4321f4c1751bd86b6ba3c382a01f776663c6c243b74",
+   "refuter": "458332e030bfb7769667b22dd56a463858831b45feac7ce98112aee7bce55989"
+  },
+  "imported": {
+   "reader": "9f8e1ac118fd90caa577a2d333dee954a3ea9cf4ab90f44ce3b58a9520060d0f",
+   "refuter": "a0bceaf684172c4b8aa7b22d577901ab6ae6732155b92f547d77b8dab30373d3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every data description entry (in the File, Working-Storage, Linkage and Communication sections, at the head of a record and subordinate to one) must begin with a level-number; an entry written without one must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#levelNumber",
+  "edition-consulted": [],
+  "edition-search": "dataDescriptionEntry is `levelNumber (dataName)? dataDescriptionBody DOT` and levelNumber is `INTEGERLIT`: the level-number is a required first element with no edition predicate; the only semantic predicate in the rule (entryNameHere) decides the name slot, not the level-number. The refusal is the parser's own (COBOL0001), identical at --std 2023.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb485-level-number-missing; the probes add the File, Linkage and Communication sections and a level-less entry inside a group",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl1.cob",
+    "printed": "lvl1.cob(7,11): error COBOL0001: unexpected 'B' (level-less entry inside a group)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl2.cob",
+    "printed": "lvl2.cob(5,8): error COBOL0001: unexpected 'C' (same at --std 2023)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl3.cob",
+    "printed": "lvl3.cob(10,8): error COBOL0001: unexpected 'R' (record under FD without level-number)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl5.cob",
+    "printed": "lvl5.cob(7,8): error COBOL0001: unexpected 'L' (Linkage)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl6.cob",
+    "printed": "lvl6.cob(6,8): error COBOL0001: unexpected 'M' (entry under a 1985 CD without level-number)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvl4.cob",
+    "printed": "lvl4.cob(7,11): error COBOL0001: unexpected 'VALUE' (a level-less 88-style VALUE line)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.7.3 SR1",
+    "check": "OK  §1985:VI.5.7.3 SR1  (5.7.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar makes the level-number the obligatory first token of every data description entry, so the rule is enforced by the parse at every edition, every section included (the 1985 Communication Section too). The refusal is a generic parse error, which is acceptable as a syntax-rule diagnostic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rl1 '+05 A PIC X.' -> COBOL0001 unexpected '+'; rl2 'FILLER PIC X.' with no level-number -> COBOL0001 unexpected 'FILLER'; rl3 '5.0 A' -> COBOL0001 unexpected '5.0'; rl4 bare 'PIC X.' -> COBOL0001 unexpected 'PIC'; rl5 a level-less continuation '\"B\".' after an 88 -> COBOL0001. All at --std 85; the grammar's dataDescriptionEntry requires levelNumber first with no edition predicate. cite.py: OK  §1985:VI.5.7.3 SR1  (5.7.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

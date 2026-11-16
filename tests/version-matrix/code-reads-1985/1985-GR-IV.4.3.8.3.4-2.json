@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.3.4-2",
+ "rule-digest": "4a767a572c02",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-087",
+  "sources": {
+   "reader": "3a7372f623de84840730f25aaafe908e16fb6758ef274e8caa8bdd291c3ea2e4",
+   "refuter": "cb9bea7e3745bb11813da4e72dddd8f9d0adbb7f310aeaf95a0c9b612192d5d5"
+  },
+  "imported": {
+   "reader": "bae15b8efcca6d91a25fbbed1ccceaca67acbeb8c841e3bf3caad4756d9fd88a",
+   "refuter": "1e2e83d77e3ae2085b975fe9ebf89b2aa9a74c8aec2b8911560a2f67902320f6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the arguments of a function reference are evaluated one by one, left to right in list order; an argument may itself be a function-identifier or an arithmetic expression containing one, including a reference to the same function; at 85 the order is observable only through RANDOM's seed state (no user-defined functions or object properties exist), and the witness exercises exactly that plus nesting.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ArgumentOrder.cs#Record; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ArgumentOrder.cs#Freeze; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindArgOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition/DialectLevel/ConstructRegistry/DialectBehavior over Binding/Procedure/ArgumentOrder.cs: no hit; IntrinsicBinder's edition consults (COBOL1502 window, SR4 placement, integer-date bound, ArgPredicate.AppliesAt) gate WHICH functions/arguments bind, not their evaluation order. The order is one edition-independent mechanism (ArgumentOrder windows, the bound argument list rendered in order).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf04_03 covers RANDOM ordering in MEAN, nested MAX/REVERSE and an expression argument; not a three-deep mixed nesting, a table ALL argument beside literals, or a statement whose receiver is also an argument.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fn1.cob",
+    "printed": "FF=+0720 (FACTORIAL(FACTORIAL(3))); DEEP=+0002 (MAX(MIN(MAX(1 2) 8) ORD-MAX(1 9 3))); ORDMIN=+0006 over (TE(ALL) 3 -20)",
+    "expected": "same-function and mixed nesting evaluated; ALL elements enumerated in place before the later literals"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fn1.cob",
+    "printed": "SELF=04: COMPUTE I = FUNCTION MAX (I FUNCTION MOD (I + 8 7) 2) with I=3",
+    "expected": "arguments read before the store: MAX(3, 4, 2) = 4"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fn3.cob",
+    "printed": "O1=3 O2=3 (ORD-MAX over RANDOM(3) RANDOM RANDOM equals ORD-MAX over the same three numbers drawn one per statement); MIN2=SAME; I=2 (SUM(TE(2) TE(3) I) = 52 into PIC 9); TB=1020304045",
+    "expected": "left-to-right evaluation consumes the seed-3 sequence in order; subscripted arguments read before the receiver changes"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.3.4 GR2",
+    "check": "OK  §1985:IV.4.3.8.3.4 GR2  (4.3.8.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "ArgumentOrder (one mechanism for every function reference) keeps each argument at its list position and materializes an earlier argument only when a later one registers pre-ops; at 85 no argument registers pre-ops (no user functions, properties or function subscripts, the last refused by COBOL0900), so the bound list renders in order. The RANDOM probes and the witness's ORDER line show left-to-right consumption of the seed sequence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "Probe g2-001 at --std 85: four RANDOM draws from seed 5 stored one per statement give XE=+0654.854662857523 for s1+10*s2+100*s3+1000*s4; the same draws consumed by FUNCTION SUM (RANDOM(5)*1, SUM(RANDOM*10, RANDOM*100), RANDOM*1000), a nested argument list, give XA=+0654.854662858347 (difference 8e-10 from storing each s in V9(12); any other order would differ by hundreds), so arguments, including those of a nested function, are evaluated left to right. ALL-subscript order (the 1989 module's 2.2, which fixes the argument list's order): ORD-MAX(TC(ALL ALL)) on a 2x3 table with the maximum at (1,2) gives 2 and at (2,1) gives 4 (rightmost subscript varies fastest); ORD-MIN(TC(2 ALL)) gives 2; ORD-MIN(TV(ALL) 5) with ODO N=2 gives 2 (only the current occurrences, then the literal). The reader's FACTORIAL(FACTORIAL(3)) covers the same-function sentence. cite.py: OK §1985:IV.4.3.8.3.4 GR2 'its arguments are evaluated individually in the order specified in the list of arguments'; --find located §1985:p.A-28 'the effect is as if each table element associated with that subscript position were specified'. No edition consult on the order path beyond those the reader listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

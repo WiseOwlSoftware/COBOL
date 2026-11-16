@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-9",
+ "rule-digest": "ed89951360a6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-029",
+  "sources": {
+   "reader": "01f0efcad59093e3a149a53e2835d8a55ee8b9e0b626facf5041f6eda942e2c9",
+   "refuter": "ff762090fa0f23654fdd2955e44fb6bea161861a175a259dab48014f7f4b0f6e"
+  },
+  "imported": {
+   "reader": "298d6756d54aea04d2043393f0a2adc6031d1b6ee05a989b63dbc7cd83347f6d",
+   "refuter": "5a325f82fedee348a19b413c6d8d2d65d0cb690ae8461217f43355a3f157ef83"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "END-START must end the scope of a relative-file START, so the statements after it belong to the enclosing statement (IF, PERFORM, another START's INVALID KEY phrase) whether or not INVALID KEY / NOT INVALID KEY is written; an END-START with no START to close must be refused, and the 1985 START format (KEY phrase only) must refuse a later edition's FIRST/LAST.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#startStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#END_START; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "START FIRST/LAST refused below 2002 (COBOL0900, Constructs.StartFirstLast2002); the END-START scope is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+    "switches": "ctx.Edition.SubscriptedClauseOperands for the KEY operand; not the scope terminator",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep END_START over the grammar (CobolIO.g4 startStatement, CobolLexer.g4) and VersionConformancePass/FlagConformancePass for StartStatement: the terminator is plain grammar with no edition predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb333_start_general_relation_operators uses END-START with INVALID KEY at top level; nesting inside IF, inline PERFORM, another START's phrase, END-START with no conditional phrase and a stray END-START are not exercised",
+  "probes": [
+   {
+    "class": "b,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-029/st9a.cob",
+    "printed": "T1 INVALID / T1 AFTER-START (in IF then-branch); T2 NOT-INVALID / T2 AFTER-START; T3 OUTER-INVALID / T3 INNER-OK / T3 OUTER-CONTINUES / T3 DONE; USE RAN ST=23 / T4 ST=23 (END-START with no phrase, USE applies); T5 INVALID / T5 IN-PERFORM ST=23",
+    "expected": "each END-START closes only its own START; the following statement runs inside the enclosing statement"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-029/st9b.cob",
+    "printed": "error COBOL0306: unexpected 'END-START'. END-START appears without a matching START statement.",
+    "expected": "refused: END-START with no START"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-029/st9c.cob",
+    "printed": "error COBOL0900: START FIRST/LAST requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format has no FIRST phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR9",
+    "check": "OK  §1985:VIII.4.7.4 GR9  (║4.7.4 General Rules║)  the text is in GR9"
+   }
+  ],
+  "notes": "startStatement ends in END_START? after conditionalPhrases, so the explicit terminator closes the innermost open START and the parser hands the following statements to the enclosing construct. Probes at --std 85 and 2023 print identical run output; the refusals are COBOL0306 for a stray terminator and the edition gate for FIRST.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "st9a at --std 2023 prints the same lines",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Attacked the scope forms the reader did not try: START ... END-START as a delimited-scope imperative inside another statement's AT END phrase, END-START with only NOT INVALID KEY inside an ELSE branch (USE procedure present, SR3), and START/END-START repeated inside an inline PERFORM; class c: the 2002 reverse operators this edition's format lacks. rf9a.cob at --std 85: 'T1 START-INVALID / T1 STILL-IN-AT-END / T1 AFTER-READ', 'T2 NOT-INVALID / T2 IN-ELSE / T2 AFTER-IF', 'T3 INVALID 1 / T3 ITER 1 / T3 INVALID 2 / T3 ITER 2'. rf9b.cob (KEY IS LESS THAN, KEY IS <=) at --std 85: 'error COBOL0900: a reverse-search START KEY operator ... requires COBOL-2002 (targeting COBOL-85)' on both; at --std 2023 it compiles (exit 0). cite.py: 'OK  §1985:VIII.4.7.4 GR9  (║4.7.4 General Rules║)  the text is in GR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

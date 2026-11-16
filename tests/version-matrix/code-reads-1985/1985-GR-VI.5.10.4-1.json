@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-VI.5.10.4-1",
+ "rule-digest": "5f7f6ab51988",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-012",
+  "sources": {
+   "reader": "772d04de36b8dcb0c7a9bad79fbde06fa7f4b1574a81c0b1293adb73ea60c2da",
+   "refuter": "685481e42a190f590cc0945a0736c04a0507fdcc67d71c0f44c2c8b6494c9eec"
+  },
+  "imported": {
+   "reader": "74270fef1928150c10ad40b3307fdfc2f3981aa4c068c6060906c3705a1c37a0",
+   "refuter": "aae063484e727986413720d6f04311fe2d1e30456052ab20e4483467fc835c0e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.10.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the redefining entry's storage starts at the first character position of data-name-2 and extends over as many character positions as the subject (data-name-1 or FILLER) describes, including a level-01 non-EXTERNAL subject LARGER than data-name-2 (SR6 exempts it), at every level (01/77 and subordinate, inside an OCCURS per occurrence) and in every section the clause is allowed (working-storage, file record subordinates).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs#RedefinesTier; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#BuildBackingPath; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition./CobolVersion/DialectLevel/Has( over ResolveRedefinesPass.cs, ClassifyRedefinesClassesPass.cs, RedefinesModel.cs, PlaceBuilder.cs, ReferenceResolver.cs and CodeGen/DataDivision/PhysicalModel.cs, RecordStructEmitter.cs, CodeGen/Roslyn/PlaceRenderer.cs: only Edition.At / Edition.Error / Edition.Removed (the strict-or-permissive severity seam, not an edition test) appear; ReferenceResolver's one Edition.Has(2002) is the EXCEPTION-OBJECT register, off this path. The storage layout and the place builder are one arm at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises subordinate same-size redefinitions inside OCCURS and an ODO table; not exercised: a level-01 redefinition larger than data-name-2, mixed-usage group overlays (COMP-3, COMP, signed DISPLAY), a file record subordinate, and the larger-than-target refusal at level 02",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd1.cob",
+    "printed": "01 A PIC X(4) / 01 B REDEFINES A PIC X(10): MOVE \"0123456789\" TO B -> A=0123 B=0123456789 and the next record Z=zzzzz untouched; MOVE ALL \"*\" TO B -> A=**** C4=***; group C (9(3), S9(3) COMP-3, S9(4) COMP, X(3)) over A: C1=123 C2=-045 C3=+0077 C4=XYZ, B(8:3)=XYZ; MOVE SPACES TO C -> B all spaces",
+    "expected": "storage starts at A and extends to the subject's 10 positions (GR1, SR6 exemption for a level-01 data-name-2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd1.cob",
+    "printed": "subordinate overlays: G2 PIC 999 over G1 \"123\" -> 123, ADD 1 TO G2 -> G1=124 G=124QQ; MOVE -7 TO G5 PIC S99 over G4 -> G4=0P; N2 X(6) over S9(4)V99 -12.34 -> 00123M; E2 ZZZZ9 over 9(5) 1234 -> 01234",
+    "expected": "each view reads the same positions; the sign default representation is the documented trailing overpunch"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd2.cob",
+    "printed": "sequential FD record with FNUM REDEFINES FBODY (COMP-3, COMP, FILLER): written and read back K=N FN1=-12345 FN2=+123456789, then K=T BODY=ABCDEFGHI FBODY(9:1)=I; relative file RB 9(6) REDEFINES RA X(6): RA=000042",
+    "expected": "the record's positions are shared by both descriptions across WRITE/READ"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd2.cob",
+    "printed": "BIG PIC S9(18) COMP-3 VALUE -999999999999999999 with BIGX X(10): LENGTH 10, MOVE BIGX TO BIGX keeps BIG=-999999999999999999",
+    "expected": "the largest packed item's 10 positions are the redefinition's"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/odo2.cob",
+    "printed": "VB REDEFINES VA under an OCCURS 1 TO 3 DEPENDING ON table: MOVE 7 TO VB(2) -> ab07; WR(1:1) WR(6:1) WB(3:1) W(4:3) -> 16 6456",
+    "expected": "reference modification at the first and last position of the redefined area reads the shared positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/odo1.cob",
+    "printed": "COBOL0855: occurs-depending table 'BT' lies within a REDEFINES area",
+    "expected": "refused: §1985:VI.5.10.3 SR5, the redefinition includes a variable occurrence data item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.4 GR1",
+    "check": "OK  §1985:VI.5.10.4 GR1  (5.10.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR6",
+    "check": "OK  §1985:VI.5.10.3 SR6  (5.10.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR5",
+    "check": "OK  §1985:VI.5.10.3 SR5  (5.10.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "The storage class (Tier A alias or Tier B one string backing of class-max width) starts every view at data-name-2 and sizes the backing to the largest member, so a larger level-01 redefinition owns its full width without touching the next record. Lead for SR5 (not this rule): at 85 `10 VB REDEFINES VA` with VA under an ODO table compiles (odo2.cob, and the witness's L9); §1985:III.2 makes an item subordinate to an ODO entry a variable occurrence data item, so §1985:VI.5.10.3 SR5's 'Neither the original definition nor the redefinition can include a variable occurrence data item' may refuse it; the compiler reads 'include' as an ODO table inside the area (COBOL0855).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.10.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Read §1985:VI.5.10.3 SR1-SR12 and VI.5.10.4 GR1, X.4.5.4 GR2 (EXTERNAL complete redefinition). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c3.cob: three redefinitions of one level-01 A X(4) at 10, 20 and 2 positions, MOVE ALL '#' TO C fills 20, next record Z untouched, LENGTH(C)=20; subordinate smaller redefinition leaves G3 at offset 4 (G2=12 G3=567, LENGTH(G)=7); 77-level redefinition ADD 1 -> 1235; SYNC COMP inside a redefinition sized 3 (implementor: no slack). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c4.cob: larger redefinition of an EXTERNAL 01 and of a level-05 item refused COBOL1539 (SR6). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c14.cob: REDEFINES of an EXTERNAL record in two programs with different redefinitions share the external storage (EXC=abc012, SUBX F1=321012, after SUBX EXC=ZZ1012). Lead carried from the reader, not this rule: §1985:VI.5.10.3 SR5 with §1985:III.2 (an item subordinate to an ODO entry is a variable occurrence data item) refuses VB REDEFINES VA under an ODO table, which compiles (reader's odo2.cob). cite.py: OK §1985:VI.5.10.4 GR1; OK §1985:VI.5.10.3 SR5; OK §1985:III.2; OK §1985:X.4.5.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

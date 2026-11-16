@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-1",
+ "rule-digest": "fc7509ec6703",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-129",
+  "sources": {
+   "reader": "b3071f7b6436600a50ce0da5153ddc103ba8737cb68a57ef384e86e7577a20da",
+   "refuter": "b96e05144740c9f8385ccfef50ac159ad5d6ab142c44ae60b5d3f8a3c15bc20a"
+  },
+  "imported": {
+   "reader": "ae061935c023aff348569441f4912a0344a74091fb521c4d399356325a9dcdf9",
+   "refuter": "6f206d5c224d085a4cc3b84a2a219f773547b5ba2eb80809e3ed10d77f60f058"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file whose entry has no ACCESS MODE clause has sequential access: format 1 READ returns records by ascending RRN, WRITE releases consecutive RRNs from 1, sequential REWRITE follows a READ, and random-only forms (READ with INVALID KEY, START with no key) are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+  "edition-consulted": [],
+  "edition-search": "FileModel.AccessMode defaults to FileAccessMode.Sequential with no edition test; BindFileControl sets it only from a written clause (MapAccessMode); KeyedIoEmitter.EmitRegistration passes (int)file.AccessMode. grep CobolVersion/DialectLevel/DialectBehaviors/Constructs over FileControlBinder*.cs, FileModel.cs and KeyedIoEmitter.cs found no switch on the access default (DialectLevel is only forwarded to the runtime for other behaviours).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_06 covers READ order and WRITE numbering with no ACCESS clause; not variable-length records, I-O REWRITE, or the refusal of random-only statements (probed here).",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p5accd-001",
+    "printed": "RN [001   ] LEN 03 / RN [00004 ] LEN 05 / RN [0010  ] LEN 04 / RN [999LLL] LEN 06 / RN END 10 / RN REWRITE 00",
+    "expected": "no ACCESS clause: sequential, ascending RRN 1, 4, 10, 999 (7 deleted), each record at its own length; REWRITE after a READ succeeds"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p6n1-001; p6n2-001; p6n3-001",
+    "printed": "READ ... INVALID KEY: COBOL1720; START with no KEY phrase and no RELATIVE KEY: COBOL0862; READ NEXT AT END compiles",
+    "expected": "sequential access admits only the format 1 READ; START needs a RELATIVE KEY (§1985:VIII.2.4.3 SR5)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/g85_bf19_06-001",
+    "printed": "EXPECT: MATCH (g85_bf19_06.out)",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR1",
+    "check": "OK  §1985:VIII.2.4.4 GR1  (2.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The default is a property initializer on FileModel and is the same at every edition. At 85 a file with no ACCESS clause cannot have a RELATIVE KEY (VisitRelativeKeyClause refuses it), so such a file has no key, as the witness notes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,e,c",
+  "evidence": "A file with no ACCESS clause must take every sequential-access rule, beyond the READ forms the reader probed (--std 85): r41-001 OPEN EXTEND admitted and runs 00 (§1985:VIII.4.4.3 SR1 allows EXTEND only in sequential access), WRITE in I-O mode 48 with USE run (Table 2: sequential WRITE only in output/extend), DELETE after READ 00, DELETE with no READ before it 43, REWRITE after READ 00, records read 'bbbb','CCCC' then 10. r41d-001 DELETE ... INVALID KEY refused COBOL1720 (§1985:VIII.4.3.3 SR1); r41r-001 REWRITE ... INVALID KEY refused COBOL1720 (§1985:VIII.4.6.3 SR3); control r41e-001 OPEN EXTEND of an ACCESS RANDOM file refused COBOL2372, so the EXTEND admission above is the access default, not a missing check. cite.py: 'OK  §1985:VIII.2.4.4 GR1  (2.4.4 General Rules)  the text is in GR1'; 'OK  §1985:VIII.4.4.3 SR1'; 'OK  §1985:VIII.4.3.3 SR1'; 'OK  §1985:VIII.4.6.3 SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

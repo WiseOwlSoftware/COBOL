@@ -33,6 +33,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         // §2023:8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold a
         // STOP literal-1 concat to the equivalent single literal before decoding (GetText on the whole
         // literal context would glue the operands and mis-decode).
+        if (stop.cobolWord() is { } word) return BindStopWord(word);
         if (stop.literal() is not { } slit) return new BoundStop(BindTerminationStatus(stop.statusPhrase()));
         ScreenStopLiteral(slit);
         var nn = slit.nonNumericLiteral();
@@ -45,6 +46,28 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
               && ConcatFolder.FigurativeChar(fig, PicCategory.Alphanumeric, ctx.Data.LiteralEnv) is { } c
                 ? c.ToString()
                 : CobolLiteral.Decode(slit.GetText()));
+    }
+
+    /// <summary>STOP literal-1 written as a WORD (kb/Work PB5809): a symbolic-character is a figurative constant
+    /// (§1985:IV.4.2.2.2.3 GR7), which by §1985:IV.4.2.2.2.3 GRL2.3 "may be used whenever 'literal' appears in a format", and "if a figurative
+    /// constant ... appears in a DISPLAY, STOP, STRING, or UNSTRING statement, the length of the string is one character"
+    /// (GRL2.2), so STOP STAR communicates the one character STAR names (§1985:VI.6.24.4 GR4). A word that names no
+    /// symbolic-character is no literal at all and is refused by name (COBOL7558) where STOP literal exists; from 2002 the
+    /// statement is removed and the edition gate's COBOL0902 is the whole answer.</summary>
+    private BoundStatement BindStopWord(Core.CobolWordContext word)
+    {
+        string written = word.GetText();
+        // The ONE resolution of a literal-alias word (ExpressionBinder.LiteralAliasOf, kb/Work PB1544); a constant-name is a
+        // COBOL-2002 entry, so at COBOL-85 only the symbolic-character half can answer.
+        if (host.Expr.LiteralAliasOf(word) is { Symbolic: { } sym }) return new BoundStopLiteral(sym.Value);
+        // From 2002 the statement itself is removed: the edition gate's COBOL0902 refuses it, whatever the word names.
+        if (!ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.StopLiteralRemoved2002))
+            return new BoundStopLiteral(written);
+        using var _ = ctx.Edition.At(word);
+        return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StopLiteralWordNotLiteral,
+            $"STOP {written}: '{written}' names no symbolic-character, so it is no literal-1 — STOP is followed by RUN or by a "
+            + "literal, and the only word that stands for a literal at COBOL-85 is a symbolic-character, a figurative "
+            + "constant (§1985:IV.4.2.2.2.3 GR7, GRL2.3)");
     }
 
     /// <summary>The two X3.23-1985 rules on the STOP statement's literal-1 (kb/Work PB5074): §1985:VI.6.24.3 SR1 "Literal-1

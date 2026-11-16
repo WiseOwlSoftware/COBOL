@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-7",
+ "rule-digest": "b7f27262ca4f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-076",
+  "sources": {
+   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
+   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+  },
+  "imported": {
+   "reader": "dfc49f597f3643b97ba2bf28d0d7c369b904766690668661ba1ed6f8e5072310",
+   "refuter": "0d28174b8aa56dc02675c061ba0e7350ca59b41460aa902416b897c776b8d0fa"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.20.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an RD must be refused unless it describes at least one body group, that is a DETAIL, CONTROL HEADING or CONTROL FOOTING group (§1985:III.2), including an RD that describes no report group at all.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenReportGroupCensus (the Groups.Count > 0 && no DE/CH/CF arm); an RD with no groups is refused earlier by COBOL2708 at the RD. grep of the member for DialectLevel, CobolVersion, Constructs., IsCobol85 found nothing.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: both witnesses (census_legal, summary_control_footing_only) are legal; the refusal of an RD with only RH/PH/PF/RF and of an RD with no groups is covered by these probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p5a_no_body.cob",
+    "printed": "EXIT 65; error COBOL2749: RD 'R1' describes no body group",
+    "expected": "refused: RH, PH, PF, RF only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p5d_rh_rf_only.cob",
+    "printed": "EXIT 65; COBOL2749 describes no body group (plus COBOL2199 for an absolute LINE in an unpaged report)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p5b_no_groups.cob",
+    "printed": "EXIT 65; error COBOL2708: RD 'R1' is followed by no report group description entry",
+    "expected": "refused (degenerate form: no groups at all)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p5c_ch_only.cob",
+    "printed": "EXIT 0; CH / RAN",
+    "expected": "accepted: a CH FINAL alone is a body group; GENERATE report-name presents it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.3 SR7",
+    "check": "OK  §1985:XIII.3.20.3 SR7  (3.20.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "The 1985 definition of a body group (DETAIL, CONTROL HEADING, CONTROL FOOTING) is the set the census tests. An RD with no group entries never reaches the census (Groups.Count > 0) but is refused by COBOL2708, so the degenerate form is refused too.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.20.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Body group per §1985:III.2 (DETAIL, CONTROL HEADING, CONTROL FOOTING) is the set ScreenReportGroupCensus tests. Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r5a_second_rd_no_body.cob (R1 legal, R2 with only an RH) -> EXIT 65 COBOL2749 'RD R2 describes no body group', so each RD is screened, not the section; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r5b_cf_only.cob (CONTROL IS FINAL, only TYPE CONTROL FOOTING FINAL, GENERATE R1) -> EXIT 0 RAN; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r5c_de_unnamed_rf.cob (DE and RF, no CONTROL, GENERATE R1) -> COBOL0899 from §1985:XIII.4.3.3 SR2a, a different rule, correctly refused. cite.py: OK  §1985:XIII.3.20.3 SR7  (3.20.3 Syntax Rules)  the text is in SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

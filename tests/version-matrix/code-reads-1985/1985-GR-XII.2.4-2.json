@@ -1,0 +1,100 @@
+{
+ "rule-id": "1985-GR-XII.2.4-2",
+ "rule-digest": "13c08161efeb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-144",
+  "sources": {
+   "reader": "72264e88926b78dc3b8e0e2892ca0fd3d164afe74e3222cf08a546e41fb1f8d5",
+   "refuter": "152cfc7a214db13ef4263492ec5fde59da5bf728b175ca0fe9b29372aa999b5e"
+  },
+  "imported": {
+   "reader": "f215d16537b2434dfa35daba2c2a3b2edbb68cfaa48c4dfa81b58ed11065fda8",
+   "refuter": "0fe1ce368eba444ae075a6a9efa6a2d33e1fd2fb98866c1e0cc8f82ae2093fc6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XII.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the library text named by text-name-1 replaces the whole COPY statement from the word COPY through its separator period inclusive, wherever the statement stands (inside a statement, a data description entry, a conditional sentence), so the COPY's period never survives into the resultant text.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ExpandCopiesOneLevel; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindStatementKeyword; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Manipulate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+    "switches": "refuses the 2002 literal text-name/library-name and SUPPRESS phrase below 2002 (COBOL0900); the splice itself is unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+    "switches": "edition.Has(2002): a COPY inside library text is refused at 85 by the CopyNestedLibraryText2002 row (GR12); the splice of the found text is the same code",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#CountLibraries",
+    "switches": "CopyUnqualifiedTextName2002: SR1 qualification refusal below 2002; no effect on the replacement",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+    "switches": "edition.ReplacedTextIsLaidOutInFixedForm (REPLACING layout only; not reached without REPLACING)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep dialectLevel|edition.|EditionInfo|ConstructRegistry in CopyProcessor.cs; ExpandCopiesOneLevel and the statement-end scan (ParseCopyStatement/StatementCursor.ExpectSeparatorPeriod) consult no edition.",
+  "behaviour-differs-by-edition": "no: the replacement of COPY through its period is the same code at 85 and 2023; only phrase gates (literal names, SUPPRESS, nested COPY, unqualified text-name) differ",
+  "witnesses-cover": "part: g85_bf34_01 covers COPY inside a MOVE, a data entry and an IF sentence; not exercised there: two COPYs in one statement, a COPY before reference modification, a COPY completing an ODO entry, and the missing-period refusal",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c1gr2.cob",
+    "printed": "ALIBBLIB / W=2PQ      | / 2LIB| / END (MATCH)",
+    "expected": "COPY through its period replaced by \"LIB\": two COPYs in one DISPLAY, ODO entry completed after the COPY, MOVE lit TO W(2:3), the IF sentence continues past the COPY so NOT-HERE is not printed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c1noper.cob",
+    "printed": "error COBOL2449: COPY statement: 'STOP' is out of place ... the statement ends with a separator period",
+    "expected": "refused: SR2 the COPY statement must be terminated by the separator period"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c1litnm.cob",
+    "printed": "error COBOL0900 literal COPY library-text name requires COBOL-2002; error COBOL0900 SUPPRESS phrase requires COBOL-2002",
+    "expected": "refused at 85: the 1985 general format has COPY text-name-1 [OF|IN library-name-1] [REPLACING ...] only"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-144/src/c1gr2.cob",
+    "printed": "--std 2023: same four lines (MATCH)",
+    "expected": "same behaviour at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.2.4 GR2",
+    "check": "OK  §1985:XII.2.4 GR2  (2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XII.2.3 SR2",
+    "check": "OK  §1985:XII.2.3 SR2  (2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "ExpandCopiesOneLevel appends the text before the COPY keyword, splices the resolved library text between framing newlines, and resumes at afterCopy, the position ParseCopyStatement returns just past the separator period, so COPY through its period is replaced. A period inside pseudo-text does not end the statement (StatementCursor).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (MATCH)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XII.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "run_probe --std 85 r1multi.cob (runs/r1multi-001, EXIT 0): a COPY spread over three lines with its period alone on a line, completing a VALUE clause (W = 'LIB  '); a COPY of library text holding only a comment line inside a DISPLAY ('AB'); COPY REPLACING with a period inside pseudo-text-2 ('CX.YD') and with a multi-line pseudo-text-2 holding '. ' then text after the COPY period on the same line ('FP. Q.' then 'G'); a COPY whose period is followed by more operands far right in area B ('VVVLIBE'); a COPY whose replacement is a whole statement ('QR'). All printed as the text requires. The reader's c1litnm covers the 2002 literal/SUPPRESS forms refused at 85. cite.py: OK §1985:XII.2.4 GR2 the text is in GR2; OK §1985:XII.2.3 SR7 the text is in SR7; OK §1985:XII.2.3 SR2 the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

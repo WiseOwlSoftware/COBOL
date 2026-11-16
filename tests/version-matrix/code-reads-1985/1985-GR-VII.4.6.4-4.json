@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-VII.4.6.4-4",
+ "rule-digest": "c458ad37989c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-126",
+  "sources": {
+   "reader": "20e9170bc5f4459a0cadc85ee07856342193ac4a9994c0f1a7c4d2bffcfdb769",
+   "refuter": "36f42f5698e704443f96abc322584ae83c422491de9c6ccc64124a0dc2d3e306"
+  },
+  "imported": {
+   "reader": "943635e31382d2a81979daed8a90e6052688f33fe3ae155d29aa73025518d5c7",
+   "refuter": "db3cae2000749556abd55559f5a0a41ffde11c5b88ed4b79a5d9dabdf6baf86c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.6.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a file-name is named explicitly in a USE statement, an unsuccessful I-O operation on that file runs only that declarative and never an INPUT/OUTPUT/I-O/EXTEND open-mode declarative, for every organization and open mode (including a file in the process of being opened); in a contained program the local declarative precedes a containing program's GLOBAL one (X.5.5.4 GR1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior|ConstructRegistry in UseTierEmitter.cs and DispatchEmitter.cs: only a doc-comment mention; UseTierEmitter's remarks record the tiers as edition-invariant (kb/Work PB344). The file-name tier is a switch on the file key whose every case returns (or, in __IoCheckEc, sets __sel and the mode tier is guarded by __sel == NoHandler), so a named file never reaches the open-mode switch at any edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_01 covers named sequential and relative files opened INPUT; not exercised there: a named file in OUTPUT, I-O and EXTEND modes, a named indexed file, a named file failing its OPEN, and the nested GLOBAL precedence",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/usegr4a.cob",
+    "printed": "NAMED fires alone for F1 at OPEN OUTPUT twice (41), INPUT read past end (10), READ after at-end with an AT END phrase (46), I-O read past end (10), CLOSE twice after EXTEND (42); relative F2 dup WRITE in OUTPUT (22), I-O READ missing (23), CLOSE twice (42); indexed F4 dup key (22), READ missing (23); unnamed F3 OPEN INPUT missing (35) runs INPUT",
+    "expected": "GR4: only the explicit USE for a named file; GR5b for the unnamed file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/usegr4b.cob",
+    "printed": "F3 added to the named USE: its failed OPEN INPUT (35) runs NAMED, not INPUT",
+    "expected": "GR4 and GR5b: a file in the process of being opened in the input mode but named explicitly gets only the named declarative"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/usegr4c.cob",
+    "printed": "error COBOL0897: declarative section 'U-IN': file 'F1' already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)",
+    "expected": "refusal per §1985:VII.4.6.3 SR3 (the degenerate form: one file named in two USE statements)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-126/src/usegr4d.cob",
+    "printed": "INNER NAMED FA / FA OPEN INPUT 35 / OUTER GLOBAL INPUT / FB OPEN INPUT 35",
+    "expected": "X.5.5.4 GR1a: the contained program's named declarative for FA; GR1b: the container's GLOBAL INPUT declarative for the unnamed FB"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.4 GR4",
+    "check": "OK  §1985:VII.4.6.4 GR4  (4.6.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1",
+    "check": "OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.4.6.3 SR3",
+    "check": "OK  §1985:VII.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "One renderer (UseTierEmitter.EmitScopeTiers) writes the file-name tier ahead of the open-mode tier for __IoCheck, __IoCheckEc and __RunGlobalUse, with no edition consultation. Every probe across sequential, relative and indexed files in all four open modes ran only the named declarative. Side observation outside this rule: the SR3 refusal COBOL0897 cites §2023:14.9.49.3 SR8 at --std 85 rather than §1985:VII.4.6.3 SR3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.6.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-126/src/rg4a.cob (run rg4a-001, --std 85): the container declares FD FA IS GLOBAL and USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON FA; the contained program INNER4A has only USE AFTER STANDARD ERROR PROCEDURE ON INPUT and executes OPEN INPUT FA on an absent file. Printed '  INNER INPUT' / 'FA OPEN INPUT 35'. The same at --std 2023 (rg4a-002). GR4 is unqualified: 'When file-name-1 is specified explicitly, no other USE statement applies to file-name-1' (OK §1985:VII.4.6.4 GR4); the INPUT procedure's own rule excludes 'those files referenced by file-name-1 in another USE statement specifying the same condition' (OK §1985:VII.4.6.4 GR5b); and the nested-program precedence admits a local declarative only if it qualifies: 'The declarative which is selected for execution must satisfy the rules for execution of that declarative' (OK §1985:X.5.5.4 GR1). So INNER INPUT does not qualify for FA, rule 1b is applied, and the container's GLOBAL named declarative must run. The reader's nested probe usegr4d put the NAMED USE in the inner program and the mode USE in the container, the one arrangement the per-program tier order gets right. UseTierEmitter.EmitScopeTiers orders file-name before mode only WITHIN one program's declarative list; the outward GLOBAL walk comes after the local mode tier, so a local mode USE beats a container's GLOBAL file-name USE. kb/Work grep (GR5b, 'another USE statement', GLOBAL in the hit notes): no note found.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse: the outward GLOBAL walk is consulted only after the local program's open-mode tier, so the exclusion of an explicitly named file from a local INPUT/OUTPUT/I-O/EXTEND USE is not applied across nesting (not an edition switch; the same arm at 2023)"
+  ],
+  "corrected": "NONCONFORMING (wrong-answer, cause b: the same at --std 2023). Under §1985:VII.4.6.4 GR4 and GR5b with §1985:X.5.5.4 GR1, a file named explicitly in a containing program's USE GLOBAL ... ON file-name-1 is excluded from a contained program's open-mode USE; the compiler runs the contained program's INPUT declarative instead of the container's named GLOBAL one. The opposing reading (that 'another USE statement' means one in the same Procedure Division, as SR3 is scoped) is the only way to uphold, and GR4's text carries no such limit."
+ },
+ "work": "PB5812"
+}

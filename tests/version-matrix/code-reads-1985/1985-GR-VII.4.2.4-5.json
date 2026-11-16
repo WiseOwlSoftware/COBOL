@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-5",
+ "rule-digest": "341a9a9618d8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-024",
+  "sources": {
+   "reader": "9709f841cac846cdc016cdfe1907176364fbbbeed2d15d9b4eb5f12004413809",
+   "refuter": "943b1a501348cb0f5cbcd3d292328f4fa0dffa4783931b13d7dcea5e8fd9c35f"
+  },
+  "imported": {
+   "reader": "6689af126cad437df45525c9d48b004923f2e5224fcd396dfde094fa5066e975",
+   "refuter": "d4b0ddcd86c929707a165ae132bdb126d6127fc5e1ad5c19cf7d65cc4c015600"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.2.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for an OPTIONAL file opened INPUT that is not present, every CLOSE form performs no end-of-file or reel/unit processing and leaves the file position indicator and current volume pointer unchanged: a CLOSE REEL/UNIT [FOR REMOVAL] leaves the file open and its next READ still at end, and no CLOSE creates the file.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#IsOpen; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "what a successful CLOSE WITH LOCK of the absent file locks (85: the physical file)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "CloseCell reads c.OptionalNotPresent before the close and chooses 00 over 07; no edition read on that path (grepped Edition|DialectBehavior in FileRegistry.cs CloseCell/CloseByFormat).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb140 covers CLOSE UNIT and CLOSE on an absent optional input file; not FOR REMOVAL, NO REWIND, LOCK, the position after a READ at end, or whether CLOSE creates the file",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/p6_close_gr5.cob",
+    "printed": "OPEN-ABSENT=05 REEL-ABSENT=00 REMOVAL-ABSENT=00 AT-END-1 10 REEL-AFTER-READ=00 (second READ: no AT END, i.e. 46, position kept) CLOSE-ABSENT=00 REOPEN-ABSENT=05 NOREW-ABSENT=00 LOCK-ABSENT=00 REOPEN-AFTER-LOCK=38 H-AT-END 10 H-REOPEN=05 OPEN-PRESENT=00 REEL-PRESENT=07 READ-PRESENT=00 PPPP0001; run directory holds only p6present.dat (no absent file created)",
+    "expected": "no reel/unit processing, FPI unchanged (first READ at end, the one after it 46), file not created; a present file's CLOSE REEL answers 07 and its next READ returns the first record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.4 GR5",
+    "check": "OK  §1985:VII.4.2.4 GR5  (4.2.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR7",
+    "check": "OK  §1985:VII.4.2.4 GR7  (4.2.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "CloseCell's CloseUnit arm answers 00 for an absent optional file and keeps it open; the plain-close path drops the '07' for such a file. The 00-vs-07 choice for NO REWIND on an absent file is within VII.1.3.5's 'implementor determines' latitude.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not needed (no edition branch)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.2.4-5",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-024/r6_close_gr5.cob (--std 85, run dir r6_close_gr5-001), SELECT OPTIONAL absent file with a USE AFTER STANDARD EXCEPTION PROCEDURE ON INPUT declarative: 'OPEN=05 REEL=00', then OPEN INPUT again runs the declarative with 'DECL-INPUT FS=41' and 'OPEN-AGAIN=41' (CLOSE REEL left the absent file open, so no closing took place), 'REMOVAL=00', the first READ is still 'AT-END 10' (file position indicator unchanged by two reel/unit CLOSEs), CLOSE REEL after the at-end READ '00' and the next READ 'DECL-INPUT FS=46' / 'READ-2=46' (position kept), 'CLOSE=00', 'REOPEN=05', 'NOREW=00'; the run directory holds no r6absent.dat (no CLOSE created the file). No declarative fired for any CLOSE of the absent file. The 00 (not 07) for a reel/unit or NO REWIND CLOSE of an absent file is a status choice under VII.1.3.5 ('the implementor determines which of the applicable values'), not part of GR5. cite.py: 'OK  §1985:VII.4.2.4 GR5  (4.2.4 General Rules)  the text is in GR5'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4a'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

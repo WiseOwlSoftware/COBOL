@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-VI.5.13.3-2",
+ "rule-digest": "4fd59d7b7e4d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-053",
+  "sources": {
+   "reader": "3dda3f9c45a552503ddf958a1c713d25573016bf498999c6d589ba62f715a59d",
+   "refuter": "5406f19ea7d01bec10f9510f7137b2db96db53eb8dfc134552e9d5d219f94767"
+  },
+  "imported": {
+   "reader": "7363732b428b8dcd774e12e168ace9f9a38c4ce24921a41ce6e8e8512e78e59e",
+   "refuter": "5e37ffab7d29f13bc37317b61b86b110baecc3f77e3f7ce28d94184a0e8e5143"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.13.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the word SYNC must be accepted wherever SYNCHRONIZED is, in both forms of the format (with or without LEFT/RIGHT), and must mean the same clause, held to the same rules: allowed on an elementary item, refused on a group (SR1), refused on an index item (§1985:VI.5.14.3 SR6), and counted as the same clause when duplicated. The witness covers only the group-refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SYNC; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#syncClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckClauseSubjectsPass.cs#Run",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "word status of SYNC / SYNCHRONIZED (both rows reserved at 85, 2002, 2014 and 2023 in ReservedWords.Table.cs#Entries)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "DialectLevel >= 2023 lets a group carry the clause; below that it is refused with COBOL0900 (Constructs.SyncOnGroup2023). The 85 arm differs from the latest one and matches §1985:VI.5.13.3 SR1",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation",
+    "switches": "dialectLevel < 2002 refuses SYNCHRONIZED on a usage-INDEX item (§1985:VI.5.14.3 SR6). The 85 arm differs from the latest one and is correct",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the abbreviation itself: one token alternative (SYNCHRONIZED | SYNC) feeds one bound flag at every edition. The clause's placement rules differ: group items are refused below 2023 and index items below 2002, and both spellings take the same arm.",
+  "witnesses-cover": "part: the witness checks only that SYNC on a group is refused below 2023. The accepted elementary forms (SYNC, SYNC LEFT, SYNC RIGHT), the index refusal and the duplicate-clause identity are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/sync1.cob",
+    "printed": "-0012 -0034 0056 0078 [AB ] [CD ]",
+    "expected": "SYNC / SYNCHRONIZED, each with no phrase, LEFT and RIGHT, on signed and unsigned COMP and on alphanumeric items, compile and behave identically"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/sync2.cob",
+    "printed": "COBOL0900 on G1 (SYNCHRONIZED) and on G2 (SYNC): SYNCHRONIZED on a group item requires COBOL-2023",
+    "expected": "both spellings refused on a group (§1985:VI.5.13.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/sync3.cob",
+    "printed": "COBOL2405 on I1 (SYNC) and on I2 (SYNCHRONIZED), citing §1985:VI.5.14.3 SR6",
+    "expected": "both spellings refused on a usage-INDEX item at 85 (the 1985-only exclusion)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/dup1.cob",
+    "printed": "COBOL2423: the clause 'SYNC' is written 2 times (for PIC 9(4) COMP SYNC SYNCHRONIZED)",
+    "expected": "SYNC and SYNCHRONIZED are one clause, so writing both is a duplicate"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.3 SR2",
+    "check": "OK  §1985:VI.5.13.3 SR2  (5.13.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.13.3 SR1",
+    "check": "OK  §1985:VI.5.13.3 SR1  (5.13.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.14.3 SR6",
+    "check": "OK  §1985:VI.5.14.3 SR6  (5.14.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "The lexer has two tokens, and syncClause takes either one. BindEntry reads only the LEFT/RIGHT phrase, so nothing after the parser can tell the spellings apart. Every placement rule probed (group, index, duplicate) treats SYNC and SYNCHRONIZED identically at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.13.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rsy1 (run, --std 85): 77 S9(4) COMP SYNC VALUE -7, SYNC LEFT / SYNCHRONIZED RIGHT inside OCCURS 3, SYNC on a REDEFINES of PIC X(4), SYNC on PACKED-DECIMAL after a PIC X; printed '-0007 +23456 -00022 +00333 / 004 055 666 B / 1234 -987654321' (MOVE 123456 to S9(5) COMP SYNC truncates to 23456: the original PICTURE size governs, §1985:VI.5.13.4 GR5). rsy2: SYNC on a 66 RENAMES -> COBOL0001 syntax error (correct: format 2 has no SYNC). rsy3: SYNC on 88 -> COBOL1747; SYNC RIGHT on 01 group -> COBOL0900 (SR1); SYNC and SYNCHRONIZED LEFT on elementary items INHERITING group USAGE INDEX -> COBOL2405 citing §1985:VI.5.14.3 SR6 (the inherited half the reader did not probe). Both spellings behave identically everywhere. cite.py: OK §1985:VI.5.13.3 SR2; OK §1985:VI.5.13.3 SR1; OK §1985:VI.5.14.3 SR6; OK §1985:VI.5.13.4 GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

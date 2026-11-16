@@ -105,6 +105,11 @@
       "changedIn": 2002
     },
     {
+      "id": "integer-argument-rounded-under-standard-arithmetic",
+      "vcrRow": "7.81",
+      "changedIn": 2014
+    },
+    {
       "id": "integer-date-form-bounded-9999",
       "vcrRow": "7.61",
       "changedIn": 2002
@@ -135,6 +140,11 @@
       "changedIn": 2014
     },
     {
+      "id": "saved-next-group-forces-page-advance",
+      "vcrRow": "7.82",
+      "changedIn": 2002
+    },
+    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56",
       "changedIn": 2002
@@ -150,6 +160,11 @@
       "changedIn": 2002
     },
     {
+      "id": "sum-size-error-raised-at-addition",
+      "vcrRow": "7.83",
+      "changedIn": 2014
+    },
+    {
       "id": "terminate-discards-saved-next-group",
       "vcrRow": "7.59",
       "changedIn": 2002
@@ -157,6 +172,11 @@
     {
       "id": "unphrased-size-error-is-fatal",
       "vcrRow": "7.71",
+      "changedIn": 2002
+    },
+    {
+      "id": "unstring-zero-length-sender-terminates",
+      "vcrRow": "7.80",
       "changedIn": 2002
     }
   ],
@@ -990,7 +1010,9 @@
     "COBOL7369",
     "COBOL7390",
     "COBOL7391",
-    "COBOL7486"
+    "COBOL7441",
+    "COBOL7486",
+    "COBOL7558"
   ],
   "cliOptions": [
     "--copy",

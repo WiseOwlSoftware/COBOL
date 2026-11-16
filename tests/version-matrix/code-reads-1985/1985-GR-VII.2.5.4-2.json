@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.2.5.4-2",
+ "rule-digest": "6427872f01f5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-119",
+  "sources": {
+   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
+   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+  },
+  "imported": {
+   "reader": "0307f735a4ae16ae58e0e04e09c6f04149e98e3bca8624311b94a8e3bb8995e8",
+   "refuter": "c7f09e478ac97f62dbee18a46369f16491f17372a12650334c456762b49b5fb4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the FILE STATUS item an input-output statement updates is the one named in the file control entry of the file that statement references, and no other file's item, including for a multi-file CLOSE, two files sharing one item, and a GLOBAL file referenced from a contained program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+    "switches": "connector Edition 85 passed to the runtime; the per-file status item binding is edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|EditionContext|DialectBehavior in SequentialIoEmitter.EmitStoreFileStatus and FileControlBinder.Resolve: the FileModel.FileStatusItem binding consults no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf20_01 has two files with their own items on successful statements; not a failed statement, a multi-file CLOSE, one item shared by two files, or a GLOBAL file in a contained program",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p2assoc.cob",
+    "printed": "OPEN-A 00 BB; CLOSE FA FB: DECL 00 42 / CLOSE-A-B 00 42; OPEN-IN-B AA 35; OPEN-C (shares FS-A) 00 BB; CLOSE-C 00 BB; INNER-OPEN-G 00; INNER-WRITE-G 00; AFTER-INNER ZZ; CLOSE-G 00",
+    "expected": "each statement updates only its own file's item; a GLOBAL file's statement in a contained program updates the owner's item"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p5fdext.cob",
+    "printed": "INNER-WRITE-EF 00; INNER-WRITE-LF 48; OUTER 00 00",
+    "expected": "the contained program's own items (FS-I, FS-J) are updated by its statements, the outer items untouched"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.5.4 GR2",
+    "check": "OK  §1985:VII.2.5.4 GR2  (2.5.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The status place is resolved per FileModel (places.FileStatusOf(file)), so the item stored is the one of the referenced file's control entry; an inherited GLOBAL file stores into the owner's item. Probed outcomes match.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run separately; the path is edition-blind",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "src/r2ext.cob at --std 85: an EXTERNAL FD declared in the outer program (FILE STATUS FS-O) and in a contained program (FILE STATUS FS-I). Inner OPEN of the connector the outer opened gave INNER-REOPEN 41 into FS-I while FS-O stayed OO (OUTER-AFTER-CALL OO); inner CLOSE 00 into FS-I; outer WRITE after that close gave 48 into FS-O. Mixed-mode multi-file OPEN OUTPUT XA INPUT XB (XB absent): MULTI-OPEN 00 35, and CLOSE XB XA: MULTI-CLOSE 00 42, each into its own file's item. So the item updated is that of the file control entry of the program whose statement ran, even when two entries share one connector. cite.py: OK §1985:VII.2.5.4 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

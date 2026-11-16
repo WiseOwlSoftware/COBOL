@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-VII.2.3.3-1",
+ "rule-digest": "4f92dc80ece2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-062",
+  "sources": {
+   "reader": "bcae14ed2cb9ef4fd129801d9934183cf9e56f22e5d496d086e444f68e37e988",
+   "refuter": "f6d2740f0365363e53468248473fec428211b7eb2cfc4ebe62ec90d36a92a187"
+  },
+  "imported": {
+   "reader": "811df451c9adb9044bf707be0709907f35e4fbbd1b37f6a926240b773d522152",
+   "refuter": "53310a4d3021dd8b71c01a59bbf30c41d5748683d9be4355d90370cc4d77d9f9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file control entry must begin with the SELECT clause (a clause before SELECT, or an entry without SELECT, is refused) and every clause the sequential, relative and indexed 1985 formats print after SELECT (ASSIGN, RESERVE, ORGANIZATION, PADDING CHARACTER, RECORD DELIMITER, ACCESS MODE with its RELATIVE KEY phrase, RECORD KEY, ALTERNATE RECORD KEY, FILE STATUS) must be accepted in any order with its effect intact; the witness covers indexed and sequential reorderings, not RESERVE, PADDING, OPTIONAL, relative entries or the refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "below 2002 the RELATIVE KEY clause must be written directly after the ACCESS MODE clause (it is a phrase of ACCESS MODE in §1985:VIII.2.3.2); a free-standing RELATIVE KEY is COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSharingClause",
+    "switches": "SHARING clause (2002) refused at 85 wherever written in the entry",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLockModeClause",
+    "switches": "LOCK MODE clause (2002) refused at 85 wherever written",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl",
+    "switches": "PADDING CHARACTER marked in-edition below 2014 (Edition.DialectLevel < 2014); order-independent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read fileControlClauseGroup/fileControlClauses (SELECT fixed first, clauses* free order) and BindFileControl's clause loop (order-independent capture); grep 'Visit(FileControlClauseGroup|AssignClause|RelativeKeyClause|SharingClause|LockModeClause)' in Validation/VersionConformancePass.cs.",
+  "behaviour-differs-by-edition": "yes: at 85 the RELATIVE KEY is a phrase of the ACCESS MODE clause and must follow it directly (COBOL0900 otherwise); from 2002 it is a clause of its own placed anywhere; the SHARING and LOCK MODE clauses do not exist at 85",
+  "witnesses-cover": "part: indexed and sequential reorderings are exercised; RESERVE, PADDING CHARACTER, OPTIONAL, a relative entry, the 1985 RELATIVE KEY phrase and the refusal half (clause before SELECT, no SELECT) are not",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_order_all85-002/r2_order_all85.cob",
+    "printed": "ST1=00 / R2=HELLO ST2=00 / R3=REL04 ST3=00 / F3 AT END 10 / R4=K1AAA (exit 0)",
+    "expected": "SELECT OPTIONAL with FILE STATUS, ACCESS, PADDING, RESERVE, ORGANIZATION, ASSIGN last; a relative entry with ASSIGN and ORGANIZATION after ACCESS DYNAMIC RELATIVE KEY; an indexed entry with ALTERNATE RECORD KEY before ASSIGN and RECORD KEY: all compile and every clause takes effect"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_clause_before_select-001/r2_clause_before_select.cob",
+    "printed": "error COBOL0001: unexpected 'ASSIGN'",
+    "expected": "refused: SELECT must be first"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_no_select-001/r2_no_select.cob",
+    "printed": "error COBOL0001: unexpected 'F1'",
+    "expected": "refused: an entry without SELECT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_select_in_middle-001/r2_select_in_middle.cob",
+    "printed": "error COBOL0307: unexpected 'SELECT'. A period may be missing at the end of the previous sentence.",
+    "expected": "refused: SELECT inside a previous entry (the entry is not terminated)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_order_all85-001/r2_order_all85.cob",
+    "printed": "error COBOL0900: a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 85: §1985:VIII.2.3.2 prints RELATIVE KEY only as a phrase of ACCESS MODE, so RELATIVE KEY written before ACCESS DYNAMIC is not a 1985 clause"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-062/r2_order_sharing-001/r2_order_sharing.cob",
+    "printed": "COBOL0900 the SHARING clause requires COBOL-2002; COBOL0900 the LOCK MODE clause requires COBOL-2002",
+    "expected": "2002 clauses refused at 85 in any position"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.3.3 SR1",
+    "check": "OK  §1985:VII.2.3.3 SR1  (2.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar fixes SELECT first and leaves every following clause in free order; the binder captures clauses order-independently. The one 1985 arm is the RELATIVE KEY phrase, which the version pass requires directly after ACCESS MODE, matching the 1985 relative format.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-062/p1_order-002 (--std 85): bare SEQUENTIAL directly after the file-name, RECORD DELIMITER IS STANDARD-1 before STATUS IS (FILE omitted, the 1985 format leaves FILE optional) before ASSIGN; ACCESS MODE IS SEQUENTIAL followed by the bare organization word RELATIVE (no RELATIVE KEY phrase); ACCESS SEQUENTIAL RELATIVE KEY IS RK5 followed by RELATIVE: all parse, run, exit 0 (ST1=00, R3=REL02 ST3=00, R5=BBBBB RK5=0002). The only refusals were COBOL6826 for WRITE without INVALID KEY on a relative file (another rule). cite.py: OK §1985:VII.2.3.3 SR1 the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.8-6",
+ "rule-digest": "3c9a33e20ca7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-145",
+  "sources": {
+   "reader": "16e919ad61b91578bb140064b907ea9ff6d5d12879721f44f2a8c615382a2e89",
+   "refuter": "153581c84afa9119e551cb7b435a919dd398b725151cddf496a9c8dfbb7013b9"
+  },
+  "imported": {
+   "reader": "f5544b0670062dd8357783f85daf04a30f44e230975e41b697860f1a8c7d94a3",
+   "refuter": "c7cfe273ffbdac762be6c0b4cee26cc4ffd020944e58b48503c43e3ac3750891"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.8-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 after a body group the RWCS sets LINE-COUNTER as follows: a control footing below the highest break level keeps its final print line under a, b, c and f. Otherwise: absolute NEXT GROUP gives the integer if the final line is below it, else FOOTING with the integer saved (a); relative gives final line + integer if below FOOTING, else FOOTING (b); NEXT PAGE gives FOOTING (c); no NEXT GROUP gives the final line (d); a nonprintable body group leaves LINE-COUNTER unchanged (e); unpaged relative gives final line + integer (f).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup: whether the saved next group integer that 6a stored is kept (85) or discarded with LINE-COUNTER restored (2002+) when TERMINATE follows",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "control values seen by page groups during a footing's page advance; not LINE-COUNTER",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ApplyNextGroup and ProcessControlFootings (applyNextGroup: i == breakLevel) consult no edition.",
+  "behaviour-differs-by-edition": "yes: only in whether the saved integer 6a stores survives a following TERMINATE (85 keeps it, 2002+ discards it); the six LINE-COUNTER settings themselves are the same code at every edition",
+  "witnesses-cover": "part: g85_bf36_02 covers a, b, c, d, e and f on details; g85_bf36_03 covers the lower-level control footing with a relative NEXT GROUP. A lower-level footing with an absolute or NEXT PAGE NEXT GROUP, the equality boundary of a, and a highest-level footing at TERMINATE are not exercised",
+  "probes": [
+   {
+    "class": "a..f witness",
+    "file": "conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_02.cob; conformance-suite/cases/XIII.3.16@1985-NEXT-GROUP-CLAUSE/g85_bf36_03.cob",
+    "printed": "EXPECT: MATCH for both",
+    "expected": "their derivations"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p3_body_head.cob",
+    "printed": "R-M: CF-MIN NEXT GROUP NEXT PAGE as the highest level: LC 35 (FOOTING), next DE on page 2; as a lower level: BEFORE CF-MAJ LC 04 and 24 and 22 (final line, NEXT PAGE ignored); CF-MAJ NEXT GROUP 20: line 5 -> LC 20, line 25 -> LC 35 with saved 20 (DE on page 3 line 21); AFTER TERMINATE LC 35",
+    "expected": "6c; 6a/6c lower-level arm; 6a both arms"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p3_body_head.cob",
+    "printed": "R-N DE-Y at FD 5 with NEXT GROUP 5: BEFORE next DE LC 17 (5 not < 5 -> FOOTING, saved); R-U unpaged: lower-level CF PLUS 5 ignored (LC 2, 14), highest-level CF PLUS 5 -> 12, CF-UJ PLUS 2 -> 5 and 17",
+    "expected": "6a equality goes to FOOTING; 6f both arms"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p6_term_saved.cob",
+    "printed": "--std 85: AFTER DE LC 17, CF FINAL on page 2 line 4; --std 2023: CF on page 1 line 4",
+    "expected": "85: the saved integer stays for the TERMINATE footing (no 1985 rule discards it)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.8 GR6",
+    "check": "OK  §1985:XIII.3.10.8 GR6  (3.10.8 Body Group Presentation Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "ApplyNextGroup's body arm implements 6a (LC < integer ? integer : FOOTING + save), 6b (sum < FOOTING ? sum : FOOTING), 6c (FOOTING), 6f (unpaged sum). 6d is the final PresentLine value, and 6e holds because BeginGroup returns false for a dummy group before any line. The lower-level-footing exception is PresentBody's applyNextGroup = (level == break level) from ProcessControlFootings, at a break and at TERMINATE (break level 0). 2023 output is identical except for the saved-integer-at-TERMINATE arm, where 85 follows its own text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.8-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read ApplyNextGroup's body arm (6a: LC < integer ? integer : FOOTING with the integer saved; 6b: sum < FOOTING ? sum : FOOTING; 6c: FOOTING; 6f: unpaged sum) and ProcessControlFootings (applyNextGroup only for i == breakLevel; TERMINATE passes 0, the most major control, which is FINAL or the first named control). Probe q2_cf_levels.cob (runs/q2_cf_levels-001, --std 85; CONTROLS ARE K1 K2 with no FINAL, CF-K2 NEXT GROUP 12, CF-K1 NEXT GROUP PLUS 3): break at K2: CF2 line 4 -> next DE 'BEFORE DE LC 12' (6a, highest level K2); break at K1: CF2 line 14 kept 'BEFORE CF1 LC 14' (lower-level footing, NEXT GROUP ignored), CF1 line 15 + 3 -> 'BEFORE DE LC 18' (6b); TERMINATE without FINAL: CF2 at 20 kept ('BEFORE CF1 LC 20'), CF1 at 21 + 3 -> 'AFTER TERMINATE LC 24'. All as the text gives. The q1_saved_plus0 defect recorded under 1985-GR-XIII.3.10.8-4 changes WHERE a group lands, not the LINE-COUNTER setting this rule gives after it (6d was the final line there too). cite.py: 'OK  §1985:XIII.3.10.8 GR6  (3.10.8 Body Group Presentation Rules)  the text is in GR6'; 'OK  §1985:XIII.3.16.4 GR3  (3.16.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

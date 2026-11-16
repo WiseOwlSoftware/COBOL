@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-VI.6.25.3-1",
+ "rule-digest": "c211fa13c822",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-060",
+  "sources": {
+   "reader": "560a7f471262d9d49a465e03dd3fdf65ae51432d29285da51636ba587900dbb4",
+   "refuter": "7a46c5415a90da6fb4312da600544c74561a5626aee8f30369c3937043eb576d"
+  },
+  "imported": {
+   "reader": "bd5fdf8fb076d3e19418e50ae2ecc2a2dfa68f9748d1d9f476ebe46b31795ee1",
+   "refuter": "07457e7e9ab4bcd35685d6779d8a308532234cb6ebd72c6ad514479cd5303de4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.25.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 STRING must refuse literal-1 (a sending operand) or literal-2 (a DELIMITED BY operand) written as a figurative constant beginning with ALL - ALL nonnumeric-literal, and ALL ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/symbolic-character, where ALL is redundant (IV.4.2.2.2.3) yet still begins the constant - while the same figuratives without ALL, and a bare symbolic-character, stay legal; 1985 STRING has no ALL phrase, so any ALL in the delimiter is the figurative.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand",
+  "edition-consulted": [],
+  "edition-search": "grep of StringUnstringBinder.cs for Edition|CobolVersion|IsAtLeast|Dialect|ConstructRegistry: ctx.Edition appears only as the diagnostic sink (BoundRejected.Report / BoundOperandError.Report -> EditionContext#Error, severity fixed by the descriptor) and as a position scope (EditionContext.At); grammar rules stringStatement/delimitedByPhrase/strUnstrOperand (CobolIO.g4) carry no version predicate; the only edition gate on the statement is src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStringStatement (StringDelimitedOmitted2002, the omitted-DELIMITED form), which is not this rule's predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers only ALL ZEROES as a sender; ALL literal, ALL QUOTE/SPACES, ALL symbolic-character as sender and every ALL delimiter form are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr1-neg.cob",
+    "printed": "COBOL1757 on all six statements: sender ALL \"AB\", ALL SPACES, ALL QUOTE; delimiter ALL \"*\", ALL SPACE, ALL HIGH-VALUE",
+    "expected": "each refused (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr34-neg.cob",
+    "printed": "line 32 STRING ALL STAR (symbolic-character): COBOL1757",
+    "expected": "refused: [ALL] symbolic-character is a figurative constant (IV.4.2.2.2.3 (7))"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-060/src/str-sr1-pos.cob",
+    "printed": "1=[ AB0\"*...   ] 2=[ABXY.....   ] 3=[AAB......   ]",
+    "expected": "SPACE/ZERO/QUOTE/bare symbolic STAR as one-character senders and STAR/SPACE delimiters are legal: [ AB0\"*...   ] [ABXY.....   ] [AAB......   ]"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.3 SR1",
+    "check": "OK  §1985:VI.6.25.3 SR1  (║6.25.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.3",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.3  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.3"
+   }
+  ],
+  "notes": "The screen reads the written operand's first token as well as the bound ALL-literal flag, so ALL before a figurative word (which binds to a plain figurative) is still caught; it applies identically at every edition, which matches 1985's text. Bare figuratives and a bare symbolic-character pass and produce the GR3 one-character values.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.25.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe src/bwzneg.cob (--std 85, refute-1985-060/bwzneg-001): ALL \"X\" as a SECOND sender and ALL ZEROES as the delimiter of a SECOND DELIMITED phrase, and ALL QUOTES delimiter, each COBOL1757 (the reader probed only first positions). Class c: src/laterlit.cob - X\"4142\" sender, N\"AB\" sender, X\"2C\" delimiter each COBOL0900 at 85 (later-edition literals refused). No ALL figurative form at any position of the repeated sender/delimiter groups escapes. cite.py: OK  §1985:VI.6.25.3 SR1  the text is in SR1; OK  §1985:IV.4.2.2.2.3 SRL3.3  the text is in SRL3.3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

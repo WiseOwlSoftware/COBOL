@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-16",
+ "rule-digest": "ae1400999e21",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-019",
+  "sources": {
+   "reader": "cac08827760b8caaf05d2d24cc3ecb7e6585b892b5d4949fa57ccdb12c87e9e7",
+   "refuter": "915b665368ad697fd9e06b3a65595021e012c10acde06b17ad688f066fd6a0e9"
+  },
+  "imported": {
+   "reader": "7ea7a0633b9187f675bfe79ce6f719c9b590cd2f4af180e2f0a15aed7d9fc449",
+   "refuter": "cc5eb7e7c736b1c0f5a1af107eb15cf55877090b7bc1ca80982f8d158fc16d9b"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-VI.6.27.4-16",
+  "verdict": "CONFORMS",
+  "requirement": "identifier-8 ends as its value at the start plus the number of receiving areas acted upon (none when the statement overflows at initiation; areas not reached because the sender was exhausted do not count).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
+  "edition-consulted": [],
+  "edition-search": "Grepped StringUnstringBinder.cs, StringEmitter.cs, ReceivingStore.cs, CobolStringOps.cs and EcEmitter.cs#EmitOverflow for Edition|CobolVersion|Std|Dialect|Construct|ReservedWord: StringEmitter, ReceivingStore and CobolStringOps have none; the binder's ctx.Edition uses are the diagnostic sink only (BoundRejected.Report / BoundOperandError.Report -> edition.Error), no switch; EcEmitter#EmitOverflow reads the >>TURN checking state, not the edition. Grepped VersionConformancePass.cs for UNSTRING: only VisitUnstringStatement (SR7 sender ref-mod) and VisitConditionalPhrases (phrase order).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: no tally that overflows its PICTURE, no COMP tally",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p15.cob",
+    "printed": "P0 OVF P=00 T=005; R ... T=004",
+    "expected": "initiation overflow leaves 5; four areas give 0+4"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-019/p15.cob",
+    "printed": "Q OVF P=07 T=1 (T PIC 9, start 9, 2 areas)",
+    "expected": "9+2 = 11 does not fit PIC 9; stored by high-order truncation as 1 (the text gives no size-error rule)"
+   },
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/14.9.48-UNSTRING/l1c35_unstring_tallying_accessed.cob",
+    "printed": "matches its .out at --std 85",
+    "expected": "the witness's derivation"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR16",
+    "check": "OK  §1985:VI.6.27.4 GR16  (║6.27.4 General Rules║)  the text is in GR16"
+   }
+  ],
+  "notes": "The tally counts areas acted upon (cnt >= 0) and is added to the item's content after the last area; a sum too large for the item truncates high-order, the elementary-move behaviour, not a GR16 failure (SR4 sets no size requirement on identifier-8)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-16",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "r1 A T=02 (sender exhausted before R3); r1 B T=01 with trailing ALL SPACE run, R2/R3 left ZZZ; r3 C T=1 (delimiter at last position, R2 not accessed); r2 F T=03 with overflow; r4 A T=2. cite.py: OK §1985:VI.6.27.4 GR16, OK §1985:VI.6.27.4 GR13g.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

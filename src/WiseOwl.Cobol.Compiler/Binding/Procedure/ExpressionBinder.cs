@@ -538,9 +538,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         : null;
 
     /// <summary>The literal-alias a BARE WORD spells where the grammar writes <c>literal | cobolWord</c> — a position no
-    /// identifier can occupy (an inline method invocation's literal-1, §2023:8.4.3.4.2; kb/Work PB780), so there is no own
-    /// data item for the word to yield to and the §2023:8.4.6.1 own-item test of the data-reference overload does not arise.
-    /// The same two tables in the same order: a constant-name, then a symbolic-character.</summary>
+    /// identifier can occupy (an inline method invocation's literal-1, §2023:8.4.3.4.2, kb/Work PB780; the STOP statement's
+    /// literal-1, kb/Work PB5809), so there is no own data item for the word to yield to and the §2023:8.4.6.1 own-item test
+    /// of the data-reference overload does not arise. The same two tables in the same order: a constant-name, then a
+    /// symbolic-character.</summary>
     internal LiteralAlias? LiteralAliasOf(Core.CobolWordContext word) =>
         word.GetText() is var w && ctx.Data.Constants.FindConstant(w) is { } k ? new(w, k, null)
         : ctx.Data.SpecialNames.NamesSymbolic(w) && ctx.Data.SpecialNames.SymbolicOf(word, w) is { } s ? new(w, null, s)

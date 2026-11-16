@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-GR-X.1.3.6-2",
+ "rule-digest": "dd06eb26f1ff",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-031",
+  "sources": {
+   "reader": "c483a0a7abaab3fed39c53ce0790c2b589619f0a6304599e1414a759780b8b38",
+   "refuter": "a60a1852ac7f090aaba1d031ca11da70996c6b1ccb0bce18cf63bebe43108ba8"
+  },
+  "imported": {
+   "reader": "c584ca24aff114752ac200000e121f65336c6ebdadde4ccc58ed31ff9d142e93",
+   "refuter": "237487f0894a1facf8ed8b2640c14c11ed6e1cc1ce51363298de71216c31986c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.1.3.6-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program contained (directly or indirectly) in another must reach, as ONE shared storage, every data-name that is global (01-level GLOBAL in Working-Storage or the File Section, a GLOBAL FD's records, and every subordinate data-name and condition-name, X.4.6.4 GR1) in its direct container or any program containing it, and must not reach a container's non-global item, a contained or sibling program's item, or the REDEFINES object of a GLOBAL redefiner (X.4.6.4 GR3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Seed; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#Merge; src/WiseOwl.Cobol.Compiler/Binding/InheritStep.cs#ContainerGlobalRootsOf; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritContainerGlobalData; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#InheritGlobalSubtree; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+    "switches": "GLOBAL in the Linkage Section (Constructs.LinkageGlobal2002): refused COBOL0900 at 85, admitted from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over InheritStep.cs, InheritedGlobals.cs, DataBindState.cs, SymbolTable.cs, ForestSlice.cs, LinkageBinder.cs#CallBindExternalAndGlobal and BinderDriver.cs#BindUnitData: the inheritance path itself never consults the edition; the only edition arm on the construct is the Linkage-GLOBAL gate, whose 85 arm (refuse) is what §1985:X.4.6.3 SR1 requires.",
+  "behaviour-differs-by-edition": "yes: at 85 GLOBAL is admitted only on 01 entries in File/Working-Storage, FD and RD (Linkage GLOBAL refused COBOL0900); the sharing mechanism itself is the same at every edition",
+  "witnesses-cover": "part: the witness covers two-level indirect sharing of elementary and table items; not exercised there: ODO in a global record, condition-names, signed/edited items, REDEFINES subject-only globality, ref-mod, size error, and the refusal half",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p1_share_data.cob",
+    "printed": "IN SIZE ERROR / OUT GN=4 GT=AABBCCDQ / OUT GS=-013.34 GE=- 13.34 / OUT GF-YES / OUT GA=YBCDEZ GBIG=999999999999999999",
+    "expected": "inner program (two levels in) stores to the outer GLOBAL group's ODO object, ODO table, signed and edited items, 88 condition, the GLOBAL REDEFINES subject (ref-mod at both bounds) and an 18-digit item (size error leaves it): the outer program sees every store"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p2a_nonglobal_container.cob",
+    "printed": "error COBOL1639: 'LOC1' is not defined",
+    "expected": "a container's non-global item is not reachable (X.1.3.8.2: names may be referenced only by that program)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p2b_contained_global_up.cob",
+    "printed": "error COBOL1639: 'INNERG' is not defined",
+    "expected": "a program cannot reference a name declared in a program it contains (X.1.3.8.2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p2c_sibling_global.cob",
+    "printed": "error COBOL1639: 'SIBG' is not defined",
+    "expected": "a sibling's GLOBAL item is not shared (neither program contains the other)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p2d_redefines_object_not_global.cob",
+    "printed": "error COBOL1639: 'GA' is not defined",
+    "expected": "X.4.6.4 GR3: only the subject of a GLOBAL REDEFINES is global; the object GA is not"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p3a_linkage_global.cob",
+    "printed": "error COBOL0900: the GLOBAL clause in the linkage section requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "X.4.6.3 SR1: GLOBAL only in File Section / Working-Storage 01 entries, FD, RD"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p3b_level77_global.cob",
+    "printed": "error COBOL2404: ... the GLOBAL clause is not admitted here — this entry's level-number is 77",
+    "expected": "X.4.6.3 SR1: level-number 01 only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-031/p3c_level05_global.cob",
+    "printed": "error COBOL2404: ... level-number is 05",
+    "expected": "X.4.6.3 SR1: level-number 01 only"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/8.6.7-Sharing-data-items/l1c31_global_indirect_container.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.1.3.6 GR2",
+    "check": "OK  §1985:X.1.3.6 GR2  (1.3.6 Sharing Data)  the text is in GR2"
+   }
+  ],
+  "notes": "Global roots of every container (nearest first, with depth) are offered by InheritStep.Seed, made visible by DataBinder.InheritGlobalSubtree (data-names, 88s, 66s, index-names) and bridged to the container's own storage by InheritStep.Merge, so both programs refer to one item. All probes behaved as the 1985 text requires, including the 85-only refusal of Linkage GLOBAL.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.1.3.6-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-031/: r1a_global_rec_nonglobal_fd (an 01 GLOBAL record under a NON-global FD, legal per X.4.6.3 SR1): inner sees OUTR/0001, its stores (INNR, 0042) are seen by the outer and WRITE/READ back INNR 0042: one storage. r1c_external_global (01 EXTERNAL GLOBAL plus a GLOBAL record with an ODO table whose object the inner changes 3->5, ref-mod GT(2:)): OUT EGA=0008 GT=5VWXYZ LEN-CHARS=VWXYZ, then a separately compiled program sharing EG EXTERNAL: EGA=0108. r1b_renames_of_global: a 66 RENAMES of the global record is reachable from the contained program (IN GR=ABCDEF, OUT G=XYZXYZ); the data renamed possesses the global attribute, so X.1.3.6 GR2 sharing is met; whether the 66 NAME is global is a name-scope question (X.1.3.3 'subordinate'), not this rule. r1d_cd_record_global: GLOBAL on an 01 under a CD refused COBOL2404 (communication section). cite.py: OK §1985:X.1.3.6 GR2; OK §1985:X.4.6.3 SR1; OK §1985:X.1.3.3; OK §1985:X.4.6.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

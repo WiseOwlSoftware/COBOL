@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-1",
+ "rule-digest": "d0c315b2e579",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "32deb395a133d0e9379549efa1f544db8ec70a0f38562d426028b134be92735f",
+   "refuter": "4c4f5758743566fa03cbccdaca9be3ce6e454fa987ec089c215392850ab14f5f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a PERFORM that omits procedure-name-1 (any of Formats 1-4) must carry imperative-statement-1 and END-PERFORM, and a PERFORM that names procedure-name-1 (with or without THRU and with any TIMES/UNTIL/VARYING phrase) must carry neither.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performLocationPhrase",
+    "switches": "{is2023()}? bare LOCATION head; below 2023 PERFORM LOCATION is an out-of-line PERFORM",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformStatement",
+    "switches": "Format-3 exception-checking PERFORM refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR1 cardinality itself is grammar-only: inline alternative `PERFORM performInlineHead? statementBlock ... END_PERFORM` (statementBlock required) and out-of-line alternatives with no body or END_PERFORM; no predicate on those alternatives. Edition consults found only for the 2023 Format-3 form (grep is2023/VisitPerform in the grammar and VersionConformancePass).",
+  "behaviour-differs-by-edition": "no: the presence/absence rule is the same at every edition; only the 2023 Format-3 inline form is gated off at 85",
+  "witnesses-cover": "part: the witness exercises an inline VARYING; not exercised are an out-of-line PERFORM followed by a body or END-PERFORM, an inline PERFORM missing END-PERFORM or the body, and the THRU/TIMES out-of-line forms",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf1pos.cob",
+    "printed": "P1 / P1 P2 / IN / T T / P1 P1 / 02 / V01 V02 / P1 P2 (exit 0)",
+    "expected": "out-of-line forms without body and inline forms (plain, TIMES, TEST AFTER UNTIL, VARYING) with body and END-PERFORM accepted and run"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf1r1.cob",
+    "printed": "COBOL0306 unexpected 'END-PERFORM' (PERFORM P1 DISPLAY \"X\" END-PERFORM); same for pf1r2 (PERFORM P1 END-PERFORM), pf1r3 (P1 2 TIMES ... END-PERFORM), pf1r7 (P1 THRU P2 ... END-PERFORM)",
+    "expected": "procedure-name-1 with imperative-statement-1/END-PERFORM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf1r4.cob",
+    "printed": "COBOL2269 unexpected '.' (PERFORM DISPLAY \"X\". with no END-PERFORM); pf1r8 (PERFORM UNTIL N > 1 ADD 1 TO N.) same",
+    "expected": "in-line PERFORM without END-PERFORM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf1r5.cob",
+    "printed": "COBOL2072 imperative-statement required (PERFORM END-PERFORM); pf1r6 (2 TIMES END-PERFORM) and pf1r10 (VARYING ... END-PERFORM) same",
+    "expected": "in-line PERFORM without imperative-statement-1 refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/pf1r9.cob",
+    "printed": "COBOL0900 Format-3 (exception-checking) PERFORM requires COBOL-2023; COBOL0878 EC-ALL requires 2002",
+    "expected": "the 2023 inline form with WHEN phrases is not a 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR1",
+    "check": "OK  §1985:VI.6.21.3 SR1  (6.21.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar carries SR1: no out-of-line alternative takes a body or END-PERFORM, and the inline alternative requires both. Every violation probed is refused; the missing-END-PERFORM case is diagnosed as an unexpected period after the body statement rather than naming END-PERFORM (diagnosis wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "At --std 85: rp1r1 PERFORM P1 UNTIL N > 1 ADD 1 TO N END-PERFORM (Format 3 with procedure-name and body) refused COBOL0306; rp1r2 Format 4 PERFORM P1 VARYING ... DISPLAY END-PERFORM refused COBOL0306; rp1r4 PERFORM P1 WITH TEST AFTER UNTIL ... body END-PERFORM refused COBOL0306; rp1r3 inline WITH TEST AFTER UNTIL with no imperative statement refused COBOL2072. rp1pos: PERFORM 2 TIMES PERFORM P1 END-PERFORM (out-of-line PERFORM as the body of an inline one, END-PERFORM closes the outer) accepted and printed P1 P1; nested inline PERFORMs and PERFORM P1 THRU P2 K TIMES inside an inline VARYING ran (K01 K01 / P1 P2 P1 P2). Reader's pf1r9 already covers the 2023 Format-3 form. cite.py: OK §1985:VI.6.21.3 SR1 the text is in SR1.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler (COBOL0900 'an AFTER phrase in an inline PERFORM requires COBOL-2002'): the §1985:VI.6.21.3 SR2 gate, on the inline-PERFORM path; it does not touch SR1 (seen in rp4pos-001/rp5pos-001)"
+  ],
+  "corrected": ""
+ }
+}

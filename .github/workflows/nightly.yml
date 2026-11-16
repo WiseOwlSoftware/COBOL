@@ -163,7 +163,7 @@ jobs:
   differential:
     name: GnuCOBOL differential (battery.sh, phase 3)
     runs-on: windows-2025-vs2026
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - id: checkout
         uses: actions/checkout@v7
@@ -245,6 +245,37 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/shard_weights.py report
+
+  # ── Is each job's `timeout-minutes` still at least twice its longest run of the last 20 runs? A limit that a job's
+  # NORMAL duration reaches bounces a green landing out of the merge queue (kb/Work PB5841: `audits`, 10 minutes, ran
+  # 354 to 530 s and was cancelled). This reports a job past half its limit BEFORE that (DESIGN-test-build-ci.md §1.4;
+  # scripts/ci_bounds.py --durations); the tree audits make no network call, so this is the one place that reads `gh`. ──
+  job-limits:
+    name: Job limits (ci_bounds.py --durations)
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read           # `gh run list` and `gh run view` of this repository's workflow runs
+    steps:
+      - id: checkout
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        continue-on-error: true  # one retry follows (kb/Work PB4324)
+        with:
+          submodules: false
+      - if: steps.checkout.outcome != 'success'
+        uses: actions/checkout@v7
+        timeout-minutes: 5
+        with:
+          submodules: false
+      - name: Setup the toolchain (toolchain.env's exact versions, cached; kb/Work PB4007)
+        uses: ./.github/actions/setup-toolchain
+        timeout-minutes: 5
+      - name: Each job's limit against its longest recent run (ci_bounds.py --durations)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/ci_bounds.py --durations
 
   latest:
     name: latest (is toolchain.env at every publisher's newest release?)

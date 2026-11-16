@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-XII.3.3-7",
+ "rule-digest": "1be1369141b4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-073",
+  "sources": {
+   "reader": "1648f90507cba719c3e443f8f0b0e2de6ee890d2a44527f6ff625cbd51f59169",
+   "refuter": "f57489ea91dd4a858b11a93e9901d36bb0c1321db809946d27dc7dc869f597f8"
+  },
+  "imported": {
+   "reader": "cc510bb7fa8bc84bcfaf858dde8d6433e2ef6d26809e94a643c56bf8457e036c",
+   "refuter": "8d0becd0b57e4823dd2c3b5ed0253d8bfa0f36c9c4adb2ad018140a0d48f60c4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.3.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 REPLACE whose pseudo-text-1 consists entirely of a separator comma or a separator semicolon (alone or several, with spaces) must be refused, while a pseudo-text-1 with a comma or semicolon beside another text word is legal; the witness covers ==,== only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ScreenOperandPair; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsSpaceForMatching; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#Operand.MatchWords",
+  "edition-consulted": [],
+  "edition-search": "The check is MatchWords.Count == 0 in ScreenOperandPair's Whole arm, MatchWords dropping TextWordKind.SeparatorCommaOrSemicolon and DirectiveLine; grepped CopyProcessor.cs and TextWord.cs for Edition|CobolVersion|Year|Dialect|ConstructRegistry|EditionInfo: OperandScreen carries an edition but Content() never reads it, so the SR7 check is edition-blind, the same arm at 85 and 2023 (same rule in both).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: ==;== and the mixed == , ; == form, and the legal comma-beside-word form, are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p2comma.cob",
+    "printed": "p2comma.cob(8,20): error COBOL2572: REPLACE statement: pseudo-text-1 holds no text-word to match",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p3semi.cob",
+    "printed": "p3semi.cob(8,20): error COBOL2572 ... pseudo-text-1 holds no text-word to match",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p4commasemi.cob",
+    "printed": "p4commasemi.cob(8,41): error COBOL2572 (second pair only; the first pair ==XX1== is accepted)",
+    "expected": "refused: consists entirely of separator comma/semicolon"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-073/p6legal1.cob",
+    "printed": "==, XX2 ;== BY ==\"TWO\"== printed [TWO]; EXPECT: MATCH",
+    "expected": "legal: a comma and semicolon beside a word, matched as spaces (GR6b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.3 SR7",
+    "check": "OK  §1985:XII.3.3 SR7  (║3.3 Syntax Rules║)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:XII.3.4 GR6b",
+    "check": "OK  §1985:XII.3.4 GR6b  (║3.4 General Rules║)  the text is in GR6b"
+   }
+  ],
+  "notes": "The 1985 text bars 'a separator comma or a separator semicolon'; the compiler reads 'entirely' as any run of them, which is the only reading under which GR6b's matching (each is a single space) can find a match, so refusing == , ; == is not over-rejection. The message cites §2023:7.2.4.3 SR3 at --std 85, not §1985:XII.3.3 SR7.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.3.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-073/: q7commasemi.cob ==,;== (a comma followed by a semicolon is no separator, so ',;' is one item-3 text word) compiles and prints '[OK  ]'; q8debugcomma.cob, pseudo-text-1 holding only a debugging line with a separator comma, is refused COBOL2572 'pseudo-text-1 holds no text-word to match'; q9semieol.cob, a semicolon then a comma on the next line, is refused the same way. Each matches 'Pseudo-text-1 must not consist entirely of a separator comma or a separator semicolon' (OK §1985:XII.3.3 SR7) read with the Text Word definition (OK §1985:III.2 'Any other sequence of contiguous COBOL characters except comment lines and the word 'COPY', bounded by separators'). The '>>' defect of the SR3 case reaches SR7's count too, but no SR7 form (comma/semicolon only) is affected by it. Message cites §2023, quality only.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

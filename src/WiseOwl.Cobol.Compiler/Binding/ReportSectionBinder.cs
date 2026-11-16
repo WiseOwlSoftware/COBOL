@@ -1661,15 +1661,21 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 var faults = new List<string>();
                 if (groupKind != ReportGroupKindModel.Detail)
                     faults.Add($"is in a {ReportGroupTypeWords(groupKind)} report group");
-                // §1985:XIII.3.9.3 SR11 Table 1 lets a SOURCE entry indicate without a COLUMN clause (rows 3 and 4: "P"); its
-                // blank cells are asked above, so the two elementary conditions are the 2002 and later rule's alone.
-                if (elementary && Edition.DialectLevel >= 2002 && !column) faults.Add("has no COLUMN clause");
+                // §1985:XIII.3.9.3 SR11 Table 1 lists the COLUMN cells of its GROUP INDICATE rows (3 to 5) as permitted, not required,
+                // and permits a combination only; §1985:XIII.3.13.3 SR1 then asks the entry to "define a printable item", which §1985:III.2
+                // defines as an elementary report entry that contains a COLUMN NUMBER clause, a PICTURE clause and a SOURCE, SUM or VALUE
+                // clause: a program meets every syntax rule, so COBOL-85 refuses the entry with no COLUMN clause as 2002 and later do
+                // (kb/Work PB5806, which reverses the GROUP INDICATE half of kb/Work PB5243). The SOURCE-or-VALUE half is Table 1's,
+                // asked above, so it is the 2002 and later rule's alone here.
+                if (elementary && !column) faults.Add("has no COLUMN clause");
                 if (elementary && Edition.DialectLevel >= 2002 && !source && !value) faults.Add("has neither a SOURCE nor a VALUE clause");
                 if (faults.Count > 0)
                     Edition.Error(DiagnosticCatalog.ReportGroupIndicatePlacement, $"{where} specifies GROUP INDICATE "
                         + $"but {string.Join(" and ", faults)}; the GROUP INDICATE clause may be specified only within "
-                        + "a detail report group description, in an elementary entry that also contains a COLUMN "
-                        + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)");
+                        + (Edition.DialectLevel < 2002
+                            ? "a detail report group entry that defines a printable item, one with a COLUMN NUMBER clause (ISO §1985:XIII.3.13.3 SR1; §1985:III.2)"
+                            : "a detail report group description, in an elementary entry that also contains a COLUMN "
+                                + "clause and a SOURCE or VALUE clause (ISO §2023:13.18.28.3 SR1)"));
             }
         }
     }
@@ -2007,7 +2013,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         }
         // §2023:13.18.35.4 GR9's equivalence, written as the spec writes it: a simple OCCURS of `ops` repetitions on
         // the VERTICAL axis. No STEP — GR9's "unequal vertical intervals" ARE the several LINE operands.
-        return new ReportOccursSpec(0, ops, null, [], null) { Axis = ReportRepetitionAxis.Vertical };
+        return new ReportOccursSpec(0, ops, null, [], null) { Axis = ReportRepetitionAxis.Vertical, FromMultipleLine = true };
     }
 
     /// <summary>The operand count of this entry's MULTIPLE LINE clause (ISO §2023:13.18.35.3 SR10) with SR10 a/b/c
@@ -2123,12 +2129,14 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                 + "followed within that report group only by entries subordinate to it (ISO §2023:13.18.38.3 SR27)");
             return null;
         }
-        // SR10 (formats 1 and 3) — an OCCURS may nest only when the DEPENDING phrase is absent.
-        if (depending is not null && st.Repetitions.Count > 0)
+        // SR10 (formats 1 and 3) — an OCCURS may nest only when the DEPENDING phrase is absent. The rule is about an OCCURS
+        // clause under "another OCCURS clause": a multiple LINE clause is not one (it is only "functionally equivalent" to a simple
+        // one, §2023:13.18.35.4 GR9), so its repetitions do not count (kb/Work PB5651).
+        if (depending is not null && st.Repetitions.Exists(f => !f.Spec.FromMultipleLine))
         {
             Edition.Error(DiagnosticCatalog.ReportOccursFormat3Rule, $"{where}: an OCCURS clause may be subordinate to an entry "
                 + "containing another OCCURS clause only if the DEPENDING ON phrase is not specified (ISO "
-                + "§2023:13.18.38.3 SR10)");
+                + (Edition.DialectLevel < 2014 ? "§2002:13.16.36.2 SR9)" : "§2023:13.18.38.3 SR10)"));
             return null;
         }
 
@@ -3450,11 +3458,11 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // is why SR3 requires the COLUMN clause that defines that item (kb/Work PB852's sibling sweep).
         if (clause.roundedPhrase() is { } rnd)
         {
-            if (!hasColumn)
+            if (!hasColumn && Edition.Edition.SumRoundedRequiresColumn)
                 Edition.Error(DiagnosticCatalog.ReportSumRoundedWithoutColumn, $"RD '{model.Name}' entry "
                     + $"'{entryName ?? "FILLER"}': the SUM clause writes a ROUNDED phrase, which is permitted "
-                    + "only if the COLUMN clause is specified for the subject of the entry (ISO §2023:13.18.54.3 "
-                    + "SR3) — the phrase governs §2023:13.18.54.4 GR4's transfer of the sum counter to the "
+                    + "only if the COLUMN clause is specified for the subject of the entry (ISO "
+                    + (Edition.DialectLevel == 2014 ? "§2014:13.18.54.2" : "§2023:13.18.54.3") + " SR3) — the phrase governs §2023:13.18.54.4 GR4's transfer of the sum counter to the "
                     + "printable item, and this entry defines none.");
             else
                 sum.Rounded = rnd;
@@ -3647,7 +3655,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
                                  op.ToString(), Edition))
                     { /* reported by the screen */ }
                     else if (ctl.Item is { } ctlItem
-                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: Edition.SubscriptedClauseOperands) is { } shape)
+                             && ControlOperandShapeViolation(ctlItem, occursAdmitted: Edition.SubscriptedClauseOperands,
+                                 indexAdmitted: Edition.Edition.ControlOperandMayBeIndexDataItem) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
                     // §2023:8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
@@ -3809,8 +3818,22 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
             // every consumer.
             // A column past it is cut from the record (the Annex A.1 159) latitude, docs/CONFORMANCE.md DOC-A.1-159) —
             // the occupancy GR4 reads is NOT cut with it (ReportLineImage), kb/Work PB1934.
-            model.LineWidth = model.File?.RecordClause?.Upper is { } record
-                ? Math.Max(1, record - (model.Code?.Length ?? 0)) : widest;
+            // The record holds the CODE characters first (§1985:XIII.3.6.4 GR1, §2023:13.18.12.4 GR1), so a record shorter than
+            // the code cannot hold it: refused (COBOL7441), never written longer than the record (kb/Work PB5788). A record
+            // exactly the code's size leaves the line no column: the record is the code alone.
+            int codeLength = model.Code?.Length ?? 0;
+            if (model.File?.RecordClause?.Upper is { } record)
+            {
+                if (record < codeLength && model.Code is { } code)
+                {
+                    Edition.Error(DiagnosticCatalog.ReportRecordShorterThanCode, $"RD '{model.Name}': the CODE clause "
+                        + $"{code.Written} places {codeLength} character{(codeLength == 1 ? "" : "s")} at the start of every logical record, "
+                        + $"and the RECORD clause of file '{model.File.CobolName}' gives a record of {record} "
+                        + (Edition.DialectLevel < 2002 ? "(ISO §1985:XIII.3.6.4 GR1)" : "(ISO §2023:13.18.12.4 GR1)"));
+                }
+                model.LineWidth = Math.Max(0, record - codeLength);
+            }
+            else model.LineWidth = widest;
         }
         // SR4 e) is asked of the references of EVERY report at once: a chain may leave one report description and
         // come back (SR4 g) lets data-name-1 name an entry of a different one).
@@ -4340,7 +4363,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
         // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
         var match = ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
-            out var owner, out var group, preferred: model);
+            out var owner, out var group, _d, preferred: model);
         if (match == ReportGroupResolution.Match.Ambiguous) return;   // COBOL1920 is reported; binding its first candidate cascades
         if (match == ReportGroupResolution.Match.None)
         {
@@ -4609,6 +4632,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// ambiguity's wording counts it too.</summary>
     internal int ReportEntriesInTierOf(NameCandidates<DataItem> dataItems, string name, IReadOnlyList<string> qualifiers)
     {
+        // Free for a unit with no report: the data-name lookup (DataBinder.QualifiedCandidates) asks it for EVERY reference (kb/Work PB5775).
+        if (_scope.Visible.Count == 0) return 0;
         var entries = _scope.EntriesNamed(name, qualifiers);
         return entries.Count != 0 && dataItems.Any(item => _d.State.Forest.DeclaringDepth(item) == _scope.Depth(entries[0].Report))
             ? entries.Count
@@ -4629,14 +4654,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// program's own counter hides its container's GLOBAL one); null otherwise, leaving the caller's own verdict. Two counters
     /// of one program the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
     /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
-    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject)
+    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject, out bool ambiguityReported)
     {
+        ambiguityReported = false;
         if (Edition.DialectLevel >= 2002 || _scope.SumCountersNamed(name, qualifiers) is not { } matches) return null;
         if (matches.Count > 1)
         {
+            // The ONE verdict of the reference (kb/Work PB5627): the caller returns without asking the section rule, which would
+            // name the same operand a second time under a 2023 clause.
+            ambiguityReported = true;
             Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
                 + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
-                + "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1); qualify it by report group entry or report-name.");
+                + "§1985:IV.4.3.8.1 SR3); qualify it by report group entry or report-name.");
             return null;
         }
         // A COBOL-85 report entry has no OCCURS clause, so a counter is never a table there; the guard keeps the 2002 shapes out.
@@ -4650,13 +4679,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// that is signed); from COBOL-2002 on, and for a name that is no counter, <see cref="ReportEntryReferenceRefused"/> speaks and
     /// the method returns true. Every clause arm that resolves a data-name operand in a section other than the report section asks
     /// this — <c>DataBinder.ResolveClauseOperand</c> and the file-control key arms — and
-    /// <c>ReportEntryReferenceRefusalDriftTests</c> pins the callers of the raw refusal.</summary>
+    /// <c>ReportItemOperandDriftTests</c> pins the callers of the raw refusal.</summary>
     /// <returns>True when the reference was refused (reported); otherwise <paramref name="counter"/> is the COBOL-85 sum counter
     /// or null, and the caller's own verdict stands.</returns>
     internal bool ReportItemOperandRefused(NameCandidates<DataItem> survivors, string subject, string name,
                                            IReadOnlyList<string> qualifiers, out DataItem? counter, bool inReportSection = false)
     {
-        counter = survivors.Count == 0 && !inReportSection ? SumCounterOperand85(name, qualifiers, subject) : null;
+        counter = null;
+        if (survivors.Count == 0 && !inReportSection)
+        {
+            counter = SumCounterOperand85(name, qualifiers, subject, out bool ambiguityReported);
+            if (ambiguityReported) return true;
+        }
         return counter is null && ReportEntryReferenceRefused(survivors, subject, name, qualifiers, inReportSection);
     }
 
@@ -4797,7 +4831,8 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// them (§2023:8.5.1.12.1 defines "variable-length group" over items SUBORDINATE to the group, so the table entry
     /// itself is never one). Measured: both compiled clean and reached ReportWriterEmitter's runtime loud. This is
     /// a table-RECOGNITION site, which is exactly what <c>IsTable</c>'s own doc-comment says it is for.</para></summary>
-    private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(DataItem item, bool occursAdmitted)
+    private static (DiagnosticDescriptor Code, string Clause)? ControlOperandShapeViolation(
+        DataItem item, bool occursAdmitted, bool indexAdmitted)
     {
         // "Subject to an OCCURS clause" is §2023:8.4.2.3.3 SR2's question under another name, so it is asked through
         // THE one walk (DataItem.SubscriptLevels, outermost first — kb/Work PB877); the message names the
@@ -4820,8 +4855,10 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // and §2023:8.4.5 makes a data-division clause naming a data item exactly such an explicit reference: "a
         // specification in the environment or data division may specify the name of a data item as an explicit
         // reference in order to identify those data items that are to be referenced implicitly in procedure
-        // division statements related to such specifications." The CONTROL clause is not on SR10's list.
-        if (item.Pic is { Usage: Usage.Index })
+        // division statements related to such specifications." The CONTROL clause is not on SR10's list. COBOL-85 has neither
+        // rule and provides for the control instead (§1985:XIII.3.7.4 GR3b; <see cref="EditionInfo.ControlOperandMayBeIndexDataItem"/>,
+        // kb/Work PB5774), so <paramref name="indexAdmitted"/> skips the arm there.
+        if (!indexAdmitted && item.Pic is { Usage: Usage.Index })
             return (DiagnosticCatalog.ReportControlOperandIndex,
                 "is an index data item: an index data item may be referenced explicitly only in a SEARCH or SET "
                 + "statement, a relation condition, an intrinsic function argument, an inline method invocation "

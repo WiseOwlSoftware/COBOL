@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.26.4-2",
+ "rule-digest": "8f3e5e6920aa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-114",
+  "sources": {
+   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
+   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+  },
+  "imported": {
+   "reader": "355829a0f176043205c69030bb8d5ded22f6230fab39d51c5313b41b38ca2fce",
+   "refuter": "dbe29c810c98c51adfa13fba5e6703b3fc7aab540679c1993f90d5bedf265104"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.26.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SUBTRACT format 2 adds every literal and identifier before FROM, subtracts the sum from literal-2 or identifier-2 once, and stores that one result into each identifier-3 (numeric or numeric edited) in written order, with each receiver's ROUNDED and the size-error rules, an identifier-3 that is also an operand not changing the value stored into later receivers.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindSubtract; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Combine; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: 85 continues after an unphrased size error, 2002+ fatal",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "MaxDigits 18 at 85 against 31; format 2 passes no GIVING receivers (§1985:VI.6.26.3 SR3b)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "same greps as GR1; EmitGiving and the StatementEmitter Visit(BoundSubtractGiving) arm consult no edition.",
+  "behaviour-differs-by-edition": "yes: only the unphrased size-error continuation and the 18-digit composite cap; the single-result-to-each-receiver semantics are the same arm.",
+  "witnesses-cover": "part: g85_bf14_06 covers the GIVING result; not exercised: numeric-edited receivers with negative results, literal-2, receivers that alias operands, receiver identification at store, size error at the 18-digit edge.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr2.cob",
+    "printed": "H1 [  85.50] +5.5 85 +100; H2 [-  6.00] [  $6]; H6 00",
+    "expected": "100-(10+3+1.5)=85.5 into -ZZ9.99, PIC 99 (and S9V9 size error, undefined); 4-10=-6 into -ZZ9.99 and $$$9 (no sign); 3-(1+2)=0"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subgr2.cob",
+    "printed": "H3 +087 +087 +087; H4 3 0{0{0C0{0{; H5 SIZE / H5 +000000000000000000",
+    "expected": "one result 87 into receivers that are also operands; WE(I) identified after I received 3; -999..9 minus 999..9 overflows S9(18): receiver unchanged, phrase runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/subref.cob",
+    "printed": "COBOL1689: SUBTRACT without GIVING ... '5' is a literal",
+    "expected": "literal-2 only in format 2 (refused in format 1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.26.4 GR2",
+    "check": "OK  §1985:VI.6.26.4 GR2  (6.26.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "Visit(BoundSubtractGiving) renders From - Fold(minuends) once and EmitGiving snapshots it when several receivers exist, storing it into each receiver with its own rounding. Probes over edited, unsigned, aliasing and subscripted receivers and the 18-digit edge all matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.26.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Probes at --std 85 (rsub1-001, rc5b-001): SUBTRACT 3 FROM 3 GIVING ZZ9 BLANK WHEN ZERO -> [   ]; SUBTRACT 8 FROM 3 GIVING 999CR ZZ9DB 99 ROUNDED -> [005CR] [  5DB] 05; SUBTRACT 3.5 FROM 10 GIVING 99 ROUNDED ZZ9 -> 07 [  6]; SUBTRACT A FROM B GIVING A B (A=1,B=9) -> +008 +008 (one result, operands not re-read); SUBTRACT A10 FROM B10 GIVING V9(10) compiles (composite excludes GIVING, §1985:VI.6.26.3 SR3b) and its size error is unphrased, value undefined; 20 x S9(18) COMP operands FROM 0 GIVING S9(18) COMP-3 -> SIZE, receiver unchanged. cite.py: OK §1985:VI.6.26.4 GR2 (reader); OK §1985:VI.6.26.3 SR3b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

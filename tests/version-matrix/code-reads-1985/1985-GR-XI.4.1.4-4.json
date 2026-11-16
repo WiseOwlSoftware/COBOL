@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-4",
+ "rule-digest": "c4c667631064",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-034",
+  "sources": {
+   "reader": "55ae482fcbf67505d3260e5fbf4749320bc5ece0f8f8fa7cd6fd93be84c07f69",
+   "refuter": "957a2a6d8a425cad511eea6e561c872dc2460431a2616651179853f12c607cad"
+  },
+  "imported": {
+   "reader": "92e8b76ff1e124be0682b98b92ffaa96292ca73a964e885aa076c8f269584a1f",
+   "refuter": "443a9500231d2ff072252f9718e2b093c3220ee5dbe1204ad6ed231267fe8083"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.1.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when all key data items of two or more records compare equal under the relation-condition rules (including the MERGE's COLLATING SEQUENCE, so ALSO-equated characters tie), the merged records must come back in the order of the USING files as written in the MERGE statement, all of one file's tied records before any of the next file's, for every organization of USING file, for the GIVING and the OUTPUT PROCEDURE forms, in memory or spilled to disk.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#NextInput; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#NextStream; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#WriteStreamChunks; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceMerge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#MergeInto; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+  "edition-consulted": [],
+  "edition-search": "Grepped CobolSort.cs, SortWork.cs and SortEmitter.cs for Edition|DialectLevel|CobolVersion|Std: no match. SortBinder.BindMerge consults the edition only through ctx.Edition as a diagnostic sink and in ScreenSameClauses (held1985, SAME RECORD AREA, SORT only) - nothing on the tie order. The emitter calls SortNextInput once per USING file in statement order and the runtime's one merge cursor (strict less-than, earliest run wins) is edition-blind, so 85 and 2023 run the same code.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c18 covers sequential USING files merged in memory into an OUTPUT PROCEDURE; not exercised there: GIVING (several files), relative and indexed USING files, an empty USING file, ties made by the COLLATING SEQUENCE (ALSO), and streams spilled to run files (merged more than FanIn at a time)",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/m1ties.cob",
+    "printed": "G1 and G2 each: A0F1-1 a0F1-2 a0F2-1 A0F2-2 A0F3-1 B5F1-3 b5F2-3 B5F3-2 B5F3-3 (EXPECT: MATCH)",
+    "expected": "USING F1(seq) F2(relative) F4(empty) F3(indexed, written out of key order) with ALSO-equated A/a, B/b ties: per GR4a/b all of F1's ties, then F2's, then F3's (F3 in prime-key access order); both GIVING files get the whole result"
+   },
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/m2spill.cob",
+    "printed": "WISEOWL_COBOL_SORT_MEMORY=64K: COUNT=04800 BAD=00000 LAST=241200; default memory: same; 64K with a missing WISEOWL_COBOL_SORT_TMPDIR: abnormal termination 'a temporary sort work file ... could not be created' (proves the 64K run spilled)",
+    "expected": "four files of 1200 records, keys 1/2 tied across all four: file 1..4 order within each key value, every record once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/m5one.cob",
+    "printed": "error COBOL1757: MERGE requires at least two USING files",
+    "expected": "§1985:XI.4.1.2 USING file-name-2 {file-name-3} ... - one USING file is refused (degenerate form)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.4 GR4",
+    "check": "OK  §1985:XI.4.1.4 GR4  (4.1.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR6",
+    "check": "OK  §1985:XI.4.1.4 GR6  (4.1.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "Each USING file is its own stream (NextStream at each file's start); the in-memory slices and the on-disk runs are merged by the one SortMergeCursor whose strict less-than lets an equal head never displace an earlier stream, and consolidation merges only consecutive streams, so GR4a and GR4b hold in both regimes. No edition arm exists or is needed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.1.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Attacked the 'rules for the comparison of operands in a relation condition' clause with operands the reader did not try. (1) t1zero.cob (refute-1985-034/t1zero-001): PIC S9 SIGN LEADING SEPARATE key, '-0' and '+0' in both USING files. Algebraically equal, so they must tie and come back in USING order. MERGE USING F1 F2 printed -1F1-1 -0F1-2 +0F1-3 +0F2-1 -0F2-2 +1F2-3, and USING F2 F1 printed -1F1-1 +0F2-1 -0F2-2 -0F1-2 +0F1-3 +1F2-3. Both match: the compare is algebraic, not bytewise. (2) t2pcs.cob (t2pcs-001): no COLLATING SEQUENCE phrase, OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE ALPH with A ALSO a (GR5b). MERGE USING F2 F1 printed AF2-1 aF2-2 aF1-1 AF1-2 BF2-3 bF1-3: MATCH. (3) m7var.cob (m7var-001): RECORD VARYING 2..8 USING files, DESCENDING key, ties across files. Printed B1 B12 B2222222 A123 A2 A22222: file order kept and each record kept its own length. cite.py: 'OK  §1985:XI.4.1.4 GR4  (4.1.4 General Rules)  the text is in GR4'; 'OK  §1985:XI.4.1.4 GR5  (4.1.4 General Rules)  the text is in GR5'. Grepped SortBinder.cs for Edition/DialectLevel/Year: only diagnostics sinks, held1985 (SAME clauses) and the RELEASE range arm, none on tie order. SortEmitter.cs: no edition match.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

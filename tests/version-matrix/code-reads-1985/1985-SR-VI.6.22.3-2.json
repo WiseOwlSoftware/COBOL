@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.6.22.3-2",
+ "rule-digest": "8cd5ba94ffcd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-059",
+  "sources": {
+   "reader": "d0e508c6c70216ef170048c56706a92c0835308986446eeda25f17d27b4e19fc",
+   "refuter": "937cdec4799302a68ccfd698c0ba313a6f5f7548f75861fada0e84ee54943480"
+  },
+  "imported": {
+   "reader": "c9ec314650c441cb551a688c4573844a24f21437392bc13ea8afac9bf552f54c",
+   "refuter": "95a3f7510c79689d10692afa3d4f4c128dd435b640a493527436906e342665f1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.22.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the SEARCH Format 1 VARYING identifier-2 must be a USAGE INDEX data item or a numeric elementary item with no positions right of the assumed decimal point (so 99PP and S99 are legal, 9V9, PP9, alphanumeric, numeric-edited and groups are not), and must not be subscripted by the first index-name of identifier-1's INDEXED BY phrase; the compiler must refuse each violation.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandPositions; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#ClassesOf; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#SubscriptNamesIndex",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
+    "switches": "DialectBehavior.SearchIndexBelowTableUnsuccessful: the run-time lower bound of the start test (1985 GR2 has none); not the identifier-2 screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior in SearchBinder.cs, OperandClassScreen.cs and SubscriptBinder.SubscriptNamesIndex; the class screen and the subscript test consult no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is the GO TO / SET operand-class screen sibling; the SEARCH VARYING class arms, the 99PP and S99 accept arms and the first-index subscript prohibition are exercised only by the probes here",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/s2ok.cob",
+    "printed": "EXIT 0; S=+03 (S99 varied with the search), Q=0000 (99PP accepted), XI-FOUND (USAGE INDEX), END, F2=12 (F (KX) subscripted by the second index-name accepted and incremented)",
+    "expected": "legal identifier-2 forms accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-059/s2bad.cob",
+    "printed": "COBOL2325 for D (9V9, not an integer), A (alphanumeric), P (PP9, not an integer), GR (group), NE (numeric-edited), F (JX) and E (IX) (subscripted by the first index-name)",
+    "expected": "refused per SR2 first and second sentences"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.3 SR2",
+    "check": "OK  §1985:VI.6.22.3 SR2  (║6.22.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "The 1985 wording 'without any positions to the right of the assumed decimal point' matches the integer-description predicate the screen uses: 99PP is admitted and PP9 refused. The subscript prohibition compares the index declaration by identity, so the second index-name of the same table is legal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "s2bad refused the same way at --std 2023 (11 errors)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.22.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "src/s2x.cob (s2x-002, compile-only): COBOL2325 for F (JX + 1) and F (JX - 1) (relative index on the first index-name), N (1:1) (reference-modified, so alphanumeric), C (RX, CX) for SEARCH C (first index CX in the second position) and C (RX, 1) for SEARCH R (first index RX of the containing table). A FUNCTION LENGTH identifier-2 is refused by the parser (COBOL5506, s2x-001). src/s2y.cob (s2y-001, EXIT 0): S9(4) COMP, S99 SIGN LEADING SEPARATE and 9(3) PACKED-DECIMAL identifier-2 each varied with the search (NC=+0002 NS=+02 NK=002); SEARCH C VARYING C (RX, 1) accepted and incremented C(1,1) to 02 (W=0200...); SEARCH F VARYING F (KX + 1) on the second index accepted (U=0000010000). cite.py: 'OK  §1985:VI.6.22.3 SR2  (║6.22.3 Syntax Rules║)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

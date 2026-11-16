@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.20.4-2",
+ "rule-digest": "1f9429890640",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "b78ed475222cda5958c1406ab9fb58102f9e53eca1cfb0e0ad461c3cda056a6f",
+   "refuter": "fbcd2e5187a0b3b2b8a594c30615c868dcaa692ff348f02511a1aabcac202763"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.20.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MULTIPLY format 2 must multiply literal-1 / identifier-1 by literal-2 / identifier-2 once and store that product into each identifier-3 (numeric or numeric edited) in turn, each with its own ROUNDED, an identifier-3 that is also an operand not changing the product stored into later ones.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitMultiplyGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Multiply",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error is caught per receiver and the statement completes (catchesEveryCondition); from 2002 it is a fatal exception condition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "CompositeMembers.ReceivingItems85 with Edition.Year < 2002: the composite is the receiving items only (§1985:VI.6.20.3 SR3), capped at Edition.MaxDigits = 18 at 85 (all operands, 31, from 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "as for GR1: EmitMultiplyGiving renders both operands once (Snapshot with several receivers) and takes no edition input; the edition reaches the statement only through EmitArith's unphrased size-error arm and CheckComposite",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf14_05 L2-L4 cover two receivers, a ZZ9 receiver and an operand that is also a receiver; not exercised: a signed product into edited receivers of several kinds, ROUNDED on one receiver, a zero product, the 18-digit extremes",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1.cob",
+    "printed": "M1=6 000300000009000000 M2=21 M3=18 1.7 M4=600 M5 SIZE M6=20 180 9 M7 SIZE 3 M8=3 M9=[-  7.50] [***7] 008 M10=[   0.00] M11=+500000000000000000 M12 SIZE +500000000000000000 M13 SIZE 123456789.500000000 M14=000000000.000000000",
+    "expected": "M9: -3 * 2.5 = -7.5 into -ZZ9.99 [-  7.50], ***9 [***7], 9(3) ROUNDED 008; M10: zero into -ZZ9.99 [   0.00]; M11: 9(18) * .5 ROUNDED = 500000000000000000; M12: 9(18) * 9(18) size error, BG2 unchanged; M13 size error, Q unchanged; M14: 4E-18 truncated to 0. All match."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1b.cob",
+    "printed": "COBOL1675 numeric-edited BY receiver; COBOL0844 alphanumeric item and alphanumeric literal operands; COBOL1689 literal after BY without GIVING; COBOL1675 alphanumeric GIVING receiver",
+    "expected": "§1985:VI.6.20.3 SR1/SR2 refusals; a literal cannot be a format 1 receiver"
+   },
+   {
+    "class": "b,c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/mul1d.cob",
+    "printed": "COBOL0805 composite spans 20 digits over the 18-digit 1985 cap (§1985:VI.6.4.4 item 2); COBOL0802 19-digit literal refused at 85",
+    "expected": "receiving-item composite of 9(10) and V9(10) is 20 > 18 (SR3); an operand over 18 digits refused (§1985:VI.6.4.4 SR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.20.4 GR2",
+    "check": "OK  §1985:VI.6.20.4 GR2  (6.20.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The product is rendered per receiver at its own scale and ROUNDED mode from operands identified once, which equals one product rounded into each receiver. The 1985 composite is the receiving items only, capped at 18, as CheckComposite's 85 arm implements.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.20.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "rmul1.cob at --std 85 (rmul1-001): MULTIPLY 25 BY 6 GIVING P1 ROUNDED P2 (PIC 9PP) gives N2=200 100 (rounding at the rightmost allocated integer position, §1985:VI.6.4.1); MULTIPLY F BY 5 GIVING NR ROUNDED NT with F=-0.5 gives N3=-3 -2 (absolute value increased); 10 BY 10 GIVING BN PIC 99 COMP takes the size error, BN unchanged N4 SIZE 00 (largest value is the PICTURE's, §1985:VI.6.4.2(3)); 20 BY 5 GIVING ED (Z9) ED2 (99) both unchanged N6 SIZE [ 7] 07. rmul2.cob --compile-only: GIVING a Z(17)9.99 receiver refused COBOL0805 composite 20 digits (and COBOL0802 for the item itself). cite.py: OK §1985:VI.6.20.4 GR2 'the result is stored in the data items referenced by each identifier-3'; OK §1985:VI.6.4.1 'rounding or truncation occurs relative to the rightmost integer position for which storage is allocated'; OK §1985:VI.6.4.2 'the maximum value implied by the associated decimal PICTURE character-string'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

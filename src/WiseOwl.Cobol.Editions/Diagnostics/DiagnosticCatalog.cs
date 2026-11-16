@@ -1515,6 +1515,16 @@ public static class DiagnosticCatalog
         + "variable-length group, or a dynamic-length elementary item (SR2); and if the CODE clause is specified for "
         + "any report it shall be specified for each report associated with the same report file (SR3).",
         "ISO §2023:13.18.12.3 SR1–SR3");
+    /// <summary>COBOL7441 — a report file whose RECORD clause gives a record shorter than the RD's CODE characters (kb/Work PB5788).
+    /// The CODE characters are placed in the first positions of each logical record (§1985:XIII.3.6.4 GR1; §2023:13.18.12.4 GR1) and count in
+    /// the logical record size (§2023:13.18.12.4 GR2), so a record that cannot hold them has no structure the rule describes; the program is
+    /// refused rather than written with a record longer than the clause says.</summary>
+    public static readonly DiagnosticDescriptor ReportRecordShorterThanCode = new(
+        "COBOL7441", "report-record-shorter-than-code", EditionSeverity.Error,
+        "The RECORD clause of a report file gives a record shorter than the CODE clause's characters of one of its reports: the CODE "
+        + "characters are placed in the first positions of every logical record and are included in the logical record size, so the "
+        + "record cannot hold them.",
+        "ISO §2023:13.18.12.4 GR1, GR2; ISO §1985:XIII.3.6.4 GR1, GR2");
     // ⛔ `ReportLineNextPage` (`report-line-next-page`) LIVED HERE AND IS GONE (kb/Work PB1001), and this comment
     // stands where it did so it is not re-added. It refused the LINE clause's NEXT PAGE phrase (§2023:13.18.35.2 Format
     // 1 — `integer-1 ON NEXT PAGE` and the bare `ON NEXT PAGE` operand) at every edition, and orphaned the
@@ -9453,6 +9463,17 @@ public static class DiagnosticCatalog
         + "then it must be an unsigned integer.\" A signed numeric literal, or one with a digit position right of the "
         + "decimal point, is not an unsigned integer.",
         "X3.23-1985 STOP statement syntax rules 1 and 3 (§1985:VI.6.24.3)");
+
+    /// <summary>COBOL7558 — STOP followed by a word that names no symbolic-character (kb/Work PB5809): literal-1 of the
+    /// X3.23-1985 STOP literal statement may be written as a word only when the word is a symbolic-character, a figurative
+    /// constant (§1985:IV.4.2.2.2.3 GR7, GRL2.3).</summary>
+    public static readonly DiagnosticDescriptor StopLiteralWordNotLiteral = new(
+        "COBOL7558", "stop-literal-word-not-literal", EditionSeverity.Error,
+        "STOP is followed by a word that is not RUN and names no symbolic-character. The X3.23-1985 STOP statement is "
+        + "STOP RUN or STOP literal-1 (its general format), and a word stands for a literal only as a symbolic-character, which "
+        + "is a figurative constant (§1985:IV.4.2.2.2.3 GR7), and by §1985:IV.4.2.2.2.3 GRL2.3 a figurative constant \"may be "
+        + "used whenever 'literal' appears in a format\". A data-name, a mnemonic-name or an undeclared word is none.",
+        "X3.23-1985 STOP statement general format; §1985:IV.4.2.2.2.3 GR7, GRL2.3");
 
     /// <summary>COBOL6818 — an X3.23-1985 target-less GO TO (no procedure-name-1) that is not the whole of a single statement
     /// paragraph (kb/Work PB5087). Emitted by PlacementRules.RefusedOutOfSequence (the BareGoToAlone row) where the statement

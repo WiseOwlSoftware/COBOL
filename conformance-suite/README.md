@@ -69,6 +69,17 @@ the tests pin.
 - **The expectation.** An accepted test's `<id>.out` is its exact standard output, compared through
   `CutRunner.Normalize` / `run.py`'s `normalize()` (LF, per-line trailing-space trim, no trailing newline); a test that
   only proves translation ends in `STOP RUN` with an empty `.out`.
+- **A standard input and an output file.** A test is run with its standard input closed (end of input) and judged on its
+  standard output alone, so a rule that needs data from the input device, or whose effect shows only after the run unit
+  has ended (STOP RUN's implicit CLOSE), declares what it needs in its header. `stdin: <file>` names a file beside the
+  test (LF line ends only) that the program's run is fed; the generator refuses a test that names a rule of the transfer
+  of data from the input device (an ACCEPT statement's general rule about its device), executes an ACCEPT reading
+  standard input and declares no `stdin`, since it would pin the end-of-input determination (kb/Work PB5755).
+  `output-file: {name: <file the program writes in its run directory>, expected: <file beside the test holding its
+  content>}` is compared with the same normalization as the standard output once the process has ended, in addition to
+  the standard output; a missing file, a differing file and an absent expected file are three distinct FAILs that name
+  the file (kb/Work PB5765). Both name files of the test's own folder (a bare name, never a path, never a `.out`), each
+  file plays one part (`files`, `stdin`, `expected`), and only an accepted test declares them.
 - **A program WiseOwl must refuse** names no `accept` edition and has a file `wiseowl/diagnostics/<id>.json`,
   `{"refuse-at": [<editions>], "expect": "<code or message substring>"}`: the editions WiseOwl refuses it at and what it reports.
   A refusal is a file of its own, so two landings that each add one never edit the same file (kb/Work PB4147).
@@ -106,7 +117,7 @@ python conformance-suite/harness/run.py --self-test
 ```
 
 `--editions 85,2014` and `--test <id>` narrow a run, `--jobs`, `--hang-guard` and `--keep` tune it. Each test runs in
-its own fresh working directory with its declared files and stdin closed. Its verdict is **PASS**, **FAIL** (the
+its own fresh working directory with its declared files and stdin closed (or fed the file its `stdin` declares). Its verdict is **PASS**, **FAIL** (the
 output differs, an accepted test did not translate or run, or no diagnostic was reported at a flagged test's marked
 line), **NOT APPLICABLE** (the profile lacks the edition, a required module or element, or the test uses a word the
 compiler reserves beyond the standard; or a flagged test's control did not compile) or **NO VERDICT** (the compiler

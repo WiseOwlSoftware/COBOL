@@ -23,7 +23,7 @@ internal static class BackendContract
             "Bound.InitializeCategories.Spelling()", "Bound.SetCapacityKinds.Text()",
             // intrinsic-function-names as their catalog rows spell them (kb/Work PB4370)
             "Bound.IntrinsicCarrierRules.CrossAligningFunctions", "Bound.IntrinsicCarrierRules.ExactParseFunctions",
-            "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions",
+            "Bound.IntrinsicCarrierRules.SdidiQuotientFunctions", "Bound.IntrinsicCarrierRules.StandardArgumentKeepsAllDigits",
             "Model.ApplyCommitModel.Identifiers", "Model.IndexNameRegistry._byName",
             // the file-names visible in a source element, its own and its containers' GLOBAL ones (kb/Work PB2296)
             "Model.FileNameScope._inherited", "Model.FileNameScope._own",

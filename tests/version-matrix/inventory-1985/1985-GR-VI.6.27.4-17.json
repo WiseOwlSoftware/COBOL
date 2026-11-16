@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-GR-VI.6.27.4-17",
  "rule-digest": "4ef52be809de",
- "test-ref": "conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/g85_f14_05",
+ "test-ref": "conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/g85_f14_05; conformance:cases/VI.6.27@1985-UNSTRING-STATEMENT/pb5816_unstring_zero_length_sender_overflow",
+ "notes": "kb/Work PB5816 and PB5858 landed. §1985:VI.6.27.4 GR17a is the POINTER phrase's: it tests 'the value in the data item referenced by identifier-7', and with no POINTER phrase GR13a examines 'beginning with the leftmost character position' (no implicit pointer, unlike §1985:VI.6.25.4 GR6 for STRING). So at --std 85 an UNSTRING with a WRITTEN pointer of 1 over a sender of size 0 (OCCURS 0 TO n DEPENDING ON at zero) is the GR17a overflow (ON OVERFLOW), and one with no POINTER phrase is none: GR17b needs characters that have not been examined, GR20 runs NOT ON OVERFLOW, and the GR13 transfer at initiation examines zero characters (receiving item space filled, DELIMITER IN space filled by 13d, COUNT IN 0 by 13e, TALLYING plus 1 by GR7/GR16). EmitUnstring tests the pointer only when written; CobolStringOps.UnstringExtract acts on the initiating area of an empty sender. From 2002 the GR2 zero-length guard ends the statement first (DialectBehavior.UnstringZeroLengthSenderTerminates, VCR row 7.80).",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

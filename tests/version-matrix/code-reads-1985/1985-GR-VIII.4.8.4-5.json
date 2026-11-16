@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-VIII.4.8.4-5",
+ "rule-digest": "635a5d323660",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-138",
+  "sources": {
+   "reader": "1d0da3b2b68c66cf063d3fb0da8b75600ed535cdbc25e1c5a19cccf981ddffcb",
+   "refuter": "f00a1590c6b38096b68a691c96876784b74a7241298156153a80eaeca088afe5"
+  },
+  "imported": {
+   "reader": "4b9721cb71b513fd9a4655a1a5724f7904f27e3dfa5e7f689757d83741abff41",
+   "refuter": "b9b6e43bdeeade57f844fe41e09fe77c94fc908a8e0bc0cf481311b718907c54"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.8.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, after an unsuccessful I-O operation on a relative file, the file-name declarative runs (a), else the declarative of the file's open mode INPUT/OUTPUT/I-O/EXTEND, including a file in the process of being opened (b-e), except files named in a file-name USE, and none runs when the statement's AT END or INVALID KEY phrase takes precedence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "Format 3/4 USE (2002 introductions) and the optional AFTER / PROCEDURE words (2002); at 85 both words are required and F3/F4 refused",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter around the declarative's run; 1985 takes the plain try/finally, which does not touch selection",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+    "switches": "nothing: the file-name tier then open-mode tier are documented edition-invariant (kb/Work PB344)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError: key < 1 or too high is invalid key '24' at 85 (VIII.4.9.4 GR14 b), permanent error '34' from 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "DialectBehavior / DialectLevel greps over the dispatch and I-O emitters and the runtime IO folder",
+  "behaviour-differs-by-edition": "yes: the status a relative WRITE with key 0 sets is '24' (invalid key, so an INVALID KEY phrase takes precedence) at 85 and '34' from 2014; the selection tiers themselves are the same",
+  "witnesses-cover": "part: the witnesses exercise READ, INPUT mode and file-beats-mode; the probes add OUTPUT, I-O and EXTEND on relative files, failed OPEN, INVALID KEY precedence and the 46 that AT END does not cover",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr45.cob",
+    "printed": "T2 D-IN 35 (failed OPEN INPUT) / T3 D-OUT 24 (WRITE key 0, no phrase) / T3c INVALID KEY 22 with no D-OUT / T3d D-OUT 22 / T4 D-IO 23 (READ I-O random) / T5 INVALID KEY 23 with no D-IN / T6 D-EXT 24 (10th sequential WRITE, 1-digit key, OPEN EXTEND) / T7 D-IN 10 (unphrased READ at end) / D-IN 46 for READ ... AT END after at end",
+    "expected": "GR5 a-e: each mode's declarative for its own mode, AT END / INVALID KEY take precedence, 46 is not an at end condition so its declarative runs (VIII.1.3.5)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-138/gr45.cob",
+    "printed": "T3 key 0 -> 24; T6 relative record number 10 into PIC 9 key -> 24",
+    "expected": "invalid key condition (VIII.4.9.4 GR14 b, c)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.4 GR5",
+    "check": "OK  §1985:VIII.4.8.4 GR5  (4.8.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VIII.1.3.5",
+    "check": "OK  §1985:VIII.1.3.5  (1.3.5 The Invalid Key Condition)  the text is in the clause; it lies in GR2"
+   },
+   {
+    "cite": "§1985:VIII.4.9.4 GR14",
+    "check": "OK  §1985:VIII.4.9.4 GR14  (4.9.4 General Rules)  the text is in GR14"
+   }
+  ],
+  "notes": "__IoCheck returns before the tiers when the statement's AT END / INVALID KEY phrase covers the status family, then file-name tier, then FileOpenModeOf(__f) tier; the mode is set during OPEN so a failed OPEN selects its mode's declarative. All nine probe lines match the rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.8.4-5",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,e",
+  "evidence": "modes.cob (runs/modes-003) upholds the mode tiers: failed OPEN I-O -> D-IO 35, failed OPEN EXTEND -> D-EXT 35; READ after failed OPEN 47, WRITE not open 48, CLOSE not open 42, READ after CLOSE 47 -> no declarative (file in no mode); READ on OUTPUT file -> D-OUT 47; WRITE on INPUT file with INVALID KEY phrase -> D-IN 48 (phrase does not cover 48); OPEN INPUT while open -> D-IN 41; DELETE missing with INVALID KEY -> phrase only; DELETE / REWRITE (NOT INVALID KEY only) missing -> D-IO 23. But GR5b's exception fails on the GLOBAL path: nest3.cob (nest3-001, 85) N3 runs OUTER's GLOBAL INPUT declarative for FG, which OUTERP references by file-name-1 in another USE (same at 2023, nest3x). cite.py: OK §1985:VIII.4.8.4 GR5 the text is in GR5; OK §1985:VIII.4.8.4 GR5b the text is in GR5b; OK §1985:X.5.5.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (wrong-answer, cause b), the same defect as 1985-GR-VIII.4.8.4-4: GR5b's 'except those files referenced by file-name-1 in another USE statement specifying the same condition' is not applied when the INPUT/OUTPUT/I-O/EXTEND declarative is reached as a container's USE GLOBAL; UseTierEmitter#EmitScopeTiers(globalOnly: true) omits the container's non-GLOBAL file-name cases, so the named file falls into the mode tier. Repro refute-1985-138/nest3.cob, expected no declarative at N3, observed 'OUTER GLOBAL INPUT 35'."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A containing program holds USE GLOBAL ... ON INPUT and USE ... ON FG. A contained program with no declaratives fails to open FG, and the compiler runs the container's GLOBAL INPUT declarative. No declarative qualifies: see below. Not PB5812's question, because both USE statements are in one program.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
+ },
+ "work": "PB5821"
+}

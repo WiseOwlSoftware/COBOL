@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-2",
+ "rule-digest": "031c038ee19a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-098",
+  "sources": {
+   "reader": "788e53558b4381cf255d9c081677dac47f052321951ca850fbebdef13de861c5",
+   "refuter": "9dff07812fb3aee109baad25f5bafc9a55d5800dcadb6114d238b8a540a8d55b"
+  },
+  "imported": {
+   "reader": "44b656bf8dba753db9cce0cdbc76addc7c2adbfe96e711acb5e87361c99ec246",
+   "refuter": "5648e904f4d38efc271c56b63043699217c6f22199028965670b3b38e794e0a4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "In sequential access the I-O statement executed on this file just before a REWRITE must be a successful READ (otherwise I-O status 43, nothing replaced), and the REWRITE replaces the record that READ accessed; I-O statements on OTHER files do not count.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refusal of 2002+ REWRITE phrases at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "sharing/lock arms of the governed REWRITE (inert with one connector)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the 43 gate is FileConnector's Status setter (drops it on every outcome) and ReadSucceeded (re-arms it); neither consults the edition (grep 'Edition|DialectBehavior' in FileConnector.cs: only Edition, SharingFacilityInEffect and the '61' arm at 1297).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f25_04 covers REWRITE, REWRITE with no READ between (43); not REWRITE before any READ, after a failed REWRITE, after an AT END READ, after START, or with an I-O on another file between",
+  "probes": [
+   {
+    "class": "b",
+    "file": "work-1985-098/p1seq.cob",
+    "printed": "T1 43 (no READ since OPEN); T3 43 (after a failed REWRITE); T5 43 (second REWRITE); T7 43 (after AT END READ); T8 43 (after START); USE runs each time",
+    "expected": "43 for each (IX.1.3.4 status 43)"
+   },
+   {
+    "class": "e",
+    "file": "work-1985-098/p1seq.cob",
+    "printed": "T4 NIK 00 (READ, WRITE on sequential file OTH, REWRITE FROM); T9 00; CHK A002AGAIN2, others unchanged",
+    "expected": "another file's I-O does not break the gate; the record read is the one replaced"
+   },
+   {
+    "class": "c",
+    "file": "work-1985-098/p1seq23.cob",
+    "printed": "identical at --std 2023",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR2",
+    "check": "OK  §1985:IX.4.6.4 GR2  (4.6.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c"
+   }
+  ],
+  "notes": "The gate is per connector and dropped at the one Status setter, so every statement on the file (START, failed REWRITE, unsuccessful READ) clears it, and only ReadSucceeded re-arms it. Rewrite tests it first, ahead of the 44 and 21 checks, in the rules' order.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probed the gate on statements the reader did not try: q5open.cob (q5open-001): READ 00, then OPEN I-O on the open file (41) -> REWRITE O1 43 with USE; the next READ re-arms -> O2 00, file A002GOOD02. q2alt.cob: READ with status 02 (successful, duplicate follows) re-arms -> A1 NIK 00; READ then WRITE on the same sequential-access file in I-O mode (48) -> A4 43; failed REWRITE (22) then REWRITE -> A3 43. q4mode.cob: dynamic access needs no prior READ (M3 00; M4 after an invalid-key READ 23 -> 00), as GR2 binds only the sequential access mode. cite.py: 'OK  §1985:IX.4.6.4 GR2  (4.6.4 General Rules)  the text is in GR2'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-9",
+ "rule-digest": "44198d2b88a2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-052",
+  "sources": {
+   "reader": "3be98b2cba5ceaaa0b1595abfeba4c0b68a42e1005a6a26da4080046d04dbc8d",
+   "refuter": "7aea4d4b87dda59a79d45f2f6b6870c745f49ba47e57992df35852d9d7a7f9fd"
+  },
+  "imported": {
+   "reader": "51ed5d6bf5058842f72cfd3766ce7279d75a4c0986dda41ebe944bd69fb53d37",
+   "refuter": "c7482bdbbf0e8359cb9626d1fcd1cfe86935f9ae703f3790ac9e392df5f7c562"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a VALUE clause in a data description entry that carries a REDEFINES clause or in any entry subordinate to one (the entries giving the new description), at level 01 and below, elementary and group, while accepting level-88 condition-name VALUE entries under such entries and leaving the redefined anchor's VALUE legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#EntryWithClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenItemValuePlacement/EntryWithClause and its one caller in BindEntries (DataBinder.cs:878); grep for CobolVersion/Edition comparisons/ConstructRegistry in DataBinder.ValuePlacement.cs found none; Edition.Error (EditionContext.cs#Error) only records the diagnostic and does not switch on the edition. The screen runs the same code at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers only an elementary redefining entry with VALUE; subordinate entries under a redefining group, level-01 REDEFINES, figurative/ALL literals and the condition-name exception are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r1a.cob",
+    "printed": "error COBOL2406: data item 'B': the VALUE clause shall not be specified in a data description entry that contains a REDEFINES clause",
+    "expected": "refusal: a redefining entry must not contain a VALUE clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r1b.cob",
+    "printed": "error COBOL2406: data item 'B1': ... in an entry subordinate to 'B', which contains a REDEFINES clause",
+    "expected": "refusal: subordinate entries of the new description carry no VALUE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r1e.cob",
+    "printed": "error COBOL2406: data item 'B21' (level 15 under group B10 under 05 B REDEFINES A)",
+    "expected": "refusal at any depth under the redefining entry"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r1d.cob",
+    "printed": "two COBOL2406 errors: 01 T REDEFINES S PIC 9(4) VALUE ZERO and U1 VALUE ALL \"K\" under 01 U REDEFINES S",
+    "expected": "refusal for figurative constant and ALL literal VALUEs at level 01 redefinitions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-052/r1c.cob",
+    "printed": "exit 0: AA-TRUE / ZZ-FALSE / T-TRUE / [ZZAA]",
+    "expected": "condition-name entries (level 88, single value, multiple values, THRU) under redefining entries are legal and evaluate against the shared storage"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR9",
+    "check": "OK  §1985:VI.5.10.3 SR9  (5.10.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "The screen walks the written-REDEFINES ancestor chain of every attached format-1/2 VALUE entry and refuses it; level 88 entries are screened elsewhere and not by this rule, so the condition-name exception holds. The diagnostic text cites §2023:13.18.63.3 SR12 even at --std 85 (cosmetic; the refusal itself is correct).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under refute-1985-052: v1 (77 B REDEFINES 77 A with VALUE; group 05 D REDEFINES C with a group VALUE; 05 FILLER REDEFINES C VALUE SPACES) -> three COBOL2406, one per entry; v3 (10 B2 REDEFINES B1 VALUE under 05 B REDEFINES A, a redefinition inside a redefinition) -> COBOL2406 at B2; v4 (1985-only Communication Section, where VALUE is legal in 1985: CD record 05 CX REDEFINES CMC with 10 CX1 VALUE) -> COBOL2406 at CX1, so the CD path (CommunicationSectionBinder -> BindEntries -> ScreenItemValuePlacement) is screened; v5 (the implicit redefinition reading, VI.5.3.4 GR3: a second 01 record of a CD carrying VALUE) -> COBOL6169 at CQ2 while the first record's VALUE is accepted; v2 (over-rejection: VALUE on entries after a redefinition at the same level, VALUE on an anchor group 01 S whose subordinate S2 REDEFINES S1 with no VALUE of its own, 01 U after 01 T REDEFINES S) -> exit 0 [AAAA|CC|G1|42|SSSSSS|UUU]. No over- or under-rejection found. cite.py: OK §1985:VI.5.10.3 SR9 the text is in SR9; OK §1985:VI.5.15.6 GR2 (its twin from the VALUE side, with the condition-name exception).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#CheckRecords: Edition.DialectLevel < 2002 switches only the cited text of the CD implicit-redefinition VALUE refusal (§1985:XIV.2.2.3 vs 2002 A.1.2.2); the refusal itself runs at every edition, a sibling of this rule, not its arm"
+  ],
+  "corrected": ""
+ }
+}

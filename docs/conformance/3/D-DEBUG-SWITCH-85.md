@@ -1,0 +1,3 @@
+- **D-DEBUG-SWITCH-85 — the object time switch of the COBOL-85 debug facility** (kb/Work PB5765; the standard leaves the switch outside the program).
+  §1985:XV.1.3.4 says of the switch: "This switch cannot be addressed in the program; it is controlled outside the COBOL environment".
+  WiseOwl COBOL's switch is `RunUnit.DebugMode`: host configuration that no COBOL statement can set, ON unless a host that embeds the runtime turns it off. So a program compiled WITH DEBUGGING MODE and run as `cobol` built it executes its debugging sections, and a program compiled without the mode has none to execute (D-DEBUG). Witness: `conformance:cases/VI.6.24@1985-STOP-STATEMENT/g85_z07`, whose debugging section runs for an OPEN and for an explicit CLOSE.

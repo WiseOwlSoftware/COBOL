@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VIII.3.2.3-2",
+ "rule-digest": "68e537e3eba2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "fdd9e97927276825c6719db46b6456bb2dd03e4d219a617edba5b06a4a4d2c36",
+   "refuter": "55c33976e6cc1b409887904bcf06a9113d4152992ef6e32416e75889404e973c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.3.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the clauses of a relative file's FD (BLOCK CONTAINS, RECORD in each of its three formats, LABEL RECORDS, VALUE OF, DATA RECORDS, and the IPC module's GLOBAL/EXTERNAL) must be accepted in any order, each bound with the same effect wherever it is written.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "row.At(DialectLevel) picks the edition's figure; the FD row has Sequence null (order free) and no EarlierFigure, so 85 and 2023 read the same row",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause",
+    "switches": "LABEL RECORDS, VALUE OF and DATA RECORDS accepted at 85 and refused from 2002 (VisitValueOfClause, VisitDataRecordsClause likewise); position-independent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf22_02 writes DATA/LABEL/RECORD CONTAINS/BLOCK reversed; VALUE OF, RECORD VARYING DEPENDING ON, BLOCK integer TO integer and GLOBAL out of printed order are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/fdord1.cob",
+    "printed": "R2=CDEFGH LEN=0006 ST=00 / R1=AB LEN=0002 ST=00",
+    "expected": "VALUE OF, DATA RECORDS, RECORD VARYING FROM 2 TO 6 DEPENDING ON, LABEL, BLOCK 2 TO 4 in reversed order accepted; the variable-length records round-trip with their lengths"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/fdord2.cob",
+    "printed": "COBOL6849 DATA RECORDS NOT-A-REC (clause written first) and COBOL2604 LINAGE not a clause of a relative FD",
+    "expected": "a clause written first is still bound and screened by its own rules; a clause outside the relative FD format is refused wherever it stands"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/fdord4.cob",
+    "printed": "only COBOL0900 for the 2002 AS phrase; RECORD, IS GLOBAL, LABEL, IS EXTERNAL out of order accepted",
+    "expected": "order free at 85; the later edition's AS phrase refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.3.2.3 SR2",
+    "check": "OK  §1985:VIII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar takes fileDescriptionClause+ with no order, the binder dispatches each clause by kind, and the clause-order screen's FD row is order-free at every edition. Side observation outside this rule: RECORD CONTAINS 9 TO 3 CHARACTERS on a relative FD compiled clean at 85 (fdord3.cob); the 1985 Format 3 RECORD clause prints no syntax rule on that order, so it is not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "order free (same row)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.3.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "fd1.cob (--std 85), orders the reader did not run clean (fdord4 compiled only beside a COBOL0900): FD REL-F BLOCK 3 / IS GLOBAL / VALUE OF FILE-ID IS WS-NAME (data-name operand) / LABEL RECORD STANDARD / RECORD CONTAINS 2 TO 6 (Format 2, CHARACTERS omitted) / DATA RECORD REC-S REC-L; FD REL-X LABEL RECORDS OMITTED / RECORD 4 / IS EXTERNAL (EXTERNAL last). Compiled and ran: 'W 00 00', and the contained program FD1IN read the GLOBAL file written out of order: 'R1 AB ... 00', 'R2 CDEFGH 00'. The first run was refused only by §1985:VIII.4.9.3 SR3 (WRITE without INVALID KEY, COBOL6826), which shows the 1985 relative arm is the one taken. Validation/ grep for VisitFileDescription*: only AreaPlacementPass (area A), no edition order arm. cite.py: OK  §1985:VIII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

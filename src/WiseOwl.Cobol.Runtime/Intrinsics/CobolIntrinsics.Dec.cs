@@ -8,6 +8,10 @@ namespace WiseOwl.Cobol.Runtime;
 /// the SDIDI (§2023:8.8.1.5.2), with per-operation intermediate rounding, landing at the receiver ONCE.
 /// </summary>
 /// <remarks>
+/// <para>⛔ EVERY BODY THAT EVALUATES AN EXPRESSION TAKES ITS ARITHMETIC AS A <see cref="DecArithmetic"/> (kb/Work PB5575): the SDIDI's
+/// 34 digits under STANDARD-DECIMAL, or the 32-digit standard intermediate data item of ARITHMETIC IS STANDARD, each operation's
+/// result truncated (§2002:8.8.1.3.2), so one body is each function's value in both models. MOD and REM take the exact integer
+/// remainder only on the SDIDI: the 2002 expression's 32-digit quotient is the value there.</para>
 /// <para>⛔ THE DEFECT THIS PARTIAL REMOVES (kb/Work PB56): under a standard arithmetic mode, a Dec or float
 /// operand used to LAND to unscaled Int128 at ws = max(receiver scale, 6) with truncation BEFORE the exact
 /// body saw it, so <c>FUNCTION SIGN(A − 0)</c> of a 1e-9 operand returned 0 where §2023:15.81.4 r1a and
@@ -55,11 +59,11 @@ public static partial class CobolIntrinsics
     public static CobolDec TruncDec(CobolDec a) => a.TruncateToInteger();
 
     /// <summary>§2023:15.42 FRACTION-PART — argument − INTEGER-PART(argument), exact (aligned subtraction).</summary>
-    public static CobolDec FractionPartDec(CobolRounding mode, CobolDec a) => CobolDec.Sub(a, TruncDec(a), mode);
+    public static CobolDec FractionPartDec(DecArithmetic ar, CobolDec a) => ar.Sub(a, TruncDec(a));
 
     /// <summary>§2023:15.64 MOD — argument-1 − argument-2 × INTEGER(argument-1 / argument-2) (§2023:15.64.4 r1's EAE).
     /// A zero divisor violates §2023:15.64.3 r2 → the one raise site shared with the exact carrier.</summary>
-    public static CobolDec ModDec(CobolRounding mode, CobolDec a, CobolDec b)
+    public static CobolDec ModDec(DecArithmetic ar, CobolDec a, CobolDec b)
     {
         if (b.Sig == 0) return CobolDec.From(ModZeroDivisor(), 0);
         // Two EXACT integers within the Int128 carrier take the exact remainder (kb/Work PB69): a native integer
@@ -67,18 +71,21 @@ public static partial class CobolIntrinsics
         // SDIDI equivalent-arithmetic-expression rounds its 34-digit products — the exact remainder IS the value
         // §2023:15.64.1 defines ("argument-1 modulo argument-2"), and for every operand pair a program can write it is
         // the §2023:15.64.4 EAE's value as well.
-        if (ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(ModScaled(ia, ib), 0);
-        return CobolDec.Sub(a, CobolDec.Mul(b, FloorDec(CobolDec.Div(a, b, mode)), mode), mode);
+        // Not under ARITHMETIC IS STANDARD: there the expression's 32-digit quotient is the value (§2002:15.52.3 RV1), and
+        // MOD (-99999999999999999999999999999997, 3) is -1 where the exact remainder is 2 (kb/Work PB5575).
+        if (!ar.StandardIntermediate && ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(ModScaled(ia, ib), 0);
+        return ar.Sub(a, ar.Mul(b, FloorDec(ar.Div(a, b))));
     }
 
     /// <summary>§2023:15.77 REM — argument-1 − argument-2 × INTEGER-PART(argument-1 / argument-2).
     /// A zero divisor violates §2023:15.77.3 r2 — REM's OWN rule, identically worded to MOD's §2023:15.64.3 r2 — → the one
     /// REM raise site shared with the exact and binary64 carriers (this body called MOD's, kb/Work PB304).</summary>
-    public static CobolDec RemDec(CobolRounding mode, CobolDec a, CobolDec b)
+    public static CobolDec RemDec(DecArithmetic ar, CobolDec a, CobolDec b)
     {
         if (b.Sig == 0) return CobolDec.From(RemZeroDivisor(), 0);
-        if (ExactIntegers(a, b, out Int128 ia, out Int128 ib)) return CobolDec.From(RemScaled(ia, ib), 0);   // kb/Work PB69
-        return CobolDec.Sub(a, CobolDec.Mul(b, TruncDec(CobolDec.Div(a, b, mode)), mode), mode);
+        if (!ar.StandardIntermediate && ExactIntegers(a, b, out Int128 ia, out Int128 ib))
+            return CobolDec.From(RemScaled(ia, ib), 0);   // kb/Work PB69; not the 32-digit model's value, as MOD's
+        return ar.Sub(a, ar.Mul(b, TruncDec(ar.Div(a, b))));
     }
 
     /// <summary>Both SDIDIs are integers whose values fit the Int128 carrier — the exact-remainder precondition.</summary>
@@ -147,37 +154,37 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>§2023:15.88 SUM — the §2023:15.88.4 r1 addition chain, per-op intermediate rounding.</summary>
-    public static CobolDec SumDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec SumDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "SUM");
         CobolDec s = xs[0];
-        for (int i = 1; i < xs.Length; i++) s = CobolDec.Add(s, xs[i], mode);
+        for (int i = 1; i < xs.Length; i++) s = ar.Add(s, xs[i]);
         return s;
     }
 
     /// <summary>§2023:15.76 RANGE — MAX − MIN (§2023:15.76.4 r1), exact-aligned subtraction.</summary>
-    public static CobolDec RangeDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec RangeDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "RANGE");
-        return CobolDec.Sub(MaxDec(xs), MinDec(xs), mode);
+        return ar.Sub(MaxDec(xs), MinDec(xs));
     }
 
     /// <summary>§2023:15.60 MEAN — Σ / n (§2023:15.60.4 r1), the one division in SDIDI form.</summary>
-    public static CobolDec MeanDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec MeanDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "MEAN");
-        return CobolDec.Div(SumDec(mode, xs), CobolDec.From(xs.Length, 0), mode);
+        return ar.Div(SumDec(ar, xs), CobolDec.From(xs.Length, 0));
     }
 
     /// <summary>§2023:15.62 MIDRANGE — (MAX + MIN) / 2 (§2023:15.62.4 r1).</summary>
-    public static CobolDec MidrangeDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec MidrangeDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "MIDRANGE");
-        return CobolDec.Div(CobolDec.Add(MaxDec(xs), MinDec(xs), mode), CobolDec.From(2, 0), mode);
+        return ar.Div(ar.Add(MaxDec(xs), MinDec(xs)), CobolDec.From(2, 0));
     }
 
     /// <summary>§2023:15.61 MEDIAN — the middle value in sorted order, or the mean of the two middles (§2023:15.61.4).</summary>
-    public static CobolDec MedianDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec MedianDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "MEDIAN");
         var sorted = (CobolDec[])xs.Clone();
@@ -185,35 +192,36 @@ public static partial class CobolIntrinsics
         int n = sorted.Length;
         return (n & 1) == 1
             ? sorted[n / 2]
-            : CobolDec.Div(CobolDec.Add(sorted[n / 2 - 1], sorted[n / 2], mode), CobolDec.From(2, 0), mode);
+            : ar.Div(ar.Add(sorted[n / 2 - 1], sorted[n / 2]), CobolDec.From(2, 0));
     }
 
     /// <summary>§2023:15.98 VARIANCE under STANDARD-DECIMAL — Σ(xᵢ − mean)² / n (§2023:15.98.4 r1's equivalent arithmetic expression over
     /// MEAN), each step on the SDIDI as §2023:15.4.1 1) requires; the native value is <see cref="VarianceExact"/>'s (kb/Work PB4111).
     /// ⚠ The clause number was §2023:15.97 here until kb/Work PB257: §2023:15.97 is UPPER-CASE — the derivation was right
     /// and the number was inherited without ever being re-derived, CLAUDE.md rule 1's own failure mode.</summary>
-    public static CobolDec VarianceDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec VarianceDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "VARIANCE");            // §2023:15.3 — at least one argument (kb/Work PB257)
-        CobolDec mean = MeanDec(mode, xs);
+        CobolDec mean = MeanDec(ar, xs);
         CobolDec acc = CobolDec.From(0, 0);
         foreach (CobolDec x in xs)
         {
-            CobolDec d = CobolDec.Sub(x, mean, mode);
-            acc = CobolDec.Add(acc, CobolDec.Mul(d, d, mode), mode);
+            CobolDec d = ar.Sub(x, mean);
+            // (argument-1 - mean) ** 2 is the integer power's equivalent expression, the one multiplication (§2002:8.8.1.3.6 r2b).
+            acc = ar.Add(acc, ar.Mul(d, d));
         }
-        return CobolDec.Div(acc, CobolDec.From(xs.Length, 0), mode);
+        return ar.Div(acc, CobolDec.From(xs.Length, 0));
     }
 
     /// <summary>SQRT under STANDARD-DECIMAL arithmetic (§2023:15.84.4 r2 — the 34-digit correctly-rounded value;
     /// kb/Work PB116). §2023:15.84.3 r2's "zero or positive" is the runtime's value screen here (the bind-time class
     /// screen cannot see values): a negative argument is EC-ARGUMENT-FUNCTION with the §2023:15.3 default 0.</summary>
-    public static CobolDec SqrtDec(CobolRounding mode, CobolDec v)
+    public static CobolDec SqrtDec(DecArithmetic ar, CobolDec v)
     {
         if (v.Sig < 0)
             return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
                 "SQRT argument-1 shall be zero or positive (ISO §2023:15.84.3 rule 2)"), 0);
-        return CobolDec.Sqrt(v, mode);
+        return ar.Sqrt(v);
     }
 
     /// <summary>FACTORIAL under a STANDARD arithmetic mode (§2023:15.36.4 r1c; kb/Work PB125): the equivalent
@@ -224,13 +232,13 @@ public static partial class CobolIntrinsics
     /// EC-SIZE-OVERFLOW inside <see cref="CobolDec.Mul"/> (§2023:8.8.1.5.2 r2) — the loop terminates by
     /// overflow near n ≈ 1755, never by iteration count. §2023:15.36.3 r1's negative screen is the runtime's
     /// (values are runtime data): EC-ARGUMENT-FUNCTION with the §2023:15.3 default 0.</summary>
-    public static CobolDec FactorialDec(CobolRounding mode, long n)
+    public static CobolDec FactorialDec(DecArithmetic ar, long n)
     {
         if (n < 0)
             return CobolDec.From(Exceptions.ExceptionState.ArgumentError(
                 $"FACTORIAL argument {n} violates §2023:15.36.3 rule 1 (shall be an integer greater than or equal to zero)"), 0);
         CobolDec r = CobolDec.From(1, 0);
-        for (long i = 2; i <= n; i++) r = CobolDec.Mul(r, CobolDec.From(i, 0), mode);
+        for (long i = 2; i <= n; i++) r = ar.Mul(r, CobolDec.From(i, 0));
         return r;
     }
 
@@ -239,10 +247,10 @@ public static partial class CobolIntrinsics
     /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c>, so the two FUNCTION bodies are composed and
     /// §2023:15.84.4 r2's own "absolute value … rounded to 34 digits" is inherited from the ONE SQRT body rather than
     /// re-decided. ⚠ The clause number was §2023:15.85 here until kb/Work PB257: §2023:15.85 is STANDARD-COMPARE.</summary>
-    public static CobolDec StdDevDec(CobolRounding mode, params CobolDec[] xs)
+    public static CobolDec StdDevDec(DecArithmetic ar, params CobolDec[] xs)
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
-        return SqrtDec(mode, VarianceDec(mode, xs));
+        return SqrtDec(ar, VarianceDec(ar, xs));
     }   // evaluated in SDIDI form end to end (kb/Work PB116 — it
         // detoured through Math.Sqrt in binary64, ~16 digits).
 
@@ -261,28 +269,28 @@ public static partial class CobolIntrinsics
     /// n·ln(1 + rate) passes about 14 000 — at n = 10^6 for a 5 % rate, and equally at n = 10^20 — and that is the
     /// EXPRESSION'S size condition (EC-SIZE-OVERFLOW, §2023:8.8.1.5.2 r2, raised inside <see cref="CobolDec.Pow"/>), the
     /// same for every n past the edge. A small rate keeps a finite value for an enormous n (rate 1E-30, n 10^20).</para></summary>
-    public static CobolDec AnnuityDec(CobolRounding mode, CobolDec rate, CobolDec periods)
+    public static CobolDec AnnuityDec(DecArithmetic ar, CobolDec rate, CobolDec periods)
     {
         if (rate.Sig < 0 || periods.Sig <= 0)
             return CobolDec.From(AnnuityDomain(rate.ToDouble(), periods.ToDouble()), 0);
         CobolDec one = CobolDec.From(1, 0);
-        if (rate.Sig == 0) return CobolDec.Div(one, periods, mode);
-        CobolDec pow = CobolDec.Pow(CobolDec.Add(one, rate, mode), CobolDec.Negate(periods), mode);
-        return CobolDec.Div(rate, CobolDec.Sub(one, pow, mode), mode);
+        if (rate.Sig == 0) return ar.Div(one, periods);
+        CobolDec pow = ar.Pow(ar.Add(one, rate), CobolDec.Negate(periods));
+        return ar.Div(rate, ar.Sub(one, pow));
     }
 
     /// <summary>§2023:15.74 PRESENT-VALUE under STANDARD-DECIMAL — Σ argument-2ₖ / (1 + argument-1)^k, k = 1…n (§2023:15.74.4 r1), each term
     /// on the SDIDI; the native value is <see cref="PresentValueExact"/>'s (kb/Work PB4111).
     /// Domain per §2023:15.74.3 r2 (rate &gt; −1), through the same raise site as the double carrier.</summary>
-    public static CobolDec PresentValueDec(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
+    public static CobolDec PresentValueDec(DecArithmetic ar, CobolDec rate, params CobolDec[] amounts)
     {
         RequireArguments(amounts.Length, "PRESENT-VALUE");
         if (CobolDec.Compare(rate, CobolDec.From(-1, 0)) <= 0)
             return CobolDec.From(PresentValueDomain(rate.ToDouble()), 0);
-        CobolDec baseFactor = CobolDec.Add(CobolDec.From(1, 0), rate, mode);
+        CobolDec baseFactor = ar.Add(CobolDec.From(1, 0), rate);
         CobolDec acc = CobolDec.From(0, 0);
         for (int k = 0; k < amounts.Length; k++)
-            acc = CobolDec.Add(acc, CobolDec.Div(amounts[k], CobolDec.Pow(baseFactor, CobolDec.From(k + 1, 0), mode), mode), mode);
+            acc = ar.Add(acc, ar.Div(amounts[k], ar.Pow(baseFactor, CobolDec.From(k + 1, 0))));
         return acc;
     }
 }
