@@ -559,15 +559,15 @@
   },
   {
    "key": "DOC-A.1-149",
-   "lead": "Condition absent.** §2023:12.4.5.3 GR1 c) asks for \"a consistent"
+   "lead": "Provided: the same method.** §2023:12.4.5.3 GR1 c) asks for \"a c"
   },
   {
    "key": "DOC-A.1-150",
-   "lead": "Not provided.** No name is available for use as feature-name-1. "
+   "lead": "Provided: two names, BINARY-SEQUENTIAL and LINE-SEQUENTIAL, at e"
   },
   {
    "key": "DOC-A.1-151",
-   "lead": "Two methods, chosen by the file’s ORGANIZATION — and this determ"
+   "lead": "Two methods, chosen by the file’s ORGANIZATION — and they are th"
   },
   {
    "key": "DOC-A.1-152",
@@ -1505,7 +1505,8 @@
    "COBOL1803",
    "COBOL1954",
    "COBOL2386",
-   "COBOL2424"
+   "COBOL2424",
+   "COBOL7599"
   ],
   "A4": [
    "COBOL0822",

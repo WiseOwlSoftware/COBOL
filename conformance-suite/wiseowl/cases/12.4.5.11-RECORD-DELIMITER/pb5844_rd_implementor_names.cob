@@ -31,10 +31,12 @@
       *> L: LINE-SEQUENTIAL makes the file line sequential, whose record
       *> length is "the number of characters between the preceding line
       *> delimiter and the following line delimiter" (§2023:9.1.7.2),
-      *> and a record of a line sequential file without a DEPENDING
-      *> phrase is written without the spaces to the right of its
-      *> rightmost non-space character (Annex A.1 item 151 (b)), so
-      *> the same two writes read back as LEN=02 [AB] and LEN=03 [C D].
+      *> and for a line sequential file whose RECORD clause has no
+      *> DEPENDING phrase "any spaces to the right of the rightmost
+      *> non-space character are not transferred" (§2023:14.9.51.4
+      *> GR21; at 85 the file is line sequential by the name's method,
+      *> Annex A.1 item 150), so the same two writes read back as
+      *> LEN=02 [AB] and LEN=03 [C D].
       *> The B and L lines differ only because the names select two
       *> methods; a name that selected nothing would print B's lengths
       *> on both. The LINE-SEQUENTIAL writer's ORGANIZATION clause

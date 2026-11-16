@@ -143,6 +143,17 @@ public sealed class RecordDelimiterClauseTests
             body: "           OPEN INPUT F1\n           READ F1 AT END CONTINUE END-READ\n           CLOSE F1\n"), 85);
     }
 
+    /// <summary>A line sequential file has no backward walk (§2023:14.9.30.3 SR7 denies it the PREVIOUS phrase), so OPEN
+    /// REVERSED, which COBOL-85 admits for a record sequential file, is refused on a file made line sequential at --std 85
+    /// (COBOL2210), and still compiles on its BINARY-SEQUENTIAL twin.</summary>
+    [Fact]
+    public void LineSequentialByDelimiter_At85_RefusesReversed()
+    {
+        const string body = "           OPEN INPUT F1 REVERSED\n           CLOSE F1\n";
+        AssertRefused(Program("               RECORD DELIMITER IS LINE-SEQUENTIAL", "", body: body), 85, "COBOL2210");
+        AssertCompiles(Program("               RECORD DELIMITER IS BINARY-SEQUENTIAL", Varying, body: body), 85);
+    }
+
     /// <summary>Neither name is a reserved word (§1985:IV.4.2.2.1, §2023:8.3.2.1 SR4: a system-name and a user-defined
     /// word may be the same word): a data item spelled LINE-SEQUENTIAL and one spelled BINARY-SEQUENTIAL compile, beside
     /// a clause that names one of them.</summary>

@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.8.2",
  "rule-digest": "bc1ebf10066c",
- "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness; conformance:wiseowl/cases/12.4.5.11-RECORD-DELIMITER/pb5844_rd_implementor_names; conformance:wiseowl/cases/12.4.5.11-RECORD-DELIMITER/pb5844_rd_word_not_a_name",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -127,7 +127,7 @@ internal static class ExternalFileConnectorRules
                             $"external file '{externalName}': this file control entry and the first one in the run unit "
                             + $"that describes the file connector differ in {mine[i].Clause} — every entry of an external "
                             + "file connector specifies it the same way (ISO "
-                            + Cite(edition, "§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
+                            + Cite(edition, "§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VII.2.8.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
                                 "§2002:12.3.4.3 GR1", "§2023:12.4.5.3 GR1") + ")");
                     break;   // one report per entry: the first clause that differs
                 }

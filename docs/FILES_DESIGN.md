@@ -547,9 +547,31 @@ WiseOwl COBOL header at all, so the check would fire only where it is not wanted
 through a description with NO CODE-SET clause is GR7's own default and the raw-medium idiom a dump or transcode
 utility is written in, so a '39' there would reject legal source. The **minimum and maximum physical record
 size** is outside the set because the managed I-O model does no blocking and BLOCK CONTAINS is accepted inert
-under A.3 item 5, so no physical record size exists. The **record delimiter** is outside it because the RECORD
-DELIMITER clause has no compiler surface and the delimiter distinction this processor does realize (§2023:9.1.7.2's
-record-sequential vs line-sequential) is a SEQUENTIAL-organization attribute, whose format records nothing.
+under A.3 item 5, so no physical record size exists. The **record delimiter** is outside it because the only two
+delimiting methods this processor has are §2023:9.1.7.2's record-sequential and line-sequential files, so the
+delimiter IS the sequential organization's kind (the RECORD DELIMITER clause selects one of the two by name, below),
+whose format records nothing.
+
+**The RECORD DELIMITER clause selects a method by name (kb/Work PB5844).** Its operand is STANDARD-1 or an
+implementor-name (§1985:VII.2.8.4 GR3; feature-name-1, §2023:12.4.5.11.3 SR2 and §2023:12.4.5.11.4 GR4), and the names
+are ONE table, `RecordDelimiterNames` (GnuCOBOL's, by CLAUDE.md rule 1): **BINARY-SEQUENTIAL** is the record
+sequential method (the length prefix above), which a sequential file has anyway; **LINE-SEQUENTIAL** makes the file
+LINE SEQUENTIAL (`FileModel.Organization`, with `FileModel.LineSequentialByDelimiter` set), so the emitter registers
+a line sequential connector and every statement rule of a line sequential file applies (READ PREVIOUS, OPEN
+REVERSED, the trailing-space rule of WRITE), at every edition — at COBOL-85 too, which has no ORGANIZATION phrase for
+it, and where the 1985 AT END rule still holds (`ExceptionPhraseRequirement`). The syntax rules whose subject is the
+WRITTEN phrase — §2023:12.4.5.2 SR12 (RESERVE), §2023:13.4.5.3 SR4 (BLOCK CONTAINS, RECORD CONTAINS) and the format
+marker of §2023:12.4.5.2 SR11 — ask `FileModel.LineSequentialPhraseWritten` instead. The method is applied once the
+whole entry is read (`FileControlBinder.ApplyRecordDelimiter`), because the ORGANIZATION clause may follow the clause;
+BINARY-SEQUENTIAL on a written LINE SEQUENTIAL organization, and every word not in the table, is COBOL7598. Neither
+name is reserved: the binder matches the operand's text, so either spelling stays a legal user-defined word.
+STANDARD-1 is declined accept-inert (COBOL1778, A.3 item 26: no reel device) and leaves the length prefix in force.
+The clause "may be specified only for variable-length records" (§2023:12.4.5.11.3 SR1, §1985:VII.2.8.3 SR1): the
+binder asks `FileModel.HasVariableLengthRecords` post-build (`FileControlBinder.ScreenRecordDelimiter`, COBOL7599) on
+both arms — the RECORD clause's variable formats and the implied format 2 (A.1 items 147, 148), or a line sequential
+file whose entry writes no format 1 RECORD clause — the same predicate the FORMAT clause's rule asks. The external file
+connector's identity compares the method (`FileEntryIdentity`, A.1 item 149), so BINARY-SEQUENTIAL, STANDARD-1 and an
+omitted clause agree.
 
 **§2023:9.1.6's own last-sentence obligation** — "The implementor shall specify whether the ability to share a
 physical file is a fixed file attribute" — is answered **NO**: a sharing mode is established per FILE CONNECTOR
@@ -716,9 +738,11 @@ phrase rather than a shared predicate: REVERSED admits RECORD sequential organiz
 §2023:14.9.30.3 SR7 denies the backward walk to LINE SEQUENTIAL, and a relative or indexed file has no record
 *number* for GR21 c) to compare) and the INPUT group only (COBOL2211 — the phrase's whole effect is a
 retrieval direction), where §2023:14.9.27.3 SR5/SR6 give NO REWIND both sequential kinds (§2023:9.1.7.2) and both INPUT
-and OUTPUT. ⚠ The LINE SEQUENTIAL cell is unreachable from conforming source at EVERY edition — LINE
-SEQUENTIAL arrived in 2023 and REVERSED left in 2002 — so it is defence in depth under `--permissive`; the
-negative golden witnesses the reachable half of the same rule with a RELATIVE file.
+and OUTPUT. The LINE SEQUENTIAL cell is reachable at COBOL-85 only, by a file made line sequential with RECORD
+DELIMITER IS LINE-SEQUENTIAL (kb/Work PB5844; the LINE SEQUENTIAL phrase arrived in 2023 and REVERSED left in 2002):
+a line sequential file has no backward walk, so the phrase is refused there too
+(`RecordDelimiterClauseTests.LineSequentialByDelimiter_At85_RefusesReversed`); the negative golden witnesses the
+other half of the same rule with a RELATIVE file.
 
 ### D12. The OPEN statement's REPEATED GROUP is the bound tree's shape: one `BoundOpenFile` per file-name, carrying its OWN group's mode and phrases. The statement node holds no phrase state.
 
@@ -1267,8 +1291,9 @@ is the only path that reaches it.
 **Edition-invariance was derived, not assumed.** No `docs/VERSION_CHANGE_REFERENCE.md` row touches §2023:12.4.5.5, and
 ANSI X3.23-1985's sequential-I-O file control entry likewise offered no ACCESS MODE but SEQUENTIAL, so the screen
 is unconditional and three of the four negatives assert `COBOL1858` at 85/2002/2014/2023. The LINE SEQUENTIAL
-negative names 2002/2014/2023 only — 1985 has no line sequential organization at all, so its 1985 verdict belongs
-to that organization's edition gate (kb/Work PB688), not to this rule.
+negative names 2002/2014/2023 only — 1985 has no LINE SEQUENTIAL phrase, so its 1985 verdict belongs to that
+phrase's edition gate (kb/Work PB688), not to this rule; a 1985 file made line sequential by RECORD DELIMITER IS
+LINE-SEQUENTIAL (kb/Work PB5844) is under the screen through `FileModel.IsSequential` like any other.
 
 **The complement was measured, not assumed.** A screen is evidence about what it REJECTED, never about what it
 let through. A static scan of all 1483 SELECT entries under `tests/` reports every cell this screen rejects
@@ -2462,7 +2487,8 @@ agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 G
 clauses), each entry that writes a clause with the first entry that writes it (COBOL6847, at the clause). The identity is compile-time only; the
 run time's fingerprint stays the file control entry's. An omitted clause is no clause ("all LABEL RECORDS clauses in the run unit"), so it agrees
 with anything. **Entry identity compares effective values** (kb/Work PB5311): an omitted RESERVE is the implementor's one area and an omitted
-RECORD DELIMITER the implementor's one method (DOC-A.1-164, DOC-A.1-151), so they agree with RESERVE 1 AREA and STANDARD-1, at compile and run time.
+RECORD DELIMITER the implementor's record sequential method (DOC-A.1-164, DOC-A.1-151), so they agree with RESERVE 1 AREA, BINARY-SEQUENTIAL and the
+declined STANDARD-1, at compile and run time (the segment compares the method, DOC-A.1-149; kb/Work PB5844).
 Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
 
 ## C# mapping
