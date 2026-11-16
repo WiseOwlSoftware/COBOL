@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-SR-VII.3.7.3-1",
  "rule-digest": "9fc11e8c6078",
- "test-ref": "conformance:cases/13.18.34-LINAGE/pb524_linage_operand_shapes",
+ "test-ref": "conformance:cases/13.18.34-LINAGE/pb524_linage_operand_shapes; conformance:cases/VII.3.7@1985-LINAGE-CLAUSE/pb5801_linage_level66_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
