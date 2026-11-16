@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.6.2",
  "rule-digest": "caa086054721",
+ "test-ref": "conformance:cases/A.2.6@1985-ANNUITY-FUNCTION/g85_f34_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
