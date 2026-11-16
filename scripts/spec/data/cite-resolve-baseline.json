@@ -6,7 +6,7 @@
   "longer fails. Repair a citation, then rewrite this file with",
   "`python scripts/spec/audit_code_citations.py --write-baseline` (it refuses to add an entry)."
  ],
- "count": 1595,
+ "count": 1594,
  "entries": [
   {
    "file": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4",
@@ -6899,12 +6899,6 @@
   {
    "file": "tests/WiseOwl.Cobol.Tests.Conformance/LinageConformanceTests.cs",
    "line": 662,
-   "citation": "§2023:8.4.3.14 SR3",
-   "kind": "no-rule-list"
-  },
-  {
-   "file": "tests/WiseOwl.Cobol.Tests.Conformance/LinageConformanceTests.cs",
-   "line": 755,
    "citation": "§2023:8.4.3.14 SR3",
    "kind": "no-rule-list"
   },
