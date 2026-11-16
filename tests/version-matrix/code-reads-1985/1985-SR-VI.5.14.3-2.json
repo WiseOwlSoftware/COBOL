@@ -80,5 +80,6 @@
   "expected": "a diagnostic: \"the same usage must be specified in both entries\" (§1985:VI.5.14.3 SR2); BINARY and COMPUTATIONAL are distinct usages (§1985:VI.5.14.4 GR3, GR4) and only COMP is an abbreviation for COMPUTATIONAL (SR4)",
   "observed": "exit 0, no diagnostic; the program runs and prints -0017 +9999 -9999",
   "known_note": "none (kb/Work PB495 built the SR2 screen; it does not discuss BINARY against COMPUTATIONAL)"
- }
+ },
+ "work": "PB5849"
 }

@@ -79,5 +79,10 @@
   "evidence": "Checked the 1985 format: SIGN appears only in the format 3 (elementary) report entry (§1985:XIII.3.9.2), so the compiler's group-level refusal at 85 matches the format. Probe sign5.cob at --std 85: VALUE -3 into PIC S9 LEADING SEPARATE printed '-3' (2 positions); VALUE 0 into S99 TRAILING printed '00+'; SOURCE 500 into S9PP LEADING printed '+5' (P not counted as a position); SOURCE -0.05 into SV99 TRAILING printed '05-'; SUM counter PIC S9(4) LEADING SEPARATE printed '-0014'; every following column began right after the sign position. cite.py: OK §1985:XIII.3.17.4 GR3 'this character position is not a digit position'.",
   "edition-sites-missed": [],
   "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The sign representation the rule states is right for every entry the compiler admits. SIGN SEPARATE with BLANK WHEN ZERO is the open kb/Work PB5790's question.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
  }
 }

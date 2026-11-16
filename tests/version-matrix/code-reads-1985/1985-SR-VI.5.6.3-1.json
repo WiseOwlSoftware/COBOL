@@ -75,5 +75,11 @@
   "evidence": "cite.py: OK  §1985:VI.5.6.3 SR1  (5.6.3 Syntax Rules)  the text is in SR1. Probes at --std 85: j5c.cob refuses JUSTIFIED RIGHT on an SD group record, JUSTIFIED on a working-storage group whose only child is FILLER, and JUST on a linkage group (COBOL2403 x3); j5a.cob refuses JUSTIFIED on an 88 entry (COBOL1747); j5b.cob refuses JUSTIFIED on a 66 RENAMES entry (COBOL0001 unexpected 'JUSTIFIED'); j5d.cob refuses JUSTIFIED LEFT, which no 1985 format has (COBOL1941); j5e.cob accepts JUST RIGHT on an elementary 01 REDEFINES and JUSTIFIED on 01 PIC X(3) and gives [    AB] [CDE] [ZZZ] [  Q] (left truncation, right alignment, ALL literal, per §1985:VI.5.6.4 GR1). No edition site in CheckPictureRequiredPass.cs or DataBinder.ClausePlacement.cs (grep for CobolVersion/IsAtLeast/Edition.Is/ConstructRegistry/DialectBehavior/ReservedWords: none).",
   "edition-sites-missed": [],
   "corrected": ""
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "JUSTIFIED, and BLANK WHEN ZERO, on a report group entry that has subordinates compiles at 85; 2023 refuses it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5850"
 }
