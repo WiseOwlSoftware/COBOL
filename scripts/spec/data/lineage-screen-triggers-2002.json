@@ -354,6 +354,14 @@
   }
  },
  "behaviours": {
+  "sum-size-error-raised-at-addition": {
+   "sections": [
+    "13.16.52",
+    "14.8.15",
+    "14.8.42"
+   ],
+   "why": "the SUM clause, §2002:13.16.52, whose additions into a sum counter run during the GENERATE (§2002:14.8.15) and TERMINATE (§2002:14.8.42) statements and set only the size error indicator at 2002"
+  },
   "select-when-only-for-file-phrase-statements": {
    "sections": [
     "13.16.49",
