@@ -155,7 +155,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 // is CURRENTLY OPEN in that mode or is being opened in it by the OPEN statement executing
                 // (the connector's being-opened mode, FileConnector.OpenModeView; kb/Work PB5200). __f is null for a non-I-O condition or a file-less EC-I-O RAISE.
                 arms.Add((1, wi, 0,
-                    $"ExceptionCatalog.IsIoName(__ec) && __f is not null && {RuntimeApi.FileOpenModeOf("__f")} == {ModeOrdinal(mode)}",
+                    $"ExceptionCatalog.IsIoName(__ec) && __f is not null && ({RuntimeApi.FileOpenModeOf("__f")} == {ModeOrdinal(mode)} || {RuntimeApi.FileOpenedModeOf("__f")} == {ModeOrdinal(mode)})",
                     m.Imp2Pc));
                 continue;
             }
