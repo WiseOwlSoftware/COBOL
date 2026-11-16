@@ -201,6 +201,8 @@ The file block holds one field, `source-format` (`fixed` or `free`, required; fi
 | `requires` | Optional or processor-dependent elements needed, by stable `constructs/` module id (`module-report-writer`), never by A.4 number, which differs between editions. The module row records the element's status per edition; a profile not claiming it where it is optional or processor-dependent gets NOT APPLICABLE |
 | `implementor-defined` | A.1 items whose enumerated value the output depends on (§3.3) |
 | `files` | Copybooks, data files and other units the test needs, beside the case file |
+| `stdin` | A file beside the test, LF line ends only, that is the program's standard input (PB5755). Without it the input is closed (end of file), and what an ACCEPT then stores is the implementor's (DOC-A.1-5), which no rule states. The generator refuses a test that names a rule of the transfer of data from the input device (an ACCEPT statement's general rule whose catalog text speaks of its device and not of a screen: §1985:VI.6.5.4 GR1-GR5, §2023:14.9.1.4 GR1-GR5), executes an ACCEPT reading standard input (no FROM, or FROM CONSOLE, SYSIN or a mnemonic-name SPECIAL-NAMES binds to one) and declares none. The test runs solo |
+| `output-file` | `{name: <file the program leaves in its run directory>, expected: <file beside the test holding its content>}` (PB5765): compared once the process has ended, on the normalization of the standard output, in addition to it, so a rule whose effect shows only after the run unit ends (STOP RUN's implicit CLOSE, §1985:VI.6.24.4 GR2) has an observable. A missing file, a file that differs and an absent expected file are three distinct FAILs, each naming the file. `expected` never ends in `.out`; the files of one test (`files`, `stdin`, `expected`) are distinct. Only an accepted test declares it; it runs solo |
 | `main` | `yes`: the test runs as the run unit's main program, alone; the only test that may write a STOP statement |
 | `build` | WiseOwl tests only (PB2101): ordered compile steps of a multi-unit test, `"<file>"` or `"<file> > <output>"`, `"{self}"` for the test; it runs solo. Refused in `cases/`: how separate units find each other is implementor-defined |
 | `servers` | WiseOwl tests only (PB4745, DESIGN-message-control.md §0 Q9): a map from a message server name to a declared file, `{BALANCE: balsrv.cbl}`. The in-process runner compiles each file as a `build` unit is (its options `wiseowl/options/<id>.<file>.json`) and starts its main program, before the test, as a concurrent run unit serving the name in the test's own MCS directory; it ends them with the test. A name is compared as a server name is (trailing spaces removed, without regard to case); a file's assembly is neither the test's nor a build step's nor another server's. It runs solo. Refused in `cases/`: how a second run unit is started and found is implementor-defined |
@@ -660,8 +662,14 @@ kb/Conformance burn-down, whose ledger page is the owner's (PB2912), so a new se
   (`scripts/docchecks/register.py`); GnuCOBOL's were measured on cobc 3.2.0 and S3 verifies them. A profile states
   each enumerating A.1 item's value and its extra reserved words per edition (GnuCOBOL's: what `cobc --list-reserved`
   lists beyond `reserved-words.json`).
-- **Each program runs in its own fresh directory** with its tests' declared files and stdin closed; case files run in
-  parallel. A declared file lies there at its place beside the test's source, so a library text in a library folder
+- **Each program runs in its own fresh directory** with its tests' declared files and stdin closed, or fed the file the
+  test's `stdin` declares (PB5755): both runners feed it to the program's run alone, never to a compile, and the manifest
+  entry carries it as `stdin`, a suite-relative path (`run.py`'s `execute` and an adapter hook's `StepContext.stdin`; the
+  in-process runner's `CutRunner.RunExit`). A test that declares an `output-file` (PB5765) is also judged on that file once
+  the process has ended (`run.py`'s `output_file`, the in-process runner's `OutputFileVerdict`), the manifest entry carrying
+  `{name, expected}`; each key is present only for a test that declares it. If a runner forgot a key, the planted tests of
+  `run.py --self-test` and of `ConformanceSuiteDeclaredFilesTests` fail, and so does the verdict comparison of §9 on every
+  suite test that declares it. Case files run in parallel. A declared file lies there at its place beside the test's source, so a library text in a library folder
   (`<library>/<file>`) keeps its library; `run.py` (`Run.staged`) and the in-process runner (`ConformanceSuiteRunner.Stage`)
   stage it the same way.
 - **A case file runs in three steps** (17d, 17g), so one failing test never hides another or fails the file. (1) Compile

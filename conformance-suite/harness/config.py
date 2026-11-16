@@ -127,8 +127,10 @@ class Step:
 @dataclass(frozen=True)
 class StepContext:
     """What an operation needs, handed to a hook's `compile(ctx)`, `run(ctx)` or `flag(ctx)`: the test's working
-    directory (cwd), the environment, the hang guard, every placeholder's value, and the adapter's template for the
-    operation filled in (None when the hook replaces a missing one)."""
+    directory (cwd), the environment, the hang guard, every placeholder's value, the adapter's template for the
+    operation filled in (None when the hook replaces a missing one) and the program's standard input: the bytes of the
+    file its test declares (`stdin`, §3.1) for the `run` operation of such a test, None everywhere else, where the input
+    is closed (end of file). A hook that runs the program feeds `stdin` to it, or the test's declared input is lost."""
 
     operation: str
     argv: tuple[str, ...] | None
@@ -136,6 +138,7 @@ class StepContext:
     environment: dict[str, str]
     timeout: float
     placeholders: dict[str, str]
+    stdin: bytes | None = None
 
 
 def _read_json(path: Path) -> tuple[Any, list[str]]:
