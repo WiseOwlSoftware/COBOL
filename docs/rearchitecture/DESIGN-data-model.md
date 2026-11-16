@@ -182,6 +182,64 @@ The old boolean triad is replaced by pure functions on the item's form (or cache
 - `DataItem.StoreAsImage` → **deleted**; the equivalent query is `Storage is CharImage { Category: not Alphanumeric }`
   where a call site truly needs "numeric leaf stored as image" (there are ~5 such sites; the rest just needed the type).
 
+#### 2.1.1 The sign of a zero result before 2014: the sending operand's sign, held by the image (kb/Work PB5852)
+
+**The rule, by each edition's own text.** §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1 say the same sentence: "When a
+signed numeric item is the receiving item, the sign of the sending operand is placed in the receiving item." It names the
+OPERAND, so `MOVE -100 TO S99` stores a NEGATIVE zero (`-00` under SIGN LEADING SEPARATE, `00-` trailing, the negative
+over-punch of a plain `S99`): the digits truncate, the sign does not. §2014:14.9.24.3 GR6d2a and §2023:14.9.25.4 GR6d.2.a
+say instead that "the sign of the numeric value shall be represented in the receiving operand", and the value after
+alignment and truncation is zero, which has no negative form (D-EDIT-SIGN-ZERO). The boundary is therefore 2014, and it is
+one `DialectBehavior` row (`MoveSignIsTheValuesSign`, VCR Table 7 row 7.84): from 2014 nothing here applies and nothing
+here is emitted.
+
+**What can hold it.** A native carrier holds a VALUE and a value has no negative zero; an image carrier
+(`CharImage(Numeric)`, §2.1) holds the item's characters, a negative zero among them, exactly as it already holds the sign
+INSPECT retains over a zero magnitude (§2023:14.9.22.4 GR4 d). So the arm needs no new carrier, no sign flag beside a native
+field and no byte substrate: it is (A) a store that writes the sender's sign into an image, and (B) the existing promotion
+for the receivers that can be handed a negative zero.
+
+**The sign holders.** Only a signed item of the ZONED byte form (USAGE DISPLAY, and NATIONAL from 2002) gets the arm: its
+sign is a character apart from its digits. A BINARY item's two's complement has no negative zero, and a PACKED-DECIMAL
+item's sign nibble is the implementor's representation of the value's sign (§1985:VI.5.14.4 GR9 leaves the item's
+representation "including the representation of any algebraic sign" to the implementor), documented as the value's sign, so neither is a sign holder and neither changes
+form. A numeric-edited receiver is not "a signed numeric item"; its editing sign follows the stored value at every edition
+(D-EDIT-SIGN-ZERO).
+
+**(A) The store.** Every statement whose 1985 text stores "according to the rules for the MOVE statement" reaches the ONE
+numeric arm of `MoveEmitter.ConvertSource` (the explicit MOVE and MOVE CORRESPONDING; INITIALIZE's REPLACING moves,
+§1985:VI.6.17.4 GR2b; READ and RETURN INTO, §1985:VII.4.4.4 GR8b; WRITE, REWRITE and RELEASE FROM, §1985:VII.4.7.4 GR3a; the
+report writer's SOURCE and SUM moves into a printable item, §1985:XIII.3.18.3 SR2 and §1985:XIII.3.19.4 GR4). At 1985 and 2002, when the receiver is a sign holder that is
+image-carried and the sender may be negative, the image is written by `CobolNum.FormatImageSendersSign(stored, negative,
+profile)`: the truncated value's own image, except that a zero value takes the SENDER's sign. The sender's sign is read
+ONCE: a literal's at compile time; an image-carried zoned sender's from its characters (`CobolNum.ImageIsNegative`, so a
+negative zero moved on stays negative); every other sender's from its value, captured as the store reads it. A
+statement whose text does not send its store through the MOVE rules is unchanged: the arithmetic statements store a value
+("this value is stored as the new value", §1985:VI.6.8.4 GR2; truncation "relative to the size provided for the resultant
+identifier", §1985:VI.6.4.1), so a zero result is positive; ACCEPT's and UNSTRING's alphanumeric senders are unsigned
+("If the sending operand is unsigned, a positive sign is generated"); SET stores an occurrence number.
+
+**(B) The computed set.** `StorageFormPass` arm (7) promotes, at 1985 and 2002 only, the native sign holders that can be
+handed a negative zero: the receivers of a numeric store (`DataBindState.NumericStores`, collected by
+`UsageCollectionPass` from every `BoundMove` and INITIALIZE store) whose sender may be negative and EITHER can lose all its
+non-zero digits in the store (a digit position of the sender's picture, or of a literal's non-zero digits, lies outside the
+receiver's digit window: high-order or low-order truncation) OR can itself hold a negative zero (a sign holder that is
+image-carried, which a promoted receiver is, and which a READ, a group move or INSPECT can also leave negative over a zero
+magnitude). The second clause is the closure: a promotion can make another store's sender a holder, so the arm runs to a
+fixed point, re-classifying after each round. A function-identifier sender may truncate to zero (its digits are not a
+picture's). Everything outside the set keeps its native carrier, because no store can give it a negative zero: its sender is
+non-negative, or every digit the sender can have lands in the receiver and the sender cannot hold a negative zero, so the
+stored value is zero only when the sender's value is zero, whose sign is positive at every edition. At 2014 and 2023 the set
+is empty by construction (`SendersSignStore.Applies`).
+
+**What follows without code of its own.** DISPLAY shows an image item's characters, so it shows `-00`. A negative zero's
+VALUE is zero: it compares equal to zero (§1985:VI.6.3.1.1.1, "Zero is considered a unique value regardless of the sign"),
+the sign condition calls it ZERO and not NEGATIVE (§1985:VI.6.3.1.5), and arithmetic reads it as zero. A group that
+contains it moves and is written as characters, so the record keeps the negative zero and READ restores it. A
+literal written `-0` keeps its normalized positive image (kb/Work PB2508): §1985:IV.4.2.2.2.2 SR2 lets a sign be written, and
+its rule 4 makes the value "the algebraic quantity represented by the characters", which does not decide whether `-0` is a
+negative sending operand; `VALUE -0` is an initial value, not a MOVE, and is unchanged.
+
 ### 2.2 The canonical `Place` lvalue model
 
 `Place` stays the ONE lvalue contract (`Read()` → rvalue C# expr, `Write(rhs)` → C# store statement). The
