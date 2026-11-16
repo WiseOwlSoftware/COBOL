@@ -1170,7 +1170,8 @@
       "6) a `derivation` value that is not the COMPUTED anchor, or one docs/CONFORMANCE.md §8 has no row for;",
       "7) an `undefined-in-rule` arm whose quotation is not in the row's own catalog text, or on a row an Annex A.2",
       "   item resolves to (one fact, one arm: that row keeps `undefined-A.2`);",
-      "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row."
+      "8) an ARGUED arm signed by a signer whose `refuter` is true, with no UPHELD refuter record of the row;",
+      "9) an `unfalsifiable-under-determination` arm naming a key that is not a row of the conformance register (kb/Work PB5831)."
     ],
     "arms": {
       "$comment": [
@@ -1208,6 +1209,12 @@
         "check": "quoted-in-rule",
         "argued": false,
         "meaning": "kb/Work PB5373 class 1, PB5374: the rule's OWN text declares the result undefined or unpredictable, which is how an edition with no Annex A.2 (1985) says it. MECHANICAL: the Names cell is a quotation, in double quotes, of four or more words that contains 'undefined' or 'unpredictable'; it must lie inside the row's own catalog text in its edition (each whitespace run compared as one space), and a row an Annex A.2 item resolves to is refused here, as it keeps `undefined-A.2`."
+      },
+      "unfalsifiable-under-determination": {
+        "names-pattern": "^(DOC-A\\.1-[0-9]+[a-z]?|D-[A-Z0-9]+(?:-[A-Z0-9]+)*)$",
+        "check": "register-key",
+        "argued": true,
+        "meaning": "kb/Work PB5831: a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term alone the rule's requirement is true of every state a compiler could produce, a defective one included, so no program can fail on it. The Names cell is the register key of the determination, alone: a section 7 item (DOC-A.1-<n>) or a section 3 determination (D-<NAME>); it must be a row of the register's extract (`Schema.register_items` or `Schema.determination_keys`). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone (never the behaviour a register entry promises beside it), and that the derivation is CONTINGENT on it."
       }
     }
   }

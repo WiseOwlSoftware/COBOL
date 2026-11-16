@@ -26,7 +26,10 @@
   "row carries into, each with its `state` and `editions` band: a chained (KEPT) row of an older edition closes on a",
   "derivation OF ITS OWN while its chain is closed, never on its target's (kb/Work PB5822). Python:",
   "`lineage.state_of` and `lineage.derivation_refusals`; C#: `StateAt` and `DerivationRefusalsAt`. A case with none",
-  "is judged at the newest held edition."
+  "is judged at the newest held edition.",
+  "",
+  "The world's `determinations` are the register's section 3 keys (D-<NAME>), beside its section 7 `register-items`:",
+  "the keys an `unfalsifiable-under-determination` derivation may name (kb/Work PB5831)."
  ],
 
  "world": {
@@ -90,9 +93,25 @@
    {"key": "DRV-1985-GR-XIV.3.6.4-10", "arm": "undefined-in-rule",
     "names": "\"in a subsequent CALL statement is undefined\"",
     "argument": "a quotation true only of the 2023 rule the row carries into, never of the row's own text",
-    "signature": "claude: 2026-11-12", "refuter": "—"}
+    "signature": "claude: 2026-11-12", "refuter": "—"},
+   {"key": "DRV-1985-GR-VI.5.13.4-90", "arm": "unfalsifiable-under-determination", "names": "DOC-A.1-19",
+    "argument": "under the section 7 determination of the term alone no behaviour falsifies the rule (kb/Work PB5831); refuted and upheld",
+    "signature": "claude: 2026-11-12", "refuter": "adjudication/pb5373-1985/refute.jsonl"},
+   {"key": "DRV-1985-GR-VI.5.13.4-91", "arm": "unfalsifiable-under-determination", "names": "D-WORLD",
+    "argument": "a section 3 determination's key, under the owner's signature", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-VI.5.13.4-92", "arm": "unfalsifiable-under-determination", "names": "D-NOWHERE",
+    "argument": "a determination the register does not carry", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-VI.5.13.4-93", "arm": "unfalsifiable-under-determination", "names": "DOC-A.1-19 and the rest",
+    "argument": "a Names cell that is more than one register key", "signature": "owner: 2026-09-03"},
+   {"key": "DRV-1985-GR-VI.5.13.4-94", "arm": "unfalsifiable-under-determination", "names": "DOC-A.1-19",
+    "argument": "argued, signed by the deciding session, with no refuter record", "signature": "claude: 2026-11-12",
+    "refuter": "—"},
+   {"key": "DRV-1985-GR-VI.5.13.4-95", "arm": "unfalsifiable-under-determination", "names": "DOC-A.1-19",
+    "argument": "a chained 1985 row's own derivation on the arm; refuted and upheld", "signature": "claude: 2026-11-12",
+    "refuter": "adjudication/pb5373-1985/refute.jsonl"}
   ],
   "register-items": ["DOC-A.1-19"],
+  "determinations": ["D-WORLD"],
   "undefined": {
    "$note": "GR-14.9.5.4-14 is covered so that the bad-signature case fails for the SIGNATURE alone — a case with two causes cannot show which check fired.",
    "4": ["GR-14.9.5.4-11", "GR-14.9.5.4-14", "GR-14.9.5.4-16", "GR-14.9.5.4-17"],
@@ -126,7 +145,9 @@
    "$note": "A refuter record file -> {rule-id -> outcome}, as each JSON line of the file carries them.",
    "adjudication/pb5373-1985/refute.jsonl": {
     "1985-GR-VII.4.7.4-15": "UPHELD",
-    "1985-GR-VII.4.7.4-17": "OVERTURNED"
+    "1985-GR-VII.4.7.4-17": "OVERTURNED",
+    "1985-GR-VI.5.13.4-90": "UPHELD",
+    "1985-GR-VI.5.13.4-95": "UPHELD"
    }
   }
  },
@@ -299,6 +320,18 @@
 
   {"name": "PB5822: an arm true only of the 2023 rule a KEPT row carries into is refused against the row's OWN catalog", "edition": 1985, "row": {"rule-id": "1985-GR-XIV.3.6.4-10", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}, "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-XIV.3.6.4-10"}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023"}}, "state": "GAP", "refusals": ["quote-not-in-rule"]},
 
-  {"name": "PB5822: a KEPT row claiming no derivation of its own is a GAP, its target's never inherited", "edition": 1985, "row": {"rule-id": "1985-GR-XIV.3.6.4-9", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023", "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-11"}}, "state": "GAP", "refusals": []}
+  {"name": "PB5822: a KEPT row claiming no derivation of its own is a GAP, its target's never inherited", "edition": 1985, "row": {"rule-id": "1985-GR-XIV.3.6.4-9", "section": "XIV.3.6.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023", "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.5.4-11"}}, "state": "GAP", "refusals": []},
+
+  {"name": "PB5831: the unfalsifiable-under-determination arm CLOSES an own-verdict row naming a section 7 key, on an UPHELD refuter record under the deciding session's signature", "row": {"rule-id": "1985-GR-VI.5.13.4-90", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-90"}, "state": "OK", "refusals": []},
+
+  {"name": "PB5831: ... and on a section 3 determination's key", "row": {"rule-id": "1985-GR-VI.5.13.4-91", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-91"}, "state": "OK", "refusals": []},
+
+  {"name": "PB5831: a key the conformance register does not carry is refused", "row": {"rule-id": "1985-GR-VI.5.13.4-92", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-92"}, "state": "GAP", "refusals": ["determination-not-in-register"]},
+
+  {"name": "PB5831: a Names cell that is more than one register key is refused by its shape", "row": {"rule-id": "1985-GR-VI.5.13.4-93", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-93"}, "state": "GAP", "refusals": ["names-shape"]},
+
+  {"name": "PB5831: the argued arm under the deciding session's signature with NO refuter record is refused", "row": {"rule-id": "1985-GR-VI.5.13.4-94", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "verdict": "CONFORMS", "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallPointer", "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-94"}, "state": "GAP", "refusals": ["no-refuter-record"]},
+
+  {"name": "PB5831: a KEPT 1985 row whose chain is closed CLOSES on its own derivation of this arm", "edition": 1985, "row": {"rule-id": "1985-GR-VI.5.13.4-95", "section": "VI.5.13.4", "kind": "GR", "ordinal": 0, "subject": "fabricated", "next": {"kind": "KEPT", "to": ["GR-14.9.5.4-11"]}, "derivation": "docs/CONFORMANCE.md#DRV-1985-GR-VI.5.13.4-95"}, "next-states": {"GR-14.9.5.4-11": {"state": "OK", "editions": "85,2002,2014,2023"}}, "state": "OK", "refusals": []}
  ]
 }

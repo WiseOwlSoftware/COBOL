@@ -43,7 +43,7 @@ The measured population before the door opened was **eight rows** — every CONF
 except `DOC-A.1-93`, which is a real defect (`kb/Work/PB383`).
 
 A **derivation** is a determination recorded in `docs/CONFORMANCE.md` §8, keyed by the inventory `rule-id`,
-naming ONE of five arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
+naming ONE of six arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
 (b) are paid in full, and a `kind: DOC` row still pays its register anchor and its observability cost.
 
 **Every edition's rows** (`kb/Work/PB5374`). §8 holds rows of every held edition, keyed `DRV-<rule-id>`; a rule-id
@@ -92,6 +92,7 @@ record of the row's rule-id in it reading UPHELD. An overturned derivation becom
 | `indistinguishable-consequent` | the consequent is byte-identical to another rule's, so no conforming program can distinguish them | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must be a `rule-id` that EXISTS in the catalog and is not this row's own. |
 | `definitional` | the rule DEFINES a property of the user's program (§2023:4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
 | `undefined-in-rule` | the rule's OWN text declares the result undefined or unpredictable — how an edition with no Annex A.2 says it (the 1985 standard); `kb/Work/PB5373` class 1 | **MECHANICAL.** The `Names` cell is a quotation in double quotes, of four or more words, containing `undefined` or `unpredictable`; the checker requires it to lie inside the row's own catalog text in its edition (each whitespace run compared as one space). A row an Annex A.2 item resolves to is refused here: it keeps `undefined-A.2`, so one fact has one arm. |
+| `unfalsifiable-under-determination` | a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term ALONE the rule's requirement is true of every state a compiler could produce, **any behaviour, a defective one included**, so no program can fail on it; `kb/Work/PB5831` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell is the register key of the determination, alone: a section 7 item (`DOC-A.1-<n>`) or a section 3 determination (`D-<NAME>`); the checker requires it to be a row of the register, read through the extract the DOC anchors read (`Schema.register_items`, `Schema.determination_keys`; no second parser). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone, and that the derivation is CONTINGENT on it. |
 
 **What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
 described:
@@ -111,7 +112,26 @@ described:
    `docs/CONFORMANCE.md` §8 carries **no row**;
 7. an `undefined-in-rule` arm whose quotation is **not in the row's own catalog text**, or on a row an Annex A.2
    item resolves to;
-8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row.
+8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row;
+9. an `unfalsifiable-under-determination` arm naming a key that is **not a row of the conformance register**
+   (code `determination-not-in-register`, `kb/Work/PB5831`).
+
+⚖ **The bound on `unfalsifiable-under-determination`: the term alone, never the behaviour.** Every rule a correct
+compiler implements is true in every state that compiler reaches; that is not this arm. The test is whether ANY
+behaviour, a defective one included, could make the rule false while the MEANING OF THE TERM stands. Only the term's
+meaning is held fixed: the determination may fix what the term means, never the behaviour under test. A register entry
+often states behaviour beside the term: `DOC-A.1-197` says every byte position is a natural boundary, and also that the
+compiler "adds no slack bytes". Holding that promise fixed would make §1985:VI.5.13.4 GR8b (an item that "does not
+terminate at an appropriate natural boundary", and the implicit FILLER it brings) unbreakable, yet a compiler that
+added slack would break it, and the case `g85_f09_02` witnesses it. So the refuter's job on this arm is to describe a
+behaviour that violates the rule under the term's meaning alone; if one exists, a program can witness the rule and
+the row takes a test. The first rows it was made for, §1985:VI.5.13.4 GR3 and GR4 (SYNCHRONIZED LEFT and RIGHT
+position an item at the left or right character position of its natural boundary), hold of every placement once every
+byte position is a natural boundary: a one-character boundary begins and ends where the item does. The term is the
+implementor's because the 1985 text ties natural boundaries to the computer (§1985:VI.5.13.1: "alignment of an
+elementary item on the natural boundaries of the computer memory"), names byte boundaries among them (§1985:IV.4.3.7)
+and leaves which boundary is appropriate to the implementation (GR8b); GR8's "must specify how ... are handled" alone
+does not give it.
 
 ⚖ **How this coexists with `PB280` Q2 ("no" for anchor-only DOC rows), which it does NOT reverse.** A DOC row
 asks the implementor to STATE a choice, so "there is nothing to observe" is unfalsifiable there and cannot close
@@ -1005,7 +1025,7 @@ row, cross-checked against a register PARSED by one reader per language.
 
 | part | file | owns |
 |---|---|---|
-| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the owner signatures (one per dated owner decision), and the four arms with their `names-pattern` + `check` |
+| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the signers and signatures (one per dated decision), and the six arms with their `names-pattern` + `check` |
 | the register | `docs/CONFORMANCE.md` **§8** | the determinations themselves — one row per closed rule, keyed `DRV-<rule-id>` |
 | the register parser | `conformance_source.Conformance.rows_at` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, addressing a section by its NUMBER and stopping at the section's next heading — §7 and §8 are two calls, not two parsers |
 | the undefined-element list | `tests/version-matrix/annex-a2-undefined.json`, generated by `scripts/spec/extract_annex_a2.py` | Annex A.2's 66 items, each item's own trailing citation, and the catalog `rule-id`s that citation RESOLVES to |

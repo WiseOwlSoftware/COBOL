@@ -1054,6 +1054,16 @@ class Derivation:
                                 f"determination '{entry.key}': the quotation {m.group(1)!r} is not in the text of "
                                 f"{rid} in its edition's catalog")]
             return []
+        if check == "register-key":
+            # kb/Work PB5831: the determination the argument rests on must be a row of the conformance register, read
+            # through the extract the DOC anchors read (`register_items`, `determination_keys`); the argument is the
+            # refuter's to attack (an argued arm).
+            key = m.group(1)
+            if key not in schema.register_items() and key not in schema.determination_keys():
+                return [Refusal("determination-not-in-register",
+                                f"determination '{entry.key}': names '{key}', which is no row of the conformance "
+                                "register (a section 7 item or a section 3 determination)")]
+            return []
         return [Refusal("unknown-check",
                         f"determination '{entry.key}': arm {entry.arm} declares check '{check}', which this "
                         "evaluator does not implement — the schema and the writer disagree")]
@@ -1113,6 +1123,7 @@ class Schema:
         self._catalogs: dict[int, dict[str, str]] = {}
         #: The §7 register, injectable — see `register_items`.
         self._register_items: set[str] | None = None
+        self._determination_keys: set[str] | None = None
         self._register_leads: dict[str, str] | None = None
 
     @functools.cached_property
@@ -1244,6 +1255,16 @@ class Schema:
         if self._register_items is None:
             self._register_items = {r["key"] for r in register_extract(self.tree)["annexA1"]}
         return self._register_items
+
+    def determination_keys(self) -> set[str]:
+        """The keys of docs/CONFORMANCE.md's section 3 and 3.1 determinations (`D-<NAME>`), as this tree's extract has
+        them (`REGISTER_EXTRACT_REL`), read through the same extract as `register_items`: the keys an
+        `unfalsifiable-under-determination` derivation may name besides a section 7 item (kb/Work PB5831). Injectable
+        through `_determination_keys` for a hermetic case; read once, from this schema's tree. An extract written before
+        the key existed has none."""
+        if self._determination_keys is None:
+            self._determination_keys = set(register_extract(self.tree).get("determinations", []))
+        return self._determination_keys
 
     def is_observable(self, row: dict[str, Any]) -> bool:
         """Does this row name a site in the compiler a program could observe the determination through?

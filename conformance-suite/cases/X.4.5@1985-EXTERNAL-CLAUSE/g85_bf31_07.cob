@@ -6,7 +6,7 @@
       *>---
       *> §1985:X.4.5.4 GR3 - "Use of the EXTERNAL clause does not imply
       *> that the associated file-name or data-name is a global name."
-      *> REFUSAL beside g85_bf31_06 (not itself the row's evidence: the
+      *> REFUSAL, the rule's witness (kb/Work PB5783, although the
       *> row is a GR). BF31-XREC is EXTERNAL but not GLOBAL in MAIN, so
       *> the contained N, which does not describe it, has no
       *> declaration of the name: its DISPLAY BF31-XREC must be

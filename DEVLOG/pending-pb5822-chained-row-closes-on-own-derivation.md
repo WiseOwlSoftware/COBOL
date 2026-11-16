@@ -61,3 +61,18 @@ stay in `tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl`, th
 derivations were refused. One refusal witness closes `1985-GR-X.4.5.4-3`: `g85_bf31_07`, refused with COBOL1639 at
 `--std 85`. The 1985 line moved from "102 GAP (77 inherited, no own-edition witness · 1 never adjudicated · 24 open)" to
 "89 GAP (64 inherited, no own-edition witness · 1 never adjudicated · 24 open)".
+
+**Third mechanism, kb/Work PB5831: a sixth derivation arm, `unfalsifiable-under-determination`.** For a rule whose
+requirement holds for every behaviour a compiler could have, a defective one included, once a term the standard leaves
+to the implementor is held at the meaning the conformance register documents (the term alone, never the behaviour a
+register entry promises beside it: holding DOC-A.1-197's "adds no slack bytes" fixed would wrongly admit
+§1985:VI.5.13.4 GR8b, which `g85_f09_02` witnesses). The schema arm is argued; its Names cell is one register key
+(`DOC-A.1-<n>` or `D-<NAME>`); its check `register-key` refuses a key that is no row of the register with the new code
+`determination-not-in-register`, in `Derivation._arm_refusals` and the C# twin. The register extract
+(`tests/version-matrix/conformance-register.json`, `docchecks/register.py#build_extract`) gains `determinations`, the
+section 3 and 3.1 keys, read by `Schema.determination_keys` and `ConformanceRegister.DeterminationKeys`. Six parity
+cases (an own-verdict row on a section 7 key with an UPHELD refuter record, a section 3 key, a missing key, a Names cell
+of the wrong shape, no refuter record, a chained row), five lineage self-test cases and the C# self-test's twins; no
+real row is recorded on the arm. Also in this round: two audit reds the registrar found (a planted
+derivation anchor typed as a literal in the drift test, now computed by `DerivationAnchor`; a self-test write without
+`newline=`), and the comment of `g85_bf31_07.cob` no longer names a case that is not in the tree.

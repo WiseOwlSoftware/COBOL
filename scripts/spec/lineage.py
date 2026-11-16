@@ -477,6 +477,31 @@ def self_test() -> int:
        "PB5822: dropping a KEPT row's derivation while its chain is closed is a loss; once its chain opens, it is not")
     ok(chain_of(row(), edition(2023), ds, targets) is None and chain_of({"rule-id": "x"}, ed, ds, targets) is None,
        "PB5822: a row of the newest edition, or one not chained, is judged under a verdict of its own")
+
+    # kb/Work PB5831: the sixth arm, `unfalsifiable-under-determination`, names a register key; argued, so a `claude:`
+    # signature stands only on an UPHELD refuter record. Planted register keys and refuter record.
+    ds._register_items, ds._determination_keys = {"DOC-A.1-197"}, {"D-NATURAL-BOUNDARY"}
+    d._refuters = {"refute.jsonl": {rid: "UPHELD"}}
+
+    def under(names: str, refuter: str = "refute.jsonl") -> None:
+        d._register = {f"DRV-{rid}": inventory_schema.DerivationRow(f"DRV-{rid}", "unfalsifiable-under-determination",
+                                                                    names, "", signed, refuter)}
+    own_verdict = {"rule-id": rid, "verdict": "CONFORMS", "code-location": "src/X.cs#Y", "derivation": drv}
+    for names in ("DOC-A.1-197", "D-NATURAL-BOUNDARY"):
+        under(names)
+        ok(codes(derived(row())) == [] and state_of(derived(row()), ed, ds, targets) == "OK"
+           and codes(own_verdict) == [] and state_of(own_verdict, ed, ds, targets) == "OK",
+           f"PB5831: the arm stands on the register key {names} with an UPHELD refuter record under a claude: "
+           "signature, on a KEPT row and on an own-verdict row")
+    under("D-NOWHERE")
+    ok(codes(derived(row())) == ["determination-not-in-register"] and codes(own_verdict) == ["determination-not-in-register"]
+       and state_of(own_verdict, ed, ds, targets) == "GAP",
+       "PB5831: a key the conformance register does not carry is refused, on either row")
+    under("DOC-A.1-197", "—")
+    ok(codes(derived(row())) == ["no-refuter-record"] and codes(own_verdict) == ["no-refuter-record"],
+       "PB5831: the argued arm under a claude: signature with no refuter record is refused, on either row")
+    under("DOC-A.1-197 and the rest")
+    ok(codes(own_verdict) == ["names-shape"], "PB5831: a Names cell that is more than one register key is refused")
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
     ok(spanned(ed, schema) == ["85", "2002", "2014"], "a bridged 1985 chain proves 85 and every edition the bridge spans")

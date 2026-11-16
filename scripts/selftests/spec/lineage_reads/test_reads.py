@@ -313,7 +313,7 @@ def case_05d_a_rule_that_withholds_a_property_is_witnessed_by_a_refusal(expect):
     bad = pathlib.Path(scratch_dir("withholding")) / "table.json"
     doc = json.loads(R.EVIDENCE_TABLE.read_text(encoding="utf-8"))
     doc["withholding-rules"] = [{"pattern": "x"}]
-    bad.write_text(json.dumps(doc), encoding="utf-8")
+    bad.write_text(json.dumps(doc), encoding="utf-8", newline="\n")
     expect("a withholding pattern without its why is refused at load",
            F.raises(lambda: R.EvidenceTable.load(bad), "withholding-rules"))
 

@@ -67,6 +67,7 @@ def schema_for(world: dict):
     schema._catalog = {rid: (int(year), text) for year, rules in world["catalogs"].items() if not year.startswith("$")
                        for rid, text in rules.items()}
     schema._register_items = set(world["register-items"])
+    schema._determination_keys = set(world["determinations"])
     return schema
 
 
@@ -148,7 +149,8 @@ def self_test() -> int:
     want_codes = {"a2-does-not-cover", "a2-no-such-item", "bad-signature", "unknown-arm", "no-register-row",
                   "not-computed-anchor", "names-shape", "self-indistinguishable", "unknown-rule",
                   "has-spec-derived-test", "verdict-does-not-resolve", "determination-not-stated",
-                  "a2-lists-rule", "quote-not-in-rule", "no-refuter-record", "refuter-not-upheld"}
+                  "a2-lists-rule", "quote-not-in-rule", "no-refuter-record", "refuter-not-upheld",
+                  "determination-not-in-register"}
     check("EVERY refusal code the evaluator can emit is driven by a case",
           codes == want_codes, f"missing {sorted(want_codes - codes)}, extra {sorted(codes - want_codes)}")
 
@@ -177,6 +179,12 @@ def self_test() -> int:
     uncatalogued["world"]["catalogs"].pop("1985")
     check("dropping the fabricated 1985 catalog breaks the arms that read the row's own edition",
           bool(parity_findings(uncatalogued, evaluate_fixture(uncatalogued))))
+
+    # …and the register's determinations (kb/Work PB5831): a world with none must break the section 3 key's case.
+    undetermined = json.loads(json.dumps(fixture))
+    undetermined["world"]["determinations"] = []
+    check("emptying the fabricated section 3 determinations breaks the unfalsifiable-under-determination arm",
+          bool(parity_findings(undetermined, evaluate_fixture(undetermined))))
 
     # …and the chained cases (kb/Work PB5822): judged at their edition against the next edition's states, which must be
     # load-bearing, and driving both outcomes.

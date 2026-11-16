@@ -164,6 +164,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: the register the schema POINTS AT, and `AnchorObliged` needs it to tell a WITHDRAWN A.1 item from a
         //: documented decline. Injectable so the fabricated-inventory self-test drives both arms hermetically.
         IReadOnlySet<string> RegisterItems,
+        //: The keys of docs/CONFORMANCE.md's section 3 and 3.1 determinations (`D-<NAME>`), from the same extract: with
+        //: `RegisterItems`, the keys an `unfalsifiable-under-determination` derivation may name (kb/Work PB5831). Twin of
+        //: `inventory_schema.Schema.determination_keys`; injectable like `RegisterItems`.
+        IReadOnlySet<string> DeterminationKeys,
         //: §1.1's signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
         //: the object from the JSON closes the door in both engines at once.
         DerivationRule? Derivation,
@@ -252,6 +256,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             kinds,
             anchored,
             ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal),
+            ConformanceRegister.DeterminationKeys,
             root.TryGetProperty("derivation", out var derivation) ? LoadDerivation(derivation) : null,
             Catalogs.Value,
             root.GetProperty("next").GetProperty("kinds").EnumerateObject()
@@ -652,6 +657,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
                     bad.Add(new("quote-not-in-rule",
                         $"{r.RuleId}: determination '{key}': the quotation '{m.Groups[1].Value}' is not in the rule's text "
                         + "in its edition's catalog"));
+                }
+                break;
+            case "register-key":
+                // kb/Work PB5831: the determination the argument rests on is a row of the conformance register.
+                string registerKey = m.Groups[1].Value;
+                if (!s.RegisterItems.Contains(registerKey) && !s.DeterminationKeys.Contains(registerKey))
+                {
+                    bad.Add(new("determination-not-in-register",
+                        $"{r.RuleId}: determination '{key}': names '{registerKey}', which is no row of the conformance "
+                        + "register (a section 7 item or a section 3 determination)"));
                 }
                 break;
             default:
@@ -1724,6 +1739,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
             Catalog = catalog,
             RegisterItems = Field("register-items").EnumerateArray().Select(x => x.GetString()!)
                 .ToHashSet(StringComparer.Ordinal),
+            DeterminationKeys = Field("determinations").EnumerateArray().Select(x => x.GetString()!)
+                .ToHashSet(StringComparer.Ordinal),
         };
     }
 
@@ -2295,7 +2312,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 ["X-6"] = (2023, "After the move the content is undefined when the operands overlap."),
             },
         };
-        var derivedKept = kept with { TestRef = "", Derivation = "docs/CONFORMANCE.md#DRV-1985-X-1" };
+        var derivedKept = kept with { TestRef = "", Derivation = DerivationAnchor(kept, cs) };   // computed, never typed
         var closedChain = new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (Target(older85), "OK") };
         var openChain = new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (Target(older85), "GAP") };
         Assert.Equal("OK", StateAt(derivedKept, older, cs, closedChain));
@@ -2316,10 +2333,40 @@ public sealed class SpecTraceabilityInventoryDriftTests
         // …and never inherited: a target closed on a derivation of its own does not close the row that carries into it
         var derivedTarget = new Dictionary<string, (TraceabilityInventory.Row, string)>
         {
-            ["X-6"] = (Target(older85) with { Derivation = "docs/CONFORMANCE.md#DRV-X-6" }, "OK"),
+            ["X-6"] = (Target(older85) with { Derivation = DerivationAnchor(Target(older85), cs) }, "OK"),
         };
         Assert.Equal("GAP", StateAt(kept with { TestRef = "" }, older, cs, derivedTarget));
         // …and the newest edition's row, whatever its record says, is judged under a verdict of its own
         Assert.Null(ChainOf(derivedKept, TraceabilityInventory.Newest, cs, closedChain));
+
+        // ⛔ THE SIXTH ARM, `unfalsifiable-under-determination` (kb/Work PB5831): the Names cell is a register key, the arm is
+        // argued, so a refuter-bound signature stands only on an UPHELD refuter record of the row.
+        string deciding = d.Signatures.Order(StringComparer.Ordinal).First(k => d.RefuterSigners.Contains(SignerOf(k)));
+        Schema Under(string names, string refuter = "refute.jsonl") => cs with
+        {
+            Derivation = cs.Derivation! with
+            {
+                Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+                {
+                    ["DRV-1985-X-1"] = new("DRV-1985-X-1", "unfalsifiable-under-determination", names, "…", deciding, refuter),
+                },
+                RefuterRecords = f => f == "refute.jsonl"
+                    ? new Dictionary<string, string>(StringComparer.Ordinal) { ["1985-X-1"] = "UPHELD" }
+                    : null,
+            },
+            RegisterItems = new HashSet<string>(StringComparer.Ordinal) { "DOC-A.1-197" },
+            DeterminationKeys = new HashSet<string>(StringComparer.Ordinal) { "D-NATURAL-BOUNDARY" },
+        };
+        var ownVerdict = derivedKept with { Next = null, Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" };
+        foreach (string names in new[] { "DOC-A.1-197", "D-NATURAL-BOUNDARY" })
+        {
+            Assert.Equal("OK", StateAt(derivedKept, older, Under(names), closedChain));      // a chained row
+            Assert.Equal("OK", StateAt(ownVerdict, older, Under(names), closedChain));       // an own-verdict row
+        }
+        Assert.Equal(["determination-not-in-register"], Codes(DerivationRefusalsAt(derivedKept, older, Under("D-NOWHERE"), closedChain)));
+        Assert.Equal(["determination-not-in-register"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("D-NOWHERE"), closedChain)));
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Under("DOC-A.1-197", "—"), closedChain)));
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197", "—"), closedChain)));
+        Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197 and the rest"), closedChain)));
     }
 }
