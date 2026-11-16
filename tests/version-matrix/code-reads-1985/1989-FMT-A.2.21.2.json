@@ -2,14 +2,14 @@
  "rule-id": "1989-FMT-A.2.21.2",
  "rule-digest": "b89111e57845",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "pin": "629a880e0cc12ec63ea3fdb313dd39246d0307f7",
   "slice": "1985-081",
   "sources": {
-   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
-   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+   "reader": "baf4a96f6dfbf5f081dc766b4bc6076d91b064987dc9e6cc288ef7b41c129a0b",
+   "refuter": "2de462911a670662bdcba33cf2bd66dbe20c77a49cd52d095bba5fc82ee4ef2f"
   },
   "imported": {
-   "reader": "7fbf54bf5d0c3ac0b8a2c55c6185cb3a19f965681be263b676d218efadd535bc",
+   "reader": "cbd70258334ac90bb2cae2429deda9600ac240192eb1f0dbcf469b00289c12b2",
    "refuter": "bc8f298a14c8532f278b3de2056cf94d2184a23217c95632f886236781296cf0"
   }
  },
@@ -17,7 +17,7 @@
   "rule-id": "1989-FMT-A.2.21.2",
   "verdict": "CONFORMS",
   "requirement": "At --std 85, FUNCTION LOG10 ( argument-1 ) must be accepted with exactly one numeric argument (item, signed literal, expression) and refused with two (comma- or space-separated), zero, an empty '( )', or no list; a floating-point literal argument (a 2002 introduction) must be refused at 85.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FLOATLIT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_DECIMALLIT; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
@@ -62,7 +62,7 @@
     "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('The definition of a function specifies the number of arguments required')"
    }
   ],
-  "notes": "The format quotation ('FUNCTION LOG10 ( argument-1 )') is below cite.py's four-word floor; clause A.2.21.2 was read directly in specs/ANSI_COBOL_1985.md. Arity comes from the catalog row LOG10 Fixed 1..1, IntroducedIn 85, and the edition-gated literal and empty-list forms are refused at 85.",
+  "notes": "The format quotation ('FUNCTION LOG10 ( argument-1 )') is below cite.py's four-word floor; clause A.2.21.2 was read directly in specs/ANSI_COBOL_1985.md. Arity comes from the catalog row LOG10 Fixed 1..1, IntroducedIn 85, and the edition-gated literal and empty-list forms are refused at 85. Re-sited 2026-11-16 (kb/Work PB5781 review finisher): ArgsOf was deleted, both function-identifier forms read their arguments through IntrinsicBinder.ArgumentsOf; fmtok.cob and fmtbad.cob re-run at the new pin print the values and refusals recorded above.",
   "seeded": true,
   "harm": "",
   "cause": "",

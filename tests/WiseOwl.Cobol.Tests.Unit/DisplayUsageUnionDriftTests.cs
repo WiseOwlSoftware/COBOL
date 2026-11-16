@@ -191,7 +191,7 @@ public sealed class DisplayUsageUnionDriftTests
             // IMAGE-FORM one and it now has a single definition:
             //  CodeGen/Verbs/StringEmitter.cs (was 1) — WriteImage's guard read PicInfo.IsCharacterFormNumeric until
             //      kb/Work PB4089 deleted the arm (a numeric receiver is a character channel, promoted to its image).
-            //  CodeGen/DataDivision/GroupValueSlicer.cs (was 2) — DistributableSubtree and SliceInit read it
+            //  CodeGen/DataDivision/GroupValueSlicer.cs (was 2) — its member placement (MemberFromSlice since kb/Work PB5851) reads it
             //      too, and that was a LIVE silent wrong answer rather than a tidy-up: §2023:13.18.63.3 SR14's
             //      usage-DISPLAY requirement is written about items "subordinate to an alphanumeric group
             //      item" and does not reach a GROUP-USAGE NATIONAL group, whose subordinates §2023:13.18.29.3 SR3

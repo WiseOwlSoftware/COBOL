@@ -2,8 +2,8 @@
  "rule-id": "FMT-15.49.2",
  "rule-digest": "ef3c1a7b2124",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf",
  "test-ref": "conformance:cases/15.42.3-Argument-rule/l1_integer_family_notes; conformance:cases/15.44.3-Argument-rule/l1_integer_floor_85; conformance:cases/15.49-INTEGER-PART/l1-integer-part-arity",
  "editions": "85,2002,2014,2023",
- "notes": "§15.49.2's one-argument format accepted at 85 and 2023 and a two-argument list rejected COBOL1504 at all four; the keyword-omitted reference is §8.4.3.2.3's rule, not this format's."
+ "notes": "§15.49.2's one-argument format accepted at 85 and 2023 and a two-argument list rejected COBOL1504 at all four; the keyword-omitted reference is §8.4.3.2.3's rule, not this format's. retired-witness: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf (kb/Work PB5781 deleted ArgsOf: both function-identifier forms read their argument list through IntrinsicBinder.ArgumentsOf, which gives a '(' no name may own to the next argument)"
 }
