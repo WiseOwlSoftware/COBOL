@@ -125,14 +125,15 @@ internal sealed class ClassifyRedefinesClassesPass : IBindPass
 
         // ONE shared area per overlay nest (ISO §2023:13.18.44 — a REDEFINES nested under another class's member
         // shares THAT storage): a class whose ANCHOR lies inside another class's subtree — its ancestor chain
-        // crosses a redefining member or another class's anchor (NC252A's `RDEF8 REDEFINES RDF8` under the view
+        // crosses a redefining member (a written clause or the file section's implicit redefinition of a second or
+        // later record, kb/Work PB5729) or another class's anchor (NC252A's `RDEF8 REDEFINES RDF8` under the view
         // `REDEF11 REDEFINES REDEF10`) — DISSOLVES into the outer class. The outer subtree walk below assigns
         // every nested item its window over the one backing (an inner redefiner starts at its target's
         // already-assigned offset), so a dissolved class needs no members of its own; keeping it would let its
         // later walk re-claim the subtree and emit a backing inside a suppressed view struct (CS0103).
         foreach (var (anchor, cls) in byAnchor.ToList())
             for (var a = anchor.Parent; a is not null; a = a.Parent)
-                if (a.RedefinesTargetName is not null || (byAnchor.ContainsKey(a) && !ReferenceEquals(byAnchor[a], cls)))
+                if (a.RedefinesTarget is not null || (byAnchor.ContainsKey(a) && !ReferenceEquals(byAnchor[a], cls)))
                 {
                     byAnchor.Remove(anchor);
                     break;

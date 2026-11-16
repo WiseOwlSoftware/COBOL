@@ -3351,6 +3351,15 @@ public static class DiagnosticCatalog
         + "the range of an output procedure associated with a SORT or MERGE statement for file-name-1.\" (§1985:XI.4.3.3 SR3)",
         "§1985:XI.4.2.3 SR2; §1985:XI.4.3.3 SR3");
 
+    /// <summary>COBOL7486 — at COBOL-85 an IF statement that has the END-IF phrase also has the NEXT SENTENCE phrase (kb/Work PB5798).
+    /// §1985:VI.6.16.3 SR3: "If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified." The rule is
+    /// 1985's alone (2002, 2014 and 2023 print none), asked by <c>VersionConformancePass.VisitIfStatement</c>.</summary>
+    public static readonly DiagnosticDescriptor NextSentenceWithEndIf = new(
+        "COBOL7486", "next-sentence-with-end-if", EditionSeverity.Error,
+        "An IF statement with the END-IF phrase also has the NEXT SENTENCE phrase. "
+        + "\"If the END-IF phrase is specified, the NEXT SENTENCE phrase must not be specified.\" (§1985:VI.6.16.3 SR3)",
+        "§1985:VI.6.16.3 SR3");
+
     /// <summary>COBOL7234 — a PERFORM in a USE BEFORE REPORTING procedure has a GENERATE, INITIATE or TERMINATE statement in its range
     /// (kb/Work PB5254). §1985:XIII.4.9.3 SR3: "A PERFORM statement in a USE BEFORE REPORTING procedure must not have GENERATE, INITIATE, or
     /// TERMINATE statements in its range." A COBOL-85 rule, reported at --std 85, asked of the bound program
