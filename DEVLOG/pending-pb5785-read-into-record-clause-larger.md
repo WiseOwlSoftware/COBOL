@@ -11,3 +11,5 @@
 **Rows.** `GR-13.18.43.4-6`, `GR-14.9.30.4-14`, `GR-9.1.13.2-3` PARTIAL to CONFORMS (2023 GAP 32 to 29); the 1985 rows 1985-GR-VII.3.8.4-3 and 1985-GR-VII.4.4.4-13 derive OK through their KEPT bridge and carry the goldens as witnesses.
 
 **Left alone.** A Format 1/2 file whose records hold a variable-length member keeps the area image (its connector record is the fixed-form carriage, not the contiguous view); named in the note's landing addendum.
+
+Review round 1 (R1-1, blocking): the three goldens read whole records only, so the short-final-record path (status 04, §2023:14.9.30.4 GR14) of the new connector-image arm was unpinned. Added `pb5785_read_into_record_clause_short_final` (RECORD CONTAINS 12, a 5-byte description, a 19-byte file: `00` whole record, `04` with the 7 remaining positions moved and padded, then `10`), accepted at 85/2002/2014/2023; run through the probe at 85 and 2023 it prints the expected three lines. No compiler change was needed.
