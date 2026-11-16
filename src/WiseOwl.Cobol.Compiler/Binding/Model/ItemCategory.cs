@@ -323,6 +323,15 @@ public static class ItemCategory
         : place.Item.Pic is { } pic ? CategoryName(pic)
         : null;
 
+    /// <summary>⛔ "AN ELEMENTARY NUMERIC DATA ITEM", AS THE OPERAND IS REFERENCED (kb/Work PB5859; the same reading as kb/Work PB5734's
+    /// STRING / UNSTRING integer test): class NUMERIC of §2023:8.5.2.1 Table 2 asked of the PLACE, so a reference-modified numeric item
+    /// is refused — the unique data item it creates has class and category alphanumeric (§2023:8.4.3.3.4 GR6; §1985:IV.4.3.8.4.4 GR5) —
+    /// and so is a group and a USAGE INDEX item, which is class index and whose storage PicInfo (category Numeric, Digits 0) must not
+    /// pass for it (kb/Work PB1127). A rule worded "an elementary numeric data item" asks THIS, never <c>place.Item.Pic.Category</c>,
+    /// which is the BASE item's and saw through the slice.</summary>
+    public static bool IsElementaryNumericReference(Place place) =>
+        Table16Operand.Of(place).Category is PicCategory.Numeric && place.Item.Pic is { Usage: not Usage.Index };
+
     /// <summary>Is this one of §2023:8.5.2.1 Table 2's three EDITED categories — numeric-edited, alphanumeric-edited or
     /// national-edited? A recovery profile (no analysed category, kb/Work PB960) is none of them.</summary>
     public static bool IsEditedCategory(PicInfo pic) =>
