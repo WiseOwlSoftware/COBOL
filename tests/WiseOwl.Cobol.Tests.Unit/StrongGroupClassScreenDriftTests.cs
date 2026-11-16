@@ -76,7 +76,7 @@ public sealed class StrongGroupClassScreenDriftTests
     }
 
     [Theory]
-    [InlineData("Procedure/Verbs/CallBinder.cs", "ItemCategory.IsAlphanumericOrNational(target)")]
+    [InlineData("Procedure/Verbs/CallBinder.cs", "ItemCategory.IsAlphanumericOrNational(target, ctx.Edition.Edition)")]
     [InlineData("Procedure/Verbs/CallBinder.cs", "NameTargetRefusal(place)")]
     [InlineData("Procedure/Verbs/CallBinder.cs", "NameTargetRefusal(p)")]
     [InlineData("ReportSectionBinder.cs", "!ItemCategory.IsAlphanumeric(item)")]

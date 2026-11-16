@@ -39,6 +39,35 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
     public bool SubscriptedClauseOperands => Year == 2002;
 
+    /// <summary>⛔ THE LONGEST TEXT-WORD A COPY LIBRARY TEXT, A COPY REPLACING PSEUDO-TEXT OR A REPLACE PSEUDO-TEXT MAY HOLD
+    /// (kb/Work PB5700): 322 character positions at COBOL-2002 (§2002:7.1.2.2 SR11 "shall be from 1 through 322 character
+    /// positions"; §2002:7.1.3.2 SR9), 65,535 from 2014 (§2014:7.2.2.2 SR11; §2023:7.2.3.3 SR9). COBOL-85 only says "The implementor
+    /// must allow a length from 1 through 322 characters" (§1985:XII.2.3 SR8), a floor that leaves the ceiling to the implementor,
+    /// and WiseOwl COBOL allows the later editions' 65,535 there (inventory row 1985-SR-XII.2.3-8).</summary>
+    public int MaxTextWordLength => Year == 2002 ? 322 : 65_535;
+
+    /// <summary>Whether a text-word is a sequence of contiguous COBOL CHARACTERS (§1985:III.2 item 3 "Any other sequence of contiguous COBOL
+    /// characters"; §2002:7.1.1.4 item 3 "any other sequence of contiguous COBOL characters bounded by separators") rather than, from 2014,
+    /// "any other character or sequence of contiguous characters from the compile-time coded character set" (§2014:7.2.1.4 item 3): below
+    /// 2014 a character outside the edition's COBOL character repertoire is in no text-word (kb/Work PB5608).</summary>
+    public bool TextWordsAreCobolCharacters => Year < 2014;
+
+    /// <summary>Whether the identifier operands of a COPY REPLACING phrase (text-1 and text-2) keep the subscript restriction of
+    /// §2002:7.1.2.2 SR9 / §2014:7.2.2.2 SR9: "If subscripting is specified, it shall not include any arithmetic expressions as
+    /// subscripts with the exception of a single literal or identifier, or an identifier plus or minus an integer". COBOL-2023 removed the
+    /// operand form (Annex E.2), so its text holds no such rule; <c>--permissive</c> keeps accepting the removed form under the
+    /// 2014 rule, as the word operand's SR10 does (kb/Work PB5085, PB5700).</summary>
+    public bool ReplacingIdentifierSubscriptsRestricted => Year is 2002 or 2014 || (Year == 2023 && Permissive);
+
+    /// <summary>⛔ WHETHER AN ALPHABETIC ITEM STANDS WHEREVER AN ALPHANUMERIC OPERAND DOES (kb/Work PB5615): COBOL-2002 says "An alphabetic
+    /// data item may be specified wherever an elementary alphanumeric data item is permitted as an operand. Where an alphabetic data
+    /// item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item" (§2002:8.5.2.1),
+    /// so a rule worded "category alphanumeric" admits a PIC A item at that edition. COBOL-2014 withdrew it ("Data items of class and
+    /// category alphabetic may be used only where rules explicitly allow them", §2014:E.2) and COBOL-2023 has no such sentence; COBOL-85
+    /// has no general rule either. ONE predicate, asked through <c>ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)</c> and
+    /// the intrinsic argument class screen, never a per-site <c>Year == 2002</c>.</summary>
+    public bool AlphabeticIsAlphanumeric => Year == 2002;
+
     /// <summary>⛔ WHETHER A CONTROL OPERAND MAY BE AN INDEX DATA ITEM (kb/Work PB5774): COBOL-85 provides for that control
     /// ("If the control data item is an index data item, the relation test is for the comparison of two index data items",
     /// §1985:XIII.3.7.4 GR3b) and limits explicit references to an index data item to Procedure Division statements

@@ -209,6 +209,89 @@ public sealed class TextManipulationStatementTests : IDisposable
         Rejects(bag2, "COBOL2572", "§2023:7.2.3.3 SR9");
     }
 
+    /// <summary>kb/Work PB5700 — the longest text-word is the edition's: 322 character positions at 2002 (§2002:7.1.2.2 SR11,
+    /// §2002:7.1.3.2 SR9), 65,535 from 2014; COBOL-85 only "must allow" 322 (§1985:XII.2.3 SR8) and takes the larger limit.</summary>
+    [Theory]
+    [InlineData(2002, 322, false)]
+    [InlineData(2002, 323, true)]
+    [InlineData(85, 323, false)]
+    [InlineData(2014, 323, false)]
+    [InlineData(2023, 323, false)]
+    [InlineData(2014, 65_536, true)]
+    public void TextWordLength_FollowsTheEdition_InPseudoTextAndLibraryText(int edition, int length, bool refused)
+    {
+        string word = new('Q', length);
+        var (_, replace) = Run(" REPLACE ==" + word + "== BY ==A==.\n", edition);
+        Copybook("bklen.cpy", " 01 " + word + " PIC X.\n");
+        var (_, copy) = Run(" COPY bklen.\n", edition);
+        var (_, copyPseudo) = Run(" COPY bklen REPLACING ==" + word + "== BY ==A==.\n", edition);
+        if (!refused)
+        {
+            Clean(replace);
+            Clean(copy);
+            Clean(copyPseudo);
+            return;
+        }
+        string limit = edition == 2002 ? "322" : "65,535";
+        Rejects(replace, "COBOL2572", $"the limit is {limit}");
+        Rejects(copy, "COBOL2572", $"the limit is {limit}");
+        Rejects(copyPseudo, "COBOL2572", $"the limit is {limit}");
+        if (edition == 2002)
+        {
+            Rejects(replace, "COBOL2572", "§2002:7.1.3.2 SR9");
+            Rejects(copy, "COBOL2572", "§2002:7.1.2.2 SR11");
+        }
+    }
+
+    /// <summary>kb/Work PB5700 — a text-1 / text-2 identifier's subscript is a single literal or identifier or an identifier plus or
+    /// minus an integer (§2002:7.1.2.2 SR9; §2014:7.2.2.2 SR9): an arithmetic expression is refused, at 2002 and at 2014; a
+    /// function-identifier's argument list and a reference modifier hold expressions and are no subscripts.</summary>
+    [Theory]
+    [InlineData(2002, "T(I * 2)", "§2002:7.1.2.2 SR9")]
+    [InlineData(2014, "T(I * 2)", "§2014:7.2.2.2 SR9")]
+    [InlineData(2002, "T(I + J)", "§2002:7.1.2.2 SR9")]
+    [InlineData(2002, "T(1 + 2)", "§2002:7.1.2.2 SR9")]
+    [InlineData(2002, "T(I + 1 + 2)", "§2002:7.1.2.2 SR9")]
+    [InlineData(2002, "T(I + J) (1:1)", "§2002:7.1.2.2 SR9")]
+    [InlineData(2002, "FUNCTION MAX (T(I * 2))", "§2002:7.1.2.2 SR9")]
+    [InlineData(2002, "T(I) OF TT", null)]
+    [InlineData(2002, "T(I + 1)", null)]
+    [InlineData(2002, "T(I - 1)", null)]
+    [InlineData(2002, "T(I -1)", null)]
+    [InlineData(2002, "T( 2 )", null)]
+    [InlineData(2002, "T(I J)", null)]
+    [InlineData(2002, "T(ALL)", null)]
+    [InlineData(2002, "T(I OF G + 1)", null)]
+    [InlineData(2002, "T(1:I)", null)]
+    [InlineData(2002, "T(I)(1:2 * 2)", null)]
+    [InlineData(2002, "FUNCTION MAX (I * 2 J)", null)]
+    [InlineData(2014, "T(I + 1)", null)]
+    public void CopyReplacingIdentifier_Subscripts_AreSingleLiteralIdentifierOrOffset(int edition, string operand, string? citation)
+    {
+        Copybook("bksub.cpy", " DISPLAY T(I).\n");
+        var (_, bag) = Run(" COPY bksub REPLACING " + operand + " BY T(3).\n", edition);
+        if (citation is null) Assert.DoesNotContain(bag.Diagnostics, d => d.Code == "COBOL2572");
+        else Rejects(bag, "COBOL2572", citation);
+    }
+
+    /// <summary>kb/Work PB5608 — below COBOL-2014 a text-word is a sequence of contiguous COBOL characters (§1985:III.2;
+    /// §2002:7.1.1.4), so a character outside the repertoire is in no text-word an operand may hold; an extended letter of the 2002
+    /// repertoire is one. From 2014 a text-word is a sequence from the compile-time coded character set (§2014:7.2.1.4).</summary>
+    [Theory]
+    [InlineData(85, "Y¤Z", true)]
+    [InlineData(2002, "Y¤Z", true)]
+    [InlineData(2002, "Y😀Z", true)]
+    [InlineData(2002, "Yé", false)]
+    [InlineData(85, "Yé", true)]
+    [InlineData(2014, "Y¤Z", false)]
+    [InlineData(2023, "Y¤Z", false)]
+    public void TextWordCharacters_BelowCobol2014_AreCobolCharacters(int edition, string word, bool refused)
+    {
+        var (_, bag) = Run(" REPLACE ==" + word + "== BY ==W==.\n", edition);
+        if (refused) Rejects(bag, "COBOL2572", "no character of the COBOL character repertoire");
+        else Clean(bag);
+    }
+
     [Fact] // The legal forms stay legal: a comma beside a word, an empty pseudo-text-2, '==' inside a literal.
     public void LegalOperands_AreNotScreened()
     {
