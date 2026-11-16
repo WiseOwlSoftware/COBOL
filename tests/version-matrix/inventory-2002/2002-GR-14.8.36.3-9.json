@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-14.8.36.3-9",
  "rule-digest": "9e5b54ba532c",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement",
- "notes": "kb/Work PB5612: at --std 2002 (golden-2002-3 re-probe on main 63ab0c4ece, repro g9.cob) a SORT executed in the range of a SORT's input procedure, with EC-SORT-MERGE-ACTIVE checking on and no declarative, is skipped and the run unit continues (exit 0, AFTER-INNER printed); the fatal condition with no declarative terminates the run unit abnormally (§2002:14.5.12.1.2)."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#VerbDisposes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTransferUse; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5612_nested_sort_in_input_procedure_fatal_2002",
+ "notes": "A SORT executed in the range of a SORT input procedure: \"If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements, the EC-SORT-MERGE-ACTIVE exception condition is set to exist\" (§2002:14.8.36.3 GR9; cite.py --check). The golden prints BEFORE-INNER and the run unit ends at the inner SORT (the DIVERGES re-probe of golden-2002-3 on main 63ab0c4ece printed AFTER-INNER and AFTER-OUTER, before this fix). EC-SORT-MERGE-ACTIVE is Fatal (§2002 Table 14) and with checking enabled and no applicable USE procedure \"execution of the run unit is terminated abnormally\" (§2002:14.5.12.1.2 item 4; cite.py --check). The rule makes the results of the operation undefined, not the fatal procedure; there is no 2002 item for a MERGE or SORT statement, so at --std 2002 the guard does not hand the marked condition to the verb: DialectBehavior.SortMergeStatementDisposesItsFatalConditions (VCR row 7.80, kb/Work PB5612)."
 }

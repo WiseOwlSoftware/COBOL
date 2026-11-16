@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.23.3-8",
+ "rule-digest": "bb7ac9d83d04",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#VerbDisposes; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitTransferUse; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#RaisedByTheStatement",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/pb5612_merge_in_output_procedure_fatal_2002",
+ "notes": "A MERGE executed in the range of a MERGE output procedure: \"The range of the output procedure shall not cause the execution of any MERGE, RELEASE, or the file format of the SORT statement\"; violated, the EC-SORT-MERGE-ACTIVE exception condition is set to exist (§2002:14.8.23.3 GR8; cite.py --check). §2002:14.8.23.2 SR1 forbids a MERGE only in the declaratives, so the program compiles at 2002. EC-SORT-MERGE-ACTIVE is Fatal (§2002 Table 14) and with checking enabled and no applicable USE procedure \"execution of the run unit is terminated abnormally\" (§2002:14.5.12.1.2 item 4; cite.py --check). The rule makes the results of the operation undefined, not the fatal procedure; there is no 2002 item for a MERGE or SORT statement, so at --std 2002 the guard does not hand the marked condition to the verb: DialectBehavior.SortMergeStatementDisposesItsFatalConditions (VCR row 7.80, kb/Work PB5612)."
+}

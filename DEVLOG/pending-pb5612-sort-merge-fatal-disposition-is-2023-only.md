@@ -31,3 +31,12 @@ Full code: the arms agree (guard, `__IoCheckEc`, uncovered-fatal shape); item 8'
 cannot share a test with newer ones.
 
 **Review round 1 (R1-1).** `EmitUseHook`'s one `verbDisposes` flag had been turned off below 2023 and so also lost the deferral of the uncovered-fatal termination to the SORT's disposition: at 2002/2014 the GIVING WRITE terminated the run unit before the boundary break, with the name SORT/MERGE. Split into `sortMergeTransfer` (all editions: defers the termination, item 8 off) and `verbDisposes` (2023 only: `__verbRule`). Test: `SortMergeStatementEcTests.TheGivingWriteBoundary_PrecedesTheUncoveredTermination_AtEveryEdition` (2002, 2014, 2023).
+
+**Merge of main (the landing's conflict).** While this branch waited, main added four rows to PB5612 under the same
+mechanism: a nested SORT in an input procedure (2002-GR-14.8.36.3-9, recorded DIVERGES), a MERGE's USING and GIVING file
+already open (2002-GR-14.8.23.3-7, -12) and a MERGE in a MERGE output procedure (2002-GR-14.8.23.3-8). Each repro, re-run on
+the merged build at `--std 2002`, now ends the run unit (BEFORE-INNER, DECL=EC-SORT-MERGE-FILE-OPEN, IN OP 0001, then the
+abnormal termination). Four 2002 goldens witness them (`14.8.23@2002-MERGE-STATEMENT/pb5612_merge_using_open_fatal_2002`,
+`pb5612_merge_giving_open_fatal_2002`, `pb5612_merge_in_output_procedure_fatal_2002`,
+`14.8.36@2002-SORT-STATEMENT/pb5612_nested_sort_in_input_procedure_fatal_2002`), and the four rows are recorded CONFORMS and
+closed (2002 GAP 1897 to 1893 on the merged tree).
