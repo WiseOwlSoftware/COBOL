@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-6",
+ "rule-digest": "76e902004c6b",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-205",
+  "sources": {
+   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
+   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+  },
+  "imported": {
+   "reader": "4fc447fed0e4216de4325b3a5aa8efd916c656c8b52a99a7864dd383eb1b4b08",
+   "refuter": "70dac774806ab88417993389daede50e0c477e2455cab8a8da7c598c8fdc813e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the pseudo-text delimiter == is a separator in COPY REPLACING and REPLACE: an opening == must be immediately preceded by a space and a closing == immediately followed by a space, comma, semicolon or period, else the source is refused; == outside balanced pairs delimiting pseudo-text (an unclosed pseudo-text, a stray == in a statement) is refused; == inside a nonnumeric literal is literal content.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#OperandScreen; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TryNext",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|dialectLevel|CobolVersion in CopyProcessor.cs: the only edition reads are OnNonPseudoTextOperand (the 2023 removal of non-pseudo-text COPY operands), the REPLACE scope and result-layout rules; ReadOperand's two delimiter checks (OperandScreen.Delimiter, COBOL2573), its no-closing-delimiter error and TextWord.TryNext's == recognition read no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f03_01 covers legal placements (closing followed by comma, semicolon, period; opening at the start of a continuation line) and == inside a literal; the refusal half (opening not preceded by a space, closing followed by another character, unbalanced or stray ==) and COPY REPLACING are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6open.cob",
+    "printed": "error COBOL2573: REPLACE statement: the opening == follows 'E' with no space",
+    "expected": "REPLACE==XX1== refused: an opening delimiter must be immediately preceded by a space"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6close.cob",
+    "printed": "error COBOL2573: REPLACE statement: the closing == is followed by 'B'",
+    "expected": "==XX1==BY refused: closing delimiter must be followed by space, comma, semicolon or period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6paren.cob",
+    "printed": "error COBOL2573: the closing == is followed by ')' (plus COBOL1641 for the ')' operand)",
+    "expected": "a right parenthesis is not among the separators SR6 allows after a closing delimiter; refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6unbal.cob",
+    "printed": "error COBOL2449: REPLACE statement: the ==pseudo-text== has no closing delimiter",
+    "expected": "unbalanced delimiter refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6stray.cob",
+    "printed": "error COBOL0001: cannot parse construct near '='",
+    "expected": "== outside pseudo-text (IF AAA == \"AAA\") refused"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6copy.cob",
+    "printed": "error COBOL2573: COPY statement: the closing == is followed by 'B'",
+    "expected": "the same rule in COPY REPLACING; refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6ok.cob",
+    "printed": "AAA== (MATCH)",
+    "expected": "DISPLAY XX1 \"==\" after REPLACE: replaced word, == inside a literal untouched"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6copyok.cob",
+    "printed": "AAA (MATCH)",
+    "expected": "COPY SR6LIB REPLACING ==YY1== BY ==AAA== replaces"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR6",
+    "check": "OK  §1985:IV.4.2.1 SR6  (4.2.1 Separators)  the text is in SR6"
+   }
+  ],
+  "notes": "ReadOperand checks both placements for every pseudo-text operand of COPY and REPLACE at every edition; the 1985 text and the 2023 one state the same rule. The COBOL2573 message cites §2023:8.3.5 6) even at --std 85, a citation-only blemish, not a behaviour difference.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-6",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "At --std 85: p6comma.cob (REPLACE ==XX1== BY ==AAA==,==XX2== ...) refused COBOL2573 'the opening == follows ',' with no space'; p6empty.cob REPLACE ==XX1 OF== BY ====. (empty pseudo-text, closing delimiter with no preceding space, legal by SR8) compiles and prints [AAA] (MATCH); p6semi.cob closing == followed by ';' then a second pair on the next line, MATCH AAAAAA; p6end.cob stray == after REPLACE OFF refused COBOL0001. cite.py: 'OK  §1985:IV.4.2.1 SR6  (4.2.1 Separators)  the text is in SR6' (quote 'Pseudo-text delimiters may appear only in balanced pairs').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

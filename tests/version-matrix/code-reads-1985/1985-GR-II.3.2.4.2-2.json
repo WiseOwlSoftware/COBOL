@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-II.3.2.4.2-2",
+ "rule-digest": "2d5d83f91545",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "0f51cdd05d559536af7b5f5060bd9ff38c43ff4b14aa642d58f218c59d306444",
+   "refuter": "03b96b79996a6f1c3fea707c8e3d1a6c3da282d633f3efcbf88ed6181a7bd5be"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-II.3.2.4.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after the control footings of a control break, the control heading report groups are presented from the break level down to the most minor control (major first), every minor control counting as changed, levels with no control heading skipped, and then the detail named in the GENERATE.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SaveCurrentRestorePriors; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition = DialectLevel into the CobolReport construction; the break sequence reads nothing from it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (2002): a page heading/footing reached by a footing's page advance sees the prior control values from 2002, the current values at 85 (§1985:XIII.3.20.4 GR13); which groups are presented, and their order, is unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (2002) after the detail is presented; not the footing/heading sequence",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the heading sequence is the same code at every edition; the OR PAGE reprint after a page advance (PresentOrPageHeadings) is a later-edition phrase, not part of this rule",
+  "witnesses-cover": "part: g85_f01_01 runs one hierarchy; the unchanged minor control, the sparse hierarchy and the heading that moves to a new page are covered by the probes",
+  "probes": [
+   {
+    "class": "c,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/cb1.cob",
+    "printed": "CH-F CH-1 A CH-2 1 CH-3 a DE01 | CF-3 a CH-3 b DE02 | CF-3 b CF-2 1 CH-2 -2 CH-3 b DE03 | CF-3 b CF-2 -2 CF-1 A CH-1 B CH-2 -2 CH-3 b DE04 DE05 | CF-3 b CF-2 -2 CF-1 B CF-F",
+    "expected": "CONTROLS FINAL K1 K2(signed COMP) K3: a K3 break gives CF-3 then CH-3; a K2 break (K3 unchanged) gives CF-3, CF-2, then CH-2, CH-3; a K1 break gives CF-3, CF-2, CF-1, then CH-1, CH-2, CH-3; each CF shows the prior control value; TERMINATE gives every CF through FINAL"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/cb2.cob",
+    "printed": "page 1: PH 1 / CH-2 1 / DE01 / CF-3 a / DE02 / CF-3 b, FF, page 2: PH 2 / CH-2 -2 / DE03 / CF-3 b / CF-1 A / CH-2 -2, FF, page 3: PH 3 / DE04 / DE05 / CF-3 b / CF-1 B (raw bytes, runs/cb2-003/CB2.RPT)",
+    "expected": "degenerate hierarchy (CONTROLS K1 K2 K3 with CF only at K3 and K1, CH only at K2) and PAGE LIMIT 6: undeclared levels are skipped, the K2 break's CH-2 moves to a new page after CF-3, the K1 break's CF-3, CF-1, CH-2 run in order"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.3.2.4.2 GR1",
+    "check": "OK  §1985:II.3.2.4.2 GR1  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:II.3.2.4.2 GR2",
+    "check": "OK  §1985:II.3.2.4.2 GR2  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR2"
+   }
+  ],
+  "notes": "After ProcessControlFootings, GenerateCore restores the current values and presents _controlHeadings from breakLevel to the last control, then the detail; the first GENERATE presents every heading major to minor. Probe cb1 shows a K2 break printing CH-2 then CH-3 although K3 did not change; cb2 shows the heading after the footings moving to a fresh page with the page heading before it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-II.3.2.4.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Same probe rw1.cob at --std 85 (run rw1-001). G2 (break at MID) printed 'CH MID -1, CH MIN 2' after the footings. G3 (break at MAJ) printed 'CH MAJ B, CH MID -1, CH MIN 3': CH MID printed although MID did not change, so the minor controls count as changed. G4 (MID only, summary) printed 'CH MID +1, CH MIN 3'. In every break the headings ran from the break level down to the most minor, after the footings and before the detail (DE-X processed, and presented only for GENERATE DE-X). RW1.TXT confirms the order of the printed lines. Code read: ReportWriter.cs#GenerateCore presents _controlHeadings for i = breakLevel to _controls.Count-1 after ProcessControlFootings, with no edition test. cite.py: 'OK  §1985:II.3.2.4.2 GR2  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

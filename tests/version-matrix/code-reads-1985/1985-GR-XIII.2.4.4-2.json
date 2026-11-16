@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-GR-XIII.2.4.4-2",
+ "rule-digest": "8203d0b20058",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "11aeb30e41dfd408dee8c39873df5327d560002f62df58956aaee952b54931bf",
+   "refuter": "4acc592a9d2d07fc0bf5824124a7190afb1c32e3245a804d06ee18cc0e196c83"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.2.4.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a report file named in an I-O-CONTROL SAME clause gets the Sequential I-O SAME clause's meaning (§1985:VII.2.13.4 GR1): the files of a SAME AREA clause share all storage areas, so only one may be open at a time; the compiler must accept a report file in a SAME AREA clause (and in SAME SORT/SORT-MERGE AREA, XI.2.5) and run each file correctly when they are opened in turn. The witnesses cover compile-time acceptance only (pb1087_same_clauses_legal); l1c28 runs SAME AREA with no report file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#StorageSharingFiles; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Year < 2002 gives the report-file row its 1985 limits (SAME AREA at most 1, SAME RECORD AREA 0, SAME SORT/SORT-MERGE AREA unlimited, per §1985:XIII.2.4.3 SR2) where 2002+ bars the sort-merge-area format",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/Year in FileControlBinder.IoControl.cs (only SameOccurrenceRule branches); the runtime has no SAME AREA code (SAME AREA is a storage-sharing permission; StorageSharingFiles feeds only the FROM/INTO record-area check)",
+  "behaviour-differs-by-edition": "yes: at 85 a report file may also appear in SAME SORT / SORT-MERGE AREA clauses (2002+ refuse that); the SAME AREA meaning is the same",
+  "witnesses-cover": "part: compile-time acceptance only; no witness runs a report file and another file of one SAME AREA clause in turn",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/SAMERW.cob",
+    "printed": "EXIT 0; READ [REC-ONE ] 00 / READ [REC-TWO ] 00 / DONE; report file holds ' XYZ' (SAME AREA FOR SQ RPT-FILE and SAME SORT AREA FOR SRT RPT-FILE SQ; SQ written, closed, report produced, SQ read back)",
+    "expected": "legal at 85 (§1985:XIII.2.4.3 SR2, §1985:XI.2.5.3 SR5c); files opened in turn work"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/SAMERREC.cob",
+    "printed": "COBOL2738 report file named in a record-area format clause (§1985:XIII.2.4.3 SR2)",
+    "expected": "refused: a report file only in a SAME clause without RECORD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/SAMER2A.cob",
+    "printed": "COBOL2738 report file named in more than one file-area format clause",
+    "expected": "refused: §1985:VII.2.13.3 SR3a"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/runs/SAMERW-001",
+    "printed": "first draft (SAME SORT AREA FOR SRT RPT-FILE without SQ) refused COBOL2738 citing §2023:12.4.6.4.3 SR10",
+    "expected": "refused at 85 too: §1985:XI.2.5.3 SR5c states the same rule"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/SAMEBO.cob",
+    "printed": "both files open at once: OPEN SQ FS 00, WRITE FS 00, DONE",
+    "expected": "§1985:VII.2.13.4 GR1 calls it 'not valid' and specifies no result; any behaviour conforms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.4.4 GR2",
+    "check": "OK  §1985:XIII.2.4.4 GR2  (2.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR1",
+    "check": "OK  §1985:VII.2.13.4 GR1  (2.13.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.2.4.3 SR2",
+    "check": "OK  §1985:XIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR5c",
+    "check": "OK  §1985:XI.2.5.3 SR5c  (2.5.3 Syntax Rules)  the text is in SR5c"
+   }
+  ],
+  "notes": "GR2 is a pointer rule: its content is the VII SAME clause applied to report files. The compiler accepts the 85 forms, refuses the forbidden ones citing the 1985 text, and runs a report file and a sequential file of one SAME AREA clause correctly when opened in turn. Opening both at once is accepted, which 1985 leaves undefined. The SR10 refusal cites §2023 although §1985:XI.2.5.3 SR5c states the same rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.2.4.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "GR2 points to the whole VII-19 SAME clause, so I attacked its syntax rules as well as the reader's GR1. SAMR3C (SAME AREA FOR FA FB RPT-FILE + SAME RECORD AREA FOR FA FB): refused COBOL2738 for omitting RPT-FILE, which matches §1985:VII.2.13.3 SR3c, since a report file cannot enter a RECORD clause. SAMNST (a contained program's SAME AREA naming the container's report file): refused COBOL2738, matching §1985:VII.2.13.3 SR1. SAMSM (SAME AREA FOR RPT-FILE SQ, SAME SORT-MERGE AREA FOR SRT RPT-FILE SQ, SAME SORT AREA FOR SR2 SQ RPT-FILE): accepted at 85 (the SORT-MERGE spelling, and a report file in two sort-area clauses per §1985:XI.2.5.3 SR5c). At run time it wrote the report, wrote SQ, reopened the report file EXTEND and read SQ back: 'READ [ZZ] 00 / READ [AA] 00', report ' R1',' R2'. A report file cannot be EXTERNAL or GLOBAL in the 85 report FD format (XIII.3.2.2), so the SR2 external arm cannot be reached. cite.py: OK §1985:XIII.2.4.4 GR2; OK §1985:VII.2.13.3 SR1; OK §1985:VII.2.13.3 SR3c; OK §1985:XI.2.5.3 SR5c.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

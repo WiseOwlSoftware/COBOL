@@ -1,0 +1,115 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-5",
+ "rule-digest": "a0f3c6aae6c7",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-211",
+  "sources": {
+   "reader": "89b67344229a37eb0eddba80cdf702b072e623423da097df8296dd2f13f92c3f",
+   "refuter": "baa2b9e02b0d2dc6e63040c74f240ef10e0668610646917a07e6528204dcc4ed"
+  },
+  "imported": {
+   "reader": "bad3312c39c1f7d8bd914ababd4f2b60d4e2e44ec641c3e836d06a11096102fd",
+   "refuter": "635dee9f828b11aa1d39bd94feff2f462b43bed40d3f73e35d84baf15bbbc5c4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.15.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, in a report whose RD omits the PAGE clause, every LINE NUMBER clause of every report group (01 or subordinate, any group type) must be relative (LINE PLUS integer-2); an absolute LINE integer-1, with or without ON NEXT PAGE, must be refused, and relative clauses must be accepted and placed by GR4.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#Paged",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand",
+    "switches": "a LINE operand of NEXT PAGE with no integer (the 2002 third alternative) refused below 2002 (COBOL0900, report-line-next-page-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause",
+    "switches": "a multiple LINE clause and the LINES/NUMBERS/ARE spellings refused below 2002 (COBOL0900, report-multi-line-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "a PAGE clause without its page limit (the 2002 form that leaves a report unpaged though PAGE is written) refused below 2002 (COBOL0900), so at 85 'PAGE written' and 'Paged' coincide",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR5 test itself (!model.Paged && (absolute || NEXT)) in ScreenReportLineClauses consults no edition; model.Paged is set in BindReportDescriptionClauses only when the PAGE clause's integer-1 is written, which the 1985 format always requires.",
+  "behaviour-differs-by-edition": "no: the relative-only screen is the same code at every edition; at 85 the 2002 forms (bare NEXT PAGE, multiple LINE, PAGE without a limit) are refused in addition.",
+  "witnesses-cover": "part: g85_f30_03 exercises the accept side (relative clauses in a DE and an RF of an RD without PAGE); the refusal of absolute clauses is not exercised.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4abs.cob",
+    "printed": "error COBOL2199: RD 'R1': the report is not divided into pages, so all its LINE clauses shall be relative — LINE 3 is absolute",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4absnp.cob",
+    "printed": "error COBOL2199: ... LINE 3 ON NEXT PAGE is absolute",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4abssub.cob",
+    "printed": "error COBOL2199: ... LINE 4 is absolute (subordinate entry after a relative line; plus the SR3 order error)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4absrh.cob",
+    "printed": "error COBOL2199: ... LINE 1 is absolute (report heading)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4absrf.cob",
+    "printed": "error COBOL2199: ... LINE 2 is absolute (report footing, subordinate entry)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4relpage.cob",
+    "printed": "EXIT 0 (compiles)",
+    "expected": "accepted: relative LINE with a PAGE clause"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r4cols.cob",
+    "printed": "error COBOL2199 (LINE 3 absolute, report unpaged) and error COBOL0900: the PAGE clause without its page limit requires COBOL-2002",
+    "expected": "refused: 'PAGE LIMIT 80 COLUMNS' is not a 1985 PAGE clause"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6bare.cob",
+    "printed": "error COBOL0900: a LINE operand of NEXT PAGE with no integer requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.3 SR5",
+    "check": "OK  §1985:XIII.3.15.3 SR5  (3.15.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "ScreenReportLineClauses walks every written LINE clause of the RD's flat entry array once and refuses an absolute operand (or a NEXT PAGE operand) when the RD is unpaged. The diagnostic cites §2023:13.18.35.3 SR5, the same rule. Runtime placement of relative lines without PAGE is the witness g85_f30_03.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.15.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read ReportSectionBinder.ScreenReportLineClauses (the !model.Paged test runs per RD model). Probes at --std 85: Q5TWO (two RDs on one FD: R1 paged with absolute 'LINE NUMBER IS 3', R2 unpaged with 'LINE NUMBER IS PLUS 0', 'LINE PLUS 0', 'LINE PLUS 2') -> compiles and runs, so the paged RD's absolute clause does not leak to the unpaged one; Q5UNP1 (unpaged R1 FIRST, absolute 'LINE IS 3' on a CONTROL FOOTING FINAL group, then a paged R2 with absolute LINE 3) -> COBOL2199 on R1 only. 1985 Table 5 (report footing) marks A R and NP R 'Illegal Combination' when PAGE is omitted, which is the same refusal. Side observation, outside this syntax rule: Q5ONE (single unpaged RD, first group's first clause LINE PLUS 0 at LINE-COUNTER 0) prints LC 3 after the first group, where §1985:XIII.3.10.8 rule 3d (LINE-COUNTER + integer) would give line 0 and LC 2; a line 0 is degenerate, so this is a presentation-rule question for that rule's own record, not this one. cite.py: OK  §1985:XIII.3.15.3 SR5  (3.15.3 Syntax Rules)  the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

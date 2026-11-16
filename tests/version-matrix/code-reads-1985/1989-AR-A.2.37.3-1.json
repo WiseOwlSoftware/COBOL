@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-AR-A.2.37.3-1",
+ "rule-digest": "2fd5785b2319",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-212",
+  "sources": {
+   "reader": "1b0405c3a654eaab78e2d8728b87eacd71f77ebde52e4b223ad9638739a13e2e",
+   "refuter": "663010dc24447d49c346b05bd04557fc4f6fc5db83e3c7eaaa3d9d6855ee357e"
+  },
+  "imported": {
+   "reader": "c6b9eda4bf1f50993052d7dd04d1ef6933307ebeba4e6b586062b896279d4f0d",
+   "refuter": "8bfee11cb6bb9afcdfcd873b61c45028f29095526c4889aad76cba515d6113e0"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.37.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 (Intrinsic Function amendment) both arguments of FUNCTION REM must be class numeric (an arithmetic expression: numeric item, numeric literal, numeric/integer function, expression); an alphanumeric, alphabetic, numeric-edited or group item, a nonnumeric literal, a nonnumeric figurative or ALL literal, or an alphanumeric function must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn/RemovedIn window; REM is IntroducedIn 85, so it binds at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "per-position predicates asked only where p.AppliesAt(year); REM's Uniform('n') row has no predicates, so the class test is identical at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f39_02 covers the accepted numeric forms only; refusal of non-numeric arguments is not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/rem_refuse.cob",
+    "printed": "9 x COBOL1627: alphanumeric item, alphabetic item (arg 2), numeric-edited item, group item, nonnumeric literal, SPACE (arg 2), ALL \"1\", FUNCTION REVERSE, FUNCTION CHAR",
+    "expected": "every non-numeric argument refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/rem_accept.cob",
+    "printed": "A1=-...09.00 (S9(18) largest negative rem 10) A2=3.00 (PIC 9PP scaled) A3=-123.45 (COMP-3/COMP) A4=2.00 (subscripted) A5=1.00 (integer function) A6=3.00 (numeric function) A7=0 A8=0 A9=-1.25 (negative literals) A10=1.00 (expressions)",
+    "expected": "all accepted; values per RV1 argument-1 - argument-2*INTEGER-PART(a1/a2)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/A.2.37@1985-REM-FUNCTION/g85_f39_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.37.3 AR1",
+    "check": "OK  §1989:A.2.37.3 AR1  (2.37.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1"
+   }
+  ],
+  "notes": "Numeric-edited items are correctly classed alphanumeric. The refusal message says 'alphanumeric or national' for a figurative and cites §2023:15.77.3 at --std 85, cosmetic only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.37.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Argument class numeric means 'An arithmetic expression must be specified' (§1989:A.2.2), and the 1985 arithmetic expression admits the figurative constant ZERO (§1985:VI.6.2.1), a form the reader did not probe. Probe refute-1985-212/src/fn_zero.cob at --std 85: REM(ZERO 3)=0.00, REM(ZEROS + 7 3)=1.00, REM(- 7 ZEROES + 4)=-3.00 (= -7 - 4*INTEGER-PART(-1.75)), all accepted and correct. fn_index.cob: USAGE INDEX item refused (COBOL6979, §1985:VI.5.14.3 SR5), index-name refused (COBOL1637). fn_later.cob: FLOAT-LONG item and floating literal refused at 85 as later-edition forms (COBOL0900). cite.py: 'OK  §1989:A.2.37.3 AR1  (2.37.3 Arguments)  the text is in AR1'; 'OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1'; 'OK  §1985:VI.6.2.1  (6.2.1 Definition of an Arithmetic Expression)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

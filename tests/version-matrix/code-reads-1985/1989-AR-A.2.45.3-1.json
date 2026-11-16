@@ -1,0 +1,105 @@
+{
+ "rule-id": "1989-AR-A.2.45.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-213",
+  "sources": {
+   "reader": "07a3bc781ea4553ae95c6f4c46d319a4ba3926e90fd22d0612a8c806a5a59f7f",
+   "refuter": "dcc28c5606f0ba555728df0bbafe761ad65887dcddc2af0e1f9e17a8d30cc23b"
+  },
+  "imported": {
+   "reader": "65d6832b78c4302a8d8dff68e897dea6ff53b645fb5e296ac46a1c47c83cdf96",
+   "refuter": "07c83c7dfe4d01cbf77b506a7091c35b5b5df4aac55acf260f8a5280bfdfccd1"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.45.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every argument of FUNCTION VARIANCE must be class numeric, i.e. an arithmetic expression (§1989:A.2.2 type (1)): a numeric item, numeric literal, ZERO, a numeric/integer function or an expression is accepted (including a table(ALL) argument over an ODO table), and an alphanumeric, alphabetic, numeric-edited, group, nonnumeric-literal, non-ZERO figurative, alphanumeric-function or index operand is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Variance",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: sig.IntroducedIn (85) against ctx.Edition.DialectLevel; VARIANCE is defined at 85 so no COBOL1502",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year); VARIANCE's row has no predicate, only the class kind 'n', screened identically at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: at 85 a numeric function written where an identifier stands (MOVE source) is refused COBOL0900; at 2002+ admitted",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs for Edition/DialectLevel/ConstructRegistry/DialectBehavior; IntrinsicArgumentRules ArgPredicate.Since; the class screen itself carries no edition switch",
+  "behaviour-differs-by-edition": "yes: only placement (not this rule): MOVE FUNCTION VARIANCE (1 3) TO W is refused at 85 and prints +0001.00 at 2023; the argument-class screen is the same at every edition",
+  "witnesses-cover": "part: g85_f39_05 covers the accepted class-numeric forms only; not the refusal half (alphanumeric, alphabetic, numeric-edited, group, nonnumeric literal, SPACE, alphanumeric function, index item, index-name), table(ALL) over ODO, nested numeric functions or RV3's one-value zero",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/var1.cob",
+    "printed": "V-ODO3= 0007.17 / V-ODO1= 0000.00 / V-ONE= 0000.00 / V-NEG= 0006.00 / V-ZERO= 0000.00 / V-BIG-OK",
+    "expected": "T(ALL) over ODO 3 {1.5,-2.5,4.0}: 21.5/3=7.17; ODO 1 and single value: 0 (§1989:A.2.45.4 RV3); {-3,3,ZERO}: 6; 18-digit operands accepted"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/var2.cob",
+    "printed": "COBOL1627 for X(3), numeric-edited, group, A(3), \"12\", SPACE and FUNCTION REVERSE arguments; COBOL1504 + COBOL0900 for VARIANCE ( )",
+    "expected": "each non-numeric argument refused (§1989:A.2.45.3 AR1); at least one argument"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/var3.cob",
+    "printed": "COBOL6979 index data item IX is an intrinsic function argument (§1985:VI.5.14.3 SR5); COBOL1637 index-name TX is not an arithmetic operand",
+    "expected": "an index data item / index-name is not an arithmetic expression at 85: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/var4.cob",
+    "printed": "--std 85: COBOL0900 numeric function-identifier as identifier operand requires COBOL-2002; --std 2023: +0001.00",
+    "expected": "85 refuses a numeric function outside an arithmetic expression (§1985:IV.4.3.8.3.3 SR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/var5.cob",
+    "printed": "V-FN= 0006.22",
+    "expected": "arguments SQRT(16)=4, INTEGER(2.5)=2, -3 + 1=-2: variance 18.667/3 = 6.22"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.45.3 AR1",
+    "check": "OK  §1989:A.2.45.3 AR1  (2.45.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1"
+   },
+   {
+    "cite": "§1989:A.2.45.4 RV3",
+    "check": "OK  §1989:A.2.45.4 RV3  (2.45.4 Returned Values)  the text is in RV3"
+   }
+  ],
+  "notes": "The catalog row VARIANCE 'n' is screened by the spec-verified table through IntrinsicArgumentRules.Violation, the same code at every edition; 1985's 'class numeric' (arithmetic expression) and 2023's coincide for every operand 85 can write. Diagnostic texts cite §2023 clauses rather than §1989 ones, a wording matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.45.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-213/src: xvar1.cob (admit half the reader did not try) prints V-P1= 010000.000000 for VARIANCE (P1 0) with P1 PIC 9PP = 200, V-P2= 000000.000004 for a PIC SVPP9 item and ZEROES, V-C1S1= 000006.222222 for a COMP item, a SIGN LEADING SEPARATE item and ZEROS, V-SIGNED= 000009.000000 for (+3 -3): all correct. xvar2.cob: COBOL1627 for a reference-modified numeric item N (1:2) (category alphanumeric at 85), HIGH-VALUE, QUOTE, LOW-VALUES, ALL \"1\", an alphanumeric table TX (ALL), a GROUP table GE (ALL), a numeric-edited table ED (ALL) and FUNCTION CHAR as argument. xvar3.cob: COBOL0844 for an alphanumeric operand inside an argument expression (N + X), COBOL1627 for REVERSE and SPACES as argument-2. cite.py: OK  §1989:A.2.45.3 AR1  (2.45.3 Arguments)  the text is in AR1; OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1. The class screen has no 1985-only arm and the 1985 definition of class numeric (arithmetic expression; ZERO allowed per §1985:VI.6.2.3) coincides with what the screen admits. The juxtaposed parenthesised argument VARIANCE (A (- B)) is refused by the grammar (kb/Work PB5781, open), a parse of the argument list rather than the class screen this rule governs; it is charged to the format rows (see 1989-FMT-A.2.37.2 in this file).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

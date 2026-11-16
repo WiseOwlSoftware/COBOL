@@ -1,0 +1,83 @@
+{
+ "rule-id": "1989-AR-A.2.9.3-2",
+ "rule-digest": "3743df4ca6c7",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-213",
+  "sources": {
+   "reader": "07a3bc781ea4553ae95c6f4c46d319a4ba3926e90fd22d0612a8c806a5a59f7f",
+   "refuter": "dcc28c5606f0ba555728df0bbafe761ad65887dcddc2af0e1f9e17a8d30cc23b"
+  },
+  "imported": {
+   "reader": "24bd817f6f5fd96a8589e7e2be28a806c417b42a6b1013c1a10f0b6a0ebee0ff",
+   "refuter": "f68e87d1db9b71a549d25c4460f62db1deaebcc0eb0f76d3231cae40ffe28521"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.9.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION CHAR's argument value must lie in 1 .. the number of positions of the program collating sequence (native, or an ALPHABET with ALSO groups that collapse positions); every value in that range must return the character at that ordinal, and a value outside it leaves the result undefined (§1989:A.2.2), so no particular response is required for it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Char; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#PositionCount; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: sig.IntroducedIn (85) against ctx.Edition.DialectLevel; CHAR is defined at 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the collate flag reads Configuration.Collating (not an edition); the runtime Char bodies and LiteralPhraseCollation take no edition; grep of CobolIntrinsics.Text.cs and LiteralPhraseCollation.cs for Edition/Version found none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f06_09 covers both ends of the range under an ALSO alphabet; not the native sequence's bounds or out-of-range values",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/char1.cob",
+    "printed": "ORD(HIGH)=000065536 / CHAR(TOP)=HIGH YES / ORD(LOW)=000000001 / CHAR(1)=LOW YES / CHAR(66)=A / CHAR(0)=[ ] / CHAR(-5)=[ ] / CHAR(N+1) RAN",
+    "expected": "native sequence: 1 and the top position (HIGH-VALUE's) map back; 0, negative and top+1 are outside the range, result undefined (§1989:A.2.2)"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/char2.cob",
+    "printed": "ORD(HIGH)=000065533 / CHAR(TOP)=HIGH YES / ORD(CHAR(4))=000000004 / CHAR(N+1)=[ ]",
+    "expected": "three ALSO merges shrink the count by 3; top position maps to HIGH-VALUE; beyond it undefined"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/char3.cob",
+    "printed": "CHAR(0) and CHAR(-1) compile; CHAR(D) with PIC 9V9 and CHAR(1.5) refused COBOL1627 (not an integer)",
+    "expected": "AR1 integer screen refuses non-integers; AR2's range on a literal is a value constraint whose violation is undefined, so acceptance is permitted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.9.3 AR2",
+    "check": "OK  §1989:A.2.9.3 AR2  (2.9.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.9.3 AR1",
+    "check": "OK  §1989:A.2.9.3 AR1  (2.9.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1"
+   }
+  ],
+  "notes": "The domain is the collation's PositionCount (65,536 native code units, fewer under ALSO), and CharAt is the exact inverse of Weight, so every in-range value returns its character. Out-of-range values return one space (EC-ARGUMENT-FUNCTION when checking is on), inside the undefined result §1989:A.2.2 grants.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.9.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "The reader probed the native sequence and an ALSO alphabet; I probed the two program collating sequences the reader did not. xchar1.cob (PROGRAM COLLATING SEQUENCE IS S1, ALPHABET S1 IS STANDARD-1) at --std 85: S1-CHAR66=[A], S1-CHAR1=LOW YES, ORD (CHAR (97)) = 00097: every ordinal of the X3.4 sequence maps to its character; ORD (HIGH-VALUE) = 65536 and CHAR (128) is not HIGH-VALUE, i.e. the compiler extends the 128-position STANDARD-1 sequence with the remaining native characters, a correspondence §1985:VI.4.5.4 GR4a leaves to the implementor (cite.py: OK  §1985:VI.4.5.4 GR4a  (4.5.4 General Rules)  the text is in GR4a). xchar2.cob (ALPHABET A1 IS \"Z\" \"Y\" \"A\" THRU \"C\"): CHAR 1..5 = Z,Y,B at 4,C at 5, CHAR (89) = V, CHAR (90) = W, ORD (\"X\") = 91, exactly the literal positions then the unnamed native characters in native order. (MOVE FUNCTION ORD (...) TO N was correctly refused COBOL0900 at 85 and rewritten as COMPUTE.) cite.py: OK  §1989:A.2.9.3 AR2  (2.9.3 Arguments)  the text is in AR2; OK  §1989:A.2.2 (values outside the permissible range: result undefined). AR2 constrains the program's argument value; any value outside it is undefined, so no compiler response can violate it, and every in-range value probed returns the right character.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -2,61 +2,96 @@
  "rule-id": "1985-FMT-XIII.4.9.2",
  "rule-digest": "1b032bdfc112",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-004",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-225",
   "sources": {
-   "reader": "38de986f3e7aa3b9b5ca6aa5681ad055f0e57fd9b5d594bc876208cb6bdc4f65",
-   "refuter": "9636ab143b82a191c2eb59de99fa2525d08ac35f4ae8fbb872a0e4480197da68"
+   "reader": "5a9a5081fd98f525724d661279d2eefc611f7634416a183f7004cb7a2c189f36",
+   "refuter": "d8c799eb0c8c8aa76f708fc95b9beea607641c8906d73f75946ee5ec0e314af0"
   },
   "imported": {
-   "reader": "cba60a1bdc4cca10bebf90063508e6b711644a2bcf2b674842398b14f19059b4",
-   "refuter": "3c3995a6d27ba0f62de1d11751a5bf5e306d9295419e511f75c15d37e76d7387"
+   "reader": "9fc81e5099b5c3e69e8e228b0b8cee9ece8116945b7e45eba996e5f12f894922",
+   "refuter": "88ef2cce62ae13fa61c5d3925d89c1cafb2a9e00c944e32f0c674138720cdbb6"
   }
  },
  "reader": {
   "rule-id": "1985-FMT-XIII.4.9.2",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the declarative USE BEFORE REPORTING identifier-1 (with the Inter-Program Communication module's optional GLOBAL, §1985:X.5.6.2) must be accepted with USE, BEFORE and REPORTING all required and exactly one identifier-1 that references a report group (an 01 entry of the report section, optionally qualified by its report-name), and must refuse any other operand or word sequence.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
-  "edition-consulted": [],
-  "edition-search": "read DeclBindUse's REPORTING arm (no Edition/DialectLevel test); VersionConformancePass#VisitUseStatement gates DEBUGGING, Formats 3/4 and Format 1's AFTER/PROCEDURE only, never the REPORTING alternative; grep 'REPORTING|BEFORE' in VersionConformancePass.cs finds only the SR3 PERFORM-range screen (a different rule); the grammar alternative carries no predicate",
+  "requirement": "At --std 85 the declarative USE BEFORE REPORTING identifier-1 (with the Inter-Program Communication module's optional GLOBAL, §1985:X.5.6.2) takes exactly one identifier naming a report group, optionally qualified by its report-name, and refuses other shapes.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#useStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+    "switches": "DialectLevel < 2002 picks the citation text of the ambiguity message only",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "gates USE Formats 1, 3, 4 and FOR DEBUGGING by edition; the BEFORE REPORTING format takes no gate",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: pb332-use-format1-needs-exception-or-error exercises the USE statement's Format 1 refusal only; no witness at 85 runs Format 2 itself, its GLOBAL phrase, the qualified operand or the refusal half",
+  "witnesses-cover": "part: the witnesses cover a plain and a homonym-qualified operand; GLOBAL, IN qualification and the refusal shapes are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/use/u01.cob, u02.cob, u03.cob, u04.cob",
-    "printed": "USE BEFORE REPORTING DET-A / USE GLOBAL BEFORE REPORTING DET-A / DET-A OF R-1 / DET-A IN R-1 -> each prints BEFORE DET-A 1 / BEFORE DET-A 2 / END",
-    "expected": "the declarative runs just before each presentation of DET-A (GR4); GLOBAL is legal at 85 (§1985:X.5.6.2)"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/gen1.cob",
+    "printed": "BEFORE DET-A / BEFORE DET-B / BEFORE DET-A / BEFORE CF-C / BEFORE CF-C",
+    "expected": "USE BEFORE REPORTING DET-A, USE GLOBAL BEFORE REPORTING CF-C OF R-2 and USE BEFORE REPORTING DET-B IN R-1 each run just before their group"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/use/u05.cob, u06.cob, u07.cob, u09.cob, u12.cob, u13.cob",
-    "printed": "no operand -> COBOL0001; USE REPORTING -> COBOL5506; USE BEFORE DET-A -> COBOL5506 expected REPORTING; DET-A(1) -> COBOL2269; two operands -> COBOL0307; USE AFTER BEFORE REPORTING -> COBOL5506",
-    "expected": "USE BEFORE REPORTING are required words and there is exactly one identifier-1"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use1.cob",
+    "printed": "COBOL0307 unexpected 'DET-B'",
+    "expected": "refused: one identifier"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use2.cob",
+    "printed": "COBOL0001 unexpected '.'",
+    "expected": "refused: identifier-1 required"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/use/u08.cob, u10.cob, u11.cob, u14.cob",
-    "printed": "a working-storage item, a level-02 report entry, the report-name, and DET-A OF <file-name> -> COBOL0897 does not name a report group",
-    "expected": "identifier-1 must reference a report group (SR2)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use3.cob",
+    "printed": "COBOL2269 unexpected '('",
+    "expected": "refused: a report group is not subscripted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use4.cob",
+    "printed": "COBOL5506 near 'REPORTING'",
+    "expected": "refused: BEFORE is required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use5.cob",
+    "printed": "COBOL0897 USE BEFORE REPORTING 'R-1' does not name a report group",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-225/src/use6.cob",
+    "printed": "COBOL5506 near 'BEFORE'",
+    "expected": "refused: AFTER is not in the format"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.4.9.2",
-    "check": "OK  §1985:XIII.4.9.2  (4.9.2 General Format)  the text is in the clause"
+    "check": "OK  §1985:XIII.4.9.2  (4.9.2 General Format)  the text is in the clause [quote: USE BEFORE REPORTING identifier-1]"
    },
    {
     "cite": "§1985:X.5.6.2",
-    "check": "OK  §1985:X.5.6.2  (5.6.2 General Format)  the text is in the clause"
+    "check": "OK  §1985:X.5.6.2  (║5.6.2 General Format║)  the text is in the clause [quote: USE [ GLOBAL ] BEFORE REPORTING identifier-1]"
    },
    {
     "cite": "§1985:XIII.4.9.3 SR2",
     "check": "OK  §1985:XIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2"
    }
   ],
-  "notes": "The REPORTING alternative of useStatement is USE GLOBAL? BEFORE REPORTING reportGroupReference, resolved through ReportGroupResolution as GENERATE's operand is; the same code runs at every edition. GLOBAL is the 1985 IPC module's own format, so admitting it at 85 is correct.",
+  "notes": "The grammar's USE GLOBAL? BEFORE REPORTING reportGroupReference is the 1985 Report Writer format plus the 1985 IPC module's GLOBAL; DeclBindUse resolves through the one report-group funnel. No edition arm on the format.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -68,16 +103,10 @@
  },
  "refuter": {
   "rule-id": "1985-FMT-XIII.4.9.2",
-  "refutation": "OVERTURNED",
+  "refutation": "UPHELD",
   "classes": "b,c,d",
-  "evidence": "refute-1985-004/use at --std 85: v01 WORKING-STORAGE 01 DA PIC X. beside RD R-1's 01 DA TYPE DE, declarative 'USE BEFORE REPORTING DA.' (unqualified) -> compiled and RAN ('BEFORE BEFORE END'): the nonunique identifier-1 is accepted unqualified, against cite.py 'OK §1985:IV.4.3.8.1 (4.3.8.1 Qualification) ... SRL2.1' for 'For each nonunique user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers which precludes any ambiguity of reference' (and IV.4.3.8.1 SR1 'No other name has the identical spelling and hyphenation'); the same ReportGroupResolution.cs#Resolve funnel as GENERATE, which collects candidates only from report groups. The rest held: v02 'DA (1:2)' -> COBOL2269 (a reference-modified identifier is not a report group, cite.py 'OK §1985:XIII.4.9.3 SR2'); v03 CF-B -> runs before each control footing (twice); v04 RH-G, v05 PF-G, v06 CF-F OF R-1, v07 PH-G IN R-1 -> each runs once before its group; v08 (1985 IPC form) USE GLOBAL BEFORE REPORTING DA in OUTER with GENERATE DA in contained INNER on a GLOBAL report -> 'OUTER-DECL' printed (cite.py 'OK §1985:X.5.6.4 GR1' for rule 1b's GLOBAL precedence); v09 the same without GLOBAL -> declarative not run.",
+  "evidence": "Probes at --std 85: uc1 USE GLOBAL BEFORE REPORTING DET-A IN R-2, USE BEFORE REPORTING CF-C, USE BEFORE REPORTING DET-A OF R-1 accepted; stdout BEFORE DET-A R-1 / BEFORE DET-A R-2 / BEFORE CF-C / BEFORE DET-A R-2 / BEFORE CF-C, report DET-A / DET-C / 001 / DET-C / 002, each declarative before its own group and the CF before the post-break detail. Refusals: ub1 two qualifier levels (COBOL0307), ub2 a format 3 sum-counter name (COBOL0897 not a report group), ub3 a working-storage item (COBOL0897), ub4 an unqualified homonym group (COBOL1920), ub5 ref-mod (COBOL2269). cite.py: OK §1985:XIII.4.9.3 SR2 [Identifier-1 must reference a report group].",
   "edition-sites-missed": [],
-  "corrected": "PARTIAL (under-rejects, cause b: the shared resolver ignores same-spelled non-report data items at every edition). Minimal repro: WORKING-STORAGE 01 DA PIC X. RD R-1 ... 01 DA TYPE DE ...; DECLARATIVES. D1 SECTION. USE BEFORE REPORTING DA. Expected at --std 85: refused, DA must be qualified (DA OF R-1) since another data-name has the identical spelling (§1985:IV.4.3.8.1 rule 1). Observed: compiles and runs. One defect with the GENERATE operand's (case 1985-FMT-XIII.4.3.2) in ReportGroupResolution#Resolve; it may be homed on the qualification rule's row. kb/Work: none found."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "With a Working-Storage `01 DA` beside a report group `01 DA`, an unqualified `GENERATE DA` and `USE BEFORE REPORTING DA` compile and run; the name is ambiguous (`§1985:IV.4.3.8.1 SRL2.1`). 2023 rows `FMT-14.9.16.2`, `FMT-14.9.49.2`.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
- },
- "work": "PB5775"
+  "corrected": ""
+ }
 }

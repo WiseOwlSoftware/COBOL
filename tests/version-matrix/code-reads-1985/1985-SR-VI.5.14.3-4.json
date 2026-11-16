@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-VI.5.14.3-4",
+ "rule-digest": "a73b495ca6e6",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-224",
+  "sources": {
+   "reader": "aa6484067af501a770f0cf1e656244237b0a05020b2ebf52ceb9691dc936915e",
+   "refuter": "4cb51058433e09b56135cfce4d3601e3e5dee9d7ed95fd9cf4ef2f3ec627315f"
+  },
+  "imported": {
+   "reader": "eb069bb03d5a40d584ed0fe74dd9ee6dec325e36b6296055b8b12783b6c44ab7",
+   "refuter": "8aaa5cbc3fb46e5097be6885d7a6eb5e3934cf1b7840c579b5a43d055765bdff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.14.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the word COMP must be accepted wherever COMPUTATIONAL may be written (with or without USAGE IS, on a group or an elementary entry) and must give exactly the item COMPUTATIONAL gives: same representation, size, values and syntax-rule verdicts (including SR2's same-usage test and SR3's numeric-picture test).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#usageClause; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceWalk; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
+    "switches": "the introduction gate of the 2002+ usages (NATIONAL, BIT, POINTER, BINARY-CHAR family, ...); COMP and COMPUTATIONAL resolve to Usage.Binary, which carries no gate at any edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "edition.Extension flags COMP-1..COMP-5 vendor spellings only under the extension flag; the COMPUTATIONAL to COMP normalisation and the Usage member are edition-invariant",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f10_01 mixes COMP and COMPUTATIONAL in one group chain; it does not compare the two spellings' storage, values or refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u4a.cob",
+    "printed": "GA=GB / GA=GC / LEN-GA 0006 / LEN-GB 0006 / LEN-GC 0006 / -5004 -0002 -0002 / +9997 123456789 123456789 123456789 (COMP, COMPUTATIONAL and group-level USAGE COMP spellings of S9(4) VALUE -2 and 9(9) VALUE 123456789)",
+    "expected": "the three groups byte-identical and of equal length; same signed arithmetic"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u4b.cob",
+    "printed": "COBOL0881 data item 'A': USAGE BINARY requires a PICTURE that describes a numeric item (01 A PIC X(4) COMP)",
+    "expected": "refused as COMPUTATIONAL with PIC X is refused (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2a.cob",
+    "printed": "COBOL1927 for 05 A1 USAGE DISPLAY under 01 G1 USAGE COMP",
+    "expected": "refused as under a COMPUTATIONAL group"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u4b.cob",
+    "printed": "COBOL0900 for BINARY-LONG at 85; COMP-3 and COMPUTATIONAL-4 accepted without a diagnostic (vendor extensions flagged only under the extension flag)",
+    "expected": "the 2002 usage refused at 85"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-224/src/u2c.cob",
+    "printed": "S9(18) COMPUTATIONAL inside USAGE COMP subgroup: +999999999999999999, ADD 1 gives SIZE ERROR",
+    "expected": "largest value held; size error"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.3 SR4",
+    "check": "OK  §1985:VI.5.14.3 SR4  (5.14.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "ParseUsage folds COMPUTATIONAL to COMP before mapping, so both spellings become one Usage member on every path (own clause and group inheritance) at every edition; probes show identical storage, values and refusals. Diagnostics name the usage BINARY for a written COMP, which is cosmetic for this rule. COMP's identity with BINARY is the subject of the SR2 record, not this one.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.14.3-4",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "cite.py: OK  §1985:VI.5.14.3 SR4  (5.14.3 Syntax Rules)  the text is in SR4. Grepped src (not Generated) for any code that reads the COMP or COMPUTATIONAL token or its text apart from PictureAnalyzer.ParseUsage (line 1230 folds COMPUTATIONAL to COMP before the switch): no other site, so no path can tell the spellings apart. Probe c5a.cob at --std 85: S9(9) COMP SYNCHRONIZED and S9(9) COMPUTATIONAL SYNCHRONIZED groups have equal length (0005 0005) and equal bytes (GA=GB); group-level USAGE COMP and USAGE IS COMPUTATIONAL groups compare equal (HA=HB); ADD 1 to a 9(2) holding 99 under each takes SIZE ERROR alike (SE-A, SE-B, 99 99). The COMP-to-BINARY identity is SR2's question (its record is PARTIAL), not SR4's.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

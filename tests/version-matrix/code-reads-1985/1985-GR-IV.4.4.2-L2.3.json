@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-L2.3",
+ "rule-digest": "7d51775f4e92",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "b1b59f88da464f1c9a63cb069f3b72c331e3392e7a35d67d165ef851d859808e",
+   "refuter": "6f5ca842b92a9d0e64357faf52270e3a61b9571a76c9992b881b0b47c2ebaa22"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.4.2-L2.3",
+  "verdict": "CONFORMS",
+  "requirement": "After the last statement of a program whose paragraph is not under the control of another statement of that program there is no next executable statement: in a CALLed program an implicit EXIT PROGRAM returns to the caller (GRL2.5), in a main program flow is undefined (the compiler ends the run unit), while a last paragraph reached under PERFORM control returns to the PERFORM; this holds for separately compiled and contained (nested) programs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#LastElementPc; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunModule",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+    "switches": "dispatchState.SegmentEntry (set by the 1985 segmentation machinery when a program has independent segments) wraps the dispatch loop in a segment save/restore; it is construct-driven, not an edition test, and does not alter the fall-off/implicit-return arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGobackStatement",
+    "switches": "ConstructRegistry goback-bare-2002 refuses a written GOBACK at --std 85 (COBOL0880); the implicit return itself is the same ProgramReturn signal at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of DispatchEmitter.cs for CobolVersion/EditionContext/Std found none; the only switches are SegmentEntry and DebugActive, both set from bound constructs (DispatchEmitter.cs lines 46, 59)",
+  "behaviour-differs-by-edition": "no: the text differs (1985 calls the called-program case an implicit EXIT PROGRAM and leaves a main program undefined; 2023 calls it an implicit GOBACK) but the required observable behaviour is the same and the compiler emits one arm",
+  "witnesses-cover": "part: the witnesses exercise a main program's fall-off out of PERFORM/SORT ranges; a called program's and a contained program's fall-off (the GRL2.5 implicit EXIT PROGRAM), a program with no Procedure Division, and a repeated CALL in last-used state are not exercised at 85",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/tc1.cob",
+    "printed": "MAIN START / SUBA A1 / SUBA A2 / SUBA A3 FALLS OFF / AFTER SUBA / SUBB B1 / AFTER SUBB / LAST-PARA 1 / AFTER PERFORM LAST / AFTER MAIN EXIT PROGRAM / SUBC STOP RUN; EXPECT MATCH",
+    "expected": "called SUBA, after GO TO out of a PERFORM range, falls off its end: implicit EXIT PROGRAM returns to the caller (GRL2.5); PERFORM of the main program's last paragraph returns to the PERFORM"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/tc2.cob",
+    "printed": "MAIN START / INNER J=1 / INNER I3 x2 / INNER I2 / INNER I3 / AFTER INNER 1 / INNER J=2 ... / AFTER INNER 2 / AFTER NOPROC / P2 K=1 / MAIN FALLS OFF / P2 K=2; exit 0; EXPECT MATCH",
+    "expected": "contained program falling off its last paragraph returns to the container each CALL (last-used state kept); a program with no Procedure Division returns; the main program's fall-off ends the run (undefined in 1985, termination is acceptable)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/tc3.cob",
+    "printed": "error COBOL0880: the GOBACK statement requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "GOBACK is not a 1985 statement; refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.4.2 GRL2.3",
+    "check": "OK  §1985:IV.4.4.2 GRL2.3  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GRL2.3"
+   },
+   {
+    "cite": "§1985:IV.4.4.2 GRL2.5",
+    "check": "OK  §1985:IV.4.4.2  the text is in the clause; it lies in GRL2.5 (\"in which case an implicit EXIT PROGRAM statement is executed\")"
+   }
+  ],
+  "notes": "The dispatcher bounds the activation's top-level call at the last element paragraph (LastElementPc) so a main or called program's fall-off returns to the activation entry, and a nested range that a GO TO left throws ProgramReturn past the last paragraph; the activation catches ProgramReturn and returns to a caller, which is the 1985 implicit EXIT PROGRAM. No edition arm exists or is needed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.4.2-L2.3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "Probes at --std 85, both EXPECT MATCH. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/r1.cob: a called program that left an active PERFORM by EXIT PROGRAM (SUBX) and one that fell off its last paragraph with a PERFORM active (SUBY) are re-CALLed and flow through the old range end without a stale return (X.5.4.4 GR2 'ends of the ranges ... considered to have been reached'); an INITIAL program's fall-off re-initializes WORKING-STORAGE (GR3, implicit CANCEL); an ALTER survives the implicit EXIT PROGRAM (last-used state). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/r2.cob: a called program falling off the last paragraph of an independent segment (SECTION 60) returns and its segment is in initial state on the next CALL (XVI.1.4.3 item 1); a called program with DECLARATIVES falls off its last nondeclarative statement and returns; an INITIAL program that falls off with a file open re-OPENs it at 00 on the next CALL (implicit CANCEL's implicit CLOSE, X.5.3.4 GR10). cite.py: OK §1985:IV.4.4.2 GRL2.3; OK §1985:X.5.4.4 GR2; OK §1985:X.5.4.4 GR3; OK §1985:XVI.1.4.3 (GR1 item 1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

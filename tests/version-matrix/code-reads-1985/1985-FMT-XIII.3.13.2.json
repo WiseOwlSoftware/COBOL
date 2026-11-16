@@ -1,0 +1,116 @@
+{
+ "rule-id": "1985-FMT-XIII.3.13.2",
+ "rule-digest": "e622ce512129",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "96e0506d0c7334c4e5eb958740240c0e4092235265f639b352831d10abd3f8ce",
+   "refuter": "2ed07db7d17cfe283f9ee57ca7a9c7706d347c66fce6d251bc77f1b4e8550916"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.3.13.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the GROUP INDICATE clause of a report group description entry is the key word GROUP followed by the optional word INDICATE (INDICATE is not underlined), so both GROUP INDICATE and GROUP alone must be accepted, and any other arrangement (INDICATE alone, GROUP IS INDICATE, a repeated word or clause) refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupIndicateClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "Edition.DialectLevel < 2002 screens the entry against §1985:XIII.3.9.3 SR11 Table 1 (GROUP INDICATE counts as a format-3 clause), and the 2002 COLUMN / SOURCE-or-VALUE placement faults are asked only at >= 2002; the detail-group fault at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#PresentWhenClausesOf",
+    "switches": "year >= 2002: a GROUP INDICATE item counts as a PRESENT WHEN clause for the column-overlap rules; at 85 it counts as none (§1985:XIII.3.11.3 SR2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#GroupIndicateConsumedByIssuedGenerate",
+    "switches": "from 2002 a GENERATE whose group SUPPRESS PRINTING inhibited uses up the occasion; at 85 only a presented group does (GR1 runtime, not the format)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "GROUP and INDICATE reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the format (GROUP [INDICATE] at every edition); the placement rules and the GR1 consumption differ, each with its own 1985 arm, which belong to other rows",
+  "witnesses-cover": "part: g85_f30_02 writes both spellings and exercises GR1 a. and c.; malformed arrangements and the page-advance occasion are not exercised",
+  "probes": [
+   {
+    "class": "d,general",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gi1.cob",
+    "printed": "report bytes: '-  1 GI -  1' / '        -  2' / '        -  3' FF '-  4 GI -  4' / '        -  5' (read back from runs/gi1-001/GI1.RPT with od -c)",
+    "expected": "GROUP INDICATE on a numeric-edited SOURCE item and bare GROUP on a VALUE item accepted; indicated on the first detail and on the first after the page advance (§1985:XIII.3.13.4 GR1 a., b.)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gibad1.cob",
+    "printed": "error COBOL0001: unexpected 'INDICATE' (INDICATE alone)",
+    "expected": "refused: GROUP is the key word"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gibad2.cob",
+    "printed": "error COBOL0001: unexpected 'IS' (GROUP IS INDICATE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gibad3.cob",
+    "printed": "error COBOL0001: unexpected 'INDICATE' (GROUP INDICATE INDICATE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gibad4.cob",
+    "printed": "error COBOL2423: the clause 'GROUP' is written 2 times",
+    "expected": "refused: the clause at most once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/gibad5.cob",
+    "printed": "error COBOL2519: ... specifies GROUP INDICATE but is in a CONTROL HEADING report group",
+    "expected": "refused under §1985:XIII.3.13.3 SR1 (detail report group only)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.13.1",
+    "check": "OK  §1985:XIII.3.13.1  (3.13.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.3.13.3 SR1",
+    "check": "OK  §1985:XIII.3.13.3 SR1  (3.13.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.13.4 GR1",
+    "check": "OK  §1985:XIII.3.13.4 GR1  (3.13.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "reportGroupIndicateClause is GROUP INDICATE?, exactly the 1985 diagram with INDICATE an optional word; the grammar has no version predicate. Every malformed arrangement probed is refused, and both spellings run with the indication on the first detail and after a page advance. The probe's own DISPLAY read-back merged two lines at the FF byte; the raw report file shows the correct layout.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.3.13.2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probe gi1.cob at --std 85 (run gi1-001). Clause-order and entry-shape forms the reader did not try: 'GROUP INDICATE COLUMN 1 ...' on an entry with no data-name (GROUP right after the level-number), 'COLUMN 5 GROUP PIC X(2) VALUE' (bare GROUP after COLUMN), and 'NAMED-GI PIC X SOURCE K COLUMN 8 GROUP INDICATE' (the clause last). All compile and run. The report bytes are 'AAA GI 1 AAA' / '         BBB' / 'BBB GI 2 BBB': each indicated item prints on the first detail and again after the control break on K, and is blank otherwise (§1985:XIII.3.13.4 GR1 a., c.). The reader already probed the malformed arrangements as refused. cite.py: 'OK  §1985:XIII.3.13.4 GR1  (3.13.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

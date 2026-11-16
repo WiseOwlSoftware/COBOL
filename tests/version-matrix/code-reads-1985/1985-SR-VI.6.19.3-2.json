@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VI.6.19.3-2",
+ "rule-digest": "cf21659b98fd",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "0db080b73373c895b0520856cf798c454dbe305f1bc143d980dcadab09cf1be6",
+   "refuter": "3aca6d6dd3503f6bf20d899a32f1a581775e9fbae3bd31b8ed037c20cf8dbe11"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.19.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MOVE CORR identifier-3 TO identifier-4 must be accepted and behave exactly as MOVE CORRESPONDING identifier-3 TO identifier-4 (same pairs, same moves, same refusals), with CORR a reserved word.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#moveStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Bind; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "whether CORR is reserved at an edition; the CORR row is reserved at 85, 2002, 2014 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "the moveStatement alternative (CORRESPONDING | CORR) and MoveBinder#Bind's test of both tokens carry no edition check (grep Edition/DialectLevel/ConstructRegistry near MoveBinder.cs line 155).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_move_corr_equivalence compares CORR and CORRESPONDING on one alphanumeric and one numeric pair; nested-group pairs, OCCURS exclusion, edited receivers, the shared refusal and CORR's reserved status are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/m1.cob",
+    "printed": "[- 12.5XYZ  ??042] twice, then SAME",
+    "expected": "MOVE CORR and MOVE CORRESPONDING give identical receivers: signed scaled to numeric-edited '- 12.5', alphanumeric padded 'XYZ  ', OCCURS items untouched '??', nested SUB.D 042"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/m3.cob",
+    "printed": "error COBOL1757 (operand 'E1' is an elementary item) for both the CORR and the CORRESPONDING statement",
+    "expected": "both spellings refused alike"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/m2.cob",
+    "printed": "error COBOL0901: 'CORR' is a reserved word in COBOL-85",
+    "expected": "CORR is a reserved word at 85, not a user-defined word"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.3 SR2",
+    "check": "OK  §1985:VI.6.19.3 SR2  (6.19.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar spells the format-2 keyword as one choice (CORRESPONDING | CORR) and MoveBinder#Bind takes the same CorrespondingBinder path for either token, so the two spellings cannot diverge. Diagnostics cite §2023 clause numbers at --std 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.19.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "cite.py: OK  §1985:VI.6.19.3 SR2  the text is in SR2. Probes at --std 85: c1 MOVE CORR G OF R1 TO G OF R2 and MOVE CORRESPONDING G IN R1 TO G IN R3 (qualified, numeric to numeric-edited, alphanumeric padding, a same-named item under OCCURS and an unmatched item left out) printed identical receivers '[ 12ABC  ][ 12ABC  ]'; c2 MOVE CORR R1 TO R2 R3 (format 2 has a single identifier-2) refused COBOL0307; c3 MOVE CORR R1 TO R2(1:2) refused COBOL1757. The abbreviation reaches the one CORRESPONDING path; nothing CORR admits or refuses differs from the full word.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

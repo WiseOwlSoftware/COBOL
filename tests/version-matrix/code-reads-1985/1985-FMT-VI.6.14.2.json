@@ -1,0 +1,129 @@
+{
+ "rule-id": "1985-FMT-VI.6.14.2",
+ "rule-digest": "8dfb34b8d2fa",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "d2d3ad6fd3755b14b4ca6ca17bd399ddd7162f4572fedf9e825548568704a47a",
+   "refuter": "0ff4deaf837acc9fbe7c5f1e58b3f970d91d24c8e3ed279511ec4524b215d974"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.6.14.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the Nucleus EXIT statement is the single word EXIT (no operand, no phrase), which the compiler must accept and treat as a no-op procedure end point; every later-edition form (EXIT PERFORM [CYCLE], EXIT PARAGRAPH, EXIT SECTION, EXIT METHOD, EXIT FUNCTION, EXIT PROGRAM RAISING) must be refused at 85, while EXIT PROGRAM (the 1985 Inter-Program Communication module's own format) stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#exitStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/StatementPosition.cs#Of",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement",
+    "switches": "Check(ExitPerform2002 / ExitParagraph2002 / ExitSection2002 / ExitMethodWindow / ExitFunctionWindow) refuse the later forms below 2002; ExitProgramArchaic2023 and ExitProgramNotLast2002 for EXIT PROGRAM; the bare EXIT arm calls no Check at any edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+    "switches": "the RAISING tail of EXIT PROGRAM is refused COBOL0879 below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "EXIT reserved at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 2002 and later EXIT gains PERFORM [CYCLE], PARAGRAPH, SECTION, METHOD, FUNCTION and RAISING forms, all refused COBOL0900/0879 at 85; bare EXIT binds to BoundNop at every edition",
+  "witnesses-cover": "part: g85_f13_02 exercises bare EXIT; the refusal of the later-edition forms at 85 is not exercised by the witness",
+  "probes": [
+   {
+    "class": "c,general",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exit1.cob",
+    "printed": "IN P1 1 / IN P1 3 / I=3 / S2-A / DONE",
+    "expected": "EXIT paragraphs as PERFORM THRU and section end points and GO TO targets have no other effect (§1985:VI.6.14.4 GR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITPERFORM.cob",
+    "printed": "error COBOL0900: the EXIT PERFORM statement requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format is EXIT alone"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITPERFORMCYCLE.cob",
+    "printed": "error COBOL0900: the EXIT PERFORM statement requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITPARAGRAPH.cob",
+    "printed": "error COBOL0900: the EXIT PARAGRAPH statement requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITSECTION.cob",
+    "printed": "error COBOL0900: the EXIT SECTION statement requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITMETHOD.cob",
+    "printed": "error COBOL0900: the EXIT METHOD statement requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITFUNCTION.cob",
+    "printed": "error COBOL0900: the EXIT FUNCTION statement requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitbadEXITPROGRAMRAISI.cob",
+    "printed": "error COBOL0879: the GOBACK / EXIT ... RAISING phrase requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/exitsr1.cob",
+    "printed": "error COBOL2966: The EXIT statement shall appear in a sentence by itself ... this one shares its sentence with 1 other statement",
+    "expected": "refused under §1985:VI.6.14.3 SR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.14.1",
+    "check": "OK  §1985:VI.6.14.1  (6.14.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.14.3 SR1",
+    "check": "OK  §1985:VI.6.14.3 SR1  (6.14.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.14.4 GR1",
+    "check": "OK  §1985:VI.6.14.4 GR1  (6.14.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar is a superset (exitStatement admits every later form); the 1985 format is enforced by VersionConformancePass gates for each later form, all probed and refused at 85, and bare EXIT binds to BoundNop. The format's one word is too short for a cite.py quotation, so the function, SR1 and GR1 are cited. Diagnostics cite §2023 text at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.6.14.2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: ex1.cob, an EXIT sentence followed by a second sentence in the same paragraph, refused COBOL2966 ('one of 2 sentences in its paragraph'), the half of §1985:VI.6.14.3 SR1 the reader did not probe; ex2.cob 'EXIT P1' (an operand) refused COBOL0001; ex3.cob EXIT PROGRAM in a contained program (the 1985 IPC format) compiles and returns ('IN SUB' / 'BACK'); ex4.cob EXIT with its period on the next line, plus a trailing EXIT paragraph, runs 'P1' / 'DONE'. The reader already probed every later-edition EXIT form refused at 85. cite.py: 'OK  §1985:VI.6.14.3 SR1  (6.14.3 Syntax Rules)  the text is in SR1' (quoted 'comprise the only sentence in the paragraph').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

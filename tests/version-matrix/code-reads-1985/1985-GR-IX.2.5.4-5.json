@@ -2,139 +2,91 @@
  "rule-id": "1985-GR-IX.2.5.4-5",
  "rule-digest": "026f1a6eb86e",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-01",
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-218",
   "sources": {
-   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
-   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+   "reader": "cfe4d5c943059164c740b95b8c7610ab3083cbb9e458314248fa3d7317c57a2d",
+   "refuter": "446d7608587e1a37923ce3eb4eed10b4b95d56ffc03c222c898da3bf2ae5103a"
   },
   "imported": {
-   "reader": "fb0c5de5a36a9f2ba61bb1d26f415c81b40ba2a05f98d62a621ed7fb3a47b373"
+   "reader": "2f629d692020ab3cbc792836461f1fd0d72ae000af3c14ddf012592fd3a5d048",
+   "refuter": "35163f1c9b13a7c1870ee1bb4b42a593d00663d0c7be2100d92a0d0f1c3e18c5"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IX.2.5.4-5",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85, for an indexed file whose FD is EXTERNAL, every file control entry of the run unit describing that connector must name an alternate key of the same data description and relative location, the same number of alternate keys and the same DUPLICATES phrase: a run unit whose entries differ in any of these is refused, and a run unit whose entries agree shares one connector with that one set of alternate keys; the witnesses cover only the refusal half (and for access mode, not for alternate keys).",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#AlternateEntry; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, every file control entry of the run unit that describes one external indexed file connector must give its ALTERNATE RECORD KEY clauses the same data description entry for data-name-1, the same relative location in the record, the same number of alternate keys and the same DUPLICATES phrase; the compiler refuses a compilation group whose describers disagree and the run time detects a disagreement between separately compiled elements.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#AlternateEntry; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#KeyEntry; src/WiseOwl.Cobol.Compiler/Binding/BackendAnswers.cs#Write; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Cite",
-    "switches": "the citation printed in COBOL6847/COBOL1624 (the 1985 locators below 2002)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check (is2023)",
-    "switches": "the 2023-only FILE STATUS and LINAGE external-item rules; not taken at 85 and not part of this rule",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check (DialectLevel < 2002)",
-    "switches": "adds the 1985 file DESCRIPTION entry agreement rules (CheckFileDescriptions) where 2002 on asks the FORMAT clause rule; the ALT segment comparison is one arm at every edition",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "is2023 gates only the FILE STATUS and LINAGE external-item rules; DialectLevel<2002 adds CheckFileDescriptions instead of CheckFormat after the segment comparison; the ALT segment comparison itself is edition-free",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed (edition parameter)",
-    "switches": "the connector's Edition property only; the already-registered ::EXT:: early return does not depend on it",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Cite",
+    "switches": "which edition's citation the COBOL6847 message text names",
     "same-arm-as-latest": true
    }
   ],
   "edition-search": "",
-  "behaviour-differs-by-edition": "no for this rule: the ALT segment (key name, offset, group/elementary shape and width, description, DUPLICATES, SUPPRESS WHEN, sorted) is compared at every edition; only the citation text and the neighbouring 1985 FD rules differ",
-  "witnesses-cover": "part: the witnesses exercise an access-mode disagreement and an agreeing pair; no witness puts an alternate key on an external file in two describers, in either half",
+  "behaviour-differs-by-edition": "no: the ALT segment (description, offset, DUPLICATES, count via the sorted list) is compared the same way at every edition; 2002+ add SUPPRESS WHEN to the same segment, empty at 1985",
+  "witnesses-cover": "part: the witness pb5069_external_entries_agree is a RELATIVE file with no alternate key; no witness exercises the ALTERNATE RECORD KEY disagreement or an agreeing indexed external file",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-nodup.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: the DUPLICATES phrase differs"
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c1_alt_agree2.cob",
+    "printed": "0001AAAAONE / 0002AAAATWO (B reads by the alternate key WITH DUPLICATES the records A wrote)",
+    "expected": "agreeing entries compile and share the connector"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-extra.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: the number of alternate keys differs"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c1_alt_dup_differs.cob",
+    "printed": "error COBOL6847 ... differ in the ALTERNATE RECORD KEY clauses",
+    "expected": "DUPLICATES phrase differs: violation of GR5"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-offset.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: the relative location differs"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c1_alt_loc_differs.cob",
+    "printed": "error COBOL6847 ... differ in the ALTERNATE RECORD KEY clauses",
+    "expected": "relative location differs: violation of GR5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c1_alt_count_differs.cob",
+    "printed": "error COBOL6847 ... differ in the ALTERNATE RECORD KEY clauses",
+    "expected": "number of alternate keys differs: violation of GR5"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-width.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: the data description (size) differs"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-group.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: a group key against an elementary key is another data description entry"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-name.cob",
-    "printed": "error COBOL6847: ... differ in the ALTERNATE RECORD KEY clauses",
-    "expected": "refused: B1 is another data description entry than A1 at the same location"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-dbg.cob",
-    "printed": "P1 DONE / abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 39 on XF (OPEN)",
-    "expected": "the entries agree (ALTERNATE RECORD KEY IS A1 WITH DUPLICATES in both): P2's OPEN INPUT succeeds and READ XF KEY IS A1 displays 0001AAAAxxxx"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-nodupboth.cob",
-    "printed": "P1 DONE / ... I-O status 39 on XF (OPEN)",
-    "expected": "the same agreeing pair without DUPLICATES: the OPEN succeeds"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-noalt.cob",
-    "printed": "P1 DONE / 0001AAAAxxxx",
-    "expected": "control: an agreeing pair with no alternate key works"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-noext.cob",
-    "printed": "P1 DONE / 0001AAAAxxxx",
-    "expected": "control: the same two programs without EXTERNAL work"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-grow.cob",
-    "printed": "P1 REOPEN OK / P1 DONE / ... I-O status 39 on XF (OPEN)",
-    "expected": "a file created after P1 and P3 registered reopens in P1; P2's activation then adds its key again and P2's OPEN fails: the connector's alternate-key list grows by one per describer"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-dbg.cob",
-    "printed": "--std 2023: P1 DONE / ... I-O status 39 on XF (OPEN)",
-    "expected": "the same failure at 2023"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-218/c1_alt_desc_differs.cob",
+    "printed": "error COBOL0863 (numeric alternate key, IX.2.5.3 SR2) and error COBOL6847 ... differ in the ALTERNATE RECORD KEY clauses",
+    "expected": "data description entry differs (PIC 9(4) vs PIC X(4)): violation of GR5"
    }
   ],
   "citations": [
    {
     "cite": "§1985:IX.2.5.4 GR5",
     "check": "OK  §1985:IX.2.5.4 GR5  (║2.5.4 General Rules║)  the text is in GR5"
-   },
-   {
-    "cite": "§1985:IX.2.5.4 GR3",
-    "check": "OK  §1985:IX.2.5.4 GR3  (║2.5.4 General Rules║)  the text is in GR3"
    }
   ],
-  "notes": "The refusal half conforms: COBOL6847 refuses each disagreement GR5 lists, through FileEntryIdentity's ALT segment. The agreeing half fails: FileRegistry.RegisterIndexed returns early for an ::EXT:: connector already registered, but FileRegistry.AddAlternateKey has no such guard, so every further describer appends its alternate keys again to the one shared IndexedConnector; its declared key table then disagrees with the stored one and OPEN INPUT gets '39'. Separately compiled describers (the runtime ExternalTable path) were not probed.",
+  "notes": "The compile-time agreement check compares FileEntryIdentity.Segments, whose ALT segment carries each alternate key's name, offset, width, description and DUPLICATES, sorted, so count, location, description and DUPLICATES are all compared; the same fingerprint is registered for the run-time EC-EXTERNAL-FILE-MISMATCH check between separately compiled elements (not probed: the probe runner takes one source). The COBOL6847 message cites §1985:IX.2.3.4 GR1 and not IX.2.5.4 GR5; cosmetic only.",
   "seeded": true,
-  "harm": "wrong-answer (a legal run unit's OPEN fails with status 39 and, with no FILE STATUS or USE, the run unit terminates abnormally)",
-  "cause": "b",
-  "at-2023": "the same: P1 DONE, then I-O status 39 on XF (OPEN) and abnormal termination",
-  "repro": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s3-dbg.cob: P1 and P2 in one source each SELECT XF ORGANIZATION INDEXED ACCESS DYNAMIC RECORD KEY K1 ALTERNATE RECORD KEY A1 WITH DUPLICATES, FD XF IS EXTERNAL with the same record; P1 OPEN OUTPUT, WRITE, CLOSE, CALL P2; P2 OPEN INPUT, READ XF KEY IS A1, DISPLAY R1",
-  "expected": "0001AAAAxxxx: the entries satisfy §1985:IX.2.5.4 GR5, so both describe one connector with one alternate key and the OPEN succeeds",
-  "observed": "abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 39 on XF (OPEN)",
-  "known_note": "none found (grep kb/Work for AddAlternateKey, EXT:: with alternate, IX.2.5.4 GR5, and 39 with external and alternate; PB5567 is the clause-order refusal and its key-table order fix, landed, not this)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5733"
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.5.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read FileEntryIdentity.cs#Segments/#KeyEntry/#AlternateEntry and ExternalFileConnectorRules.cs#Check whole: the ALT segment is name+offset+G/E width+ActivationDescriptions+DUPLICATES, sorted; no edition arm on it. Probes at --std 85 (runs under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-218/runs): r1_gr4_second_record (second describer declares XA only in a second record description, GR4) compiles and B reads A's records by the alternate key: 0001AAAAONE / 0002AAAATWO; r1_qualified (ALTERNATE RECORD KEY IS XA OF XR in one entry, XA in the other) compiles and runs the same, so qualification is not mistaken for a different entry; r1_name_differs (same PIC and location, data-name YA vs XA) is refused COBOL6847 'differ in the ALTERNATE RECORD KEY clauses', which the 1985 text supports because a data description entry includes its data-name. cite.py: 'OK  §1985:IX.2.5.4 GR5  the text is in GR5'; 'OK  §1985:IX.2.5.4 GR4  the text is in GR4'; 'OK  §1985:VI.5.2.3  ... Each data description entry consists of a level-number followed by the data-name ... the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": "Reading noted, not overturning: the identity does not compare the level-number, which VI.5.2.3 also makes part of the entry; a difference there alone would be accepted. GR5 is a run-unit general rule whose violation the 1985 text does not require the implementor to diagnose, so leniency there is not a conformance failure; the compiler over-rejects nothing I could construct (GR4 second-record form and qualified form both accepted)."
+ }
 }

@@ -1,0 +1,109 @@
+{
+ "rule-id": "1989-RV-A.2.9.4-1",
+ "rule-digest": "7f019854f7fd",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-215",
+  "sources": {
+   "reader": "9f20798d80fdfbeae4540a13860dd82449ca35b8d3ce9a7c204f59960d4b5e89",
+   "refuter": "95cb3606a48f435f75f5314268ce4b4911f95283e4d0bfdb5c9fcfb53902f01d"
+  },
+  "imported": {
+   "reader": "0727328efaede9189f15c4ace0f584e0bd05cfa12207afe7e947f002df9d6dc4",
+   "refuter": "08f2e732c6e9ed0263e1af0c4377b69231cfc177fa0e336ec57e9ee8d8357814"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.9.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the program collating sequence is an ALPHABET literal phrase in which ALSO puts several characters at one position, FUNCTION CHAR of that position must return the character of the first literal written for it (literal-1, nonnumeric or numeric ordinal), in the program and in every contained program; positions held by one character (single, multi-character, THROUGH literals, unspecified native characters) return that character.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Collate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Char; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#CharAt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window: CHAR IntroducedIn 85 against Edition.DialectLevel",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "Edition.DialectLevel < 2002 returns early for the IS LOCALE phrase (refused at recognition below 2002); the literal phrase does not reach this arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "VersionConformancePass ParseArm.VisitAlphabetClause",
+    "switches": "refuses the FOR ALPHANUMERIC/NATIONAL phrase below 2002 (COBOL0900); a 1985 literal phrase without FOR is unaffected",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped SpecialNamesBinder.Alphabets.cs, SpecialNamesBinder.Literals.cs, CollatingModel.cs, ImplementorCodeNames.cs, CollationEmit.cs for DialectLevel, Edition.Edition, IsActive(, Has(: only the LOCALE early return and the RangeInAlphabet2002 gate (a THROUGH-range IN phrase, not on this path). The repByPos (first occupant of a position) construction and the runtime CharAt are edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f06_09 covers nonnumeric ALSO groups and the top position; not exercised there: a numeric literal-1 in an ALSO group, a numeric ALSO operand, ALSO after a multi-character literal and a THROUGH run, a subscripted or expression argument, and CHAR in a contained program under the containing program's sequence.",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/ch1.cob",
+    "printed": "C1=X C2=Y C3=Q C4=C C5=1 C7=3 C8=z CE=Q CX=Q OA=3 OB=3 OC=4 OZ=4 Ob=8 Oz=8 'C4 IS C' and in the contained program 'IN C3=Q IN C4=C' (runs/ch1-002)",
+    "expected": "ALPHABET AL IS \"XY\" \"Q\" ALSO \"B\" ALSO \"A\" 68 ALSO \"Z\" \"1\" THRU \"3\" \"z\" ALSO 99: position 3 returns Q (literal-1, not B or A); position 4 returns C (numeric literal-1 68 = native ordinal of C, not Z); position 8 returns z (not b, numeric ALSO 99); ORD gives each ALSO member the shared position."
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/ch1.cob",
+    "printed": "CE=Q for CHAR (WS-E (2)) with WS-E (2) = 3; CX=Q for CHAR (1 + 2)",
+    "expected": "a subscripted and an arithmetic-expression argument select the same shared position and return literal-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/ch2.cob",
+    "printed": "error COBOL1906: ALPHABET AL: the character 'Q' is specified more than once ... (ISO §2023:12.3.7.3 SR14 a) (runs/ch2-001)",
+    "expected": "a character named twice (the only way 'first literal' could become ambiguous) is refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/ch3.cob",
+    "printed": "error COBOL0900: the FOR ALPHANUMERIC/NATIONAL phrase ... requires COBOL-2002 (targeting COBOL-85) (runs/ch3-001)",
+    "expected": "the 2002 FOR phrase of the ALPHABET clause is refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-215/src/ch1.cob",
+    "printed": "at --std 2023 identical output (runs/ch1-003)",
+    "expected": "same behaviour at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.9.4 RV1",
+    "check": "OK  §1989:A.2.9.4 RV1  (2.9.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.9.4 RV2",
+    "check": "OK  §1989:A.2.9.4 RV2  (2.9.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d6",
+    "check": "OK  §1985:VI.4.5.4 GR4d6  (4.5.4 General Rules)  the text is in GR4d.6"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d1",
+    "check": "OK  §1985:VI.4.5.4 GR4d1  (4.5.4 General Rules)  the text is in GR4d.1"
+   }
+  ],
+  "notes": "AlphabetLiteralPhrase records, per position, the first character assigned to it (repByPos; ALSO operands are assigned in source order with literal-1 first), and LiteralPhraseCollation.CharAt returns that representative; ORD and CHAR are exact inverses. Side observation outside this rule: the COBOL1906 duplicate-character diagnostic at --std 85 cites only §2023:12.3.7.3 SR14 a, not the 1985 rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output (runs/ch1-003)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.9.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Attacked the 1985-only literal forms the reader did not try: §1985 SR5 forbids only symbolic-character figurative constants, so SPACE/QUOTE/ZERO/HIGH-VALUE/LOW-VALUE are legal ALPHABET literals, and GR7 makes HIGH-VALUE/LOW-VALUE there the native highest/lowest characters. rc1 (runs/rc1-001): ALPHABET AL IS SPACE ALSO \"B\" ALSO \"A\" QUOTE ALSO \"Q\" ZERO ALSO \"Z\" \"M\" ALSO \"N\" \"k\" ALSO LOW-VALUE printed C1=SPACE C2=\" C3=0 C4=M C5=k, OA=1 OQ=2 O0=3 (literal-1 each time). rc2/rc5 (runs/rc2-001, rc5-001): HIGH-VALUE ALSO \"H\" -> CHAR(1) is U+FFFF, which rc4 (runs/rc4-001) shows is the native HIGH-VALUE of this implementation (ORD 65536), so literal-1 per GR7; \"x\" ALSO LOW-VALUE -> CHAR(2)=x. rc3 (runs/rc3-001): an ALPHABET with ALSO that is NOT the program collating sequence leaves CHAR native (CHAR(66)=A, CHAR(114)=q). cite.py: 'OK  §1989:A.2.9.4 RV1  (2.9.4 Returned Values)  the text is in RV1'; 'OK  §1985:VI.4.5.4 GR7  (4.5.4 General Rules)  the text is in GR7'; 'OK  §1985:VI.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

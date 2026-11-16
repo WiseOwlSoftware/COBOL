@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-IX.2.4.4-5",
+ "rule-digest": "2624a13c5c6a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-216",
+  "sources": {
+   "reader": "3b7646bf42922a2658edef0fcc3fd548476033cb695823d8bb6c07271ee84524",
+   "refuter": "137fede05aeb2c66926551a20dcf1510fe229ca8aa9a65013918339e4f77b5f8"
+  },
+  "imported": {
+   "reader": "9c6fe00c517934e4663e2b09c7b4166616639d6feb9da9fad8967ec856d49fe5",
+   "refuter": "eab5c2cab00414d238ccc7879f9b225d7e6a565b15c97e631ed8c92118aaedfe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.4.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every file control entry of the run unit that describes one external indexed file connector must specify the same access mode, an omitted ACCESS MODE clause being sequential access (IX.2.4.4 GR1); a run unit whose entries differ is not conforming source, which the compiler may refuse.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "DialectLevel < 2002 runs CheckFileDescriptions (the 1985 FD agreement rules) where later editions run CheckFormat; is2023 adds the FILE STATUS and LINAGE rules; the access-mode comparison (FileEntryIdentity segment ACC) is edition-free",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Cite",
+    "switches": "the citation text of COBOL6847 only (1985 names VII.2.3.4/VIII.2.3.4/IX.2.3.4 GR1)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep PB5069 and ExternalFileConnectorRules across src/WiseOwl.Cobol.Compiler; read Check, Segments and the runtime RegisterIndexed (which keeps the first describer's connector and has no edition switch on access mode).",
+  "behaviour-differs-by-edition": "no: the ACC segment comparison and COBOL6847 refusal are the same code at every edition; only the cited clause text differs",
+  "witnesses-cover": "part: pb5069_external_entries_agree is a RELATIVE file that agrees and pb5069-external-access-mode-differs a RELATIVE file that differs; no witness is an INDEXED file or an omitted ACCESS MODE clause against an explicit one",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/ix_agree.cob",
+    "printed": "A / B K001HELLO1 (exit 0)",
+    "expected": "two programs with the same DYNAMIC access mode on one external indexed file compile and share the connector"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/ix_acc_differs.cob",
+    "printed": "error COBOL6847: external file 'IXF': ... differ in the access mode",
+    "expected": "DYNAMIC against RANDOM violates GR5; refusal is the conforming response"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/ix_acc_default.cob",
+    "printed": "A / B K001HELLO1 (exit 0)",
+    "expected": "an omitted ACCESS MODE is sequential (GR1), so it agrees with ACCESS MODE IS SEQUENTIAL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/ix_acc_default_vs_dyn.cob",
+    "printed": "error COBOL6847: ... differ in the access mode",
+    "expected": "omitted (sequential) against DYNAMIC differs; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.4 GR5",
+    "check": "OK  §1985:IX.2.4.4 GR5  (2.4.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:IX.2.4.4 GR1",
+    "check": "OK  §1985:IX.2.4.4 GR1  (2.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR1",
+    "check": "OK  §1985:IX.2.3.4 GR1  (2.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The group-level pass compares FileEntryIdentity's ACC segment of every describer of one external connector, with the bound access mode (default Sequential), so an omitted clause equals SEQUENTIAL. A describer compiled apart from the group is reached only at run time, where the first registration's connector is kept; 1985 requires no detection there, so that is not a defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.4.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read ExternalFileConnectorRules.Check (the ACC segment of FileEntryIdentity.Segments, bound AccessMode with omitted=Sequential) and its DialectLevel<2002 arm (CheckFileDescriptions only adds FD rules). Probe a_nested.cob (class c, a 1985 contained program with its own EXTERNAL indexed FD, DYNAMIC outer vs RANDOM inner, END PROGRAM nesting): error COBOL6847 'differ in the access mode' (runs/a_nested-001), so nested describers are also in the group. GR5 is a requirement on the run unit with no detection half; no over-rejection found: the reader's omitted-vs-SEQUENTIAL agrees and omitted-vs-DYNAMIC refuses. cite.py: 'OK  §1985:IX.2.4.4 GR5  (2.4.4 General Rules)  the text is in GR5'; 'OK  §1985:IX.2.4.4 GR1 ... If the ACCESS MODE clause is not specified, sequential access is assumed.'",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

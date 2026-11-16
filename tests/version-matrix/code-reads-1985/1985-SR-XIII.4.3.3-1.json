@@ -2,68 +2,89 @@
  "rule-id": "1985-SR-XIII.4.3.3-1",
  "rule-digest": "0f06bc54059f",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-166",
+  "pin": "e14987286bd9c554f1472215a32fb73e4acdccbe",
+  "slice": "1985-226",
   "sources": {
-   "reader": "a2ea7dfee8159667eb1727d685d5c1c58e6decfc8b4eb0ed26fd8e225b5e9647",
-   "refuter": "0afc575a59150d57fe5e4134025dce16eff31c0e12ff61716d8af47b2677c881"
+   "reader": "3ea24128ece6257870afbb626f5a12a2062043a2fe62843bdf80fee9defc9a2d",
+   "refuter": "72e4a837b9f57d04b8ca2ef0ee37583050ad98fdb6ed32b939ff82a827a9f3a7"
   },
   "imported": {
-   "reader": "3dfa0b18ef8eb977526f9a894c56d6d55da4a13c6ddc6f7eb08879aba8790160",
-   "refuter": "d024a2d87745e27ac1fe05abdbeb456a314b8f848ba9600c45ea11453987ef48"
+   "reader": "4e99fc5ac4ac3b92c140bb559c2a41773e698d2bf1ad262845d4e6c928415fb6",
+   "refuter": "438ca0a7299719917ab0c588c290c1cfb34dd3d8e49ddbb8bbde304cb805afc2"
   }
  },
  "reader": {
   "rule-id": "1985-SR-XIII.4.3.3-1",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 GENERATE data-name-1 must be accepted only when data-name-1 names a TYPE DETAIL report group (an 01-level report group entry), optionally qualified by its report-name, and refused for any other report group type, a subordinate report entry, a non-report item, a file-name or an undefined name.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Parts",
+  "requirement": "At COBOL-85 the data-name-1 of GENERATE must name a report group of TYPE DETAIL, optionally qualified (OF/IN) by the report-name whose description holds it; a non-detail report group (page heading, control footing), a subordinate entry, a sum counter, a non-report data item, or a detail qualified by a report that does not hold it is refused, and an unqualified name shared by two reports is a nonunique reference.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Parts; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#generateStatement",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
-    "switches": "DialectLevel < 2002 adds the one-detail-group limit of the report-name form (§1985:XIII.3.20.3 SR6); not on the data-name arm",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
-    "switches": "Edition.Has(2002): the GLOBAL-FD rule for a containing program's report (2002+ only); 1985 asks nothing",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve",
+    "switches": "edition.DialectLevel < 2002 picks the cited rule (§1985:IV.4.3.8.1 SRL2.1 vs §2023:8.4.2.2.1) in the COBOL1920 ambiguity message; the verdict is the same",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep DialectLevel/Edition.Has/Edition.Edition over ReportWriterBinder.cs and ReportGroupResolution.cs (Resolve uses the EditionContext only to report diagnostics); ReservedWords.Table.cs lists GENERATE continuous since 1985.",
-  "behaviour-differs-by-edition": "no for SR1 itself: the data-name arm (detail-kind test, COBOL0899; not-a-group, COBOL1757; ambiguity, COBOL1920) is the same at 85 and 2023. The edition-switched arms on the same statement are the report-name form's one-detail limit (85 only) and the contained-report FD GLOBAL rule (2002+).",
-  "witnesses-cover": "part: g85_f31_01 exercises the legal qualified form (OF/IN); the refusal half (non-detail group types, subordinate entry, WS item, file-name, wrong qualifier, unqualified ambiguous) is exercised only by probe p2gen.",
+  "edition-search": "Read BindGenerate's data-name arm and ReportGroupResolution.Resolve; the only other edition test in BindGenerate (ctx.Edition.DialectLevel < 2002, the §1985:XIII.3.20.3 SR6 detail count) is on the report-name arm, SR2, not this rule. The grammar rules generateStatement / reportGroupReference carry no version predicate (grep of the .g4 files).",
+  "behaviour-differs-by-edition": "no: the detail-group test, the report-name qualifier and the ambiguity verdict are one path at every edition.",
+  "witnesses-cover": "part: the witnesses exercise a legal detail GENERATE and the report-group/data-item homonym; not the refusal of a page heading, control footing, subordinate line entry, sum counter or data item, nor a wrong report-name qualifier or a group name shared by two reports.",
   "probes": [
    {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen1legal.cob",
+    "printed": "R1 file: 'PH1', '', 'R1 005', 'ONLY1', '0010'; R2 file: 'R2 005' (GENERATE DET OF R1, DET IN R2, DONLY)",
+    "expected": "legal: a detail group, qualified by its report-name with OF or IN, presents in its own report"
+   },
+   {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p2gen.cob",
-    "printed": "COBOL0899 'not a DETAIL group' for RH-A, PH-A, CH-A, CF-A, RF-B; COBOL1757 'names neither a detail report group nor a report description entry' for DTL-COL (05-level entry in a detail group), WS-X, PRT (file-name), CH-A OF R-B, NOSUCH; COBOL1920 for unqualified DTL defined in two RDs",
-    "expected": "each operand that is not a type detail report group refused (§1985:XIII.4.3.3 SR1); an ambiguous unqualified group name refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen2amb.cob",
+    "printed": "error COBOL1920: report group 'DET' is described in more than one report description entry ('R1', 'R2') (ISO §1985:IV.4.3.8.1 SRL2.1)",
+    "expected": "refused: nonunique without the report-name qualifier"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p3ok.cob",
-    "printed": "GENERATE DTL OF R-B / DTL IN R-A, report file holds B, A, END B, END A",
-    "expected": "data-name-1 qualified by its report-name accepted and the right detail presented"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen3cf.cob",
+    "printed": "error COBOL0899: GENERATE CFF: the named report group is not a DETAIL group",
+    "expected": "refused: control footing is not type detail"
    },
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-166/p6glob.cob",
-    "printed": "--std 85: GENERATE DTL of a container's GLOBAL report from a contained program compiles and runs (P6.TXT holds IN); --std 2023: COBOL2392 (§2023:14.9.16.3 SR3 FD half)",
-    "expected": "1985 imposes only SR1 on data-name-1; the FD GLOBAL condition is a 2002 addition"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen4ph.cob",
+    "printed": "error COBOL0899: GENERATE PH1 OF R1: the named report group is not a DETAIL group",
+    "expected": "refused: page heading"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen5line.cob",
+    "printed": "error COBOL1757: 'DLN' names neither a detail report group nor a report description entry",
+    "expected": "refused: a subordinate entry is not a report group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen6ws.cob",
+    "printed": "error COBOL1757 on 'WS-AMT'",
+    "expected": "refused: a working-storage item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen7wrongq.cob",
+    "printed": "error COBOL1757 on 'DONLY OF R2' (DONLY is R1's)",
+    "expected": "refused: no such detail in R2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-226/gen8sum.cob",
+    "printed": "error COBOL1757 on 'TOT1' (sum counter)",
+    "expected": "refused"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.4.3.3 SR1",
     "check": "OK  §1985:XIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1"
-   },
-   {
-    "cite": "§1985:X.4.6.4 GR1",
-    "check": "OK  §1985:X.4.6.4 GR1  (║4.6.4 General Rules║)  the text is in GR1"
    }
   ],
-  "notes": "The data-name arm resolves through the one report-group funnel and refuses every non-detail target at 85 exactly as at 2023. Diagnostic texts cite §2023:14.9.16.3 SR1 rather than the 1985 clause at --std 85 (wording only, not a conformance defect).",
+  "notes": "Conforms. The not-detail and not-a-group diagnostics at --std 85 cite §2023:14.9.16.3 SR1 rather than §1985:XIII.4.3.3 SR1 (message text only). A first probe draft without FIRST DETAIL was refused for its page heading (COBOL2199), which is correct at 1985: HEADING and FIRST DETAIL both default to 1, leaving the page heading no lines (§1985:XIII.3.8.4 GR2).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -75,16 +96,10 @@
  },
  "refuter": {
   "rule-id": "1985-SR-XIII.4.3.3-1",
-  "refutation": "OVERTURNED",
-  "classes": "b,c",
-  "evidence": "Probe refute-1985-166/r7amb.cob: DTL2 is both an 01 TYPE DE report group of RD RPT and a 05 item under WS-G in WORKING-STORAGE; 'GENERATE DTL2.' (and 'MOVE \"X\" TO DTL2.') compiles and runs with EXIT 0 at --std 85 (runs/r7amb-001) and at --std 2023 (runs/r7amb-002). §1985:IV.4.3.8.1 requires a unique reference for every explicitly referenced user-defined name ('Identical user-defined names may appear in a source program; however, uniqueness must then be established through qualification for each user-defined name explicitly referenced'), so unqualified data-name-1 here does not name a type detail report group; it must be written DTL2 OF RPT. ReportGroupResolution.Resolve looks only at the report models, so COBOL1920 fires for a name in two RDs (the reader's p2gen) but never for a report group that collides with a non-report data-name. The reader's own requirement counts 'an ambiguous unqualified group name refused' in SR1's range. Other attacks held: r1gen 'GENERATE DTL OF PRT' (file-name qualifier) and 'GENERATE DTL OF WS-G' refused COBOL1757; r2genok an elementary level-01 detail (PIC/COLUMN/SOURCE on the 01) refused COBOL2247 citing §1985:XIII.3.9.3, correct since 1985 Format 1 (01) carries no PICTURE. cite.py: OK §1985:XIII.4.3.3 SR1 (the text is in SR1); OK §1985:IV.4.3.8.1 (the text is in the clause; it lies in SR3).",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "g1fileq.cob: GENERATE DET OF PRT (qualified by the file-name, not a report-name) refused COBOL1757. g2de2.cob: TYPE DE (the 1985 abbreviation) detail group, GENERATE DET IN R1 and GENERATE DET, EXIT 0, report 'RH','','005','005'. g3rh.cob: GENERATE RFD (report footing) refused COBOL0899 'not a DETAIL group' (the probe's other two COBOL2199 errors are its own layout, HEADING/FIRST DETAIL defaults). No edition arm on the data-name path beyond the ambiguity-message citation the reader names (grep of VersionConformancePass for Generate finds only the USE BEFORE REPORTING PERFORM-range check). cite.py: 'OK  §1985:XIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1'.",
   "edition-sites-missed": [],
-  "corrected": "Not CONFORMS: under-rejects. GENERATE data-name-1 unqualified, where data-name-1 also names a non-report data item, is accepted at --std 85 although the reference is not unique (§1985:IV.4.3.8.1) and so does not name a type detail report group (§1985:XIII.4.3.3 SR1). Cause (b): same at --std 2023. The ambiguity test in src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve considers report groups only. If the inventory files uniqueness under IV.4.3.8.1 rather than SR1, the defect moves there and SR1 itself is otherwise implemented. No kb/Work note found (searched COBOL1920, ReportGroupResolution, working-storage collisions: PB365, PB4109, PB5524 are other defects)."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "The mechanism of kb/Work PB5775: report names are resolved apart from data names, so an unqualified CONTROL name that a Report Section item also spells binds silently to WORKING-STORAGE, and `GENERATE DTL2` compiles when DTL2 names both a detail group and a data item.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
- },
- "work": "PB5775"
+  "corrected": ""
+ }
 }

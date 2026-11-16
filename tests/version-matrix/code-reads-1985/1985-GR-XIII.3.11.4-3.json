@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.3.11.4-3",
+ "rule-digest": "6e407f0e14c4",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "3c28c8f3024ca8d17e8e9ec82a347a15eaab2031e8167d7726fcf5160e389127",
+   "refuter": "0a51b1b715277240ce27e3c59ea40998f5316b2be9cb999fd1213e1043c37c7a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.11.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 every position of a print line that no printable item occupies (before the first item, between items, on every line of a multi-line group) holds a space character. The witness covers one leading and one interior gap.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#NewLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ReportLineImage",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/Year/DialectLevel/DialectBehaviors in CobolReport.NewLine, CobolReport.Place and ReportLineImage (constructor Array.Fill ' ', Write, ToString): none; the line image is space-filled the same way at every edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: one leading and one interior gap (g85_z01); not multi-line groups, gaps after edited or signed items, or a VALUE SPACE item",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLSP.cob",
+    "printed": "od: 'Q1' 0x20 0x20 'AB' then five 0x20 '-  5' 0x20 '*'; '   L2   007'; '  Z': every gap is 0x20",
+    "expected": "spaces in all unoccupied positions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/runs/COLSP-002",
+    "printed": "the same bytes at --std 2023",
+    "expected": "no edition difference"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/COLSP.cob",
+    "printed": "D1 ' XYZ' then CR LF: the trailing spaces of the X(8) item (columns 5-9) are not written",
+    "expected": "a trailing position is not an unoccupied interior position; the record shape is implementor-defined"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.11.4 GR3",
+    "check": "OK  §1985:XIII.3.11.4 GR3  (3.11.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "ReportLineImage starts as all spaces and Place overwrites only item columns, so every unoccupied position before and between items is a space. Doubt: the file writer trims trailing spaces from each line (FileConnector.TrimRecordEnd), so ' XYZ     ' is written as ' XYZ'. That is invisible on a printed page but contradicts DOC-A.1-159's 'a line holds exactly the columns its report group description places'; it concerns the documented representation rather than GR3, and is the same at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.11.4-3",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "COLJB's second detail has a suppressed GROUP INDICATE item, a BLANK WHEN ZERO zero and a JUSTIFIED item. Every position outside the printed characters is 0x20 up to the '|' at column 22 (cat -A shows no stray bytes), and a shorter control-footing line printed after a wider detail line carries no stale characters. Trailing-space trimming is not a breach: §1985:XIII.3.2.4 GR2 says the report file's logical record structure 'is defined by the implementor'. cite.py: OK §1985:XIII.3.11.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

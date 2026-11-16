@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-IV.4.3.6-2",
+ "rule-digest": "f1f1b738c910",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-187",
+  "sources": {
+   "reader": "6a998a4b1e57a690f7e45cdec6fe86e3fd296177f87d26c4e5397bed4746166a",
+   "refuter": "d6a21439328cab15932be6b7a4e5f211c8acebc58be757ed8d33d358dae71686"
+  },
+  "imported": {
+   "reader": "f92aad487803bd667c08d9ec813a6b4e9670982221ef6d52e28883827383b22a",
+   "refuter": "d236fcae3395f8d575f89c05d81193bb91479d7511430e31fa9948c2e65a3c52"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.6-2",
+  "verdict": "CONFORMS",
+  "requirement": "Data stored into a numeric edited receiver is aligned by decimal point with zero fill or truncation at either end within the receiver's character positions, except where editing (Z, *, floating $ + -, BLANK WHEN ZERO) replaces leading zeros, for every 1985 editing symbol including P, B, 0, CR/DB and a leading period.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#ConvertSource; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#TransferWide; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#EditedLanding; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#AllLiteralNumber",
+    "switches": "DialectLevel < 2002: a digit-only ALL literal into a numeric-edited receiver is repeated to the picture's full length and taken as an integer (85) instead of the receiver's digit positions at its scale (2002+)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/DialectBehavior in MoveEmitter.cs, NumericRenderer.cs, CobolEdit.cs: only AllLiteralNumber consults the edition",
+  "behaviour-differs-by-edition": "yes: MOVE ALL \"12\" TO PIC ZZ9.99 edits the integer 121212 as 212.00 at 85; every other edited alignment is the same code",
+  "witnesses-cover": "part: g85_f04_01 covers 999.99, ZZ9.99, Z9.9 and ZZZ from literals; not exercised are CR, floating $, check protection, +, B insertion, P in an edited picture, BLANK WHEN ZERO, a leading period, signed and alphanumeric senders and ALL literals",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/aln2.cob",
+    "printed": "E1 [123.45CR] / E2 [$123.4] / E3 [*123.45-] / E4 [-23] / E5 [12 34] / E6 [345] / E7 [     ] / E7b [     ] / E8 [2.345] / E9 [212.00] / EA [345.00] / E10 [.34] / E11 [    ] / E11b [    ]",
+    "expected": "-123.456 aligned and truncated into ZZ9.99CR, $$$9.9, ***9.99- and +ZZ; 1234.5 into 99B99 is 12 34; 1234567 into ZZ9PP keeps 345; zero and 0.004 into ZZ.ZZ BLANK WHEN ZERO blank; 12.3456 into 9.999 is 2.345; ALL \"12\" at 85 is 212.00; \"12345\" into ZZ9.99 is 345.00; 12.345 into .99 is .34; 0.9 into ZZZZ is blank"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.6 GR2",
+    "check": "OK  §1985:IV.4.3.6 GR2  (4.3.6 Standard Alignment Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "ConvertSource's numeric-edited arm transfers the value to the mask's receiver scale (truncating the fraction) and CobolEdit.Format places the digits, dropping high-order digits and zero-filling or replacing leading zeros per the mask. All fourteen probe lines match the rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.6-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "Probe refute-1985-187/ra1.cob (runs/ra1-001, --std 85): edited sender into edited receiver -$1,234.50 -> ZZ9.99CR '234.50CR'; 12345 into $$$9 '$345' (floating digit positions truncate left); 1.5 into **,**9.99 '*****1.50'; 0.0012345 into PP99+ '12+' (P to the left of the digits); 123456 into ++++9 '+3456'; 12345 into 9909 '3405'; -12345.678 into Z,ZZ9.99DB '2,345.67DB'; COMP 7 into ZZ9.99 '  7.00'. All aligned by the point with truncation at both ends. cite.py: 'OK  §1985:IV.4.3.6 GR2  (4.3.6 Standard Alignment Rules)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

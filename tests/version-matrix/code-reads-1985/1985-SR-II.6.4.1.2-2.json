@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-II.6.4.1.2-2",
+ "rule-digest": "2f045dcf51ae",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-205",
+  "sources": {
+   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
+   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+  },
+  "imported": {
+   "reader": "e78cee5dc47852ab6327a82201db6f3b51ba1bffb77c925c870a66ed194e2aa4",
+   "refuter": "14be3c36138c7c3b741df5baa5c0df9ea0889af41f138daa4cc4b6b2e6d7e256"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-II.6.4.1.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a CALL in a program must activate any program directly contained in that program (by literal or identifier), the directly contained program taking precedence over a separately compiled program of the same name (§1985:II.6.4.1.3), while a non-common program contained only indirectly is not reachable that way (SR4).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramPrototypeNamesExist",
+    "switches": "below 2002 a bare CALL target word is only identifier-1; a literal or data-name target binds as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+    "switches": "refuses CALL ... AS NESTED (call-as-phrase-2002) at 85, so BinderDriver#NestedCallablesOf is never consulted at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "refuses PROGRAM-ID RECURSIVE (program-id-recursive-2002) at 85, so ResolveVisible's self-call arm is unreachable",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect|ConstructRegistry in ProgramTable.cs, ProgramNameScope.cs, CallBinder.cs: ResolveVisible's rule 1 (direct children of the caller) reads no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f02_01 covers one directly contained program called by literal; not exercised: an identifier target, a second-level containment, the name shadowing a separately compiled program, and the indirectly contained refusal",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr2direct.cob",
+    "printed": "C1 / GC / DUP SEPARATE / C2 / DUP CONTAINED / GC NOT VISIBLE (MATCH)",
+    "expected": "main calls children C1 (literal) and C2 (identifier); C1 calls its own child GC; main's SR2DUP is its contained one, C1's SR2DUP is the separately compiled one (§1985:II.6.4.1.3); main's CALL of grandchild GC is not located (SR4) and takes ON EXCEPTION"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr2later.cob",
+    "printed": "error COBOL0900: the CALL ... AS phrase (program-prototype format) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "CALL ... AS NESTED is not 1985; refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr2rec.cob",
+    "printed": "error COBOL0885: PROGRAM-ID RECURSIVE requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 PROGRAM-ID has no RECURSIVE attribute; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.6.4.1.2 SR2",
+    "check": "OK  §1985:II.6.4.1.2 SR2  (6.4.1.2 Scope of the CALL Statement)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:II.6.4.1.2 SR4",
+    "check": "OK  §1985:II.6.4.1.2 SR4  (6.4.1.2 Scope of the CALL Statement)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:II.6.4.1.3",
+    "check": "OK  §1985:II.6.4.1.3  (6.4.1.3 Scope of Names of Programs)  the text is in the clause"
+   }
+  ],
+  "notes": "ResolveVisible's first arm walks only the caller's direct children before the outermost arm, so direct containment wins and an indirectly contained non-common program is not reached. No edition is read on the run-time path; the edition reads on the bind path only refuse 2002 forms.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-II.6.4.1.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Same rdup probe (runs/rdup-001, MATCH): RA's CALL of its directly contained COMMON RDUP activates the contained one, and a directly contained name wins over the separately compiled duplicate; a grandchild is not reached from the outermost (SR4), the call falling to the separately compiled program of that name. The reader's 2002 refusals (CALL ... AS, PROGRAM-ID RECURSIVE) stand. cite.py: 'OK  §1985:II.6.4.1.2 SR4  (6.4.1.2 Scope of the CALL Statement)  the text is in SR4' (quote 'if, and only if, that program is directly contained within the calling program').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

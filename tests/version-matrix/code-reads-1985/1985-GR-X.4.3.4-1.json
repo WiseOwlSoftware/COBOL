@@ -1,0 +1,161 @@
+{
+ "rule-id": "1985-GR-X.4.3.4-1",
+ "rule-digest": "7c06371d5115",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-199",
+  "sources": {
+   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
+   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+  },
+  "imported": {
+   "reader": "0418ef97ef5de2c9ac24322717584ece1a6dc70da86a8ff12a9968afb851ec6d",
+   "refuter": "e5ef8a8b75aeaf90f279c564b7bbeda5aa156b78ae790d3f40d9315090b0398b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a level-01 data description entry admits IS EXTERNAL (Working-Storage only) and IS GLOBAL (File or Working-Storage Section) with their X-23/X-24 meanings, and every other clause keeps its Nucleus rules. EXTERNAL is refused off level 01, outside Working-Storage, beside REDEFINES, with VALUE and on FILLER; GLOBAL is refused off level 01, in Linkage and on FILLER.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#externalClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#globalClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+    "switches": "refuses GLOBAL in the Linkage Section at 85 (construct linkage-global-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExternalizedNamePhrase",
+    "switches": "refuses EXTERNAL AS literal at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+    "switches": "the VALUE clause on an EXTERNAL item is a 2002 construct, refused at 85 with COBOL0900",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ClausePlacementRules (level, section, REDEFINES, FILLER) and CallBindExternalAndGlobal hold no edition test. The edition differences on this path are the three construct gates listed above.",
+  "behaviour-differs-by-edition": "yes: at 85, GLOBAL in Linkage, VALUE on EXTERNAL and EXTERNAL AS are refused; 2002+ admits them. Level-01 placement, sharing and visibility do not differ.",
+  "witnesses-cover": "part: g85_f06_06 covers one shape. The probes add EXTERNAL shared across separately compiled programs with REDEFINES and condition-names, GLOBAL with OCCURS INDEXED BY, a signed packed GLOBAL item, a File Section GLOBAL record, and the refusals.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3a_ws_ext_global.cob",
+    "printed": "PNEST GTAB(GI)=BB GITEM=-012.5 / PSEP SEES OKAY XNUM=-99999 / PA AFTER PSEP XNUM=+12345 XTXT=DONE",
+    "expected": "an EXTERNAL record is shared across separately compiled programs (a redefinition is allowed, and condition-names work); GLOBAL items reach a contained program"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3b_fs_global.cob",
+    "printed": "INNER F1-REC=ABC007",
+    "expected": "a File Section 01 GLOBAL record is visible in the contained program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r1_ext_05.cob",
+    "printed": "COBOL2404 EXTERNAL refused at level 05",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r2_ext_fs.cob",
+    "printed": "COBOL2404 EXTERNAL refused in a file section record",
+    "expected": "refused (SR2: Working-Storage only)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r3_ext_redef.cob",
+    "printed": "COBOL2404 EXTERNAL with REDEFINES refused",
+    "expected": "refused (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r4_global_05.cob",
+    "printed": "COBOL2404 GLOBAL refused at 05",
+    "expected": "refused (SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r5_global_77.cob",
+    "printed": "COBOL2404 GLOBAL refused at 77",
+    "expected": "refused (SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r6_ext_77.cob",
+    "printed": "COBOL2404 EXTERNAL refused at 77",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r7_ext_value.cob",
+    "printed": "COBOL0900 VALUE on EXTERNAL requires COBOL-2002",
+    "expected": "refused (§1985:X.4.5.3 SR3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r8_global_linkage.cob",
+    "printed": "COBOL0900 GLOBAL in linkage requires COBOL-2002",
+    "expected": "refused (§1985:X.4.6.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r9_ext_linkage.cob",
+    "printed": "COBOL2404 EXTERNAL refused in linkage",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r10_ext_filler.cob",
+    "printed": "COBOL2404 FILLER with EXTERNAL refused",
+    "expected": "refused (SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c3r11_global_filler.cob",
+    "printed": "COBOL2404 FILLER with GLOBAL refused",
+    "expected": "refused (SR5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.3.4 GR1",
+    "check": "OK  §1985:X.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.4.3.3 SR2",
+    "check": "OK  §1985:X.4.3.3 SR2  (4.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:X.4.3.3 SR4",
+    "check": "OK  §1985:X.4.3.3 SR4  (4.3.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:X.4.6.3 SR1",
+    "check": "OK  §1985:X.4.6.3 SR1  (║4.6.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:X.4.5.4 GR1",
+    "check": "OK  §1985:X.4.5.4 GR1  (║4.5.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "This is a pointer rule. The level-01 entry admits both clauses at 85 with their meanings, and every placement restriction probed is refused. The COBOL2404 messages quote §2023 text at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85. r3a_ext_dup (two 01 XA EXTERNAL): COBOL2159, refused per §1985:X.4.5.3 SR2 (cite.py OK). r3b_global_dup (01 GA GLOBAL in the File Section and in Working-Storage): COBOL6862, refused per §1985:X.4.6.3 SR2 (cite.py OK). r3c_ext_value_sub (VALUE on an item subordinate to EXTERNAL): COBOL0900, refused per X.4.5.3 SR3. r3c2_ext_cond_value (an 88 VALUE under EXTERNAL, which SR3 allows): EXIT 0, prints ON. r3d_global_redefines (01 REDB REDEFINES BASEA GLOBAL; the contained program names BASEA): COBOL1639, refused because only the REDEFINES subject is global, per §1985:X.4.6.4 GR3 (cite.py OK). r3d2 (the contained program uses REDB): EXIT 0, 'INNER ABCD / OUTER WXYZ'. r3e (a local G1 hides the global G1 in INNER, and DEEP sees the global): 'INNER G1=INNER / DEEP G1=OUTER / OUTER G1=OUTER', which is correct. cite.py: OK  §1985:X.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

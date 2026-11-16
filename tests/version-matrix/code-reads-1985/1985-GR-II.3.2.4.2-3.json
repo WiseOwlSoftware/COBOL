@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-II.3.2.4.2-3",
+ "rule-digest": "971f8ed4860c",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-187",
+  "sources": {
+   "reader": "6a998a4b1e57a690f7e45cdec6fe86e3fd296177f87d26c4e5397bed4746166a",
+   "refuter": "d6a21439328cab15932be6b7a4e5f211c8acebc58be757ed8d33d358dae71686"
+  },
+  "imported": {
+   "reader": "5fd9581a581e081fbe6cb6508041d41801b6feee5f52ca199c87f45a0bf57aed",
+   "refuter": "0a0ae144c9bbaf821efeb2d800f8194d8deca8ca8df774a1f1d231bce4f2647c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-II.3.2.4.2-3",
+  "verdict": "CONFORMS",
+  "requirement": "During a GENERATE data-name, after any control footings (minor to break level) and control headings (break level to most minor) the control break calls for, the DETAIL report group named in the GENERATE statement is presented; the report-name (summary) form presents no detail.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate (from 2002): whether a GENERATE whose detail did not present consumes the GROUP INDICATE occasion; it runs after the detail is presented and does not change which group is presented or when",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel < 2002 refuses GENERATE report-name when the RD has more than one DETAIL group (ReportGenerateDetailCount); the data-name arm consults no edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate",
+    "switches": "the engine is constructed with Edition = DialectLevel, the argument of every DialectBehaviors question the engine asks",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehaviors/DialectLevel in ReportWriter.cs, ReportWriterEmitter.cs and ReportWriterBinder.cs; the CF/CH/detail sequence in GenerateCore takes the same code at every edition",
+  "behaviour-differs-by-edition": "no: the sequence CF, CH, named detail is one code path; only the GROUP INDICATE bookkeeping after the presentation and the GENERATE report-name detail-count refusal differ at 85",
+  "witnesses-cover": "part: g85_f01_01 covers the sequence on unpaged reports with two details; not exercised are a paged report where the named detail itself triggers a page advance after its CH, a multi-line detail, the summary form presenting no detail, and a GENERATE naming a non-DETAIL group",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/rw1.cob",
+    "printed": "RW1.TXT: PH / blank / CH 1 / D1 1  -12.5 / D2 / CF 1 / CH 2 <FF> PH / blank / D1 2  -12.5 / D2 / CF 2 / CH 3 / D1 3    0.0 / D2 / CF 3",
+    "expected": "named two-line detail after the CF and CH of each break; on the CK=2 break CH 2 fits line 7 and the detail (lines 8-9 > LAST DETAIL 8) advances the page; GENERATE R1 (summary) presents CF 2 and CH 3 but no detail; signed edited SOURCE -12.5 and 0.0"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/rw1b.cob",
+    "printed": "error COBOL0899: GENERATE CH1: the named report group is not a DETAIL group",
+    "expected": "GENERATE data-name must name a DETAIL report group: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.3.2.4.2 GR3",
+    "check": "OK  §1985:II.3.2.4.2 GR3  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR3"
+   }
+  ],
+  "notes": "GenerateCore presents CHs on the first GENERATE, or on a later break runs ProcessControlFootings then CHs break->minor, then PresentBody(detail) only for the printDetail (data-name) arm. Probe confirms the order on a paged report with a multi-line detail and that the report-name form presents no detail.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-II.3.2.4.2-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:II.3.2.4.2 and §1985:XIII.4.3.4 GR5/GR6 (CF minor to major, CH major to minor, then the named detail; GENERATE report-name only with one DETAIL). Probe refute-1985-187/rr1.cob (runs/rr1-001, --std 85): CONTROLS FINAL KA KB, two DETAILs; first GENERATE gives CHF, CHA 1, CHB 1, DX; a KB break gives CFB 1, CHB 2, DY; a KA-only break (KB unchanged) gives CFB 2, CFA 1, CHA 2, CHB 2, DX (the minor control treated as changed); CF SOURCE shows the prior control value and SUM 03/04/05; TERMINATE CFB, CFA, CFF. Probe rr2.cob (runs/rr2-001): two RDs each with a DETAIL named D; GENERATE D OF R2 / D IN R1 present the qualified report's detail after its own CF/CH. All match. cite.py: 'OK  §1985:II.3.2.4.2 GR3  (3.2.4.2 Logical Subdivisions of a Report)  the text is in GR3'; 'OK  §1985:XIII.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6'. The other edition consults in ReportWriter.cs (SumSizeErrorBlanksPrintableItem, TerminateDiscardsSavedNextGroup, ControlFootingPageGroupsSeePriorControlValues in WithPageGroupControlValues) do not change the CF/CH/detail order.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues: DialectBehavior.ControlFootingPageGroupsSeePriorControlValues, which control values a page group sees during the footing phase; not the presentation order"
+  ],
+  "corrected": ""
+ }
+}

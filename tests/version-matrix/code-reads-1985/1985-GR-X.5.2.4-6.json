@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-6",
+ "rule-digest": "cf4a5d7755eb",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "f52710b63ed8cd1efea66f6504e2fafeef4c78c90e43647f17adbecf22290208",
+   "refuter": "86f46ff082c98f188d424b8a6dd1a23ea69793dd2e423a57ffa7cf6c4d61c692"
+  }
+ },
+ "reader": {
+  "edition-search": "CallProgram's freshInstance/CancelContained/EndInitialActivation read no edition (grep Edition, DialectBehavior, IsAvailable in ProgramTable.cs).",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a called program with the initial attribute, and every program it contains, is placed in its initial state on every call; a contained non-initial program keeps its state across calls within one activation of the initial program and is initial again at that program's next call; EXTERNAL data is not program-internal and persists.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained",
+    "switches": "asks CancelNode with refusesEveryActiveProgram: true at every edition (no contained program is active at an initial program's entry or exit, so the two editions agree)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "RECURSIVE (and so the INITIAL/RECURSIVE combination checks) refused at 85; INITIAL is accepted at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f02_03 covers a counter in an initial program and its contained program across two calls; not covered: ALTER state, ODO data, a contained program called twice in one activation, EXTERNAL and GLOBAL data, an explicit CANCEL of an initial program",
+  "probes": [
+   {
+    "class": "a,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr6a.cob",
+    "printed": "ONE -1.5 1 A / NC 1 / NC 2 / ONE -1.5 1 A / NC 1 / NC 2 / TWO -0.5 2 AB / NC 3 / NC 4 / ONE -1.5 1 A / NC 1 / NC 2 / TWO -0.5 2 AB / NC 3 / NC 4 (run gr6a-002, MATCH)",
+    "expected": "each call starts unaltered with VALUE data and ODO count; within one activation the ALTER and NC's counter persist; the next call resets both (§1985:X.2.4.2 GR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr6b.cob",
+    "printed": "IB EX 101 W 1 G 6 / NG G 7 / IB EX 102 W 1 G 6 / NG G 7 / IB EX 103 W 1 G 6 / NG G 7 / MAIN EX 103 (run gr6b-001, MATCH)",
+    "expected": "internal WORKING-STORAGE (including a GLOBAL item a contained program changes) is initial on every call; the EXTERNAL item persists; CANCEL of an initial program changes nothing further"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr5b.cob",
+    "printed": "IP B1 / IP B2 / IP C",
+    "expected": "the PERFORM control of an initial program is initial on each call"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR6",
+    "check": "OK  §1985:X.5.2.4 GR6  (cite.py --check with \"is placed into its initial state every time the called program is called within a run unit\")"
+   },
+   {
+    "cite": "§1985:X.2.4.2 GR4",
+    "check": "OK  §1985:X.2.4.2 GR4  (cite.py --check with \"after the execution of a CALL statement referencing a program that possesses the initial attribute\")"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR3",
+    "check": "OK  §1985:X.5.4.4 GR3  (cite.py --check with \"is equivalent also to executing a CANCEL statement referencing that program\")"
+   }
+  ],
+  "notes": "g85_f02_03 MATCHes at 85. An initial program gets a fresh instance per activation and CancelContained resets its contained programs at entry; EndInitialActivation is the implicit CANCEL at exit (files closed, contained programs canceled)."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-6",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "g67: INITIAL IP calls its contained non-initial NF twice per activation; NF opens a sequential file at first entry: NF OPEN 00 / R001 / R002 on each IP call (NF and its file are initial again at each call of IP, kept within an activation). g8: INITIAL INI's contained INI2 reads an EXTERNAL indexed file positioned by the caller; INI's implicit cancel leaves the external file positioned. cite.py: OK §1985:X.5.2.4 GR6 the text is in GR6; OK §1985:X.2.4.2 the text is in the clause; it lies in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
