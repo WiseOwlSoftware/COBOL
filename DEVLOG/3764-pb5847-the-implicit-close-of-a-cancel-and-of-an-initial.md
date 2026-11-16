@@ -1,4 +1,4 @@
-## PB5847: the implicit CLOSE of a CANCEL and of an INITIAL program's return is the one CLOSE, and stores the I-O status
+## Entry 3764 — 2026-11-16 07:43 PST — PB5847: the implicit CLOSE of a CANCEL and of an INITIAL program's return is the one CLOSE, and stores the I-O status
 
 **The defect.** During a CANCEL "an implicit CLOSE statement without any optional phrases is executed" for each open
 internal file (`§1985:X.5.3.4 GR10`, `§2023:14.9.5.4 GR9`), and an INITIAL program's EXIT PROGRAM or GOBACK executes that
@@ -30,3 +30,4 @@ cascade. Rows `GR-14.9.5.4-9` (notes restated) and `GR-14.9.14.4-3` take the 202
 row is owed a read of the fixed code. Their probes re-run at the branch head print the recorded values. kb/Work PB5685 (the
 implicit CLOSE's report-active check) is unchanged by this fix, measured in `kb/Work/PB5685/2026-11-16-after-pb5847.md`.
 `docs/FILES_DESIGN.md` describes the one CLOSE.
+
