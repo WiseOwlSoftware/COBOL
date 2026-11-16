@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-1",
+ "rule-digest": "7fa66eb33d66",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "ec0063e93fc638408551b23476362966418e5683946c790cea5dfa31aeef6949",
+   "refuter": "b5af6e699405ddbf0876f4bc964cdf59c6b07309049a1de95ea9c30355c0ef1e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report file must be described by an FD entry (level indicator FD followed by the file-name and the REPORT clause), so a REPORT clause under any other level indicator (SD) must be refused, and an FD carrying the 1985 report-file clauses (BLOCK, RECORD, LABEL RECORDS, VALUE OF, CODE-SET, REPORT, in any order) must be accepted.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+  "edition-consulted": [],
+  "edition-search": "The rule is the grammar's: reportClause is an alternative of fileDescriptionClause (FD) only, and sortMergeDescriptionClause has none. grep DialectLevel|Edition in FileDescriptionFormats.cs: only the DeletedAt2002 flag (LABEL RECORDS, DATA RECORDS, VALUE OF), decided by their removal gates, which does not touch the level indicator. No edition test sits on the FD/SD choice",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover legal report FDs. An SD carrying a REPORT clause and an RD named by no FD are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/fd-sd.cob",
+    "printed": "COBOL0001 unexpected 'REPORT' (SD PRTF REPORT IS RPT) (run fd-sd-001)",
+    "expected": "refused: the report file must be described by FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/fd-none.cob",
+    "printed": "COBOL2714 RD 'RPT' is not named in any file description entry's REPORT clause",
+    "expected": "refused: no FD for the report"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/fd-ok.cob",
+    "printed": "runs, report 'ABC': FD with REPORTS ARE, CODE-SET, LABEL RECORDS ARE STANDARD, RECORD CONTAINS, BLOCK CONTAINS in a non-printed order (run fd-ok-001)",
+    "expected": "accepted (SR2 any order)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/fd-linage.cob",
+    "printed": "COBOL2604 the LINAGE clause is not a clause of Format 3 (report)",
+    "expected": "refused: LINAGE is not in the 1985 report FD format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/fd-datarec.cob",
+    "printed": "COBOL6849 DATA RECORDS PREC: 'PREC' is not the name of an 01 record description of file 'PRTF'",
+    "expected": "refused: the 1985 report FD format has no DATA RECORDS clause and SR4 forbids record descriptions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.3 SR1",
+    "check": "OK  §1985:XIII.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar admits the REPORT clause only under FD, so an SD that carries one is a parse refusal at every edition. A lead outside this rule: FileDescriptionFormats.Rows admits DATA RECORDS in Format 3 (report), but the 1985 report FD format (XIII.3.2.2) has no DATA RECORDS clause. It is refused here only because a report FD can have no 01 record, and the message cites VII.3.5.3 SR1, not the format.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "The FD/SD choice is the grammar (reportClause only under fileDescriptionClause). Probes at --std 85: r-fdval.cob, an FD whose clauses are the 1985-only VALUE OF FILE-ID, RECORD CONTAINS 10 TO 40, BLOCK CONTAINS 1 TO 2 RECORDS, LABEL RECORD IS OMITTED, REPORT IS last, compiles and runs (r-fdval-001); r-fdext.cob FD PRTF IS EXTERNAL and r-fdglb.cob FD PRTF IS GLOBAL compile (r-fdext-001, r-fdglb-001), which 1985 admits (X.GLOBAL SR1 allows it in file description entries, and the REPORT clause GR3 speaks of an external report file connector). With the reader SD refusal, nothing contradicts SR1. cite.py: OK  §1985:XIII.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

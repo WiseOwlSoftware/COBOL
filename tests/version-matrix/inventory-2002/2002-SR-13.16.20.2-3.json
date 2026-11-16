@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.20.2-3",
+ "rule-digest": "3957d40c0069",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/pb511-external-as-figurative",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.22.3-3, witnessed at 2002 by the cases test-ref names. The read: 2023 adds 'nor a zero-length literal'; 2002 has no zero-length literal, so the 2002 rule is the 2023 rule minus a case that cannot be written in 2002. The row's witness runs at 2002. Cited: §2002:13.16.20.2 SR3."
+}

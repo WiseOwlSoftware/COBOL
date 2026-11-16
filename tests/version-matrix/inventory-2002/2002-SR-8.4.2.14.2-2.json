@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.14.2-2",
+ "rule-digest": "62d0fd99e80e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#RefExpr; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.15.3-2, witnessed at 2002 by the cases test-ref names. The read: Identical words; the deferred rules are identical: 2002 8.4.1.1.2 SR7/SR8 read word for word as 2023 8.4.2.2.3 SR9/SR10, and 2002 Format 8 (qualified-report-counter) matches 2023's. The NOTE is identical. No CD reach (counters are qualified by report-name only). Cited: §2002:8.4.2.14.2 SR2; §2002:8.4.1.1.2 SR8."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.21.1",
+ "rule-digest": "2d6939efc563",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectTallyingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingPair; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectConvertingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectDelimiters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectOperand; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#IsBareInspectReplacingPair; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#INSPECT",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-cd-operands",
+ "notes": "§2002:14.8.21.1: all four formats and every phrase shape are accepted: ALL/LEADING tallying lists, CHARACTERS, the replacing adjectives with lists of two (LEADING F8, FIRST F9), the after-before-phrase with AFTER, BEFORE, or both on one operand in either order (F7), identifier and literal operands; values derived from §2002:14.8.21.3 GR7/GR8/GR11/GR16/GR19. The --std 2002 run on the pinned build matched all 18 lines."
+}

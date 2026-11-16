@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-8",
+ "rule-digest": "b2d18d48a9e9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "c5d68cad9d4b54670a2e953d0f48cd4b8bf4e8f52609c43c0ae71a9265083a1b",
+   "refuter": "ee2fbc913365ed805240e2a5319962d7e2b036d0657ab0f232ad1067ce8c3afe"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a figurative constant delimiter (SPACE/SPACES, ZERO/ZEROS/ZEROES, QUOTE/QUOTES, HIGH-VALUE, LOW-VALUE, a symbolic-character) is one character; under the ALL phrase one or more contiguous occurrences of the literal (figurative or not, of any length) or of identifier-2's content count as one, and one occurrence goes to DELIMITER IN.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#DelimiterText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitAllRun; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
+  "edition-consulted": [],
+  "edition-search": "grep -i 'edition|version|dialect|DialectLevel' over StringUnstringBinder.cs, StringEmitter.cs, CobolStringOps.cs, OperandText.cs, FigurativeConstants.cs; grep -i 'unstring|delimit' over ConstructRegistry.g.cs and VersionConformancePass.cs. The binder's ctx.Edition uses are BoundRejected.Report/BoundOperandError.Report (the diagnostic channel, fixed EditionSeverity.Error) and ctx.Edition.At (the diagnostic cursor); neither switches behaviour. The only UNSTRING construct gate is unstring-sender-reference-modified-2002 (the sender, not this rule).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf02_05 covers SPACE, ZERO and ALL \"*\"; ALL over a multi-character literal and over an identifier, QUOTE, HIGH-VALUE, LOW-VALUE, plural figuratives after ALL, a symbolic-character with and without ALL, and an ALL run ending the sender are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/gr8a.cob",
+    "printed": "A1 [x   ][ab ] 01 [y   ][ab ] P=11 / A2 [x   ][y   ][    ] P=11 / A3 [x   ][    ][    ] / Q1 [AB  ][    ][CD] / Q2 [AB  ][CD  ][EF  ] / W1 [ABC ][EFGH] / NOVF / SP [AB  ][   ][CD  ][    ] 02 / Z1 [1   ][2   ][3   ] / Z2 [1   ][    ][2   ] (MATCH)",
+    "expected": "GR8: ALL \"ab\" collapses \"ababab\" to one, DELIMITER IN gets one \"ab\", and the pointer passes the whole run; without ALL, contiguous occurrences leave empty fields; QUOTE, HIGH-VALUE, LOW-VALUE and ZERO are single characters; an ALL SPACES run at the end exhausts the sender (no overflow, R3 untouched)"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/gr8b.cob",
+    "printed": "Y1 [AB  ][    ][CD  ] / Y2 [AB  ][* ][CD  ][E   ] (MATCH)",
+    "expected": "a symbolic-character (SYMBOLIC CHARACTERS STAR IS 43) is a one-character figurative; ALL STAR collapses the run"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/d_allall.cob",
+    "printed": "COBOL1651 the delimiter 'ALL \",\"' is a figurative constant that begins with the word ALL",
+    "expected": "§1985:VI.6.27.3 SR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR8",
+    "check": "OK  §1985:VI.6.27.4 GR8  the text is in GR8 (quoted: \"it stands for a single character nonnumeric literal\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR8",
+    "check": "OK  §1985:VI.6.27.4 GR8  the text is in GR8 (quoted: \"are treated as if they were only one occurrence\")"
+   },
+   {
+    "cite": "§1985:VI.6.27.3 SR1",
+    "check": "OK  §1985:VI.6.27.3 SR1  the text is in SR1 (quoted: \"must be nonnumeric literals\")"
+   }
+  ],
+  "notes": "When the grammar reads an ALL figurative in a delimiter, the binder turns it into the ALL phrase over the plain literal. OperandText.AsString renders a figurative as its one character in identifier-1's category, and UnstringSkipRun consumes the contiguous repeats after the single occurrence UnstringExtract matched. No edition arm on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "hv1.cob/hv3.cob: PROGRAM COLLATING SEQUENCE IS REV, ALPHABET REV IS 256 THRU 1, SYMBOLIC CHARACTERS CNUL CFF ARE 1 256. LOW-VALUE resolves to CFF (ORD 001) and UNSTRING ... DELIMITED BY LOW-VALUE finds it at position 6 (C1=05 C2=02), as §1985:IV.4.2.2.2.3 requires. HIGH-VALUE resolves to a character of ordinal 536 (the implementation's native set extends past 256, and unlisted characters follow the listed ones), so DELIMITED BY HIGH-VALUE and ALL HIGH-VALUES match nothing in the sender (C1=08). That agrees with MOVE HIGH-VALUE and with the alphabet rule, so UNSTRING uses the one figurative value. u_b62ca0/u_2e3108: \"OR ALL HIGH-VALUES\" and \"ALL ZEROES OR ALL QUOTES\" are accepted at 85. u3 T1/T2: ALL \"*\" collapses a run and puts one \"*\" into DELIMITER IN. cite.py: OK §1985:VI.6.27.4 GR8 (\"it stands for a single character nonnumeric literal\"); OK §1985:IV.4.2.2.2.3 (\"the actual characters associated with each figurative constant depend upon the program collating sequence\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

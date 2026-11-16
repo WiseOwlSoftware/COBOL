@@ -1,0 +1,187 @@
+{
+ "rule-id": "1985-SR-VI.3.3.3-1",
+ "rule-digest": "9683b9f0d9cf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-156",
+  "sources": {
+   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
+   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+  },
+  "imported": {
+   "reader": "cc68dc6e6c65af0bd6516db28ff7c056bedf3908895d3b7b010b0f3925b073d4",
+   "refuter": "434f98530eca3f1faab5eb38f6b4b320d00e18ba5461853d27debc6844d3a90c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.3.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the program-name of PROGRAM-ID must be a user-defined word: at most 30 characters drawn from A-Z (lowercase equivalent), 0-9 and hyphen, hyphen neither first nor last, at least one letter, not a 1985 reserved word (LENGTH/RANDOM/SUM included), and never a literal or a word with an underscore or other character.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength; src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation; src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#CheckLetter; src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#MaxLength",
+    "switches": "word-length ceiling: 30 at 1985, 31 at 2002/2014, 63 at 2023 (COBOL1567)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Common/CobolWordRule.cs#CharacterViolation",
+    "switches": "below 2002 asks ViolationAtEveryEdition instead of the edition's Annex B table; separator-position check is shared",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/WordCharacterScreen.cs#CheckWord",
+    "switches": "ConstructRegistry gates UserWordUnderscore2002 and UserWordExtendedLetter2002 (COBOL0900 at 85, no-op from 2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsUserWord",
+    "switches": "IsReservedAt(edition.Year): the 1985 reserved list (ALTER, LABEL, PROCEED, LENGTH reserved at 85 refused with COBOL0901)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord",
+    "switches": "reads _edition.Year for the length ceiling via CobolWordRule.MaxLength",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped the diagnostics the probes drew (COBOL2773, COBOL1567, COBOL0901, COBOL2693, COBOL0900) to their sites; CheckLetter consults no edition (same rule every edition).",
+  "behaviour-differs-by-edition": "yes: the length ceiling is 30 at 1985 (63 at 2023), the underscore and extended letters are refused at 1985, the reserved-word set is the 1985 list, and the AS externalized-name and IS PROTOTYPE phrases are refused at 1985",
+  "witnesses-cover": "part: the witness exercises only a trailing hyphen; length, leading hyphen, letterless, underscore, reserved word, literal and special characters are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_ok.cob",
+    "printed": "OK30 (30-character lowercase/digit/hyphen name accepted, exit 0)",
+    "expected": "accepted: a legal 30-character user-defined word"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_len31.cob",
+    "printed": "error COBOL1567: ... 31 characters, exceeding the 30-character maximum for COBOL-85",
+    "expected": "refused: not more than 30 characters"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1b_trail.cob",
+    "printed": "error COBOL2773: 'PROGA-' has the hyphen as its last character",
+    "expected": "refused: hyphen may not be last"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_lead_hyphen.cob",
+    "printed": "error COBOL2773: '-PROGA' has the hyphen as its first character",
+    "expected": "refused: hyphen may not be first"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1b_hyphdig.cob",
+    "printed": "error COBOL2693: the program-name '1-2' contains no letter",
+    "expected": "refused: at least one alphabetic character"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_alldigits.cob",
+    "printed": "error COBOL5506: unexpected '12345' ... no literal is expected",
+    "expected": "refused: no letter"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_digit1.cob",
+    "printed": "RAN (1A2B3 accepted)",
+    "expected": "accepted: leading digit is legal when a letter is present"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_reserved.cob",
+    "printed": "error COBOL5506: unexpected 'MOVE' ... expected a user-defined word",
+    "expected": "refused: reserved words and user-defined words are disjoint"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1b_alter.cob",
+    "printed": "error COBOL0901: 'ALTER' is a reserved word in COBOL-85",
+    "expected": "refused: ALTER is reserved in 1985 (removed later)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_length.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85",
+    "expected": "refused: LENGTH may not be a user-defined word regardless of context"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_2002word.cob",
+    "printed": "RAN (RAISE accepted)",
+    "expected": "accepted: RAISE is not a 1985 reserved word"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_underscore.cob",
+    "printed": "error COBOL0900: the underscore in a COBOL word requires COBOL-2002",
+    "expected": "refused: 1985 word characters are letters, digits, hyphen"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_literal.cob",
+    "printed": "error COBOL5506: unexpected '\"PROGA\"' ... no literal is expected",
+    "expected": "refused: program-name is a word, not a literal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_as.cob",
+    "printed": "error COBOL0900: the AS externalized-name phrase requires COBOL-2002",
+    "expected": "refused: the 1985 format has no AS phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_proto.cob",
+    "printed": "error COBOL0900: PROGRAM-ID ... IS PROTOTYPE requires COBOL-2002",
+    "expected": "refused: no PROTOTYPE in 1985"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_dollar.cob",
+    "printed": "error COBOL0001: unexpected '$'",
+    "expected": "refused: '$' is not a word character"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p1_initial.cob",
+    "printed": "RAN (PROGA IS INITIAL PROGRAM accepted)",
+    "expected": "accepted: the 1985 IPC module's INITIAL phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.3.3.3 SR1",
+    "check": "OK  §1985:VI.3.3.3 SR1  (3.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1.1",
+    "check": "OK  §1985:IV.4.2.2.1.1  (4.2.2.1.1 User-Defined Words)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1",
+    "check": "OK  §1985:IV.4.2.2.1  (4.2.2.1 COBOL Words)  the text is in the clause"
+   }
+  ],
+  "notes": "Every part of the user-defined-word formation rule is enforced at 85 and the length, character-set and reserved-word arms take the 1985 values. Diagnostics cite §2023 clause numbers in their text even at --std 85 (a wording matter, not a conformance failure). The all-digit name draws a parser 'no literal expected' rather than COBOL2693 because the lexer reads 12345 as a literal; it is still refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.3.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Compared the 1985 reserved-word list (§1985:IV.8, 351 words incl. FUNCTION per Amendment 2) mechanically against ReservedWords.Table.cs R85 rows (refute-1985-156/rw.py): every 1985 word is R85 at high confidence and no R85 row is outside the 1985 list. Probes at --std 85 (runs under refute-1985-156/runs): lowercase with doubled hyphens 'abc--1x' RAN; 30-char mixed-case name RAN, 31-char refused COBOL1567; nested program-name of 31 chars refused COBOL1567 at its PROGRAM-ID; nested 'IN1-' refused COBOL2773; nested 'ALTER' refused COBOL0901; nested IN-1 IS COMMON called and ran; RANDOM and SUM refused (COBOL5506, IV.4.2.2.1 2b); ENTER and DEBUG-ITEM (1985-only reserved) refused COBOL0901; END-ACCEPT, TYPEDEF (2002 reserved), ARITHMETIC (later context word) and MAX (function-name, intersecting set per IV.4.2.2.1 1b) accepted and RAN. Cite: OK §1985:VI.3.3.3 SR1; OK §1985:IV.4.2.2.1 (SR2b) 'may not be used as a system-name or as a user-defined word regardless of context'; OK §1985:IV.4.2.2.1.1 'all user-defined words must contain at least one alphabetic character'. Side observation (wording only): the COBOL5506 for RANDOM lists reserved words such as ALTER and the 2002 word METHOD as 'expected' after PROGRAM-ID.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

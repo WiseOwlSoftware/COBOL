@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.3.2-4",
+ "rule-digest": "3ec0ce49becc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#ResultLengthViolation; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance:cases/8.8.3@2002-CONCATENATION-EXPRESSIONS/g2-concat-160-bound; conformance:cases/8.8.3@2002-CONCATENATION-EXPRESSIONS/g2-concat-national-161",
+ "notes": "§2002:8.8.3.2 SR4 bounds a national concatenation at 160 positions; at --std 2002 a 160-position result is accepted with the derived value (g2-concat-160-bound line N1 T) and a 161-position one is refused COBOL1545 (g2-concat-national-161)."
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1280-redefines-after-picture
-*> rules: [SR-13.16.3-4, SR-13.18.44.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1280-redefines-after-picture
+      *> rules: [SR-13.16.3-4, SR-13.18.44.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1280 - SR1 - REDEFINES written after PICTURE.
       *>   cite.py --check 13.18.44.3 "The REDEFINES clause shall immediately follow the entry-name clause" -> OK
       *> COBOL2739 (redefines-entry-rule; SR8 is COBOL1539, SR10 COBOL1654). The positive twin is

@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-VII.3.7.3-3",
+ "rule-digest": "0d5f13cc6fd6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-063",
+  "sources": {
+   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
+   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+  },
+  "imported": {
+   "reader": "a244549357404557d69e3d4c270bdeec72f1b695e2a157ad8c85296e1efff591",
+   "refuter": "1087ba13a82f92425b4683d35ae862ba4904033bf332062ca289467c4a79c0d1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.7.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when both the page body and the FOOTING operand are integers, FOOTING AT integer-2 greater than LINAGE integer-1 must be refused at compile time and equal values accepted; with a data-name on either side the relation is a run-time value (GR3), not this syntax rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage; src/WiseOwl.Cobol.Compiler/Binding/LinageClauseRules.cs#Footing",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Rule1985.cs#CitationAt (via LinageClauseRules.Footing)",
+    "switches": "only the citation text (ANSI §1985:VII.3.7.3 SR3 below 2002)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read the SR3 block of ResolveLinage (lin.Body.Literal vs lin.Footing.Literal); no edition test beyond the citation.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb524_linage_operand_shapes witnesses the boundary (FOOTING AT 4 on a page of 4, accepted); the refusal side is the probe here",
+  "probes": [
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_foot.cob",
+    "printed": "COBOL2025 at (10,48): 'FOOTING AT 6 is greater than the page size 5; integer-2 shall not be greater than integer-1 (ANSI §1985:VII.3.7.3 SR3)'; F2 (FOOTING AT 5 on 5, TOP 0, BOTTOM 0) not reported",
+    "expected": "F1 refused; F2 accepted (equal is not greater; SR4 permits zero margins)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_foot.cob (--std 2023)",
+    "printed": "the same COBOL2025, citing ISO §2023:13.18.34.3 SR3",
+    "expected": "same arm as latest"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/lin_ok.cob",
+    "printed": "LC 003 (FOOTING data-name equal to the page data-name, accepted)",
+    "expected": "data-name operands are not subject to SR3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.3 SR3",
+    "check": "OK  §1985:VII.3.7.3 SR3  (║3.7.3 Syntax Rules║)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR3",
+    "check": "OK  §1985:VII.3.7.4 GR3  (║3.7.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "Literal-against-literal comparison, reported at the FOOTING operand, the 1985 designation cited at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.7.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "refute-1985-063/lin_r2.cob --std 85: 'FOOTING AT 10 is greater than the page size 9 ... (ANSI §1985:VII.3.7.3 SR3)' for LINAGE 9 FOOTING AT 010; LINAGE 010 FOOTING AT 9 not reported, so the comparison is numeric, not textual; the reader's equal-value and data-name cases stand. cite.py: OK §1985:VII.3.7.3 SR3 'Integer-2 must not be greater than integer-1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

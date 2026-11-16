@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.14.3-2",
+ "rule-digest": "c78f1498b1b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindFree; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitFree",
+ "test-ref": "conformance:cases/14.8.14@2002-FREE-STATEMENT/g2-free-resume-next-implicit",
+ "notes": "Per §2002:14.8.14.3 GR2 a multi-operand FREE frees in written order and a declarative's RESUME NEXT STATEMENT resumes at the next implicit FREE; the --std 2002 run printed DECL-1 P=NULL Q=LIVE, F1 P=NULL Q=NULL, DECL-2 P2=LIVE, DECL-3 P2=NULL, F2 P2=NULL K=3 as derived."
+}

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.10.4-5",
  "rule-digest": "09b34a5def51",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_transfer_size",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

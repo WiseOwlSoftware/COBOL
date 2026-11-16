@@ -1,0 +1,1720 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-13 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-13",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.14.2-3",
+   "2002-SR-13.14.2-4",
+   "2002-SR-13.14.2-5",
+   "2002-SR-13.14.2-6",
+   "2002-SR-13.14.2-8",
+   "2002-SR-13.14.2-9",
+   "2002-SR-13.15.2-7",
+   "2002-GR-13.15.3-3",
+   "2002-GR-13.16.1.3-1",
+   "2002-GR-13.16.1.3-3",
+   "2002-SR-13.16.2.2-1",
+   "2002-SR-13.16.2.2-2",
+   "2002-SR-13.16.2.2-4",
+   "2002-GR-13.16.4.3-2",
+   "2002-GR-13.16.5.3-2",
+   "2002-GR-13.16.9.2-2",
+   "2002-GR-13.16.11.3-2",
+   "2002-GR-13.16.11.3-3",
+   "2002-GR-13.16.11.3-4",
+   "2002-SR-13.16.12.2-1",
+   "2002-SR-13.16.12.2-2",
+   "2002-GR-13.16.13.3-4",
+   "2002-SR-13.16.14.2-11",
+   "2002-SR-13.16.14.2-6",
+   "2002-GR-13.16.14.3-13"
+  ],
+  "pointers": {
+   "2002-SR-13.14.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.16.3-5",
+    "similarity": 0.904
+   },
+   "2002-SR-13.14.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.16.3-4",
+    "similarity": 0.999
+   },
+   "2002-SR-13.14.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.16.3-5",
+    "similarity": 0.965
+   },
+   "2002-SR-13.14.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.16.3-6",
+    "similarity": 0.897
+   },
+   "2002-SR-13.14.2-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.16.3-8",
+    "similarity": 0.962
+   },
+   "2002-SR-13.14.2-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.16.3-9",
+    "similarity": 0.96
+   },
+   "2002-SR-13.15.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.17.3-7",
+    "similarity": 0.999
+   },
+   "2002-GR-13.15.3-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-13.17.4-1",
+    "similarity": 0.34
+   },
+   "2002-GR-13.16.1.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.1.4-1",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.1.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.1.4-3",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.2.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.2.3-2",
+    "similarity": 0.983
+   },
+   "2002-SR-13.16.2.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.2.3-3",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.2.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.2.3-1",
+    "similarity": 0.977
+   },
+   "2002-GR-13.16.4.3-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.4.4-2",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.5.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.5.4-2",
+    "similarity": 0.716
+   },
+   "2002-GR-13.16.9.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.9.3-2",
+    "similarity": 0.973
+   },
+   "2002-GR-13.16.11.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.11.4-2",
+    "similarity": 0.867
+   },
+   "2002-GR-13.16.11.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.11.4-3",
+    "similarity": 0.985
+   },
+   "2002-GR-13.16.11.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.11.4-4",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.12.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.12.3-1",
+    "similarity": 0.988
+   },
+   "2002-SR-13.16.12.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.12.3-2",
+    "similarity": 0.702
+   },
+   "2002-GR-13.16.13.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.13.4-4",
+    "similarity": 0.994
+   },
+   "2002-SR-13.16.14.2-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.14.3-11",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.14.2-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.14.3-6",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.14.3-13": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.14.4-13",
+    "similarity": 0.969
+   }
+  }
+ },
+ "read": {
+  "slice": "u-13",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.14.2-3",
+    "to": [
+     "SR-13.16.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR3 (data description entry, Format 1)",
+    "clause-2023": "13.16.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "REDEFINES with BASED in a level 1/77 entry of working-storage, local-storage or linkage: refuse",
+     "REDEFINES with TYPEDEF in a level 1 entry of working-storage, local-storage or linkage: refuse",
+     "no CD-record reach of its own: REDEFINES is barred at level 1 in the communication section (13.16.42.2 SR4), TYPEDEF is level 1 only (SR14), BASED is WS/LS/LK only (SR15)"
+    ],
+    "evidence-2002": {
+     "BASED leg": "covered by conformance:cases/13.16-Data-description/based-redefines-conflict (refuse-at includes 2002; run now: COBOL0881, rc 65) and probes sr3_redef_based.cob, sr3_lk_redef_based.cob (COBOL0881 at 2002)",
+     "TYPEDEF leg": "not shown by any test of the pointer row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr3_redef_typedef.cob at --std 2002: COBOL1529 'the REDEFINES clause shall not be specified in the same data description entry as the TYPEDEF clause', rc 65",
+     "CD record": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr3_cd_redef_typedef.cob at 2002: COBOL1529 (and cd_redef_level1.cob: COBOL2739 for §2002:13.16.42 SR4)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR3",
+      "quote": "The REDEFINES clause shall not be specified in the same data description entry as the TYPEDEF or BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR3",
+      "quote": "The REDEFINES clause shall not be specified in the same data description entry as the BASED, CONSTANT RECORD, or TYPEDEF clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.42.2 SR4",
+      "quote": "This clause shall not be specified in level 1 entries in the communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR14",
+      "quote": "The TYPEDEF clause may be specified only in a data description entry whose level-number is 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice's pointer SR-13.16.3-5 is the EXTERNAL rule, not this one; the 2023 counterpart is SR-13.16.3-3, which names the same two clauses plus CONSTANT RECORD (a 2014+ clause: a widening). That row's only test (based-redefines-conflict) shows the BASED leg; nothing in the row shows REDEFINES with TYPEDEF. The compiler refuses both legs at --std 2002 (probes).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr3_redef_typedef.cob",
+    "widening": "2023 adds CONSTANT RECORD to the excluded clauses (no 2002 counterpart)",
+    "class": "other",
+    "needs": "a 2002 witness for REDEFINES with TYPEDEF (probe sr3_redef_typedef.cob); the BASED leg is KEPT to SR-13.16.3-3 (based-redefines-conflict refuses at 2002)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr3_redef_typedef.cob, sr3_redef_based.cob, sr3_lk_redef_based.cob; outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/sr3_*-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-4",
+    "to": [
+     "SR-13.16.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR4",
+    "clause-2023": "13.16.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "entry-name / REDEFINES / TYPEDEF ordering in format 1 entries of file, working-storage, local-storage, linkage sections",
+     "the same ordering in record description entries following a CD (communication section, §2002:A.1.1.2)",
+     "implied FILLER when no entry-name"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by the twin's tests run now at --std 2002: pb486-typedef-not-first (COBOL2404), pb1280-redefines-after-picture and pb1280-redefines-after-global (COBOL2739), pb486_leading_clauses (output equals golden)",
+     "CD records": "not shown by the 2023 row; probes at --std 2002: sr4_cd_redef_late.cob (REDEFINES after PICTURE under a CD: COBOL2739, rc 65), sr4_cd_redef_ok.cob (runs: 'ABCD AB'), sr4_cd_typedef_late.cob (COBOL2404), sr4_cd_typedef_first.cob (runs), sr4_cd_filler_implied.cob (unnamed entries run as FILLER: 'ABCD')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR4",
+      "quote": "The REDEFINES clause, if specified, shall immediately follow the entry-name clause, if specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR4",
+      "quote": "The REDEFINES clause, if specified, shall immediately follow the entry-name clause, if specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical apart from a missing space ('theTYPEDEF'); the format 1 clause list differs only by 2014+ clauses. In 2002 the rule also governs the data description entries written after a CD entry (class (a), as the p-10 reader found for SR1), which the 2023 row cannot show. The compiler applies it there at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr4_cd_redef_late.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the ordering rule in a record description entry following a CD entry (probes sr4_cd_redef_late.cob, sr4_cd_redef_ok.cob, sr4_cd_typedef_late.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr4_cd_redef_late.cob, sr4_cd_redef_ok.cob, sr4_cd_typedef_late.cob, sr4_cd_typedef_first.cob, sr4_cd_filler_implied.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-5",
+    "to": [
+     "SR-13.16.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR5",
+    "clause-2023": "13.16.3 SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "EXTERNAL with REDEFINES in a working-storage record entry: refuse",
+     "EXTERNAL with BASED: refuse",
+     "EXTERNAL with TYPEDEF (a level 1 type declaration in working-storage): refuse",
+     "no CD reach: EXTERNAL is admitted only in FD entries and working-storage record entries (§2002:13.16.20.2 SR1)"
+    ],
+    "evidence-2002": {
+     "REDEFINES leg": "covered by pb519-external-redefines run now at --std 2002 (COBOL2404, rc 65)",
+     "BASED leg": "probe sr5_ext_based.cob at 2002 (COBOL2404, rc 65)",
+     "TYPEDEF leg": "not shown, and CONTRADICTED: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr5_ext_typedef.cob ('01 T IS TYPEDEF IS EXTERNAL PIC X(4).' then '01 V TYPE T.') compiles and runs at --std 2002, printing ABCD, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/sr5_ext_typedef-2002.out); also at --std 2014; group form sr5_ext_typedef_strong.cob likewise"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR5",
+      "quote": "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES, TYPEDEF, or BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR5",
+      "quote": "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES or BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:13.16.2 SR5",
+      "quote": "The EXTERNAL clause shall not be specified in the same data description entry as the REDEFINES, TYPEDEF, or BASED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.22.3 SR1",
+      "quote": "in level 1 type declarations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.20.2 SR1",
+      "quote": "The EXTERNAL clause may be specified only in file description entries or in record description entries in the working-storage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Own text: 2002 (and 2014) also forbid EXTERNAL with TYPEDEF; 2023 dropped TYPEDEF from SR5 because it made external type declarations legal (§2023:13.18.22.3 SR1). The compiler's placement table carries only the 2023 sentence (Excluded = Redefines | Based, no edition arm), so at --std 2002 and 2014 an external type declaration is accepted.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr5_ext_typedef.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the compiler accepts EXTERNAL with TYPEDEF, which §2002:13.14.2 SR5 forbids (defect); after the fix, a 2002 witness refusing sr5_ext_typedef.cob",
+    "compiler-at-2002": "wrong: program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr5_ext_typedef.cob at --std 2002 (and 2014) compiles and prints ABCD, rc 0. Expected: a compile-time diagnostic (§2002:13.14.2 SR5; §2014:13.16.2 SR5). Site: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs, ClausePlacementRules.Rules row '§2023:13.16.3 SR5' (Excluded: DataClauseKind.Redefines | DataClauseKind.Based; no 2002/2014 TYPEDEF arm), applied by DataBinder.ScreenClausePlacement."
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-6",
+    "to": [
+     "SR-13.16.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR6",
+    "clause-2023": "13.16.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GLOBAL on a data description entry of level other than 1 (subordinate or 77) in file, WS, LS, LK: refuse",
+     "GLOBAL on a subordinate entry of a record following a CD: refuse (also barred by §2002:13.16.25.2 SR1)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb518-global-below-level-1 run now at --std 2002 (COBOL2404, rc 65); probes sr6_global_77.cob (77 GLOBAL: COBOL2404) and sr6_global_ok.cob (level 1 GLOBAL seen from a contained program: R1=CD)",
+     "CD record": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr6_cd_global_05.cob at 2002: COBOL2404, rc 65"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR6",
+      "quote": "The GLOBAL clause may be specified only in data description entries whose level-number is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR6",
+      "quote": "The CONSTANT RECORD and GLOBAL clauses may be specified only in data description entries whose level-number is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.25.2 SR1",
+      "quote": "A data description entry whose level-number is 1 that is specified in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement for GLOBAL (2023 adds CONSTANT RECORD, a widening). The rule governs every 2002 data description entry, including those after a CD; there GLOBAL is also barred by the GLOBAL clause's own list, so the only CD case is a refusal, which the 2023 row cannot show and a probe does. Classed DIFFERENT only because the CD case needs its own witness; no behaviour difference was found.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr6_cd_global_05.cob",
+    "widening": "2023 adds CONSTANT RECORD to the level-1-only clauses",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for GLOBAL on a subordinate entry of a CD record (probe sr6_cd_global_05.cob); otherwise KEPT to SR-13.16.3-6",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr6_cd_global_05.cob, sr6_global_77.cob, sr6_global_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-8",
+    "to": [
+     "SR-13.16.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR8",
+    "clause-2023": "13.16.3 SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "no PICTURE for RENAMES subjects and items of usage binary-char/short/long/double, float-short/long/extended, index, object reference, pointer, program-pointer",
+     "PICTURE required on every other elementary entry (except SR9) in file, WS, LS, LK",
+     "the same in record description entries following a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb487-picture-required-elementary (COBOL0881) and program-pointer-with-picture (COBOL0881) run now at --std 2002",
+     "CD records": "not shown by the 2023 row; probes at 2002: sr8_cd_nopic.cob (elementary without PICTURE: COBOL0881), sr8_cd_binlong_pic.cob (BINARY-LONG with PICTURE: COBOL0870), sr8_cd_binlong_ok.cob (runs: 'AB +0000000007')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR8",
+      "quote": "For any other entry describing an elementary item, a PICTURE clause shall be specified except as indicated in syntax rule 9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR8",
+      "quote": "For any other entry describing an elementary item, a PICTURE clause shall be specified except as indicated in Syntax rule 9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023's usage list adds message-tag and function-pointer (2023-only usages: a widening). The rule governs elementary entries in records following a CD in 2002, which the 2023 row cannot show; the compiler applies it there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr8_cd_nopic.cob",
+    "widening": "2023 adds message-tag and function-pointer to the picture-less usages",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the PICTURE requirement in a record following a CD entry (probes sr8_cd_nopic.cob, sr8_cd_binlong_pic.cob, sr8_cd_binlong_ok.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr8_cd_nopic.cob, sr8_cd_binlong_pic.cob, sr8_cd_binlong_ok.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.14.2-9",
+    "to": [
+     "SR-13.16.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.14.2 SR9",
+    "clause-2023": "13.16.3 SR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implied PICTURE X/1/N(length) from a VALUE alphanumeric/boolean/national literal in WS, LS (and other sections where VALUE is allowed)",
+     "the same in record description entries following a CD (VALUE is allowed there: §2002:13.16.61 description)"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb504_value_implied_picture (accept [2002]) run now at --std 2002: output equals the golden",
+     "CD records": "not shown by the 2023 row; probes at 2002: sr9_cd_implied.cob (X=[HELLO] 5, H=[ABC] 3, REC length 10), sr9_cd_implied_nb.cob (N=[HI] 2, B=[101] 3)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.14.2 SR9",
+      "quote": "The PICTURE clause may be omitted for an elementary item when an alphanumeric, boolean, or national literal is specified in the data-item format of the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.16.3 SR9",
+      "quote": "alphanumeric, boolean, or national literal that is not a zero-length literal is specified in the data-item format of the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "The length of an alphanumeric literal, excluding the separators that delimit the literal, shall be greater than zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "The VALUE clause specifies the initial value of communication section, local-storage section, and working-storage section data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2023 words add 'that is not a zero-length literal'; 2002 has no zero-length literal (its literals are longer than zero), so the difference is vacuous for 2002 programs; the referenced Literals clause moved (8.3.1.2 to 8.3.3). The rule reaches elementary items of records following a CD, where VALUE is allowed in 2002; the 2023 row cannot show that.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr9_cd_implied.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the implied PICTURE in a record following a CD entry (probes sr9_cd_implied.cob, sr9_cd_implied_nb.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/sr9_cd_implied.cob, sr9_cd_implied_nb.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.15.2-7",
+    "to": [
+     "SR-13.17.3-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.2 SR7 (screen description entry, Format 2)",
+    "clause-2023": "13.17.3 SR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "elementary screen items in the screen section (a processor-dependent element in 2002)"
+    ],
+    "evidence-2002": {
+     "screen section decline": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section run now at --std 2002 (COBOL1560, rc 65, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/a42-screen-section-2002.out) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob (every screen clause refused COBOL1560 at --std 2002, rc 65: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/scr_2002-2002.out); probe scr_sr7_bad.cob (an item with only PICTURE: COBOL1560, rc 65)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR7",
+      "quote": "For an elementary screen item, the associated screen description entry shall include at least one of the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR7",
+      "quote": "For an elementary screen item, the associated screen description entry shall include at least one of the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'a ERASE' / 'an ERASE'; the list is the same six cases. The pointer row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support (screen section processor-dependent, unclaimed support need not be implemented), and the compiler declines every screen construct at --std 2002 with a diagnostic. No CD or debugging reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_sr7_bad.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   },
+   {
+    "rule-id": "2002-GR-13.15.3-3",
+    "to": [
+     "SR-13.17.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.15.3 GR3 (screen description entry, Format 2)",
+    "clause-2023": "13.17.3 SR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "implied PICTURE of an elementary screen item from a VALUE alphanumeric, boolean or national literal (screen section only)"
+    ],
+    "evidence-2002": {
+     "screen section decline": "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section run now at --std 2002 (COBOL1560, rc 65, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/a42-screen-section-2002.out) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob (every screen clause refused COBOL1560 at --std 2002, rc 65: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/scr_2002-2002.out) (scr_2002.cob items SI1, SI3, SI4 have VALUE literals and no PICTURE)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR3",
+      "quote": "The PICTURE clause may be omitted when an alphanumeric, boolean, or national literal is specified in the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.3 SR10",
+      "quote": "The PICTURE clause may be omitted when an alphanumeric, boolean, or national literal that is not a zero-length literal is specified in the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.17.4 GR1",
+      "quote": "the clause that appears at the lowest level of the hierarchy is the one that takes effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice's pointer GR-13.17.4-1 is the lowest-level-wins rule (distant); the 2023 counterpart is SR-13.17.3-10 (2023 made the general rule a syntax rule and excluded zero-length literals, which 2002 does not have). Both rows are DOCUMENTED-NON-SUPPORT with the same a42-screen-section witness; 2002 licenses the non-support and the compiler declines at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.1.3-1",
+    "to": [
+     "GR-13.18.1.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.1.3 GR1",
+    "clause-2023": "13.18.1.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ALIGNED bit items/groups in file, WS, LS, LK entries",
+     "ALIGNED bit items in records following a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb487_aligned_bit_layout and pb1569_type_subject_level1_bit_alignment run now at --std 2002 (outputs equal the goldens)",
+     "CD records": "not shown by the 2023 row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/aligned_cd_bit.cob at 2002 (copied from the q-11 reader): ALIGNED=2, TABLE=3, B1=1100 B2=0011, T=1000/0100/0010, the golden's values"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.1.3 GR1",
+      "quote": "An ALIGNED clause causes the subject of the entry to be aligned on the first bit of the first available byte boundary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.1.4 GR1",
+      "quote": "An ALIGNED clause causes the subject of the entry to be aligned on the first bit of the first available byte boundary",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical except the referenced clause number (8.5.1.5.3 vs 8.5.1.6.3), whose text is identical in both editions (compared line by line). In 2002 the rule also reaches bit items in records following a CD (the q-11 reader's finding for GR2 of this clause).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/aligned_cd_bit.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for ALIGNED in a record following a CD entry (probe aligned_cd_bit.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/aligned_cd_bit.cob)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.1.3-3",
+    "to": [
+     "GR-13.18.1.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.1.3 GR3",
+    "clause-2023": "13.18.1.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "unaligned bit items packed per 8.5.1.5.3 in file, WS, LS, LK",
+     "the same in records following a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb487_aligned_bit_layout run now at --std 2002 (NOALIGN=1, NOTABLE=2: equals the golden)",
+     "CD records": "not shown by the 2023 row; probe aligned_cd_bit.cob at 2002: NOTABLE=2 (three unaligned 4-bit occurrences packed in 2 bytes)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.1.3 GR3",
+      "quote": "When an ALIGNED clause is not specified, bit data items are aligned in accordance with 8.5.1.5.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.1.4 GR3",
+      "quote": "When an ALIGNED clause is not specified, bit data items are aligned in accordance with 8.5.1.6.3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "As GR1: the referenced alignment clause is identical text in both editions; the rule reaches bit items in records following a CD in 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/aligned_cd_bit.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for unaligned bit packing in a record following a CD entry (probe aligned_cd_bit.cob, TBLPLAIN)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/aligned_cd_bit.cob)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-1",
+    "to": [
+     "SR-13.18.2.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.2.2 SR1",
+    "clause-2023": "13.18.2.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ANY LENGTH only on elementary level 1 linkage entries of functions, contained programs, non-property methods",
+     "refused: outermost program, working-storage, subordinate entries, property methods"
+    ],
+    "evidence-2002": {
+     "outermost refused": "covered by any-length-outermost (refuse-at includes 2002; run now: COBOL1542)",
+     "legal placements": "covered by any_length_contained, oo_any_length (outputs equal goldens at 2002) and probe al_function.cob (LEN=0005)",
+     "other refusals": "probes al_ws.cob (COBOL1542), al_contained_cases.cob (level 05: COBOL1542; group: COBOL5977), al_property.cob (GET property method: COBOL1542)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR1",
+      "quote": "The ANY LENGTH clause may be specified only in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR2",
+      "quote": "The ANY LENGTH clause may be specified only in an elementary level 1 entry in the linkage section of a function, of a contained program, or of a method that is not a property method",
+      "check": "OK"
+     }
+    ],
+    "reason": "The normative sentence is identical; only the informative NOTE differs ('cannot' / 'may not', 'International Standard' / 'Working Draft'). Linkage only, so no CD reach. The twin's witness refuses at 2002 and the probes show every other leg at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/al_property.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-2",
+    "to": [
+     "SR-13.18.2.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.2.2 SR2",
+    "clause-2023": "13.18.2.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "contained program or method: the ANY LENGTH subject is a BY REFERENCE formal parameter or the returning item; otherwise refuse"
+    ],
+    "evidence-2002": {
+     "legal": "covered by any_length_contained, oo_any_length, pb1167_any_length_returning run now at --std 2002 (outputs equal goldens)",
+     "refusals": "probes al_unref.cob (not in the header: COBOL5979) and al_byvalue.cob (BY VALUE: COBOL5979) at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR2",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as either",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR3",
+      "quote": "the subject of the entry shall be referenced in its procedure division header as either",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words (2023 adds a colon); the procedure division header's USING BY REFERENCE / RETURNING exist in both. Linkage only, no CD reach. (The q-11 reader's separate defect about pb1167's prototype-format CALL legs at 2002 concerns §2002:14.8.4.2 SR10, not this rule.)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/al_unref.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-4",
+    "to": [
+     "SR-13.18.2.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.2.2 SR4",
+    "clause-2023": "13.18.2.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ANY LENGTH subject: PICTURE required, one instance of N, X or 1"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb1210_any_length_count_one_spellings (output equals golden), any-length-bad-picture and pb1210-any-length-constant-two-instances (COBOL5977) run now at --std 2002; probe al_contained_cases.cob (no PICTURE: COBOL5977)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR4",
+      "quote": "the character-string specified in the PICTURE clause shall be one instance of the picture symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR1",
+      "quote": "The character-string specified in that PICTURE clause shall be one instance of the picture symbol",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 splits one sentence into two and moves it to SR1; the requirement is the same. Linkage only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-2",
+    "to": [
+     "GR-13.18.4.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.4.3 GR2",
+    "clause-2023": "13.18.4.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "BACKGROUND-COLOR of a screen item (screen section only)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by conformance:wiseowl/cases/13.18.4-BACKGROUND-COLOR/a42-screen-background-color run now at --std 2002 (COBOL1560 on the section and the clause, rc 65) and probe scr_2002.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR2",
+      "quote": "specifies the color number of the background color to be used for displaying the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.4.4 GR2",
+      "quote": "specifies the color number of the background color to be used for displaying the screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'data-item' / 'data item'; the format (identifier-1 | integer-1) is identical. The row is DOCUMENTED-NON-SUPPORT; 2002 licenses it (screen section processor-dependent; B.3 item 2 also names BACKGROUND-COLOR) and the compiler declines it at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-2",
+    "to": [
+     "GR-13.18.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.5.3 GR2",
+    "clause-2023": "13.18.5.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implicit data-address pointer of a based entry (WS, LS, LK) starts NULL; its life cycle per 8.6.4"
+    ],
+    "evidence-2002": {
+     "all": "covered by cases/13.6-Local-storage-section/w67q_pb1132_ls_activation_reseed (accept [2002]) run now at --std 2002 (output equals golden), and probe based_null.cob at 2002 (WS based NULL at start; INITIAL program WS and LS based NULL at every call)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR2",
+      "quote": "An implicit data-address pointer is created and has an initial value of NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.5.4 GR2",
+      "quote": "The implicit data-address pointer has an initial value of NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.6.4",
+      "quote": "when the based entry is defined in the working-storage or local-storage section, at the end of the life cycle of the data items defined in that section",
+      "check": "OK"
+     }
+    ],
+    "reason": "Different words, same requirement: 2023 adds a pointer to the SET statement rules (SET ADDRESS OF exists in 2002 too) and renumbers the based-entries clause (8.6.4 to 8.6.5, identical text). BASED is WS/LS/LK only, so no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/based_null.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.9.2-2",
+    "to": [
+     "GR-13.18.9.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.9.2 GR2",
+    "clause-2023": "13.18.9.3 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "BLINK of a screen item in ACCEPT/DISPLAY screen (screen section only)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by conformance:wiseowl/cases/13.18.9-BLINK/a42-screen-blink run now at --std 2002 (COBOL1560, rc 65) and probe scr_2002.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.9.2 GR2",
+      "quote": "the characters that constitute the screen item will blink when the screen item is referenced in an ACCEPT screen or a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.9.3 GR2",
+      "quote": "the characters that constitute the screen item will blink when the screen item is referenced in an ACCEPT screen statement or a DISPLAY screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 only repeats the word 'statement'. DOCUMENTED-NON-SUPPORT licensed in 2002 as processor-dependent (B.3 item 1; item 2 names BLINK); declined at --std 2002 with a diagnostic.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.11.3-2",
+    "to": [
+     "GR-13.18.11.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.11.3 GR2",
+    "clause-2023": "13.18.11.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CLASS on an elementary item applies in VALIDATE's content stage only if the item is still valid on format (file, WS, LS, LK, CD records)"
+    ],
+    "evidence-2002": {
+     "all": "not shown: the CLASS clause is refused at --std 2002 (COBOL1708, probe class_ok.cob; wiseowl declined-validate-class refuse-at includes 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.11.3 GR2",
+      "quote": "the CLASS clause takes effect only if the item's associated internal indicator is still set to its initial valid value, indicating that the item is valid on format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.11.4 GR2",
+      "quote": "indicating that no errors occurred during the format validation stage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.11.3 GR1",
+      "quote": "The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "The two wordings ('valid on format' / 'no errors occurred during the format validation stage') say the same thing. But the pointer row is DOCUMENTED-NON-SUPPORT under 2023's optional VALIDATE module, and 2002 gives no such licence: VALIDATE and the CLASS clause are required elements (only Annex A is optional). The compiler declines the clause at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_ok.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the CLASS clause (VALIDATE content stage); the compiler declines it (kb/Work PB5577)",
+    "compiler-at-2002": "wrong (known defect kb/Work PB5577, open; these rows are not yet in its inventory_rows): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_ok.cob (05 X PIC X(3) CLASS IS ALPHABETIC; VALIDATE G) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_group.cob (01 G CLASS IS ALPHABETIC over two PIC X(3) items; VALIDATE G) at --std 2002: error COBOL1708 'the CLASS clause of the §2023:13.16.2 validation-clauses group ... VALIDATE facility', warning COBOL1580 calling VALIDATE optional under §2023:4.2.7, rc 65 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/class_*-2002.out). Expected: accepted (§2002:3.1.1; only Annex A is optional, §2002:3.1) and the clause applied in the content validation stage. Site: src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+    "licence-2002": "none: §2002:3.1 makes only Annex A optional; VALIDATE is not processor-dependent in §2002:B.3"
+   },
+   {
+    "rule-id": "2002-GR-13.16.11.3-3",
+    "to": [
+     "GR-13.18.11.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.11.3 GR3",
+    "clause-2023": "13.18.11.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "each character checked by the CLASS operand as a class condition (§2002:8.8.4.1.3); false sets invalid on content"
+    ],
+    "evidence-2002": {
+     "all": "not shown: CLASS refused at --std 2002 (COBOL1708, probes class_ok.cob, class_group.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.11.3 GR3",
+      "quote": "If the class condition is false, the data item's internal indicator is set to invalid on content",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.11.4 GR3",
+      "quote": "If the class condition is false, the data item's internal indicator is set to invalid on content",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.11.3 GR1",
+      "quote": "The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words except the referenced clause (2002 8.8.4.1.3 Class condition; 2023 8.8.4.4 Simple class condition). The element is required in 2002 and declined by the compiler at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_ok.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the CLASS clause's content check in VALIDATE; the compiler declines it (kb/Work PB5577)",
+    "compiler-at-2002": "wrong (known defect kb/Work PB5577, open; these rows are not yet in its inventory_rows): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_ok.cob (05 X PIC X(3) CLASS IS ALPHABETIC; VALIDATE G) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_group.cob (01 G CLASS IS ALPHABETIC over two PIC X(3) items; VALIDATE G) at --std 2002: error COBOL1708 'the CLASS clause of the §2023:13.16.2 validation-clauses group ... VALIDATE facility', warning COBOL1580 calling VALIDATE optional under §2023:4.2.7, rc 65 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/class_*-2002.out). Expected: accepted (§2002:3.1.1; only Annex A is optional, §2002:3.1) and the clause applied in the content validation stage. Site: src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+    "licence-2002": "none: §2002:3.1 makes only Annex A optional"
+   },
+   {
+    "rule-id": "2002-GR-13.16.11.3-4",
+    "to": [
+     "GR-13.18.11.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.11.3 GR4",
+    "clause-2023": "13.18.11.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CLASS on an alphanumeric or national group: GR2/GR3 per subordinate elementary item, skipping PRESENT WHEN / ODO-excluded items"
+    ],
+    "evidence-2002": {
+     "all": "not shown: probe class_group.cob refused at --std 2002 (COBOL1708)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.11.3 GR4",
+      "quote": "general rules 2 and 3 are applied to each of its subordinate elementary items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.11.4 GR4",
+      "quote": "General rules 2 and 3 are applied to each of its subordinate elementary items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.11.3 GR1",
+      "quote": "The CLASS clause takes effect during the content validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words; the requirement is a required 2002 element the compiler declines at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_group.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires the group form of the CLASS clause in VALIDATE; the compiler declines it (kb/Work PB5577)",
+    "compiler-at-2002": "wrong (known defect kb/Work PB5577, open; these rows are not yet in its inventory_rows): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_ok.cob (05 X PIC X(3) CLASS IS ALPHABETIC; VALIDATE G) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/class_group.cob (01 G CLASS IS ALPHABETIC over two PIC X(3) items; VALIDATE G) at --std 2002: error COBOL1708 'the CLASS clause of the §2023:13.16.2 validation-clauses group ... VALIDATE facility', warning COBOL1580 calling VALIDATE optional under §2023:4.2.7, rc 65 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/class_*-2002.out). Expected: accepted (§2002:3.1.1; only Annex A is optional, §2002:3.1) and the clause applied in the content validation stage. Site: src/WiseOwl.Cobol.Compiler/Validation/DeclinedFacilityPass.cs#VisitValidationClause",
+    "licence-2002": "none: §2002:3.1 makes only Annex A optional"
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-1",
+    "to": [
+     "SR-13.18.12.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12.2 SR1",
+    "clause-2023": "13.18.12.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CODE IS literal-1 in an RD: literal-1 alphanumeric (figurative constants by §2002:8.3.1.2.5)"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb1129-code-literal-numeric (COBOL2713 at 2002), pb1129_rd_code_literal (output equals golden at 2002), pb5475_code_figurative_constant (stdout HELLO equals golden at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR1",
+      "quote": "Literal-1 shall be a alphanumeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.3 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'a' / 'an' differ; the CODE format and the RD are the same in both editions; no CD reach.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-2",
+    "to": [
+     "SR-13.18.12.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.12.2 SR2",
+    "clause-2023": "13.18.12.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CODE IS identifier-1: an alphanumeric data item",
+     "not a variable-length data item = a group with a variable-table (ODO) subordinate (§2002:13.16.36.3 GR8)"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb1129-code-identifier-numeric and pb1129-code-identifier-odo-group (COBOL2713 at 2002), pb3355-code-identifier-strong-group (COBOL2713 at 2002), pb1129_rd_code_identifier (output equals golden at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR2",
+      "quote": "Identifier-1 shall represent an alphanumeric data item and shall not be a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.3 SR2",
+      "quote": "Identifier-1 shall reference an alphanumeric data item that shall not be an occurs-depending-on group item, a variable-length group, or a dynamic-length elementary item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that has an entry subordinate to it that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Different words, same 2002 requirement: 2002's only variable-length data item is a group with a variable-table subordinate, which is 2023's occurs-depending-on group arm (shown at 2002 by pb1129-code-identifier-odo-group); 2023's other two arms name 2014+/2023 constructs (dynamic-length items). RD only.",
+    "probe": null,
+    "widening": "2023 also bars variable-length groups and dynamic-length elementary items (no 2002 counterpart)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.13.3-4",
+    "to": [
+     "GR-13.18.13.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.13.3 GR4",
+    "clause-2023": "13.18.13.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FD with CODE-SET whose records carry SELECT WHEN: the selected entry converts display items by alphabet-name-1, national by alphabet-name-2",
+     "FD with CODE-SET and no record description entries: WRITE/REWRITE FILE ... FROM converts by the FROM operand's description"
+    ],
+    "evidence-2002": {
+     "SELECT WHEN leg": "claimed on main by select_when_code_set_mixed_usage (accept [2002, 2014, 2023], kb/Work PB5578, landed after the pinned tree); NOT reproducible on the pinned compiler (24372b7b17): it refuses SELECT WHEN with COBOL1705 at both 2002 and 2023 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/out/select_when_code_set_mixed_usage-2002.out)",
+     "record-less WRITE/REWRITE FILE leg": "not shown by any test of the pointer row; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/gr4_codeset_recordless_writefile.cob (expected EBCDIC A,B,1 = ordinals 194, 195, 242) is refused COBOL1706 by the pinned compiler at both editions (WRITE FILE landed on main later, kb/Work PB5579)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.13.3 GR4",
+      "quote": "If there are no record description entries associated with the file, the record description used for conversion is the description of the identifier or literal specified in the FROM phrase of a WRITE or REWRITE statement specifying the FILE option",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.13.4 GR4",
+      "quote": "If there are no record description entries associated with the file, the record description used for conversion is the description of the identifier or literal specified in the FROM phrase of a WRITE or REWRITE statement specifying the FILE phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words ('FILE option' / 'FILE phrase'). The pointer row's evidence shows only the SELECT WHEN leg; the record-less leg (conversion by the FROM operand of WRITE/REWRITE FILE) has no witness, and the pinned compiler predates both the SELECT WHEN and the WRITE FILE landings, so neither leg can be run at --std 2002 on it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/gr4_codeset_recordless_writefile.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for WRITE/REWRITE FILE FROM on a record-less FD with CODE-SET (probe gr4_codeset_recordless_writefile.cob, to be run on a build at or after main 858fcc4130), and select_when_code_set_mixed_usage re-run at --std 2002 on that build",
+    "compiler-at-2002": "not probed: the pinned compiler (E:/COBOL-wt/coderead85-tree-d, 24372b7b17) predates kb/Work PB5578 (SELECT WHEN/FORMAT) and PB5579 (WRITE FILE) and declines both at every edition"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-11",
+    "to": [
+     "SR-13.18.14.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14.2 SR11 (COLUMN Format 2, screen item)",
+    "clause-2023": "13.18.14.3 SR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "COLUMN MINUS / '-' in a screen description entry (screen section only)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by wiseowl a42-screen-column run now at --std 2002 (COBOL1560) and probe scr_2002.cob (COLUMN MINUS 2 and COLUMN - 1 both parse, the screen section and COLUMN format 2 refused COBOL1560, rc 65)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR11",
+      "quote": "MINUS and – are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR11",
+      "quote": "MINUS and - are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same rule (the dash is typeset differently). Screen format only; DOCUMENTED-NON-SUPPORT licensed in 2002 (processor-dependent) and declined at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-6",
+    "to": [
+     "SR-13.18.14.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14.2 SR6 (COLUMN Format 1, report writer)",
+    "clause-2023": "13.18.14.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "report group COLUMN integer-1 and PLUS integer-2 not beyond the page width (13.16.37 PAGE clause; 999 assumed when absent)"
+    ],
+    "evidence-2002": {
+     "integer-1": "covered by pb1059-column-beyond-page-width and pb1059-column-beyond-assumed-page-width (refuse-at includes 2002; run now: COBOL2710)",
+     "integer-2 and multiple COLUMN": "probes col_plus_beyond.cob (PLUS 25 over width 20: COBOL2710) and col_multi_beyond.cob (COLUMNS 1 30: COBOL2710) at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR6",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page width",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.3 SR6",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page width",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words; only the referenced clause number changes (13.16.37 / 13.18.39) and the PAGE clause text is identical in both editions (diffed). COLUMN Format 1 is identical. Report section only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/col_plus_beyond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-13",
+    "to": [
+     "GR-13.18.14.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.14.3 GR13 (COLUMN Format 2)",
+    "clause-2023": "13.18.14.4 GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "screen item column positioning in ACCEPT/DISPLAY screen (screen section only)"
+    ],
+    "evidence-2002": {
+     "decline": "covered by wiseowl a42-screen-column run now at --std 2002 (COBOL1560, rc 65) and probe scr_2002.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR13",
+      "quote": "The COLUMN clause specifies the column in which the leftmost character of the screen item is to appear on the screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.14.4 GR13",
+      "quote": "The COLUMN clause specifies the column in which the leftmost character of the screen item is to appear on the screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Normative sentences identical; only the informative NOTE's wording differs. DOCUMENTED-NON-SUPPORT licensed in 2002 and declined at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-13/scr_2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:3.1.5 'Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented' with §2002:B.3 item 1 'the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor' (both OK)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-13",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.15.2-7",
+    "verdict": "UPHELD",
+    "reason": "Screen description entry formats 1 and 2 compared phrase by phrase (2002 13.15.1 vs 2023 13.17.2): identical, including the screen-attribute and source-destination clauses. The six-item list of SR7 is the same ('a ERASE'/'an ERASE' only). The whole scope is the 2002 screen section, which 2002 itself makes processor-dependent (B.3 item 1) and lets go unimplemented when support is not claimed (3.1.5, which asks for a compile-time warning mechanism and no executable code). The compiler refuses every screen construct at --std 2002 with COBOL1560 (reader's a42-screen-section and scr_sr7_bad outputs sampled). A FROM/TO/USING operand could name a CD-record item in 2002, but the licence covers the whole screen section, so that reach changes nothing.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.2 SR7",
+      "quote": "For an elementary screen item, the associated screen description entry shall include at least one of the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.15.3-3",
+    "verdict": "UPHELD",
+    "reason": "Same implied-PICTURE rule (2023 moved it to SR10 and excluded zero-length literals, which 2002 does not have). Screen section only, under the same 2002 licence (B.3 item 1 with 3.1.5); refused at --std 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.15.3 GR3",
+      "quote": "The PICTURE clause may be omitted when an alphanumeric, boolean, or national literal is specified in the VALUE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-1",
+    "verdict": "UPHELD",
+    "reason": "The ANY LENGTH format is the bare phrase in both. The sentence is identical; only the informative NOTE differs. Linkage-only placement, so no CD or debugging-line reach. Function, contained program, method and property method mean the same in both editions. The reader's probes at --std 2002 were sampled (al_property: COBOL1542; outermost test refuses at 2002).",
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR1",
+      "quote": "of a contained program, or of a method that is not a property method",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-2",
+    "verdict": "UPHELD",
+    "reason": "Identical words. The procedure division header's BY REFERENCE and RETURNING exist in both. The rule governs a linkage item only. Sampled al_unref / al_byvalue at --std 2002: COBOL5979.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR2",
+      "quote": "a formal parameter with the BY REFERENCE phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.2.2-4",
+    "verdict": "UPHELD",
+    "reason": "2023 SR1 splits the one sentence in two. The symbol set N, X, 1 is the same; 2023's added symbol U is not in the list. Linkage only.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.2.2 SR4",
+      "quote": "one instance of the picture symbols",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.2.3 SR1",
+      "quote": "one instance of the picture symbol",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.4.3-2",
+    "verdict": "UPHELD",
+    "reason": "The format is identical. Identifier-1 is restricted to file, WS, LS and LK (SR1), so there is no CD operand. The rule is screen-only and licensed in 2002 (B.3 items 1-2, 3.1.5). Refused at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.4.3 GR2",
+      "quote": "specifies the color number of the background color",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.4.2 SR1",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section as an unsigned integer data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.5.3-2",
+    "verdict": "UPHELD",
+    "reason": "Attacked the deferral chain. 2002 8.6.4 is word-identical to 2023 8.6.5 apart from numbers. The clause it leans on, 2002 8.6.3 against 2023 8.6.4, differs only in the communication section (BASED cannot be there: 13.14.2 SR15) and 2023-only dynamic items. Initial state (14.5.2.1.2.1 against 14.6.2.3.2): the same three triggers, and both say the address of each based item is set to null. The 2023 additions (INITIALIZE fill, the SET pointer) do not narrow the 2002 case. The 2023 8.6.6 wording 'and that of any contained programs' is not in the chain GR2 names, and 14.5.2.1.2.1 item 2 already gives 2002 that behaviour. Reader's based_null output sampled.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.5.3 GR2",
+      "quote": "An implicit data-address pointer is created and has an initial value of NULL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The address of each based item is set to null",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.2.3.2",
+      "quote": "The address of each based item is set to null",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.2.1.2.1",
+      "quote": "The first time the program in which it is described is activated after the execution of an activating statement referencing a program that possesses the initial attribute",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.14.2 SR15",
+      "quote": "The BASED clause may be specified only in data description entries in the linkage section, in the working-storage section, and in the local-storage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.9.2-2",
+    "verdict": "UPHELD",
+    "reason": "The BLINK format is the bare word in both editions. The rule is screen-only and licensed in 2002 (B.3 items 1-2, 3.1.5). Refused at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.9.2 GR2",
+      "quote": "the characters that constitute the screen item will blink",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-1",
+    "verdict": "UPHELD",
+    "reason": "The CODE format is the same (literal-1 | identifier-1). Literal-1 is a literal, so no CD or debugging reach. A 2002 concatenation expression is admitted in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR1",
+      "quote": "Literal-1 shall be a alphanumeric literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.12.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "The reader said 'RD only', but the RD is only where the clause sits. Identifier-1 is an operand, and the 2002 rule places no section limit on it. In 2002 it may reference an item of a record description following a CD entry, or an implicit CD data-name (SYMBOLIC DESTINATION is alphanumeric X(12); TEXT LENGTH is a 4-digit unsigned integer). SR2's alphanumeric / not-variable-length test then decides a communication-section operand, which the 2023 row cannot show. The precedent is the overturned ASSIGN USING CD-operand reach. Probes at --std 2002: code_cd.cob (CODE IS a PIC X item of the record under an output CD) compiles and runs, and the report record begins with the code: 'QDD'. code_cd_sd.cob (CODE IS SD1, the implicit SYMBOLIC DESTINATION) runs: 'ZZ          DD'. code_cd_tl.cob (CODE IS TL, the TEXT LENGTH) is refused with COBOL2713 'category-numeric'. All three are correct.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.12.2 SR2",
+      "quote": "Identifier-1 shall represent an alphanumeric data item and shall not be a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.12.3 SR2",
+      "quote": "Identifier-1 shall reference an alphanumeric data item that shall not be an occurs-depending-on group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "The TEXT LENGTH clause defines data-name-2 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16",
+      "quote": "The SYMBOLIC DESTINATION clause defines data-name-5 as the name of an elementary alphanumeric data item of 12 characters",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for CODE IS identifier-1 naming a CD-record item and an implicit CD data-name (probes code_cd.cob, code_cd_sd.cob, code_cd_tl.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-13/code_cd-2002.out, code_cd_sd-2002.out, code_cd_tl-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-13/code_cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-11",
+    "verdict": "UPHELD",
+    "reason": "SR11 sits under FORMAT 2 (screen item) in both editions. Format 1 has no MINUS in either. Screen-only and licensed in 2002 (B.3 item 1, 3.1.5); refused at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR11",
+      "quote": "MINUS and – are synonyms",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.14.2-6",
+    "verdict": "UPHELD",
+    "reason": "COLUMN format 1 is identical. The PAGE clause text, 2002 13.16.37 against 2023 13.18.39, was diffed here and is identical apart from headings. The operands are integers, so there is no CD operand. The report writer is a required element in 2002 and is implemented. The reader's col_plus_beyond output was sampled: COBOL2710 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.2 SR6",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page width",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.14.3-13",
+    "verdict": "UPHELD",
+    "reason": "The normative sentence is identical; only the NOTE wording differs. Format 2 identifier-1 is limited to file, WS, LS and LK (SR12). Screen-only and licensed in 2002; refused at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.14.3 GR13",
+      "quote": "The COLUMN clause specifies the column in which the leftmost character of the screen item is to appear on the screen",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.14.2 SR12",
+      "quote": "Identifier-1 shall be described in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "f39eb5851014f7ee237cf6dcb87fc1cb0880a65c54bde562c075b5050fb2dcfa",
+  "read": "8289ba2b2cfdb824c6da8de5bd72a57938a07024101c2adf713b51294ca05686",
+  "refute": "1a63928cb7fdd9055f550c4b0d91182cc670e1849369fc1cf117417418e4fd82"
+ }
+}

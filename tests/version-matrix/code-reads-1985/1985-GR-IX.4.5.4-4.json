@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-4",
+ "rule-digest": "e3629f4f1fcb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-008",
+  "sources": {
+   "reader": "7d984fa77d3938f96da55d818a1513326d938e008383fed059cfa43e4963c849",
+   "refuter": "a17135ef97d0d1c1ce3bc11aae9b5d592cb7d8874820b569c8d2b127911dce29"
+  },
+  "imported": {
+   "reader": "ff5df89e2d0626a19ec21584e4735a2e231b1f0fc421c45697e0959ad0540cf2",
+   "refuter": "a4346e914a1c8ce41a13eb7c4c43d209265653967ab27d51c1368fd6dd519999"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a format 1 READ of an indexed file must select by the file position indicator against the current key of reference in the file's collating sequence (native, IX.2.3.4 GR3): no valid next record -> unsuccessful (46); optional file absent -> at end (GR10); after OPEN or START the first record with key >= FPI; after a READ the first record with key > FPI for a unique key, or the next duplicate in arrival order (then greater keys) for a key allowing duplicates; none found -> at end with FPI set to no next logical record; a record made available sets the FPI to its key of reference.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Resolve; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveFileCollating",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (READ PREVIOUS directly after OPEN); only the PREVIOUS direction, which 85 refuses at compile time (COBOL0900), so the NEXT selection 85 reaches is the latest edition's code",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly: the 02 status of a random READ (status only; the FPI and key of reference it sets are the same at every edition)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior|CobolVersion' over IndexedConnector.cs, FileConnector.cs and KeyedIoEmitter.cs; the key collation is chosen by FileControlBinder.ResolveFileCollating (no COLLATING SEQUENCE clause -> native), which reads no edition and matches IX.2.3.4 GR3 at 85.",
+  "behaviour-differs-by-edition": "no (for the record selected; READ PREVIOUS and the per-file COLLATING SEQUENCE clause do not exist at 85)",
+  "witnesses-cover": "part: pb810_read_46_takes_no_at_end covers rule a (46 after an at end) and the at-end path; not exercised by it are rules c (after OPEN/START), d (strictly greater after READ, including a record inserted after the FPI and a deleted successor), e (duplicates in arrival order, including a REWRITE that moves a record to the end of its duplicate set), and the native collating sequence under a PROGRAM COLLATING SEQUENCE.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p3/fpi85.cob",
+    "printed": "C-AFTER-OPEN 0010; C-START-NLT-0030 0030; D-AFTER-READ 0040; D-INSERTED-0045 0045; C-START-GT-0020 0030; D-AFTER-RANDOM-0030 0040; E-ALT-DUPS-ARRIVAL 0050 02, 0010 02; REWRITE 0020 AK->AAA 02; E-CONTINUE 0030 02, 0020 00, 0040, 0045, AT-END 10, ST 46; A-AFTER-AT-END 46; A-AFTER-FAILED-START 46; A-AFTER-FAILED-RANDOM 46; D-AFTER-DELETE-NEXT 0050",
+    "expected": "rule c >= FPI after OPEN/START; rule d > FPI after READ (FPI is a key value, so a newly inserted 0045 is found and a deleted successor is skipped); rule e duplicates in arrival order 0050, 0010, 0030 and the rewritten 0020 last (IX.4.6.4 GR15b); at end 10 then rule a 46 after at end, failed START and failed random READ (GR12)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p3/coll85.cob",
+    "printed": "PROGRAM-SEQ: LETTERS FIRST; 1001one 00; A001two 00; AT-END 10; START-INV 23",
+    "expected": "IX.2.3.4 GR3: an indexed file uses the native collating sequence even under PROGRAM COLLATING SEQUENCE, so 1001 precedes A001 and no key is >= B000"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p2/readprev85.cob",
+    "printed": "error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "PREVIOUS is a later edition's phrase that 85 refuses"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR4",
+    "check": "OK  §1985:IX.4.5.4 GR4  (4.5.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR3",
+    "check": "OK  §1985:IX.2.3.4 GR3  (2.3.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR12",
+    "check": "OK  §1985:IX.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "The connector holds the FPI as a key value plus the duplicate-set ordinal and the previous positioner (O/S/R), and SelectSequentialRecord picks >= after OPEN/START and strictly-after (key, ordinal) after READ, which gives rules c, d and e. Every probed selection matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/d/fpi.cob at --std 85, aimed at what the reader did not try: READ KEY IS AK (dup set 0010,0020,0030), REWRITE 0010 with AK unchanged, READ NEXT gives 0020 02, 0030 00, 0040 (order unchanged, GR4e with IX.4.6.4 GR15a); READ 0040, DELETE it, WRITE 0040 again, READ NEXT gives 0100 (strictly greater, GR4d); START on a leading part of a group prime key (PK1 > '00', PK1 = '01') then READ NEXT gives 0100, 0110, 0200 (GR4c); READ dup 0010, NEXT 0020, DELETE 0020, NEXT gives 0030 then 0040. cite.py: 'OK  §1985:IX.4.5.4 GR4  (4.5.4 General Rules)  the text is in GR4'; 'OK  §1985:IX.4.6.4 GR15  (4.6.4 General Rules)  the text is in GR15'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

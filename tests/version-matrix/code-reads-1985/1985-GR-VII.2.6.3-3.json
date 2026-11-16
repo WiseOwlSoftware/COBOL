@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VII.2.6.3-3",
+ "rule-digest": "3d7f127de96a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-119",
+  "sources": {
+   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
+   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+  },
+  "imported": {
+   "reader": "95d137deb528423063175c4112fa2ce6649fc8a6039fbd58ae8f026dacd0a1df",
+   "refuter": "4ad9d88f34050ce59ca5e69b14a8efdb997248c2201a39f5fa6fa8d45ff4a348"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.6.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a file control entry with no ORGANIZATION clause is a sequential file, with every sequential behaviour (WRITE without INVALID KEY, EXTEND, REWRITE in place, record order).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#Organization",
+  "edition-consulted": [],
+  "edition-search": "FileModel.Organization defaults to FileOrganization.Sequential and OrganizationWritten false; grep DialectLevel|EditionContext|DialectBehavior around Organization in FileControlBinder.cs and FileModel.cs found no edition test on the default; the binder documents itself edition-agnostic",
+  "behaviour-differs-by-edition": "no: 2023 implies RECORD SEQUENTIAL, which is the same organization the compiler binds at 85",
+  "witnesses-cover": "part: g85_bf21_01 covers OUTPUT/INPUT order and a WRITE without INVALID KEY; not EXTEND or REWRITE on a defaulted file, or the bare SEQUENTIAL spelling",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p4org.cob",
+    "printed": "F3 (no ORGANIZATION clause, RECORD VARYING) reads back in write order; F1 (bare SEQUENTIAL) EXTEND and REWRITE behave sequentially",
+    "expected": "implied sequential organization"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p2assoc.cob",
+    "printed": "files with no ORGANIZATION clause: OPEN/WRITE/CLOSE statuses 00, CLOSE of unopened 42, OPEN INPUT missing 35",
+    "expected": "sequential I-O status values"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.6.3 GR3",
+    "check": "OK  §1985:VII.2.6.3 GR3  (2.6.3 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Absent clause leaves FileModel.Organization at its Sequential default; every probe file without the clause behaved as a sequential file.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same default",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.6.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attacked whether a file control entry with no ORGANIZATION clause can drift into another organization from its other clauses. src/r4nokey.cob --std 85 (ACCESS MODE RANDOM, RECORD KEY, WRITE INVALID KEY, no ORGANIZATION): refused, COBOL1858 'ACCESS MODE IS RANDOM may not be specified for a sequential file ... record sequential by default, the ORGANIZATION clause being omitted', COBOL0863 RECORD KEY only for indexed, COBOL1720 INVALID KEY not for sequential. src/r4norel.cob (ACCESS DYNAMIC, RELATIVE KEY): COBOL1858 and COBOL0863 likewise. src/r4pad.cob (no ORGANIZATION, with the 1985 sequential-only clauses RESERVE 2 AREAS, PADDING CHARACTER, RECORD DELIMITER STANDARD-1, ACCESS SEQUENTIAL): compiled (COBOL1778 warning that RECORD DELIMITER has no effect), REWRITE in place 00, read back Q01, P02, END 10. The default is the sequential organization with sequential behaviour; the diagnostics cite §2023 clauses at --std 85, a wording matter. The ADVANCING read-back defect recorded under 1985-GR-VII.2.6.3-2 is a defect of retrieval, not of which organization is implied. cite.py: OK §1985:VII.2.6.3 GR3 the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

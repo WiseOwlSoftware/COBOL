@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-4",
+ "rule-digest": "1b9fed7cc5db",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-017",
+  "sources": {
+   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
+   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+  },
+  "imported": {
+   "reader": "9afeb539b5c23ed7da35555565cb705d311af5831a90f971b64649dc9d83f25a",
+   "refuter": "91b4ac3ec650c8ed1ee9f8a41e545159b56fbc9ad99f0bbcebff8afdccb27c0b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the specified set of statements is the range from the first statement of procedure-name-1 through the end of procedure-name-2 (or procedure-name-1 alone; a section meaning all its paragraphs, an empty section an empty set) for out-of-line, and the contained statements for in-line.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectNondeclaratives; src/WiseOwl.Cobol.Compiler/Binding/Model/PcRange.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectNondeclaratives",
+    "switches": "an empty section gets an anonymous pc only when a USE FOR DEBUGGING section is compiled (_pendingDebug, a 1985 feature); otherwise the range stays empty",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+    "switches": "1985 segmentation restriction on the range",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Range composition (first.Range / range.Through(thru.Range), section = SectionInfo.Range) has no edition test; grepped ProcedureTableBuilder.cs for ConstructRegistry|CobolVersion|DialectBehavior: none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb440 covers the empty-section range; paragraph, section, THRU and inverted THRU ranges are not in the listed witnesses",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/p1.cbl",
+    "printed": "PERFORM PA: PA; PERFORM SB: SB-1 SB-2; PA THRU PC: PA PB PC; SB THRU SC: SB-1 SB-2 SC-1 SC-2; PX THRU PA (inverted, via GO TO): PX PA; PERFORM SEMPTY: nothing; SEMPTY VARYING N FROM 5: N=008",
+    "expected": "each set as GR4 defines it; an empty set still runs the control phrase"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g7b.cbl",
+    "printed": "PA PC PB RET1 / S2-A S2-C RET2 / PA PB PC S2-A S2-C RET3 / S2-A S2-C S3 END",
+    "expected": "the set is the logical range (GO TO out and back), ending at procedure-name-2's end"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR4",
+    "check": "OK  §1985:VI.6.21.4 GR4  (6.21.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The resolved PcRange carries the set; a section-name resolves to its whole paragraph range and THRU composes start-of-1 through end-of-2. Identical at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1 identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-4",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p1.cbl (--std 85), with two sections that each hold a paragraph P. Unqualified PERFORM P inside S1 runs 'P OF S1'; PERFORM P IN S2 runs 'P OF S2'; PERFORM P OF S1 THRU P OF S2 runs both in order. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p3.cbl: PERFORM SX, where SX's last paragraph SX-2 is empty, prints only SX-1 and returns, and SY is not entered. Class a does not apply (no variable-length data in a procedure range). cite.py: 'OK  §1985:VI.6.21.4 GR4  (6.21.4 General Rules)  the text is in GR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

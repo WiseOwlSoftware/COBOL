@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-3",
+ "rule-digest": "b04640b3e9cf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "f5ac295e189ef37f43c2cfa98e9e1766da7762460ee4eabc2841f078bd25bc0b",
+   "refuter": "19d48ef691c66508c58563d0e2d4b9d83082c0060d0d97bca85e9f3bc9cf7475"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a period followed by a space (or a line end, or the end of the source) is the separator period, which ends a sentence or stands where a format shows it (after headers, paragraph-names, entries, END PROGRAM); a separator period anywhere else, a period with no space after it, and a format's required period left out must be refused, while a period inside a PICTURE character-string or numeric literal is a symbol, not a separator.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DOT; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#IsSeparatorPeriod; src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse",
+  "edition-consulted": [],
+  "edition-search": "Read SeparatorRule.cs whole (DOT arm, IsSeparatorSpace treats end of text as a separator) and PictureSeparatorPeriodRule.cs; grepped Edition|Version|Std in both (none); Frontend.cs#LexAndParse runs both over the token stream with no edition argument. The grammar's DOT placements are shared by every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: w73a_separator_context_conforming covers sentence-ending periods; the negative w73a-period-not-followed-by-space covers the missing space; nothing covers a misplaced separator period, an omitted required period, the end-of-source period or PICTURE-final insertion periods",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c4_period.cob",
+    "printed": "A=12.34 / B= 5 / C=1 / D / F / G (EXPECT: MATCH); c4_period_noeol.cob with END PROGRAM C4PD. as the last characters and no line end: same output",
+    "expected": "periods inside PIC 99.99, a nonnumeric VALUE and the literal 1.5 are symbols; a period alone on the next line ends the sentence; an IF ... ELSE sentence ends at its period; END PROGRAM's period at end of source is a separator"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c4_picdot.cob",
+    "printed": "A=123, B=123. (EXPECT: MATCH)",
+    "expected": "PIC 999,. and PIC 999.. : the insertion symbol is last and the separator period follows immediately (§1985:VI.5.9.5 GR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c4_picdot2.cob",
+    "printed": "COBOL2419 the PICTURE character-string 999. ends in the symbol '.' ...",
+    "expected": "refused: a PICTURE ending in the insertion period must be the last clause, immediately followed by the separator period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c4_ref1.cob",
+    "printed": "c4_ref1 (01 N-B PIC 99. VALUE 5.): COBOL0001 unexpected 'VALUE'; c4_ref3 (COMPUTE N-A = (1 + 2. ) * 3.): COBOL5506 the separator period is not expected here; c4_ref7 (IF ... DISPLAY \"X\". ELSE ...): COBOL0001 unexpected 'ELSE'; c4_ref2 (MOVE 1 TO N-A. N-A.): COBOL3734 + COBOL2692",
+    "expected": "a separator period that neither ends a sentence nor stands where a format shows it: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c4_ref4.cob",
+    "printed": "c4_ref4 (data entry without its period), c4_ref5 (PROCEDURE DIVISION header without its period), c4_ref6 (paragraph-name without its period): COBOL0307 ... A period may be missing",
+    "expected": "a period the format shows, omitted: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.3.5-Separators/w73a-period-not-followed-by-space.cob",
+    "printed": "COBOL2632 the period is not followed by a space",
+    "expected": "N.DISPLAY holds no separator period: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR3",
+    "check": "OK  §1985:IV.4.2.1 SR3  (4.2.1 Separators)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.5.9.5 GR4",
+    "check": "OK  §1985:VI.5.9.5 GR4  (5.9.5 Editing Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The lexer makes every period not taken by a literal or PICTURE a DOT; SeparatorRule refuses one with no space after it, and the grammar places DOT only where the formats show it, so a misplaced separator period is a parse error. The diagnostics cite §2023 clause numbers at --std 85, a message-text matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:IV.4.2.1 SR3 and the sentence definition (§1985:IV ... 'A sentence consists of one or more statements and is terminated by the separator period'). Probes at --std 85, aimed at what the reader did not try: e1/e2/e3/e4/e7/e8 an empty sentence (a period with no statement after a statement, after a paragraph-name, after a data entry, after a section header, after a division header, alone on its line) -> each refused (COBOL0001 / COBOL5506 unexpected '.'); e5 IF ... DISPLAY \"X\". END-IF -> COBOL0306; e6 period inside EVALUATE before WHEN -> COBOL0001. Format-shown periods accepted: f2 AUTHOR. comment-entry with periods, DATE-COMPILED., SOURCE-COMPUTER./OBJECT-COMPUTER./SPECIAL-NAMES. with no entries, DECLARATIVES./USE FOR DEBUGGING./END DECLARATIVES., EXIT., END PROGRAM, and a COPY statement's own period in the middle of a MOVE sentence: A=05 exit 0. g1 a period at column 72 followed by a sequence area in 73-80 is a separator period: A B. cite.py: OK §1985:IV.4.2.1 SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

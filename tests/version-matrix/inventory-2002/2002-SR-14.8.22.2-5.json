@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-5",
+ "rule-digest": "bab0f8109045",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.2 SR5a/b/c: CD record arguments passed BY CONTENT or BY REFERENCE meet BY REFERENCE formals (BR 0001/0042), and those passed BY VALUE meet BY VALUE formals (BV, CO, CP). --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

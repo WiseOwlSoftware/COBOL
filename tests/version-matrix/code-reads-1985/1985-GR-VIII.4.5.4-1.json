@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-1",
+ "rule-digest": "682bb728dcd4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-134",
+  "sources": {
+   "reader": "554b5ad7de4a4b9808dbc5589d61a93fd36f522d449f40546eff8c076bdbb48a",
+   "refuter": "bea9901c1f37eb50ff99d557a23fbd9be3e5b3cdce94e7563a41be66b409ddcd"
+  },
+  "imported": {
+   "reader": "d464ddf1a2f77bf764765d7ab1a82aaa4a428fb21d4c58dce619e2b4db38c3f0",
+   "refuter": "794b4b98e5583b05e56715e838f06290c3a00aa903c9936d760a3f3b1ccb5fee"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, both READ formats of a relative file (sequential READ [NEXT] and keyed READ) in every access mode execute only when the file is open in the input or I-O mode; never opened, after a failed OPEN or CLOSE, or open in output or extend mode the READ is unsuccessful with 47, its AT END / INVALID KEY imperative does not run and no INTO move happens.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): at 85 a READ/WRITE/REWRITE/DELETE/START without AT END/INVALID KEY and no applicable USE is refused (COBOL6826); compile-time only, the runtime statement is the same code",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Year >= 2002 returns early: at 85 a dynamic-access READ with AT END and no NEXT is refused (COBOL7144, 1985 VIII.4.5.3 SR3); 2002+ implies NEXT",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/IsActive/CobolVersion over FileConnector READ guards and RelativeConnector READ entries: none; the compile-time READ checks are the two listed.",
+  "behaviour-differs-by-edition": "no: runtime identical at --std 2023; at 85 only the compile-time exception-phrase and NEXT requirements differ",
+  "witnesses-cover": "part: g85_f20_05 covers sequential and random access in not-open/output/input/I-O/extend; dynamic access, READ after a failed OPEN or CLOSE, INTO and RECORD VARYING are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p1notopen.cob",
+    "printed": "dynamic never-opened READ random 47 and READ NEXT 47; READ after failed OPEN 47; READ after CLOSE 47",
+    "expected": "47"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p2table.cob",
+    "printed": "dynamic READ NEXT in output 47; random I-O READ 00 NEW1",
+    "expected": "47 / 00"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p6varinto.cob",
+    "printed": "RECORD VARYING 2 TO 8 DEPENDING ON: never-opened READ NEXT INTO 47 W untouched; output-mode READ INTO 47 W untouched; INPUT READ NEXT 00 VLEN 03 key 0001, then 00 VLEN 08 ABCDEFGH (MATCH)",
+    "expected": "1985 VIII.4.5.4 GR8b: no implied MOVE when the READ is unsuccessful"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/c7nonext.cob",
+    "printed": "--std 85: COBOL7144 dynamic READ with AT END and no NEXT refused; --std 2023: runs, R=00 RRR3 0003",
+    "expected": "1985 VIII.4.5.3 SR3 at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR1",
+    "check": "OK  §1985:VIII.4.5.4 GR1  the text is in the rule (or the clause): \"must be open in the input or I-O mode at the time this statement is executed\""
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  the text is in the rule (or the clause): \"The execution of a READ or START statement is attempted on a file not open in the input or I-O mode\""
+   },
+   {
+    "cite": "§1985:VIII.4.5.4 GR8",
+    "check": "OK  §1985:VIII.4.5.4 GR8  the text is in the rule (or the clause): \"Any subscripting associated with identifier-1 is evaluated after the record has been read\""
+   }
+  ],
+  "notes": "One guard (ReadOpenModeGuard) serves every READ entry of every organization and returns through Unsuccessful, so the position is invalidated and no record is delivered. 1985's 47 text names only READ and START, matching the guard.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "At --std 85: r1cells-001 sequential READ in OUTPUT 47 and EXTEND 47 (AT END did not run), random READ in OUTPUT 47, dynamic random READ in OUTPUT 47; r3lock-001 READ and READ NEXT after CLOSE WITH LOCK 47, after a failed OPEN (38) 47. Class c, a later edition's phrase refused: c_lock-001 READ WITH LOCK and c_nolock-001 READ NEXT WITH NO LOCK give COBOL0900 'record-lock phrase requires COBOL-2002'; c_key-001 READ KEY IS on a relative file gives COBOL0864 (1985 relative format 2 has no KEY phrase). cite.py: OK §1985:VIII.4.5.4 GR1 'must be open in the input or I-O mode at the time this statement is executed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

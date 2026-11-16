@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1242-same-record-area-global-record
-*> rules: [SR-13.18.27.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1242-same-record-area-global-record
+      *> rules: [SR-13.18.27.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1242 - F1's record description entry carries GLOBAL.
       *>   cite.py --check 13.18.27.3 "If the SAME RECORD AREA clause is specified for several files, the record description" -> OK
       *> COBOL2738 (same-clause-rule). The positive twin is conformance/2002/pb1087_same_clauses_legal.cob.

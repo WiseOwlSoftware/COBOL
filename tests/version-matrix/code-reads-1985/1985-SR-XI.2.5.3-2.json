@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-SR-XI.2.5.3-2",
+ "rule-digest": "2ab31be718ed",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "d415cdf137e97cbac6ef05b88971c3f5e4319aaf8b7388a25c992dbbde06ee08",
+   "refuter": "c2ebe5cb5c88c5b8836cac98c0a5a4e7c4f2a27a9645cf4624d10a844c62f8d2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.2.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a SAME RECORD AREA, SAME SORT AREA or SAME SORT-MERGE AREA clause (the Sort-Merge format, naming a sort or merge file) must be refused when any of its file-names, in the file-name-1 or any file-name-2 position, references an external file connector (an FD with IS EXTERNAL); internal files, including a GLOBAL one where no other rule bars it, are not affected by this rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Year < 2002 changes only the REPORT-file occurrence limits of the SAME clause (§1985:XIII.2.4.3 SR2); not the external-connector test",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read ScreenSameOperands: the `file.IsExternal` refusal has no edition test and runs for all three SAME formats (RecordArea, SortMergeArea, Area); grep of VersionConformancePass.cs for SAME clause gates found none for this operand rule.",
+  "behaviour-differs-by-edition": "no (same obligation as §2023:12.4.6.4.3 SR3; the diagnostic cites the 2023 rule at --std 85)",
+  "witnesses-cover": "part: the witness covers one SAME clause with an external file; the three spellings RECORD/SORT/SORT-MERGE, the file-name-1 position, a three-operand clause and the internal positive control are not all in it (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/recext.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA: file 'F' references an external file connector (ISO §2023:12.4.6.4.3 SR3 ...)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/sortext.cob",
+    "printed": "error COBOL2738: SAME SORT AREA: file 'F' references an external file connector",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/smext.cob",
+    "printed": "error COBOL2738: SAME SORT-MERGE AREA: file 'F' (file-name-1) references an external file connector",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/ext3.cob",
+    "printed": "error COBOL2738 for 'F' (third operand), plus COBOL1757 for S/G in one SAME SORT AREA (XI.4.4.3 SR9)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/hext.cob",
+    "printed": "error COBOL2738: SAME SORT AREA: file 'H' references an external file connector",
+    "expected": "refused, with no other rule involved"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/hint.cob",
+    "printed": "F1 AAAA",
+    "expected": "internal file in SAME SORT AREA accepted; sort runs"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/recglob.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA: the file description entry of file 'F' includes the GLOBAL clause (ISO §2023:13.18.27.3 SR2)",
+    "expected": "refused by §1985:X GLOBAL clause SR3 (SAME RECORD AREA files must not include GLOBAL), not by this rule"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c6/sortint.cob",
+    "printed": "error COBOL1757: SORT files 'S', 'F' are named in one SAME clause (ISO §2023:14.9.40.3 SR10)",
+    "expected": "refused by §1985:XI.4.4.3 SR9 (GIVING file and sort file in one SAME SORT AREA); not this rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.3 SR2",
+    "check": "OK  §1985:XI.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR9",
+    "check": "OK  §1985:XI.4.4.3 SR9  (4.4.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "One edition-blind test per operand refuses an external file connector in every SAME format and operand position. An internal file in a sort-area clause is accepted and sorts. Diagnostic face: COBOL2738 cites ISO §2023:12.4.6.4.3 SR3 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run separately: the test is edition-blind",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs": "FileModel.IsExternal set from the EXTERNAL clause"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.2.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Read §1985:XI.2.5 whole (format SAME {RECORD|SORT|SORT-MERGE} AREA; SR1-6) and its I-O sibling §1985:VII.2.13.3 SR2, which states the same bar for SAME [RECORD] AREA, so the edition-blind FileControlBinder.IoControl.cs#ScreenSameOperands refusing every SAME form over-reaches nothing at 85. Probes at --std 85 (refute-1985-07/c6), aimed past the reader's: recsh.cob SAME RECORD AREA FOR S H with S a sort file and H EXTERNAL (the Sort-Merge format's RECORD arm, file-name-2 position) -> COBOL2738; recint.cob the same with H internal -> sorts, 'F1 AAAA'; twocl.cob two SAME clauses (RECORD and SORT) in one I-O-CONTROL both naming external H -> COBOL2738 once per clause; plain.cob SAME AREA FOR G H (the VII format) with external H -> COBOL2738, which §1985:VII.2.13.3 SR2 also requires; sdext.cob SD S IS EXTERNAL -> COBOL1970 (an SD has no EXTERNAL clause, so a sort file can never be an external connector). cite.py: 'OK  §1985:XI.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VII.2.13.3 SR2  (2.13.3 Syntax Rules)  the text is in SR2'. Diagnostic face only: COBOL2738 cites ISO §2023:12.4.6.4.3 SR3 at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

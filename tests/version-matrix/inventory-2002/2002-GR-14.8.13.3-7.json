@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-7",
+ "rule-digest": "ba08b555438a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindMethodGoback; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/Signals/MethodReturn.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi03_exit_method_returning",
+ "notes": "§2002:14.8.13.3 GR7: EXIT METHOD terminates the method (also from inside a PERFORM) and the RETURNING item's value is the invocation result; g2exi03 at --std 2002 printed M=04, W=08, NR-IN, NR-BACK as derived."
+}

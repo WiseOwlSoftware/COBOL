@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VIII.4.7.3-1",
+ "rule-digest": "5874babab0c0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "ebaf106f1fb7e0921df14e1770b9e194914ee2e042cc961d07748554d33e4c79",
+   "refuter": "27962e3db6cdd1b2c9f27744c9d658f4782ddd123a1ac0e80d4d14acd7442aef"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.7.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a START statement (a level-2 Relative I-O element) must name a relative file whose access mode is sequential (explicit or default) or dynamic; a START on a file in random access mode is refused, in every form of the 1985 format (with or without the KEY phrase).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "refuses the 2002 FIRST/LAST forms (COBOL0900) below 2002; it does not touch the access-mode screen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Edition.Year < 2002: the mandatory INVALID KEY of SR3 (another rule) on the same statement",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR1 screen itself is `if (file.AccessMode == FileAccessMode.Random) ctx.Edition.Error(IoStatementOperandRule, ...)` in BindStart, with no edition test (EditionContext.Error is unconditional).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb325-start-random-access covers the KEY-phrase form on a random relative (and indexed) file; the KEY-less form and the legal sequential and dynamic arms at 85 are not exercised there",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st1rand.cob",
+    "printed": "COBOL0862 START on 'XF': the access mode shall be sequential or dynamic, at line 19 (no KEY phrase) and line 20 (KEY IS NOT LESS THAN) (exit 65); identical at --std 2023",
+    "expected": "both STARTs on ACCESS RANDOM refused (§1985:VIII.4.7.3 SR1)"
+   },
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st1ok.cob",
+    "printed": "S1=NIK 00 / S1 REC=BBBB RK=0002 / S2 REC=CCCC RK=0003 / S3=IK 23 / S4 REC=AAAA FS=00 / S5 FS=47",
+    "expected": "START on ACCESS SEQUENTIAL (>= 2, KEY omitted = EQUAL, > past the last record raises invalid key) and on ACCESS DYNAMIC with a qualified key compile and position correctly; START on a closed file fails 47 (GR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st1c.cob",
+    "printed": "COBOL0900 START FIRST/LAST requires COBOL-2002; COBOL0900 START ... WITH LENGTH requires COBOL-2002 (plus COBOL0862 LENGTH requires indexed)",
+    "expected": "the 2002 FIRST and WITH LENGTH forms are not in the 1985 format and are refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.3 SR1",
+    "check": "OK  §1985:VIII.4.7.3 SR1  (║4.7.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "BindStart refuses a random-access file before any other screen, at every edition, through COBOL0862; sequential (including the default) and dynamic access bind and run correctly at 85. The diagnostic cites the 2023 clause number only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.7.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "glbseq-001 at --std 85: START on a GLOBAL relative file declared `ACCESS RANDOM RELATIVE ZK`, issued from a contained program, refused COBOL0862 'the access mode shall be sequential or dynamic' both with KEY IS EQUAL TO ZK (line 53) and with no KEY phrase (line 56). stless-001: the 2002 reverse operators `KEY IS LESS THAN` and `KEY IS <=` refused COBOL0900 at 85, and START on a sequential-organization file refused COBOL0862. The refusal message cites §2023 SR2 (FIRST/LAST), which misleads the diagnosis at 85, but the program is refused and that case is outside this relative-module rule. cite.py: OK  §1985:VIII.4.7.3 SR1  (║4.7.3 Syntax Rules║)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

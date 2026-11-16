@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-5",
+ "rule-digest": "b48c67365ee3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "7abf5f9dad34a3978f4f1a6fdbb37b0d94c50e84d5754c4b4c622894f4efea27",
+   "refuter": "0eda57acb67bb4ec37a2329242e3ea447cff044221b6fee2251f44ce720d37b7"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-VI.4.5.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, outside the SPECIAL-NAMES paragraph HIGH-VALUE is the character at the highest position of the program collating sequence (native highest with no PCS or an identity alphabet; for a literal-phrase alphabet the largest unspecified native character; only when every character is specified, the specified highest position, a tie there going to the last character specified), in every use (VALUE, MOVE, group fill, relation and condition-name tests, INSPECT, STRING) and in contained programs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Extremes; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#HighValue; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillChar; src/WiseOwl.Cobol.Compiler/Binding/LiteralEnvironment.cs#HighValue; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the 2002 FOR ALPHANUMERIC/NATIONAL phrase, UCS-4/UTF-8/UTF-16 and LOCALE alphabets: refused at 85 (COBOL0900), admitted at 2023; the 1985 literal/STANDARD/NATIVE forms pass",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+    "switches": "the 2002 national surface of PROGRAM COLLATING SEQUENCE refused at 85; the single alphabet-name-1 form passes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "the LOCALE alphabet arm returns below 2002 (already refused by the pass)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/CobolVersion/Construct/IsAtLeast in CodeGen/Roslyn/FigurativeConstants.cs, Binding/LiteralEnvironment.cs, Binding/CollatingModel.cs, Binding/SpecialNamesBinder*.cs (hits only the LOCALE arm and the range-IN gate); read VersionConformancePass VisitAlphabetClause / VisitProgramCollatingSequenceClause / VisitSymbolicCharactersClause. The extreme computation and the figurative fill are edition-neutral.",
+  "behaviour-differs-by-edition": "no for the 1985 alphabet forms; FillChar's national-sequence arm is unreachable at 85 because the FOR NATIONAL forms are refused.",
+  "witnesses-cover": "part: g85_bf03_02 covers the tie at the top when every character is specified (two-way ALSO) through MOVE and DISPLAY; not a partial alphabet (largest unspecified character), a three-way tie, VALUE/88/INSPECT/relation uses, STANDARD-1/NATIVE PCS, or contained programs (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3hv.cob",
+    "printed": "VAL-HV-FE MOVE-HV-FE 88-HI INSP-HV B-LT-HV (all eleven lines on the good arm)",
+    "expected": "PCS 65536 \"A\" \"B\": U+FFFF is specified at position 1, so HIGH-VALUE is the largest unspecified native character, ordinal 65535, in VALUE, MOVE, 88 VALUE, INSPECT BY and a relation"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3tie.cob",
+    "printed": "HV=XX",
+    "expected": "every character specified, the last position \"Y\" ALSO \"Z\" ALSO \"X\": HIGH-VALUE is the last specified, X"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3std.cob",
+    "printed": "HV=FFFF",
+    "expected": "STANDARD-1 PCS: the correspondence of non-X3.4 native characters is the implementor's (§1985:VI.4.5.4 GR4a; DOC-A.1-187 identity), so the highest is U+FFFF"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p3nat.cob",
+    "printed": "HV=FFFF",
+    "expected": "NATIVE PCS: native highest U+FFFF"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4nest.cob",
+    "printed": "IN-HV=FE",
+    "expected": "a contained program's HIGH-VALUE follows the containing PCS (\"Q\" 65536 specified, so ordinal 65535)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p4nat85.cob",
+    "printed": "error COBOL0900: the FOR ALPHANUMERIC/NATIONAL phrase ... requires COBOL-2002",
+    "expected": "refused at 85: the national alphabet is a later edition's form"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_bf03_02.cob",
+    "printed": "MATCH",
+    "expected": "LV=BB HV=ZZ LV1=B HV1=Z"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR5",
+    "check": "OK  §1985:VI.4.5.4 GR5  (4.5.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d",
+    "check": "OK  §1985:VI.4.5.4 GR4d  (4.5.4 General Rules)  the text is in GR4d"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4a",
+    "check": "OK  §1985:VI.4.5.4 GR4a  (4.5.4 General Rules)  the text is in GR4a"
+   }
+  ],
+  "notes": "CollatingTable.Build computes HIGH-VALUE once per alphabet (Extremes): the largest native code unit the definition leaves unspecified, else the tie rule over the specified positions taking the last specified; FillChar and LiteralEnvironment read it for every alphanumeric use outside SPECIAL-NAMES. The refusal half and the file/size classes do not reach this general rule."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "r3rev-001: PCS ALPHABET AL IS 65536 THRU 1 (every native character specified, descending): VALUE HIGH-VALUE = U+0000 (HV-00), MOVE HIGH-VALUES fills U+0000 (MV-HV-00), LOW-VALUE = U+FFFF (LV-FF), \"A\" > \"B\" under the PCS. r3top-002: every character specified with a three-way ALSO tie at the highest position, 65536 ALSO 65534 ALSO 66 last: HIGH-VALUE is the last specified, A (HV=A, MV=AA). r5sn-002: PCS LOW-VALUES THRU \"@\" \"Q\" HIGH-VALUES: procedure HIGH-VALUE is U+FFFE, the largest unspecified (U+FFFF is specified). Read the reader's sites; no edition switch in CollatingModel/FigurativeConstants. cite.py: 'OK  §1985:VI.4.5.4 GR5  (4.5.4 General Rules)  the text is in GR5'; 'OK  §1985:VI.4.5.4 GR4d ... the text is in GR4d'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

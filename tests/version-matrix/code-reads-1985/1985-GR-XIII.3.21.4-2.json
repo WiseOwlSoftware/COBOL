@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.3.21.4-2",
+ "rule-digest": "eb5b34d47d25",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-149",
+  "sources": {
+   "reader": "ed46fa0c0b72666d3767b4660b6e15018ee067ddab44913e2bda462d8371f739",
+   "refuter": "f03f180a979093537a6da5ab2e53f96581b67495f1a5c03c1e2064781388dd2f"
+  },
+  "imported": {
+   "reader": "2ac2060da54ce0577959432d64b7d61983fd75f6c124221e846f36d830daaf71",
+   "refuter": "fddeea3deccddfdbb87f3cbe1705bfc737e5ed371d08c5b9b8a3e191ee72e25e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.21.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a Report Section item's USAGE (only DISPLAY, written at group or elementary level or implied) fixes its storage representation as the standard character form and does not change its use: every printable item prints the value its SOURCE gives, whatever the source item's usage, for unsigned, signed, scaled, edited, zero and 18-digit values.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "names nonstandard usage spellings and leaves USAGE NATIONAL to its introduction gate (COBOL0900 below 2002); DISPLAY maps to Usage.Display at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition in ReportSectionBinder#ScreenReportUsage: none (DISPLAY or NATIONAL at every edition; NATIONAL is then refused at 85 by the construct gate)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf12_04 covers group, elementary and implied DISPLAY with a negative value from BINARY, PACKED and DISPLAY sources; an 18-digit value, a signed unedited item, a scaled item, an edited negative fraction and zero are exercised by probe pusage1",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/runs/g85_bf12_04-001",
+    "printed": "LINE=[-1234 -1234 -1234], EXPECT: MATCH (witness g85_bf12_04)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/pusage1.cob (run runs/pusage1-001)",
+    "printed": "WS  =[999999999999999999 12L 125   0.50- 000 0042] and LINE=[999999999999999999 12L 125   0.50- 000 0042]",
+    "expected": "the report line equals the same values moved to WORKING-STORAGE DISPLAY items of the same pictures: USAGE DISPLAY is the standard data format and the usage does not change the use"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-149/src/pusage_comp.cob, src/pusage_grpcomp.cob, src/pusage_nat.cob (--compile-only)",
+    "printed": "COMP and group COMPUTATIONAL: COBOL2198 only DISPLAY or NATIONAL; NATIONAL: COBOL0900 requires COBOL-2002",
+    "expected": "§1985:XIII.3.21.3 SR3: a report group item can specify only USAGE IS DISPLAY"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.21.4 GR2",
+    "check": "OK  §1985:XIII.3.21.4 GR2  the text is in GR2 (quoted: \"It does not affect the use of the data item\")"
+   },
+   {
+    "cite": "§1985:XIII.3.21.3 SR3",
+    "check": "OK  §1985:XIII.3.21.3 SR3  the text is in SR3 (quoted: \"can specify only USAGE IS DISPLAY\")"
+   }
+  ],
+  "notes": "A report item binds as Usage.Display at every edition and prints through the ordinary MOVE to a DISPLAY item, so the report line matches the WORKING-STORAGE comparison byte for byte. The SR3 refusal message cites §2023:13.18.60.3 SR7 (DISPLAY or NATIONAL), but at 85 NATIONAL is still refused by the edition gate, so the 85 outcome is right. Class a does not apply: the 1985 Report Section has no OCCURS.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.21.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rusage1-001: USAGE DISPLAY at the 01 level of a detail (with its LINE at 01), on an elementary item, and on a CF SUM entry. A COMP 9(4) source into PIC X(6) printed 0042, a COMP-3 S9(5)V9 -1234.5 into -(5)9.9 printed -1234.5, and the SUM of a BINARY addend printed 014. Each byte matches the same MOVE to WORKING-STORAGE DISPLAY items (WS =[0042    -1234.5 014]). rusage_sr8-001: USAGE on a non-printable SUM entry gave COBOL2247 (§1985:XIII.3.9.3 SR8a, OK 'that entry must define a printable item'). The USAGE wording in the Report Section is enforced too. cite: OK §1985:XIII.3.21.4 GR2 'It does not affect the use of the data item'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

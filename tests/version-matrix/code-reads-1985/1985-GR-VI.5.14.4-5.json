@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-5",
+ "rule-digest": "6625b3c75b0a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-105",
+  "sources": {
+   "reader": "7a9965027fa8ac03da8da86a8e7e0dd4c809bb62cb704b42b9c66abe53006c8c",
+   "refuter": "730415957dd54d1805f677ff57a61db418ac6f2c3e310491da1b75365a6dcd2a"
+  },
+  "imported": {
+   "reader": "6fb092db18d9902b2929a7776c687e4738f323c20c778ba1864fbb6f7529d3c4",
+   "refuter": "ad94eabadfe63aa769f057ce1d298f6eb1106fd3b38c72ef0b4607d761c8e007"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "Every item whose usage is DISPLAY, written explicitly at the item or a group or implied, is held in the standard character format, one character position per byte with no slack, aligned on a character boundary, for every DISPLAY category 1985 has (alphabetic, alphanumeric, numeric with or without S and SIGN, numeric edited); the witness covers only an unsigned numeric and an alphanumeric item at elementary and group level.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#ImageByte",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#UsageConstructId",
+    "switches": "refuses the post-1985 usages (NATIONAL, BINARY-LONG family, POINTER etc.) below their introducing edition; DISPLAY has no row",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of CobolVersion|EditionContext|ConstructRegistry|DialectBehavior in DataItem.cs, PicInfo.cs and UsageInheritancePass.cs found none; the DISPLAY width arm (ElementaryImageWidth, 1 byte per position) is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: signed DISPLAY (trailing overpunch, SIGN LEADING SEPARATE), numeric edited, alphabetic, SYNC on a DISPLAY item and ODO tables of DISPLAY items are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p05a.cob",
+    "printed": "V1=Q12C  1.50AB42-07| (X, S9(3) overpunch, ZZ9.99, A(2), 9(2) SYNC, S9(2) SIGN LEADING SEPARATE: 17 bytes, no slack); V4=12XY9|; N1=12|C| (ref-mod at both bounds); Z=+000|; M=+999|",
+    "expected": "standard data format, character boundary: each position one character, no alignment slack, a SYNC DISPLAY item not padded"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p05a.cob",
+    "printed": "R5=123| then after MOVE 5 TO CNT R5=12345|",
+    "expected": "ODO table of DISPLAY digits occupies one character per occurrence"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-105/src/p06b.cob",
+    "printed": "COBOL0900 national data requires COBOL-2002 (N1, N2); COBOL0900 fixed-width binary usage requires COBOL-2002 (B3); DISPLAY-1 a syntax error",
+    "expected": "later editions' usages refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR5",
+    "check": "OK  §1985:VI.5.14.4 GR5  (5.14.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The DISPLAY representation is one byte per character position, measured through REDEFINES views and reference modification at 85; SYNCHRONIZED on a DISPLAY item adds no slack, consistent with the character-boundary sentence. Nothing on the path reads the edition; the only edition reads refuse later usages.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "refute-1985-105/src/g5a.cob at --std 85 (g5a-001): forms the reader did not try, 99PPP (P positions take no storage), SVPP99 SIGN TRAILING SEPARATE, S99 SIGN LEADING overpunch, alphanumeric edited XBX0X/, $$9.99CR, S9(2) SIGN TRAILING SEPARATE SYNCHRONIZED, 9(18). It printed LG=0042, which is 2+3+2+6+8+3+18 with no slack. The REDEFINES image was [1212-M5A B0C/ $3.50CR07+999999999999999999  ], one character per position, the leading overpunch M for -4 and the SYNC item unpadded. Grep of CobolVersion|EditionContext|DialectLevel|ConstructRegistry in Binding/Model DataItem.cs and PicInfo.cs found only a comment, so the edition-free arm is the one 85 takes. cite.py: OK  §1985:VI.5.14.4 GR5  (5.14.4 General Rules)  the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

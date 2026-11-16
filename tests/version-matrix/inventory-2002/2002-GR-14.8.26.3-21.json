@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-21",
+ "rule-digest": "f3f95bde3639",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/Sharing/OpenTable19.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#HostShare; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TakeRunUnitFileLock; src/WiseOwl.Cobol.Runtime/IO/Sharing/RunUnitFileLock.cs#Take",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb316_open_group_scope; conformance:cases/9.1.13.9-File-sharing-conflict-condition-with-unsuccessful/file_sharing; conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-22, witnessed at 2002 by the cases test-ref names. The read: 9.1.14 (2002) and 9.1.15 (2023) state the same three modes; 2002's extra sentence (the new OPEN's mode shall permit existing ones) is Table 20's content; 2023's additions concern APPLY COMMIT (2023-only). Cited: §2002:14.8.26.3 GR21; §2002:9.1.14."
+}

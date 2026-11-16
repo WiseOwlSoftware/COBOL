@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb432-varying-operand-rules
-*> rules: [SR-14.9.28.3-4, SR-14.9.28.3-5, SR-14.9.28.3-6]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb432-varying-operand-rules
+      *> rules: [SR-14.9.28.3-4, SR-14.9.28.3-5, SR-14.9.28.3-6]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB432 — ISO §2023:14.9.28.3 SR6: "The literal in the BY phrase shall not be zero." It is
       *> unconditional and it is the one operand rule whose absence changed a program's OUTCOME rather than
       *> its legality: §2023:14.9.28.4 GR12 makes the augment value zero, so the induction variable never changes

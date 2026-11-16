@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-2",
+ "rule-digest": "9066b13af819",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-127",
+  "sources": {
+   "reader": "1cee9424aa0830998a16df340aff017f5f6b278055f56029b84815b8c3bd4053",
+   "refuter": "5be2bd587bac17aee83d32e65239aac0b77e7b437fbc4117cc4c8ef1a5948552"
+  },
+  "imported": {
+   "reader": "dac5090d90d7f665982bb2d1332f83e729523852d15cddc4a3198f416e646341",
+   "refuter": "ab72c0a85fae0dc1028f75ea0935e3ed66c97114ad389c9c71ca8fe64c3fbd32"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a sequential READ of a relative file (sequential access, or READ NEXT in dynamic access) that meets the at end condition is unsuccessful with a 1x status (10 at end of file or on the first READ of an absent optional input file, 14 when the record number has more digits than the RELATIVE KEY item), takes AT END and not NOT AT END, and leaves no valid next record.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RelativeKeyOverflow; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#AtEnd; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [],
+  "edition-search": "grep -rn 'CobolVersion|Edition|Dialect|Std' src/WiseOwl.Cobol.Runtime/IO/*.cs; grep -n 'Edition|Version|Dialect' CodeGen/EcEmitter.cs CodeGen/DispatchEmitter.cs CodeGen/Verbs/IoStatusClass.cs; read Runtime/Control/DialectBehavior.cs rows 2, 14, 19; RelativeConnector.ReadSequential and FileConnector.SequentialReadGuard consult no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers 10 and 14 in sequential access and the absent optional file; not exercised there: READ NEXT in dynamic access and the READ that follows the at end condition (probed)",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_bf29_01.cob",
+    "printed": "EXPECT: MATCH (S2 AT END 14, A3 AT END 10, O1 AT END 10)",
+    "expected": "10 / 14 with AT END taken"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p2atend.cob",
+    "printed": "D1 READ REC02 00 2 / D2 AT END 14 (record 100 against RELATIVE KEY PIC 9, dynamic READ NEXT) / D3 46",
+    "expected": "14 at end; the next sequential READ 46 (§1985:VIII.1.3.4 item (5) e 3)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p2atend.cob",
+    "printed": "N1 00 REC02 / N2 00 RE100 / N3 AT END / N3 10 / N4 46",
+    "expected": "10 at end of file, then 46 with AT END not taken"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p2atend.cob",
+    "printed": "first version (run p2atend-002): COBOL6826 for a READ with neither AT END nor an applicable USE (§1985:VIII.4.5.3 SR5)",
+    "expected": "refused by SR5, a neighbouring rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GR2",
+    "check": "OK  §1985:VIII.1.3.4 GR2  (1.3.4 I-O Status)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.2",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.2  (1.3.4 I-O Status)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "ReadSequential answers 10 when no next slot exists and 14 when the slot's digits exceed the key item, both through Unsuccessful (the file position is invalidated); the emitted AT END branch tests status[0] == '1'. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,e,f",
+  "evidence": "runs/r1a-001: absent OPTIONAL input, first READ -> 'OI-R1 AT END 10', second READ -> 46 with AT END not taken (item (5) e 3); RELATIVE KEY PIC 9 COMP-3, records 9 and 10: 'S1 00 R009 9' then 'S2 AT END 14' (the digit boundary in a packed key). runs/r3a-001: RELATIVE KEY PIC 9 COMP, START KEY > 5 -> 00 on record 12, READ -> 'Q2 AT END 14', next READ 46 to the USE (no AT END). runs/rc7-001: READ PREVIOUS (a 2002 form) refused at 85 (COBOL0900). cite.py: 'OK §1985:VIII.1.3.4 GRL2.2 (1.3.4 I-O Status) the text is in GRL2.2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

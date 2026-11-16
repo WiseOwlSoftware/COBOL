@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-VII.3.7.3-2",
+ "rule-digest": "056416d2897b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-160",
+  "sources": {
+   "reader": "06e7f0c524cb2ee3f5bb1704ee3939a3b37bb5828fcf7f1964f8abd7e2f96744",
+   "refuter": "0a07f13600d8ff8d67ac2ca675b9c78a9f000660be3a12d7c5632ea1c2b5ddfe"
+  },
+  "imported": {
+   "reader": "a13bd0229ed8791f7bee2b80802b45f7f0fad82a3358d25249aae86d35078d6d",
+   "refuter": "751ad23bb107969226d2e7bcf023fa36c6e0e77b22f8e6fb27632f54d49bc56c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.7.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, each of the four LINAGE data-names (page body, FOOTING, TOP, BOTTOM) may be written qualified, by data-names or a file-name. The logical page must be built from the item the qualified reference names; an ambiguous or wrongly qualified name must be refused, and a subscript, reference modifier or special register must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linageClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindLinageClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveLinage",
+    "switches": "LinageClauseRules.Operand/Footing.CitationAt(Edition, ...) picks the citation text (§1985:VII.3.7.3 at 85) in the SR1/SR3 diagnostics only; it does not touch qualification",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "ScreenDataNameShape reads SubscriptedClauseOperands only when admitsSubscript2002 is true, and ClauseDataName passes false, so the LINAGE operand never reads it. I grepped ResolveClauseOperand for Edition/Year/DialectLevel and found none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf10_07 covers one-level qualification of all four operands at run time. It does not cover multi-level or file-name qualification, or the refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6a.cob",
+    "printed": "OPEN LC=1 / LC 2,3 / EOP AT 03,04,05 / K=05 LC=1 ...; identical stdout and byte-identical print file to the unqualified control c6ctl.cob",
+    "expected": "PL OF G1, PF2 IN G1, PT OF INNER OF G1 and PB IN INNER (page 5, footing 4, top 1, bottom 2) behave exactly as unique unqualified items of those values; decoys of 50/40 ignored"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6b.cob",
+    "printed": "COBOL1639: LINAGE clause operand 'PL' does not uniquely identify a data item",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6c.cob",
+    "printed": "COBOL1639: 'PL OF G3' references no data item",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6f.cob",
+    "printed": "COBOL1639: 'PL OF PW' references no data item",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6d.cob",
+    "printed": "COBOL2024: 'PT(1)' is written with a subscript",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6e.cob",
+    "printed": "COBOL2024: 'PW(1:1)' is reference-modified",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6g.cob",
+    "printed": "COBOL2024: 'LINAGE-COUNTER OF PRTF' ... special register",
+    "expected": "refused: not a data-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c6h.cob",
+    "printed": "EXIT 0, OK",
+    "expected": "LN IN OTHF (file-name qualifier, with a same-named WS item) accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.3 SR2",
+    "check": "OK  §1985:VII.3.7.3 SR2  (║3.7.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "BindLinageClause keeps the whole written reference through ClauseDataName (kb/Work PB489's fix), and ResolveLinage binds it through the one qualified resolver. The qualified-against-control differential shows the decoy values never reach the page model. The first c6 draft used PF (a reserved word) and LINE SEQUENTIAL and was rewritten.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.7.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "r6a.cob (runs/r6a-001): a contained program's FD PF1 LINAGE IS BODY OF PG LINES WITH FOOTING AT FOOT IN SUB1 IN PG, where 01 PG is GLOBAL in the containing program (4 and 3), prints EOP at LC 03,04,01,03 over six writes (body 4, footing 3); a separately compiled subprogram's FD PF2 LINAGE IS LBODY OF L-GRP LINES WITH FOOTING AT LFOOT OF L-GRP (LINKAGE items 3 and 2) beside WORKING-STORAGE decoys of 50 and 40 prints EOP at 02,03,01,02,03 over five writes (body 3, footing 2). The decoy values would give no end-of-page at all, so the qualified references bind to the global and linkage items. The edition reads in FileControlBinder.Resolve.cs and FileSection.cs are diagnostic positions (Edition.At / Edition.Error) only. cite: OK  §1985:VII.3.7.3 SR2  (║3.7.3 Syntax Rules║)  the text is in SR2; OK  §1985:VII.3.7.3 SR1  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

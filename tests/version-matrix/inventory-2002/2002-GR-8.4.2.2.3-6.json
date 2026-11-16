@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.2.3-6",
+ "rule-digest": "a99d3460cbc3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb757_invoke_omitted",
+ "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.2.4-7, witnessed at 2002 by the cases test-ref names. The read: Only the referenced clause's number and title differ (Omitted-argument condition vs Simple omitted argument condition); the condition's meaning is the same. The witness runs at --std 2002. Cited: §2002:8.4.2.2.3 GR6."
+}

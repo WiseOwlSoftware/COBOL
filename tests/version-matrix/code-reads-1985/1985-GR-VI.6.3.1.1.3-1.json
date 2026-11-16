@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.3-1",
+ "rule-digest": "e9ec213ba231",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-020",
+  "sources": {
+   "reader": "9a63b3fed277446385de8898a222e76481e6475c682b8f44ca24e660af255f78",
+   "refuter": "c9e91ec66f474767e53e2d5c32c2ba438ea62c77a460782be14987ec817b4cc5"
+  },
+  "imported": {
+   "reader": "7cb407133795441d70fb57e0de5010fbbfe673221ab6143c6d02a0bbb8a6f9da",
+   "refuter": "252c3d77ea5c0d9781a27630f9ed5e8bf7b659b98bfd0544b8e4a5ac0d6b2af0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relation between two index-names (of the same or different tables, of any element size, nested levels included) yields the result of comparing their occurrence numbers, never their implementor displacement values.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FieldOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderNumericRelational",
+  "edition-consulted": [],
+  "edition-search": "grep 'DialectLevel|Edition' over ExpressionBinder.cs (only ctx.Edition as the diagnostic sink and position scope), 'Edition|Version|Dialect' over ConditionRenderer.cs (the two hits are the character-comparison arms, not reached by a numeric index relation). FieldOperand binds an index-name as BoundComputedOperand(BoundIndexRef), the occurrence number, and the relation renders through RenderNumericRelational with no edition switch.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c32_index_name_relation covers index-names of one table; tables of different element sizes, nested-table indexes, the second index of one table and an index set below 1 are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/idx.cob",
+    "printed": "IA (X(3) table) and IB (X(7) table) both 3: = T; IA 4 > IB 3 T; IB < IA T; IA 10 < IB 20 T; NOT = T; both 1 = T; IA = IA2 (same table) T",
+    "expected": "comparison of occurrence numbers, independent of element size"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/idx.cob",
+    "printed": "nested IR (outer, element 5) = IC (inner, element 1) both 2: T; IC 5 > IR 2 T; >= and <= T",
+    "expected": "occurrence numbers 2 = 2, 5 > 2"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/idx.cob",
+    "printed": "IA set DOWN BY 1 from 1 (occurrence 0) < IB 1 T; both 0 = T; SET IA TO 0 refused at --std 85 (COBOL0900, §1985:VI.6.23.3 SR)",
+    "expected": "occurrence numbers 0 < 1, 0 = 0; a zero SET literal is not 1985 syntax"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.1.1.3 GR1",
+    "check": "OK  §1985:VI.6.3.1.1.3 GR1  (6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items)  the text is in GR1"
+   }
+  ],
+  "notes": "An index-name binds to its occurrence number (BoundIndexRef) and the relation is the numeric comparison, so element size never enters. Every probe printed the occurrence-number result; the --std 2023 run (EC renamed ECC, reserved at 2023) printed the same.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (idx.85.txt = idx.23.txt via idx23.cob)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,f",
+  "evidence": "refute-1985-020/i1.cob at --std 85: EVALUATE IA WHEN IB (both 3) T; abbreviated IA = IB OR IA2 T; IA2 > IA AND IB T; NOT IA2 = IB T; ODO table index IB 15 > IA2 4 T; nested outer IR 3 = inner ID1 3 T (elements 34 vs 11 bytes), IR 3 > ID1 2 T; after SET IA TO IB, = T; PERFORM VARYING IA UNTIL IA > IR leaves IA = 4 T; IA 2 < IB 9 T. cite.py: OK §1985:VI.6.3.1.1.3 GR1 (the text is in GR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

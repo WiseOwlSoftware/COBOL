@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-15",
+ "rule-digest": "7a0d13a15631",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-010",
+  "sources": {
+   "reader": "d178026b84d5ea74b760e5b13501f0ed5145d2b39f65bfac7a7de503522add24",
+   "refuter": "194f01631a91d0f25693c5c5386c1f6308b0d4c49996d11fea72623679125d2d"
+  },
+  "imported": {
+   "reader": "9e46bde6f1e8740c58cf17f8d987bb6c6231fb8cc01966256cea1918a463c456",
+   "refuter": "c1ec062e48f7d64e6783860bce6c33aca0e9b4f99e86b2aea03b285588ff387a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-15",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a WRITE to an indexed file in random or (level 2) dynamic access mode, open OUTPUT or I-O, must accept records in any order of prime key values: no ascending-sequence check (the GR14 '21' belongs only to sequential access), each record stored and retrievable in key order, and the file position indicator untouched (GR5).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 85 mandatory INVALID KEY / USE (SR3), not the release order",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "IndexedConnector.Write selects the ordering rule from the ACCESS MODE alone (sequentialRelease = Access == KeyedAccess.Sequential; _lastWrittenPrime compared only then); no Edition / DialectBehaviors test on the path (grep of DialectBehaviors.IsActive in Runtime/IO: no WRITE site in IndexedConnector). The OPEN EXTEND refusal for non-sequential access is the binder's, edition-blind.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness l1c38 writes out of key order in one access mode; not exercised there: dynamic access in OUTPUT and I-O, interleaving with START/READ NEXT (FPI unaffected), the sequential-access contrast, and EXTEND on a non-sequential file.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/wo1.cob",
+    "printed": "random OUTPUT R90,R10,R50,R05: WR 00 each, random READ R05 -> 00; dynamic OUTPUT D9X,D5Y,D1X: 00/02/02 (02 = duplicate alternate); dynamic I-O after START = D5Y: WD 02 D0Z, WD 02 D7X, then READ NEXT N1 00 D5Y, N2 00 D7X; sequential READ back D0Z D1X D5Y D7X D9X",
+    "expected": "§1985:IX.4.9.4 GR15 any program-specified order; GR5 FPI unaffected by WRITE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/wo1.cob",
+    "printed": "sequential access OUTPUT S50 then S10: S1 00, USE-S 21, S2 21",
+    "expected": "GR14/GR17a: the any-order licence does not extend to sequential access"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/wo2.cob",
+    "printed": "--std 85: COBOL2372 OPEN EXTEND 'IXD' — the file's access mode is DYNAMIC; EXTEND requires sequential access",
+    "expected": "§1985:IX.4.4.3 SR1: EXTEND only in sequential access mode, so GR15's modes are OUTPUT and I-O only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR15",
+    "check": "OK  §1985:IX.4.9.4 GR15  (4.9.4 General Rules)  the text is in GR15 [\"records may be released to the mass storage control system (MSCS) in any program-specified order\"]"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR14",
+    "check": "OK  §1985:IX.4.9.4 GR14  the text is in GR14 [\"records must be released to the mass storage control system (MSCS) in ascending order of prime record key values\"]"
+   },
+   {
+    "cite": "§1985:IX.4.9.4 GR5",
+    "check": "OK  §1985:IX.4.9.4 GR5  (4.9.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:IX.4.4.3 SR1",
+    "check": "OK  §1985:IX.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The ordering test in IndexedConnector.Write is keyed on the access mode alone, so random and dynamic WRITEs never raise '21'; descending, interleaved and mid-positioning writes all succeeded and read back in key order, and a WRITE between START and READ NEXT left the position intact.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-15",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-010/wu.cob at --std 85: RANDOM access in I-O mode (the reader probed random only in OUTPUT): WRITE K090, K010, K005 in descending order after earlier K050 -> 'W6 00', 'W7 00', 'W8 00', random READ K005 -> K005B3fiv; no '21' sequence check. Reader's sequential contrast (21) and EXTEND-on-dynamic refusal (COBOL2372) stand. cite.py: 'OK §1985:IX.4.9.4 GR15 (4.9.4 General Rules) the text is in GR15' [in any program-specified order].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

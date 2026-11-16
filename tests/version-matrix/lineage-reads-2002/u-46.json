@@ -1,0 +1,1595 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-46 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-46",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-12.3.4.1",
+   "2002-FMT-13.3.4.1",
+   "2002-FMT-12.3.4.4.1",
+   "2002-FMT-12.3.4.5.1",
+   "2002-FMT-12.3.4.6.1",
+   "2002-FMT-12.3.4.7.1",
+   "2002-FMT-12.3.4.8.1",
+   "2002-FMT-12.3.4.9.1",
+   "2002-FMT-12.3.4.10.1",
+   "2002-FMT-12.3.4.11.1",
+   "2002-FMT-12.3.4.12.1",
+   "2002-FMT-12.3.4.13.1",
+   "2002-FMT-12.3.4.14.1",
+   "2002-FMT-12.3.4.15.1",
+   "2002-FMT-12.3.5.1",
+   "2002-FMT-13.3.5.1",
+   "2002-FMT-12.3.6.1",
+   "2002-FMT-11.4.1",
+   "2002-FMT-13.4.1",
+   "2002-FMT-8.4.1.1.1",
+   "2002-FMT-8.4.1.2.1",
+   "2002-FMT-8.4.2.1.1",
+   "2002-FMT-8.4.2.2.1",
+   "2002-FMT-8.4.2.3.1",
+   "2002-FMT-8.4.2.4.1"
+  ],
+  "pointers": {
+   "2002-FMT-12.3.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.1",
+    "similarity": 0.526
+   },
+   "2002-FMT-13.3.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.4.5.2",
+    "similarity": 0.605
+   },
+   "2002-FMT-12.3.4.4.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-12.3.4.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.6.2",
+    "similarity": 0.268
+   },
+   "2002-FMT-12.3.4.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.7.2",
+    "similarity": 0.352
+   },
+   "2002-FMT-12.3.4.7.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-12.4.5.8.2",
+    "similarity": 0.817
+   },
+   "2002-FMT-12.3.4.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.9.2",
+    "similarity": 0.353
+   },
+   "2002-FMT-12.3.4.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.10.2",
+    "similarity": 0.149
+   },
+   "2002-FMT-12.3.4.10.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-12.3.4.11.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.11.2",
+    "similarity": 0.318
+   },
+   "2002-FMT-12.3.4.12.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.12.2",
+    "similarity": 0.332
+   },
+   "2002-FMT-12.3.4.13.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-12.4.5.13.2",
+    "similarity": 0.814
+   },
+   "2002-FMT-12.3.4.14.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.14.2",
+    "similarity": 0.27
+   },
+   "2002-FMT-12.3.4.15.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.5.15.2",
+    "similarity": 0.353
+   },
+   "2002-FMT-12.3.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.6.2",
+    "similarity": 0.557
+   },
+   "2002-FMT-13.3.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.4.6.2",
+    "similarity": 0.449
+   },
+   "2002-FMT-12.3.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.4.6.4.2",
+    "similarity": 0.622
+   },
+   "2002-FMT-11.4.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-11.5.2",
+    "similarity": 0.953
+   },
+   "2002-FMT-13.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.5.2",
+    "similarity": 0.573
+   },
+   "2002-FMT-8.4.1.1.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.2.2.2",
+    "similarity": 0.6
+   },
+   "2002-FMT-8.4.1.2.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-8.4.2.3.2",
+    "similarity": 0.701
+   },
+   "2002-FMT-8.4.2.1.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-8.4.3.1.2",
+    "similarity": 0.941
+   },
+   "2002-FMT-8.4.2.2.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.2.2",
+    "similarity": 0.33
+   },
+   "2002-FMT-8.4.2.3.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-8.4.3.3.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-8.4.2.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.4.2",
+    "similarity": 0.399
+   }
+  }
+ },
+ "read": {
+  "slice": "u-46",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-12.3.4.1",
+    "to": [
+     "FMT-12.4.5.1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.1 General format (file control entry, Formats 1-4)",
+    "clause-2023": "12.4.5.1 General formats",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.1",
+      "quote": "where collating-sequence-clause is described in 12.3.4.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10",
+      "quote": "The PADDING CHARACTER clause is an obsolete element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR1",
+      "quote": "The same specification of the PADDING CHARACTER clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The PADDING CHARACTER clause is dependent upon whether padding characters are applicable",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Formats 1 (indexed), 2 (relative), 4 (sort-merge): same phrases as 2023 less SUPPRESS WHEN",
+     "Format 3 (sequential): adds the PADDING CHARACTER clause (data-name-8 | literal-2); ORGANIZATION is [ORGANIZATION IS] SEQUENTIAL only",
+     "data-name-1..8 operands: per §2002:5.1.3 a data-name-n includes subscription; no 2002 file-control rule forbids it"
+    ],
+    "evidence-2002": {
+     "Formats 1-4 positive": "covered by probe fc2002.cob at --std 2002 (all clauses of all four formats, runs: FS 00)",
+     "PADDING CHARACTER (Format 3)": "covered by probe fc2002.cob (literal and data-name forms, COBOL0903 obsolete warning) and g2seq01_sequential_format_padding PASS at 2002; not shown by the 2023 row",
+     "closure (unrecognized clause, ASSIGN target list, no ASSIGN)": "covered by pb829-file-control-unrecognized-clause, pb829-assign-target-list, pb4236-select-without-assign (refuse-at includes 2002)",
+     "2023 additions refused at 2002": "probe ext2002.cob: SUPPRESS WHEN refused COBOL0900 at 2002",
+     "subscripted data-name operands": "not shown: FILE STATUS FS (2) refused COBOL2024 at the pinned tree 24372b7b17 (fs2002.cob); keys/status fixed on main by PB5602 (landed); ASSIGN USING and PADDING data-name still refused per kb/Work PB5658 (open)"
+    },
+    "reason": "The 2002 Format 3 carries the PADDING CHARACTER clause, which the 2023 format and therefore the 2023 row's evidence do not have. The compiler accepts it at 2002 with an obsolete warning (allowed: 2002 marks it obsolete, still required), and g2seq01 witnesses it. The data-name operands also admit subscription in 2002 (5.1.3, no restricting SR); that arm is tracked by PB5602 (landed after the pinned tree) and PB5658 (open).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": "2023 adds SUPPRESS WHEN and LINE/RECORD SEQUENTIAL; both refused at --std 2002",
+    "class": "removed-form",
+    "needs": "a 2002 witness for the PADDING CHARACTER clause in Format 3 (g2seq01_sequential_format_padding, runs at 2002) and for subscripted data-name operands (PB5602 goldens; PB5658 for ASSIGN USING / PADDING data-name)",
+    "compiler-at-2002": "correct for PADDING CHARACTER (fc2002.cob, g2seq01); wrong at the pinned tree 24372b7b17 for a subscripted FILE STATUS (fs2002.cob, COBOL2024) - fixed on main by PB5602; ASSIGN USING / PADDING data-name subscripts are PB5658 (open)"
+   },
+   {
+    "rule-id": "2002-FMT-13.3.4.1",
+    "to": [
+     "FMT-13.4.5.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.3.4.1 General format (file description entry)",
+    "clause-2023": "13.4.5.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.4.1",
+      "quote": "where record-clause is described in 13.16.41, RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22",
+      "quote": "The FORMAT clause specifies",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 (sequential): EXTERNAL [AS], GLOBAL, FORMAT {BIT|CHARACTER|NUMERIC} DATA, BLOCK CONTAINS, record-clause, LINAGE (inline, same phrases as 2023 linage-clause), CODE-SET (both forms)",
+     "Format 2 (relative-or-indexed), Format 3 (report: CODE-SET, REPORT IS/REPORTS ARE)",
+     "data-name operands of LINAGE and of the record-clause DEPENDING phrase (subscription admitted by §2002:5.1.3)"
+    ],
+    "evidence-2002": {
+     "Formats 1-3 except FORMAT": "covered by probe fd2002.cob at --std 2002 (all other clauses, runs); pb511_external_as_name PASS at 2002; pb829-fd-unrecognized-clause and pb1238-fd-file-control-clause refuse at 2002",
+     "FORMAT clause": "not shown: refused COBOL1705 at --std 2002 (fdfmt2002.cob), citing the 2023 Annex A.4.8 optional licence",
+     "subscripted LINAGE / DEPENDING operands": "not shown: refused COBOL2024 at 2002 (dep2002.cob), kb/Work PB5658 (open)"
+    },
+    "reason": "Same words of format, but the 2023 row is CONFORMS with the FORMAT clause declined under 2023's optional-element licence (A.4.8). 2002 makes only Annex A (communications) optional (3.1) and does not list FORMAT as processor-dependent (B.3), so 2002 requires it; the compiler declines it at 2002. Known: kb/Work PB5578 (fix code on main, fdf24ec5bc; note still open). Subscripted LINAGE/DEPENDING operands are PB5658.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fdfmt2002.cob",
+    "widening": null,
+    "class": "other",
+    "licence-2002": "none",
+    "needs": "2002 requires the FORMAT clause (FD Format 1); the compiler declines it - a 2002 witness after PB5578 lands (format_roundtrip_*_2002 on main), plus PB5658 for subscripted LINAGE/DEPENDING",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17: `FD SQV FORMAT CHARACTER DATA RECORD IS VARYING IN SIZE FROM 1 TO 8 CHARACTERS DEPENDING ON SQV-LEN` -> error COBOL1705 (optional element A.4.8, no support claimed); expected acceptance per §2002:3.1.1; tracked kb/Work PB5578. Also LINAGE IS LN (2) / DEPENDING ON LN (1) -> COBOL2024 (dep2002.cob), tracked PB5658"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.4.1",
+    "to": [
+     "FMT-12.4.5.5.1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.4.1 General format (ACCESS MODE clause)",
+    "clause-2023": "12.4.5.5.1 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.1",
+      "quote": "ACCESS MODE IS RANDOM",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.1",
+      "quote": "ACCESS MODE IS RANDOM",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.4",
+      "quote": "The ACCESS MODE clause specifies the order in which records are to be accessed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ACCESS MODE IS {SEQUENTIAL|RANDOM|DYNAMIC} in a file control entry"
+    ],
+    "evidence-2002": {
+     "three modes and optional words": "covered by l1c12_access_mode_random_dynamic and l1c12_access_mode_sequential_default, both accept [2002], PASS at --std 2002 (runs/ re-run this session); fc2002.cob"
+    },
+    "reason": "The slice gave no pointer, but the 2023 twin exists with the identical format at §2023:12.4.5.5.1 (catalog row FMT-12.4.5.5.1, CONFORMS); the 2023 heading nesting (12.4.5.4 heading, 12.4.5.5 General) explains the missed pairing. The row's two goldens run at 2002 and pass.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.5.1",
+    "to": [
+     "FMT-12.4.5.6.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.5.1 General format (ALTERNATE RECORD KEY)",
+    "clause-2023": "12.4.5.6.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.5.1",
+      "quote": "ALTERNATE RECORD KEY IS",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.5.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.6.2",
+      "quote": "The WITH DUPLICATES and SUPPRESS WHEN literal-1 phrases are each bracketed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ALTERNATE RECORD KEY IS {data-name-1 | record-key-name-1 SOURCE IS data-name-2...} [WITH DUPLICATES]",
+     "data-name-1/-2 subscripted (5.1.3; no 2002 rule forbids)"
+    ],
+    "evidence-2002": {
+     "both key forms, DUPLICATES": "covered by pb1099_record_key_source PASS at 2002; fc2002.cob",
+     "subscripted operand": "not shown at the pinned tree; fixed on main by kb/Work PB5602 (landed b7729ecc4d, after the pinned tree): pb5602-indexed-keys-subscripted-2002 / pb5602-relative-key-file-status-subscripted-2002 / pb5602-collating-key-subscripted-2002 FAIL at the pinned tree 24372b7b17 with COBOL2024"
+    },
+    "reason": "Format words equal (2023 adds SUPPRESS WHEN, refused at 2002 by ext2002.cob). The 2002 operand admits subscription (5.1.3; the 2002 SRs say only 'may be qualified'), whereas the 2023 row's evidence refuses a subscript (COBOL2024). The 2002 arm has its own witnesses through PB5602.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for a subscripted data-name-1/data-name-2 (PB5602's pb5602-indexed-keys-subscripted-2002 on main)",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17 (COBOL2024 on A(1)); correct on main (PB5602 landed)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.6.1",
+    "to": [
+     "FMT-12.4.5.7.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.6.1 General format (COLLATING SEQUENCE clause)",
+    "clause-2023": "12.4.5.7.2 General formats",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.6",
+      "quote": "The COLLATING SEQUENCE clause specifies the collating sequence to be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.6.2 SR4",
+      "quote": "Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.7.3 SR6",
+      "quote": "Data-name-1 and record-key-name-1 shall not be subscripted",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 file-level (IS alphabet-1 [alphabet-2] | FOR ALPHANUMERIC/FOR NATIONAL)",
+     "Format 2 key-level OF {data-name-1|record-key-name-1}... IS alphabet-name-3",
+     "key-level data-name-1 subscripted (2002 has no SR6 ban)"
+    ],
+    "evidence-2002": {
+     "both formats": "covered by pb1075_collating_qualified_key PASS at 2002; fc2002.cob; pb1075-*-for-repeated refusals include 2002",
+     "subscripted key-level operand": "not shown at the pinned tree; fixed on main by kb/Work PB5602 (landed b7729ecc4d, after the pinned tree): pb5602-indexed-keys-subscripted-2002 / pb5602-relative-key-file-status-subscripted-2002 / pb5602-collating-key-subscripted-2002 FAIL at the pinned tree 24372b7b17 with COBOL2024; the 2023 refusal l1-file-collating-key-subscripted is refuse-at 2014,2023 only"
+    },
+    "reason": "Format text identical. 2023 SR6 bans a subscripted data-name-1; 2002 has no such rule and its operand definition admits subscription, so the 2002 rule's reach includes a program the 2023 row refuses.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for a subscripted key-level operand (pb5602-collating-key-subscripted-2002 on main)",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17; correct on main (PB5602 landed)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.7.1",
+    "to": [
+     "FMT-12.4.5.8.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.7.1 General format (FILE STATUS clause)",
+    "clause-2023": "12.4.5.8.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.7.1",
+      "quote": "FILE STATUS IS data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.7.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FILE STATUS IS data-name-1, data-name-1 qualified or subscripted"
+    ],
+    "evidence-2002": {
+     "unsubscripted form": "covered by fc2002.cob at --std 2002 (FS 00 shown); the row's only test is a unit test at 2023",
+     "subscripted data-name-1": "not shown at the pinned tree: fs2002.cob `FILE STATUS IS FS (2)` -> COBOL2024; fixed on main by kb/Work PB5602 (landed b7729ecc4d, after the pinned tree): pb5602-indexed-keys-subscripted-2002 / pb5602-relative-key-file-status-subscripted-2002 / pb5602-collating-key-subscripted-2002 FAIL at the pinned tree 24372b7b17 with COBOL2024"
+    },
+    "reason": "Same words; the 2023 row's own notes record the subscript refusal (COBOL2024) as part of its evidence, which does not hold for 2002, where data-name-1 admits subscription.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fs2002.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for FILE STATUS with a subscripted data-name-1 (pb5602-indexed-keys-subscripted-2002 on main) and a 2002 positive witness of the clause",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17 (fs2002.cob, COBOL2024); correct on main (PB5602 landed)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.8.1",
+    "to": [
+     "FMT-12.4.5.9.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.8.1 General format (LOCK MODE clause)",
+    "clause-2023": "12.4.5.9.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8",
+      "quote": "The LOCK MODE clause indicates the type of record locking for a shared file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LOCK MODE IS {MANUAL|AUTOMATIC} [WITH LOCK ON [MULTIPLE] {RECORD|RECORDS}]"
+    ],
+    "evidence-2002": {
+     "all phrases": "covered by pb755_lock_on_multiple_records and pb695_lock_mode_optional_words PASS at 2002; pb755-lock-on-omitted refuses at 2002; fc2002.cob"
+    },
+    "reason": "Identical format, no operand; the row's goldens run at 2002 and pass.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.9.1",
+    "to": [
+     "FMT-12.4.5.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.9.1 General format (ORGANIZATION clause)",
+    "clause-2023": "12.4.5.10.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9",
+      "quote": "The ORGANIZATION clause specifies the logical structure of a file",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "[ORGANIZATION IS] {SEQUENTIAL|RELATIVE|INDEXED}"
+    ],
+    "evidence-2002": {
+     "three organizations": "covered by fc2002.cob at 2002 (all three accepted and run) and the 2002 goldens of the file statements",
+     "2023-only LINE/RECORD SEQUENTIAL": "refused at 2002 by pb706-record-sequential-below-2023 and pb688-line-sequential-below-2023 (refuse-at 85,2002,2014)"
+    },
+    "reason": "2002's SEQUENTIAL is 2023's RECORD SEQUENTIAL with the optional word RECORD omitted; the 2002 scope is a subset and the compiler gates the additions at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": "2023 adds the LINE SEQUENTIAL and RECORD SEQUENTIAL spellings"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.10.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.10.1 General format (PADDING CHARACTER clause)",
+    "clause-2023": "none (no PADDING CHARACTER clause in 2023)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.10",
+      "quote": "The PADDING CHARACTER clause is an obsolete element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.10.2 SR3",
+      "quote": "data-name-1 shall be a one-character data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The PADDING CHARACTER clause is dependent upon whether padding characters are applicable",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "PADDING CHARACTER IS {data-name-1|literal-1} in the sequential file control entry (Format 3)"
+    ],
+    "evidence-2002": {
+     "both operand forms": "covered by probe fc2002.cob (literal \"*\" and data-name PAD-CH, warning COBOL0903 obsolete) and g2seq01_sequential_format_padding PASS at 2002",
+     "subscripted data-name-1": "not shown (kb/Work PB5602 sibling PB5658 lists PADDING CHARACTER)"
+    },
+    "reason": "No 2023 counterpart: the clause was obsolete in 2002 and is absent from 2023. Obsolete elements remain required in 2002; the compiler accepts both forms at --std 2002 with an obsolete warning and refuses the clause at 2023 (COBOL0902).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for PADDING CHARACTER IS literal-1 / data-name-1 is acceptance with warning COBOL0903 (fc2002.cob; witness g2seq01_sequential_format_padding)",
+    "compiler-at-2002": "correct (fc2002.cob, g2seq01)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.11.1",
+    "to": [
+     "FMT-12.4.5.11.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.11.1 General format (RECORD DELIMITER clause)",
+    "clause-2023": "12.4.5.11.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.11",
+      "quote": "The RECORD DELIMITER clause indicates the method of determining the length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECORD DELIMITER IS {STANDARD-1|feature-name-1}"
+    ],
+    "evidence-2002": {
+     "both alternatives": "covered by pb292_record_delimiter_witness (accept [2002, 2023]) PASS at 2002; fc2002.cob shows the COBOL1778 non-support warning at 2002"
+    },
+    "reason": "Identical format; STANDARD-1 is processor-dependent in 2002 (B.3 item 10) as in 2023, so the row's accept-inert-with-warning determination has the same licence at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "licence-2002": "§2002:B.3 item 10 (STANDARD-1 processor-dependent)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.12.1",
+    "to": [
+     "FMT-12.4.5.12.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.12.1 General format (RECORD KEY clause)",
+    "clause-2023": "12.4.5.12.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.12.1",
+      "quote": "record-key-name-1 SOURCE IS data-name-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.12.2 SR1",
+      "quote": "Data-name-1 and data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RECORD KEY IS {data-name-1 | record-key-name-1 SOURCE IS data-name-2...}",
+     "data-name-1/-2 subscripted"
+    ],
+    "evidence-2002": {
+     "both forms": "covered by pb354_start_generic_key_ok and pb1099_record_key_source PASS at 2002",
+     "subscripted operand": "not shown at the pinned tree; fixed on main by kb/Work PB5602 (landed b7729ecc4d, after the pinned tree): pb5602-indexed-keys-subscripted-2002 / pb5602-relative-key-file-status-subscripted-2002 / pb5602-collating-key-subscripted-2002 FAIL at the pinned tree 24372b7b17 with COBOL2024"
+    },
+    "reason": "Identical format; the 2002 operand admits subscription where the 2023 row's evidence refuses it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for a subscripted RECORD KEY operand (pb5602-indexed-keys-subscripted-2002 on main)",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17; correct on main (PB5602 landed)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.13.1",
+    "to": [
+     "FMT-12.4.5.13.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.3.4.13.1 General format (RELATIVE KEY clause)",
+    "clause-2023": "12.4.5.13.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.13.1",
+      "quote": "RELATIVE KEY IS data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.13.2 SR1",
+      "quote": "Data-name-1 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RELATIVE KEY IS data-name-1, qualified or subscripted"
+    ],
+    "evidence-2002": {
+     "unsubscripted": "covered by fc2002.cob at 2002 (row's only test is a 2023 unit test)",
+     "subscripted": "not shown at the pinned tree (pb5602-relative-key-file-status-subscripted-2002 FAILS COBOL2024 on RK(2)); fixed on main by PB5602"
+    },
+    "reason": "Identical format; 2002 operand reach includes a subscripted data-name-1 that the 2023 row refuses.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null,
+    "class": "deferral",
+    "needs": "a 2002 witness for RELATIVE KEY with and without a subscript (pb5602-relative-key-file-status-subscripted-2002 on main)",
+    "compiler-at-2002": "wrong at the pinned tree 24372b7b17; correct on main (PB5602 landed)"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.14.1",
+    "to": [
+     "FMT-12.4.5.14.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.14.1 General format (RESERVE clause)",
+    "clause-2023": "12.4.5.14.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.14",
+      "quote": "The RESERVE clause allows the user to specify the number of input-output areas",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RESERVE integer-1 [AREA|AREAS]"
+    ],
+    "evidence-2002": {
+     "three spellings": "covered by fc2002.cob at 2002 (RESERVE 2 AREAS, 1 AREA, 3); l1c24-reserve-missing-integer refuses at 2002 (the positive l1c24 golden runs at 85 only)"
+    },
+    "reason": "Identical format with no data operand; probe confirms at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.15.1",
+    "to": [
+     "FMT-12.4.5.15.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.4.15.1 General format (SHARING clause)",
+    "clause-2023": "12.4.5.15.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.15.1",
+      "quote": "SHARING WITH NO OTHER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.15",
+      "quote": "The SHARING clause indicates that a file is to participate in file sharing",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SHARING WITH {ALL OTHER|NO OTHER|READ ONLY}"
+    ],
+    "evidence-2002": {
+     "three modes": "covered by pb321_table19_open_arbitration PASS at 2002; fc2002.cob"
+    },
+    "reason": "Identical format, no operand.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.5.1",
+    "to": [
+     "FMT-12.4.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.5.1 General format (I-O-CONTROL paragraph)",
+    "clause-2023": "12.4.6.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.5.1",
+      "quote": "where same-clause is shown below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.2",
+      "quote": "where apply-commit-clause and same-clause are shown below",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "I-O-CONTROL. [[{same-clause}...].] (the paragraph may be empty)"
+    ],
+    "evidence-2002": {
+     "empty paragraph and SAME clauses": "covered by fd2002.cob (empty) and fc2002.cob (three SAME clauses) at 2002; pb1087_same_clauses_legal PASS at 2002",
+     "closure and periods": "pb829-io-control-unrecognized-clause, pb2727-io-control-period-per-clause / -missing refuse at 2002",
+     "APPLY COMMIT absent in 2002": "ext2002.cob: refused COBOL0900 at 2002"
+    },
+    "reason": "2002's paragraph is 2023's without the apply-commit-clause; the subset is covered at 2002 and the addition is gated.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fd2002.cob",
+    "widening": "2023 adds the apply-commit-clause"
+   },
+   {
+    "rule-id": "2002-FMT-13.3.5.1",
+    "to": [
+     "FMT-13.4.6.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.3.5.1 General format (sort-merge file description entry)",
+    "clause-2023": "13.4.6.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.3.5",
+      "quote": "The sort-merge file description entry (SD entry) represents the highest level of organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.3.5.1",
+      "quote": "DEPENDING ON data-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.4.6.2",
+      "quote": "where record-clause is described in 13.18.43, RECORD clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SD file-name-1 [RECORD {CONTAINS integer-1 CHARACTERS | IS VARYING ... [DEPENDING ON data-name-1] | CONTAINS integer-4 TO integer-5 CHARACTERS}]",
+     "DEPENDING ON data-name-1 subscripted (5.1.3)"
+    ],
+    "evidence-2002": {
+     "three record forms and bare SD": "covered by fd2002.cob at 2002 (S1..S4); pb829-sd-unrecognized-clause refuses at 2002; BYTES refused at 2002 (ext2002.cob)",
+     "subscripted DEPENDING ON operand": "not shown: refused COBOL2024 at 2002 (dep2002.cob), kb/Work PB5658 (open)"
+    },
+    "reason": "The inline 2002 RECORD clause equals the 2002 RECORD clause formats (CHARACTERS only; 2023 adds BYTES, gated). The difference is the DEPENDING ON data-name-1 operand, which admits subscription at 2002 and is refused by the compiler (known, PB5658).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/dep2002.cob",
+    "widening": "2023 adds the BYTES spelling",
+    "class": "deferral",
+    "needs": "a 2002 witness for SD ... DEPENDING ON a subscripted data-name-1 once PB5658 lands",
+    "compiler-at-2002": "wrong: `SD S2 RECORD IS VARYING IN SIZE FROM 1 TO 8 CHARACTERS DEPENDING ON LN (1).` -> COBOL2024 at --std 2002 (dep2002.cob); expected acceptance per §2002:5.1.3 with no restricting 2002 rule; tracked kb/Work PB5658"
+   },
+   {
+    "rule-id": "2002-FMT-12.3.6.1",
+    "to": [
+     "FMT-12.4.6.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.6.1 General format (SAME clause)",
+    "clause-2023": "12.4.6.4.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.1",
+      "quote": "SAME RECORD AREA FOR",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.6",
+      "quote": "The SAME clause specifies files for which memory areas are to be shared",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 file-area, Format 2 record-area, Format 3 SORT/SORT-MERGE area; file-name operands"
+    ],
+    "evidence-2002": {
+     "three formats": "covered by pb1087_same_clauses_legal PASS at 2002; pb1087-same-one-file refuses at 2002; fc2002.cob"
+    },
+    "reason": "Identical formats; operands are file-names (no subscript question).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fc2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.4.1",
+    "to": [
+     "FMT-11.5.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.4.1 General format (FUNCTION-ID paragraph)",
+    "clause-2023": "11.5.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.4.1",
+      "quote": "FUNCTION-ID. function-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.5.2",
+      "quote": "FUNCTION-ID. function-prototype-name-1 [ AS literal-1 ] IS PROTOTYPE",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 definition, Format 2 prototype, AS literal-1"
+    ],
+    "evidence-2002": {
+     "both formats": "covered by l1c10_function_id_prototype_as_and_is (accept [2002]) PASS at 2002"
+    },
+    "reason": "Identical formats; the row's golden runs at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.4.1",
+    "to": [
+     "FMT-13.5.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.4.1 General format (working-storage section)",
+    "clause-2023": "13.5.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.4.1",
+      "quote": "record-description-entry | 13.10, Record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.2",
+      "quote": "type-declaration-entry | 13.12, Type declaration entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.4",
+      "quote": "The working-storage section describes records and subordinate data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "77-level entries, constant entries, record description entries (a TYPEDEF entry is a record description entry in 2002)"
+    ],
+    "evidence-2002": {
+     "entry kinds": "covered by pb1309_working_storage_four_entry_kinds (accept [2002]) PASS at 2002; fd2002.cob (77, CONSTANT, TYPEDEF + TYPE)",
+     "first entry": "pb1246-section-first-entry-not-level-1 refuses at 2002"
+    },
+    "reason": "2023 names type-declaration-entry separately; in 2002 the same TYPEDEF entry is a record-description-entry, so the admitted programs coincide.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/fd2002.cob",
+    "widening": "2023 lists type-declaration-entry as a fourth entry kind"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.1.1.1",
+    "to": [
+     "FMT-8.4.2.2.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.1.1.1 General format (Qualification)",
+    "clause-2023": "8.4.2.2.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "file-cd-report-qualifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.2",
+      "quote": "where file-report-qualifier is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.1, Uniqueness of reference, refers to cd-name in general format 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.2 SR22",
+      "quote": "Condition-name and content-validation formats shall not be specified in the report section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Formats 1-3: data-name, condition-name, index-name qualified by data-name(s) and by file-name, cd-name or report-name",
+     "Formats 4-8: procedure, screen, record-key-name, LINAGE-COUNTER, report counters (printed with braces in 2002, PDF p106, rendered this session)"
+    ],
+    "evidence-2002": {
+     "file/report/data qualifiers": "covered by pb919_index_name_qualified and pb1455_qualified_subscripted_subscript PASS at 2002",
+     "cd-name qualifier (data-, condition-, index-name)": "covered by probe cd2002.cob at --std 2002: CIN-X OF CIN, CIN-X OF CIN-REC OF CIN, CIN-OK OF CIN, CIN-OK OF CIN-X OF CIN, CIN-I OF CIN all resolve and run (output COND-CD, COND-CD2, T=Z, RM=OK); not shown by the 2023 row"
+    },
+    "reason": "2002 qualifies by cd-name (the communications facility, optional in 2002 but implemented by this compiler at --std 2002). 2023 has no CD. The braces on Formats 4-8 in 2002 (the rendered page) make the qualifier part of those named terms but change nothing a program can show: SR5-SR8 allow the unqualified names. A report-name qualifier for a condition-name is vacuous (SR22).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/cd2002.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "licence-2002": "§2002:A (optional) - not used: the compiler supports the CD at 2002",
+    "needs": "a 2002 witness for cd-name qualification of data-, condition- and index-names (cd2002.cob is the candidate)",
+    "compiler-at-2002": "correct (cd2002.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.1.2.1",
+    "to": [
+     "FMT-8.4.2.3.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.2.1 General format (Subscripts)",
+    "clause-2023": "8.4.2.3.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.1",
+      "quote": "qualified-data-name-1 [ ( subscript … ) ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.1",
+      "quote": "are shown for context and are not part of the subscript general format",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "subscript: ALL | arithmetic-expression | index-name [{+|-} integer]; on qualified data- and condition-names"
+    ],
+    "evidence-2002": {
+     "three subscript alternatives": "covered by probe sub2002.cob at 2002 (E (N + 1), E (XI + 2), E (XI - 1), SUM (E (ALL)), E-NINE (N * 2 + 1)) and pb1455_qualified_subscripted_subscript, pb919 PASS at 2002; the row's own goldens run at 2023/85 only"
+    },
+    "reason": "Identical format; the NOTE puts the qualified names outside the format, so the cd-name reach belongs to 8.4.1.1 (judged there). Probe and 2002 goldens hold.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/sub2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.1.1",
+    "to": [
+     "FMT-8.4.3.1.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.1.1 General format (Identifier)",
+    "clause-2023": "8.4.3.1.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.1",
+      "quote": "[ class-name-1 OF ] SUPER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.1.2",
+      "quote": "[ object-class-name-1 OF ] SUPER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.1.2 SR11",
+      "quote": "The LINAGE-COUNTER identifier is defined by 8.4.2.13",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "eleven identifier formats",
+     "Format 2 over data items of a CD record (Annex A names this format)",
+     "Formats 10/11 LINAGE-COUNTER / report counters (printed with braces, PDF p110; SR11/SR12 defer to 8.4.2.13/8.4.2.14 where the qualifier is optional)"
+    ],
+    "evidence-2002": {
+     "formats 5-7": "covered by pb1425_object_property_identifier, pb1425_object_view, pb1425_predefined_object_operands PASS at 2002",
+     "formats 1-4, 10": "pb428_inline_method_invocation, pb969_empty_argument_list, g2rfm01, g2lct01 PASS at 2002; fd2002.cob (bare LINAGE-COUNTER)",
+     "CD record identifiers": "covered by cd2002.cob at 2002; not shown by the 2023 row"
+    },
+    "reason": "2002's own Annex A says this format refers to cd-name; identifiers of CD records exist at 2002 and the compiler handles them. Format 6 class-name-1 vs object-class-name-1 and Formats 10/11 (inline vs named term) change no admitted program.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/cd2002.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for an identifier of a CD record entry (cd2002.cob candidate; g2rfm01 already reference-modifies a CD item)",
+    "compiler-at-2002": "correct (cd2002.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.2.1",
+    "to": [
+     "FMT-8.4.3.2.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.2.1 General format (Function-identifier)",
+    "clause-2023": "8.4.3.2.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2",
+      "quote": "A function-identifier references the unique data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "[FUNCTION] {function-prototype-name-1|intrinsic-function-name-1} [( [{argument-1|OMITTED}]... )]"
+    ],
+    "evidence-2002": {
+     "intrinsic and empty list": "covered by pb969_empty_argument_list (accept [2002]) PASS at 2002; sub2002.cob; pb969-empty-parentheses-on-data-item refuses at 2002",
+     "prototype route": "l1c10_function_id_prototype_as_and_is PASS at 2002"
+    },
+    "reason": "2002 lacks function-pointer-name-1 (a 2014+ addition whose golden runs at 2014); the 2002 alternatives are a subset covered at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/sub2002.cob",
+    "widening": "2023 adds function-pointer-name-1"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.3.1",
+    "to": [
+     "FMT-8.4.3.3.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.3.1 General format (Reference-modification)",
+    "clause-2023": "8.4.3.3.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.1",
+      "quote": "identifier-1( leftmost-position : [ length ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.2",
+      "quote": "identifier-1( leftmost-position : [ length ] )",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 (leftmost-position : [length])"
+    ],
+    "evidence-2002": {
+     "with and without length": "covered by g2rfm01_refmod_cd_numeric_display_and_national PASS at 2002, cd2002.cob, sub2002.cob; pb1407-ref-mod-leftmost-position-omitted refuses at 2002"
+    },
+    "reason": "Identical format; 2002 goldens hold (including a CD item, through identifier-1).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-46/sub2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.4.1",
+    "to": [
+     "FMT-8.4.3.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.4.1 General format (Inline method invocation)",
+    "clause-2023": "8.4.3.4.2 General format",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4",
+      "quote": "Inline method invocation references a temporary data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.2",
+      "quote": "object-class-name-1 :: literal-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "{class-name-1|identifier-1} :: literal-1 [( {arith-expr|boolean-expr|identifier-2|literal-2|OMITTED}... )]"
+    ],
+    "evidence-2002": {
+     "format": "covered by pb428_inline_method_invocation and pb1430_operator_separator_spaces PASS at 2002; pb1430-inline-invocation-empty-arguments and -invocation-operator-spacing refuse at 2002"
+    },
+    "reason": "Identical but for the name class-name-1 vs object-class-name-1 (same referent); the row's goldens run at 2002.",
+    "probe": null,
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-46",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-12.3.4.4.1",
+    "verdict": "UPHELD",
+    "reason": "ACCESS MODE IS {SEQUENTIAL|RANDOM|DYNAMIC}: format, optional words, SR1 (SORT/MERGE USING/GIVING) and SR2 (no DYNAMIC/RANDOM for sequential) are word-identical; no operand, so no CD reach and no subscript question; no 2002 form absent from 2023. Clause is not in the 2002 Annex A list.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.4.2 SR2",
+      "quote": "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.5.2 SR2",
+      "quote": "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.8.1",
+    "verdict": "UPHELD",
+    "reason": "LOCK MODE format identical (same underlined words). 2023 adds SR1 (APPLY COMMIT, a 2023-only facility) and raises the GR7 lock maxima (>=15/>=255 implies 2002's >=1); neither removes a 2002 form or narrows the 2002 syntax. No operand.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.8.2 SR1",
+      "quote": "The MULTIPLE phrase shall not be specified for a file described with sequential organization",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.9.3 SR1",
+      "quote": "This clause shall not be specified for a file that is the subject of an APPLY COMMIT clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.9.1",
+    "verdict": "UPHELD",
+    "reason": "2002 SEQUENTIAL is 2023's RECORD SEQUENTIAL with the optional word RECORD omitted, and both editions imply sequential (record sequential) organization when the clause is absent. 2023 only widens (LINE SEQUENTIAL, explicit RECORD), which the compiler refuses at 2002 (pb706/pb688 refusals). No form removed.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.9.2 GR5",
+      "quote": "When the ORGANIZATION clause is not specified, sequential organization is implied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.10.3 GR6",
+      "quote": "sequential organization with the RECORD SEQUENTIAL phrase is implied",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.11.1",
+    "verdict": "UPHELD",
+    "reason": "Format identical. The 2023 row accepts the clause and declines it with a named warning under the processor-dependent licence; 2002 gives the same licence in its own text (3.1.5 warning mechanism; B.3 item 10 for STANDARD-1; feature-name list is the implementor's per the identical SR2, B.1 item 118 optional). GR2/GR3 device wording and ISO 1001 edition differ only inside the declined STANDARD-1 semantics.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The STANDARD-1 phrase of the RECORD DELIMITER clause is dependent upon a reel type of device",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.14.1",
+    "verdict": "UPHELD",
+    "reason": "RESERVE integer-1 [AREA|AREAS] and its single GR are identical; no data operand; no 2002-only alternative (the 1985 NO/ALTERNATE forms are not in 2002).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.14.2 GR1",
+      "quote": "the number of input-output areas allocated is equal to the value of integer-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.4.15.1",
+    "verdict": "UPHELD",
+    "reason": "SHARING WITH {ALL OTHER|NO OTHER|READ ONLY}: identical format and GR (pointer to the sharing-mode clause); no operand; no removed form.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.15.2 GR1",
+      "quote": "The SHARING clause specifies the sharing mode to be used for the file",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.5.1",
+    "verdict": "UPHELD",
+    "reason": "2002 'I-O-CONTROL. [ [ {same-clause}... ] . ]' is exactly the trailing part of the 2023 format; 2023 only adds the apply-commit-clause sentence (gated at 2002). 2002 has no I-O-CONTROL clause that 2023 dropped (RERUN / MULTIPLE FILE TAPE are already absent from the 2002 format).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.5.1",
+      "quote": "where same-clause is shown below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.2",
+      "quote": "The apply-commit and same clauses may be specified in any order",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.6.1",
+    "verdict": "UPHELD",
+    "reason": "Three SAME formats identical; operands are file-names (a CD is not a file, so no communication reach); 2002 SR1-SR8 match 2023 SR1-SR8 word for word.",
+    "citations": [
+     {
+      "cite": "§2002:12.3.6.2 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.6.4.3 SR5",
+      "quote": "A given file-name that represents a report file may be specified in one file-area format SAME clause",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-11.4.1",
+    "verdict": "UPHELD",
+    "reason": "Both FUNCTION-ID formats identical. 2023's SR adds 'nor a zero-length literal', a literal kind 2002 does not have, so the 2002 admitted set is unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:11.4.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.5.3 SR1",
+      "quote": "shall be neither a figurative constant nor a zero-length literal",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.4.1",
+    "verdict": "UPHELD",
+    "reason": "2002 lists three entry kinds; 2023 splits the TYPEDEF record out as type-declaration-entry. The 2002 data-description clause set (13.16) is a subset of 2023's (13.18; 2023 adds CONSTANT RECORD, DYNAMIC LENGTH), so no 2002 WS entry form lacks a 2023 counterpart. The working-storage section is not a CD context.",
+    "citations": [
+     {
+      "cite": "§2002:13.4.1",
+      "quote": "record-description-entry | 13.10, Record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.5.2",
+      "quote": "type-declaration-entry | 13.12, Type declaration entry",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.1.2.1",
+    "verdict": "OVERTURNED",
+    "reason": "Format 1 of this rule DEFINES the term qualified-data-name-with-subscripts, and 2002 Annex A names exactly that term (identifier Format 2) as referring to cd-name. In 2002 qualified-data-name-1 is defined by 8.4.1.1, whose qualifier includes a cd-name, so this rule governs subscripted table elements of a record under a CD (e.g. CIN-T OF CIN (CIN-I OF CIN)). The reader judged 8.4.1.1 and 8.4.2.1 communication-reach on the same Annex A line, but 8.4.2.1's reach runs THROUGH this rule; the NOTE ('shown for context') does not move the term's definition out of this clause, and Annex A's list is known to be incomplete. The 2023 row's tests cannot show a CD item. Compiler correct at 2002: probe output T=Z (subscripted CD table by index and literal); refused at 2023 (COBOL0902).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.1.2 SR3",
+      "quote": "Qualified-data-name-with-subscripts-1 is defined by 8.4.1.2, Subscripts",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.2 SR1",
+      "quote": "Qualified-data-name-1 and qualified-condition-name-1 are defined in 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "data-name-1 [ data-qualifier ] … [ file-cd-report-qualifier ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.3 SR1",
+      "quote": "Qualified-data-name-1 and qualified-condition-name-1 are defined in 8.4.2.2, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.2",
+      "quote": "where file-report-qualifier is",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a subscripted (index-name and literal) table element of a CD record qualified by its cd-name (cdsub.cob is the candidate)",
+    "compiler-at-2002": "correct (cdsub.cob: --std 2002 prints COND-CD, COND-CD2, T=Z, RM=OK with the COBOL0903 obsolete warning; --std 2023 refuses with COBOL0902)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-46/cdsub.cob"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.2.1",
+    "verdict": "UPHELD",
+    "reason": "Rendered 2002 PDF p112 (the transcription drops the parentheses): '[FUNCTION] {function-prototype-name-1|intrinsic-function-name-1} [ ( [ {argument-1|OMITTED} ] ... ) ]', the same nesting as 2023 minus function-pointer-name-1 (a 2023 widening). The empty list is legal in 2002 too (SR4 NOTE example RANDOM ()). Argument-1 is a generic identifier; any CD-record reach is the identifier/qualification rows' (already DIFFERENT).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.2.2 SR4",
+      "quote": "FUNCTION MAX (FUNCTION RANDOM () A B)",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-46/pages/spec_p112.png"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.3.1",
+    "verdict": "DOUBTFUL",
+    "reason": "Format text identical. But identifier-1 reaches a CD record item in 2002 (identifier Format 2 per Annex A), and the reader's own evidence for that part is g2rfm01_refmod_cd_numeric_display_and_national, which is NOT a test of the 2023 row (pb202, pb1407). Under the reader brief's SAME definition (whole 2002 scope shown by the 2023 row) this is DIFFERENT/communication-reach with an existing witness; under a policy that assigns identifier-operand CD reach only to 8.4.1.1/8.4.2.1 it is SAME. Settled by that policy decision; if the former, needs: KEPT plus g2rfm01 as the 2002 witness of the CD part.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.3.1",
+      "quote": "identifier-1( leftmost-position : [ length ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.3.2",
+      "quote": "identifier-1( leftmost-position : [ length ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "8.4.2.1, Identifier, refers to cd-name in format 2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-46/cdsub.cob"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.4.1",
+    "verdict": "UPHELD",
+    "reason": "Format identical except class-name-1 vs object-class-name-1. 2002 has two class-name kinds (object orientation / truth value proposition); SR3 requires a valid INVOKE, so only the OO class-name is admitted, which is 2023's object-class-name. Identifier-1 shall be of class object.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "class-name (for object orientation)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.2 SR3",
+      "quote": "One of the INVOKE statements specified in general rule 1 shall be valid",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "ef1809892520da31799c10ad4bf0c05fb8f1176433332e253c18e2f088206d58",
+  "read": "8b6e0a9fda2c26e978e9b5570a8dc2e9279d33816a770507f187fdcca52beafb",
+  "refute": "58e41df4a1c8c473ccd81bc4cdc859e170c8f0334a8eaad17f8ab33872bb961c"
+ }
+}

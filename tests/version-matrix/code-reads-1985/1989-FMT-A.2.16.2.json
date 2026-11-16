@@ -1,0 +1,151 @@
+{
+ "rule-id": "1989-FMT-A.2.16.2",
+ "rule-digest": "db2082e08c65",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "2b9ebd6e0e930de71c97ddcec0750efabc704016b54e00a6303513c0eafaa7f0",
+   "refuter": "33f5d80229e0b278ba4ddf2dd424a986f0c6d36f54ec2e645f789fe57bb1ce64"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.16.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 (the 1989 amendment) the compiler must accept FUNCTION INTEGER-OF-DATE ( argument-1 ) with exactly one integer argument and refuse every other shape (no FUNCTION word, no parentheses, zero or two arguments, the 2002 empty list and ALL forms), returning the number of days after 1600-12-31.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+    "switches": "the D8 window (IntroducedIn 85): available at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "FunctionEmptyArgumentList2002: '( )' refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "RepositoryFunction2002: keyword-omitted routing inert below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "NumericFunctionIdentifierOperand2002: MOVE FUNCTION INTEGER-OF-DATE(D) refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the format (two_args.cob is refused identically at --std 2023); placement outside an arithmetic expression and the empty list differ.",
+  "witnesses-cover": "part: the witness covers two arguments; not exercised: no parentheses, the empty list, legal values, non-integer arguments, ALL.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/legal.cob",
+    "printed": "D(20001231) 146097, LIT(16010101) 1, DS(+16010102) 2, EXPR(Y*10000+0301=19990301) 145426, SUB 1, MAX(99991231) 3067671, LEAP 1, ROUND(DATE-OF-INTEGER) 20001231",
+    "expected": "days after 1600-12-31 (A.2.16.4 RV1): 146097, 1, 2, 145426, 1, 3067671, 1, and the round trip 20001231"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/two_args.cob",
+    "printed": "error COBOL1504: takes 1 argument(s); 2 given",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/noargs.cob",
+    "printed": "error COBOL1504 (0 given) and COBOL0900: an empty function argument list requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/noparens.cob",
+    "printed": "error COBOL1504: 0 given",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/nofunction_word.cob",
+    "printed": "error COBOL1639: 'INTEGER-OF-DATE(D)' is not defined",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/alnum_arg.cob",
+    "printed": "error COBOL1627: argument-1 is of class alphanumeric",
+    "expected": "refused (AR1: an integer)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/nonint_lit.cob",
+    "printed": "error COBOL1627: the numeric literal 20001231.5, whose value is not an integer",
+    "expected": "refused (A.2.2 AR4)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/nonint_item.cob",
+    "printed": "error COBOL1627: a numeric data item with digits to the right of the decimal point",
+    "expected": "refused (A.2.2 AR4: always an integer)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/all_arg.cob",
+    "printed": "error COBOL1645: the ALL subscript is not permitted",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c6/move_target.cob",
+    "printed": "error COBOL0900: a numeric or integer function-identifier where an identifier is written requires COBOL-2002",
+    "expected": "refused at 85 (A.2.3 GR3: an integer function only in an arithmetic expression)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.16.2",
+    "check": "OK  §1989:A.2.16.2  (2.16.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.16.3 AR1",
+    "check": "OK  §1989:A.2.16.3 AR1  (2.16.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.16.4 RV1",
+    "check": "OK  §1989:A.2.16.4 RV1  (2.16.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2 AR4  (2.2 ARGUMENTS**)  the text is in AR4"
+   },
+   {
+    "cite": "§1989:A.2.3 GR3",
+    "check": "OK  §1989:A.2.3 GR3  (2.3 TYPES OF FUNCTIONS)  the text is in GR3"
+   }
+  ],
+  "notes": "The same catalog-driven arity path as INTEGER; every value checked by hand against the 400-year Gregorian cycle (146097 days).",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "INTEGER-OF-DATE row: Fixed 1..1, 'i', IntroducedIn 85"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.16.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1989:A.2.16 (one integer argument YYYYMMDD), §1989:A.2.2 AR4 (an arithmetic expression that always results in an integer) and §1989:A.2.3 (a numeric function may not be referenced where an integer operand is required). Probes at --std 85 under refute-1985-09/c6: numeric-function arguments NUMVAL and SQRT (numval_arg, sqrt_arg) -> COBOL1627; DD / 2 (div_arg), D ** -1 (negexp_arg), D ** E with signed E (varexp_arg), a PIC 9(8)V9 item (ws_nonint_x) -> COBOL1627; integer forms FUNCTION INTEGER(X), D * 1, D ** 1 (int_fn_arg, mul_arg, exp_arg) -> 146097; difference of two INTEGER-OF-DATE in COMPUTE (int_of_day_ok) -> 146096. Each was the same at --std 2023. cite.py: OK §1989:A.2.16.3 AR1; OK §1989:A.2.2 (in AR4); OK §1989:A.2.3 (in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

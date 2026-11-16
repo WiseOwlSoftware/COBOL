@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-VI.6.22.4-9",
+ "rule-digest": "b9dc2807e617",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-112",
+  "sources": {
+   "reader": "8f802580a88c911ec6d56f6023b7c440e54bde1edb428b3440113771717f7829",
+   "refuter": "1b03a63a95ca9f894a10cb97c9351fdb30a86649ceb1f21d45d6872f18d746d0"
+  },
+  "imported": {
+   "reader": "e7609702ccc2a90c9b136c3a1301c2eea3f78731391932ebb3b709b8c1824ded",
+   "refuter": "b1b0d5f2960550d784dced1a01b9c29059ff2cc4c40461eb21e29154039f0025"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.22.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "END-SEARCH must delimit the scope of a SEARCH (both formats): statements after it in the same sentence or arm belong to the enclosing statement, an END-SEARCH closes the nearest unterminated SEARCH, a SEARCH ended by END-SEARCH may stand as an imperative statement inside IF and inside another SEARCH's WHEN or AT END arm, a stray END-SEARCH is refused, and END-SEARCH with NEXT SENTENCE is refused (SR5).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchAllStatement; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchEndSearchNextSentence; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "the END-SEARCH entry: reserved in all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep END_SEARCH/END-SEARCH/EndSearch over src/*.cs and *.g4; grep Edition/Version in ConditionalStatements.cs and ProcedureFormatPass.cs: none; the grammar's END_SEARCH? is edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover scope termination generally and SEARCH with NEXT SENTENCE; not exercised: END-SEARCH closing an inner SEARCH whose outer WHEN follows, nested SEARCH ALL ... END-SEARCH inside a WHEN arm, the SR5 refusal",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/endsrch.cob",
+    "printed": "P1 FOUND/P1 AFTER/P1 AFTER2; P2 THEN-TAIL; P3 INNER 2/P3 WHEN-TAIL/P3 AFTER; P4 NEXT",
+    "expected": "scope ends at END-SEARCH; nested SEARCH ALL ... END-SEARCH in a WHEN arm; period-terminated with NEXT SENTENCE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/endsnest.cob",
+    "printed": "Y-INNER / TAIL-IN-OUTER-ARM / Z",
+    "expected": "END-SEARCH closes the inner SEARCH, whose second WHEN it is; the tail is in the outer arm"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-112/src/endsref.cob",
+    "printed": "COBOL0306 unexpected 'END-SEARCH' without a matching SEARCH; COBOL2409 END-SEARCH with NEXT SENTENCE",
+    "expected": "refusals (§1985:VI.6.22.3 SR5)"
+   },
+   {
+    "class": "c",
+    "file": "endsrch-002, endsnest-002 at --std 2023",
+    "printed": "EXPECT: MATCH",
+    "expected": "no edition difference"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.4 GR9",
+    "check": "OK  §1985:VI.6.22.4 GR9  (║6.22.4 General Rules║)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VI.6.22.3 SR5",
+    "check": "OK  §1985:VI.6.22.3 SR5  (║6.22.3 Syntax Rules║)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:VI.6.22.4 GR1",
+    "check": "OK  §1985:VI.6.22.4 GR1  (║6.22.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar's optional END_SEARCH and the parser's nearest-match association implement the delimiter; behaviour is identical at 85 and 2023. The COBOL2409 text cites §2023:14.9.37.3 SR4 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.22.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-112/src/endsr2.cob at 85: P1 an outer SEARCH with NEXT SENTENCE and no END-SEARCH, whose other WHEN holds an inner SEARCH ... END-SEARCH followed by DISPLAY: admitted (SR5 binds only the SEARCH that has END-SEARCH), printed P1 INNER / P1 TAIL / P1 AFTER; P2 SEARCH ... END-SEARCH inside an inline PERFORM, tail inside the loop body each iteration; P3 END-SEARCH closes the SEARCH in the AT END arm, the outer WHEN follows: P3 INNER / P3 AE-TAIL / P3 AFTER. endsref2.cob: SEARCH ALL ... WHEN ... NEXT SENTENCE END-SEARCH refused COBOL2409 (format 2 half of SR5, which the reader did not try). cite.py: OK  §1985:VI.6.22.3 SR5  the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

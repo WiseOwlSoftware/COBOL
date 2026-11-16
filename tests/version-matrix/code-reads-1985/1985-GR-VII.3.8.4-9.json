@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-9",
+ "rule-digest": "0eef09203ae2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-024",
+  "sources": {
+   "reader": "9709f841cac846cdc016cdfe1907176364fbbbeed2d15d9b4eb5f12004413809",
+   "refuter": "943b1a501348cb0f5cbcd3d292328f4fa0dffa4783931b13d7dcea5e8fd9c35f"
+  },
+  "imported": {
+   "reader": "2c82876dbe700fa5a9e9249aa09d3e5e7aa24b92366c1203b4b05b0187b65aff",
+   "refuter": "81a22eef94f2d6ae95271a28ab48226e890f9f796acff821a2f5cd46ca77356c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when RECORD VARYING ... DEPENDING ON data-name-1 is written, no DELETE, RELEASE, REWRITE, START or WRITE (successful or not) and no unsuccessful READ or RETURN changes data-name-1, for every organization and access mode; only a successful READ/RETURN stores the length (GR11).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReadLengthStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingDepending; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs",
+  "edition-consulted": [],
+  "edition-search": "The DEPENDING item is written only by EmitReadLengthStore (called inside the success block of the sequential READ and KeyedIoEmitter's SuccessSteps) and by the RETURN success block in SortEmitter (line 798); output verbs only read it through VaryingLengthArg. Grepped DialectLevel|DialectBehavior|EditionContext in those emitter members: no edition branch on this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c23 covers sequential WRITE (incl. 44), sequential READ at end, indexed START/READ invalid key/REWRITE/DELETE, SD RELEASE/RETURN; not a relative file, an unsuccessful WRITE with 22, an unsuccessful START/REWRITE/DELETE on relative, a READ on a file not open (47), a READ in output mode, a 46 READ, an absent optional file, or a READ after a failed OPEN",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/p3_gr9_depending.cob",
+    "printed": "relative: W1 00 L=06, WDUP 22 L=09, W2 00 L=12, SFAIL 23 L=33, SOK 00 L=34, RFAIL 23 L=35, ROK 00 L=12, RW 00 L=14, RWFAIL 23 L=15, DFAIL 23 L=37, DOK 00 L=38, RBACK 00 L=14, RNEXTEND 10 L=39; sequential: RNOTOPEN 47 L=40, ROUTMODE 47 L=41, WINMODE 48 L=42, R 00 L=08, REND 10 L=43, R46 46 L=44; optional absent OPTOPEN 05 ROPT 10 L=45; after OPEN 35: RAFTERFAILOPEN 47 L=46",
+    "expected": "every value moved beforehand survives each WRITE/START/REWRITE/DELETE and each unsuccessful READ; successful READs set the length (GR9, GR11)"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/l1c23_record_varying_bounds_depending.cob",
+    "printed": "EXPECT: MATCH (incl. RL 05/RL 07 after RELEASE, RE 88 after an at-end RETURN)",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR9",
+    "check": "OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "Every write of data-name-1 sits in a success-only block (sequential READ, keyed READ, RETURN); output verbs read it and never store it. The probes covered sequential, relative (dynamic) and, through the witness, indexed and sort files.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not needed (no edition branch)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-9",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-024/r3_gr9_link.cob (--std 85, run dir r3_gr9_link-002) took the arm the reader did not: data-name-1 in the LINKAGE SECTION of a called program (SR4 admits Working-Storage or Linkage), the FD in the subprogram, the item the caller's. WRITE R FROM SRC with LL=07: 'W FS=00 LL=07', caller 'AFTER-WRITE ML=07' (WRITE ... FROM does not alter it); successful READ sets it from the record: 'R FS=00 LL=07 R=[ABCDEFG             ]'; an at-end READ after MOVE 44: 'EOF2 10', 'E LL=44', caller 'AFTER-FAILREAD ML=44'. Class c side effect: the first draft used WRITE R FROM \"ABCDEFGHIJ\" and --std 85 refused it 'COBOL0871: FROM literal-1 requires COBOL-2002', the 1985 format's identifier-only FROM. The reader's p3 already covered relative/sequential failures (22, 23, 47, 48, 46, 10, 05 absent optional, after a failed OPEN) and the witness covered indexed and SD; I found no store of data-name-1 outside a success block. cite.py: 'OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9'; 'OK  §1985:VII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

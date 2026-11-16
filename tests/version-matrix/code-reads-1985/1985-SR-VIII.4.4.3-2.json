@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VIII.4.4.3-2",
+ "rule-digest": "09e3ec603188",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-163",
+  "sources": {
+   "reader": "4b088dead2719e1fc593abf6e485ec7a48bf6bcc65261226c2ca26427d8bbf3e",
+   "refuter": "c21732898f741fa02834aa321ab3abb1732b605ad488443c012cc311b90ba757"
+  },
+  "imported": {
+   "reader": "b5cf777b9127d922a80aa22caa998353d1b244325c62ae9ce499cd55d90c4b8d",
+   "refuter": "4d63cb141911aaac0c9eedc4d11c32025ed7edea11308e1607487a4a5a8bb17c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the compiler must accept, and run as one separate OPEN per file-name, an OPEN statement whose file-names (in any of the INPUT, OUTPUT, I-O and EXTEND phrases) have different organizations (sequential, relative, indexed) and different access modes (sequential, random, dynamic), each file getting its own open mode and I-O status.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOpenStatement",
+    "switches": "refuses the 2002 OPEN SHARING phrase (COBOL0900) below 2002; the mixed-organization list itself is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile",
+    "switches": "only the citation text of the FORMAT-clause diagnostic (DialectLevel); the per-file SR1 EXTEND/access check is edition-agnostic",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility: at 85 every connector opens as ALL OTHER and Table 19 is not asked, so sibling connectors opened by one OPEN never arbitrate against one another",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of OpenStatement/openClause in the compiler (VersionConformancePass, StatementBinder, SequentialIoBinder, EcBinder.ExceptionPerform), DialectLevel/Edition in SequentialIoEmitter and the runtime IO folder",
+  "behaviour-differs-by-edition": "no: the admission of mixed organizations and access modes is the same code at 85 and 2023; only the SHARING phrase (refused at 85) and the default sharing mode differ",
+  "witnesses-cover": "part: g85_bf23_03 mixes three organizations under OUTPUT and INPUT only; the I-O and EXTEND phrases mixed in one statement, and one file's failed open beside successful ones, are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p1open.cob",
+    "printed": "IOR=00 IOX=00 EXQ=00 / WQ=00 / RREC=R1R1R1 / RWR=00 / XREC=X01XXX / WX=00 / INM=35 INQ=00 INX=00 / Q1=AAAAAA / Q2=BBBBBB / X2=X02YYY / R1=R2R2R2 RK=0001",
+    "expected": "OPEN I-O FR(relative dynamic) FX(indexed random) EXTEND FQ(sequential) succeeds for each (00) and each file then accepts its own statements; OPEN INPUT FM(missing, non-optional) FQ FX gives 35 for FM only (§1985:VIII.4.4.4 GR1 Table 1 'Open is unsuccessful') and the other two open (00) and read their records"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p1share2.cob",
+    "printed": "85: error COBOL0900: the SHARING clause / OPEN SHARING phrase requires COBOL-2002; 2023: compiles (exit 0)",
+    "expected": "the 2002 SHARING phrase is not in the 1985 OPEN general format (§1985:VIII.4.4.2), so refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-163/p1ext.cob",
+    "printed": "error COBOL2372: OPEN EXTEND 'FR' — the file's access mode is RANDOM; EXTEND requires sequential access",
+    "expected": "SR2 permits mixing but SR1 still applies per file: EXTEND on a random relative file in a mixed list is refused (§1985:VIII.4.4.3 SR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.3 SR2",
+    "check": "OK  §1985:VIII.4.4.3 SR2  (4.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The binder loops each open group and file-name, resolving and screening each file on its own (CheckOpenModeForFile) with no cross-file organization or access comparison, and BindOpen returns one BoundOpen per file (an implicit series), so a mixed list compiles and runs file by file. Probes cover I-O and EXTEND groups mixed with relative, indexed and sequential files in one statement and a failed open beside successful ones.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VIII.4.4.3 SR1/SR2, GR1 Table 1, GR17 (separate OPEN per file in order) and the Sequential I-O OPEN format §1985:VII.4.3.2 (REVERSED, WITH NO REWIND beside other files). Probes at --std 85 under refute-1985-163/runs: r1ext-002 (OPEN OUTPUT FQ WITH NO REWIND FR FX; one EXTEND phrase over sequential, relative-sequential and indexed-sequential files; OPEN INPUT FQ WITH NO REWIND FR FX) printed OUT 07 00 00 / EXT 00 00 00 / RK=0002 / WR 00 00 00 / INP 07 00 00 / Q=BBBBBB / R=R2R2R2 RK=0002 / X=X02YYY, each file run on its own; r1order-001 (USE ERROR ON INPUT, OPEN INPUT FQ FM(missing relative random) FX(indexed dynamic)) printed DA Q=00 M=35 X=ZZ / AFTER Q=00 M=35 X=00, so the files open one by one in the written order with the declarative between them (GR17); r1rev-001 (OPEN INPUT FQ REVERSED FM FX) gives the same output, the 1985 sequential-only REVERSED phrase admitted beside relative and indexed files. Without INVALID KEY/AT END the first r1ext run was refused per file by COBOL6826 (VIII.4.9.3 SR3, IX.4.9.3 SR3, VII.4.4.3 SR2), unrelated to mixing. cite.py: OK §1985:VIII.4.4.3 SR2 the text is in SR2; OK §1985:VIII.4.4.4 GR17 the text is in GR17; OK §1985:VII.4.3.3 SR4 the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

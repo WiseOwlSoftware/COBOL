@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-X.2.5.3-2",
+ "rule-digest": "375b88aeeb52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-067",
+  "sources": {
+   "reader": "e68b85fc8164787675e3b6f139342c367136fa91abc125e8a7b452b82be5eaf0",
+   "refuter": "1c8a6916d7af502ce51e76a8dd8a74a9aa4a682140753836f7c9b2ffa409772a"
+  },
+  "imported": {
+   "reader": "a80aba6e71f644aeff621ecf1d852409458fe54015d267278eaad40ac010e969",
+   "refuter": "ffd89e1a222785518c4d1f58d0b236bd90df5f7a47862fc260c6dd55a11aed5d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.2.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "The program-name of END PROGRAM must be a program-name declared in a preceding PROGRAM-ID paragraph, and (with GR2: it ends the named program, and SR3) that of the program it ends; a name no preceding PROGRAM-ID declares, or one of a program already ended, is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ContainedNames; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Report; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader",
+  "edition-consulted": [],
+  "edition-search": "EndMarkerPass.cs grepped for Edition.|Year|CobolVersion: only the EditionContext parameter used to position and emit COBOL2793; no edition comparison. The grammar rules programUnit/nestedProgram/endProgramHeader carry no edition predicate; the pass is called unconditionally from BinderDriver (line 90).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb988-end-program-name-mismatch covers a wrong name in a nested chain; a single program's wrong name and a name of a preceding but already-ended program are not witnessed",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep7.cob",
+    "printed": "COBOL2793 the end marker names 'EP7Z', but the program-name declared in the PROGRAM-ID paragraph it ends is 'EP7A' (SR2)",
+    "expected": "refused: no preceding PROGRAM-ID declares EP7Z"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep8.cob",
+    "printed": "COBOL2793 the end marker names 'EP8B', but ... it ends is 'EP8C' (SR2)",
+    "expected": "refused: sibling EP8B already ended; EP8C has no header of its own"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep10.cob",
+    "printed": "COBOL2793 the end marker names 'EP10A', but ... it ends is 'EP10D' (SR2)",
+    "expected": "refused: separately compiled EP10D closed with the name of the already-ended EP10A (GR2: the header ends the named program)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/ep1.cob",
+    "printed": "A / B / C (EXIT 0)",
+    "expected": "accepted when each header names its program"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.5.3 SR2",
+    "check": "OK  §1985:X.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The 1985 wording ('a program-name declared in a preceding PROGRAM-ID paragraph') is looser than 2023's 'the corresponding', but read with X.2.5.4 GR2 and SR3 it constrains the same pairing, and the compiler's innermost-open pairing refuses every misnamed form probed. Names are compared through CobolNames.Same.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.2.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:X.2.5.3 SR1-SR3, X.2.5.4 GR2, X.3.1.3. Probes at 85: re3 - contained PROGRAM-ID re3b closed by END PROGRAM RE3B and container closed by 'end program re3a' (case differs): accepted, printed 'B'. re7 - END PROGRAM RE7C for program RE7B, where RE7C is declared only by a FOLLOWING PROGRAM-ID: refused 'COBOL2793: the end marker names RE7C, but the program-name declared in the PROGRAM-ID paragraph it ends is RE7B'. re8 - a second END PROGRAM RE8B (a name literally declared in a preceding PROGRAM-ID, but of a program already ended) in place of END PROGRAM RE8A: refused COBOL2793 (as SR3 ordering; under GR2 the header must end the named, still-open program, so the refusal is what 1985 requires). re4 - END PROGRAM \"RE4A\" (a literal; 2002+ style) refused COBOL5506. cite.py: 'OK  §1985:X.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:X.2.5.3 SR1 ... the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

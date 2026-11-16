@@ -1,0 +1,1758 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-36 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-36",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-DOC-B.1-143",
+   "2002-DOC-B.1-144",
+   "2002-DOC-B.1-145",
+   "2002-DOC-B.1-146",
+   "2002-DOC-B.1-147",
+   "2002-DOC-B.1-148",
+   "2002-DOC-B.1-149",
+   "2002-DOC-B.1-15",
+   "2002-DOC-B.1-150",
+   "2002-DOC-B.1-151",
+   "2002-DOC-B.1-152",
+   "2002-DOC-B.1-153",
+   "2002-DOC-B.1-154",
+   "2002-DOC-B.1-155",
+   "2002-DOC-B.1-156",
+   "2002-DOC-B.1-157",
+   "2002-DOC-B.1-158",
+   "2002-DOC-B.1-159",
+   "2002-DOC-B.1-16",
+   "2002-DOC-B.1-160",
+   "2002-DOC-B.1-161",
+   "2002-DOC-B.1-162",
+   "2002-DOC-B.1-163",
+   "2002-DOC-B.1-164",
+   "2002-DOC-B.1-165"
+  ],
+  "pointers": {
+   "2002-DOC-B.1-143": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-179",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-144": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-181",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-145": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-182",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-146": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-183",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-147": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-184",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-148": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-185",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-149": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-186",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-15",
+    "similarity": 0.998
+   },
+   "2002-DOC-B.1-150": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-187",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-151": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-188",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-152": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-189",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-153": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-190",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-154": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-191",
+    "similarity": 0.974
+   },
+   "2002-DOC-B.1-155": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-156": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-157": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-158": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-194",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-159": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-16",
+    "similarity": 0.994
+   },
+   "2002-DOC-B.1-160": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-195",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-161": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-196",
+    "similarity": 0.995
+   },
+   "2002-DOC-B.1-162": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-163": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-198",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-164": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-165": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-200",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-36",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-143",
+    "to": [
+     "DOC-A.1-179"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.6.4 SIZE ERROR phrase and size error condition (B.1 item 143)",
+    "clause-2023": "14.7.5 SIZE ERROR phrase and size error condition (A.1 item 179)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor's determination whether the range of the implementor-defined (native) intermediate data item is checked (14.6.4 case 4, its implementor arm), when checking is enabled by a SIZE ERROR phrase or by >>TURN EC-SIZE (the two enabling means 2002 lists)",
+     "the resulting dispositions: SIZE ERROR phrase, EC-SIZE-OVERFLOW to a declarative, fatal otherwise"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.7.5-SIZE-ERROR-phrase-and-size-error/highest_algebraic_comp5_unsigned, A.1-.../pb69_native_power_past_the_carrier, 15.34.4-.../pb1566_exp_result_range, 14.7.5-.../pb4092_size_checking_is_per_name, 8.8.1.2-.../pb4592_exact_past_the_wide_form, pb4587_native_power_reduced_once, 14.9.12-DIVIDE/pb4702_remainder_dividend_past_the_wide_form, 15.59.4-.../pb4730_mixed_selection_keeps_a_float_items_content: each PASS (golden) at --std 2002 (cases-2002.log)",
+     "the >>TURN arm outside an arithmetic statement covered by probe p143_native_overflow_2002.cob: pb91_native_overflow_outside_arithmetic without its Format-3 PERFORM leg (a 2023 form, which 2002 does not list as an enabling means and the compiler refuses at 2002 with COBOL0900) MATCHES pb91's golden minus that leg at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Size error condition (whether or not range of values allowed for the intermediate data item is to be checked)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Size error condition (whether or not range of values allowed for the intermediate data item is to be checked)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "if standard arithmetic is specified for the source unit or the implementor defines that the range of values allowed for the intermediate data item is to be checked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.5",
+      "quote": "if native arithmetic is in effect and the implementor defines that the range of values allowed for the intermediate data item is to be checked",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "using a TURN directive to turn on checking of the EC-SIZE exception condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "The implementor-defined element is the same in both: whether the NATIVE (2002: 'implementor-defined') intermediate data item's range is checked. 2002's case 4 joins that arm with standard arithmetic, whose checking is not implementor-defined (it is mandatory; its 32-digit model is B.1 item 155 and kb/Work PB5575), so the standard arm is outside this item. 2002 enables checking only by the SIZE ERROR phrase or >>TURN; 2023 adds the WHEN phrase of a Format-3 PERFORM (a widening; its witness pb91 is refused at 2002 for that leg alone, and the rest of pb91 was re-run at 2002 as p143 and matches). 2023 also adds the 'nearer to zero' resultant case and standard-binary/standard-decimal cases, none of which is this item. No communication or debugging reach: the item concerns arithmetic evaluation. The determination (DOC-A.1-179: checked at the Int128 boundary when checking is enabled, unchecked wrap otherwise, products exact) holds at 2002, as the witnesses show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p143_native_overflow_2002.cob",
+    "widening": "2023 adds the exception-checking PERFORM WHEN phrase as an enabling means; 2002's scope is the phrase and >>TURN"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-144",
+    "to": [
+     "DOC-A.1-181"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR5",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the allowable external-locale-names and literal-4 content of the LOCALE clause (LOCALE locale-name-1 IS external-locale-name-1 | literal-4)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.6-OBJECT-COMPUTER/pb64t1_locale_declare PASS at --std 2002 and A.1-.../pb1537_figurative_literal_clauses PASS at --std 2002 (cases-2002.log)",
+     "unit:LocaleStateTests.* test the runtime normalization, which takes no edition"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph (allowable locale-names and literal values). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR5",
+      "quote": "The implementor specifies the allowable external-locale-names and the allowable content of literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR5",
+      "quote": "The implementor specifies the allowable external-locale-names and the allowable content of literal-4",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR5 is word-identical and the LOCALE clause's format is the same in both editions (12.2.6.1 vs 12.3.7.2). General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble. The determination states the set 'Provided (2002 and later)' and its witnesses run clean at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-145",
+    "to": [
+     "DOC-A.1-182"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7c",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7c",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the coded character set the STANDARD-2 phrase of an alphanumeric ALPHABET clause references (IRV or a national version of ISO/IEC 646, and when)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_standard2_is_irv PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, ALPHABET clause (coded character set referenced by STANDARD-2 phrase)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7c",
+      "quote": "the implementor shall specify whether the International Reference Version or a national version is referenced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7c",
+      "quote": "the implementor shall specify whether the International Reference Version or a national version is referenced",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7c differs only in 'is defined in' (2002) vs 'shall be as specified in' (2023) ISO/IEC 646, the same requirement. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble. Determination: always IRV, at every edition; its witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-146",
+    "to": [
+     "DOC-A.1-183"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7i",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7i",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "for each supported code-name-1 (ASCII, EBCDIC): its coded character set and collating sequence, ordinal numbers, correspondence with the native alphanumeric set; used by PROGRAM COLLATING SEQUENCE, SORT/MERGE, class condition, CLASS, SYMBOLIC CHARACTERS and CODE-SET"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets PASS at --std 2002, pb793_code_name_alphabets_85 PASS at --std 2002, 13.18.13-CODE-SET/pb793_code_set_ebcdic PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "This item is conditionally required because it is conditioned upon the existence of a code-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7i",
+      "quote": "When code-name-1 is specified, the alphanumeric coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7i",
+      "quote": "When code-name-1 is specified, the alphanumeric coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7i word-identical (the diff of 12.2.6.3 against 12.3.7.4 shows no change in i). Table 7 (2002) and Table 6 (2023) give code-name-1 the same Y/Y. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-147",
+    "to": [
+     "DOC-A.1-184"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), SR15",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), SR15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the names supported for code-name-1 (ASCII, EBCDIC) and code-name-2 (none), with the refusal of any other name"
+    ],
+    "evidence-2002": [
+     "covered by pb793_code_name_alphabets PASS at --std 2002 (cases-2002.log)",
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/pb770-alphabet-unsupported-code-name refused at --std 2002 with COBOL1907 (its diagnostics file names 2002)",
+     "the national half (conformance-test AlphabetLiteralPhraseTests.NationalUnsupportedCodeName_IsSR15 compiles at 2023 only) covered at 2002 by probe p147_national_codename.cob: COBOL1907 'the code-name-2 names this implementation supports are: none' at 2002 as at 2023 (probes.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, ALPHABET clause, code-name-1 and code-name-2 (the names supported for code-name-1 and code-name-2)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR15",
+      "quote": "The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause, if any",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR15",
+      "quote": "The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause, if any",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR15 word-identical; the general format's code-name-1 and code-name-2 operands sit in the same branches in both editions. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p147_national_codename.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-148",
+    "to": [
+     "DOC-A.1-185"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7j",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7j",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "for each supported code-name-2: national coded character set, collating sequence, ordinals, native correspondence; conditional on a code-name-2 existing (the set is empty, so vacuous)"
+    ],
+    "evidence-2002": [
+     "the empty code-name-2 set covered at 2002 by probe p147_national_codename.cob (COBOL1907, 'none')"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "This item is conditionally required because it is conditioned upon the existence of a code-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7j",
+      "quote": "When code-name-2 is specified, the national coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7j",
+      "quote": "When code-name-2 is specified, the national coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7j word-identical; the 2023 row is DOCUMENTED-NON-SUPPORT because the condition (a code-name-2 exists) is false. 2002's B.1 preamble and SR15's 'if any' give the same licence, and the compiler refuses every national code-name at --std 2002 with COBOL1907 (probe). General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p147_national_codename.cob",
+    "widening": null,
+    "licence-2002": "§2002:B.1 preamble 'Conditionally required: If the associated feature or language element is implemented then this element is also required' with item 148's own condition 'conditioned upon the existence of a code-name', and §2002:12.2.6.2 SR15 'if any' (all checked)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-149",
+    "to": [
+     "DOC-A.1-186"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7k4",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7k4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the ordinal-number scheme for native characters a literal-phrase alphabet does not name (alphanumeric and national alphabets)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_literal_alphabet_unspecified_ordinals PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, ALPHABET clause, literal phrase (ordinal number of characters not specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7k4",
+      "quote": "the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7k4",
+      "quote": "the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7k (1 to 6) word-identical; literal-phrase format identical. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-15",
+    "to": [
+     "DOC-A.1-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4 CALL statement, GR3b (B.1 item 15)",
+    "clause-2023": "14.9.4 CALL statement, GR3b (A.1 item 15)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "rules for locating a non-COBOL program named in a CALL; conditional on support for calling non-COBOL programs (none: condition absent)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found PASS at --std 2002 (its accept band is [2002]; cases-2002.log): a non-COBOL module is not located, EC-PROGRAM-NOT-FOUND"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "This items is conditionally required because it is conditioned upon support for calling non-COBOL programs",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.2",
+      "quote": "No requirement is placed on an implementation to support this interaction",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3",
+      "quote": "If the program being called is not a COBOL program, the rules for program-name formation and for locating the program are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR3",
+      "quote": "If the program being called is not a COBOL program, the rules for program-name formation and for locating the program are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item text differs only in clause numbers and the capital of 'General rule'. GR3b's sentence is word-identical; 2002's GR3b sends an unlocated program to GR3g where 2023 sends it to GR3h (2023 inserted the external-items check as 3e), the same disposition (ON OVERFLOW/ON EXCEPTION, else declarative). The DNS ground (condition absent: no non-COBOL program can be called) holds at 2002, and 2002's 3.1.2 states the licence directly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null,
+    "licence-2002": "§2002:3.1.2 'No requirement is placed on an implementation to support this interaction' and B.1 item 15's own condition (both checked)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-150",
+    "to": [
+     "DOC-A.1-187"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7c",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7c",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "correspondence of STANDARD-1 / STANDARD-2 characters with the native character set, as used by class condition, SYMBOLIC CHARACTERS IN, collating sequence and CODE-SET on record and relative/indexed files (2002 has no line sequential organization)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.8.4.4-Simple-class-condition/pb109_class_condition_alphabet PASS at --std 2002, A.1-.../pb1542_code_set_unrepresentable_85 PASS at --std 2002, l1c30_standard2_is_irv PASS at --std 2002 (cases-2002.log)",
+     "pb110_code_set_identity and pb1542_code_set_line_sequential are refused at 2002 only because they declare ORGANIZATION LINE SEQUENTIAL (COBOL0900), a 2023 form outside 2002's scope; the record-sequential CODE-SET legs are the pb1542_*_85 and pb793_code_set_ebcdic witnesses that pass at 2002",
+     "unit:CodeSetConversionTests.Iso646_RepresentsExactlyItsOwn128Characters is runtime, edition-free"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, ALPHABET clause, STANDARD-1 and STANDARD-2 phrases (correspondence with native character set)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7c",
+      "quote": "The implementor defines the correspondence between the characters of the standard character set and the characters of the native character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7c",
+      "quote": "The implementor defines the correspondence between the characters of the standard character set and the characters of the native character set",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7c identical in requirement. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble. The determination's '71 on a line sequential file' leg concerns a 2023 organization and is outside the 2002 scope; every other leg has a witness that passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-151",
+    "to": [
+     "DOC-A.1-188"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), GR7f-h",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), GR7f-h",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the implementor-specified correspondence of UCS-4 characters (ISO/IEC 10646-1 and -2) with the native national set (GR7f)",
+     "UTF-8: the same association as UCS-4 (GR7g)",
+     "UTF-16: a correspondence the implementor SPECIFIES (GR7h), not derived from UCS-4 as in 2023"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/l1_alphabet_ucs4_utf8_utf16_correspondence PASS at --std 2002 (cases-2002.log)",
+     "the UTF-16 correspondence is stated explicitly in the determination (DOC-A.1-188: 'the BMP identity'), which is what 2002 GR7h asks the implementor to specify"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, ALPHABET clause, UCS-4, UTF-8, and UTF-16 phrases (correspondence with native character set)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7f",
+      "quote": "the coded character set referenced is that specified in ISO/IEC 10646-1 and ISO/IEC 10646-2 as UCS-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7f",
+      "quote": "the coded character set referenced shall be as specified in ISO/IEC 10646 as UTF-32",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR7h",
+      "quote": "The implementor shall specify the correspondence between the characters of ISO/IEC 10646-1 UTF-16 and the characters of the native national character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR7h",
+      "quote": "The association is the same as the association for the UTF-32 character from which the UTF-16 character was transformed",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item's words are identical but the referenced GR7f and GR7h are not: 2002 names UCS-4 of 10646-1/-2 where 2023 names UTF-32, and 2002 GR7h makes the UTF-16 correspondence an implementor specification where 2023 derives it from UTF-32. Neither changes what an implementation must provide here: the determination specifies the UTF-16 correspondence on its own terms (BMP identity, code point = code unit, D-N1) as 2002 GR7h requires, and on the one-code-unit native national set only BMP characters correspond, where UCS-4 and UTF-32 assign the same code values; the surrogate code positions are reserved for UTF-16 in 10646-1 and are not characters in either form, so the witness's skip of them (ordinal 55297 = U+E000) is the reading of both texts. The witness passes at 2002. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-152",
+    "to": [
+     "DOC-A.1-189"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), SR7 and SR8",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), SR7 and SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the device-names available (CONSOLE, SYSIN, SYSOUT, SYSERR) and the restrictions on their mnemonic-name-3, usable only in ACCEPT and DISPLAY"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names PASS at --std 2002 (accept band [85, 2002]) and pb862-unavailable-device-name refused at --std 2002 with COBOL2241 (cases-2002.log)",
+     "the WRITE-refusal restriction covered by pb862-write-advancing-device-mnemonic refused at --std 2002 with COBOL2243"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, device-name (names available, restrictions on use)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR7",
+      "quote": "Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR8",
+      "quote": "The implementor shall specify the names that are available for switch-name-1, feature-name-1, and device-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR7 and SR8 word-identical; a device-name mnemonic reaches no communication statement in 2002 (SEND's ADVANCING mnemonic is a feature-name, A.2.6.2 SR5, and the compiler refuses a device mnemonic there: probe p153_send_device_mnemonic.cob, COBOL6171). General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-153",
+    "to": [
+     "DOC-A.1-190"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), SR6 and SR8; A.2.6 SEND statement",
+    "clause-2023": "12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), SR6 and SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the feature-names available (C01, CSP)",
+     "their positioning rules and restrictions on use in the WRITE statement ADVANCING phrase",
+     "their positioning rules and restrictions on use in the SEND statement ADVANCING phrase of the communications facility (2002 SR6: 'only in the SEND and WRITE statements'; A.2.6.2 SR5; A.2.6.3 GR15c)"
+    ],
+    "evidence-2002": [
+     "names and WRITE: covered by pb862_implementor_names PASS at --std 2002 and pb862-write-advancing-device-mnemonic refused at 2002 (COBOL2243); the FileIoDifferentialTests WRITE witnesses compile at 2023 only",
+     "SEND: not shown by the pointer's row (every DOC-A.1-190 witness is a WRITE, and its determination says 'their only use is as the ADVANCING operand of a WRITE statement'). Probe p153_send_feature.cob: SEND ... AFTER ADVANCING <C01 mnemonic> and BEFORE ADVANCING <CSP mnemonic> are accepted at --std 2002 (and 85), status key 00, and the device file holds each message as one line with no page or overprint effect, as docs/conformance/3.3 states (the MCS ignores ADVANCING: vertical positioning not applicable)",
+     "the restriction (a SEND mnemonic shall name a feature) shown by probe p153_send_device_mnemonic.cob: COBOL6171 quoting §2002:A.2.6.2 SR5"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, feature-name (names available, any positioning rules, any restrictions on use)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR6",
+      "quote": "Mnemonic-name-2 may be specified only in the SEND and WRITE statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.3 SR6",
+      "quote": "Mnemonic-name-2 may be specified only in the WRITE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR5",
+      "quote": "When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.3 GR15c",
+      "quote": "positioned according to the rules specified by the implementor for that feature and the associated communication device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A",
+      "quote": "The communications facility is an optional element in this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "In 2002 a feature-name's mnemonic-name-2 is legal in the SEND statement of the communications facility as well as in WRITE (SR6), and A.2.6.3 GR15c leaves the positioning for a feature on a communication device to the implementor; so B.1 item 153's 'positioning rules' and 'restrictions on use' cover SEND. 2023's SR6 names WRITE only, and the DOC-A.1-190 determination and witnesses are WRITE-only. The compiler implements the communications facility at 85 and 2002 (an optional element 2002 lets it provide), so the SEND arm is live at --std 2002: it accepts C01/CSP mnemonics in SEND and ignores them (variable-length devices, docs/conformance/3.3 'the MCS ignores ADVANCING'), and refuses a device mnemonic there. That behaviour agrees with the 2002 text, but neither the item-190 determination nor any witness of the pointer's row says it. Fifth-cause check: this is the screen's class (a) reached through a SPECIAL-NAMES syntax rule rather than a data description entry under a CD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p153_send_feature.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for SEND ADVANCING with a feature-name mnemonic (p153_send_feature.cob is a candidate: accepted, status 00, positioning ignored) and the item-190 determination to name SEND at 85/2002 (the positioning rule for a communication device: none, ADVANCING ignored)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p153_send_feature.cob and p153_send_device_mnemonic.cob, probes.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-154",
+    "to": [
+     "DOC-A.1-191"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.6 SPECIAL-NAMES paragraph (B.1 Implementor-defined language element list), SR8, GR2-GR4",
+    "clause-2023": "8.3.2.3.11 Switch-name; 12.3.7 SPECIAL-NAMES paragraph (A.1 Implementor-defined language element list), SR8, GR2-GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "switch-names available (SWITCH-0..36, UPSI-0..7)",
+     "which switches SET may reference (all)",
+     "scope (run unit) and external facility (COBOL_<NAME> environment variable)",
+     "switch-status conditions via ON/OFF STATUS condition-names"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.3.7-SPECIAL-NAMES/pb862_implementor_names PASS at --std 2002 (cases-2002.log)",
+     "the external facility and SET arm (AlterSwitchesDifferentialTests compiles at 2023) covered at 2002 by probe p154_switch.cob with COBOL_SWITCH_1=ON: 'SW1 ON / U0 OFF / SW1 NOW OFF / U0 NOW ON', identical to its 2023 run (probes.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SPECIAL-NAMES paragraph, switch-name (names available, which switches may be referenced by the SET statement, scope of, and external facility for modification)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.7.4 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR4",
+      "quote": "The implementor defines the scope (program, run unit, etc.) of each external switch and any facility external to COBOL that may be used to modify the status of an external switch",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item text differs only in 2023's added cross-reference to 8.3.2.3.11 (whose 2002 twin 8.3.1.1.2.9 is B.1 item 159). GR2-GR4 are word-identical except GR2's pointer to the switch-status condition (2002 8.8.4.1.5 'Switch-status condition', 2023 8.8.4.6 'Simple switch-status condition'), the same condition. A switch mnemonic is usable only in SET (SR5) in both. General format compared: the 2002 alphabet-name-clause (12.2.6.1) and the 2023 one (12.3.7.2) print the same operands (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal-phrase; LOCALE, NATIVE, UCS-4, UTF-8, UTF-16, code-name-2, literal-phrase); 2023 only reorders the paragraph's clauses and adds the dynamic-length-structure-clause, which no ALPHABET rule reaches. No communication-section entry or debugging line can carry a SPECIAL-NAMES clause. The B.1 preamble (required/optional/conditionally required/documentation) is word-identical to the A.1 preamble.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p154_switch.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-155",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.1.3.1 Standard intermediate data item (B.1 item 155)",
+    "clause-2023": "none (2023 has no standard arithmetic of this form; its STANDARD-DECIMAL/BINARY intermediates are fully specified)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the documented internal representation of the standard intermediate data item used under ARITHMETIC IS STANDARD (32-digit decimal floating point, each result truncated to 32 significant digits)"
+    ],
+    "evidence-2002": [
+     "not shown: no determination for this item in docs/conformance (DOC-A.1-123 documents the native Int128 intermediate only)",
+     "behaviour: probe p155_sidi32.cob (COMPUTE A = B * 100 + 9 - B * 100, B = 10**30, ARITHMETIC IS STANDARD) prints A=00009 at --std 2002 on the pinned compiler: a 34-digit intermediate; the 2002 model truncates 10**32 + 9 to 10**32 and gives 00000"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Standard intermediate data item (representation). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "The internal representation shall be defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule has this subject: 2023 removed ARITHMETIC IS STANDARD and replaced it with STANDARD-DECIMAL/STANDARD-BINARY, so no pointer row carries a determination or a witness. The 2002 item requires the representation to be defined and documented; nothing in docs/conformance does so, and at the pinned tree the representation in use is 2014/2023's 34-digit decimal128 carrier, not the 32-digit model 8.8.1.3 requires. This is the known defect kb/Work PB5575 (not rediscovered): its run-time arm landed on main after the pinned tree (kb/Work/PB5575/2026-11-15-run-time-arm-landed.md reports this same probe going 00009 -> 00000).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p155_sidi32.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: a 2002 determination of the standard intermediate data item's representation (the CobolDec carrier truncated per operation to 32 digits, ToSidi) with a witness at --std 2002; the compiler's behaviour at the pinned tree is the 34-digit model (PB5575); re-probe p155_sidi32.cob on a tree carrying PB5575's run-time arm",
+    "compiler-at-2002": "wrong at the pinned tree (known kb/Work PB5575, run-time arm since landed on main): program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p155_sidi32.cob, expected A=00000 per §2002:8.8.1.3.2 (32-digit truncation), observed A=00009"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-156",
+    "to": [
+     "DOC-A.1-192"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.38 STOP statement, GR5 (B.1 item 156)",
+    "clause-2023": "14.9.42 STOP statement GR5 and 14.9.18 GOBACK GR10 (A.1 item 192)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "constraints on the STATUS literal-1 / identifier-1 value of STOP RUN WITH ERROR|NORMAL STATUS (none refused; the value becomes the process exit code, clamped)"
+    ],
+    "evidence-2002": [
+     "the pointer's witnesses (StopGobackExitCodeTests) compile at 2023 only; covered at 2002 by probes p156a-d (stop-probes.log): STATUS 7 -> exit 7, STATUS '007' -> 7, ERROR STATUS 0 -> 0, STATUS 4294967296 -> clamped (host 255), each identical to the same program at --std 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "STOP statement (constraints on the value of the STATUS literal or on the contents of the data item referenced by the STATUS identifier)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.38.3 GR5",
+      "quote": "Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR5",
+      "quote": "Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The script found no same-subject 2023 rule because 2023 merged STOP and GOBACK into A.1 item 192; that row is the pointer (editions 2002,2014,2023). STOP's general format is identical (STOP RUN [WITH {ERROR|NORMAL} STATUS [identifier-1|literal-1]]); GR5 is word-identical; 2023 adds SR4 (no zero-length literal, a 2023 literal form) and the GOBACK arm, both widening. Not reachable from a communication entry or debugging line.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/stop-probes.log",
+    "widening": "2023 item 192 also covers GOBACK's status phrase (2023)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-157",
+    "to": [
+     "DOC-A.1-193"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.38 STOP statement, GR4 (B.1 item 157)",
+    "clause-2023": "14.9.42 STOP GR4 and 14.9.18 GOBACK GR9 (A.1 item 193)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an implementor-defined mechanism to indicate error termination for STOP RUN with no ERROR/NORMAL phrase (optional; not provided)"
+    ],
+    "evidence-2002": [
+     "covered at 2002 by probes p157a (STOP RUN WITH ERROR -> exit 1) and p157b (bare STOP RUN -> exit 0), identical at 2023 (stop-probes.log); the pointer's unit witness compiles at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "STOP statement (mechanism for error termination). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Optional: The element may be provided at the implementor's option",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.38.3 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.42.4 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023's item 193 is the same element widened to GOBACK; GR4 word-identical. The 2023 row is DOCUMENTED-NON-SUPPORT ('Not provided', optional); 2002 makes the item optional in the same words, and the compiler provides no mechanism at --std 2002 (bare STOP RUN exits 0).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/stop-probes.log",
+    "widening": "2023 item 193 also covers GOBACK",
+    "licence-2002": "§2002:B.1 'Optional: The element may be provided at the implementor's option' with item 157 'This item is optional' (checked)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-158",
+    "to": [
+     "DOC-A.1-194"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.1.2 Subscripts, GR1c (B.1 item 158)",
+    "clause-2023": "8.4.2.3 Subscripts, GR1c (A.1 item 194)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the mapping of an index-name's value to an occurrence number in a subscript (index-name [+|- integer])"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/13.18.60-USAGE/pb215_index_windows PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Subscripts (mapping indexes to occurrence numbers)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.2.3 GR1c",
+      "quote": "The mapping of the value of the index referenced by index-name-1 to an occurrence number is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.3.4 GR1c",
+      "quote": "The mapping of the value of the index referenced by index-name-1 to an occurrence number is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR1c word-identical; the item needs no documentation in either edition. The determination (identity) holds at 2002 as the witness shows.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-159",
+    "to": [
+     "DOC-A.1-191"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.1.2.9 Switch-name (B.1 item 159)",
+    "clause-2023": "8.3.2.3.11 Switch-name (cited by A.1 item 191)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the external switches a switch-name may identify (SWITCH-0..36, UPSI-0..7), one system-name type apart from device-name and feature-name"
+    ],
+    "evidence-2002": [
+     "covered by pb862_implementor_names PASS at --std 2002 (cases-2002.log) and probe p154_switch.cob at --std 2002 (probes.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Switch-name (Identifies an external switch). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.2.9",
+      "quote": "A switch-name identifies an implementor-defined external switch",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.3.11",
+      "quote": "A switch-name identifies an implementor-defined external switch",
+      "check": "OK"
+     }
+    ],
+    "reason": "The script found no same-subject 2023 item because 2023 folded this item into A.1 item 191, which cites 8.3.2.3.11 Switch-name; that row is the pointer. The clause text is word-identical, and so is the one-type rule for device-, feature- and switch-names (8.3.1.1.2 / 8.3.2.3.1). The determination names the switches; the witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/p154_switch.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-16",
+    "to": [
+     "DOC-A.1-16"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4 CALL statement, GR3f (B.1 item 16)",
+    "clause-2023": "14.9.4 CALL statement, GR3g (A.1 item 16)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "what happens when a CALL names a non-COBOL program (not possible: not located, EC-PROGRAM-NOT-FOUND, then ON OVERFLOW / ON EXCEPTION or the declarative per GR3g)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-.../l1_call_foreign_module_not_located and l1_call_foreign_module_not_located_85, both PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CALL statement (calling a non-COBOL program). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3f",
+      "quote": "If the called program is a COBOL program, its execution is described in 14.1, Procedure division structure; otherwise the execution is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR3g",
+      "quote": "otherwise the execution is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence; the letter moved from f to g because 2023 inserted the external-items check as 3e. 2002 keeps ON OVERFLOW beside ON EXCEPTION in GR3g, which the determination already names ('ON OVERFLOW before 2023'). The determination ('not possible, the same at every edition') holds at 2002 as both witnesses show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-160",
+    "to": [
+     "DOC-A.1-195"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.53 SYNCHRONIZED clause, GR8; 8.5.1.5.3",
+    "clause-2023": "13.18.55 SYNCHRONIZED clause, GR9; 8.5.1.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "external-media format of records/groups with SYNCHRONIZED elementary items; implicit FILLER generation and its effect on group size and REDEFINES; filler for a SYNCHRONIZED bit item"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.5.1.6.4-Item-alignment-for-increased-object-code/l1_byte_length_implicit_filler PASS at --std 2002 (accept band [2002]; SYNC=3 and SBIT=1 legs; cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SYNCHRONIZED clause (effect on elementary items and containing records or groups; implicit filler generation)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR8",
+      "quote": "the implementor shall specify how elementary items associated with this clause are handled regarding",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR9",
+      "quote": "the implementor shall specify how elementary items associated with this clause are handled regarding",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 inserted a general rule for SYNCHRONIZED on a group item (2002 SR1: elementary items only; the compiler refuses a group SYNC at 2002, COBOL0900), so 2002 GR2/GR8/GR10 are 2023 GR3/GR9/GR11 word for word. 8.5.1.5.3 (2002) and 8.5.1.6.3 (2023) are identical. No communication or debugging reach. The determination (no alignment, no implicit FILLER) holds at 2002 per the witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-161",
+    "to": [
+     "DOC-A.1-196"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.53 SYNCHRONIZED clause, GR10",
+    "clause-2023": "13.18.55 SYNCHRONIZED clause, GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "rules for synchronizing the records of a file (optional; not provided: a record is written as its own image)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:wiseowl/cases/A.1-.../l1_dns_a1_196_sync_file_record_stream PASS at --std 2002 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SYNCHRONIZED clause (how records of a file are handled). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR10",
+      "quote": "Any rules for synchronization of the records of a file, as this affects the synchronization of elementary items, will be specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR11",
+      "quote": "Any rules for synchronization of the records of a file, as this affects the synchronization of elementary items, shall be specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 inserted a general rule for SYNCHRONIZED on a group item (2002 SR1: elementary items only; the compiler refuses a group SYNC at 2002, COBOL0900), so 2002 GR2/GR8/GR10 are 2023 GR3/GR9/GR11 word for word. 8.5.1.5.3 (2002) and 8.5.1.6.3 (2023) are identical. No communication or debugging reach. GR10/GR11 differ only in 'will be' (2002) and 'shall be' (2023) specified by the implementor. The 2023 row is DOCUMENTED-NON-SUPPORT (optional, not provided); 2002 makes it optional in the same words and the witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null,
+    "licence-2002": "§2002:B.1 'Optional: The element may be provided at the implementor's option' with item 161 'This item is optional' (checked)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-162",
+    "to": [
+     "DOC-A.1-197"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.53 SYNCHRONIZED clause, GR2",
+    "clause-2023": "13.18.55 SYNCHRONIZED clause, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the positioning of an elementary item described SYNCHRONIZED with neither LEFT nor RIGHT (at its unsynchronized offset)"
+    ],
+    "evidence-2002": [
+     "covered by l1_byte_length_implicit_filler PASS at --std 2002 (its SYNC=3 leg is the bare form; cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "SYNCHRONIZED clause (positioning when neither RIGHT or LEFT is specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR2",
+      "quote": "The specific positioning is determined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR3",
+      "quote": "The specific positioning is determined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The script found no same-subject 2023 rule; 2023 A.1 item 197 is this item ('neither RIGHT nor LEFT' for 2002's 'neither RIGHT or LEFT'), its row editions 85,2002,2014,2023, witness the same golden. 2023 inserted a general rule for SYNCHRONIZED on a group item (2002 SR1: elementary items only; the compiler refuses a group SYNC at 2002, COBOL0900), so 2002 GR2/GR8/GR10 are 2023 GR3/GR9/GR11 word for word. 8.5.1.5.3 (2002) and 8.5.1.6.3 (2023) are identical. No communication or debugging reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-163",
+    "to": [
+     "DOC-A.1-198"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.1.2 System-names (B.1 item 163)",
+    "clause-2023": "8.3.2.3.1 System-names (A.1 item 198)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "rules for forming a system-name of the 2002 types (call-convention-, code-, computer-, device-, entry-convention-, external-locale-, feature-, library-, switch-, text-name): a 2002 COBOL word (31 characters, underscore allowed) not of digits only"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-.../l1c32_system_name_formation PASS at --std 2002 and l1c32-system-name-all-digits refused at --std 2002 with COBOL1970 (cases-2002.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "System-names (rules for formation of a system-name). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.2",
+      "quote": "The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.3.1",
+      "quote": "The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical; 2023's list of system-name types adds physical-structure-name (widening). The determination states the per-edition word length (31 at 2002) and the one added restriction; the witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/cases-2002.log",
+    "widening": "2023 adds physical-structure-name to the system-name types"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-164",
+    "to": [
+     "DOC-A.1-199"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "9.2.1 Terminal screen (B.1 item 164)",
+    "clause-2023": "9.2.1 Terminal screen (A.1 item 199)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the column/character correspondence for national characters on a terminal screen; part of the screen section facility, which 2002 makes processor-dependent and the compiler does not provide"
+    ],
+    "evidence-2002": [
+     "covered by conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section and 13.18.14-COLUMN/a42-screen-column, both refused at --std 2002 with COBOL1560 (their diagnostics files name 2002; screen-listing.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Terminal screen (correspondence of a column and a character in the computer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.2.1",
+      "quote": "There is a fixed correspondence, specified by the implementor, between a column and a character in the computer's national coded character set",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "The script found no same-subject 2023 rule; 2023 A.1 item 199 is this item (row editions 2002,2014,2023, DOCUMENTED-NON-SUPPORT with the screen module declined). 2023's ground is the optional module A.4.2; 2002 has no optional modules besides Annex A, but B.3 item 1 makes the screen section processor-dependent, which 3.1.5 and the B.1 preamble license the same way. The compiler declines it at --std 2002 with COBOL1560 (its message cites the 2023 ground, A.4.2: wording only, the refusal is licensed).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/screen-listing.log",
+    "widening": null,
+    "licence-2002": "§2002:B.3 item 1 (the screen section is processor-dependent), §2002:3.1.5 (absence specified in user documentation) and the B.1 preamble's 'not required if the optional or processor-dependent feature is not implemented' (checked)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-165",
+    "to": [
+     "DOC-A.1-200"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1 Text manipulation; 7.2.15 LISTING, 7.2.16 PAGE, 7.1.2 COPY SUPPRESS (B.1 item 165)",
+    "clause-2023": "7.2 Text manipulation (A.1 item 200)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the stage at which LISTING, PAGE and COPY ... SUPPRESS are processed; conditional on producing a listing (none produced: all three accepted and inert)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:wiseowl/cases/A.1-.../w59h_listing_stage_inert MATCH at --std 2002 (with --copy for its library; screen-listing.log) and cases/7.3.18-LISTING/pb725_directive_facility PASS at --std 2002 (cases-2002.log); both carry the accept band [2002]"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "This item is conditioned on the implementor producing listings",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.15.2 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.16.3 GR3",
+      "quote": "If a source listing is not being produced, a PAGE directive shall have no effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR4",
+      "quote": "If the SUPPRESS phrase is specified, library text incorporated as a result of COPY statement processing is not listed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Item words identical; the 2023 row is DOCUMENTED-NON-SUPPORT on 'Condition absent' (no listing). 2002's LISTING GR1, PAGE GR3 and COPY GR4 are the same rules, so the condition is equally absent at 2002 and the inert witnesses pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-36/screen-listing.log",
+    "widening": null,
+    "licence-2002": "B.1 item 165 'This item is conditional. This item is conditioned on the implementor producing listings' and §2002:7.2.15.2 GR1 (checked)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-36",
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-143",
+    "verdict": "OVERTURNED",
+    "reason": "The item points at 14.6.4, and the 2002 clause does not give the dispositions the reader's scope and the DOC-A.1-179 determination assume. (1) 2002's no-SIZE-ERROR-phrase list sets EC-SIZE-OVERFLOW/UNDERFLOW only for a STANDARD intermediate data item; for the native intermediate whose range the implementor checks (case 4's implementor arm, the subject of this item) 2002 names no exception condition. 2023 sets EC-SIZE-OVERFLOW/UNDERFLOW for the intermediate of whatever mode is in effect, native included. The determination (and pb91/p143, run under >>TURN with no phrase) rests on 2023's text and cites §2023:14.6.13.1.3. (2) The determination checks 'EC-SIZE-UNDERFLOW for a nonzero binary64 result rounded to zero', a NEARER-TO-ZERO case that exists only in 2023 (14.7.5 GR4 for the resultant, and the 'nearer to zero' arm for the intermediate). 2002's 14.6.4 has no nearer-to-zero case: its case 4 is a value 'outside of the allowed range', and no 2002 case says 'underflow' except the standard-intermediate one. Probe r143: COMPUTE R = A * A with A = 1.0E-200 FLOAT-LONG takes ON SIZE ERROR at --std 2002 exactly as at 2023. Under the 2002 text that is either an extension of 'outside of the allowed range' or a wrong size error. The 2002 meaning of 'checked' for this item is therefore not what the 2023 row shows, and nothing in the row decides it at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Size error condition (whether or not range of values allowed for the intermediate data item is to be checked)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "the implementor defines that the range of values allowed for the intermediate data item is to be checked, when an arithmetic operation on the intermediate data item would cause the new value to be outside of the allowed range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.4",
+      "quote": "if an arithmetic operation on a standard intermediate data item would cause the new value to be outside of the allowed range, the applicable EC-SIZE exception condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.5",
+      "quote": "If an arithmetic operation on an intermediate data item of the form corresponding to the mode of arithmetic currently in effect would cause the new nonzero value to be farther from zero or nearer to zero than is allowed for the intermediate data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.5",
+      "quote": "if the nonzero result of an arithmetic statement after radix point alignment and any applicable rounding specifications is nearer to zero than permitted for the associated resultant data item",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: a 2002 determination saying (a) which exception condition, if any, a checked native-intermediate overflow sets at --std 2002 when no SIZE ERROR phrase is given (2002 names none), and (b) whether a native float result that rounds to nonzero-to-zero is 'outside of the allowed range' at 2002 (r143 shows the compiler raising the size error condition at 2002). That needs the owner's or an adjudicator's reading of 2002 14.6.4 case 4.",
+    "compiler-at-2002": "not decided: r143 takes ON SIZE ERROR on float underflow at 2002; 2002 text has no nearer-to-zero case",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-36/r143_native_underflow.cob (log r143.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-144",
+    "verdict": "UPHELD",
+    "reason": "GR5 word-identical and the LOCALE clause format is the same. No 2002-only context: a SPECIAL-NAMES LOCALE clause is not reachable from a CD, a debugging line or a removed facility. Witnesses pass at --std 2002 (reader's cases-2002.log).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR5",
+      "quote": "The implementor specifies the allowable external-locale-names and the allowable content of literal-4",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-145",
+    "verdict": "UPHELD",
+    "reason": "GR7c is the same requirement (wording 'is defined in' vs 'shall be as specified in'); STANDARD-2 appears only in the ALPHABET clause, and the alphabet-name's uses in 2002 (collating sequence, CODE-SET, class, SYMBOLIC CHARACTERS) reach no CD entry. Witness passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7c",
+      "quote": "the implementor shall specify whether the International Reference Version or a national version is referenced",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-146",
+    "verdict": "UPHELD",
+    "reason": "GR7i word-identical; code-name-1 in the same branch of the same alphabet-name format; witnesses pb793_* pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7i",
+      "quote": "When code-name-1 is specified, the alphanumeric coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-147",
+    "verdict": "UPHELD",
+    "reason": "SR15 word-identical; the refusal of other names is shown at 2002 (pb770 and the reader's p147).",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR15",
+      "quote": "The implementor shall specify the names supported for code-name-1 and code-name-2 in the ALPHABET clause, if any",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-148",
+    "verdict": "UPHELD",
+    "reason": "GR7j word-identical; the condition (a code-name-2 exists) is false at 2002 as at 2023, licensed by SR15 'if any' and the B.1 conditionally-required preamble.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7j",
+      "quote": "When code-name-2 is specified, the national coded character set and collating sequence referenced are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-149",
+    "verdict": "UPHELD",
+    "reason": "GR7k4 word-identical; literal-phrase format identical; witness passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7k4",
+      "quote": "the implementor defines the ordinal number within the character code set being specified for each character within the native character set that is not specified by the literal-1 phrase",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-15",
+    "verdict": "UPHELD",
+    "reason": "Item 15 is the locating rules for a non-COBOL program (GR3b), conditioned on support for calling non-COBOL programs, which 3.1.2 does not require. Attacked through the 2002-only ON OVERFLOW form (Format 1, archaic in 2002): the not-located disposition belongs to GR3g, not to this item, and the compiler handles it at 2002 anyway (probe r16: CALL of a non-COBOL literal and identifier with ON OVERFLOW takes the OVERFLOW branch at 2002; refused at 2023 with COBOL0882).",
+    "citations": [
+     {
+      "cite": "§2002:3.1.2",
+      "quote": "No requirement is placed on an implementation to support this interaction",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3",
+      "quote": "If the program being called is not a COBOL program, the rules for program-name formation and for locating the program are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-36/r16_call_overflow.cob (log r16.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-150",
+    "verdict": "UPHELD",
+    "reason": "GR7c same requirement; STANDARD-1/STANDARD-2 uses at 2002 (class condition, SYMBOLIC CHARACTERS, collating sequence, CODE-SET) reach no CD entry; line sequential is outside the 2002 scope; the record-sequential CODE-SET witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7c",
+      "quote": "The implementor defines the correspondence between the characters of the standard character set and the characters of the native character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-151",
+    "verdict": "UPHELD",
+    "reason": "The attack point is 2002 GR7h, which asks the implementor to SPECIFY the UTF-16 correspondence where 2023 derives it. The determination specifies it explicitly (BMP identity), which satisfies the 2002 wording. UCS-4 and UTF-32 code values coincide on the characters the native national set holds. The witness passes at 2002. No decisive difference.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR7h",
+      "quote": "The implementor shall specify the correspondence between the characters of ISO/IEC 10646-1 UTF-16 and the characters of the native national character set",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-152",
+    "verdict": "UPHELD",
+    "reason": "SR7 and SR8 word-identical; mnemonic-name-3 is restricted to ACCEPT and DISPLAY in both, so (unlike the feature-name of item 153) it never reaches SEND or another communication statement. Witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "Mnemonic-name-3 may be specified only in the ACCEPT and DISPLAY statements",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-154",
+    "verdict": "UPHELD",
+    "reason": "GR2-GR4 word-identical; the switch mnemonic is usable only in SET in both; the external facility probe matches at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.6.3 GR3",
+      "quote": "The implementor defines which external switches may be referenced by the SET statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-156",
+    "verdict": "UPHELD",
+    "reason": "I compared the 2002 STOP format with 2023's (14.8.38.1 vs 14.9.42.2): same operands, and 2002 has no STOP literal form. SR2 and SR3 are identical, and 2023's SR4 (zero-length literal) is a 2023-only literal form. GR5 is word-identical. The determination's operand mapping covers every 2002 operand class. The reader's p156 probes match at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR5",
+      "quote": "Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-157",
+    "verdict": "UPHELD",
+    "reason": "GR4 word-identical; optional in 2002 in the same words; bare STOP RUN exits 0 at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.38.3 GR4",
+      "quote": "unless error termination has been indicated by an implementor-defined mechanism",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-158",
+    "verdict": "UPHELD",
+    "reason": "GR1c word-identical; subscript format index-name [+|- integer] the same; witness passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.2.3 GR1c",
+      "quote": "The mapping of the value of the index referenced by index-name-1 to an occurrence number is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-159",
+    "verdict": "UPHELD",
+    "reason": "Clause text word-identical, and the system-name type lists match (2023 only adds physical-structure-name). Witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.1.2.9",
+      "quote": "A switch-name identifies an implementor-defined external switch",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-16",
+    "verdict": "UPHELD",
+    "reason": "Item 16 is GR3f, the execution of a called non-COBOL program, which can never occur because no non-COBOL program is located. The reader's scope added the GR3g dispositions, ON OVERFLOW (a 2002-only form) among them, and no pointer witness exercises ON OVERFLOW. Those dispositions belong to GR3g, not to this item. Even so, probe r16 shows ON OVERFLOW taken for a non-COBOL literal and identifier at --std 2002, so no gap remains.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR3f",
+      "quote": "If the called program is a COBOL program, its execution is described in 14.1, Procedure division structure; otherwise the execution is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-36/r16_call_overflow.cob (log r16.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-160",
+    "verdict": "OVERTURNED",
+    "reason": "GR8a's 'records or groups containing elementary items whose data description contains the SYNCHRONIZED clause' reaches in 2002 the record description entries that follow a CD entry. Those are ordinary data description entries (A.1.1.2 -> 13.14), and SYNCHRONIZED is legal in them. This is the reader's own class (a), and slice q-20 already judged 13.16.53.3 GR8 itself DIFFERENT for exactly this reach. The reader wrote 'No communication or debugging reach'. That is wrong: nothing in the DOC-A.1-195 row, determination or witness addresses a CD record. Probe r160: an output CD record '05 CA PIC X / 05 CB PIC S9(9) COMP SYNC / 05 CC PIC X' compiles at --std 2002 (COBOL0903 obsolete warning only) and FUNCTION LENGTH(CREC) is 6, the same as the working-storage twin. That is no alignment and no implicit FILLER, which agrees with the determination but is shown by no pointer witness.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.3 GR8",
+      "quote": "The format on the external media of records or groups containing elementary items whose data description contains the SYNCHRONIZED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.4 GR9",
+      "quote": "The format on the external media of records or groups containing elementary items whose data description contains the SYNCHRONIZED clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a SYNCHRONIZED elementary item in a CD record (r160_sync_cd_record.cob is a candidate) and the determination to name CD records at 85/2002",
+    "compiler-at-2002": "correct (probe r160: CREC LEN 6, no implicit FILLER)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-36/r160_sync_cd_record.cob (log r160.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-161",
+    "verdict": "UPHELD",
+    "reason": "GR10 concerns 'the records of a file'. A CD record is not a file record, so the communication reach that overturns 160 and 162 does not apply here. Optional in 2002 in the same words. The DNS witness passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.3 GR10",
+      "quote": "Any rules for synchronization of the records of a file, as this affects the synchronization of elementary items, will be specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-162",
+    "verdict": "OVERTURNED",
+    "reason": "GR2 governs every elementary item described SYNCHRONIZED without LEFT or RIGHT. In 2002 that includes an elementary item of a record description entry under a CD (A.1.1.2; SYNC is legal in 13.14 entries there), the class (a) reach that q-20 found for 13.16.53 GR4/SR2 and p-04 for GR3. The pointer row DOC-A.1-197 and its witness l1_byte_length_implicit_filler show only working-storage/file records. Probe r160 shows the bare SYNC item in an output CD record placed at its unsynchronized offset at --std 2002 (record length 6). The behaviour is correct but no row evidence shows it.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.3 GR2",
+      "quote": "The specific positioning is determined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for bare SYNC in a CD record (r160_sync_cd_record.cob is a candidate)",
+    "compiler-at-2002": "correct (probe r160)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-36/r160_sync_cd_record.cob (log r160.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-163",
+    "verdict": "UPHELD",
+    "reason": "The clause text is word-identical. The 2002 type list (8.3.1.1.2) lacks only physical-structure-name, which 2023 adds; 2023 dropped no type. The word-length difference (31 at 2002) is stated in the determination, and the witnesses run at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.1.2",
+      "quote": "The implementor may define rules for the formation of a system-name that add restrictions to the rules for formation of a COBOL word",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-164",
+    "verdict": "UPHELD",
+    "reason": "Attacked the licence: 2002 3.1.5 leaves the decision whether to claim support for a processor-dependent element to the implementor, and B.3 lists the screen section. The declined facility is therefore licensed at 2002. The compiler refuses with COBOL1560, which is at least the warning 3.1.5 requires.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The decision of whether to claim support for a processor-dependent language element is within an implementor's discretion",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-165",
+    "verdict": "UPHELD",
+    "reason": "Item conditioned on producing listings; 2002 LISTING GR1 and PAGE GR3 make the directives inert without a listing; witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.15.2 GR1",
+      "quote": "If the compiler does not produce a source listing, the LISTING directive shall be ignored",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "03a7d270d9e6e75bbf456645adaf68a72a292191cb7d12f5682f3b96e5e5558e",
+  "read": "31da011a4a5a624fbbae1f5311774ee2c1cd551adfe07d0807f2956466c07988",
+  "refute": "530e464dc19cb177b9e0e9a6ed30239ba94b30e7301a466bed6cfc1c1c7cd819"
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.4.4.4-1",
+ "rule-digest": "6ddd009fe26b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-152",
+  "sources": {
+   "reader": "e23968e2da2f5939c191162db081a26142102b77a144c60e66035875b49ed1cc",
+   "refuter": "0995353eb593187f7e77ec4afc286a6cfb37fedc44c04577cfd233b48b895a05"
+  },
+  "imported": {
+   "reader": "23d9bafe2d899da0e289ec728fc1d43f20ae6eb8afa99a098fff281c9e5b3bca",
+   "refuter": "c3196b7622abbc0f70e669ba2c69e8eaf4d0a16e37d87ee5aeb325cb5c40ef8e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "INITIATE must, for each report it names and for no other, set every sum counter of that report to zero, its LINE-COUNTER to zero and its PAGE-COUNTER to one.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumEntry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitInitiate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+    "switches": "Edition.Has(2002): a contained program's report file must be GLOBAL; not applied at 85, unrelated to the counter resets",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Initiate() has no edition test (grep Edition|DialectBehavior in ReportWriter.cs); EmitInitiate emits one Initiate() call per report",
+  "behaviour-differs-by-edition": "no: GR1a-c are the same code at 85 and 2023 (2023 adds the size error indicators, which reset in the same SumEntry.Reset)",
+  "witnesses-cover": "part: g85_f29_08 covers one named sum counter of one report; not several counters, signed negative counters, nor that another report's counters are left alone",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/ini1.cob",
+    "printed": "before: R1 LC 05 PC 12 TA -17 TB +33 / R2 LC 02 PC 13 TC +44; after INITIATE R1: R1 LC 00 PC 01 TA +00 TB +00 / R2 LC 02 PC 13 TC +44",
+    "expected": "both of R1's sum counters (signed, one negative) to zero, LINE-COUNTER 0, PAGE-COUNTER 1; R2 untouched"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-152/ini4d.cob",
+    "printed": "INITIATE R1 R1 (GR3 violation): R1 reset once, no failure",
+    "expected": "undefined at 1985; no crash"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.4.4 GR1",
+    "check": "OK  §1985:XIII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Initiate() resets each SumEntry of this engine, LineCounter = 0, PageCounter = 1, per report engine, so another report's counters are untouched. Classes a, e, f do not reach the rule; the file-not-open refusal is GR2, not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Initiate(): foreach _sums Reset, LineCounter = 0, PageCounter = 1, no edition test. refute-1985-152/rini1.cob (--std 85): cycle 1 moved PAGE-COUNTER to 02 and LINE-COUNTER to 04 by page advances (not MOVE), numeric-edited sum entries (-ZZ9) with a rolled-forward FINAL counter and an unnamed counter; after TERMINATE MOVE 77 TO TE, 66 TO TF; INITIATE printed LC 00 PC 01 TE 0 TF 0, and the second cycle's CF lines showed -2 -2 and -2 (only the second cycle's addend, unnamed counter included). cite.py: OK  §1985:XIII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1. The INITIATE refusal when the file is not open (Initiate line 814) is the GR2 case, undefined at 1985, not this rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

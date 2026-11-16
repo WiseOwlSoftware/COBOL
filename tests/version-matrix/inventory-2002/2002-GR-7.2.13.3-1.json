@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.13.3-1",
+ "rule-digest": "d6c1d360bfe9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
+ "test-ref": "conformance:cases/7.2.13@2002-IF-DIRECTIVE/g2_if_directive_text_replaced",
+ "notes": "§2002:7.2.13.3 GR1: text words in text-1 and text-2 are replaced by the 2002 COPY operand forms word-1, literal-3, text-1 and pseudo-text (§2002:7.1.2.3 GR8, GR9) including on a debugging line (GR10 c) 6.) and by REPLACE, while the >>IF lines are untouched (§2002:7.2.3 GR1). --std 2002 run of g2_if_directive_text_replaced printed the derived WORD-R, LIT-R, DBG-R, TEXT-R, PSEUDO-R, T2 LIT-R, R-DONE."
+}

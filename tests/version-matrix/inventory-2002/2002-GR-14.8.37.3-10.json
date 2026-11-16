@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-10",
+ "rule-digest": "13a55f1fd581",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start",
+ "test-ref": "conformance:cases/14.9.41-START/l1_start_relative_key_item",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.41.4-10, witnessed at 2002 by the cases test-ref names. The read: The 2002 words name \"the RELATIVE KEY phrase of the ACCESS MODE clause\", but the 2002 ACCESS MODE clause (12.3.4.4) has no such phrase: the item is the one the 2002 RELATIVE KEY clause (12.3.4.13) names, exactly 2023's \"RELATIVE KEY clause in the file control entry\". The differing words change nothing a program can show; the witness passes at 2002. Cited: §2002:14.8.37.3 GR10; §2002:12.3.4.13.3 GR2."
+}

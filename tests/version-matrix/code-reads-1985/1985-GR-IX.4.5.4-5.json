@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-5",
+ "rule-digest": "42ae1f92d0ac",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-097",
+  "sources": {
+   "reader": "12a423728fc4287e15cecad768a0a2288992ddcfb2187b300f1c193340b8cc88",
+   "refuter": "dc8f9bfa0839db68cc147ea42d070bdf13ad7370055e741cf79fcaf5d0bd09f0"
+  },
+  "imported": {
+   "reader": "6490b4fc9bd3e5c0997952943147fda85c18a91ef003ddde518e4f8c0e4a71ad",
+   "refuter": "a3828886ffce79f4f79fe37e9a582fb0d31f5f6b1e13f2b752282b4680bd0477"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.5.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "After an indexed READ, the record (and any INTO move) must be available before imperative-statement-2 / -4 (NOT AT END / NOT INVALID KEY) runs, or before the next statement when neither is written.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Edition",
+    "switches": "the compiling program's edition baked on the connector, read by every DialectBehaviors.IsActive in the connector",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read KeyedIoBinder.BindRead, KeyedIoEmitter.EmitRead and the IndexedConnector READ members; grep DialectBehaviors.IsActive|Edition|Year|DialectLevel over those files and the StatementValidation READ checks; EmitRead emits the synchronous read call, the record splice and the INTO move before the NOT AT END / NOT INVALID KEY block, with no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f25_03; the probe adds NOT INVALID KEY with INTO and the statement after a random READ",
+  "probes": [
+   {
+    "class": "d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-097/src/p4into.cob",
+    "printed": "F1 NIK 1234 001234 (NOT INVALID KEY sees the record and the INTO receiver); H2 NAE B3CCC A1A---B3C------ (NOT AT END sees both); F1=00 001234 on the next statement",
+    "expected": "record and INTO target available inside imperative-statement-2/-4 and after the READ"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR5",
+    "check": "OK  §1985:IX.4.5.4 GR5  (4.5.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The connector read is synchronous; EmitRead lands the record and the INTO move under the Successful(status) branch before the NOT phrases run."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-5",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "q1keyref-002: a successful READ with status 02 (85's GRL2.1 duplicate status) still runs imperative-statement-4 with the record and the INTO receiver in place: I1 NIK 02 [05BBu5chg1]. Imperative-statement-2 does the same: I2 NAE 02 [02BBu2w2nd]. The reader's F1/H2 stand. cite.py: OK §1985:IX.4.5.4 GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

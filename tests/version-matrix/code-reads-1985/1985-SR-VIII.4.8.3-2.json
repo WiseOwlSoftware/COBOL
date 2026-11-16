@@ -1,0 +1,65 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-2",
+ "rule-digest": "92bcab32136b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-067",
+  "sources": {
+   "reader": "e68b85fc8164787675e3b6f139342c367136fa91abc125e8a7b452b82be5eaf0",
+   "refuter": "1c8a6916d7af502ce51e76a8dd8a74a9aa4a682140753836f7c9b2ffa409772a"
+  },
+  "imported": {
+   "reader": "31fc15232fa7c85352085e8717d4764dd4176acc396b404900fa86d19a9ed605",
+   "refuter": "463b4b927007b5253fbae93c124b50a2bf485348048562c4160e28ec60ed244d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "A USE statement performs no action where it stands: the declarative section it heads is not entered by normal control flow (execution starts at the first nondeclarative procedure and never falls into the declaratives), and its paragraphs run only when the stated I-O condition arises for the named file or open mode, or when PERFORMed (VIII.4.8.4 GR3); a PERFORM of the section runs its paragraphs and nothing for the USE itself.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectParagraphs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [],
+  "edition-search": "Read CollectParagraphs (declaratives collected first, _entryPc set after them), DeclCollectSection, DeclBindUse and EmitDispatcher (__Dispatch(EntryPc, topExit)); grepped ProcedureTableBuilder.cs and DispatchEmitter.cs for Edition.Edition|Year|CobolVersion|Constructs.: nothing on the USE AFTER EXCEPTION path. The only 1985-specific branches nearby are source-driven (USE FOR DEBUGGING arm, DebugActive), not edition comparisons; the 1985 SR1 sentence-before-paragraph refusal (COBOL0900) is VersionConformancePass's and belongs to SR1.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb365_report_group_qualified_85 exercises a USE BEFORE REPORTING section, not the Relative I-O USE AFTER EXCEPTION form; entry past the declaratives, no fall-through into them, PERFORM of a declarative section and mode-scoped USE are not witnessed",
+  "probes": [
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usenx1.cob",
+    "printed": "START HITS=0 / AFTER WRITE1 HITS=0 / D1 RAN ST=22 HITS=1 / AFTER WRITE2 ST=22 HITS=1 / D1 RAN ST=00 HITS=2 / AFTER PERFORM D1 HITS=2 / D1 RAN ST=00 HITS=3 / AFTER PERFORM D1-P HITS=3 / (GO TO M1 repeats the same with HITS 4..6) / END; D2 (USE ON INPUT) never printed",
+    "expected": "execution begins at M1 (not in D1); D1 runs only on the duplicate-key WRITE (status 22, no INVALID KEY) and when PERFORMed; GO TO back to M1 does not pass through the declaratives; D2 never runs (no file opened INPUT)"
+   },
+   {
+    "class": "e,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usenx2.cob",
+    "printed": "first form (sentence after USE before D1-P; PERFORM D1 THRU D2) refused: COBOL0900 sentence before the first paragraph-name requires COBOL-2002, and COBOL2186 range straddles two declarative sections; corrected form printed M1 FIRST / D1-P ST=35 / AFTER OPEN ST=35 / D1-P ST=35 / AFTER THRU / M2 LAST",
+    "expected": "USE ON INPUT section runs on the failed OPEN INPUT of an absent relative file (35) and control returns to the next statement; PERFORM D1 THRU D1-P runs the paragraph; falling off M2 ends the run without entering the declaratives; the 1985 SR1 form (only paragraphs after the USE sentence) is enforced"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR2",
+    "check": "OK  §1985:VIII.4.8.3 SR2  (4.8.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The declarative sections occupy the pc space below EntryPc and the top-level run starts __Dispatch at EntryPc, so the USE sentence is never executed in line; the section is reached only through __RunUse on the qualifying condition or an explicit PERFORM. Probed on relative files (duplicate key, absent file at OPEN INPUT) at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VIII.4.8.3 SR1/SR2 and 4.8.4 GR1-GR6, §1985:X.5.5.4 GR1 (USE GLOBAL is a 1985 IPC level-2 form). Probes under refute-1985-067: rsr2a (85) - an EMPTY declarative section (USE sentence, zero paragraphs, SR1) on XRF plus USE GLOBAL on GRF in the outer program and a contained program doing I-O on GRF: printed 'M1 HITS=0 / AFTER EMPTY-S ST=22 / AFTER PERFORM EMPTY-S / INNER START HITS=0 / INNER AFTER WRITE ST=00 HITS=0 / BACK HITS=0 / INNER START HITS=0 / OUTER GLOBAL DECL ST=22 HITS=1 / INNER AFTER WRITE ST=22 HITS=1 / BACK2 HITS=1': neither the outer run start nor the CALL entry passes through a USE; the global declarative runs only on the contained program's duplicate WRITE; the empty section runs nothing on the exception and on PERFORM. rsr2c (85): the 2002 Format 3 USE AFTER EXCEPTION CONDITION EC-I-O FILE refused COBOL0877/COBOL0878. rsr2d: USE STANDARD ERROR ON RELF (no AFTER, no PROCEDURE) refused COBOL0900 x2 at 85, accepted at 2023. cite.py: 'OK  §1985:VIII.4.8.3 SR2  (4.8.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VIII.4.8.3 SR1 ... the text is in SR1'; 'OK  §1985:X.5.5.4 GR1 ... the text is in GR1'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (USE gates, lines 1341-1360): UseWithoutAfter2002, UseWithoutProcedure2002, UseAfterExceptionCondition2002, UseAfterExceptionObject2002 refuse the later USE forms at 85; they gate the format, not SR2's never-executed rule, and the 85 arm is right"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-VIII.4.2.4-6",
+ "rule-digest": "39674770585b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-028",
+  "sources": {
+   "reader": "ecc6b3fea65b7e8f346e8afe9c69f717ee3390855a48f4828683119993b37cf6",
+   "refuter": "2e3ef5aa81e9ebe44f10c9b93e0a7c1fb1aae8ad67192c39e7bfeaaf6cc8e905"
+  },
+  "imported": {
+   "reader": "96d89af7f0271fad822510a215414465f3a7b41985c037bfcd1919a5a4b98e88",
+   "refuter": "52d52ece814e4b3f751ca73a261977acc2fc1904d35245c7265ae040ace50d03"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.2.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a successful CLOSE of a relative file (any access mode: sequential, random, dynamic; CLOSE and CLOSE WITH LOCK) the file is no longer in an open mode (every later READ/WRITE/REWRITE/DELETE is refused with the not-open logic status 47/48/49, a second CLOSE is 42, and a new OPEN is accepted rather than refused 41) and the connector is no longer associated with the physical file (another file connector on the same file may then open it). The witness exercises only a SEQUENTIAL-organization file; the relative organization, all three access modes, the dissociation and the after-failed-OPEN CLOSE are not exercised by it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 WITH LOCK locks the PHYSICAL FILE (ClosedWithLock on the physical-file state), from 2002 the connector; this is GR2 symbol B, not GR6, and the open-mode removal and SharedClose dissociation run before it identically",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' over src/WiseOwl.Cobol.Runtime/IO/*.cs and read FileRegistry.CloseCell/CloseByFormat/SharedClose, FileConnector.Close and SequentialIoEmitter.EmitClose: the plain CLOSE path (Table14 cell lookup, SharedClose's Open.Remove, _openMode=false, ModeKnown=false) consults no edition; only CloseWithLock's lock target does.",
+  "behaviour-differs-by-edition": "no (for GR6: the open-mode removal and dissociation are one code path at every edition; only what WITH LOCK locks differs, which is GR2 B)",
+  "witnesses-cover": "part: the witness is a sequential-organization file; the relative organization in random, dynamic and sequential access, dissociation from the connector (a second SELECT of the same file opening after the CLOSE), and CLOSE after a failed OPEN are exercised only by probe p1close",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p1close.cob",
+    "printed": "C1=00 READ-AFTER-CLOSE=47 WRITE-AFTER-CLOSE=48 REWRITE-AFTER-CLOSE=49 DELETE-AFTER-CLOSE=49 CLOSE-AGAIN=42 REOPEN-IO=00 READ2=00 REC-02 C2=00 R2-OPEN=00 R2-READ=00 REC-03 R2-REWRITE=00 R2-CLOSE=00 R2-READNEXT-AFTER-CLOSE=47 RS-OPEN=00 RS-READ3=00 NEW-03 RS-CLOSE=00 RS-READ-AFTER-CLOSE=47 RS-EXTEND=00 RS-WRITE=00 RS-CLOSE2=00 RS-WRITE-AFTER-CLOSE=48",
+    "expected": "after each successful CLOSE the file is not in an open mode: READ 47, WRITE 48, REWRITE/DELETE 49 (§1985:VIII.1.3.4 statuses), second CLOSE 42, re-OPEN succeeds 00 (not 41); a second connector (R2, dynamic) on the same physical file opens I-O 00 after R's CLOSE; same for random, dynamic and sequential access"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p1close.cob",
+    "printed": "RX-OPEN-ABSENT=35 RX-CLOSE-AFTER-FAILED-OPEN=42 LOCK-CLOSE=00 OPEN-AFTER-LOCK=38",
+    "expected": "a failed OPEN (35, non-optional absent) leaves the file not open, so CLOSE is 42; CLOSE WITH LOCK removes the file from the open mode and a re-OPEN is 38 (§1985:VIII.1.3.4 status 38)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.2.4 GR6",
+    "check": "OK  §1985:VIII.4.2.4 GR6  (4.2.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The plain CLOSE path is edition-free: FileRegistry.CloseCell runs SharedClose (deregisters the connector from the physical file) then FileConnector.Close (clears _openMode and ModeKnown). Every verb after the CLOSE took its not-open status, re-OPEN succeeded, and a second SELECT on the same file opened after the CLOSE, for all three relative access modes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.2.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-028/r6close.cob (run r6close-001, --std 85): EXTERNAL relative file (DYNAMIC) opened I-O in the main program and CLOSEd in a called program: SUB-CLOSE=00, SUB-READ-AFTER-CLOSE=47, main READ after the sub's CLOSE=47 (the shared connector left the open mode), main re-OPEN INPUT=00, READ=00; OPTIONAL absent file opened 05 then CLOSE 00, READ after 47, re-OPEN 05 (not 41), READ 10; CLOSE RA RO of two files (GR7 shape): WRITE RA after=48, READ RO after=47, OPEN I-O RA again=00. Grep of FileRegistry.cs and SequentialIoEmitter.EmitClose: only CloseWithLock (DialectBehavior.CloseWithLockLocksFileConnector) consults the edition on the CLOSE path, as the reader listed. cite.py: OK  §1985:VIII.4.2.4 GR6  (4.2.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect: DialectBehavior.FileSharingFacility (off at 85) governs how a second connector's OPEN after the CLOSE is arbitrated (FileRegistry.cs lines 2007/2053); it is on the reader's dissociation check, not on the CLOSE itself, and the probes show the 85 arm opens the second connector"
+  ],
+  "corrected": ""
+ }
+}

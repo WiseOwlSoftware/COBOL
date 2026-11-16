@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-10",
+ "rule-digest": "3b0fc848332a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-094",
+  "sources": {
+   "reader": "df7c0d371c5b7143ebc895fabc831a27059f827dcef51c7cfeebd8156d9dd1cc",
+   "refuter": "d6931f8479f7e0fb86dd72baac85ce6e669cc541f0918fe55a7cc29c6b365672"
+  },
+  "imported": {
+   "reader": "f51ad2f4054642945cf8ec10dda5b60d675df16a088a56acabb75b476c593ad4",
+   "refuter": "3fb93286cc46ec72a7540a544d4e4d853930c02993bb2df496821ec5e51b42a5"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.4.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "OPEN INPUT or I-O of an indexed file must set the position before the lowest key in the file's collating sequence (in 1985 always the native sequence, §1985:IX.2.3.4 GR3) and make the prime record key the key of reference, whatever key and position the file had before.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ResetPosition; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#ResolveKeyCollating",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFileCollatingSequenceClause",
+    "switches": "ConstructRegistry file-collating-clause-2002 (COBOL0900): the SELECT COLLATING SEQUENCE clause is refused below 2002, so at 85 every indexed key resolves to the native order",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by FileConnector.Edition (set from ctx.Data.DialectLevel at FileRegisterIndexed): whether another run unit may lock the file, so whether FileRegistry#MutationTarget/ConflictOnLockedRecord govern the DELETE by record locks; at 85 the facility is absent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ResetPosition (called first in OpenCore) sets _refKey = PrimeKey and empties _fpiKey with no edition test; ResolveKeyCollating reads only the file COLLATING SEQUENCE clause, never the PROGRAM COLLATING SEQUENCE; grepped Runtime/IO for DialectBehavior.",
+  "behaviour-differs-by-edition": "yes: only in which collating sequence can be associated with the file (2002+ admit the SELECT COLLATING SEQUENCE clause; 85 refuses it); positioning and key of reference are the same",
+  "witnesses-cover": "part: g85_bf24_12 covers INPUT and I-O after an alternate key of reference; not a PROGRAM COLLATING SEQUENCE or reopen after end of file",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/IX.4.4@1985-OPEN-STATEMENT/g85_bf24_12",
+    "printed": "EXPECT: MATCH",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p2dyndel.cob (run p2dyndel-001)",
+    "printed": "N1=K02 A1 | DN1=00 | A1=[K01XX3bbbbzz] N=3 | N2=K04 A1 | DN2=00 | N3=K03 C3 | DI3=23 | A3=[K99C34bbbb    ] N=4 | N4=K05 D4 | AE5=10 | O1=K02 A1 | O2=K03 C3 | O3=K05 D4 | I1=K02 A1",
+    "expected": "dynamic access, OCCURS DEPENDING ON inside the record, ALTERNATE key WITH DUPLICATES as key of reference: area and ODO object kept (GR5); READ NEXT continues on the alternate key after deleting another record, the record at the indicator, and after an invalid key (GR6); reopen I-O/INPUT starts at lowest PRIME key K02 (GR10)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p6pcs.cob (run p6pcs-001)",
+    "printed": "N1=AAA | N2=BBB | I1=AAA",
+    "expected": "PROGRAM COLLATING SEQUENCE IS a reversed alphabet does not reach the indexed file: native sequence assumed (§1985:IX.2.3.4 GR3), so OPEN I-O/INPUT positions at AAA"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p5refuse.cob (run p5refuse-001, --compile-only)",
+    "printed": "COBOL2372 OPEN EXTEND 'IX' random access refused; COBOL1720 INVALID KEY on sequential-access DELETE refused; COBOL0900 the file COLLATING SEQUENCE clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "EXTEND only in sequential access (§1985:IX.4.4.3 SR1); no INVALID KEY in sequential access (§1985:IX.4.3.3 SR1); the SELECT COLLATING SEQUENCE clause is not 1985 syntax"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR10",
+    "check": "OK  §1985:IX.4.4.4 GR10  (4.4.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR3",
+    "check": "OK  §1985:IX.2.3.4 GR3  (2.3.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "OpenCore calls ResetPosition before every open arm, so the key of reference is the prime key and the indicator is the empty (lowest) key. Probe p6 with PROGRAM COLLATING SEQUENCE reversed still reads AAA first (native), p2 reopens after AT END and after an alternate START and reads the lowest prime key."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-10",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "r3coll2.cob (r3coll2-001): keys LOW-VALUES, SPACES, '1', 'A', 'Z', 'a', '~' written at random, then OPEN I-O after a START on the ALTERNATE key and CLOSE, then OPEN INPUT and READ NEXT: L S 1 A Z a T then 10, the native (ASCII) order on the prime key. r4grpkey.cob (r4grpkey-001): group RECORD KEY holding S9(4) COMP (a 1985 key is any alphanumeric item, group included, OK §1985:IX.2.7.3 SR2): READ NEXT order P1, P300, M1 matches the program's own alphanumeric IF comparison of the same groups (P1<M1, P300<M1), so the file sequence is the byte order. OK §1985:IX.4.4.4 GR10; OK §1985:IX.2.3.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

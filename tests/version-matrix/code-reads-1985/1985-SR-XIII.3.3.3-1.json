@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-SR-XIII.3.3.3-1",
+ "rule-digest": "7bae887e23be",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-09",
+  "sources": {
+   "reader": "2b5d4d717412a43a15a2ad02336fb327afb76598435e08ccca7c0e96cc110f02",
+   "refuter": "dfad5fdf6dd02d62fe0671256b59fb0a63ab97a6e9ce71b43437b519b8097b67"
+  },
+  "imported": {
+   "reader": "46da27981525b3d882ec1555fa34da7d0f17823b96568ac5d4305cc14e6d2cd2",
+   "refuter": "96dd1b1281dabc4482827023110210989d58f2873b9198c9167e92037db25fbb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every report-name written in an FD's REPORT IS / REPORTS ARE clause must be refused unless an RD in the Report Section of the same program has that name (a data-name, a report group name, an RD of another program, or a missing Report Section are refused); the order of the names is not significant.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportClauseNames; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectLevel/Version/ConstructRegistry/IsAvailable in ScreenReportClauseNames, ResolveReports' file-resolution arm and the FD clause loop's reportClause arm: none; VersionConformancePass has no VisitReportClause override (grep 'VisitReportClause').",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one undefined name in a two-name clause; not exercised: the name of a WORKING-STORAGE item or of a report group, no Report Section, an RD in a contained program, reversed order.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/undefined.cob",
+    "printed": "error COBOL2714: the REPORT clause names 'R-NONE', which is not the subject of a report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/names_ws.cob",
+    "printed": "error COBOL2714 naming 'WA' (a WORKING-STORAGE item)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/names_group.cob",
+    "printed": "error COBOL2714 naming 'DA' (a report group)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/none_section.cob",
+    "printed": "error COBOL2714 naming 'R-A' (no Report Section)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/nested.cob",
+    "printed": "error COBOL2714 at the outer GLOBAL FD (R-X has no RD in that program) and at the inner RD (named by no FD)",
+    "expected": "refused: the RD must be in the same program"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-09/c2/reversed.cob",
+    "printed": "compiles; '  B' then 'A'",
+    "expected": "legal: REPORTS ARE R-B R-A over RDs written R-A, R-B; the order is not significant"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.3.3 SR1",
+    "check": "OK  §1985:XIII.3.3.3 SR1  (3.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "One screen walks every declared FD's report names against the program's declared RDs with the COBOL name comparer; the per-program scope also refuses the nested-program split. No edition arm exists or is needed.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs": "FD clause loop, reportClause arm filling FileModel.ReportNames"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XIII.3.3.3 SR1 and the 1985 RD format (XIII.3.5.2: no GLOBAL, so no RD is visible across programs) and ReportSectionBinder#ScreenReportClauseNames (per-program _scope.Declared vs _d.State.Files.Declared, no edition arm). Probes at --std 85: a second separately compiled program in the same source whose FD names the first program's RD (refute-1985-09/c2/seq_progs.cob) -> COBOL2714; a contained program's FD naming the containing program's RD (inner_names_outer.cob) -> COBOL2714; an EXTERNAL FD with its own RD (ext_two.cob) compiles and prints 'A'. cite.py: OK §1985:XIII.3.3.3 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

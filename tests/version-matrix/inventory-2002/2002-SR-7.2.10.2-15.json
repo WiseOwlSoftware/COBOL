@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-15",
+ "rule-digest": "c62c2a6ace32",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateOperandText; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#CheckOperandSyntax",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1364-when-after-match-boolean-formation; conformance:cases/7.3.13-EVALUATE/pb1363-omitted-evaluate-subject-malformed",
+ "notes": "Own verdict from the read lineage-reads-2002/u-02.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-7.3.13.3-15, witnessed at 2002 by the cases test-ref names. The read: Only the clause number differs; 7.2.6 SR1 is word-identical to 7.3.7.2 SR1 (shift operators are excluded by the all-boolean-literal operand rule in both; refused at 2002). Cited: §2002:7.2.10.2 SR15; §2002:7.2.6.1 SR1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.5.2-4",
+ "rule-digest": "14bd56af7b30",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph",
+ "test-ref": "conformance:cases/12.3.5-SOURCE-COMPUTER/pb78_object_computer_optional_name",
+ "notes": "Own verdict from the read lineage-reads-2002/u-09.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.6.3-4, witnessed at 2002 by the cases test-ref names. The read: Identical words apart from the capital G. The OBJECT-COMPUTER format is the same in both editions (computer-name-1, CHARACTER CLASSIFICATION, PROGRAM COLLATING SEQUENCE, the same FOR phrases), as the q-07 and p-08 readers also found. No CD or debugging reach. The witness runs at 2002. Cited: §2002:12.2.5.2 SR4."
+}

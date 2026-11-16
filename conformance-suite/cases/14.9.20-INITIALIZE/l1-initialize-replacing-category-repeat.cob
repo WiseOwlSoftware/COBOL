@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: l1-initialize-replacing-category-repeat
-*> rules: [SR-14.9.20.3-6]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1-initialize-replacing-category-repeat
+      *> rules: [SR-14.9.20.3-6]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.20.3 SR6 INITIALIZE statement — "The same category shall not be repeated in a
       *> REPLACING phrase."
       *>   python scripts/spec/cite.py --check 14.9.20.3 "The same category shall not be repeated

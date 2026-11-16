@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.7.3-3",
+ "rule-digest": "e33b4fedf9e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/BooleanRenderer.cs#RenderAtItemWidth; src/WiseOwl.Cobol.Runtime/Values/Text/CobolBool.cs#ToItemWidth",
+ "test-ref": "conformance:cases/14.6.13.2-Incompatible-data/pb230_incompatible_boolean_sending; conformance:cases/8.8.4.2-Simple-relation-conditions/boolean_ops; conformance:cases/14.9.8-COMPUTE/pb157_compute_bit_group; conformance:cases/14.9.8-COMPUTE/pb589_bool_refmod_width",
+ "notes": "Own verdict from the read lineage-reads-2002/u-21.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.8.4-3, witnessed at 2002 by the cases test-ref names. The read: The width sentence is word-identical. 2002 'moved ... according to the rules of the MOVE statement' (2002 MOVE GR for a boolean receiver: 'alignment and zero filling ... as defined in 14.5.8') equals 2023 'stored' under 14.6.8 alignment. 2023 adds a reference to 8.8.2 and incompatible data (already 2002 GR4's references). The 2023 shift operators are 2023-only (boolean_shift tests refused at 2002); the 2002 scope is fully shown by pointer tests that pass at 2002. Cited: §2002:14.8.7.3 GR3."
+}

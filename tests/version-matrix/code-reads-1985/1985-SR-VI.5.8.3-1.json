@@ -1,0 +1,132 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-1",
+ "rule-digest": "ba00bd62ec61",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-05",
+  "sources": {
+   "reader": "4e026e4ca8e7d9587b19cd1db70afcd88f5ab39909bcba9e1a0ea09ace9a9597",
+   "refuter": "bf6bcbb4287d4b923e260ed10390cdba27847f0033f73632bad7bedf6ee70498"
+  },
+  "imported": {
+   "reader": "4bc49ffe18aca83c3e2612fd7527dd30072ec14cb4b5ac15dec87d808b18dffc",
+   "refuter": "559215ba06f0f64e16125da0c6f063fb7f5d4351ea2210447cd30b39b4f33d15"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse an OCCURS clause (either format) on an entry of level 01, 66, 77 or 88 in any section, and on any entry that has a variable occurrence data item (an ODO table element or an item under one, III.2) subordinate to it at any depth, whether the enclosing OCCURS is format 1 or format 2; an ODO table at level 02-49 with no OCCURS above it, containing fixed OCCURS, stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
+  "edition-consulted": [],
+  "edition-search": "Read the OCCURS NotAtLevel row of ClausePlacementRules.Rules (line 169) and the nested-ODO test in OdoResolvePass (COBOL0854, comment 'illegal at every edition'); grep 'Edition|DialectLevel|Version|IsActive' over DataBinder.ClausePlacement.cs and OdoResolvePass.cs: only Edition.Error/Edition.At (diagnostic sink and cursor), no edition comparison. Level 66/88 forms are refused by the grammar/entry-format screen (COBOL0001, COBOL1747), with no edition switch either.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1260 witnesses cover SR1 a) at levels 01 and 77 only; SR1 b) (ODO under OCCURS, at depth, ODO under ODO, File Section), level 66/88 and format 2 at level 01 are covered by probes",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/b1.cob",
+    "printed": "error COBOL0854: occurs-depending table 'U' is subordinate to the OCCURS item 'T': tables may be nested only when the DEPENDING phrase is absent",
+    "expected": "refused: T OCCURS 3 has a variable occurrence data item subordinate (SR1 b)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/b2.cob",
+    "printed": "COBOL0854 (ODO two levels below the OCCURS entry)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/b3.cob",
+    "printed": "COBOL0854 (ODO under an ODO entry)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/b4.cob",
+    "printed": "COBOL0854 (File Section record)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/ok.cob",
+    "printed": "R=ABCD U=C",
+    "expected": "legal: ODO at level 05 with a fixed OCCURS inside, no OCCURS above it; record extent follows N=2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a1.cob",
+    "printed": "error COBOL2404: data item 'R': the OCCURS clause is not admitted here - this entry's level-number is 01",
+    "expected": "refused (SR1 a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a2.cob",
+    "printed": "COBOL2404 level-number 77",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a3.cob",
+    "printed": "COBOL2404 level-number 01 (format 2)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a4.cob",
+    "printed": "COBOL1747: level-number 88 ... this entry's body is not a value clause alone",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a5.cob",
+    "printed": "COBOL0001 unexpected 'OCCURS' (plus a cascade COBOL0901 on TIMES)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/a6.cob",
+    "printed": "COBOL2404 level-number 01 in the File Section",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c5/b1.cob",
+    "printed": "--std 2023: same COBOL0854 for b1 and b3",
+    "expected": "no edition arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR1a",
+    "check": "OK  §1985:VI.5.8.3 SR1a  (5.8.3 Syntax Rules)  the text is in SR1a"
+   },
+   {
+    "cite": "§1985:VI.5.8.3 SR1b",
+    "check": "OK  §1985:VI.5.8.3 SR1b  (5.8.3 Syntax Rules)  the text is in SR1b"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause"
+   }
+  ],
+  "notes": "SR1 a) is a table row of the clause-placement screen and SR1 b) is OdoResolvePass's nearest-enclosing-table test; both are edition-free and give the 1985 answer. Diagnostics cite §2023:13.18.38.3 at --std 85 (presentation only); the a5 refusal carries a cascade message on TIMES.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-1",
+  "refutation": "OVERTURNED",
+  "classes": "a,b,c",
+  "evidence": "§1985:III.2 defines 'A variable occurrence data item is a table element which is repeated a variable number of times. Such an item must contain an OCCURS DEPENDING ON clause in its data description entry, or be subordinate to such an item.' (cite.py: OK §1985:III.2 the text is in the clause). SR1b (cite.py: OK §1985:VI.5.8.3 SR1b) forbids OCCURS on an entry that 'Has a variable occurrence data item subordinate to it.' The reader's own requirement says the same ('an ODO table element or an item under one'). Probe refute-1985-05/c5/g1.cob: 05 T OCCURS 1 TO 3 DEPENDING ON N. 10 U OCCURS 2 TIMES. 15 V PIC X. V is subordinate to the ODO entry T, so V is a variable occurrence data item, and U carries an OCCURS with V subordinate to it; --std 85 prints 'R=ABCD V=C' (compiled and ran; --std 2023 the same). The reader's ok.cob escapes the rule only because its inner OCCURS is elementary (no subordinate). g2/g3/g4 (ODO under a fixed OCCURS, at depth, Linkage) are refused COBOL0854, correctly. OdoResolvePass's test is 'an ODO entry below an OCCURS entry'; it never asks whether an OCCURS entry inside an ODO table has subordinates, which the 1985 definition makes variable occurrence items. Counter-reading noted: §1985:VI.5.15.6 GR5 lists 'b. It is a variable occurrence data item' and 'c. It is a data item that is subordinate to a variable occurrence data item' separately, which hints the drafters sometimes used the narrower sense; but III.2 is the edition's definition and SR1b leans on it.",
+  "edition-sites-missed": [],
+  "corrected": "NONCONFORMING (under-rejects), cause (c): at 1985 the III.2 definition makes every item subordinate to an ODO entry a variable occurrence data item, so an OCCURS entry inside an ODO table that has any subordinate entry must be refused; the compiler admits it at --std 85 (and at 2023). Repro refute-1985-05/c5/g1.cob."
+ },
+ "work": "PB5737"
+}

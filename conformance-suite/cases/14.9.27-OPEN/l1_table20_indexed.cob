@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_table20_indexed
       *> rules: [GR-14.9.27.4-8, GR-14.9.35.4-3, GR-14.9.41.4-1]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-X.4.6.3-3",
+ "rule-digest": "3e7c6a16495b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-069",
+  "sources": {
+   "reader": "9f0bf86741a9ea8cc51d693425b6f68228c084eff42ed1d7fd43db717c3ec49d",
+   "refuter": "6d1250296380d24f9783d1915f0ad21da7cc6b1fb2273d7875b40718133da4a3"
+  },
+  "imported": {
+   "reader": "2d027269e4d7ef8bdfb97f18d16e398bf7a72e9833489135b4c4f68f635f6c19",
+   "refuter": "196c7a5a4757b32c23e51828cfd9d2ecb07443db75c9152f7532e41ab3c0ebb6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.6.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a SAME RECORD AREA clause names several files, the compiler must refuse the program if the file description entry or any record description entry of any of those files writes GLOBAL; GLOBAL on files named only in SAME AREA or SAME SORT/SORT-MERGE AREA clauses is not barred by this rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "below 2002 the report-file row of the occurrence limits (not this rule; same function, read on the path)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read ScreenSameClauses' GLOBAL loop (sites of SameClauseKind.RecordArea, f.IsGlobal or any record HasGlobalClause): no DialectLevel/Edition.Year/ConstructRegistry read in that loop; the only edition switch in the function family is SameOccurrenceRule's report-file arm, which this rule does not reach (no report file in the probes, so the arm taken is the same for the other kinds).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover GLOBAL on the FD and on a record of a SAME RECORD AREA file; not exercised: GLOBAL on a non-first record of the file, a sort file sharing a record area with a GLOBAL FD, and the accept half (GLOBAL files in SAME AREA / SAME SORT AREA only)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r2a.cob",
+    "printed": "EXIT 65, COBOL2738: SAME RECORD AREA: the file description entry of file 'F1' includes the GLOBAL clause",
+    "expected": "refused (FD GLOBAL)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r2b.cob",
+    "printed": "EXIT 65, COBOL2738: the record description entry of file 'F2' includes the GLOBAL clause (second record R2 GLOBAL)",
+    "expected": "refused (record GLOBAL)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r2d.cob",
+    "printed": "EXIT 65, COBOL2738 for FD F1 GLOBAL in SAME RECORD AREA FOR S1 F1 (sort file plus GLOBAL file)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r2e.cob",
+    "printed": "EXIT 0, ABCDEFGHIJ (GLOBAL FD/records only in SAME AREA and SAME SORT AREA; record area shared F1/F2 works at run time)",
+    "expected": "accepted; R2 shares R1's area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.6.3 SR3",
+    "check": "OK  §1985:X.4.6.3 SR3  (║4.6.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "One edition-blind loop in ScreenSameClauses refuses GLOBAL on an FD or record of any file a SAME RECORD AREA names, at --std 85 as at 2023. A malformed first probe (r2c) drew SR9/SR10 refusals of its own and was replaced by r2e. The message cites §2023:13.18.27.3 SR2 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.6.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "§1985:X.4.6.3 SR1 admits GLOBAL on any 01 of the File Section, so an SD record may carry it: x2a SAME RECORD AREA FOR S1 F1 with '01 SR1 IS GLOBAL' under SD S1 -> EXIT 65 COBOL2738 'record description entry of file S1 includes the GLOBAL clause'. The report-file arm the reader left unprobed (SameOccurrenceRule's below-2002 row): x2b FD RPTF IS GLOBAL REPORT IS RPT in SAME RECORD AREA -> COBOL2738 for the report file in a record-area clause AND COBOL2738 for its GLOBAL FD; x2c without GLOBAL -> only the report-file refusal. Accept half: x2d GLOBAL FD F3 and GLOBAL record outside the SAME RECORD AREA FOR F1 F2 -> EXIT 0 'ABC' (area shared). cite.py: 'OK  §1985:X.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

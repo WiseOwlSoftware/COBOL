@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-XI.2.5.3-6",
+ "rule-digest": "f92c42599438",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-070",
+  "sources": {
+   "reader": "de079a6807c8e991d8e984d833274cda2a902dd64b033ce43c2af44b921b1036",
+   "refuter": "62f2829030083f0d05e97ccaecad667c74c74e0e638f267d441ed1ecbfe518f8"
+  },
+  "imported": {
+   "reader": "d5e4d1f833eb5224d6799d317357af482624b97929bcf480d12773a2d539d486",
+   "refuter": "55d9204e76e531fc1ff9934b2d50ada5574a8d4a731c5ee8a8a71ac589b1dbdb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.2.5.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SAME RECORD AREA, SAME SORT AREA or SAME SORT-MERGE AREA clause whose files (sort-merge files and files of sequential, relative and indexed organization, with sequential, random or dynamic access) differ in organization or access must be accepted, with no check on organization or access, and the program must run.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Year < 2002 changes the report-file row of the occurrence table only (report file in SAME SORT AREA); the sort-merge and other-file rows, and every screen of the clause, are the same at 85 and 2023; no screen asks organization or access",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read BindIoControl, ScreenSameOperands, ScreenSameClauses, LinkSameRecordArea, the grammar rule sameClause; grep -n 'Organization|Access' in FileControlBinder.IoControl.cs finds only the RERUN screens; Edition.At is positional only.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness l1c28_same_area_mixed_org exercises SAME AREA (the Sequential I-O module's file-area format, §1985:VII.2.13), not the Sort-Merge clause; SAME RECORD AREA and SAME SORT/SORT-MERGE AREA with a sort file and mixed organizations are exercised only by this slice's probes",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/p1same.cob",
+    "printed": "compiles at --std 85 and runs: FO A1SEQ-A / FO B2SEQ-B / FR REL-1 / FI K1IDX-1 (SAME RECORD AREA FOR FS(seq,seq) FR(rel,random) FI(idx,dynamic); SAME SORT-MERGE AREA FOR SD1 FR FI; SORT SD1 USING FS GIVING FO)",
+    "expected": "accepted and run (SR6); the sort orders by S-K"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/p1bsame.cob",
+    "printed": "SAME RECORD AREA FOR SD1 FR FI + SAME SORT AREA FOR SD1 FR FI: compiles and runs, same four lines",
+    "expected": "accepted (SR6 with a sort file in the record-area clause, SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/p1bsame-001",
+    "printed": "with SAME SORT AREA FOR SD1 FS FO and SORT SD1 USING FS GIVING FO: COBOL1757 'no pair of file-names in the SORT statement may be specified in the same SAME SORT AREA clause'",
+    "expected": "refused by the SORT statement's own rule, not by organization; confirms the refusal that remains is a different rule"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-070/src/p1same.cob",
+    "printed": "at --std 2023 the same four lines",
+    "expected": "same behaviour at the latest edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.3 SR6",
+    "check": "OK  §1985:XI.2.5.3 SR6  (2.5.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "SR6 is a permission; the SAME screens test membership counts, sort-merge presence and subset rules, never organization or access, so a mixed clause is accepted at 85. The record-area link (implicit redefinition) is made for any organization.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.2.5.3-6",
+  "refutation": "UPHELD",
+  "classes": "e,c",
+  "evidence": "Read §1985:XI.2.5.3 SR1-6 and XI.2.5.4 GR1-2 whole. Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-070/src/r6mix.cob (--std 85): SAME RECORD AREA FOR FR(relative, dynamic) FI(indexed, random) SD1 plus SAME SORT AREA FOR SD1 SD2 FR FI; compiles and runs: after READ FR the FI record shows 'Z9 REL-1' (the implicit redefinition across organizations, GR1), WRITE FI of that shared area then READ FI by key Z9 prints 'Z9REL-1', SORT SD1 USING FS GIVING FO prints C3SEQ-C, B2SEQ-B (descending). No organization/access screen exists (ScreenSameOperands/ScreenSameClauses). cite.py: OK §1985:XI.2.5.3 SR6 the text is in SR6; OK §1985:XI.2.5.4 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

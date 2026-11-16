@@ -1,0 +1,85 @@
+{
+ "rule-id": "1989-RV-A.2.22.4-1",
+ "rule-digest": "eb08e14ab478",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "01d3ff6cc7b2f807899cb57fe53dbe758ae5cc0f5bcf214d9cf6ef5220b34d62",
+   "refuter": "5ef25d286180dec1cb6b4df3e0cfaf0706148016586231c05da06b763381f9b6"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.22.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION LOWER-CASE of an alphabetic or alphanumeric argument (an alphanumeric or alphabetic elementary item, an alphanumeric-edited item, a group, a reference-modified item or a nonnumeric literal) returns the same character string with each uppercase letter replaced by its lowercase letter and every other character unchanged.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#LowerCase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85): LOWER-CASE admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindCaseFunctionWithLocale",
+    "switches": "Constructs.CaseFunctionLocalePhrase2014: the LOCALE phrase is refused below 2014",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue",
+    "switches": "the CHARACTER CLASSIFICATION arm (ctx.Data.Configuration.Classification), reachable only from a 2002 OBJECT-COMPUTER clause; at 85 the plain invariant arm is taken, the arm 2023 takes without a classification",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs and CobolIntrinsics.Text.cs for Edition, DialectLevel, DialectBehavior, ConstructRegistry; the runtime LowerCase body has no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf38_06 covers PIC X, PIC A and a literal with mixed case, digits and punctuation; it does not cover a group, an edited item, a reference-modified or ODO argument, characters next to the letter range, letters outside A-Z, or an argument that is also the receiver.",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/lc1.cob",
+    "printed": "[cdef] (SRC(I:4)) [qr st] (XXBXX edited) [abc123xyzw] (group with 9(3) and ODO X(2) table at 2) LEN=10 [abcdefghij] (MOVE LOWER-CASE(SRC) TO SRC) [a-z a-z 0-9 @[`{] [quote\"x] [bcd] (LOWER-CASE(SRC)(2:3))",
+    "expected": "each uppercase letter lowered, every other character (digits, space, '@', '[', '`', '{', quote) unchanged, same length as argument-1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/lc2.cob",
+    "printed": "[éàöz] EQ",
+    "expected": "the computer character set's uppercase letters É À Ö lowered (§1989:A.2.22.4 RV3 leaves the set to the computer)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/lc3.cob",
+    "printed": "COBOL0900 the LOCALE phrase of UPPER-CASE / LOWER-CASE requires COBOL-2014; COBOL1627 argument-1 is of class numeric; COBOL0900 SPECIAL-NAMES LOCALE requires COBOL-2002",
+    "expected": "the 2014 LOCALE phrase refused at 85; a numeric argument refused (A.2.22.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.22.4 RV1",
+    "check": "OK  §1989:A.2.22.4 RV1  (2.22.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "The runtime maps the argument's image with ToLowerInvariant, which lowers exactly the letters that have a lowercase form and leaves every other character, so the string and its length are kept. COBOL1627's text at 85 lists national classes and cites §2023 only; that is a wording matter for the argument rule (A.2.22.3 AR1), not this returned-value rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.22.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Argument class alphanumeric in 1985 includes numeric-edited items (class alphanumeric), which the reader's requirement omitted; probe rlc1.cob at --std 85 (runs/rlc1-001): ZZ9.99CR with -12.5 -> ' 12.50cr' length 8, ZZ9.99DB -> '  3.00db'; PIC A(6) 'AB CD ' -> 'ab cd '; JUSTIFIED RIGHT -> '    xy'; 66 RENAMES -> 'abcd'; reference-modified R2B(2:) -> 'fghij'. Probe rlc2.cob (runs/rlc2-001): a group holding S9(4) COMP and PACKED-DECIMAL fields whose bytes are uppercase letters: 'ABCD' -> 'abcd', 'XYZ' -> 'xyz', so the group's character image (not the numeric value) is lowered and its length kept. Class c: LOWER-CASE(X\"4142\") refused COBOL0900 (rc1-001). cite.py: OK  §1989:A.2.22.4 RV1  (2.22.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.2-3",
+ "rule-digest": "675bed0ce911",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-154",
+  "sources": {
+   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
+   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+  },
+  "imported": {
+   "reader": "5eda4530ab10d4996aad1df74ef031a17d4c06e8565c892f88ae9e600296980a",
+   "refuter": "7118e20e9aa470ada33c37dac46c2e99f203884b2e34b00fb57761a80a415bf6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 a numeric literal has at most one decimal point (the DECIMAL-POINT IS COMMA comma included), never as its rightmost character, is an integer without one, and a numeric-looking literal in quotation marks is a nonnumeric literal treated as such (not usable as a numeric operand, compared as alphanumeric).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEC_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DEC_COMMA_BODY; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#numericLiteralCore; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#ClassOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericLiteralOperand; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+    "switches": "ConstructRegistry floating-point-literal-2002 refuses 1.5E2 at 1985 (COBOL0900); accepted at 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "DEC_BODY ([0-9]+ '.' [0-9]+ | '.' [0-9]+) and numericLiteralCore carry no version predicate; the only edition consult on the literal path is the floating-point gate.",
+  "behaviour-differs-by-edition": "yes: the floating-point literal form (2002+) is refused at 1985; the one-decimal-point and quoted-literal rules are the same",
+  "witnesses-cover": "part: g85_bf01_02 covers the legal positions and the quoted literal's class in MOVE and comparison; not covered: the refusal of two decimal points or a rightmost one, a quoted literal as an arithmetic operand, DECIMAL-POINT IS COMMA",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l1.cob",
+    "printed": "MOVE 1.2.3 TO N: error COBOL5506 unexpected '.3'",
+    "expected": "refused: more than one decimal point"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l3.cob",
+    "printed": "MOVE 12.TO N: error COBOL2632 period not followed by a space + COBOL5506",
+    "expected": "refused: decimal point as rightmost character"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l6.cob",
+    "printed": "MOVE 12..5 TO N: refused COBOL2632/COBOL5506",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l2.cob",
+    "printed": "ADD \"12\" TO N: error COBOL0844 an alphanumeric literal is not a numeric operand",
+    "expected": "quoted literal is nonnumeric: refused as an ADD operand"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l4.cob",
+    "printed": "COMPUTE N = \"5\" + 1: refused COBOL2269",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l5.cob",
+    "printed": "MOVE +.5, ADD -1.25, ADD 0012.50 -> N=0013.25",
+    "expected": "0.5 - 1.25 = -0.75 into unsigned 9(4)V99 is 0000.75, + 12.50 = 0013.25"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/c1.cob",
+    "printed": "DECIMAL-POINT IS COMMA: MOVE 12,5 + ADD ,25 -> E=  12,75",
+    "expected": "12,75"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/c2.cob",
+    "printed": "MOVE 1,2,5 TO N: refused COBOL5506",
+    "expected": "refused: two decimal points"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/l7.cob",
+    "printed": "MOVE 1.5E2 TO N: error COBOL0900 floating-point numeric literal requires COBOL-2002",
+    "expected": "refused at 1985"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/w3.cob",
+    "printed": "witness g85_bf01_02 MATCH (Q-3 NE: 0012 vs \"12\" alphanumeric)",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.2 SR3",
+    "check": "OK  §1985:IV.4.2.2.2.2 SR3  (4.2.2.2.2 Numeric Literals)  the text is in SR3"
+   }
+  ],
+  "notes": "The lexer's fixed-point shape admits exactly one interior or leading decimal point, so every violating form fails to parse. The refusals at --std 85 cite §2023 clauses and some are generic token errors (l1, l4), a diagnostic-quality point, not a conformance failure of this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the 'is an integer' half and the DECIMAL-POINT IS COMMA separator. n1.cob PERFORM 2.0 TIMES -> COBOL5506 'only an integer literal is expected'; n3.cob OCCURS 3.0 TIMES -> COBOL5506 the same; n2.cob subscript E (2.0) -> COBOL0900 refused at 85; n4.cob refmod A (2.0:3) -> BCD (an arithmetic expression at 1985, legal); '\"1.5\" = \"1.50\"' -> NE (nonnumeric comparison), 1.5 = 1.50 -> EQ. n5.cob DECIMAL-POINT IS COMMA: VALUE 1,5 -> 1,50; 'MOVE 12, TO N' (comma-space is a separator, the literal is the integer 12) -> 12,00; 'ADD 1, 2,5 TO N' -> 15,50. All runs under refute-1985-154/runs/n*-001. Diagnostics cite §2023 (wording only). cite.py: 'OK  §1985:IV.4.2.2.2.2 SR3  (4.2.2.2.2 Numeric Literals)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

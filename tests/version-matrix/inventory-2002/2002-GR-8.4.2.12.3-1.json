@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.12.3-1",
+ "rule-digest": "d264b11303cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#ProgramAddressText; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/PtrEmitter.cs#EmitSetEntry; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.13.4-1, witnessed at 2002 by the cases test-ref names. The read: Words identical; general format identical (identifier-1 / literal-1 / program-prototype-name-1). The referenced 8.3.1.1.1 (2002) and 8.3.2.2 (2023) state the same naming-convention rule for a program-address-identifier (COBOL convention: a COBOL word mapped as a program-name without AS; CALL-CONVENTION call-convention-name: a literal). 2023 SR2 adds 'whose length is not zero', irrelevant at 2002 (no zero-length literal). The only 2002-only reach is identifier-1 naming an alphanumeric CD field; the rule's semantics are the same for any alphanumeric item and the probe shows it. Cited: §2002:8.4.2.12.3 GR1; §2002:8.4.2.12.2 SR1; §2002:8.3.1.1.1."
+}

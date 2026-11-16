@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-FMT-XIII.4.3.2",
+ "rule-digest": "990662132714",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-004",
+  "sources": {
+   "reader": "38de986f3e7aa3b9b5ca6aa5681ad055f0e57fd9b5d594bc876208cb6bdc4f65",
+   "refuter": "9636ab143b82a191c2eb59de99fa2525d08ac35f4ae8fbb872a0e4480197da68"
+  },
+  "imported": {
+   "reader": "c5c8ac13280a382c5d28e405aebbd6e79cf4bd770233b9421431885f702d98a1",
+   "refuter": "f035ee78df7865803184bf4eff92a1540c43ee9b73066860db944144bc6856b2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.4.3.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 GENERATE takes exactly one operand, either data-name-1 (a 1985 data-name, which SR1 lets be qualified by a report-name and nothing else, so no subscript or reference modifier) or report-name-1, and binds it to detail processing (the named DETAIL group) or summary processing (the report) respectively.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#generateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "DialectLevel<2002 adds the 1985 'no more than one detail report group' screen for the report-name form (COBOL ReportGenerateDetailCount, §1985 SR2b); not a format question",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition in ReportWriterBinder.cs#BindGenerate; grep VisitGenerateStatement/VisitReportGroupReference in Validation/*.cs (none); the grammar rule has no edition predicate",
+  "behaviour-differs-by-edition": "no: the format (one operand, data-name optionally qualified by IN/OF report-name, or report-name) is the same shape and the same code at 85 and 2023; only the SR2 detail-count screen is 85-only",
+  "witnesses-cover": "part: l1c12_generate_detail_and_summary exercises unqualified GENERATE data-name and GENERATE report-name; the qualified data-name (OF/IN), and the refusal half (no operand, two operands, subscripted operand, double qualification, non-detail or non-report name) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/gen/g01.cob, g02.cob, g03.cob",
+    "printed": "GENERATE DET-A OF R-1 -> [D1=1] [CF1] [D1=2] [CF1]; GENERATE DET-A IN R-2 -> [D2=1] [D2=2]; GENERATE R-1 -> [CF1] [CF1]",
+    "expected": "qualified data-name drives detail processing of that report; report-name drives summary processing (no detail, CF at the break and at TERMINATE)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/gen/g04.cob, g05.cob, g06.cob, g11.cob, g12.cob",
+    "printed": "unqualified DET-A defined in two RDs -> COBOL1920 qualify; GENERATE. -> COBOL0001; two operands -> COBOL0307; DET-A OF R-1(1) -> COBOL2269; DET-A OF R-1 OF R-2 -> COBOL0307",
+    "expected": "one operand, qualified only by a report-name"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-004/gen/g07.cob, g08.cob, g09.cob, g10.cob",
+    "printed": "GENERATE R-2 (no CONTROL) -> COBOL0899; GENERATE CF-1 -> COBOL0899 not a DETAIL group; GENERATE R-1 OF R-2 -> COBOL1757; GENERATE WS-B -> COBOL1757",
+    "expected": "data-name-1 a detail group, report-name-1 an RD with CONTROL (SR1/SR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.3 SR1",
+    "check": "OK  §1985:XIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.3.3 SR2",
+    "check": "OK  §1985:XIII.4.3.3 SR2  (4.3.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.4.3.4 GR1",
+    "check": "OK  §1985:XIII.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.4.3.2",
+    "check": "not quote-checkable: each diagram line carries fewer than four words (cite.py FAIL [quote-too-short] on 'GENERATE'); the clause was read in the transcription at line 24283"
+   }
+  ],
+  "notes": "The operand is the shared reportGroupReference (cobolWord [IN|OF report-name]); BindGenerate tries the report-name arm only for an unqualified operand and otherwise resolves through ReportGroupResolution, which diagnoses ambiguity. No edition gate touches the format itself.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.4.3.2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-004/gen/q04.cob: WORKING-STORAGE 01 DA PIC X. and RD R-1 with 01 DA TYPE DE; GENERATE DA. (unqualified) at --std 85 -> RAN and presented the detail twice (also RAN at --std 2023). q09 adds MOVE \"Z\" TO DA (also unqualified): RAN; q10 with 02 DA under a WS group: RAN. DA is a nonunique user-defined name explicitly referenced in a Procedure Division statement: cite.py 'OK §1985:IV.4.3.8.1 (4.3.8.1 Qualification) the text is in the clause; it lies in SR1' for 'No other name has the identical spelling and hyphenation', and 'OK §1985:IV.4.3.8.1 ... SRL2.1' for 'For each nonunique user-defined name that is explicitly referenced, uniqueness must be established through a sequence of qualifiers which precludes any ambiguity of reference'; SR1 of GENERATE supplies the qualifier (cite.py 'OK §1985:XIII.4.3.3 SR1' for 'Data-name-1 must name a type detail report group and may be qualified by a report-name'), so GENERATE DA OF R-1 is required and GENERATE DA must be refused. ReportGroupResolution.cs#Resolve collects candidates only from report groups (lines 73-79), so a same-spelled non-report data item never makes the reference ambiguous; the reader's note that the resolver 'diagnoses ambiguity' holds only between two RDs. The rest held: q01 GENERATE R-1 with two DE groups -> COBOL6823 (§1985 SR2b, 85 arm); q02 GENERATE R-1 with CONTROL and only a CF body group -> RAN, summary CF lines; q03 no body group -> COBOL2749; q05 DA OF RPT (file-name qualifier) -> COBOL1757; q06 a level-02 entry of the detail -> COBOL1757; q07 plain GENERATE DA -> RAN; q08 GENERATE DB OF R-1 -> RAN with CF at each break.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL (under-rejects, cause b: the same at every edition, --std 2023 also RAN). Minimal repro: WORKING-STORAGE 01 DA PIC X. REPORT SECTION RD R-1. 01 DA TYPE DE LINE PLUS 1 ... PROCEDURE DIVISION ... GENERATE DA. Expected at --std 85: refused, the unqualified data-name-1 is not unique (§1985:IV.4.3.8.1 rule 1; write DA OF R-1). Observed: compiles and binds to the detail group. The defect is in ReportGroupResolution#Resolve, which the USE BEFORE REPORTING operand and the SUM UPON operand share; it may be homed on the qualification rule's row (§1985:IV.4.3.8.1) rather than this format's. kb/Work: none found (PB365 covers ambiguity between two RDs only)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "With a Working-Storage `01 DA` beside a report group `01 DA`, an unqualified `GENERATE DA` and `USE BEFORE REPORTING DA` compile and run; the name is ambiguous (`§1985:IV.4.3.8.1 SRL2.1`). 2023 rows `FMT-14.9.16.2`, `FMT-14.9.49.2`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5775"
+}

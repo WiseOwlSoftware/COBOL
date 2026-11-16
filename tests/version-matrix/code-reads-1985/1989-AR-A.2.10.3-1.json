@@ -1,0 +1,78 @@
+{
+ "rule-id": "1989-AR-A.2.10.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-167",
+  "sources": {
+   "reader": "509e48487795ec3912577b6c74daa6c42209bd2711676e42df3ac2c40812a80d",
+   "refuter": "675270f0bb4a549b69588b2b0ea9dd94ceeada1dbad64af2f13ff80a395329d0"
+  },
+  "imported": {
+   "reader": "e638176529b63d59b0c29878ffe1bb969c5e3aed605ee0de64a06471261c12a6",
+   "refuter": "524286358f0d354685ef2e698c4b24c5758952dae7f5f64a6ff2ebd61d1742d8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.10.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (with the 1989 Intrinsic Function amendment) argument-1 of FUNCTION COS must be a numeric argument, i.e. an arithmetic expression (numeric literal, numeric elementary item, numeric or integer function, or an expression over them); any operand not of class numeric (alphanumeric, alphabetic, numeric-edited, group, nonnumeric literal, SPACE, ALL literal) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 IntroducedIn/RemovedIn window: the function is available at 85 (IntroducedIn 85), so no refusal",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for per-position predicates; the Uniform rows of COS/FACTORIAL/INTEGER-PART carry none, so the class screen is the same code at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f35_01 exercises only the legal half (literal, data item, expression); the refusal of non-numeric classes is probed here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/cosbad.cob",
+    "printed": "COBOL1627 x7: PIC X, \"1\", numeric-edited, group, SPACE, PIC A, ALL \"1\" each refused (class alphanumeric/alphabetic; requires class numeric, §2023:15.20.3 r1)",
+    "expected": "each refused: none is class numeric (§1989:A.2.2 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-167/fnok2.cob",
+    "printed": "COS(SQRT4-2) 1.0000 / COS(COMP3) 1.0000 / COS(TE*0) 1.0000 / COS(ZERO) 1.0000 / IP(TE(2)) -3.0000 / IP(-123.45) -123.0000 / IP(BIG) -999999999999999999 / IP(-0.9) 0.0000 / IP(LOG10) 2.0000",
+    "expected": "accepted: arithmetic expressions over packed, binary, signed scaled, subscripted items, a numeric function, ZERO; values per the returned-value rules"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.10.3 AR1",
+    "check": "OK  §1989:A.2.10.3 AR1  (2.10.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   }
+  ],
+  "notes": "The class screen (Verified row 'n') refuses every non-numeric operand class at 85 and admits every arithmetic-expression form. The messages cite §2023:15.20.3 r1 even at --std 85. The cosbad probe also drew a COBOL0900 for its own numeric-edited VALUE literal, which is correct at 85 and unrelated.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.10.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "The reader's cosbad/fnok2 probes do not cover a 1985 operand class that is numeric-looking but not class numeric, or a later edition's literal. I probed: ixarg.cob: COS (IXD), where IXD is USAGE INDEX, was refused with COBOL6979, citing §1985:VI.5.14.3 SR5 (OK: 'can be referenced explicitly only in a SEARCH or SET statement'). COS (TX), where TX is an index-name, was refused with COBOL1637. cosc.cob: COS of a reference-modified numeric item WN (1:1) and COS of FUNCTION UPPER-CASE (\"1\") were each refused with COBOL1627 (class alphanumeric). COS (1.0E0) was refused with COBOL0900, because the floating-point literal requires COBOL-2002. cosok.cob was accepted and ran: COS of an SVPP9 item gave +0000.9999, COS (WB + FUNCTION INTEGER-PART (2.5)) gave 1, and a nested COS (FUNCTION COS (0) - 1) gave 1. cite: OK  §1989:A.2.10.3 AR1  (2.10.3 Arguments)  the text is in AR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

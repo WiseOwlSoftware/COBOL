@@ -1,0 +1,1669 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-37 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-37",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-DOC-B.1-166",
+   "2002-DOC-B.1-167",
+   "2002-DOC-B.1-168",
+   "2002-DOC-B.1-169",
+   "2002-DOC-B.1-17",
+   "2002-DOC-B.1-170",
+   "2002-DOC-B.1-171",
+   "2002-DOC-B.1-172",
+   "2002-DOC-B.1-173",
+   "2002-DOC-B.1-174",
+   "2002-DOC-B.1-175",
+   "2002-DOC-B.1-176",
+   "2002-DOC-B.1-177",
+   "2002-DOC-B.1-178",
+   "2002-DOC-B.1-179",
+   "2002-DOC-B.1-18",
+   "2002-DOC-B.1-180",
+   "2002-DOC-B.1-181",
+   "2002-DOC-B.1-182",
+   "2002-DOC-B.1-183",
+   "2002-DOC-B.1-184",
+   "2002-DOC-B.1-19",
+   "2002-DOC-B.1-2",
+   "2002-DOC-B.1-20",
+   "2002-DOC-B.1-21"
+  ],
+  "pointers": {
+   "2002-DOC-B.1-166": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-201",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-167": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-203",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-168": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-204",
+    "similarity": 0.995
+   },
+   "2002-DOC-B.1-169": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-205",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-17": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-17",
+    "similarity": 0.994
+   },
+   "2002-DOC-B.1-170": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-206",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-171": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-172": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-208",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-173": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-209",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-174": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-175": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-211",
+    "similarity": 0.992
+   },
+   "2002-DOC-B.1-176": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-213",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-177": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-214",
+    "similarity": 0.989
+   },
+   "2002-DOC-B.1-178": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-215",
+    "similarity": 0.995
+   },
+   "2002-DOC-B.1-179": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-216",
+    "similarity": 0.99
+   },
+   "2002-DOC-B.1-18": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-18",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-180": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-217",
+    "similarity": 0.991
+   },
+   "2002-DOC-B.1-181": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-218",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-182": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-219",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-183": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-221",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-184": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-222",
+    "similarity": 0.997
+   },
+   "2002-DOC-B.1-19": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-19",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-2",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-20": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-21",
+    "similarity": 0.997
+   },
+   "2002-DOC-B.1-21": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-22",
+    "similarity": 0.998
+   }
+  }
+ },
+ "read": {
+  "slice": "u-37",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-166",
+    "to": [
+     "DOC-A.1-201"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7 (Compiler directing facility, preamble) via B.1 item 166",
+    "clause-2023": "7.1 via A.1 item 201",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "when parameterized classes and parameterized interfaces are expanded, relative to the text manipulation stage"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/11.3-CLASS-ID/pb759_parameterized_class and A.1-.../pb1522_replace_before_parameterized_expansion (both accept [2002])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Text manipulation (stage of processing parameterized class expansion)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Text manipulation (stage of processing parameterized class expansion)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.1",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence in both (2002 places it in the clause 7 preamble, 2023 in 7.1; the item cites 7.1/7.2). No data-description, CD or debugging reach. The row's two witnesses run at 2002; the item needs no documentation in either edition.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-167",
+    "to": [
+     "DOC-A.1-203"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.6.7 THROUGH phrase rule 2",
+    "clause-2023": "14.7.8 THROUGH phrase rule 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "level-88 VALUE ... THROUGH with alphanumeric/national literals and no IN alphabet-name, in WS/LS/linkage/file records",
+     "EVALUATE WHEN ... THROUGH",
+     "level-88 entries in record descriptions under a CD (§2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS 88 and EVALUATE: covered by 13.18.63-VALUE/pb398_range_in_alphabet and A.1-.../pb728_level88_group_usage_collating (accept [2002])",
+     "CD record 88: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_usage_records.cob ('_' THROUGH 'A'..'Z' is OUT under the native sequence, as the determination says)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "THROUGH phrase in VALUE clause and EVALUATE statement (collating sequence used for determining range of values when no alphabet-name is specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.7",
+      "quote": "When there is no IN alphabet-name phrase specified for the range, the collating sequence is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.8",
+      "quote": "When there is no IN alphabet-name phrase specified for the range, the collating sequence is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rule 2 is word-identical and 14.6.7 still applies to the VALUE clause and EVALUATE. The 2002 rule also reaches a condition-name in a CD record (cause a), which the row's WS witnesses do not show; the probe shows the same determination there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_usage_records.cob",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record 88 case (probe pcd_usage_records.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_usage_records.cob)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-168",
+    "to": [
+     "DOC-A.1-204"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "7.2.19.3 GR5 (TURN directive)",
+    "clause-2023": "7.3.25.4 GR7 (TURN directive)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an explicit >>TURN ... CHECKING ON without WITH LOCATION (2002 has no exception-checking PERFORM, so no implicit TURN)",
+     "what EXCEPTION-LOCATION, EXCEPTION-LOCATION-N and EXCEPTION-STATEMENT then return"
+    ],
+    "evidence-2002": [
+     "the row's witnesses l1_exception_no_location_arms and exception_statement_ambient do NOT compile at 2002 (COBOL0900 Format-3 PERFORM; COBOL0878 EC-CONTINUE-LESS-THAN-ZERO): probe case-*-2002 folders",
+     "covered instead by conformance:cases/7.3.25-TURN/turn-location-unspecified (accept [2002, 2014, 2023], rules include DOC-A.1-204 but not in the row's test-ref) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p168_turn_no_location.cob (location space, LENGTH 1; national 1)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "TURN directive (whether location information is available when the LOCATION phrase is not specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.3 GR5",
+      "quote": "If the LOCATION phrase is not specified, the implementor shall specify whether this information is made available or not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.4 GR7",
+      "quote": "If the LOCATION phrase is not specified, the implementor shall specify whether this information is made available or not",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.25.2 RV1",
+      "quote": "the returned value is one alphanumeric space character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement and format; 2002 reaches only the TURN directive. The row's evidence does not run at 2002, so the 2002 witness is another test plus the probe. Side note: EXCEPTION-STATEMENT returns 63 characters at 2002 where 2002 15.27.2 says 31 (already reported by slice u-31, not counted here).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p168_turn_no_location.cob",
+    "widening": "2023 adds the implicit TURN of an exception-checking PERFORM",
+    "needs": "KEPT with the 2002 witness turn-location-unspecified added to the row's test-ref (it runs at 2002)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p168_turn_no_location.cob, o2002/p168_turn_no_location.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-169",
+    "to": [
+     "DOC-A.1-205"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR4 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR4 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 13.18.60-USAGE/l1_usage_binary_storage, which runs clean at --std 2002 (probe case-l1_usage_binary_storage-2002: MATCH)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE BINARY clause (computer storage allocation, alignment and representation of data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR4",
+      "quote": "Each implementor specifies the precise effect of the USAGE BINARY clause upon the alignment and representation of the data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR4",
+      "quote": "Each implementor specifies the precise effect of the USAGE BINARY clause upon the alignment and representation of the data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR4 word-identical. The 2002 rule also reaches BINARY items in CD records (cause a); the probe shows width 2 and image FB2E for S9(4) -1234 there, as determined.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-17",
+    "to": [
+     "DOC-A.1-17"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.4.3 GR3g2 (CALL)",
+    "clause-2023": "14.9.4.4 GR3h2 (CALL)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an unsuccessful CALL whose EC-PROGRAM condition (NOT-FOUND, PTR-NULL, RESOURCES, ARG-MISMATCH, RECURSIVE-CALL) is handled by a declarative, no ON OVERFLOW/ON EXCEPTION",
+     "an unsuccessful CALL whose non-EC-PROGRAM condition from GR3a (argument evaluation) is handled by a declarative, with ON OVERFLOW (format 1) or ON EXCEPTION/NOT ON EXCEPTION written: those phrases are ignored"
+    ],
+    "evidence-2002": [
+     "EC-PROGRAM arms: covered by A.1-.../doc_a1_17_call_other_effects_2002 (accept [2002, 2014])",
+     "non-EC-PROGRAM arm with ON OVERFLOW and with ON EXCEPTION: not shown by the row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p17c_call_bound_content.cob (DECL EC-BOUND-SUBSCRIPT, ON OVERFLOW / ON EXCEPTION / NOT ON EXCEPTION ignored, program not called, R unchanged)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CALL statement (other effects of the CALL statement)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3g2",
+      "quote": "All other effects of the CALL statement are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3g2",
+      "quote": "the ON OVERFLOW, ON EXCEPTION, and NOT ON EXCEPTION phrases, if specified, are ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR3h2",
+      "quote": "All other effects of the CALL statement are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR3a",
+      "quote": "If an exception condition exists, no program is called and execution proceeds as specified in general rule 3g",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same implementor sentence, but 2002 g2 also governs a CALL with ON OVERFLOW (format 1, which 2023 removed: COBOL0882 at 2023) when a non-EC-PROGRAM condition is raised; neither the 2023 nor the 2002 witness has that arm. Probe shows the determination holds. While probing, found a separate defect: passing a table (or its element) BY REFERENCE anywhere in a program turns off EC-BOUND-SUBSCRIPT checking for that table (see defect note).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p17c_call_bound_content.cob",
+    "widening": null,
+    "needs": "a 2002 witness for the ON OVERFLOW / non-EC-PROGRAM arm (probe p17c_call_bound_content.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p17c_call_bound_content.cob, o2002/p17c_call_bound_content.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-170",
+    "to": [
+     "DOC-A.1-206"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR11 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR12 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by A.1-.../pb592_binary_usage_range_bounds (accept [2002])",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE (allow wider range than minimum specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR11",
+      "quote": "The implementor may allow a wider range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR12",
+      "quote": "The implementor may allow a wider range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR11 word-identical with 2023 GR12 and the same minimum table. The 2002 rule also reaches these usages in CD records (cause a); probe holds 255 in BINARY-CHAR UNSIGNED and 4294967295 in BINARY-LONG UNSIGNED there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-171",
+    "to": [
+     "DOC-A.1-207"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR13 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR21 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by A.1-.../l1_usage_fixed_width_lengths, which runs clean at --std 2002 (probe case-l1_usage_fixed_width_lengths-2002: MATCH)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE BINARY-SHORT, BINARY-LONG. BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, FLOAT-EXTENDED (representation and length of data item associated with)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "USAGE BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, FLOAT-EXTENDED (representation and length of data item associated with)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR13",
+      "quote": "The representation and length of a data item described with USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR21",
+      "quote": "The representation and length of a data item described with USAGE BINARY-CHAR, BINARY-SHORT, BINARY-LONG, BINARY-DOUBLE, FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "No pointer was given; the same-subject 2023 item is A.1 207 (identical words except 2002's typo 'BINARY-LONG.'), which merges 2002 items 171 and 174 (it cites GR13 and GR21). 2002 GR13 is word-identical with 2023 GR21. The 2002 rule also reaches CD records (cause a); probe lengths 1/2/4/8 and 4/8/8 there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-172",
+    "to": [
+     "DOC-A.1-208"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR6 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR6 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "row witness stepd_mixed_usage_redefines does NOT compile at 2002 (COBOL1502 FUNCTION CONVERT); highest_algebraic_comp5_unsigned runs clean at 2002 but is a COMP-5 (extension) witness; the unit test is edition-free",
+     "WS COMP: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p172_comp_2002.cob (widths 2/4/8/1, S9(4) -1234 image FB2E, picture truncation 12345 -> 2345, same as BINARY)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE COMPUTATIONAL clause (alignment and representation of data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR6",
+      "quote": "Each implementor specifies the precise effect of the USAGE COMPUTATIONAL clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR6",
+      "quote": "Each implementor specifies the precise effect of the USAGE COMPUTATIONAL clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR6 word-identical. The row's COMP witness does not run at 2002 and the 2002 rule also reaches CD records (cause a); both shown by probes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p172_comp_2002.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for WS COMP (probe p172_comp_2002.cob) and for the CD-record case (pcd_all_usages.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-173",
+    "to": [
+     "DOC-A.1-209"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR7 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR7 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 8.1.2-.../l1_usage_display_character_size, which runs clean at --std 2002 (probe case-*-2002: MATCH; also the adopt-2002 widened run)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE DISPLAY (size and representation of characters)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR7",
+      "quote": "Each implementor shall specify the size and representation of characters stored for usage DISPLAY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR7",
+      "quote": "Each implementor shall specify the size and representation of characters stored for usage DISPLAY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR7 word-identical, implied DISPLAY default the same. The 2002 rule also reaches CD records (cause a), where every MCS field is DISPLAY; probe shows X(3) = 3 positions there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-174",
+    "to": [
+     "DOC-A.1-207"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR12 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR13 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by A.1-.../l1_usage_fixed_width_lengths, which runs clean at --std 2002 (MATCH): sizes 4/8/8 and the nesting",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE FLOAT-SHORT, FLOAT-LONG, FLOAT-EXTENDED (size and permitted range of value)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR12",
+      "quote": "The size and permitted range of values for these fields is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR13",
+      "quote": "The size and permitted range of values for these fields is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "No pointer was given; 2023 has no separate A.1 item for float size and range because A.1 207 cites both GR13 (this rule, word-identical with 2002 GR12) and GR21, so 207 is the pointer. The 2002 rule also reaches CD records (cause a); probe sizes 4/8/8 and FLOAT-SHORT 1.5 there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-175",
+    "to": [
+     "DOC-A.1-211"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR9 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR10 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 13.18.60-USAGE/pb164_index_group_image, which runs clean at --std 2002 (MATCH)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE INDEX clause (alignment and representation of data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR9",
+      "quote": "Each implementor specifies the precise effect of the USAGE INDEX clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR10",
+      "quote": "Each implementor specifies the precise effect of the USAGE INDEX clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR9 = 2023 GR10 word for word (2023 inserted MESSAGE-TAG as GR9). The 2002 rule also reaches CD records (cause a); probe shows 8 positions there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-176",
+    "to": [
+     "DOC-A.1-213"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR8 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR8 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 13.18.40-PICTURE/pb646_national_form_numeric_bytes and 8.1.2-.../l1_usage_display_character_size, both clean at --std 2002 (MATCH)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE NATIONAL (size and representation of characters)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR8",
+      "quote": "Each implementor shall specify the size and representation of characters stored for usage NATIONAL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR8",
+      "quote": "Each implementor shall specify the size and representation of characters stored for usage NATIONAL",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR8 word-identical. The 2002 rule also reaches CD records (cause a); probe N(2) = 4 bytes there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-177",
+    "to": [
+     "DOC-A.1-214"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR14a (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR22a (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 13.18.60-USAGE/pb496_object_reference_storage and A.1-.../pb1527_object_reference_group_image (accept [2002]); pb1527-string-object-reference-group refuse-at includes 2002",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE OBJECT REFERENCE clause (amount of storage allocated)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR14a",
+      "quote": "The amount of storage allocated for an object reference data item is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR22a",
+      "quote": "The amount of storage allocated for an object reference data item is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR14a word-identical with GR22a (2023 renames class-name-1 object-class-name-1). A level-01 object reference under a CD is legal in 2002 (SR13 level 1; SR14 bars only the file section) (cause a); probe: 8 positions, SET NULL works.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-178",
+    "to": [
+     "DOC-A.1-215"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR10 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR11 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "row witness l1_usage_packed_decimal_storage does NOT compile at 2002: it uses WITH NO SIGN (COBOL0900), a 2023 phrase",
+     "WS packed-decimal without NO SIGN: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p178_packed_2002.cob (widths 1/2/3/3/3; 7F, 12 3D, 01 23 4F, ..4C, 01 23 4D as determined)",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE PACKED-DECIMAL clause (computer storage allocation, alignment and representation of data)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR10",
+      "quote": "Each implementor specifies the precise effect of the USAGE PACKED-DECIMAL clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR11",
+      "quote": "Each implementor specifies the precise effect of the USAGE PACKED-DECIMAL clause upon the alignment and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR11",
+      "quote": "If the WITH NO SIGN phrase is specified the representation of the data item in the storage of the computer reserves no storage for representing any sign value",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR10 is 2023 GR11 minus the NO SIGN sentences (2023 widening). The only row witness is a NO SIGN program refused at 2002, so nothing in the row shows the 2002 form at 2002; and the rule reaches CD records (cause a). Both shown by probes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p178_packed_2002.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": "2023 adds WITH NO SIGN (no sign nibble)",
+    "needs": "a 2002 witness for packed-decimal without NO SIGN (probe p178_packed_2002.cob) and for the CD case",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-179",
+    "to": [
+     "DOC-A.1-216"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR15 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR23 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 14.2-.../pb970_pointer_by_content_storage_image and 14.9.39-SET/pb465_set_pointer_range_ec (accept [2002]) plus edition-free unit tests",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE POINTER clause (alignment, size, representation, and range of values)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR15",
+      "quote": "Each implementor defines the precise effect of the USAGE POINTER clause upon alignment, size, representation, and range of values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR23",
+      "quote": "Each implementor defines the precise effect of the USAGE POINTER clause upon alignment, size, representation, and range of values",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR15 word-identical with GR23. A level-01 data-pointer under a CD is legal in 2002 (cause a); probe: 8 positions, NULL compare there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-18",
+    "to": [
+     "DOC-A.1-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5.3 GR5 (CANCEL)",
+    "clause-2023": "14.9.5.4 GR5 (CANCEL)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CANCEL of a program in the active state (or containing one) when EC-PROGRAM-CANCEL-ACTIVE checking is not enabled"
+    ],
+    "evidence-2002": [
+     "covered by 14.9.5-CANCEL/pb154_cancel_active (accept [2002, 2023]) for the checked arm, and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p18_cancel_active_unchecked.cob for the unchecked arm the item names (not canceled, run unit ends: the determination), same output at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CANCEL statement (result of canceling an active program when EC-PROGRAM-CANCEL-ACTIVE is not enabled)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.3 GR5",
+      "quote": "If checking for EC-PROGRAM-CANCEL-ACTIVE is not enabled, the results of such a reference are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR5",
+      "quote": "If checking for EC-PROGRAM-CANCEL-ACTIVE is not enabled, the results of such a reference are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format and GR5 identical. The row's witness runs at 2002. Note: that witness shows only the checked arm in either edition; the probe shows the unchecked arm at 2002 and 2023 alike.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p18_cancel_active_unchecked.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-180",
+    "to": [
+     "DOC-A.1-217"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "13.16.58.3 GR16 (USAGE clause), via B.1",
+    "clause-2023": "13.18.60.4 GR24 (USAGE clause), via A.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "items of this usage in working-storage, local-storage, linkage and file records",
+     "items of this usage in record description entries under a CD (communication section, §2002:A.1.1.2)"
+    ],
+    "evidence-2002": [
+     "WS: covered by 13.18.60-USAGE/program_pointer, 14.9.39-SET/pb460_set_program_pointer_effect, 8.4.3.13-.../l1c23_program_address_outermost, pb970, pb244_pointer_group_transfer, w59h_non_cobol_names_not_found (accept [2002]); pb61 is 2023-only",
+     "CD record entries: covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt) (sizes and images equal the WS determination)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USAGE PROGRAM-POINTER clause (alignment, size, and representation of data; and allowable languages)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR16",
+      "quote": "Each implementor defines the precise effect of the USAGE PROGRAM-POINTER clause upon alignment, size, and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.60.4 GR24",
+      "quote": "Each implementor defines the precise effect of the USAGE PROGRAM-POINTER clause upon alignment, size, and representation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR16 word-identical with GR24 including the allowable-languages paragraph. A level-01 program-pointer under a CD is legal in 2002 (cause a); probe: 8 positions there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt)",
+    "widening": null,
+    "needs": "a 2002 witness for the CD-record case (probe pcd_all_usages.cob is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pcd_all_usages.cob (o2002/pcd_all_usages.txt))"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-181",
+    "to": [
+     "DOC-A.1-218"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.45.3 GR7 and GR12 (USE); 9.1.12; 14.5.12.1.2",
+    "clause-2023": "14.9.49.4 GR7 and GR12; 9.1.13; 14.6.13.1.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 and format 3 USE procedures after a fatal I-O status (3x, 4x, fatal 9x; 2002 has no 7x), checking off and on",
+     "the same when the I-O operation is an implicit one of a SORT or MERGE (USING/GIVING file): 2002 has no SORT/MERGE carve-out in USE GR7/GR12 nor in 14.5.12.1.2"
+    ],
+    "evidence-2002": [
+     "unchecked: covered by 14.9.49-USE/pb344_use_mode_read_exception_2002 (accept [2002])",
+     "checked, plain OPEN: the row's C# witnesses compile at 2023 only; covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/u2002/p181a.cob and p181b.cob (USE runs, then abnormal termination) ",
+     "checked, SORT USING file missing (35): probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/u2002/p181d.cob (format 1) and p181f.cob (format 3 EC-I-O-PERMANENT-ERROR): USE runs, then the SORT completes and the run CONTINUES (rc 0): WRONG at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "USE statement (action taken following execution of the USE procedure when I-O status value indicates a fatal exception condition)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.45.3 GR7",
+      "quote": "If the I-O status value does indicate a fatal EC-I-O exception condition, the implementor determines what action is taken as described in 9.1.12, I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.45.3 GR12",
+      "quote": "If the I-O status value does indicate a fatal error, the implementor determines what action is taken",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If execution of the declarative completes normally the execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is enabled, execution of the run unit is terminated abnormally",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.36.3 GR11a",
+      "quote": "If a non-fatal exception condition exists as a result of the execution of the implicit OPEN statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.49.4 GR7a",
+      "quote": "If the USE statement was invoked from a MERGE or a SORT statement, the rules for those statements are followed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If the executed statement is a MERGE or SORT statement, then the rules for those statements apply",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item's words match but the rules it names differ: 2023 GR7a/GR12a and 14.6.13.1.3 rule 2 send a SORT/MERGE-invoked USE to the SORT/MERGE rules, and docs/CONFORMANCE.md D-SORT-IMPLICIT-TRANSFERS rests its 'checked SORT continues' reading on 14.6.13.1.3 rule 2 alone. 2002 has neither: SORT GR11a covers only a non-fatal OPEN of the USING file, so a checked fatal status after a USE that completes normally falls to 14.5.12.1.2 (rule 2 for a format 3 USE, rule 4 otherwise): abnormal termination, which is also DOC-A.1-218's own determination for a plain OPEN. The compiler applies the 2023 carve-out at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/u2002/p181f.cob",
+    "widening": null,
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a checked fatal status on a SORT/MERGE USING file is to continue after the USE procedure, where 2002 requires abnormal termination; defect to file",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/u2002/p181f.cob: >>TURN EC-I-O CHECKING ON; USE AFTER EXCEPTION CONDITION EC-I-O-PERMANENT-ERROR; SORT S ... USING F GIVING G with F missing. Expected per §2002:14.5.12.1.2 rule 2: 'IN USE FS=35' then abnormal termination. Observed --std 2002: BEFORE / IN USE FS=35 / AFTER-SORT FS=35, rc 0 (u2002/p181f-2002.txt); format 1 USE p181d same)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-182",
+    "to": [
+     "DOC-A.1-219"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.1.1 User-defined words",
+    "clause-2023": "8.3.2.2 User-defined words",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "extended letters in externalized user-defined words: outermost program-names, class-names, function-prototype-, interface-, method-, program-prototype-, property-, user-function-names; EXTERNAL data-, file-, record-names"
+    ],
+    "evidence-2002": [
+     "covered by 8.1.3-.../pb1402_extended_letters (accept [2002])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "User-defined words (whether extended letters may be specified in user-defined words externalized to the operating environment)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "The implementor shall specify whether extended letters may be specified in user-defined words externalized to the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.2",
+      "quote": "The implementor shall specify whether extended letters may be specified in user-defined words externalized to the operating environment",
+      "check": "OK"
+     }
+    ],
+    "reason": "Sentence and the externalized-word list identical (2023 renames class-names object-class-names). No cd-name is externalized. The row's witness runs at 2002 and the determination (permitted) is edition-neutral.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-183",
+    "to": [
+     "DOC-A.1-221"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.2 SR16",
+    "clause-2023": "14.9.51.3 SR16",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "which feature-names a WRITE ADVANCING mnemonic-name-1 may name (C01..C12, CSP per item 190); a switch or device mnemonic refused"
+    ],
+    "evidence-2002": [
+     "refusal arm: covered by wiseowl diagnostics pb862-write-advancing-device-mnemonic (refuse-at includes 2002)",
+     "provided arm: the row's FileIoDifferentialTests run at 2023 only (LINE SEQUENTIAL read-back); covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob (C01 and CSP accepted at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "WRITE statement (mnemonic-name-1)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.2 SR16",
+      "quote": "When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.3 SR16",
+      "quote": "When mnemonic-name-1 is specified, the name is associated with a feature-name specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "SR16 word-identical, and WRITE's format offers mnemonic-name-1 in the same place (2023 adds BEFORE and AFTER together, a widening). The positive witness is a 2023-only test; the probe is the 2002 witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob",
+    "widening": null,
+    "needs": "KEPT with a 2002 witness for the provided arm (probe p183_write_c01.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-184",
+    "to": [
+     "DOC-A.1-222"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.47.3 GR21d",
+    "clause-2023": "14.9.51.4 GR25d",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the advance a feature-name mnemonic gives in WRITE BEFORE/AFTER ADVANCING (C01 = PAGE, CSP = zero lines)"
+    ],
+    "evidence-2002": [
+     "the row's two FileIoDifferentialTests compile at 2023 only; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob: files written through C01 and through PAGE are byte-identical (cmp), and CSP equals ADVANCING 0 LINES"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "WRITE statement (page advance when mnemonic-name-1 specified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.47.3 GR21d",
+      "quote": "If mnemonic-name-1 is specified, the representation of the printed page is advanced according to the rules specified by the implementor for that hardware device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.51.4 GR25d",
+      "quote": "If mnemonic-name-1 is specified, the representation of the printed page is advanced according to the rules specified by the implementor for that hardware device",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR21d = GR25d word for word. The row's witnesses do not run at 2002; the probe shows the determination there.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob",
+    "widening": null,
+    "needs": "KEPT with a 2002 witness (probe p183_write_c01.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/w2002/p183_write_c01.cob, p183m.txt == p183p.txt, p183z.txt == p183y.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-19",
+    "to": [
+     "DOC-A.1-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.5.3 GR10 (CANCEL)",
+    "clause-2023": "14.9.5.4 GR10 (CANCEL)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CANCEL of a program that is not a COBOL program"
+    ],
+    "evidence-2002": [
+     "the row is recorded with a derivation (docs/CONFORMANCE.md DRV-DOC-A.1-19) and no test-ref; the derivation is about the edition-free runtime path ProgramTable.Cancel; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p19_cancel_unlocated.cob shows the same no-op at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CANCEL statement (result of canceling a non-COBOL program)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.3 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR10 identical; the row's record is a derivation that is edition-neutral, and 2002 offers no more ways to declare a non-COBOL program than 2023 does. Recorded the same way at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p19_cancel_unlocated.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-2",
+    "to": [
+     "DOC-A.1-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.1.3 GR5",
+    "clause-2023": "14.9.1.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 (hardware) ACCEPT identifier-1 without FROM"
+    ],
+    "evidence-2002": [
+     "the row's AcceptDifferentialTests.Device_ShortLine_StoresLeftAlignedSpaceFilled compiles at dialect 85 (its default), not 2002; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p2_accept_no_from.cob piped 'ABC' -> 'ABC       ]' at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "ACCEPT statement (device used when FROM is unspecified)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.1.3 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM option is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM phrase is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same rule ('option' vs 'phrase' only). The row's witness runs at 85, never at 2002; the probe is the 2002 witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p2_accept_no_from.cob",
+    "widening": null,
+    "needs": "KEPT with a 2002 witness (probe p2_accept_no_from.cob, stdin piped)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p2_accept_no_from.cob, o2002/p2_accept_no_from.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-20",
+    "to": [
+     "DOC-A.1-21"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.13.3 RV2",
+    "clause-2023": "15.15.4 RV2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the character returned for an ordinal position shared by several characters whose order is undefined (a locale alphabet)"
+    ],
+    "evidence-2002": [
+     "covered by A.1-.../l1c02_char_locale_tie (accept [2002])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CHAR function (which one of the multiple characters is returned)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.13.3 RV2",
+      "quote": "the implementor shall define which of those multiple characters is returned; for a given implementation, collating sequence, and ordinal position, every invocation of the CHAR function shall return the same character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.15.4 RV2",
+      "quote": "the implementor shall define which of those multiple characters is returned; for a given implementation, collating sequence, and ordinal position, every invocation of the CHAR function shall return the same character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Returned-value rule 2 word-identical; function formats and argument rules identical; ALPHABET ... LOCALE exists in 2002. The row's witnesses run at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-21",
+    "to": [
+     "DOC-A.1-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.14.3 RV2",
+    "clause-2023": "15.16.4 RV2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the character returned for an ordinal position shared by several characters whose order is undefined (a locale alphabet)"
+    ],
+    "evidence-2002": [
+     "covered by A.1-.../l1_char_national_locale_tie and 12.3.7-SPECIAL-NAMES/l1_char_national_also_positions (accept [2002])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "CHAR-NATIONAL function (which one of the multiple characters is returned)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.14.3 RV2",
+      "quote": "every invocation of the CHAR-NATIONAL function shall return the same character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.16.4 RV2",
+      "quote": "every invocation of the CHAR-NATIONAL function shall return the same character",
+      "check": "OK"
+     }
+    ],
+    "reason": "Returned-value rule 2 word-identical; function formats and argument rules identical; ALPHABET ... LOCALE exists in 2002. The row's witnesses run at 2002.",
+    "probe": null,
+    "widening": null
+   }
+  ],
+  "defects": [
+   {
+    "id": "D1",
+    "rule": "2002-DOC-B.1-181 (USE after a fatal I-O status; also 2002 14.5.12.1.2)",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/u2002/p181f.cob (and p181d.cob, format 1)",
+    "expected": "§2002:14.5.12.1.2 rule 2: 'If execution of the declarative completes normally the execution of the run unit is terminated abnormally' (2002 SORT GR11a covers only a non-fatal OPEN of the USING file; 2002 has no MERGE/SORT carve-out like §2023:14.6.13.1.3 rule 2)",
+    "observed": "--std 2002: BEFORE / IN USE FS=35 / AFTER-SORT FS=35, rc 0 (u2002/p181f-2002.txt)"
+   },
+   {
+    "id": "D2",
+    "rule": "§2002:8.4.1.2.3 GR2 (EC-BOUND-SUBSCRIPT), every edition; found while probing 2002-DOC-B.1-17",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/pbound5.cob (>>TURN EC-BOUND-SUBSCRIPT CHECKING ON; 01 T. 05 TE PIC X(4) OCCURS 3; I = 5; MOVE TE(I) TO X; ...; CALL \"PB5SUB\" USING TE(1)); variants pbound5_T.cob (USING T) same, pbound5_BYCONTENT*.cob and pbound5_X.cob correct; control pbound.cob",
+    "expected": "§2002:8.4.1.2.3 GR2 'If the value of the subscript is not a positive integer or is less than one or greater than the highest permissible occurrence number' -> EC-BOUND-SUBSCRIPT (fatal), checking enabled -> abnormal termination (§2002:14.5.12.1.2 rule 4), as pbound.cob does",
+    "observed": "--std 2002 and 2023: 'X=    ' and EXCEPTION-STATUS spaces, rc 0: passing the table or an element BY REFERENCE anywhere in the program silently disables the subscript check for that table (a read past the table)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-37",
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-166",
+    "verdict": "UPHELD",
+    "reason": "Attacked through the 2002-only debugging line. 2002's clause 7 preamble carries an extra sentence, absent in 2023 7.1, placing the inclusion or exclusion of debugging lines in the compilation stage, the same stage in which expansion may occur. So in 2002 the 'manner and time' determination also reaches a parameterized class whose source holds debugging lines. That does not change the requirement: the only constraint stays 'after the text manipulation stage', and debugging-line inclusion is decided by the class definition's own SOURCE-COMPUTER (2002 12.2.4.3 GR4), not by the order of expansion. Probe r166_param_debug.cob at --std 2002: an expansion of a class WITH DEBUGGING MODE compiles its fixed D and floating >>D lines; an expansion of a class without it treats a non-COBOL D line as a comment. Both row witnesses (pb759_parameterized_class, pb1522_replace_before_parameterized_expansion) MATCH their goldens at --std 2002 (refute-u-37/w). Side finding: SOURCE-COMPUTER. WITH DEBUGGING MODE. with no computer-name is refused at 2002 (COBOL1971); this is already filed as kb/Work PB5609.",
+    "citations": [
+     {
+      "cite": "§2002:7",
+      "quote": "The inclusion or exclusion of debugging lines occurs in the compilation stage",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7",
+      "quote": "The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.1",
+      "quote": "except that it occurs after the text manipulation stage of processing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.4.3 GR4",
+      "quote": "If the DEBUGGING MODE clause is specified in a source unit, all debugging lines are compiled",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-37/r166_param_debug.cob (o2002/r166_param_debug.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-18",
+    "verdict": "OVERTURNED",
+    "reason": "GR5 is word-identical in both editions, but the SAME test in the brief also asks that the 2023 row's evidence cover the whole 2002 scope, and here it does not. Item 18's whole subject is the NOT-enabled arm ('result of canceling an active program when EC-PROGRAM-CANCEL-ACTIVE is not enabled'). The row's only test-ref, pb154_cancel_active, starts with >>TURN EC-PROGRAM-CANCEL-ACTIVE CHECKING ON, so it shows only the enabled arm; the reader says so. pb5241_cancel_main_program_active also turns checking on. No committed test at any edition runs the not-enabled arm. It is shown only by the reader's probe p18_cancel_active_unchecked.cob; rerun here at --std 2002 it prints 'BEFORE N=1', then abnormal termination, 'not canceled', rc 1, which matches docs/conformance/7/DOC-A.1-18.md. The gap is the same at 2023, so this is a missing witness, not a change in the text. A KEPT record would still claim that pb154_cancel_active shows item 18 at 2002, and it does not. The compiler's behaviour is correct.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR5",
+      "quote": "If checking for EC-PROGRAM-CANCEL-ACTIVE is not enabled, the results of such a reference are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR5",
+      "quote": "If checking for EC-PROGRAM-CANCEL-ACTIVE is not enabled, the results of such a reference are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "needs": "a witness of the not-enabled arm at --std 2002 (and 2023): the reader's p18_cancel_active_unchecked.cob as a golden, added to DOC-A.1-18's test-ref; then KEPT",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p18_cancel_active_unchecked.cob (rerun: refute-u-37/w/p18_cancel_active_unchecked.2002.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-182",
+    "verdict": "UPHELD",
+    "reason": "Attacked through the 2002 word-type list. 2002 has two types called class-name, '(for object orientation)' and '(for truth value proposition)', and its externalized list says only 'class-names', where 2023 says 'object-class-names'. On a literal 2002 reading, a SPECIAL-NAMES CLASS name is externalized too. That reading changes nothing a program can show, because the determination ('permitted') accepts extended letters in it either way. Probe r182_ext_letters.cob at --std 2002: CLASS KLÄSSE (truth-value class-name) and an EXTERNAL data-name GEMEINSAMÉ shared between two programs, one of them written in lowercase, both work ('IN KLAESSE', 'SUB SEES ÉXT1'). The list has no cd-name. The row witness pb1402_extended_letters MATCHES at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "class-name (for truth value proposition)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "program-names of outermost programs, class-names, function-prototype-names, interface-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.2.2",
+      "quote": "program-names of outermost programs, object-class-names, function-prototype-names, interface-names",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "The implementor shall specify whether extended letters may be specified in user-defined words externalized to the operating environment",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-37/r182_ext_letters.cob (o2002/r182_ext_letters.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-19",
+    "verdict": "DOUBTFUL",
+    "reason": "GR10 and GR7 are word-identical, and 2002 has the same CALL-CONVENTION directive and no extra way to declare a non-COBOL program. The row is a derivation (DRV-DOC-A.1-19, indistinguishable consequent). It rests on CANCEL of a name that locates no program being the GR7 no-op 'which the corpus already pins'. The test that pins that not-located path, pb154_cancel_scope (CANCEL \"NOPE154\"), is accept [2023] only because it uses DYNAMIC LENGTH. At 2002 the corpus pins only the already-canceled and never-called-containee arms of GR7 (pb154_cancel_cascade). Those arms reach an existing program node, not the null-node path the derivation names. At --std 2002 the not-located path is shown only by the reader's p19_cancel_unlocated.cob (rerun here: 'AFTER CANCEL', blank EXCEPTION-STATUS, rc 0). Either of two things settles it: add a not-located CANCEL witness that runs at 2002, or rule that the derivation is edition-neutral because GR7's consequent is pinned at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.5.3 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.5.4 GR10",
+      "quote": "If the program to be canceled is other than a COBOL program, the effects of the CANCEL statement are implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.5.3 GR7",
+      "quote": "No action is taken when a CANCEL statement is executed referencing a program that has not been called in this run unit",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-37/p19_cancel_unlocated.cob (rerun: refute-u-37/w/p19_cancel_unlocated.2002.txt)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-20",
+    "verdict": "UPHELD",
+    "reason": "Compared 15.13 (2002) with 15.15 (2023) in full: the definition, format, both argument rules and both returned-value rules are word-identical. The alphanumeric program collating sequence is set the same way in both editions: OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE with the same IS / FOR ALPHANUMERIC / FOR NATIONAL forms, ALPHABET ... LOCALE, and SET LOCALE. 2002 has no SET form that changes the collating sequence. No CD, debugging-line or removed-form reach. The witness l1c02_char_locale_tie MATCHES at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.13.3 RV2",
+      "quote": "If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.15.4 RV2",
+      "quote": "If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR9",
+      "quote": "the initial alphanumeric program collating sequence is the collating sequence associated with alphabet-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-21",
+    "verdict": "UPHELD",
+    "reason": "15.14 (2002) and 15.16 (2023) are word-identical in full. The national program collating sequence is set the same way in both editions (see item 20). Both witnesses, l1_char_national_locale_tie and l1_char_national_also_positions, MATCH at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.14.3 RV2",
+      "quote": "every invocation of the CHAR-NATIONAL function shall return the same character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.16.4 RV2",
+      "quote": "every invocation of the CHAR-NATIONAL function shall return the same character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "defects": [
+   {
+    "id": "R1",
+    "known-as": "kb/Work PB5609 (already filed)",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-37/r166_sc_plain.cob and r166_sc_nowith.cob",
+    "expected": "§2002:12.2.4.3 GR3 'When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified' - computer-name-1 is optional before WITH DEBUGGING MODE",
+    "observed": "--std 2002: COBOL1971 unexpected 'WITH' (and unexpected 'DEBUGGING' without WITH)"
+   }
+  ]
+ },
+ "imported": {
+  "asked": "a5b581bb237c8c732249c1afb6f5235abd7e243157b20874d018b910ea676202",
+  "read": "207f0a7b4d606661e971087fa96d3e447f7b1b35b529afadbdf51d43b9e3e669",
+  "refute": "6bdce8032b4d4d9e8b5b56c569fb75ec5fb6377d7e7be21e0b0b8aa3ddc51004"
+ }
+}

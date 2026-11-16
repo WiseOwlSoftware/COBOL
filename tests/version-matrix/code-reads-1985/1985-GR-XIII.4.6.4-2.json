@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-XIII.4.6.4-2",
+ "rule-digest": "5e33adad5916",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "c0d9641a2897915bee0f7c2df8657720e5cd6da1112862f229cfc365e2deefc3",
+   "refuter": "18c7ae09b768c6da647cd340729cc2f0d35edc419b3f75b3129dac3ae2c79bae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.6.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SUPPRESS inhibits only the instance of its USE procedure's report group during whose USE BEFORE REPORTING procedure it executes; an instance whose procedure does not execute SUPPRESS is presented, for every report group type (RH, PH, CH, DE, CF, PF, RF).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindSuppress; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitSuppress",
+  "edition-consulted": [],
+  "edition-search": "Grepped DialectLevel|Edition.Has|IsActive(|CobolVersion|Constructs. in ReportWriterBinder.cs, ReportWriterEmitter.cs, EmitterState.cs and Edition in runtime ReportWriter.cs: the SUPPRESS path (BindSuppress, EmitSuppress, SuppressPrinting, RunBeforeReporting, BeginGroup) consults no edition; the engine's Edition property feeds four DialectBehaviors, none on this path (GroupIndicateConsumedByIssuedGenerate in Generate reads whether a suppressed detail consumed GROUP INDICATE, a different rule). No Constructs/VersionConformancePass gate on suppressStatement.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1186 covers DE only (named group, PERFORM from outside the hook, a new instance after a suppressed one); repeated suppression of CH/CF/RH and a run of consecutive suppressed instances are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/supa.cob",
+    "printed": "six GENERATEs with SUP=N,Y,N,Y,Y,N: report holds DE 1, DE 3, DE 6 only; LC after each 05,05,08,08,08,11",
+    "expected": "only instances whose USE procedure executed SUPPRESS are inhibited (GR2): DE 1, 3, 6 print; 2, 4, 5 do not"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/supb.cob",
+    "printed": "CH(K=1) suppressed, CH(K=2) not: CH 2 printed on page 2, CH 1 absent; CF(1) suppressed, CF(2) printed at TERMINATE",
+    "expected": "each instance needs its own SUPPRESS"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.6.4 GR2",
+    "check": "OK  §1985:XIII.4.6.4 GR2  (4.6.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The suppression flag is scoped to the hook of the named group: cleared on entry to RunBeforeReporting and restored on exit, so no SUPPRESS carries to a later instance. Same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.6.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read ReportWriter.cs#SuppressPrinting (honoured only when groupIndex == _hookGroup) and #RunBeforeReporting (flag cleared on entry, restored on exit). Probe s4_cross_perform.cob (--std 85): DE-A's USE PERFORMs DE-B's USE paragraph, which executes SUPPRESS; DE-B GENERATEd with SUP=N then Y: report DA 1 / DB 2 / DA 4, so the SUPPRESS executed under DE-A's hook inhibited neither DE-A (GR1: only the group named in its own USE procedure) nor a later DE-B instance, and DB 3, whose own procedure executed SUPPRESS, was inhibited. Probe s1_global_suppress.cob (class c, 1985 IPC USE GLOBAL BEFORE REPORTING in the containing program, GENERATE from a contained program of a GLOBAL report): USE runs for DA 1,2,4; report DA 1 / DB 3 / DA 4, only the instance whose procedure executed SUPPRESS inhibited. cite.py: OK §1985:XIII.4.6.4 GR1; OK §1985:XIII.4.6.4 GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

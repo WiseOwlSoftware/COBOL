@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.26.3-1",
+ "rule-digest": "e3c8303023e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GroupIndicatePending; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ArmGroupIndicate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GroupIndicatePresent; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+ "test-ref": "conformance:cases/13.18.28-GROUP-INDICATE/pb1244_group_indicate_per_detail_group; conformance:cases/13.18.28-GROUP-INDICATE/l1c12_group_indicate",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.28.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical except the clause numbers of the PRESENT WHEN and PAGE cross-references (13.16.39/13.16.37 vs 13.18.41/13.18.39, the same clauses). Detail groups exist only in the report section; no CD reach. Cited: §2002:13.16.26.3 GR1."
+}

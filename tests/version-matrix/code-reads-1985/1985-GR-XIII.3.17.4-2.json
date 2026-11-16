@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-XIII.3.17.4-2",
+ "rule-digest": "7c381f96924d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "a652999e56617f75543a587e4d1bb27b816ba80155b0b4704bf4c89a3c8a00da",
+   "refuter": "a22cda3e9c7539ca92270740e246a27b8e8cb9d5f803a643b155a4c072df3339"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.17.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a numeric report (and data) description entry whose PICTURE has 'S' and to which no SIGN clause applies carries an operational sign whose position and representation are implementor-defined (documented determination DOC-A.1-177: fused trailing over-punch, ibm table by default), occupying no character position of its own (GR3's separate-sign rules do not apply).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
+    "switches": "at DialectLevel < 2002 a WRITTEN report SIGN clause without SEPARATE (and a group-level one) is refused COBOL0900 (SR3); an entry with no SIGN clause, the GR2 case, is skipped (sign is null -> continue), so the default-sign path is identical",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep CobolVersion/DialectLevel/Edition in PicInfo.SignKindFor, ZonedSign.cs, CobolNum.cs: none; SignEncoding is a compile option on EditionContext (EditionContext.cs:113), not an edition switch",
+  "behaviour-differs-by-edition": "no for the default sign (GR2); yes for a written report SIGN clause without SEPARATE (refused at 85, admitted from 2002)",
+  "witnesses-cover": "part: the witness pins the default sign on WORKING-STORAGE items only; the report-group printable item and sum counter with a default sign are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sign_rpt.cob",
+    "printed": "[12L 12C 0N -123 |] / [12L |]  (PIC S999 SOURCE -123, PIC S999 SOURCE +123, PIC S9V9 SOURCE -0.5, PIC S999 SIGN LEADING SEPARATE SOURCE -123, sum counter PIC S999 SUM -123)",
+    "expected": "implementor's representation per DOC-A.1-177 (trailing over-punch, 3 positions for S999, no separate position); SEPARATE item '+'/'-' leading (GR3c)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sign_rpt_nosep.cob",
+    "printed": "error COBOL0900: a SIGN clause without SEPARATE CHARACTER in a report group description entry requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "§1985:XIII.3.17.3 SR3: SEPARATE CHARACTER must be specified in a report group entry; refusal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.17.4 GR2",
+    "check": "OK  §1985:XIII.3.17.4 GR2  (3.17.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The default (no SIGN clause) signed printable item and sum counter print the documented trailing over-punch at --std 85 and occupy no extra column, so GR3 indeed does not apply. SignKindFor takes no edition; only the SR3 screen of written SIGN clauses is edition-gated.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.17.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-037: sign_edge-001 printed [00{|99999999999999999R|1K|12L|] for PIC S999 SOURCE 0 (positive zero fused '{'), PIC S9(18) SOURCE -999999999999999999 (18 positions, 'R' fused), PIC S99 VALUE -12 ('1K'), PIC S999 GROUP INDICATE -123 ('12L'); the '|' at column 4 right after a COLUMN 1 PIC S999 proves the 'S' takes no position (GR3 not applied). Class c: a SIGN clause on the 01 report group (sign_grp-001) and on an 02 group (sign_grp2-001) are both refused COBOL0900 at 85, so no group SIGN can 'apply' to an elementary item and the default case is exactly the no-SIGN-written case. All matches DOC-A.1-177 (trailing fused, ibm table). Edition sites: DataBinder.SignClause.cs line 59 (DialectLevel >= 2002 return) is the reader's site; PicInfo.SignKindFor and SignEncoding take no edition. cite.py: 'OK  §1985:XIII.3.17.4 GR2  (3.17.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.17.3 SR1  (3.17.3 Syntax Rules)  the text is in SR1'. Not probed: --sign-encoding ascii (the run helper passes no extra options).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

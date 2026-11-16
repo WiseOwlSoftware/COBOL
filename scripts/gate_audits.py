@@ -53,6 +53,10 @@ AUDITS = (
     # edition (kb/Work PB5675), every KEPT row's own witness (its test-ref) is a suite case that runs there, of the kind
     # its rule needs: a narrowed or moved witness is red, by row and case.
     ("LINEAGE READS", ["scripts/spec/lineage_reads.py", "--check"]),
+    # kb/Work PB5759: every code read of an older edition's rule (the tracked record of a reader's and a refuter's read on the
+    # code at the rule's own edition) parses to its shape, names a rule of the edition, cites its own text in citations that
+    # check, holds its parts as imported, and, contradicted, names its mechanism's note. Stale, undecided and owed are printed.
+    ("CODE READS", ["scripts/spec/code_reads.py", "--check"]),
     # kb/Work PB689, PB5256: the independent count critic, every held ISO edition: each rule block holds exactly the
     # ordinals its transcription prints, but where the catalog records a finding that explains the difference.
     ("CATALOG COVERAGE", ["scripts/spec/audit_catalog_coverage.py", "--held", "--check"]),

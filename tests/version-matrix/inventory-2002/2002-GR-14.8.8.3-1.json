@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.8.3-1",
+ "rule-digest": "0154816f979b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody",
+ "test-ref": "conformance:cases/14.8.8@2002-CONTINUE-STATEMENT/g2con01_every_2002_position",
+ "notes": "§2002:14.8.8.3 GR1: CONTINUE has no effect; in g2con01 control and N1's values after each CONTINUE are as without it (L1..L6), matched at --std 2002."
+}

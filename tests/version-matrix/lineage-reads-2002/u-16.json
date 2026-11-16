@@ -1,0 +1,1558 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-16 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-16",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-13.16.36.3-8",
+   "2002-SR-13.16.38.2-10",
+   "2002-SR-13.16.38.2-19",
+   "2002-SR-13.16.38.2-2",
+   "2002-SR-13.16.38.2-20",
+   "2002-SR-13.16.38.2-21",
+   "2002-SR-13.16.38.2-22",
+   "2002-SR-13.16.38.2-23",
+   "2002-SR-13.16.38.2-24",
+   "2002-SR-13.16.38.2-25",
+   "2002-SR-13.16.38.2-3",
+   "2002-SR-13.16.38.2-4",
+   "2002-SR-13.16.38.2-6",
+   "2002-SR-13.16.38.2-7",
+   "2002-SR-13.16.38.2-8",
+   "2002-SR-13.16.38.2-9",
+   "2002-GR-13.16.38.3-10",
+   "2002-GR-13.16.38.3-11",
+   "2002-GR-13.16.38.3-12",
+   "2002-GR-13.16.38.3-13",
+   "2002-GR-13.16.38.3-14",
+   "2002-GR-13.16.38.3-17",
+   "2002-GR-13.16.38.3-7",
+   "2002-GR-13.16.38.4-11",
+   "2002-GR-13.16.38.4-5"
+  ],
+  "pointers": {
+   "2002-GR-13.16.36.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.38.4-8",
+    "similarity": 0.961
+   },
+   "2002-SR-13.16.38.2-10": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.40.3-34",
+    "similarity": 0.541
+   },
+   "2002-SR-13.16.38.2-19": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.40.3-23",
+    "similarity": 0.994
+   },
+   "2002-SR-13.16.38.2-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.40.3-2",
+    "similarity": 0.58
+   },
+   "2002-SR-13.16.38.2-20": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.40.3-24",
+    "similarity": 0.589
+   },
+   "2002-SR-13.16.38.2-21": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.40.3-18",
+    "similarity": 0.7
+   },
+   "2002-SR-13.16.38.2-22": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.40.3-18",
+    "similarity": 0.761
+   },
+   "2002-SR-13.16.38.2-23": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.40.3-26",
+    "similarity": 0.704
+   },
+   "2002-SR-13.16.38.2-24": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.40.3-27",
+    "similarity": 0.997
+   },
+   "2002-SR-13.16.38.2-25": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.40.3-28",
+    "similarity": 0.776
+   },
+   "2002-SR-13.16.38.2-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.40.3-31",
+    "similarity": 0.4
+   },
+   "2002-SR-13.16.38.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.40.3-4",
+    "similarity": 0.971
+   },
+   "2002-SR-13.16.38.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.40.3-14",
+    "similarity": 0.881
+   },
+   "2002-SR-13.16.38.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.40.3-6",
+    "similarity": 0.999
+   },
+   "2002-SR-13.16.38.2-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.40.3-7",
+    "similarity": 0.911
+   },
+   "2002-SR-13.16.38.2-9": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-13.18.40.3-33",
+    "similarity": 0.562
+   },
+   "2002-GR-13.16.38.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-10",
+    "similarity": 0.9
+   },
+   "2002-GR-13.16.38.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-11",
+    "similarity": 0.961
+   },
+   "2002-GR-13.16.38.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-13",
+    "similarity": 0.945
+   },
+   "2002-GR-13.16.38.3-13": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-14",
+    "similarity": 0.907
+   },
+   "2002-GR-13.16.38.3-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-15",
+    "similarity": 0.969
+   },
+   "2002-GR-13.16.38.3-17": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.40.4-18",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.38.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.4-7",
+    "similarity": 0.912
+   },
+   "2002-GR-13.16.38.4-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.40.5-11",
+    "similarity": 0.993
+   },
+   "2002-GR-13.16.38.4-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.40.5-5",
+    "similarity": 0.773
+   }
+  }
+ },
+ "read": {
+  "slice": "u-16",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.36.3-8",
+    "to": [
+     "GR-13.18.38.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36.3 (OCCURS, general rules, format 2) GR8",
+    "clause-2023": "13.18.38.4 GR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alphanumeric, bit, national and strongly-typed group items with a subordinate format 2 (variable-table) OCCURS DEPENDING entry, in file, working-storage, local-storage and linkage records: a) data-name-1 outside the group, including the zero-length case; b) data-name-1 inside the group, sending (current length) and receiving (maximum length)",
+     "the same groups in record entries under a CD (2002 Annex A)"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/o-odo-ws.cob at --std 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/o-odo-ws-2002.out: A-RECV [AB---], A-SEND [AB] LEN 2, A-ZERO LEN 0, B-RECV N2=3 [3ABC], B-SEND [1A] LEN 2, national group N-SEND LEN 3); bit and strongly-typed groups not shown",
+     "CD record": "not shown by the 2023 row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/o-odo-cd.cob at --std 2002 (identical output, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/o-odo-cd-2002.out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR8",
+      "quote": "specifies the DEPENDING phrase of the OCCURS clause is an occurs-depending group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in the term: 2002 'variable-table format' / 'variable-length data item' vs 2023 'DEPENDING phrase' / 'occurs-depending group item' (2023 renamed it because it adds dynamic-length items); in 2002 the variable-table format is format 2 (the report-writer format 3 is outside the rule's FORMAT 2 heading). Behaviour a) and b) is the same. The 2002 rule also reaches CD records, which the 2023 row's evidence cannot show; the probe shows the compiler correct there. The 2023 row's pb80_based_odo_group is refused as a 2002 case (S1 list A); bit and strongly-typed groups were not probed.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/o-odo-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (probe o-odo-cd.cob) and for the non-CD cases at 2002 (probe o-odo-ws.cob), since the 2023 row's pb80 case is not a 2002 program",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/o-odo-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-10",
+    "to": [
+     "SR-13.18.40.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 (PICTURE, syntax rules, format 1) SR10",
+    "clause-2023": "13.18.40.3 SR12 b (the slice pointer SR-13.18.40.3-34 is the format 2 rule; the word-same 2023 text is SR12 b under 'If the FOR phrase is not specified')",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every format 1 picture character-string (file, working-storage, local-storage, linkage, report, screen entries): CR, DB, E, S, V, '.' at most once",
+     "the same in record entries under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes n-sr10a..d-ws at --std 2002 (9V9V9, 99.9.9, 99CRCR, 99DBDB each COBOL1934 'may appear only once')",
+     "CD record": "covered by probes n-sr10a..d-cd at --std 2002 (same COBOL1934): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10b-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10c-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10c-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10d-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr10d-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR10",
+      "quote": "Each of the symbols from the set 'CR', 'DB', 'E', 'S', 'V', '.' may appear only once in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR12",
+      "quote": "may appear only once in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement; 2023 moved it under SR12 'If the FOR phrase is not specified' (2002 has no EDITING/FOR phrase, so every 2002 picture is that case). The slice pointer SR-34 (format 2: '+', '.', cs) is the wrong twin; the right one is SR-13.18.40.3-12. Scope also reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr10a-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr10a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-19",
+    "to": [
+     "SR-13.18.40.3-23"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR19",
+    "clause-2023": "13.18.40.3 SR23",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 pictures: '+', '-', 'CR', 'DB' mutually exclusive except the floating-point edited significand '-' with the exponent '+' (GR12b)",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes n-sr19a/b-ws (+99CR, -99+ refused COBOL1934) and n-sr19c-ws (-9.9E+99 accepted) at --std 2002",
+     "CD record": "covered by probes n-sr19a/b/c-cd at --std 2002 (same results): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19b-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19c-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr19c-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR19",
+      "quote": "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR23",
+      "quote": "The editing sign control symbols '+', '-', 'CR', and 'DB' are mutually exclusive in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the GR number it points at (2002 GR12b = 2023 GR13b, the floating-point edited definition). Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr19a-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr19a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-2",
+    "to": [
+     "SR-13.18.40.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR2 with 13.16.38.5 Tables 11 and 12",
+    "clause-2023": "13.18.40.3 SR2 with 13.18.40.6 Tables 10 and 11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every picture character-string (formats 1 and 2): only symbols, in a combination Table 11 (format 1) or Table 12 (format 2) allows",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by probes n-sr2a-ws (9K9 COBOL0808), n-sr2b-ws (9Z COBOL1935) and the 2023 row's pb528-picture-precedence and pb528-picture-composition run at --std 2002 (every entry refused as expected, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/case-pb528-picture-precedence.txt); 2002 Tables 11 and 12 are cell-for-cell identical to 2023 Tables 10 and 11 (mechanical comparison of the transcriptions: 24 rows, 0 differences)",
+     "CD record": "covered by probes n-sr2a-cd, n-sr2b-cd at --std 2002: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr2a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr2a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr2b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr2b-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR2",
+      "quote": "Character-string-1 shall consist of an allowable combination of characters from the COBOL character repertoire used as symbols.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR2",
+      "quote": "Character-string-1 shall consist of an allowable combination of characters used as picture symbols.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.5",
+      "quote": "For the purposes of this table, character-string-1 for a numeric-edited item for a floating-point edited result is considered as two separate strings",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 says characters 'from the COBOL character repertoire used as symbols'; 2023 'used as picture symbols' plus a NOTE that the currency symbol comes from the compile-time set (2002 SPECIAL-NAMES SR23 already admits any character for literal-8, so no program differs). The referenced precedence tables are identical. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr2b-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr2b-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-20",
+    "to": [
+     "SR-13.18.40.3-24"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR20",
+    "clause-2023": "13.18.40.3 SR24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 fixed insertion: at most one currency symbol and one editing sign control symbol",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes n-sr20a-ws ($99$) and n-sr20b-ws (+99+) at --std 2002, both COBOL1934",
+     "CD record": "covered by probes n-sr20a/b-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr20a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr20a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr20b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr20b-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR20",
+      "quote": "For fixed insertion, only one currency symbol and only one editing sign control symbol may be used in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR24",
+      "quote": "For fixed insertion with editing sign control symbols, only one currency symbol and only one editing sign control symbol may be used in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 qualifies 'with editing sign control symbols' and adds a sentence for extended editing sign control (EDITING ... FOR, absent in 2002): a widening. The 2002 requirement is the first sentence; reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr20a-cd.cob",
+    "widening": "2023 adds extended editing sign control symbols (EDITING ... FOR), which 2002 lacks",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr20a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-21",
+    "to": [
+     "SR-13.18.40.3-25"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR21",
+    "clause-2023": "13.18.40.3 SR25 first sentence (the slice pointer SR-13.18.40.3-18, 'S first', is the wrong twin)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: '+' or '-' leftmost or rightmost",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes n-sr21a-ws (9+9) and n-sr21b-ws ($+99) at --std 2002, both COBOL1935",
+     "CD record": "covered by probes n-sr21a/b-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr21a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr21a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr21b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr21b-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR21",
+      "quote": "The symbol '+' or the symbol '-', when used, shall be either the leftmost or the rightmost symbol in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR25",
+      "quote": "The symbol '+' or the symbol '-', when used, shall be either the leftmost or the rightmost symbol in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical to the first sentence of 2023 SR25 (SR25 adds a sentence on two extended editing sign control symbols, absent in 2002). Pointer corrected to SR-13.18.40.3-25. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr21a-cd.cob",
+    "widening": "2023 SR25 adds the extended editing (EDITING ... FOR) ordering sentence",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr21a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-22",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR22",
+    "clause-2023": "none: 2023 13.18.40.3 has no rule on CR/DB placement (2014 still has it as SR23); the slice pointer SR-13.18.40.3-18 ('S first') is unrelated",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: 'CR' or 'DB' shall be the rightmost symbol",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes n-sr22a..d-ws at --std 2002 (99CR9, 99CRB, 99DB0, 99DB/ each COBOL1935 'may not follow the symbol CR/DB') and by pb528-picture-precedence entry PD03 (99CR99) at --std 2002",
+     "CD record": "covered by probes n-sr22a..d-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22b-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22c-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22c-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22d-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr22d-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR22",
+      "quote": "The symbol 'CR' or the symbol 'DB', when used, shall be the rightmost symbol in character-string-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 states the rule; 2023 dropped it (the CR/DB column of 2023 Table 10, identical to 2002 Table 11, already lets no symbol follow CR/DB, and the compiler enforces it through that table). No 2023 row carries it, so it needs its own 2002 verdict; the probes show the compiler refuses every symbol after CR/DB at --std 2002, in working-storage and in CD records.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr22a-ws.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler at --std 2002 refuses 99CR9, 99CRB, 99DB0, 99DB/ (COBOL1935, precedence) in working-storage and CD records; probes n-sr22a..d are the candidate witness",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr22a-ws.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-23",
+    "to": [
+     "SR-13.18.40.3-26"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR23",
+    "clause-2023": "13.18.40.3 SR26 first sentence",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 currency symbol: leftmost (optionally after + or -) or rightmost (optionally before +, -, CR, DB); the NOTE's six valid strings",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes at --std 2002: n-sr23a-ws 9$9 and n-sr23i-ws B$99 refused COBOL1935; n-sr23b..h-ws ($999+, +999$, +$999, 999$+, +$$99, $$99+, 999$CR) accepted",
+     "CD record": "covered by probes n-sr23a..i-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr23a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr23a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr23i-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr23i-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR23",
+      "quote": "The currency symbol, when used, shall be either the leftmost symbol in character-string-1, optionally preceded by one of the symbols '+' or '-'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR26",
+      "quote": "For fixed editing sign control, the currency symbol, when used, shall be either the leftmost symbol in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 prefixes 'For fixed editing sign control' and adds an extended editing sentence (EDITING ... FOR, absent in 2002); the 2002 requirement is the first sentence. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr23a-cd.cob",
+    "widening": "2023 adds the extended editing sign control placement sentence",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr23a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-24",
+    "to": [
+     "SR-13.18.40.3-27"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR24",
+    "clause-2023": "13.18.40.3 SR27",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: at most one floating insertion or zero-suppression string (++, --, cs cs, *, Z)",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes at --std 2002: n-sr24a-ws +++$$$9, n-sr24b-ws $$$ZZ9, n-sr24d-ws ++**9 refused COBOL1935; n-sr24c-ws +$$$ accepted (the NOTE)",
+     "CD record": "covered by probes n-sr24a..d-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24b-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24d-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr24d-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR24",
+      "quote": "No more than one of the following may be specified in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR27",
+      "quote": "No more than one of the following may be specified in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical (transcription dashes only). Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr24a-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr24a-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-25",
+    "to": [
+     "SR-13.18.40.3-28"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR25 with SR3 and 12.2.6 (CURRENCY SIGN)",
+    "clause-2023": "13.18.40.3 SR28",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 floating currency insertion: every occurrence the same currency symbol (with SR3, a lowercase letter is the same symbol as its uppercase)",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by probe c-sr25-ws (UU$$9 with two CURRENCY SIGN clauses refused COBOL0808), probe c-cur-ws (uuU9 accepted, renders [ EUR12]) and the 2023 row's l1_picture_currency_equivalent_2002 MATCH (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/case-l1_picture_currency_equivalent_2002.txt)",
+     "CD record": "covered by probes c-sr25-cd and c-cur-cd at --std 2002 (same results): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/c-sr25-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/c-cur-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR25",
+      "quote": "For floating insertion, when the currency symbol is used as the floating insertion symbol, all occurrences shall be the same currency symbol.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR28",
+      "quote": "all occurrences of the currency symbol within character-string-1 shall be equivalent characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 'the same currency symbol' vs 2023 'equivalent characters': with 2002 SR3 (all lowercase letters equivalent to uppercase) the same programs are legal. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/c-sr25-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/c-sr25-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-3",
+    "to": [
+     "SR-13.18.40.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR3",
+    "clause-2023": "13.18.40.3 SR3 (the slice pointer SR-13.18.40.3-31, NO SIGN, is the wrong twin)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every picture character-string: lowercase letters equal their uppercase, including a letter used as a currency symbol (PICTURE SYMBOL)",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by probe n-sr3a-ws (zz9.99 accepted, length 6), probe c-cur-ws (uuU9 with PICTURE SYMBOL 'U' renders [ EUR12]) and l1_picture_currency_equivalent_2002 MATCH",
+     "CD record": "covered by probes n-sr3a-cd and c-cur-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr3a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/c-cur-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR3",
+      "quote": "All lowercase letters in character-string-1 are equivalent to their corresponding uppercase representations.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR3",
+      "quote": "The equivalence between uppercase and lowercase letters appearing as occurrences of a currency symbol in character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 makes all lowercase letters equivalent in one sentence; 2023 splits it into currency letters (12.3.7 SR20) and other symbols (8.1.3 GR3). Same programs. Pointer corrected to SR-13.18.40.3-3. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/c-cur-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/c-cur-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-4",
+    "to": [
+     "SR-13.18.40.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR4",
+    "clause-2023": "13.18.40.3 SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every picture character-string at most 50 characters",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by the 2023 row's pb4304_picture_string_50_2002 (MATCH) and pb4304-picture-string-51-below-2014 (COBOL2146), and probes n-sr4a-ws (50 accepted) / n-sr4b-ws (51 refused at 2002; accepted at --std 2023)",
+     "CD record": "covered by probes n-sr4a-cd / n-sr4b-cd at --std 2002 (50 accepted, 51 COBOL2146): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr4b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr4b-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR4",
+      "quote": "The maximum number of characters allowed in character-string-1 is 50.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR4",
+      "quote": "The maximum number of characters allowed in character-string-1 is 63.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The limit differs (50 vs 63) and the compiler already gates it by edition (COBOL2146 at 2002 only); the 2023 row carries the 2002 witnesses. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr4b-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr4b-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-6",
+    "to": [
+     "SR-13.18.40.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR6",
+    "clause-2023": "13.18.40.3 SR14 (fixed-point) and SR15 (floating-point significand 1..36)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "numeric items: 1..31 digit positions",
+     "numeric-edited items, fixed-point AND floating-point edited: 1..31 digit positions",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "numeric / fixed-point numeric-edited": "covered by probes n-sr6a/b/e-ws and -cd at --std 2002 (9(32), Z(32) refused COBOL0801; 9(31) accepted)",
+     "floating-point numeric-edited": "NOT met: probe n-sr6c-ws '+9(32)E+99' (32 significand digit positions) is ACCEPTED at --std 2002 (rc 0, length 37), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr6c-ws-2002.out; same in a CD record, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr6c-cd-2002.out",
+     "CD record": "covered for numeric and fixed-point by n-sr6a/b-cd"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR6",
+      "quote": "For data items of category numeric and numeric-edited, the number of digit positions described by character-string-1 shall range from 1 through 31.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR14",
+      "quote": "for fixed-point data items of category numeric-edited, the number of digit positions described by character-string-1 shall range from 1 through 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR15",
+      "quote": "For floating-point data items of category numeric-edited, the number of digit positions in the significand shall range from 1 through 36.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR12b",
+      "quote": "To produce a floating-point edited result, characters-string-1 shall consist of two parts",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 SR6 bounds every numeric-edited item, and 2002 GR12b makes a floating-point edited item numeric-edited, so a floating-point edited picture has at most 31 digit positions. 2014 and 2023 split the rule and let the significand hold 36. The compiler applies 1..36 at every edition (PictureAnalyzer.cs AnalyzeFloatEdited: digits < 1 || digits > 36, not edition-gated), so --std 2002 accepts a picture the 2002 syntax rule forbids. DEFECT.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr6c-ws.cob",
+    "widening": null,
+    "class": "split-rule",
+    "needs": "its own verdict: the compiler at --std 2002 accepts PIC +9(32)E+99 (32 digit positions) where §2002:13.16.38.2 SR6 requires 1..31; gate the 36 bound to 2014+, then a 2002 witness",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr6c-ws.cob (05 A PIC +9(32)E+99.) at --std 2002 compiles and runs (OK37, rc 0); expected a syntax error per §2002:13.16.38.2 SR6. Code site: src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs AnalyzeFloatEdited (~line 1428, the 36 bound applied at every edition)",
+    "second-targets": [
+     "SR-13.18.40.3-15"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-7",
+    "to": [
+     "SR-13.18.40.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR7",
+    "clause-2023": "13.18.40.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "repetition factor: unsigned nonzero integer or constant-name, counted by the integer's length",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by n-sr7a-ws (9(0) COBOL2147), the 2023 row's pb531-picture-repetition-factor-zero and -constant (refused as expected), and probe r-edit-ws (X(K), 9(K)V99 with 01 K CONSTANT AS 4: lengths 4 and 6)",
+     "CD record": "covered by n-sr7a-cd and probe r-edit-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR7",
+      "quote": "An unsigned non-zero integer that is enclosed in parentheses indicates the number of consecutive occurrences of the symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR6",
+      "quote": "An unsigned nonzero integer that is enclosed in parentheses indicates the number of consecutive occurrences of the symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for 'non-zero'/'nonzero'. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-8",
+    "to": [
+     "SR-13.18.40.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR8",
+    "clause-2023": "13.18.40.3 SR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a picture ending in ',' or '.': last clause, followed immediately by the separator period",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by the 2023 row's pb569_picture_trailing_symbol_last (MATCH), pb569-picture-comma-not-last and pb569-picture-period-not-last (COBOL2419)",
+     "CD record": "covered by probes s8-ok-cd (E1=[012,] E3=[012.]) and s8-bad-cd (COBOL2419) at --std 2002: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/s8-ok-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/s8-bad-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR8",
+      "quote": "the PICTURE clause shall be the last clause of the data description entry and shall be followed immediately by the separator period.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR7",
+      "quote": "shall be followed immediately (without an intervening separator space) by the separator period.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds '(without an intervening separator space)', which only spells out 'immediately'. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/s8-bad-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/s8-bad-cd.cob"
+   },
+   {
+    "rule-id": "2002-SR-13.16.38.2-9",
+    "to": [
+     "SR-13.18.40.3-12"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.2 SR9",
+    "clause-2023": "13.18.40.3 SR12 a (the slice pointer SR-13.18.40.3-33 is the format 2 rule, the wrong twin)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: at least one of A N X Z 1 9 *, or two of '+', '-', cs",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered by probes at --std 2002: n-sr9a-ws B/0, n-sr9b-ws +, n-sr9c-ws $ refused COBOL1934; n-sr9d-ws ++ and n-sr9e-ws $$ accepted; and pb529-picture-no-digit-position, pb535-picture-no-category (refused as expected)",
+     "CD record": "covered by n-sr9a..e-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9a-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9b-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9b-cd-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9c-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-sr9c-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.2 SR9",
+      "quote": "at least two occurrences of one of the symbols from the set '+', '–', the currency symbol.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.3 SR12",
+      "quote": "If the FOR phrase is not specified, the following rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 moved the rule under SR12 a (FOR not specified) and adds character-1 to the two-occurrence set (EDITING phrase, absent in 2002): a widening. Pointer corrected to SR-13.18.40.3-12. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr9a-cd.cob",
+    "widening": "2023 adds character-1 (EDITING phrase)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-sr9a-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-10",
+    "to": [
+     "GR-13.18.40.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR10",
+    "clause-2023": "13.18.40.4 GR10",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "national-edited category: N plus one of B 0 /",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by the 2023 row's pb492_national_edited_2002 (MATCH) and probe r-edit-ws (NNBNN/N0N: [AB CD/E0F], length 9)",
+     "CD record": "covered by probe r-edit-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR10",
+      "quote": "To define an item as national-edited, character-string-1 shall include",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR10",
+      "quote": "To define an item as national-edited, character-string-1 shall include",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds character-1 (EDITING) to the insertion set: a widening. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": "2023 adds character-1",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-11",
+    "to": [
+     "GR-13.18.40.4-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR11",
+    "clause-2023": "13.18.40.4 GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "numeric category: at least one 9, optional P S V",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by pb535_picture_category_size_85 (MATCH) and probe r-edit-ws (S99, S99 SIGN LEADING SEPARATE, 99V99, 9PP, VPP9: lengths 2, 3, 4, 1, 1; P algebraic values 300 and .001 compare true)",
+     "CD record": "covered by probe r-edit-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR11",
+      "quote": "To define an item as numeric, character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR11",
+      "quote": "To define an item as fixed-point numeric, character-string-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 says 'fixed-point numeric'; the same 2002 pictures. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-12",
+    "to": [
+     "GR-13.18.40.4-13"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR12",
+    "clause-2023": "13.18.40.4 GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "numeric-edited category: a) fixed-point options; b) floating-point edited: significand a valid numeric or fixed-point edited string with no floating insertion or zero suppression; exponent '+9', '+99', '+999' or '+9(n)' with n = 1..3",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "a) and b) significand": "covered at --std 2002 by probes n-gr12e/f-ws and -cd (+$$9.9E+99, +ZZ9.9E+99 refused COBOL1658), r-edit-ws/-cd (+9.99E+99 renders [+1.23E+02]), n-gr12c/d (+9(3), +999 accepted) and pb66-float-edited-picture-symbols (refused as expected)",
+     "b) exponent limit": "NOT met: probes n-gr12a-ws '+9.9E+9999' and n-gr12b-ws '+9.9E+9(4)' are ACCEPTED at --std 2002 (rc 0), E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-gr12a-ws-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/n-gr12b-ws-2002.out; also in CD records; --flag-extensions gives no warning",
+     "CD record": "covered for a) and the significand by n-gr12e/f-cd and r-edit-cd"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR12",
+      "quote": "The exponent shall be '+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR13b",
+      "quote": "The exponent shall be '+9', '+99', '+999', '+9999', or '+9(n)' where n = 1, 2, 3, or 4.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR12a",
+      "quote": "To produce a fixed-point edited result, character-string-1 shall include",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation may, but is not required to, flag violations of such rules.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 limits the exponent to 1..3 digits; 2014 and 2023 allow 4. The compiler accepts a 4-digit exponent at every edition (PictureAnalyzer.cs AnalyzeFloatEdited ~lines 1379-1388: '+' then 1..4 '9's). This is a general rule, and §2002:3.1.1 lets an implementation leave a general-rule violation unflagged, so this is weaker than the SR6 case; but at --std 2002 the compiler gives the 2014 meaning to a picture 2002 does not define, with no diagnostic and no extension flag. Reported as an edition-gate defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-gr12a-ws.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the compiler accepts exponents '+9999' and '+9(4)' that §2002:13.16.38.3 GR12 excludes; gate the 4-digit exponent to 2014+, then a 2002 witness",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/n-gr12a-ws.cob (05 A PIC +9.9E+9999.) and n-gr12b-ws.cob (+9.9E+9(4)) compile and run at --std 2002 (OK10, rc 0); expected refusal, or at least an extension flag, per §2002:13.16.38.3 GR12 (latitude: §2002:3.1.1). Code site: PictureAnalyzer.cs AnalyzeFloatEdited exponent check"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-13",
+    "to": [
+     "GR-13.18.40.4-14"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR13",
+    "clause-2023": "13.18.40.4 GR14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "meaning and size of every format 1 symbol: A B E N P S V X Z 0 1 9 / , . + - CR DB * cs (P algebraic value in the four listed operations; S counted only with SEPARATE; the first cs adds the currency string's length)",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by probe r-edit-ws (lengths A(3)=3, XXBXX=5, NNBNN/N0N=9, 1(4)=4, S99=2, S99 SEPARATE=3, 99V99=4, 9PP=1, VPP9=1, +9.99E+99=9, ZZ,ZZ9.99=9, **9=3, 99/99=5; P algebraic 300/.001; Z, *, /, B, 0 insertion) and probe c-cur-ws (CURRENCY 'EUR' PICTURE SYMBOL 'U': U999 length 6, UUU9.99 length 9 [ EUR12.00])",
+     "CD record": "covered by probes r-edit-cd and c-cur-cd at --std 2002 (identical output): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR13",
+      "quote": "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR13",
+      "quote": "For usages display and national, the symbol 'S' is counted in the size of the item only when the subject of the entry is described with a SIGN clause with the SEPARATE phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR14",
+      "quote": "The first occurrence of the currency symbol adds the number of characters in the currency string to the size of the item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds the 'es' (character-1) entry, a NOTE on 'A' in VALIDATE and a sentence on boolean storage: widenings or notes. The 2002 entries are word-identical. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": "2023 adds character-1 (es) and notes",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-14",
+    "to": [
+     "GR-13.18.40.4-15"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR14",
+    "clause-2023": "13.18.40.4 GR15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "PICTURE format validation in the VALIDATE statement: non-display usages, unused binary positions, and each display/national symbol's check (A B E N S Z 0 1 9 / , . + - CR DB * cs)"
+    ],
+    "evidence-2002": {
+     "all": "not shown and not done: the 2023 row is DOCUMENTED-NON-SUPPORT; probe v-gr14.cob at --std 2002: VALIDATE of a record holding ZZ9.99 and 999 filled with letters is accepted with warning COBOL1580 'performs no content validation' and runs, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/v-gr14-2002.out); the 2023 row's pb5577-validate-format-stage is DIFF at --std 2002 on this pinned tree (COBOL1710 on EC-VALIDATE)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR14",
+      "quote": "The PICTURE clause takes effect during the format validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR15",
+      "quote": "The PICTURE clause takes effect during the format validation stage of the execution of a VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words match, but the 2023 row's non-support rests on 2023 Annex A.4.14 (VALIDATE optional). In 2002 VALIDATE is a required element: only Annex A (communications) is optional (§2002:3.1) and VALIDATE is not in the B.3 processor-dependent list. The compiler at --std 2002 does no PICTURE format validation. Same family as the other VALIDATE rows (kb/Work PB5577).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/v-gr14.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "2002 requires PICTURE format validation in VALIDATE; the compiler declines it",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/v-gr14.cob at --std 2002 -> warning COBOL1580, VALIDATE inert, rc 0; expected format validation per §2002:13.16.38.3 GR14 (required by §2002:3.1.1)",
+    "licence-2002": "none (§2002:3.1 makes only Annex A optional; VALIDATE is not in §2002 B.3)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-17",
+    "to": [
+     "GR-13.18.40.4-18"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR17",
+    "clause-2023": "13.18.40.4 GR18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 (LOCALE) symbol meanings Z 9 . + cs",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by the 2023 row's pb64t6_locale_edit_rules (MATCH, COBOL_USER_LOCALE=INVARIANT as the harness pins)",
+     "CD record": "covered by probe lc-cd at --std 2002 (LB0=[          ] LB=[ $    5.25] LD=[    1,234.50]): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/lc-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR17",
+      "quote": "The symbol '+' indicates that the item is to be signed in accordance with the specifications in the locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR18",
+      "quote": "The symbol '+' indicates that the item is to be signed in accordance with the specifications in the locale.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical after clause numbers. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/lc-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/lc-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.3-7",
+    "to": [
+     "GR-13.18.40.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.3 GR7",
+    "clause-2023": "13.18.40.4 GR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alphanumeric-edited category: A or X plus one of B 0 /",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by pb490_simple_insertion_strings_85 (MATCH) and probe r-edit-ws (XXBXX [AB CD], AA/A0A [AB/C0D])",
+     "CD record": "covered by probe r-edit-cd at --std 2002 (same): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.3 GR7",
+      "quote": "To define an item as alphanumeric-edited, character-string-1 shall include",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.4 GR7",
+      "quote": "To define an item as alphanumeric-edited, character-string-1 shall include",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds character-1 to the insertion set: a widening. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": "2023 adds character-1",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-11",
+    "to": [
+     "GR-13.18.40.5-11"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 GR11",
+    "clause-2023": "13.18.40.5 GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 items: the named locale (LOCALE clause) or the current locale for editing and de-editing",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by the 2023 row's pb64t6_picture_locale_smoke (MATCH with COBOL_USER_LOCALE=INVARIANT: named en-US edit and round trip, current-locale currency U+00A4)",
+     "CD record": "covered by probe lc-cd at --std 2002 (same lines: [      -$    1,234.50], ROUNDTRIP OK, CURRENT LOCALE OK): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/lc-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR11",
+      "quote": "When locale-name-1 is specified, the locale used in editing and de-editing the item is the one associated with that name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR11",
+      "quote": "When locale-name-1 is specified, the locale used in editing and de-editing the item is the one associated with that name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for 'may'/'can' in the NOTE. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/lc-cd.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/lc-cd.cob"
+   },
+   {
+    "rule-id": "2002-GR-13.16.38.4-5",
+    "to": [
+     "GR-13.18.40.5-5"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.38.4 GR5 (Table 9)",
+    "clause-2023": "13.18.40.5 GR5 (Table 8)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "fixed insertion editing with cs, +, -, CR, DB and the Table 9 results for positive/zero and negative values",
+     "the same in CD records"
+    ],
+    "evidence-2002": {
+     "non-CD entries": "covered at --std 2002 by probe r-edit-ws (+999 [+012]/[-012]/[+000], -999 [ 012]/[-012], 999+, 999-, 999CR [012  ]/[012CR], 999DB, $999, 999$)",
+     "CD record": "covered by probe r-edit-cd at --std 2002 (identical): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/out/r-edit-cd-2002.out"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.38.4 GR5",
+      "quote": "Fixed insertion editing results in the insertion character(s) occupying the same character position(s) in the edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.40.5 GR5",
+      "quote": "Fixed insertion editing results in the insertion character(s) occupying the same character position(s) in the edited item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds character-1 rows (EDITING with literal-1/2/3) to the table: a widening; the 2002 rows are the same. Most of the 2023 row's witnesses are EDITING-phrase programs that do not compile at 2002, so the probe is the 2002 witness. Reaches CD records; probed correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob",
+    "widening": "2023 adds character-1 rows to Table 8",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD-record case (the probe named in evidence-2002 is the candidate)",
+    "compiler-at-2002": "correct: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-16/r-edit-cd.cob"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-16",
+  "cases": [],
+  "disputed-different": [],
+  "note": "The reader's file u-16-read.json holds 25 cases, all DIFFERENT (counted mechanically: Counter({'DIFFERENT': 25})); there is no SAME verdict to attack. DIFFERENT rows were screened for a plainly non-existent difference: 21 are communication-reach (PICTURE/OCCURS rules in 13.16.36 and 13.16.38, which in 2002 also govern record entries under a CD; the reader brief's class (a)), 2 own-text (SR-22 dropped in 2023; GR-12 exponent 1..3 vs 1..4 digits), 1 split-rule (SR-6 31 vs 36 digit positions for floating-point edited), 1 other (GR-14, VALIDATE required in 2002 vs optional in 2023). Each claims a difference consistent with the reader brief's class definitions; none disputed."
+ },
+ "imported": {
+  "asked": "a14cb9f0c36854bb76c07a2086a7019eeed4549064d4d34b21bc19b1b4397b46",
+  "read": "2c63b182d459bf29eb0ee910aff10fd0822124d14a1e76f5effafd3ff5c88196",
+  "refute": "daa0fd141cb2db4501660c899cf9b0a774f100575bd6367775bd77944471f37a"
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-9",
+ "rule-digest": "7e248790bc4c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-106",
+  "sources": {
+   "reader": "03e88e7bff35ac76e8e68c99dc85a880522de7d1334116fc4471a93059560858",
+   "refuter": "3317c8d04e9c6809595b476721c27213369c7446bd459c4bb93645d1801fb202"
+  },
+  "imported": {
+   "reader": "178003f5f47087dae644547aa7d820c532a55a4d8ffc29b501503ae247dffdff",
+   "refuter": "48b888e61c9c24e531725c0b2d3be48fc0e2530f72f8d8afff82cf569e7fcae0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "Without WITH NO ADVANCING the device is reset to the leftmost position of the next line after the last operand is transferred.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsDeviceString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement",
+    "switches": "refuses END-DISPLAY and a numeric DISPLAY literal that is not an unsigned integer below 2002 (SR2 and a later form, not the transfer)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#ConstructRegistry",
+    "switches": "the national and boolean literal rows that refuse N\"..\" and B\"..\" operands at 85 (operand class, not the transfer)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of AcceptDisplayEmitter.cs, AcceptDisplayBinder.cs and OperandText.cs for Edition, DialectLevel, DialectBehavior, CobolVersion: the transfer (BoundDisplay to Console.Write or WriteLine of the concatenated device strings) consults no edition; the numeric device form is the --numeric-display option (EditionContext.NumericDisplay, default Decimal), not an edition switch. The only edition sites on the DISPLAY path are compile-time refusals of later forms.",
+  "behaviour-differs-by-edition": "no: the transfer is the same code at every edition; only the admitted operand forms (signed numeric literal, national and boolean literals, END-DISPLAY) differ",
+  "witnesses-cover": "part: the witness covers the default device; UPON a mnemonic-name is not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/dsp1.cob",
+    "printed": "G=[AB00701K] / GS=[-012] GN=[007] / T=[XYZ] (ODO at 3) / T13=[XYZ] T33=[Z] / SC=[1.25] SP=[300] SPL=[.003] / ED=[  4.50-] CMP=[-0321] / BIG=[-999999999999999999] ZR=[000] SEP=[-005] / SPACE=[ ] ZERO=[0] QUOTE=[\"] ALL=[AB] HV=[*] / 200 L on one line / U1U2 / ABAB| / LAST (no trailing newline); stdout byte-identical at --std 2023",
+    "expected": "each operand transferred whole in order (GR1, GR4, GR6), a figurative constant once (GR3), NO ADVANCING leaves the position after the last character (GR8), a new line otherwise (GR9); numeric conversion implementor-defined (DOC-A.1-56)"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/dsp3.cob",
+    "printed": "[ABC][][Q][RQP] / [Qbc]] ; FUNCTION LENGTH as a DISPLAY operand refused COBOL0900 per the 1985 numeric-function rule (IV.4.3.8.3.3 SR4)",
+    "expected": "alphanumeric function operands and subscripted / ref-modified operands transferred in order; after NO ADVANCING the next DISPLAY continues the line"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR9",
+    "check": "OK  §1985:VI.6.10.4 GR9  (6.10.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "Console.WriteLine ends every DISPLAY without the phrase (CRLF on this host), including after a NO ADVANCING DISPLAY and UPON a CONSOLE mnemonic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "s1.cob (od): a DISPLAY whose only operand is a zero-length ODO group still ends the line (CR LF alone); s3.cob: the line end follows the last operand on stderr and on a SYSOUT mnemonic after an earlier NO ADVANCING on the same device. cite.py: OK  §1985:VI.6.10.4 GR9  (6.10.4 General Rules)  the text is in GR9",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

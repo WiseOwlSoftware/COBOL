@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb1098_organization_permanence_85
-*> rules: [GR-12.4.5.10.3-1, GR-12.4.5.10.3-4, GR-12.4.5.10.3-5]
-*> accept: [85, 2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1098_organization_permanence_85
+      *> rules: [GR-12.4.5.10.3-1, GR-12.4.5.10.3-4, GR-12.4.5.10.3-5]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1098OP.
       *> ISO/IEC 1989:2023 §2023:12.4.5.10.3 GR1, GR4, GR5 — the file
@@ -98,9 +98,11 @@
        PROCEDURE DIVISION.
        MAIN.
            OPEN OUTPUT RL.
-           MOVE 1 TO RK. MOVE "REL1AAAA" TO RR. WRITE RR INVALID KEY CONTINUE END-WRITE
+           MOVE 1 TO RK. MOVE "REL1AAAA" TO RR.
+           WRITE RR INVALID KEY CONTINUE END-WRITE
            .
-           MOVE 7 TO RK. MOVE "REL7BBBB" TO RR. WRITE RR INVALID KEY CONTINUE END-WRITE
+           MOVE 7 TO RK. MOVE "REL7BBBB" TO RR.
+           WRITE RR INVALID KEY CONTINUE END-WRITE
            .
            DISPLAY "RL-MAKE=" FR.
            CLOSE RL.
@@ -126,9 +128,11 @@
            OPEN INPUT XR.
            DISPLAY "IX-OVER-RL=" FX.
            OPEN OUTPUT IX.
-           MOVE "K002SEC " TO IX-R. WRITE IX-R INVALID KEY CONTINUE END-WRITE
+           MOVE "K002SEC " TO IX-R. WRITE IX-R INVALID KEY CONTINUE
+               END-WRITE
            .
-           MOVE "K001FST " TO IX-R. WRITE IX-R INVALID KEY CONTINUE END-WRITE
+           MOVE "K001FST " TO IX-R. WRITE IX-R INVALID KEY CONTINUE
+               END-WRITE
            .
            DISPLAY "IX-MAKE=" FI.
            CLOSE IX.
@@ -140,7 +144,8 @@
            MOVE "K001" TO IX-K. READ IX INVALID KEY CONTINUE END-READ
            .
            DISPLAY "IX-READ1=" FI " " IX-D.
-           MOVE "K009" TO IX-K. READ IX INVALID KEY DISPLAY "IX-READ9 INVALID".
+           MOVE "K009" TO IX-K. READ IX INVALID KEY DISPLAY
+               "IX-READ9 INVALID".
            DISPLAY "IX-READ9=" FI.
            CLOSE IX.
            STOP RUN.

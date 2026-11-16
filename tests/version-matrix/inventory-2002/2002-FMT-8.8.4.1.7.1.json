@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.1.7.1",
+ "rule-digest": "d80c117be6d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindComparison; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComparisonExpression; src/WiseOwl.Cobol.Compiler/Binding/Model/OmittedProbe.cs#OmittedProbe",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb133_omitted_args",
+ "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.8.4.8.2, witnessed at 2002 by the cases test-ref names. The read: Word-identical format under a renumbered clause; witness runs green at 2002. Cited: §2002:8.8.4.1.7.2 SR1."
+}

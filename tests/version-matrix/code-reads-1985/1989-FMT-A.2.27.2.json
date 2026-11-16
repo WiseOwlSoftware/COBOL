@@ -1,0 +1,133 @@
+{
+ "rule-id": "1989-FMT-A.2.27.2",
+ "rule-digest": "43f1355c21bd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-176",
+  "sources": {
+   "reader": "377bfea5e3dd203c998ea1f5e3775107e906ef22b119ae402fd1d0f84eaa9959",
+   "refuter": "8368475a6dfbd0442bbe4dd41b9bfd035fabfba6ff3b6453aafa5fe4906be155"
+  },
+  "imported": {
+   "reader": "d0b462ff06cc47a021cb505f64c84d811c49584d9cc5902de585c0bcb0df7f03",
+   "refuter": "a7a22eb2b7e202afc7556896b48e514aa21a83c03b55a2fd5bfe4d4c5e10d261"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.27.2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the compiler must accept FUNCTION MIN with a parenthesized list of one or more arguments (numeric, alphabetic or alphanumeric; literals, identifiers, expressions; table ALL subscripts), yield an alphanumeric result usable as an identifier (and reference-modifiable) or a numeric/integer result only in an arithmetic expression, and refuse a missing or empty list.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "catalog IntroducedIn 85 against ctx.Edition.DialectLevel (COBOL1502/COBOL1503 window); the function is defined at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct function-empty-argument-list-2002: an empty '( )' is COBOL0900 at 85 (braces of §1985:IV.4.3.8.3.2 require an argument); at 2023 it parses and the arity check refuses it (COBOL1504)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: a numeric/integer function written where an identifier stands (DISPLAY, MOVE, ADD operand) is COBOL0900 at 85 per §1985:IV.4.3.8.3.3 SR4; legal at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "construct repository-function-2002: at 85 the keyword-omitted form never routes to the intrinsic, so NAME (args) is an ordinary (undefined) data reference, COBOL1639; at 2023 it is COBOL1543 unless the REPOSITORY declares it",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicCatalog.cs, VersionConformancePass.cs for Edition|DialectLevel|ConstructRegistry|DialectBehavior; TryBindAllArgument, BindIntrinsicArgs and the arity check read no edition; the CobolIntrinsics runtime bodies take no edition",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' is refused as an edition construct (COBOL0900) and a numeric/integer result written where an identifier stands is refused (SR4); at 2023 the empty list reaches the arity check and the identifier placement is legal; the format's own argument count and ALL handling is the same code at both",
+  "witnesses-cover": "part: g85_bf39_04 exercises the format; not exercised are alphanumeric ALL, the alphabetic/alphanumeric mix, reference modification of the result, figurative ZERO, the ODO table and the refusal half",
+  "probes": [
+   {
+    "class": "a,b,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/accept1.cob",
+    "printed": "MIN-ALL=-   8.0000 / MIN-ODO=-   4.0000 / MIN-AN=ABZ / MIN-MIX=ABB / MIN-REFMOD=B / MIN-ZERO=    0.0000",
+    "expected": "least of T; least of 10 -4 30 5; least of PQR ABZ ZZA; ABC vs ABB; MIN('ZZ' 'AB')(2:1)='B'; MIN(0 5)=0"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/refuse1.cob",
+    "printed": "FUNCTION MIN () -> COBOL1504 + COBOL0900 empty list; FUNCTION MIN -> COBOL1504 at least 1 argument(s); 0 given",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/edition1.cob",
+    "printed": "COBOL0900 'a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002' on DISPLAY FUNCTION MIDRANGE, MOVE FUNCTION MIN (4 2), MOVE FUNCTION ORD, ADD FUNCTION MOD, MOVE FUNCTION NUMVAL, DISPLAY FUNCTION ORD-MAX; COMPUTE I = MIN (4 2) -> COBOL1639 'MIN (4 2)' is not defined",
+    "expected": "§1985:IV.4.3.8.3.3 SR4: a numeric or integer function may be used only in an arithmetic expression; the FUNCTION word is the only form at 85"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/edition3.cob",
+    "printed": "MINX=ABC / MINX2=B / OMX-REL=OK / NEST= 00003",
+    "expected": "alphanumeric MIN in MOVE and DISPLAY is legal at 85 (SR3); ORD-MAX in a relation is an arithmetic expression; nested function argument (SR1, GR2): MOD(66 7)=3"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-176/src/classd.cob",
+    "printed": "MIN-ED=[  7] / OMX-ED= 00001 / MR-SC=  149.9980 / OMX-SC= 00002 / MOD-SC= 00006",
+    "expected": "numeric-edited items are compared as alphanumeric (' 42' > '  7'); P-scaled items carry their scaled values: MIDRANGE(300 -0.004)=149.998; MOD(300 7)=6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.27.1",
+    "check": "OK §1989:A.2.27.1 (2.27.1 Description) the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.27.4 RV2",
+    "check": "OK §1989:A.2.27.4 RV2 (2.27.4 Returned Values) the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.27.3 AR1",
+    "check": "OK §1989:A.2.27.3 AR1 (2.27.3 Arguments) the text is in AR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK §1985:IV.4.3.8.3.2 (4.3.8.3.2 General Format) the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR1",
+    "check": "OK §1985:IV.4.3.8.3.3 SR1 (4.3.8.3.3 Syntax Rules) the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK §1985:IV.4.3.8.3.3 SR4 (4.3.8.3.3 Syntax Rules) the text is in SR4"
+   },
+   {
+    "cite": "§1985:IV.2.1.4",
+    "check": "OK §1985:IV.2.1.4 (2.1.4 Brackets, Braces, and Choice Indicators) the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK §1989:A.2.2 (2.2 ARGUMENTS) the text is in the clause; it lies in AR4"
+   }
+  ],
+  "notes": "MIN's catalog row is Variadic 1..inf, 'p', result FollowsUniformArguments, so the alphanumeric form is an identifier (MOVE, DISPLAY, ref-mod legal at 85) while the numeric form trips SR4's edition gate outside an arithmetic expression, as §1985:IV.4.3.8.3.3 SR3/SR4 require. Format clause cite is the description (format text too short for cite.py).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.27.2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "MIN (3; 1; 2)=1; MIN (1 - 2)=-1 (one expression) vs MIN (1 -2)=-2 (two arguments); MIN (- 3 + 1 5)=-2; DPC MIN (7; 1,25)=1,25; data named MIN/MOD/MIDRANGE as arguments MIN=4; PROGRAM COLLATING SEQUENCE reversed alphabet MIN (\"A\" \"Z\")=Z (simple-condition comparison); MIN (X3 N3) mixed alphanumeric/numeric refused COBOL1627; numeric MIN (1 2) (1:1) refused COBOL1629 (SR2: only alphanumeric MIN may be ref-modified); 18-digit MIN (BIG NBIG)=-999999999999999999. probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-176/runs (acc2-001, dpc-001, ref2-001, ref3-001, ref4-001, pcs-001, big-002, kw-002, lc-001), all --std 85 via run_probe.py. cite.py: OK §1985:IV.4.2.1 SR2 (comma and semicolon followed by a space are separators anywhere a space is); OK §1985:IV.4.3.8.3.3 SR1 (argument is identifier, literal or arithmetic expression); OK §1985:IV.4.3.8.3.3 SR2 (ref-mod only for alphanumeric functions); OK §1989:A.2.2 (ALL subscripts, rightmost ALL varies fastest). Class e does not apply (no file I/O in the format). No program the format refuses compiled, none it admits was refused, every value matched the 1985 returned-value rules. Side note, not this rule: diagnostics at --std 85 cite §2023 clauses (cosmetic).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses: ArgPredicate.AppliesAt(edition year) gates each per-position argument predicate by edition; at 85 the class/width screens for these functions still fire (ref4-001)",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordWordOf: ReservedWords.AdmitsAsKeyword(word, year) lets a 2002-reserved word (ANYCASE, LOCALE) declared as data at 85 be an argument; probed kw-002, same answer as intended"
+  ],
+  "corrected": ""
+ }
+}

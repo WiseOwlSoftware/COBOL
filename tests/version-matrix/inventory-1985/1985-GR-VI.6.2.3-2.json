@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.2.3-2",
  "rule-digest": "ec3451df8d01",
+ "test-ref": "conformance:cases/8.8.1.2-Native-standard-binary-and-standard-decimal/func_expr_arg",
  "next": {
   "kind": "KEPT",
   "to": [

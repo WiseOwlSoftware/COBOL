@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.5-2",
+ "rule-digest": "53adcd2fbce1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-128",
+  "sources": {
+   "reader": "818b2b1736fc0bfea2f57a9812ee858c7d1c6da2b172231e927e971b297c34f2",
+   "refuter": "30a504c9065d09eef0f7511e73ccc3edaffc08d811acf61d17a03809c2c45d48"
+  },
+  "imported": {
+   "reader": "c6ef81fae9baa30768728b9cd414cefa8c143cc39cd30a3556496151d400838a",
+   "refuter": "70148c883c14cb88e39b4e024efb9dae8b92faf180f893c38ae572ad574535e7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.5-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the invalid key condition exists and the INVALID KEY phrase is written, no USE AFTER EXCEPTION procedure runs, the INVALID KEY imperative runs (any explicit transfer in it is honoured, a conditional statement in it runs by its own rules), then control goes to the end of the statement and the NOT INVALID KEY phrase is ignored.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/IoStatusClass.cs#InvalidKey",
+  "edition-consulted": [],
+  "edition-search": "grep Edition / CobolVersion / DialectBehavior / IsActive in CodeGen/Verbs/SequentialIoEmitter.cs, KeyedIoEmitter.cs, IoStatusClass.cs, DispatchEmitter.cs, EcEmitter.cs: the only hit is SelectWhenOnlyForFilePhraseStatements (SequentialIoEmitter line 593, unrelated); __IoCheck's __invKey suppression and the phrase pair read no edition; DispatchEmitter states the USE tiers are edition-invariant.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_delete_invalid_key_transfer covers DELETE with INVALID KEY and a USE procedure present; not exercised: an explicit GO TO out of the imperative, a conditional statement inside it, other verbs (READ, WRITE, START) with a USE present, and an open-mode USE",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p2_ik.cob",
+    "printed": "IK-WD 22 (no USE-RX line, no NIK-WD); IK-RO 23 and IK-SO 23 (no USE-RO line); AT-M2 23 (READ INVALID KEY GO TO M2: no FELL-THROUGH-GO, no NIK-GO); IK-IF-23 / IK-AFTER-IF / AFTER-DEL 23 (IF inside INVALID KEY, then end of statement, no NIK-DEL)",
+    "expected": "imperative only, USE suppressed, NOT INVALID KEY ignored, GO TO honoured"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-128/p4_use.cob",
+    "printed": "IK-DEL 23 with USE AFTER ERROR ON I-O declared, no USE-IO line",
+    "expected": "an open-mode USE also not executed"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.5 GR2",
+    "check": "OK  §1985:VIII.1.3.5 GR2  (1.3.5 The Invalid Key Condition)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.5 GR3",
+    "check": "OK  §1985:VIII.1.3.5 GR3  (1.3.5 The Invalid Key Condition)  the text is in GR3"
+   }
+  ],
+  "notes": "The generated __IoCheck returns before selecting a declarative when __invKey is set and the status is 2x. EmitPhrasePair renders the INVALID KEY body as if (2x) followed by else-if (0x) for NOT INVALID KEY, so an explicit transfer leaves through ordinary C# control flow. The same code runs at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.5-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r2_global.cob at --std 85 (runs/r2_global-001). A 1985 level-2 IPC form the reader did not try: USE GLOBAL AFTER STANDARD EXCEPTION in the containing program on a GLOBAL relative FD, with the I-O in a contained program. A WRITE duplicate with INVALID KEY gives IN-IK-WD 22 and a READ absent with INVALID KEY gives IN-IK-R9 23, and in neither case does GUSE-RX or a NOT INVALID KEY line print. A READ RY on a file not open, nested inside the INVALID KEY imperative, still runs the GLOBAL USE (GUSE-RY 47), then the imperative continues (IN-IK-R8-END 23 47) to the end of the statement, so suppression is per statement. cite.py: OK §1985:VIII.1.3.5 GR2 the text is in GR2. Minor missed edition site: DispatchEmitter.cs line 523 (DialectLevel >= 2002) changes only the SORT GR17 exit filter around a declarative's run, not the invalid-key path.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery: DialectLevel >= 2002 adds the SORT-termination exit filter around a declarative's run; 85 takes the plain try/finally, which has no effect on invalid-key control flow"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-XIII.4.9.4-3",
+ "rule-digest": "6f17f954160b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "1fabe576b9286168b49fdae83211efd3671ac4c58d502210fd4826127eb8515a",
+   "refuter": "cc48095180ee6c4a91f08bed417d7f09848a127d8a24b09e48f35545ce149bcb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.9.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a procedure-name of a USE BEFORE REPORTING declarative section may be referenced from a different declarative section or from the nondeclarative portion only by PERFORM; GO TO (all formats), ALTER and SORT/MERGE procedure references from there are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary",
+  "edition-consulted": [],
+  "edition-search": "As for 1985-GR-XIII.4.8.4-3: no edition comparison in CheckDeclarativesBoundary, ResolveProcedureOperand or EnclosingContext.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb362 covers GO TO; ALTER, GO TO DEPENDING, SORT OUTPUT PROCEDURE naming a USE BEFORE REPORTING section are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n2_goto_main_to_rpt.cob",
+    "printed": "error COBOL2376: GO TO 'U-DE-P': ... nondeclarative portion",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n4_alter_to_rpt.cob",
+    "printed": "error COBOL2376: ALTER TO PROCEED TO 'U-DE-P'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n6_goto_depending.cob",
+    "printed": "error COBOL2376: GO TO DEPENDING 'U-DE-P'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n7_goto_err_to_rpt_section.cob",
+    "printed": "error COBOL2376: GO TO 'U-DE' (section name)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n8_sort_output_rpt.cob",
+    "printed": "error COBOL2376: SORT OUTPUT PROCEDURE 'U-DE'",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/n9_perform_ok_from_rpt.cob",
+    "printed": "EXIT 0 (PERFORM U-DE and PERFORM U-ERR from main, PERFORM U-ERR-P from U-DE)",
+    "expected": "accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.4 GR3",
+    "check": "OK  §1985:XIII.4.9.4 GR3  (4.9.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "One funnel covers both USE kinds: a USE BEFORE REPORTING section is a declarative section like any other in SectionInfo, so the check is identical to the USE AFTER EXCEPTION case.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.9.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Same funnel (ProcedureTableBuilder.cs#ResolveProcedureOperand -> StatementValidation.cs#CheckDeclarativesBoundary), section-identity test independent of USE kind. My probes r2/r3/r4 (ALTER of an altered declarative paragraph, MERGE OUTPUT PROCEDURE, GO TO from a debugging section) refuse by the same predicate; r1 shows USE FOR DEBUGGING ON a declarative procedure-name is admitted (§1985:XV.3.2.3 SR4). s4_cross_perform.cob: PERFORM of a USE BEFORE REPORTING paragraph from a different USE BEFORE REPORTING section compiles and runs. cite.py: OK §1985:XIII.4.9.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

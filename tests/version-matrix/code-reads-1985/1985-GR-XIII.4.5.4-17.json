@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-17",
+ "rule-digest": "055addc9002f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-153",
+  "sources": {
+   "reader": "c43b35e0287ee98296382ce4f6cc13740e771d83a95de5b79fc0778c3c50c6a5",
+   "refuter": "2565a1de6da999ed777ecb2ab8accfcfeb5143e208fd90ab065788bd5240fc99"
+  },
+  "imported": {
+   "reader": "2bcdc05cc5f55985bc3e013fe133ddea37b513d20d71597537fd45b4c4d56247",
+   "refuter": "ce29a1315aafafe1689f4fbf2ea648b52237008f4965d8d696e5d19d07f00111"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.5.4-17",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an OPEN naming several file-names (in one or several OUTPUT/EXTEND groups, report files and other files alike) must behave as one separate OPEN per file-name in source order: each file gets its own mode and I-O status, a failure of one (with its USE procedure) comes before the next file's OPEN, and the same file named twice gives the second OPEN the already-open result.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpen; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundOpenFile; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpenScope; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "DialectBehavior.FileSharingFacility through FileConnector.SharingFacilityInEffect: Table 19 arbitration and its 61 exist only from 2002; at 85 sibling connectors release buffered records instead",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: what a CLOSE WITH LOCK locks (physical file at 85, connector from 2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped BindOpen, EmitOpen and EmitOpenScope for EditionContext, DialectLevel, DialectBehavior and CobolVersion: none. The split into one BoundOpen per file-name (BoundImplicitSeries) is the same at every edition. The only edition reads on the path are in the runtime OPEN arbitration, and neither one changes the one-OPEN-per-file order.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f19_05 covers two groups, two files in one group, an OPTIONAL file and first-file-fails order with a USE procedure that ends the run. It does not cover a failing first file whose USE returns (the later files must still open), the same file named twice, or a report file mixed with a sequential file in one group",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/g85_f19_05-001",
+    "printed": "OPEN OUTPUT EXTEND 00 05 / CLOSE 00 00 / OPEN EXTEND 00 00 / OPEN OUTPUT 00 / USE RX 35 (identical to .out)",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p17order.cob",
+    "printed": "USE RX 35 RQ=99 / A 35 00 / USE RQ 41 RX=35 / B 41 / C 00 / D 00 00 / E 00 / USE RX 35 RQ=00 / F 00 35",
+    "expected": "OPEN EXTEND RX OUTPUT RQ: RX fails first (35) while RQ is not yet opened (RQ-S still 99), then RQ opens (00); OPEN OUTPUT RQ RQ: the second OPEN finds RQ open (41); OPEN OUTPUT SQ RQ: both 00; OPEN EXTEND RQ RX: RQ opened before RX fails"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.5.4 GR17",
+    "check": "OK  §1985:XIII.4.5.4 GR17  (4.5.4 General Rules)  the text is in GR17"
+   }
+  ],
+  "notes": "BindOpen binds each file-name with its own group's mode and returns a BoundImplicitSeries of one-file BoundOpen statements in source order, and EmitOpen emits a separate open scope, status store and USE hook for each file. The probes show RX's USE procedure running before RQ is opened, and a duplicate file-name giving 41 on its second OPEN.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.5.4-17",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r17grp.cob (runs/r17grp-001, --std 85): OPEN OUTPUT R1 WITH NO REWIND R2 EXTEND R3 R5 OUTPUT R4 (a repeated OUTPUT group, NO REWIND on one file of a group, an absent OPTIONAL R3, an absent non-OPTIONAL R5) with a USE ON EXTEND that returns. Printed 'USE-EXTEND 1 S1=07 S2=00 S3=05 S4=99 S5=35 / A 07 00 05 00 35': R5's USE ran before R4 was opened (S4 still 99), then R4 opened; R1's 07 is the 1985 status for OPEN NO REWIND on a non-reel medium (ANSI_COBOL_1985.md line 15269). All four reports then wrote their files. OPEN EXTEND R5 R5 on the absent file ran the USE twice ('B 35 N=2'), each as its own failed OPEN. cite.py: 'OK  §1985:XIII.4.5.4 GR17 ... the text is in GR17'. Nothing found that the reader's split-per-file reading misses.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

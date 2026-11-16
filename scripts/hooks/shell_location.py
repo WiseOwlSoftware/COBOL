@@ -29,7 +29,8 @@ following every location change the two shells accept:
 It is also the ONE model of a command line that every guard rule reads (kb/Work PB3198): a step's `text` and `words` are
 its command without the BODIES of the heredocs it introduces (a body is cut at its own delimiter line, never at the first
 `<<`, and a `<<` inside quotes or `$(( … ))` is no heredoc), the bodies ride beside it in `heredocs`, quoted text is one
-word, and `git_calls` reads every `git` invocation of a step (its global options, the directory its `-C` options name,
+word, `expands` marks each word the shell expands at run time and `shell` names the shell that runs the step (a `cmd /c`
+payload's is cmd.exe; kb/Work PB5764), and `git_calls` reads every `git` invocation of a step (its global options, the directory its `-C` options name,
 its subcommand). EVERY place either shell takes a command line from is walked as the command line it is:
   - a command substitution, in a word or inside double quotes: Bash `$( … )`, a backquote, `<( … )`, `>( … )`;
     PowerShell `$( … )`, `@( … )`, a `( … )` expression and a `{ … }` script block. Its steps come BEFORE the step
@@ -106,6 +107,11 @@ class Step:
     heredocs: tuple[str, ...] = ()  # the bodies of the Bash heredocs (`<<DELIM`, `<<-DELIM`) the command introduces, in
                                  # order, each without its delimiter line; a `-c` payload's last step carries the
                                  # bodies that feed the payload (`bash -c '…' <<EOF`)
+    expands: tuple[bool, ...] = ()  # one per word of `words`: whether the shell expands a variable or a substitution in
+                                 # it at run time (`_scan`), so its value is not the text written (forbidden_commands.py
+                                 # rule 7, kb/Work PB5764); a variable this model substituted from a literal still counts
+    shell: str = BASH            # the shell that runs it: the tool's, or the interpreter a payload is handed to
+                                 # (`cmd /c "rd /s …"` is cmd.exe's), so a rule reads its words in that shell's syntax
 
 
 @dataclasses.dataclass(frozen=True)
@@ -337,13 +343,30 @@ def _here_string(text: str, i: int) -> tuple[str, int] | None:
 
 
 def _words(text: str, shell: str) -> list[str]:
+    """The words of one command, quotes removed (`_scan`)."""
+    return _scan(text, shell)[0]
+
+
+# Where the shell EXPANDS a word at run time (`_scan`'s flags; forbidden_commands.py rule 7, kb/Work PB5764): a parameter
+# expansion, outside single quotes, and cmd.exe's `%name%` / `!name!` (a substitution or an expression is a construct,
+# flagged where `construct_end` finds it).
+_EXPANSION = {BASH: re.compile(r"\$[A-Za-z_{(0-9@*#?$!-]"), POWERSHELL: re.compile(r"\$[A-Za-z_{(?^$]"),
+              CMD: re.compile(r"%[A-Za-z_][\w]*%|![A-Za-z_][\w]*!")}
+
+
+def _scan(text: str, shell: str) -> tuple[list[str], list[bool]]:
     """The words of one command, quotes removed (Bash `\\x` is `x` outside single quotes; PowerShell keeps backslashes;
-    cmd.exe's `^x` is `x` outside double quotes). A substitution and an arithmetic expansion stay whole, inside the word
-    they stand in (`x=$(git rev-parse HEAD)` is one word); a PowerShell here-string is one word, its content."""
+    cmd.exe's `^x` is `x` outside double quotes), and for each whether the shell EXPANDS something in it at run time: a
+    variable (`$x`, `${x}`, `"$x"`, PowerShell's `$env:x`, cmd.exe's `%x%`), a command substitution (`$( … )`, a
+    backquote, PowerShell's `( … )`) or an arithmetic expansion. A `$` inside single quotes, or escaped, is literal and
+    expands nothing. A substitution and an arithmetic expansion stay whole, inside the word they stand in
+    (`x=$(git rev-parse HEAD)` is one word); a PowerShell here-string is one word, its content."""
     words: list[str] = []
+    flags: list[bool] = []
     cur: list[str] = []
-    have = False
+    have = expands = False
     i, n = 0, len(text)
+    expansion = _EXPANSION[shell]
 
     def construct_end(at: int, quoted: bool) -> int | None:
         if shell == BASH and text.startswith("((", at):
@@ -355,10 +378,12 @@ def _words(text: str, shell: str) -> list[str]:
         c = text[i]
         if c.isspace():
             if have:
-                words.append("".join(cur)); cur.clear(); have = False
+                words.append("".join(cur)); cur.clear(); flags.append(expands); have = expands = False
             i += 1; continue
         have = True
         if shell == POWERSHELL and (here := _here_string(text, i)) is not None:
+            # `@" … "@` expands its variables, `@' … '@` nothing
+            expands = expands or (text[i + 1] == '"' and expansion.search(here[0]) is not None)
             cur.append(here[0]); i = here[1]; continue
         if c == "'" and shell != CMD:
             j = text.find("'", i + 1)
@@ -372,7 +397,8 @@ def _words(text: str, shell: str) -> list[str]:
                 if shell == POWERSHELL and text[j] == "`" and j + 1 < n:
                     cur.append(text[j + 1]); j += 2; continue
                 if shell != CMD and (end := construct_end(j, True)) is not None:
-                    cur.append(text[j:end]); j = end; continue
+                    cur.append(text[j:end]); j = end; expands = True; continue
+                expands = expands or expansion.match(text, j) is not None
                 cur.append(text[j]); j += 1
             i = j + 1; continue
         if shell == BASH and c == "\\" and i + 1 < n:
@@ -380,11 +406,12 @@ def _words(text: str, shell: str) -> list[str]:
         if shell == CMD and c == "^" and i + 1 < n:
             cur.append(text[i + 1]); i += 2; continue
         if (end := construct_end(i, False)) is not None:
-            cur.append(text[i:end]); i = end; continue
+            cur.append(text[i:end]); i = end; expands = True; continue
+        expands = expands or expansion.match(text, i) is not None
         cur.append(c); i += 1
     if have:
-        words.append("".join(cur))
-    return words
+        words.append("".join(cur)); flags.append(expands)
+    return words, flags
 
 
 def _substitute(word: str, variables: dict[str, str]) -> str:
@@ -503,8 +530,9 @@ def _command(text: str, sep: str, heredocs: tuple[str, ...], subs: tuple[str, ..
         value = _words(m.group(2), shell)
         if len(value) == 1:
             state.variables[m.group(1)] = _substitute(value[0], state.variables)
-    raw = _words(text, shell)
+    raw, flags = _scan(text, shell)
     words = tuple(_substitute(w, state.variables) for w in raw)
+    expands = tuple(flags)
     assigned = words[1:] if words and words[0] in _BASH_DECLARE else words
     if shell == BASH and assigned and all(_ASSIGN_BASH.match(w) for w in assigned):
         for w in assigned:
@@ -517,11 +545,12 @@ def _command(text: str, sep: str, heredocs: tuple[str, ...], subs: tuple[str, ..
     if location is not None:
         verb, target = location
         out.append(Step(text, words, state.cwd, sep, depth, target if target is not None else "",
-                        heredocs=heredocs))
+                        heredocs=heredocs, expands=expands, shell=shell))
         if not transient:
             _move(state, verb, target)
         return
-    out.append(Step(text, words, _workdir(words, state.cwd), sep, depth, heredocs=heredocs))
+    out.append(Step(text, words, _workdir(words, state.cwd), sep, depth, heredocs=heredocs, expands=expands,
+                    shell=shell))
 
 
 def _location(words: tuple[str, ...], shell: str, cwd: str | None) -> tuple[str, str | None] | None:

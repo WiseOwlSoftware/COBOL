@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VIII.4.9.3-2",
+ "rule-digest": "439e82672dd2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-067",
+  "sources": {
+   "reader": "e68b85fc8164787675e3b6f139342c367136fa91abc125e8a7b452b82be5eaf0",
+   "refuter": "1c8a6916d7af502ce51e76a8dd8a74a9aa4a682140753836f7c9b2ffa409772a"
+  },
+  "imported": {
+   "reader": "cb72c818674a991d35dcc02716305f4ee600287b55bbda2365e0264823794120",
+   "refuter": "a7d34a2a60b761d84c7052da26ac80a6fb7c6a5d9acaf4c9ae53bde55490cfc7"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.9.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "The WRITE operand of the 1985 format is record-name-1 alone: it must name a logical (01-level) record of an FD in the File Section, qualified by its file-name where needed (OF/IN); the compiler must accept every such form on relative files (and the other organizations) and refuse a Working-Storage item, a subordinate item of a record, an SD record, an ambiguous unqualified name, a wrong qualifier, a reference-modified name, a file-name in its place, and the 2002+ WRITE FILE form.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveWriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#FileWhoseRecordIs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateFilePhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateFilePhrase",
+    "switches": "WRITE FILE file-name-1 (construct write-rewrite-file-phrase-2002): refused COBOL0900 at 85, accepted at 2023; the record-name-1 arm itself is edition-free",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ResolveWriteRecord, ResolveRecordName, FileWhoseRecordIs and KeyedIoBinder.BindWrite grepped for Edition.Edition|Year|CobolVersion: no comparison; the record identity test is the same code at every edition. The FILE alternative is gated through Constructs.WriteRewriteFilePhrase2002 (grep of the construct id).",
+  "behaviour-differs-by-edition": "yes: 2002+ add the WRITE FILE file-name-1 alternative, which 85 refuses; the record-name-1 rule is identical",
+  "witnesses-cover": "part: pb347_record_name_identity_85 writes a qualified record of a SEQUENTIAL file; relative files, RECORD VARYING, several records per FD and the refusal half are not witnessed at 85",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/wrsr2a.cob",
+    "printed": "W ST1=00 ST2=00 / R1=[AAAA] / R2=[BB] / R3=[CCCCCC] RL=06 / R4=[DD] RL=02",
+    "expected": "qualified records of two relative FDs that share the record-name REC (OF and IN), a second 01 record of one FD, a RECORD VARYING DEPENDING ON record and WRITE ... FROM all bind and write; read back unchanged"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/wrsr2b.cob",
+    "printed": "COBOL1757 'WREC' not a logical record of any file description entry; COBOL1757 'FLDOFRECOFRF1' subordinate to 'REC' (name that record); COBOL1639 'REC' not unique; COBOL1639 'REC OF SF' not under the qualifier; WRITE SREC (SD record): COBOL1692 may not name the sort-merge file (plus COBOL1720 INVALID KEY on sequential); COBOL1757 reference-modified record-name refused; COBOL1639 'RF1' is a file-name; COBOL1639 'NOSUCH' not defined",
+    "expected": "each non-record operand refused at compile time"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/wrsr2c.cob",
+    "printed": "85: error COBOL0900 the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002 ... §1985:VII.4.7.2 and §1985:VII.4.5.2 print record-name-1 alone; 2023: EXIT 0",
+    "expected": "85 refuses WRITE FILE RF1 FROM WREC; the 1985 format prints record-name-1 only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/wrsr2a.cob (first version, FROM FLD OF REC OF RF2)",
+    "printed": "COBOL6827 WRITE FROM FLD: the operand names the record area of file 'RF2' (§1985:VIII.4.9.3 SR1)",
+    "expected": "SR1 refusal (record-name-1 and identifier-1 share storage); incidental"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.9.3 SR2",
+    "check": "OK  §1985:VIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "ResolveRecordName is asked before the sequential/keyed reroute, so a relative WRITE is under the same identity test. Cosmetic only: the COBOL1757 message renders a qualified operand with GetText and prints 'FLDOFRECOFRF1' without spaces; the SD-record case also draws a COBOL1720 beside the right COBOL1692.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.9.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:VIII.4.9.2 format and 4.9.3 SR1-SR2. Probes at 85: rwr2a - a contained program WRITEs records of the container's GLOBAL relative FD (GREC, and REC OF GRF where its own FD LRF also has an 01 REC) and its own REC unqualified: printed 'INNER ST=00 LST=00 / OUTER ST=00 / R1=[GGGG] / R2=[OOOO]' (scope of names resolves the local REC to LRF, the qualified one to GRF). rwr2b - a 66 RENAMES item, a level-88 condition-name and a Linkage record as record-name-1: each refused (COBOL1757, COBOL1639, COBOL2746+COBOL1757). rwr2c - a contained program WRITEs a record of a NON-global FD of its container: refused COBOL1639 not defined. rwr2d - EXTERNAL relative FD, record named in lowercase and qualified 'write XREC of xrf': printed 'ST=00 / R=[XXXX]'. cite.py: 'OK  §1985:VIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2'. Cosmetic: for the RENAMES item COBOL1757 says 'subordinate to REC' (a 66 is not subordinate); the refusal is right.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VIII.4.3.3-1",
+ "rule-digest": "79e2e6fd29c4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "474fabb33a85cc46c4b639df3532c29fac382573ee6a86eed09f3c0a05151faf",
+   "refuter": "042ebd556f6a1bbc6bb8378e020198b170d46ddccf84437b951001051fc8fc42"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a DELETE statement on a relative file in sequential access mode (explicit or by default) must not carry INVALID KEY or NOT INVALID KEY (either alone or both), while the same phrases stay legal and live for random and dynamic access.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+    "switches": "severity only: error under strict, warning under --permissive; it reads Permissive, not the edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce = Edition.Year < 2002: the 1985 mandatory INVALID KEY of SR2 (a different rule) on the same statement; it does not touch the SR1 screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: delete-record-invalid-key-sequential-access covers INVALID KEY on explicit ACCESS SEQUENTIAL; NOT INVALID KEY alone, the default (unwritten) sequential access, and the legal random/dynamic arms are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/del1seq.cob",
+    "printed": "COBOL1720 x3: NOT INVALID KEY on ACCESS SEQUENTIAL (line 28); INVALID KEY + NOT INVALID KEY on default access (line 32); INVALID KEY without RECORD and without END-DELETE on default access (line 37) (exit 65); identical at --std 2023",
+    "expected": "every sequential-access DELETE with either phrase refused (§1985:VIII.4.3.3 SR1)"
+   },
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/del1ok.cob",
+    "printed": "D1=NIK 00 / D2=IK 23 / D3=IK 23 / D4 FS=00 / D5 FS=00 / D6 FS=43 / Z1=DDDD 00",
+    "expected": "random and dynamic DELETE with INVALID KEY compile; the missing record raises invalid key 23 (GR3); a sequential-access DELETE without the phrases compiles, deletes the record read (GR2), and one with no prior READ fails 43"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/del1seq.cob (first version, del1seq-001)",
+    "printed": "COBOL0900: a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002",
+    "expected": "the 2002 free-standing RELATIVE KEY clause is refused at 85 (the 1985 format makes it a phrase of ACCESS MODE)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.3 SR1",
+    "check": "OK  §1985:VIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "BindDelete screens either phrase family (FirstOf InvalidKey covers INVALID and NOT INVALID) whenever file.AccessMode is Sequential, which includes the default access mode, through the one COBOL1720 seam; the edition is not consulted for this rule and the 1985 rule says the same as the later one. The diagnostic quotes the 2023 clause number, a message-only nit.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "glbseq-001 at --std 85: a GLOBAL relative file declared with the 1985 abbreviated `ACCESS SEQUENTIAL RELATIVE RK` (no MODE, no IS, no KEY), DELETEd in a CONTAINED program: INVALID KEY refused COBOL1720 (line 37), and NOT INVALID KEY inside an IF refused COBOL1720 (line 49). So the access-mode screen follows the file across the nesting boundary and the abbreviated ACCESS form. The reader already covered the default access mode and the legal random/dynamic arms. cite.py: OK  §1985:VIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

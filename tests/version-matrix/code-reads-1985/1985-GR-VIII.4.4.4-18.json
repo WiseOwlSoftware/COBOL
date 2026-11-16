@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-18",
+ "rule-digest": "b8fce584c65f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-133",
+  "sources": {
+   "reader": "8c88ffe28e2472ad4ab2c358fa8e0582bac02f3729ba242a4c6d66454a28e31e",
+   "refuter": "ef7a10a801de3da8a44b31d0304eebb4cbbc57407e0c57d79715b2567e47bf8b"
+  },
+  "imported": {
+   "reader": "c222fe882e150c5435d74bd73e47f267105ce852ba9392dd5a1a102d96bfcd0a",
+   "refuter": "8160b76e48a12b7faec21b6db9c3202893b5df6bc20bb2e4fdc939ae39bb3a70"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-18",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file's minimum and maximum record sizes are fixed when it is created (OPEN OUTPUT, or I-O/EXTEND creation of an optional file) and no later OPEN through a description of other sizes, fixed or RECORD VARYING, changes them; under GR8's latitude WiseOwl validates them, so such an OPEN is unsuccessful (39) and leaves the file as it was.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#DeclaredAttributes",
+  "edition-consulted": [],
+  "edition-search": "grep of FixedFileAttributes.cs, KeyedConnector.FixedAttributeConflict and the OpenOnceEntered '39' arm for Edition|DialectBehavior|SharingFacilityInEffect: none; KeyCheck is an environment switch, not an edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf25_02 and 1985-GR-VIII_4_4_4-18 cover fixed-length sizes only; RECORD IS VARYING bounds and the RECORD CONTAINS integer-4 TO integer-5 form are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr18_varying-001",
+    "printed": "QV CREATE 2-12 00 / QV WRITE 5 00 / QV WRITE 12 00 / QV WRITE 13 44 / QW I-O 2-20 39 / QM INPUT 4-12 39 / QT INPUT CONTAINS 2 TO 12 00 / QV INPUT 2-12 00 / QV READ 00 05 03ABC / QV READ 00 12 100123456789 / QV END 10",
+    "expected": "sizes 2..12 established at creation; a 13-byte WRITE 44 (VIII.1.3.4 5)d.1); descriptions 2..20 and 4..12 are refused 39 and change nothing; the matching 2..12 forms open 00 and the records read back unchanged"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/g85_bf25_02-001",
+    "printed": "EXPECT: MATCH (g85_bf25_02.out)",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-133/runs/gr15_create-001",
+    "printed": "QW 9-BYTE OVER CREATED 4-BYTE 39",
+    "expected": "a file created by an optional I-O OPEN keeps that description's size"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR18",
+    "check": "OK  §1985:VIII.4.4.4 GR18  (4.4.4 General Rules)  the text is in GR18"
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR8",
+    "check": "OK  §1985:VIII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "The keyed store's meta page records the creation's record type and min/max sizes and FixedFileAttributes.Conflicts compares them before OpenCore runs, so the file is never touched by the refused OPEN; the validated set is the documented DOC-A.1-129 determination under GR8's implementor latitude.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-18",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Probe runs/r18_implicit-001: a file created OUTPUT through 'RECORD IS VARYING IN SIZE DEPENDING ON' with records X(2) and X(12) (bounds implied by the RECORD clause GR6/GR7) then opened INPUT through VARYING FROM 2 TO 12 gives 00 and reads 02 AB / 12 ABCDEFGHIJKL / 10. The implied sizes were established at creation. EXTEND through a fixed RECORD CONTAINS 12 description gives 39 and random I-O through 3-12 gives 39, and neither changes the file. runs/r15_outrecreate-001: a later OUTPUT re-creation establishes the new sizes (4-byte description then 39). Validating record sizes and answering 39 is within GR8's implementor latitude. cite.py: OK  §1985:VIII.4.4.4 GR18  (4.4.4 General Rules)  the text is in GR18; OK  §1985:VIII.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

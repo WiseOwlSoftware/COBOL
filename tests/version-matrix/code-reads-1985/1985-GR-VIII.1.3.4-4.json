@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VIII.1.3.4-4",
+ "rule-digest": "36833954591f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-127",
+  "sources": {
+   "reader": "1cee9424aa0830998a16df340aff017f5f6b278055f56029b84815b8c3bd4053",
+   "refuter": "5be2bd587bac17aee83d32e65239aac0b77e7b437fbc4117cc4c8ef1a5948552"
+  },
+  "imported": {
+   "reader": "51b98acb357809b871937ba61f8569b6594e3f04d5e93566999819b36d29d55a",
+   "refuter": "eac34c5be29d85d0869aebf157e183b779c973b9581a60bdb8ab8c21032efebb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.1.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a relative-file statement that meets a permanent error (30; 35 OPEN INPUT/I-O/EXTEND of an absent non-optional file; 37 open mode unsupported; 38 file previously closed with lock; 39 fixed-attribute conflict) is unsuccessful with a 3x status, runs any applicable exception procedure, and the condition stays in effect for later operations on the file until an implementor-defined technique corrects it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PermanentErrorReplay; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (from 2002): at 85 the PHYSICAL FILE is marked closed with lock",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behaviour: at 85 every OPEN of that physical file through any file-name answers 38; from 2002 only the locking connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (from 2014): a random or dynamic WRITE whose key is below 1 or above the highest RRN answers the invalid key 24 at 85, the permanent error 34 at 2014 and 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "ctx.Data.DialectLevel >= 2002 picks the void __RunUse body with the GR17 SORT exit filter; at 85 the plain void body. It decides how the procedure is invoked, not whether it is selected",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (from 2002): off at 85, so no 5x/6x sharing status can replace a 1985 value; a second OPEN of an open physical file through another file-name is not a sharing conflict",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -rn 'CobolVersion|Edition|Dialect|Std' src/WiseOwl.Cobol.Runtime/IO/*.cs; grep -n 'Edition|Version|Dialect' CodeGen/EcEmitter.cs CodeGen/DispatchEmitter.cs CodeGen/Verbs/IoStatusClass.cs; read Runtime/Control/DialectBehavior.cs rows 2, 14, 19",
+  "behaviour-differs-by-edition": "yes: 38 locks the physical file at 85 (another file-name of the same file also gets 38) and only the connector from 2002; an out-of-range random WRITE key is not a permanent error at 85 (24) but is 34 from 2014",
+  "witnesses-cover": "part: the witness covers 38 and 35 on OPEN INPUT with the USE procedure; not exercised there: 35 on I-O and EXTEND, 39, 37, the statement after a failed OPEN, the 85 physical-file lock through a second file-name, and the persistence sentence (probed)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.1.3@1985-LANGUAGE-CONCEPTS/g85_f15_02.cob",
+    "printed": "EXPECT: MATCH (38 and 35, USE runs each time)",
+    "expected": "3x, exception procedure executed"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p4perm.cob",
+    "printed": "--std 85: N-IN 35 / N-IO 35 / N-EX 35 (USES 1..3) / N-RD 47 (READ after the failed OPEN) / L-OPEN2 38 (other file-name) / L-OPEN1 38 / C-39 39 / C-RD 47 / D-IN 35 / D-OUT 37 (a directory); USES 10",
+    "expected": "35 for INPUT, I-O and EXTEND; 38 through any file-name at 85; 39; USE each time"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p4perm.cob",
+    "printed": "--std 2002: L-OPEN2 00 / L-OPEN1 38; --std 2023: COBOL0902 CLOSE WITH LOCK removed",
+    "expected": "the later arm locks only the connector"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-127/src/p6torn.cob",
+    "printed": "R2 30 USES 01 / R3 30 USES 02 / W4 30 USES 03 / C5 00 (the relative file overwritten by a sequential OPEN OUTPUT while open)",
+    "expected": "30, in effect for the later READ and WRITE; CLOSE is the implementor's technique (DOC-A.1-105)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.1.3.4 GR4",
+    "check": "OK  §1985:VIII.1.3.4 GR4  (1.3.4 I-O Status)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4 GRL2.4",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.4  (1.3.4 I-O Status)  the text is in GRL2.4"
+   }
+  ],
+  "notes": "The Status setter records any 3x status on an open connector and every verb but CLOSE replays it first (PermanentErrorReplay), so the persistence sentence holds at 85; probe p6torn witnesses it with a real 30, which the witness case said it could not raise. A directory answers 35 on OPEN INPUT and 37 on OPEN OUTPUT; both are 3x, and the value is the implementor's choice. The status class tests (CodeGen/Verbs/IoStatusClass.cs), the generated __IoCheck hook (DispatchEmitter.EmitUseMachinery) and the Status setter's permanent-error record are the same code at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.1.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "runs/r4a-001 at --std 85: a SEQUENTIAL file opened INPUT and I-O as RELATIVE -> 39 (USE runs), READ after it 47, CLOSE 42; a 4-byte relative file opened with an 8-byte FD -> 39 (§1985:VIII.4.4.4 GR8 lets the implementor validate it); OPEN I-O of absent non-optional dynamic file -> 35, WRITE 48, OPEN OUTPUT 00 then WRITE 00; CLOSE WITH LOCK then OPEN INPUT 38 and OPEN I-O 38 again (§1985:VIII.4.4.4 GR5 'without the LOCK phrase'). Persistence after a failed OPEN reads as the documented technique (docs/conformance/7/DOC-A.1-105: a failed OPEN leaves the connector closed, CLOSE ends the condition), and '48' after a '35' is covered by 'If more than one value applies, the implementor determines which'. cite.py: 'OK §1985:VIII.1.3.4 GR4 (1.3.4 I-O Status) the text is in GR4'; 'OK §1985:VIII.1.3.4 GRL2.4'; 'OK §1985:VIII.4.4.4 GR5 (4.4.4 General Rules)'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

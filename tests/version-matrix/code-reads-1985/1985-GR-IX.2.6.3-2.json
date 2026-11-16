@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-IX.2.6.3-2",
+ "rule-digest": "c86fceb695bb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-007",
+  "sources": {
+   "reader": "1290c16924a69b66758bfada8555bbb4fea7f9d51b7f458e54c7ce5b78fd4a05",
+   "refuter": "613c822c869be30f20ba72b6ba07bce073a9faceeb08eb1d86231c89e7f04a4f"
+  },
+  "imported": {
+   "reader": "33ff89398cd568acc95dba8dff0f6a7ae523dc3395a49966ea30d4bf616e6b22",
+   "refuter": "1733d49310e2ba0c4bc71d331b085cb3eadb3339de32cb816219269192d20924"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.2.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 each record of an indexed file is identified by its key values: a random READ by the prime key or (level 2) an alternate key returns the record holding that value ('02' when a duplicate alternate follows), an absent value is '23', a duplicate prime key on WRITE is '22', and sequential access follows the key of reference, for fixed and RECORD VARYING records.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "no switch on the key lookup; DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (line 580) decides when '02' is reported, another rule's detail",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (line 445): READ PREVIOUS, which 85 lacks",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectBehaviors in IndexedConnector.cs, KeyedStore.cs, KeyedConnector.cs: two consults, both READ status or positioning details; none on how a record is identified by its key.",
+  "behaviour-differs-by-edition": "no for identification by key; the '02' reporting rule has an edition arm that belongs to the READ rules",
+  "witnesses-cover": "part: the witness reads one prime key and one absent key; not exercised: alternate keys with duplicates, key-order sequential access, a duplicate prime WRITE, variable-length records",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/org1.cob",
+    "printed": "W2DUP INV IX-DUP=22 BYPRIME=00 K002AAADATA2 BYALT=02 K001AAADATA1 ALTNEXT=00 K002AAADATA2 SEQ=00 K001.. SEQ=00 K002.. SEQ=00 K003.. EOF SEQ=10 R9 INV R9=23",
+    "expected": "records found by prime and alternate key, prime-key order on START/READ NEXT, '22' duplicate prime, '02' duplicate alternate, '23' absent key"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/var1.cob",
+    "printed": "W2=00 W1=00 W3-TOOBIG=44 R2=00 LEN=08 K0023ABC R1=00 LEN=14 K0019123456789",
+    "expected": "RECORD VARYING with an ODO table: each record found by key at its own length; a record over the maximum is '44'"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/close1.cob",
+    "printed": "random READ of K009 after OPEN I-O: R9=23",
+    "expected": "'23' record not found"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.6.3 GR2",
+    "check": "OK  §1985:IX.2.6.3 GR2  (2.6.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "Identification by key is the keyed store's lookup, shared by every edition; the probes cover prime and alternate keys, duplicates and variable-length records at --std 85."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "cite.py: OK §1985:IX.2.6.3 GR2; OK §1985:IX.4.5.4 GR14 (duplicates made available in the order released by WRITE or REWRITE); OK §1985:IX.4.5.4 GR17 (random READ by an alternate key finds the first released duplicate). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/dup1.cob --std 85, duplicates written out of prime order (K003,K001,K002,K000 under AAA) and K005 rewritten to AAA: RANDALT=02 K003AAADATA3; SEQ K003,K001,K002,K000 (02 each), K005 (00), EOF 10 - release order, not prime order. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/dup2.cob: old alternate value after REWRITE OLDALT=23; after DELETE of K003 the first AAA is K001 (RANDALT2=02). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/col1.cob --std 85 with PROGRAM COLLATING SEQUENCE reversing letters/digits: key order stays native (START > 'B000' gives Z001), the program sequence applying only to relation conditions as §1985:VI OBJECT-COMPUTER GR7 says; same at 2023.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

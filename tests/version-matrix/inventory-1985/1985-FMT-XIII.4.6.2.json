@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-XIII.4.6.2",
  "rule-digest": "90d901192bcb",
+ "test-ref": "conformance:cases/XIII.4.6@1985-SUPPRESS-STATEMENT/g85_bf35_08",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

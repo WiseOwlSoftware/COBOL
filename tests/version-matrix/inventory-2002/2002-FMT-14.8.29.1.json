@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.29.1",
+ "rule-digest": "dda7882dd6e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#readStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead",
+ "test-ref": "conformance:cases/14.8.29@2002-READ-STATEMENT/g2rd-format-arms; conformance:cases/14.9.30-READ/pb331_read_lock_brackets",
+ "notes": "g2rd-format-arms writes the §2002:14.8.29.1 READ arms PREVIOUS, INTO, AT END and NOT AT END, INVALID KEY and NOT INVALID KEY, WITH LOCK and WITH NO LOCK, ADVANCING ON LOCK, IGNORING LOCK, the format 1 retry-phrase, and KEY IS with both data-name-1 and record-key-name-1. The records it selects follow §2002:14.8.29.3 GR12, GR18, GR21, GR27 and GR29, and it printed the ten derived lines at --std 2002 on the pinned build. pb331_read_lock_brackets covers the lock brackets and the format 2 RETRY."
+}

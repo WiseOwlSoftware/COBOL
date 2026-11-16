@@ -1,0 +1,68 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-2",
+ "rule-digest": "8eb15e006f6a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-026",
+  "sources": {
+   "reader": "a5dafe8cbf6657655f0147d0fac639f370dc4e2a76f6d0aaf2d89580888b6086",
+   "refuter": "c530e3e3d49cbc1fad9c047f19614425ee8fc3e797bca7ec429af4e4c7e9c7cc"
+  },
+  "imported": {
+   "reader": "17cf65a94020dd55c61b8e75b2e1371997cc926ee48879677e51b2e482952948",
+   "refuter": "51c18959745b92da1fd20f2e6f4088726768352c66f732d2cf989fd91d03528b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "After a successful WRITE, when the file is named in a SAME RECORD AREA clause the released logical record must stay available in the record area, through every record description of that file and as a record of every other file of the same clause (without the clause its availability is not defined, so nothing observable is required).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#NamedRecordEntry",
+    "switches": "DialectBehavior.SelectWhenOnlyForFilePhraseStatements (SELECT WHEN record selection); returns before the edition test for a file that does not translate by record, so it is not reached for a 1985 file",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "the SAME-clause occurrence limits for a REPORT file below 2002; the guard is evaluated only for a report file, never for the data files a WRITE releases",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grep 'Edition|DialectBehavior|IsActive' over SequentialIoEmitter.cs, FileControlBinder.IoControl.cs, FileModel.cs: only the two guarded sites listed, neither on the availability store. The area is one storage (SetRedefinition RedefinitionKind.SameRecordArea), so availability is structural at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers two fixed-length records of two open OUTPUT files; not exercised are a second record description of the written file, a peer file that is not open, a variable-length (OCCURS DEPENDING / RECORD VARYING) released record",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/sra1-001 (sra1.cob)",
+    "printed": "A1 WRITE R1 (ODO record, RECORD VARYING, L1=6): 00, R1=5ABCDE, R1B (2nd description)=5ABCDE, peer R2-A=5AB, peer R3 (F3 never opened)=5ABCDE; A2 WRITE R2 FROM group: R2, R3 and R1B all show 'PQR01K    '",
+    "expected": "GR2: the released record remains available in its own file's record descriptions and as a record of the other SAME RECORD AREA files"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR2",
+    "check": "OK  §1985:VII.4.7.4 GR2  (4.7.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "SAME RECORD AREA files share one storage at bind time and the emitter adds an explicit store only for out-of-line records, so the released record is visible through every description of every member of the clause, including a member never opened. The 'no longer available' half has no observable obligation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "rsra1-001 (--std 85): SAME RECORD AREA FOR a sequential, a second sequential, a RELATIVE random, an INDEXED dynamic and a LINAGE file (organizations and paths the reader did not try: KeyedIoEmitter#EmitWrite, WRITE ADVANCING). WRITE R1 (S9(4) COMP, SIGN LEADING SEPARATE, X(5)) -> peers R2 and R3 show -0123/-045/HELLO; relative WRITE R3 INVALID KEY -> R1 shows +0077/+008/WORLD; indexed WRITE R4 -> R5 = KEY1RESTXYZ and R2-X = STXYZ; WRITE R5 AFTER ADVANCING 2 and BEFORE ADVANCING PAGE -> R4 shows the line. Read SequentialIoEmitter#ReleasedRecordNeedsAlsoAvailable / EmitReleasedRecordAlsoAvailable and FileControlBinder.IoControl#LinkSameRecordArea: one shared storage, an explicit store only for out-of-line records, no edition test. cite.py: OK §1985:VII.4.7.4 GR2 'also available to the program as a record of other files'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

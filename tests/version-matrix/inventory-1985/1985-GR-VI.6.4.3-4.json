@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.4.3-4",
  "rule-digest": "c86b4db25a41",
+ "test-ref": "conformance:cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/g85_bf04_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-9",
+ "rule-digest": "136af03a1b52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "c1e61b557665215633aaf05e795bf23be75bec9528f6b638d98b370052141bba",
+   "refuter": "caac62e8d0fa5303c01399700c66c4b3f0edc2e1048c3c34b56d1969a2d0602e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful REWRITE on an indexed file (sequential, random or dynamic access, fixed or RECORD VARYING records) must replace the record in the file itself, so the replacing record (at its current length) is what any later READ through this or another connector of the same physical file, and after CLOSE/OPEN, returns; an unsuccessful REWRITE (49, 21, 23, 22) releases nothing.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteSharedInStatement; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/StoreTable.cs#AttachCreated",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 no Table 19 arbitration and the store is attached unarbitrated (IndexedConnector OpenCore -> StoreTable.AttachCreated arbitrated:false); sibling connectors in the run unit still share the one store (OtherConnectorsMayShare)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (Constructs record-lock-phrase-2002, ConstructRegistry.g.cs)",
+    "switches": "REWRITE ... WITH LOCK refused at 85 (COBOL0900); the plain REWRITE is the same code at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration (FileRegisterIndexed ctx.Data.DialectLevel)",
+    "switches": "hands the edition to the connector's Edition property; IndexedConnector#Rewrite itself reads no edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior|CobolVersion over Runtime/IO/*.cs, KeyedIoEmitter.cs, SequentialIoEmitter.cs; IndexedConnector edition reads are only at lines 445/580 (READ), none in Rewrite",
+  "behaviour-differs-by-edition": "no: for this rule the release is the same; only the sharing/lock machinery around it is gated (2002+) and is a no-op at 85",
+  "witnesses-cover": "part: g85_bf27_03 covers random access with fixed-length records only; sequential and dynamic access, RECORD VARYING length change, a sibling connector seeing the release while the file is open, and unsuccessful REWRITEs releasing nothing are not exercised",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/rw9a.cob",
+    "printed": "READ2=00 K002B1BBBBBB 12 / RW-STATUS=02 / OPEN2=00 / TWO=00 K002A1NEW 09 / READ3=00 K003A1CCCCCC / RW2-INVALID / RW2-STATUS=21 / REOPEN=00 K001A1AAAAAA 12 / REOPEN=00 K002A1NEW 09 / REOPEN=00 K003A1CCCCCC 12 / EOF4",
+    "expected": "sequential-access RECORD VARYING rewrite to length 9 released (second dynamic connector on same file sees K002A1NEW len 9 while first is open; persists after CLOSE); 02 for a created duplicate alternate key (IX.1.3.4); changed prime key -> 21, nothing released (K004 absent)"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/rw9b.cob",
+    "printed": "RW-INPUT=49 / RW-NF-INVALID / RW-NOTFOUND=23 / RW-DUP-INVALID / RW-DUPALT=22 K002A1YYYY / RW-OK=00 / K001=K001A1AAAA / K002=K002C39999 / K009-ABSENT",
+    "expected": "open INPUT -> 49, absent prime -> 23, duplicate unique alternate -> 22, none released; the successful random rewrite K002C39999 persists"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/edarm_c5.cob",
+    "printed": "error COBOL0900: a record-lock phrase (WITH LOCK ...) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "REWRITE ... WITH LOCK is not in the 1985 general format (IX.4.6.2): refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR9",
+    "check": "OK  §1985:IX.4.6.4 GR9  (4.6.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.1b.2"
+   }
+  ],
+  "notes": "IndexedConnector.Rewrite validates first and then replaces every tree of the shared store in one _st.Replace; the store is the one the registry's StoreTable holds per host path, so a sibling connector and a reopen both see the released record. Probed in all three access modes with a length change and the failing statuses; all as the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-9",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,e",
+  "evidence": "Probe refute-1985-099/src/r1.cob (run r1-001, --std 85): dynamic-access indexed file, RECORD VARYING 6 TO 13 with NO DEPENDING ON, two 01s (an ODO record R-A and a 6-char R-B), unique alternate key. REWRITE R-B FROM WS6 (shorter second record description + FROM) -> 00; REWRITE R-A with ODO count changed 7->3 -> 00; REWRITE R-A FROM WS13 with the area's key different from the last READ (dynamic: replaced by the FROM image's prime key K003) -> 00; duplicate unique alternate -> RW4-INVALID 22. A second SELECT on the same physical file (sequential, DEPENDING ON RL2) after CLOSE read 'CHK=00 06 [K001Q0] / 09 [K002B3XYZ] / 13 [K003R7MNOPQRS]': each released record at the length of the record-name/FROM image, the 22 released nothing. c2.cob (c2-001): REWRITE FILE X FROM W-REC refused COBOL0900 at 85 (the 2002 FILE phrase); reader's edarm_c5 already shows WITH LOCK refused. c1.cob (c1-001): REWRITE with both INVALID/NOT INVALID KEY and END-REWRITE in the 1985 format -> RW-OK 00. IndexedConnector.cs#Rewrite reads no edition (grep IsActive(DialectBehavior over Runtime/IO: only 445/580 in IndexedConnector, both READ). cite.py: 'OK  §1985:IX.4.6.4 GR9  (4.6.4 General Rules)  the text is in GR9'; 'OK  §1985:IX.4.6.4 GR3  (4.6.4 General Rules)  the text is in GR3' (level 2: size may differ).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

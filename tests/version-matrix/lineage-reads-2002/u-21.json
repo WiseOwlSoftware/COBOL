@@ -1,0 +1,1549 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-21 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-21",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.2.3-2",
+   "2002-GR-14.8.2.3-3",
+   "2002-GR-14.8.2.3-6",
+   "2002-GR-14.8.3.3-8",
+   "2002-GR-14.8.3.3-9",
+   "2002-SR-14.8.4.2-10",
+   "2002-SR-14.8.4.2-16",
+   "2002-SR-14.8.4.2-2",
+   "2002-SR-14.8.4.2-22",
+   "2002-SR-14.8.4.2-3",
+   "2002-SR-14.8.4.2-6",
+   "2002-SR-14.8.4.2-7",
+   "2002-SR-14.8.4.2-8",
+   "2002-GR-14.8.4.3-11",
+   "2002-GR-14.8.4.3-2",
+   "2002-GR-14.8.4.3-3",
+   "2002-GR-14.8.4.3-7",
+   "2002-GR-14.8.6.3-3",
+   "2002-GR-14.8.6.3-4",
+   "2002-GR-14.8.6.3-8",
+   "2002-GR-14.8.7.3-1",
+   "2002-GR-14.8.7.3-2",
+   "2002-GR-14.8.7.3-3",
+   "2002-GR-14.8.7.3-4",
+   "2002-GR-14.8.8.3-1"
+  ],
+  "pointers": {
+   "2002-GR-14.8.2.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.2.4-2",
+    "similarity": 0.962
+   },
+   "2002-GR-14.8.2.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.2.4-3",
+    "similarity": 0.945
+   },
+   "2002-GR-14.8.2.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.2.4-6",
+    "similarity": 0.947
+   },
+   "2002-GR-14.8.3.3-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.3.4-6",
+    "similarity": 0.728
+   },
+   "2002-GR-14.8.3.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.3.4-9",
+    "similarity": 0.762
+   },
+   "2002-SR-14.8.4.2-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.4.3-11",
+    "similarity": 0.912
+   },
+   "2002-SR-14.8.4.2-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.4.3-19",
+    "similarity": 0.973
+   },
+   "2002-SR-14.8.4.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.4.3-2",
+    "similarity": 0.735
+   },
+   "2002-SR-14.8.4.2-22": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.4.3-25",
+    "similarity": 0.895
+   },
+   "2002-SR-14.8.4.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.4.3-3",
+    "similarity": 0.967
+   },
+   "2002-SR-14.8.4.2-6": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.4.3-6",
+    "similarity": 0.811
+   },
+   "2002-SR-14.8.4.2-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.4.3-7",
+    "similarity": 0.914
+   },
+   "2002-SR-14.8.4.2-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.4.3-8",
+    "similarity": 0.753
+   },
+   "2002-GR-14.8.4.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.4.4-11",
+    "similarity": 0.982
+   },
+   "2002-GR-14.8.4.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.4.4-2",
+    "similarity": 0.991
+   },
+   "2002-GR-14.8.4.3-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.4.4-3",
+    "similarity": 0.845
+   },
+   "2002-GR-14.8.4.3-7": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.4.4-7",
+    "similarity": 0.679
+   },
+   "2002-GR-14.8.6.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.6.4-3",
+    "similarity": 0.936
+   },
+   "2002-GR-14.8.6.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.6.4-4",
+    "similarity": 0.956
+   },
+   "2002-GR-14.8.6.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.6.4-8",
+    "similarity": 0.954
+   },
+   "2002-GR-14.8.7.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.8.4-1",
+    "similarity": 0.39
+   },
+   "2002-GR-14.8.7.3-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.8.4-2",
+    "similarity": 0.217
+   },
+   "2002-GR-14.8.7.3-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.8.4-3",
+    "similarity": 0.59
+   },
+   "2002-GR-14.8.7.3-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.8.4-2",
+    "similarity": 0.482
+   },
+   "2002-GR-14.8.8.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.9.4-2",
+    "similarity": 0.479
+   }
+  }
+ },
+ "read": {
+  "slice": "u-21",
+  "seed": null,
+  "harness": {
+   "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21",
+   "probe-runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/one.sh (output in out/<probe>-<std>.out)",
+   "pointer-cases-at-2002": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/classified-2002.txt (every conformance: test-ref of the 25 pointer rows run at --std 2002 by case.sh, classified by classify.py; outputs out/case-<id>-2002.txt)",
+   "citations": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/cites-checked.json (66 citations, all OK by scripts/spec/cite.py --check)",
+   "compiler": "E:/COBOL-wt/coderead85-tree-d (pinned, HEAD 24372b7b17, PR #1704): it has PB5575's compile-time arm only; PB5575's run-time arm landed on main later and is not in this build"
+  },
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.2.3-2",
+    "to": [
+     "GR-14.9.2.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.2.3 (ADD general rules) GR2",
+    "clause-2023": "14.9.2.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADD format 2 (GIVING) under native arithmetic",
+     "ADD format 2 under 2002 standard arithmetic (ARITHMETIC IS STANDARD: 32-digit standard intermediate data item, each sum truncated to 32 digits, 31-digit rounding at a transfer without ROUNDED)"
+    ],
+    "evidence-2002": {
+     "format 2, native": "covered by conformance:cases/14.9.2-ADD/ca4_giving_composite and pb45_function_in_sending_operands (both MATCH at --std 2002, classified-2002.txt)",
+     "format 2, standard arithmetic": "not shown by the pointer (its standard arm, pb228_add_standard_decimal, is STANDARD-DECIMAL, refused at 2002 COBOL0900); probe p01-add-std shows the compiler WRONG"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR2",
+      "quote": "When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR2",
+      "quote": "When standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     }
+    ],
+    "reason": "The differing words are the arithmetic mode: 2002 names 'standard arithmetic' (the 32-digit decimal floating-point standard intermediate data item of 8.8.1.3), 2023 names standard-decimal/standard-binary. The pointer's evidence for the standard arm is STANDARD-DECIMAL (34-digit), refused at 2002. Probe p01-add-std (ARITHMETIC IS STANDARD, --std 2002): ADD A B C E TO F GIVING R with A=B=10**31-1, C=.01, E=F=-(10**31-1): (A+B)+C has 34 digits, cut to 32 the .01 is lost, so R must be +0.00; the compiler prints +0.01. ADD H TO N GIVING R2 (N=10**30, H=.5): 32 digits, rounded to 31 at the transfer gives 10**30+1; the compiler prints 10**30. This is kb/Work PB5575 (known, open; its run-time arm landed on main after the pinned build, not verified here); not a new defect.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p01-add-std.cob",
+    "needs": "its own verdict: at --std 2002 (pinned build) ADD format 2 under ARITHMETIC IS STANDARD keeps 34 digits (p01: F2-TRUNC R=+0.01, expected +0.00; F2-ROUND R2=10**30, expected 10**30+1) = PB5575; re-probe p01 on a build carrying PB5575's run-time arm and use it as the 2002 witness",
+    "compiler-at-2002": "wrong (known: kb/Work PB5575) - probe p01-add-std, output out/p01-add-std-2002.out",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-3",
+    "to": [
+     "GR-14.9.2.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.2.3 GR3",
+    "clause-2023": "14.9.2.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADD CORRESPONDING (format 3) under native arithmetic",
+     "ADD CORRESPONDING under 2002 standard arithmetic"
+    ],
+    "evidence-2002": {
+     "format 3, native": "covered by conformance:cases/14.9.2-ADD/pb228_add_corresponding_values and pb230_incompatible_corresponding (MATCH at 2002); corresponding_rounded_mode refused at 2002 (ROUNDED MODE, COBOL0803)",
+     "format 3, standard arithmetic": "not shown by the pointer; probe p01-add-std shows the compiler WRONG"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR3",
+      "quote": "When standard arithmetic is in effect, the result of the addition is equivalent to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR3",
+      "quote": "When standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the addition is equivalent to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same difference as GR2: 2002 standard arithmetic versus 2023 standard-decimal/binary ('is'/'are' is a typo). Probe p01-add-std: ADD CORRESPONDING G1 TO G2 with X OF G1 = .5 and X OF G2 = 10**30 under ARITHMETIC IS STANDARD: the sum has 32 digits and, moved without ROUNDED, is rounded to 31 digits: 10**30+1 expected; the compiler stores 10**30. PB5575 (known).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p01-add-std.cob",
+    "needs": "its own verdict: at --std 2002 ADD CORRESPONDING under standard arithmetic stores 10**30 where 2002 gives 10**30+1 (p01 F3-ROUND) = PB5575; re-probe on a build with PB5575's run-time arm",
+    "compiler-at-2002": "wrong (known: kb/Work PB5575) - probe p01-add-std",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-6",
+    "to": [
+     "GR-14.9.2.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "14.8.2.3 GR6",
+    "clause-2023": "14.9.2.4 GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADD with overlapping operands (14.5.9: undefined)",
+     "incompatible data (14.5.12.2)",
+     "ROUNDED (14.6.3, no MODE in 2002)",
+     "SIZE ERROR (14.6.4, incl. standard intermediate overflow)",
+     "CORRESPONDING (14.6.5)",
+     "arithmetic statements (14.6.6, incl. rule 3 standard arithmetic storing)"
+    ],
+    "evidence-2002": {
+     "overlapping operands": "nothing to show: results undefined",
+     "incompatible data": "covered by pb230_incompatible_sending_sweep, pb230_incompatible_corresponding (MATCH at 2002)",
+     "ROUNDED / SIZE ERROR / CORRESPONDING, native": "covered by phrase_order_arithmetic, optional_on_size_error, pb228_add_corresponding_values (MATCH at 2002)",
+     "14.6.6 rule 3 and 14.6.4 case 4 (standard arithmetic)": "not shown; p01-add-std shows the compiler WRONG (PB5575)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR6",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.5.9, Overlapping operands",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR6",
+      "quote": "Additional rules and explanations relative to this statement are given in 14.6.13.2, Incompatible data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "the result of the execution of such a statement is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.6",
+      "quote": "When standard arithmetic is in effect, each arithmetic statement is defined in terms of one or more arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "reason": "A pointer list. 2002 adds 14.5.9 (undefined results, no requirement) and its referenced 14.6.6/14.6.4 carry the 2002 standard-arithmetic arm (32-digit intermediate, size error on its range) that the 2023 clauses replace with standard-decimal/binary. Everything native is shown at 2002 by the twin's tests; the standard arm reaches PB5575.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p01-add-std.cob",
+    "needs": "KEPT for the native references (the twin's four tests MATCH at 2002) plus a 2002 witness for the standard-arithmetic arm once PB5575's run-time arm is in the build",
+    "compiler-at-2002": "wrong for the standard-arithmetic arm only (known: kb/Work PB5575); correct for the rest",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-8",
+    "to": [
+     "GR-14.9.3.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.3.3 (ALLOCATE general rules) GR8",
+    "clause-2023": "pointer 14.9.3.4 GR6 (INITIALIZED + characters: binary zeros); the subject twin is 14.9.3.4 GR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ALLOCATE arithmetic-expression-1 CHARACTERS without INITIALIZED: content undefined"
+    ],
+    "evidence-2002": {
+     "content undefined": "not testable: an undefined content admits any value"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR8",
+      "quote": "If the INITIALIZED phrase is not specified and arithmetic-expression-1 is specified, the content of the allocated storage is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR6",
+      "quote": "If both the INITIALIZED phrase and arithmetic-expression-1 are specified, all bytes of the allocated storage are initialized to binary zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR8",
+      "quote": "the content of the allocated storage depends on the INITIALIZE clause of the OPTIONS paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer is the INITIALIZED rule (GR6), a different requirement recorded CONFORMS with a test. The 2002 rule states no observable behaviour (2002 has no OPTIONS INITIALIZE clause; the compiler refuses it at 2002, pb151_options_fill COBOL0900, consistent). A rule with no testable requirement whose pointer is not recorded the same way.",
+    "probe": null,
+    "needs": "a signed derivation: not testable because the content of the storage is undefined in 2002 (no OPTIONS INITIALIZE clause exists in 2002)",
+    "compiler-at-2002": "not probed (nothing observable)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.3.3-9",
+    "to": [
+     "GR-14.9.3.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.3.3 GR9",
+    "clause-2023": "14.9.3.4 GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ALLOCATE data-name-1 without INITIALIZED: class pointer items (POINTER, PROGRAM-POINTER) set to null",
+     "class object items (OBJECT REFERENCE) set to null",
+     "other items undefined"
+    ],
+    "evidence-2002": {
+     "class pointer null": "covered by pb231_based_pointer_leaf (MATCH at 2002) and probe p02-alloc-null",
+     "class object null": "not shown by the pointer; covered by probe p02-alloc-null (BO NULL)",
+     "other items undefined": "not testable"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.3.3 GR9",
+      "quote": "data items of class object or class pointer in the allocated storage are initialized to null and the content of the other data items in the allocated storage is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.3.4 GR9",
+      "quote": "the content of the other data items in the allocated storage depends on the INITIALIZE clause of the OPTIONS paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds the OPTIONS INITIALIZE fill (absent from 2002, refused at 2002). The 2002 scope is the null initialization; the pointer's evidence shows class pointer only (pb231). Probe p02-alloc-null (strong typedef, BASED, POINTER, PROGRAM-POINTER, OBJECT REFERENCE, a table of POINTER; two ALLOCATEs, the first leaf set non-null in between) prints all NULL at --std 2002: correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p02-alloc-null.cob",
+    "needs": "a 2002 witness for the class-object arm: p02-alloc-null (out/p02-alloc-null-2002.out: BP/BPP/BO/BTP NULL, BP2/BTP2 NULL)",
+    "compiler-at-2002": "correct - probe p02-alloc-null",
+    "widening": "2023 also fills other items from OPTIONS INITIALIZE"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-10",
+    "to": [
+     "SR-14.9.4.3-11"
+    ],
+    "second-targets": [
+     "SR-14.9.4.3-18"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "split-rule",
+    "clause-2002": "14.8.4.2 (CALL syntax rules, ALL FORMATS) SR10",
+    "clause-2023": "14.9.4.3 SR11 (FORMAT 1) and SR18 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-2 / identifier-3 ANY LENGTH refused in formats 1 and 2 (on-overflow, on-exception)",
+     "identifier-2 / identifier-3 ANY LENGTH refused in format 3 (program-prototype)",
+     "identifier-4 ANY LENGTH refused (format 3)"
+    ],
+    "evidence-2002": {
+     "formats 1/2 identifier-2": "covered by pb240-call-any-length-format1 (refused at 2002, COBOL5981)",
+     "identifier-4": "covered by pb240-call-any-length-content-format2 (refused at 2002, COBOL5981 citing SR18)",
+     "format 3 identifier-2": "not shown; probe p05-anylength-nested: ACCEPTED at 2002 (WRONG)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR10",
+      "quote": "Identifier-2, identifier-3, and identifier-4 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR11",
+      "quote": "Identifier-2 and identifier-3 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR18",
+      "quote": "Identifier-4 shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "warning mechanism that optionally can be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 SR10 sits under ALL FORMATS and itself names identifier-4 (format 3 only), so it governs format 3; 2023 split it into SR11 (format 1 only) and SR18 (identifier-4), leaving identifier-2/identifier-3 ANY LENGTH legal in 2023's prototype format. Probe p05-anylength-nested: contained program P05A passes its ANY LENGTH formal LA in CALL \"P05B\" AS NESTED USING LA; --std 2002 compiles and runs (LB=ABCDEF, W=ZZZZZZ, rc=0) with no diagnostic; 2002 forbids it and 3.1.1 requires a violation of an explicit syntax rule to be flagged.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p05-anylength-nested.cob",
+    "needs": "its own verdict: the compiler at --std 2002 accepts an ANY LENGTH identifier-2 in a program-prototype (AS NESTED) CALL without a diagnostic (p05); fix then a 2002 refusal witness; formats 1/2 and identifier-4 KEPT to SR-14.9.4.3-11 and SR-14.9.4.3-18",
+    "compiler-at-2002": "wrong - probe p05-anylength-nested (out/p05-anylength-nested-2002.out). Program: P05 calls P05A AS NESTED USING W; P05A (LINKAGE 01 LA PIC X ANY LENGTH, PROCEDURE DIVISION USING LA) executes CALL \"P05B\" AS NESTED USING LA. Expected at 2002: a diagnostic, §2002:14.8.4.2 SR10 (ALL FORMATS) with §2002:3.1.1. Observed: no diagnostic, LB=ABCDEF W=ZZZZZZ rc=0. Site to read: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand (the SR11 screen is applied to format 1 only at every edition)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-16",
+    "to": [
+     "SR-14.9.4.3-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4.2 SR16 (FORMAT 3)",
+    "clause-2023": "14.9.4.3 SR19 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "program-prototype CALL: an argument passed BY CONTENT/BY REFERENCE (specified or implied) requires a BY REFERENCE formal (explicit or assumed by 14.1.3 GR4)"
+    ],
+    "evidence-2002": {
+     "BY CONTENT argument to a BY VALUE formal refused": "covered by pb133-arg-mode-content (refused at 2002, COBOL1687, the expected diagnostic)",
+     "legal pairs accepted": "covered by pb131_gr9_formal_mode (MATCH at 2002) and probe p11-byref-formal (explicit and assumed BY REFERENCE formals, BY CONTENT/BY REFERENCE args: A=AAAA B=YYYY / B=QQQQ)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR16",
+      "quote": "the BY REFERENCE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR19",
+      "quote": "the BY REFERENCE phrase shall be specified or implied for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.3 GR4",
+      "quote": "If neither the BY REFERENCE nor the BY VALUE phrase is specified prior to the first parameter, the BY REFERENCE phrase is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR9",
+      "quote": "When the BY REFERENCE phrase is specified or implied for the corresponding formal parameter",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differing words: 2002 'specified', 2023 'specified or implied'. In 2002 the header assumes BY REFERENCE (14.1.3 GR4), and 2002 CALL GR9 a) 1 assumes BY REFERENCE for a keyword-less argument whose formal has BY REFERENCE 'specified or implied'; a literal 'explicitly specified' reading of SR16 would make every such call (the case GR9 a) 1 defines) a syntax error, so 2002's 'specified' includes the assumed phrase and the requirement equals 2023's. Formats: 2002 format 3 = 2023 format 2 (same operands). The pointer's tests run correctly at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p11-byref-formal.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-2",
+    "to": [
+     "SR-14.9.4.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.4.2 SR2 (ALL FORMATS)",
+    "clause-2023": "14.9.4.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "literal-1 in formats 1 (ON OVERFLOW), 2 and 3: alphanumeric or national literal accepted",
+     "a numeric (or other) literal-1 refused",
+     "zero-length literal: does not exist in 2002 (8.3.1.2.1.2 SR1)"
+    ],
+    "evidence-2002": {
+     "alphanumeric literal-1": "covered by pb130_call_format2_bare (MATCH at 2002)",
+     "national literal-1": "not shown by the pointer; probe p12nat-call-literal: CALL N\"P12SUB\" runs IN P12SUB",
+     "numeric literal-1 refused": "not shown by the pointer; probe p12num-call-literal: COBOL1627 at 2002",
+     "zero-length": "probe p12zero-call-literal: refused at 2002 (COBOL1627 and COBOL0900); pb130-cancel-zero-length refused at 2002",
+     "format 1 (ON OVERFLOW)": "probe p07-call-overflow (CALL \"NOSUCH2\" ON OVERFLOW)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal and shall not be a zero-length literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "The length of an alphanumeric literal, excluding the separators that delimit the literal, shall be greater than zero",
+      "check": "OK"
+     }
+    ],
+    "reason": "The added 2023 words (zero-length) are vacuous in 2002, which has no zero-length literal. But the pointer's evidence is about the zero-length arm only; the 2002 rule's content (category of literal-1, also in the ON OVERFLOW format) is shown only by probes p12nat/p12num/p07, all correct at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p12num-call-literal.cob",
+    "needs": "a 2002 witness for the category arm (p12nat accepted, p12num refused) and the on-overflow format (p07)",
+    "compiler-at-2002": "correct - probes p12num/p12nat/p12zero-call-literal, p07-call-overflow",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-22",
+    "to": [
+     "SR-14.9.4.3-25"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4.2 SR22 (FORMAT 3) -> 14.7",
+    "clause-2023": "14.9.4.3 SR25 (FORMAT 2) -> 14.8.2, 14.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "program-prototype CALL: argument count (14.7.1)",
+     "group arguments (14.7.1.1)",
+     "elementary by reference (14.7.1.2.1) and by content/value (14.7.1.2.2)",
+     "returning items (14.7.2)"
+    ],
+    "evidence-2002": {
+     "count": "pb133-arg-count, pb237-call-prototype-argument-count (refused at 2002, COBOL1684)",
+     "by reference / by content conformance": "pb133-arg-conformance, pb165-content-nonconforming, pb239-call-address-formal-category (refused at 2002, COBOL1688); pb165_content_conformance, pb165_dynamic_call_description_check, pb165_repository_prototype_description_check (MATCH at 2002)",
+     "returning": "pb204-nested-returning-incompatible (refused at 2002, COBOL1736)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR22",
+      "quote": "The rules for conformance specified in 14.7, Conformance for parameters and returning items, apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR25",
+      "quote": "The rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1",
+      "quote": "The number of arguments in the activating element shall be equal to the number of formal parameters in the activated element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.8.2.2",
+      "quote": "If either the formal parameter or the argument is a variable length group, the formal parameter and the argument shall be compatible",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause numbers differ. 2002 14.7 read in full against 2023 14.8.2/14.8.3: every 2002 rule is present in 2023 with the same words (count, group by reference/content, strongly typed, object references, pointers, the same-length and same-clauses rules, currency/decimal-point, LOCALE, bit/national groups, ANY LENGTH, returning items 1-5); 2023 only adds variable-length groups, ALIGN, DYNAMIC LENGTH and message-tag. The pointer's tests run at 2002 with the expected results.",
+    "probe": null,
+    "widening": "2023 adds variable-length group compatibility, the ALIGN and DYNAMIC LENGTH clauses and class message-tag to the conformance rules"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-3",
+    "to": [
+     "SR-14.9.4.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.4.2 SR3 (ALL FORMATS)",
+    "clause-2023": "14.9.4.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-2 in file, working-storage, local-storage, linkage section or an address-identifier",
+     "identifier-2 a record item under a CD (communication section)",
+     "BY REFERENCE identifier-2 not in a factory/instance working-storage or file section",
+     "all three formats incl. ON OVERFLOW"
+    ],
+    "evidence-2002": {
+     "address-identifier": "pb239_call_address_identifier (MATCH at 2002)",
+     "factory/instance data refused": "pb132-call-byref-object-data (refused at 2002, COBOL1678)",
+     "communication section": "not shown by the pointer; probe p03-call-cd: CALL USING CR1 BY CONTENT CR2 (CD record items) runs, SUB L1=AAAA L2=BBBB, CR1=XXXX CR2=BBBB",
+     "ON OVERFLOW format": "probe p07-call-overflow"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "Identifier-2 shall reference an address-identifier or a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 admits a communication-section item as identifier-2; 2023 has no communication section. Probe p03-call-cd at --std 2002 (COBOL0903 obsolescence warning only) passes a CD record item by reference and by content correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p03-call-cd.cob",
+    "needs": "a 2002 witness for the communication-section arm: p03-call-cd (out/p03-call-cd-2002.out)",
+    "compiler-at-2002": "correct - probe p03-call-cd",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-6",
+    "to": [
+     "SR-14.9.4.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.4.2 SR6",
+    "clause-2023": "14.9.4.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "BY REFERENCE bit identifier-2: subscripts AND both reference-modification operands (leftmost position and length) only fixed-point numeric literals or all-fixed-point-literal expressions without exponentiation",
+     "byte alignment"
+    ],
+    "evidence-2002": {
+     "alignment": "pb132-call-bit-unaligned, pb240-call-bit-redefines-unaligned (refused at 2002, COBOL1683); pb132_bit_byref_aligned (MATCH)",
+     "subscripts": "pb132-call-bit-variable-subscript (refused at 2002, COBOL1683)",
+     "reference-modification length": "not shown; probe p04a-bit-refmod: CALL ... USING BY REFERENCE B1(1:N) ACCEPTED at 2002 (WRONG)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR6",
+      "quote": "subscripting and reference modification in identifier-2 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR6",
+      "quote": "subscripting and the leftmost position in a reference modification of identifier-2 consist of only fixed-point numeric literals or arithmetic expressions whose result is a positive integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "warning mechanism that optionally can be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 restricts the whole reference modification (leftmost position AND length) and requires fixed-point literal operands; 2023 restricts only the leftmost position and admits any numeric literal operand with a positive-integer result. So 2002 forbids B1(1:N) with N a data item; 2023 permits it. The compiler applies the 2023 rule at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p04a-bit-refmod.cob",
+    "needs": "its own verdict: at --std 2002 a BY REFERENCE bit argument with a variable reference-modification length is accepted without a diagnostic (p04a); fix then a 2002 refusal witness",
+    "compiler-at-2002": "wrong - probe p04a-bit-refmod (out/p04a-bit-refmod-2002.out). Program: 01 BG. 05 B1 PIC 1(16) USAGE BIT; 01 N PIC 99 VALUE 8; CALL \"P04SUB\" USING BY REFERENCE B1(1:N). Expected at 2002: a diagnostic, §2002:14.8.4.2 SR6 a) with §2002:3.1.1. Observed: no diagnostic, SUB L=10101010, B1=1111000011001100, rc=0 (the same at 2023, where it is legal). Control p04c (B1(9:8)) correct. Site: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenBitAlignment",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-7",
+    "to": [
+     "SR-14.9.4.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.4.2 SR7 (ALL FORMATS)",
+    "clause-2023": "14.9.4.3 SR7",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RETURNING identifier-3 in file, working-storage, local-storage, linkage section",
+     "identifier-3 a record item under a CD",
+     "all formats incl. ON OVERFLOW"
+    ],
+    "evidence-2002": {
+     "other sections refused": "pb132-call-returning-screen-name refused at 2002, but by COBOL1560 (screen section declined), not by this rule",
+     "communication section": "not shown by the pointer; probe p03-call-cd: CALL \"P03FN\" USING W RETURNING CR2 (CD record item) gives CR2=RRRR",
+     "ON OVERFLOW format": "probe p07-call-overflow (RETURNING R with ON OVERFLOW: R=RRRR)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 admits a communication-section RETURNING item; probe p03-call-cd at --std 2002 shows it works.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p03-call-cd.cob",
+    "needs": "a 2002 witness for the communication-section arm: p03-call-cd",
+    "compiler-at-2002": "correct - probe p03-call-cd",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-8",
+    "to": [
+     "SR-14.9.4.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.4.2 SR8",
+    "clause-2023": "14.9.4.3 SR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "RETURNING bit identifier-3: subscripts and both reference-modification operands literal-only",
+     "byte alignment"
+    ],
+    "evidence-2002": {
+     "alignment": "pb132-call-returning-bit-unaligned (refused at 2002, COBOL1683)",
+     "reference-modification length": "not shown; probe p04b-bit-refmod: RETURNING B1(1:N) ACCEPTED at 2002 (WRONG)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR8",
+      "quote": "subscripting and reference modification in identifier-3 consist of only fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR8",
+      "quote": "subscripting and the leftmost position in a reference modification of identifier-3 consist of only fixed-point numeric literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "warning mechanism that optionally can be invoked by the user at compile time to indicate violations of the general formats and the explicit syntax rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same difference as SR6, for identifier-3: 2002 restricts the reference-modification length too. Same defect mechanism as SR6.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p04b-bit-refmod.cob",
+    "needs": "its own verdict: at --std 2002 RETURNING into a bit item with a variable reference-modification length is accepted (p04b); fix then a 2002 refusal witness",
+    "compiler-at-2002": "wrong - probe p04b-bit-refmod (out/p04b-bit-refmod-2002.out). Program: CALL \"P04SUB\" USING BY CONTENT B1(1:8) RETURNING B1(1:N), N a data item. Expected: a diagnostic, §2002:14.8.4.2 SR8 a) with §2002:3.1.1. Observed: no diagnostic, B1=1111000011001100, rc=0. Same site and cause as SR6 (one defect)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-11",
+    "to": [
+     "GR-14.9.4.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.4.3 GR11 (FORMAT 3)",
+    "clause-2023": "14.9.4.4 GR11 (FORMAT 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "program-prototype CALL with OMITTED or a trailing argument omitted: the omitted-argument condition is true in the called program"
+    ],
+    "evidence-2002": {
+     "OMITTED phrase and trailing omission": "covered by pb133_omitted_args (CALL \"S1\" AS NESTED USING W-A OMITTED, three formals: B and C OMITTED) and pb133_omitted_transitive, both MATCH at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR11",
+      "quote": "the omitted-argument condition for that parameter evaluates to true in the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR11",
+      "quote": "the omitted-argument condition for that parameter evaluates to true in the called program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the cross-reference differs (2002 8.8.4.1.7 'Omitted-argument condition', 2023 8.8.4.8 'Simple omitted argument condition'); the two referenced clauses have the same general format, syntax rule and general rule text. 2002 format 3 is 2023 format 2.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-2",
+    "to": [
+     "GR-14.9.4.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.4.3 GR2 (ALL FORMATS)",
+    "clause-2023": "14.9.4.4 GR2 (FORMATS 1 AND 2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "positional argument/formal correspondence in format 1 (ON OVERFLOW), format 2 (ON EXCEPTION) and format 3 (prototype)"
+    ],
+    "evidence-2002": {
+     "formats 2/3": "pb46_call_format2_as_nested (MATCH at 2002)",
+     "format 1 (ON OVERFLOW)": "not shown by the pointer; probe p07-call-overflow: CALL \"P07SUB\" USING A BY CONTENT B RETURNING R ON OVERFLOW ... gives SUB L1=AAAA L2=BBBB, A=XXXX B=BBBB R=RRRR"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR2",
+      "quote": "The sequence of arguments in the USING phrase of the CALL statement and the sequence of formal parameters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR2",
+      "quote": "This correspondence is positional and not by name equivalence",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule's words are the same apart from the cross-reference ('14.3, Procedure division, general rules' in 2002, which in the 2002 text is 14.1.3; no behavioural change). But the 2002 rule governs the ON OVERFLOW format, which the 2023 format lacks; probe p07 shows positional correspondence there at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p07-call-overflow.cob",
+    "needs": "a 2002 witness for the ON OVERFLOW format: p07-call-overflow",
+    "compiler-at-2002": "correct - probe p07-call-overflow",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-3",
+    "to": [
+     "GR-14.9.4.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.4.3 GR3",
+    "clause-2023": "14.9.4.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) evaluation; b) program identification, EC-PROGRAM-PTR-NULL, EC-PROGRAM-NOT-FOUND; c) EC-PROGRAM-RESOURCES; d) EC-PROGRAM-ARG-MISMATCH; e) EC-PROGRAM-RECURSIVE-CALL; f) transfer; g) 1 ON OVERFLOW or ON EXCEPTION -> imperative-statement-1; g) 2 declaratives; g) 3 unchecked; h) successful call, NOT ON EXCEPTION",
+     "no external-item checks at CALL in 2002 (EC-EXTERNAL-* do not exist in 2002)"
+    ],
+    "evidence-2002": {
+     "b) ptr null": "ec_program_ptr_null (MATCH at 2002)",
+     "c) resources": "pb2659_call_resources_recursion (MATCH at 2002)",
+     "d) arg mismatch": "pb133_arg_mismatch_checked, pb133_arg_mismatch_lenient (MATCH at 2002)",
+     "e) recursive": "pb237_program_prototype (CONTAINER-BLOCKED, MATCH at 2002)",
+     "g)/h) exception partition, NOT ON EXCEPTION": "pb233_call_exception_partition, pb606_call_not_on_propagated (MATCH at 2002)",
+     "g) 1 ON OVERFLOW": "not shown by the pointer; probe p07-call-overflow: CALL NM (not found) ON OVERFLOW and CALL \"NOSUCH2\" ON OVERFLOW take the overflow branch; successful CALL with ON OVERFLOW ignores it",
+     "2023 e) external checks": "2023-only; ec_external_format_conflict refused at 2002 (COBOL0878: the exception-name is 2023's), consistent with 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR3",
+      "quote": "If the exception condition is any of the EC-PROGRAM exception conditions and an ON OVERFLOW or ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR3",
+      "quote": "If the exception condition is any of the EC-PROGRAM or EC-EXTERNAL exception conditions and an ON EXCEPTION phrase is specified in the CALL statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule names ON OVERFLOW (format 1, archaic in 2002, absent from 2023) in g) 1, g) 2 and h); 2023 adds the e) external-item checks (wider, 2023-only). The pointer's tests cover every other arm at 2002; probe p07 shows the ON OVERFLOW arms correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p07-call-overflow.cob",
+    "needs": "a 2002 witness for the ON OVERFLOW arms: p07-call-overflow",
+    "compiler-at-2002": "correct - probe p07-call-overflow",
+    "widening": "2023 adds the external-item checks (EC-EXTERNAL-DATA-MISMATCH, -FORMAT-CONFLICT, -FILE-MISMATCH) at CALL"
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-7",
+    "to": [
+     "GR-14.9.4.4-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.4.3 GR7 (FORMAT 3)",
+    "clause-2023": "14.9.4.4 GR7 (FORMAT 2), with 14.9.4.3 SR14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CALL program-prototype-name-1 (no NESTED): the prototype determines the characteristics",
+     "CALL identifier-1 AS program-prototype-name-1 with identifier-1 a restricted program-pointer: the pointer's prototype may determine them; 2002 has no rule that the two signatures be the same"
+    ],
+    "evidence-2002": {
+     "program-prototype-name-1": "pb237_program_prototype (MATCH at 2002)",
+     "restricted program-pointer, same prototype": "not shown by the pointer; probe p08-restricted-ptr: CALL PA AS PRA USING WS-N gives N=0008 at 2002",
+     "restricted program-pointer, different prototype": "probe p08c-restricted-ptr-optional: REFUSED at 2002 with COBOL2936 citing §2023:14.9.4.3 SR14 (WRONG)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR7",
+      "quote": "or the program prototype specified in the definition of identifier-1 if it is defined as a restricted program-pointer, is used to determine the characteristics of the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR7",
+      "quote": "If the NESTED phrase is not specified, program-prototype-name-1 is used to determine the characteristics of the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR14",
+      "quote": "If identifier-1 references a restricted program-pointer, the signature of the program-prototype specified in the definition of that pointer shall be the same as the signature of program-prototype-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR1",
+      "quote": "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 GR7 names the restricted program-pointer's prototype as an alternative source of the characteristics; 2023 drops it and instead requires (SR14, new in 2023) that the two signatures be the same. The 2002 CALL syntax rules contain no such requirement (grep of the 2002 text for 'same signature': only the USAGE rule on a pointer's content and a SET rule). Probe p08c: prototypes PRA (USING L-N PIC 9(4)) and PRB (USING OPTIONAL L-N PIC 9(4)), PA restricted to PRA and set to ADDRESS OF PROGRAM PRA, CALL PA AS PRB USING WS-N: WS-N conforms to either prototype, so 2002 permits the CALL under either reading of GR7; the compiler refuses it at --std 2002 citing the 2023-only SR14. The matching case (p08) runs correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p08c-restricted-ptr-optional.cob",
+    "needs": "its own verdict: at --std 2002 a CALL whose restricted program-pointer identifier-1 and program-prototype-name-1 differ in signature is refused by the 2023 rule SR14 (p08c); a 2002 witness for the matching case is p08-restricted-ptr; which prototype governs when they differ needs a 2002 derivation (GR7 says 'or')",
+    "compiler-at-2002": "wrong - probe p08c-restricted-ptr-optional (out/p08c-restricted-ptr-optional-2002.out). Expected at 2002: accepted (no 2002 rule requires the signatures to agree; §2002:14.8.4.3 GR7 provides for the pointer's prototype). Observed: error COBOL2936 'CALL PA AS PRB: ... the signature of PRA is not the same as the signature of program-prototype-name-1 PRB (ISO §2023:14.9.4.3 SR14; §2023:13.18.60.4 GR25)', rc=65; the same at 2023. Site: src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall (the SR14 check is not edition-gated)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-3",
+    "to": [
+     "GR-14.9.6.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3 (CLOSE general rules) GR3, table 15",
+    "clause-2023": "14.9.6.4 GR3, Table 14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "table 15 rows CLOSE, CLOSE WITH LOCK (c,e / c,e,g / a,c,e,g / c,e), CLOSE WITH NO REWIND, CLOSE UNIT, CLOSE UNIT FOR REMOVAL, for the four file categories",
+     "symbol e close lock: the connector shall not be opened again in this run unit"
+    ],
+    "evidence-2002": {
+     "CLOSE, NO REWIND, REEL/UNIT [FOR REMOVAL] on non-unit media": "pb141_close_forms (MATCH at 2002)",
+     "CLOSE WITH LOCK (sequential and relative)": "not shown by the pointer; probe p06-close-lock: CLOSE-LOCK=00, CLOSE-AGAIN=42, REOPEN=38; relative REL-CLOSE-LOCK=00, REL-REOPEN=38"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR3",
+      "quote": "The results of executing each type of CLOSE for each category of physical file are summarized in table 15",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.6.3 GR3e",
+      "quote": "When the LOCK phrase is specified, the file connector referenced by file-name-1 shall not be opened again during the execution of this run unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR3",
+      "quote": "The results of executing each type of CLOSE for each category of physical file are summarized in Table 14",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.5",
+      "quote": "A permanent error exists because an OPEN statement is attempted on a file connector previously closed with lock",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's general format and table have WITH LOCK (row and symbol e), which 2023 removed (the compiler refuses CLOSE WITH LOCK at 2023, COBOL0902). The non-unit 'f' text differs in words (2002: no action except GR4; 2023: status '07') but 2002 9.1.12 also gives '07', so the same. The LOCK row is shown only by p06.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p06-close-lock.cob",
+    "needs": "a 2002 witness for the WITH LOCK row: p06-close-lock",
+    "compiler-at-2002": "correct - probe p06-close-lock",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-4",
+    "to": [
+     "GR-14.9.6.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3 GR4",
+    "clause-2023": "14.9.6.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "I-O status updated by every CLOSE form, including CLOSE WITH LOCK, per 9.1.12"
+    ],
+    "evidence-2002": {
+     "CLOSE, REEL/UNIT, NO REWIND, not-open 42": "pb141_close_forms, pb140_close_status (MATCH at 2002)",
+     "CLOSE WITH LOCK": "not shown by the pointer; probe p06-close-lock: status 00 after CLOSE WITH LOCK, 38 on the later OPEN"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR4",
+      "quote": "The execution of the CLOSE statement causes the value of the I-O status associated with file-name-1 to be updated",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR4",
+      "quote": "to be updated as specified in 9.1.13, I-O status",
+      "check": "OK"
+     }
+    ],
+    "reason": "The same requirement apart from the clause number of I-O status, but it also governs the CLOSE WITH LOCK form, which exists only in 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p06-close-lock.cob",
+    "needs": "a 2002 witness for CLOSE WITH LOCK: p06-close-lock",
+    "compiler-at-2002": "correct - probe p06-close-lock",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.6.3-8",
+    "to": [
+     "GR-14.9.6.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "14.8.6.3 GR8",
+    "clause-2023": "14.9.6.4 GR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "after a successful CLOSE without UNIT (plain, NO REWIND, WITH LOCK): not in an open mode, physical file dissociated"
+    ],
+    "evidence-2002": {
+     "plain CLOSE": "pb140_close_status (MATCH at 2002)",
+     "CLOSE WITH LOCK": "not shown by the pointer; probe p06-close-lock: a second CLOSE after CLOSE WITH LOCK gives 42 (not open)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.6.3 GR8",
+      "quote": "the open mode of that file connector is set to not in an open mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.6.4 GR8",
+      "quote": "the open mode of that file connector is set such that it is no longer in an open mode",
+      "check": "OK"
+     }
+    ],
+    "reason": "The same meaning in other words, but 'a CLOSE statement without the UNIT phrase' includes CLOSE WITH LOCK in 2002 only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p06-close-lock.cob",
+    "needs": "a 2002 witness for CLOSE WITH LOCK: p06-close-lock",
+    "compiler-at-2002": "correct - probe p06-close-lock",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.7.3-1",
+    "to": [
+     "GR-14.9.8.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.7.3 (COMPUTE general rules) GR1",
+    "clause-2023": "14.9.8.4 GR1 a)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1 with a single fixed-point literal or data item: exact value before rounding/truncation/alignment, under native arithmetic",
+     "the same under 2002 standard arithmetic"
+    ],
+    "evidence-2002": {
+     "pointer tests": "rounded_modes (COBOL0803), arithmetic_standard_decimal and pb157_compute_sdidi_sole (COBOL0900) refused at 2002; pb230_incompatible_sending_sweep MATCH (incompatible data only)",
+     "native": "probe p09-compute: LIT-ROUNDED=1.3, LIT-TRUNC=1.2, ITEM-ROUNDED=1.3, ITEM-ALIGN=01.2",
+     "standard": "probe p09b-compute-std (ARITHMETIC IS STANDARD): the same results"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.3 GR1",
+      "quote": "An arithmetic expression consisting of a single fixed-point numeric literal or a single fixed-point numeric data item evaluates to the exact value of that literal or identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.4 GR1",
+      "quote": "When native arithmetic, or standard-decimal arithmetic is in effect, and arithmetic-expression-1 consists of a single fixed-point numeric literal",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 states the rule for every mode (native and 2002 standard); 2023 limits it to native and standard-decimal. The pointer's tests are 2014+ forms refused at 2002; probes p09/p09b show the 2002 behaviour correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p09-compute.cob",
+    "needs": "a 2002 witness: p09-compute and p09b-compute-std",
+    "compiler-at-2002": "correct - probes p09-compute, p09b-compute-std",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.7.3-2",
+    "to": [
+     "GR-14.9.8.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.7.3 GR2",
+    "clause-2023": "pointer 14.9.8.4 GR2 (storing); the 2023 evaluation text is GR1 b) and GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: the value of the arithmetic expression is determined",
+     "format 2: the value of the boolean expression is determined"
+    ],
+    "evidence-2002": {
+     "arithmetic": "pointer tests float_edited, pb157_compute_multi_sizeerr, pb51_compute_figurative_zero (MATCH at 2002); probe p09-compute EXPR=+09.2",
+     "boolean": "not in the pointer's tests; probe p09-compute BOOL-* lines"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.3 GR2",
+      "quote": "Evaluation consists of determining the value of the arithmetic or boolean expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.4 GR2",
+      "quote": "The value obtained according to rule 1 is then stored, in conformance with the specifications in 14.6.8",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer is the 2023 storing rule, a different requirement; the 2002 rule covers both formats' evaluation, the pointer's evidence only arithmetic. Probe p09 shows both correct at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p09-compute.cob",
+    "needs": "a 2002 witness for the boolean arm: p09-compute (the arithmetic arm is shown by the pointer's tests at 2002)",
+    "compiler-at-2002": "correct - probe p09-compute",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.7.3-3",
+    "to": [
+     "GR-14.9.8.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.7.3 GR3",
+    "clause-2023": "14.9.8.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "boolean-compute: width of the result = largest boolean item referenced",
+     "result moved to each identifier-2 by MOVE rules (14.5.8 alignment: left-aligned, zero fill / truncation on the right)"
+    ],
+    "evidence-2002": {
+     "width and padding": "pb589_bool_refmod_width (MATCH at 2002: L1..L6 widths 3/2 padded to 8)",
+     "multi-target, truncation": "pb157_compute_bit_group (MATCH at 2002)",
+     "operators": "boolean_ops, pb230_incompatible_boolean_sending, pb589_call_content_bool_width (MATCH at 2002); probe p09-compute (BOOL-PAD=10000000, BOOL-TRUNC=11, BOOL-WIDEST=00111100 00)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.3 GR3",
+      "quote": "The resulting value is moved to the data item referenced by identifier-2 according to the rules of the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.4 GR3",
+      "quote": "The number of boolean positions in the value resulting from the evaluation of boolean-expression-1 is the number of boolean positions in the largest boolean item referenced in the expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "The width sentence is word-identical. 2002 'moved ... according to the rules of the MOVE statement' (2002 MOVE GR for a boolean receiver: 'alignment and zero filling ... as defined in 14.5.8') equals 2023 'stored' under 14.6.8 alignment. 2023 adds a reference to 8.8.2 and incompatible data (already 2002 GR4's references). The 2023 shift operators are 2023-only (boolean_shift tests refused at 2002); the 2002 scope is fully shown by pointer tests that pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p09-compute.cob",
+    "widening": "2023 boolean expressions also admit the B-SHIFT operators"
+   },
+   {
+    "rule-id": "2002-GR-14.8.7.3-4",
+    "to": [
+     "GR-14.9.8.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "14.8.7.3 GR4",
+    "clause-2023": "pointer 14.9.8.4 GR2 (no 2023 list rule for COMPUTE)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "8.8.1 arithmetic expressions incl. 8.8.1.3 2002 standard arithmetic",
+     "8.8.2 boolean expressions",
+     "14.5.12.2 incompatible data",
+     "14.6.3 ROUNDED (no MODE)",
+     "14.6.4 SIZE ERROR",
+     "14.6.6 arithmetic statements",
+     "14.5.9 overlapping operands (undefined)"
+    ],
+    "evidence-2002": {
+     "native arithmetic, ROUNDED, SIZE ERROR, incompatible data": "float_edited, pb157_compute_multi_sizeerr, pb230_incompatible_sending_sweep, phrase_order_arithmetic, optional_on_size_error (MATCH at 2002); probe p09-compute",
+     "boolean": "boolean_ops, pb589_bool_refmod_width (MATCH at 2002)",
+     "2002 standard arithmetic": "not shown; probe p13-compute-std32 shows the compiler WRONG (PB5575)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.3 GR4",
+      "quote": "Additional rules and explanations relative to this statement are given in 8.8.1, Arithmetic expressions; 8.8.2, Boolean expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.9",
+      "quote": "the result of the execution of such a statement is undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "A pointer list with no 2023 twin; the nearest 2023 rule is the storing rule. Its references reach 2002 standard arithmetic (32 digits, truncated per operation). Probe p13-compute-std32 (ARITHMETIC IS STANDARD, B=10**30, COMPUTE A = B * 100 + 9 - B * 100) prints A=00009 at --std 2002; 2002 gives 00000 (10**32+9 cut to 32 digits). PB5575 (known; its run-time arm is on main, not in the pinned build).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p13-compute-std32.cob",
+    "needs": "KEPT for the native/boolean references (tests MATCH at 2002) plus a 2002 witness of the standard-arithmetic arm on a build with PB5575's run-time arm (p13)",
+    "compiler-at-2002": "wrong for the standard-arithmetic arm (known: kb/Work PB5575) - probe p13-compute-std32",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.8.3-1",
+    "to": [
+     "GR-14.9.9.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.8.3 (CONTINUE general rules) GR1",
+    "clause-2023": "pointer 14.9.9.4 GR2 (implicit CONTINUE as AFTER ZERO SECONDS)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CONTINUE (no AFTER phrase in 2002) has no effect wherever a conditional or imperative statement may appear"
+    ],
+    "evidence-2002": {
+     "pointer test": "l1_implicit_continue_zero refused at 2002 (COBOL0878: EC-CONTINUE-LESS-THAN-ZERO is 2023's)",
+     "no effect": "probe p10-continue: CONTINUE in IF, ON SIZE ERROR, SEARCH WHEN, EVALUATE WHEN, a paragraph body and CONTINUE CONTINUE; every step prints the expected value",
+     "no AFTER phrase in 2002": "probe p10b-continue-after: CONTINUE AFTER 0 SECONDS refused at 2002 (COBOL0900)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.8.3 GR1",
+      "quote": "The CONTINUE statement has no effect on the execution of the runtime element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.9.4 GR2",
+      "quote": "Implicit CONTINUE statements shall be processed as if AFTER ZERO SECONDS were specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.8.2 SR1",
+      "quote": "The CONTINUE statement may be used anywhere a conditional statement or an imperative-statement may be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer is a 2023 AFTER-phrase rule whose test does not run at 2002. The 2002 rule (pure no-op) is shown by probe p10 at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-21/p10-continue.cob",
+    "needs": "a 2002 witness: p10-continue",
+    "compiler-at-2002": "correct - probes p10-continue, p10b-continue-after",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-21",
+  "cases": [
+   {
+    "rule-id": "2002-SR-14.8.4.2-16",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The reader's 'specified' = 'specified or implied' reading holds (2002 14.1.3 GR4 and CALL GR9 a) make a literal reading absurd). But SR16 governs every argument of the program-prototype format, and 2002 SR3 (ALL FORMATS, so format 3 too) admits identifier-2 from the communication section, which 2023 SR3 excludes. A record item under a CD passed BY REFERENCE / BY CONTENT to a prototype call is in the 2002 scope of SR16 and in no 2023 program, so the 2023 row's tests (all working-storage arguments) do not show it. Probes at --std 2002: r1 (CD item BY REFERENCE to a BY VALUE formal) and r2 (BY CONTENT) are refused with COBOL1687; r3 (legal pairs, explicit and keyword-less, assumed BY REFERENCE formal) runs: CR1=AAAA CR2=YYYY / CR1=XXXX CR2=YYYY. Compiler-at-2002: correct for the CD case; r1/r2/r3 are the candidate 2002 witnesses. Second reach (same defect the reader filed under GR7): 2002 has no same-signature rule for CALL restricted-pointer AS prototype (2023 SR14 is new), so SR16 also governs that 2002-only call, which the compiler refuses at 2002 with COBOL2936 (r8).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR16",
+      "quote": "the BY REFERENCE phrase shall be specified for the corresponding formal parameter in the procedure division header",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR19",
+      "quote": "the BY REFERENCE phrase shall be specified or implied for the corresponding formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR14",
+      "quote": "the signature of the program-prototype specified in the definition of that pointer shall be the same as the signature of program-prototype-name-1",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-21/r1-sr16-cd-byref-to-byvalue.cob (also r2-sr16-cd-bycontent-to-byvalue.cob, r3-sr16-cd-legal.cob; outputs in refute-u-21/out/)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.4.2-22",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "SR22 applies 14.7 to every argument and the returning item of the prototype format; 2002 SR3 and SR7 admit identifier-2 and identifier-3 from the communication section (2023 SR3/SR7 do not), so conformance of a CD record argument or RETURNING item is 2002 scope the 2023 row's tests never reach. Probes at --std 2002 (CD record of 87 positions): r4 group CD record by reference to a 100-byte formal refused COBOL1688 (14.7.1.1 1); r5 CD elementary PIC X(4) to formal PIC X(5) refused COBOL1688; r6 RETURNING into a CD PIC X(4) item from PIC 9(4) refused COBOL1736; r7 conforming group, elementary and RETURNING with CD operands runs: CR1=AAAA CR2=GGGG / CR1=EEEE / CR2=RRRR. Compiler-at-2002 correct for the CD case. Also: the reader's 'every 2002 rule present in 2023 with the same words' is not literally true: 2002 14.7.1.1 says 'variable-occurrence data item' (2002 defines it as the table element itself) where 2023 says 'occurs-depending group item'; not decisive alone. And the 2002-only restricted-pointer call (no 2023 SR14) is in scope and refused at 2002 (r8, the GR7 defect).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR22",
+      "quote": "The rules for conformance specified in 14.7, Conformance for parameters and returning items, apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR25",
+      "quote": "The rules for conformance specified in 14.8.2, Parameters and 14.8.3, Returning items apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.1.1",
+      "quote": "described as a variable-occurrence data item passed by reference, the maximum length is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.8.2.2",
+      "quote": "described as an occurs-depending group item passed by reference, the maximum length is used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "variable-occurrence data item: A table element that is repeated a variable number of times",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-21/r4-sr22-cd-group-longer-formal.cob (also r5, r6, r7; outputs in refute-u-21/out/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.4.3-11",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "The rule text and its referenced omitted-argument condition (2002 8.8.4.1.7 = 2023 8.8.4.8) are the same. But GR11 governs every 2002 format-3 CALL, and 2002 permits a CALL through a restricted program-pointer naming a prototype with a different signature: 2002 GR7 lets either prototype determine the characteristics and 2002 has no same-signature CALL rule (2002 USAGE GR17 restricts only the pointer's content); 2023 added SR14, which forbids that call. So GR11's 2002 scope includes calls 2023 has no program for, and the 2023 row says nothing about them. Probe r8: PA restricted to PRA (USING OPTIONAL L-N), CALL PA AS PRB USING OMITTED with PRB = USING OPTIONAL L-N OPTIONAL L-M (OMITTED and the trailing omission are legal under either prototype): 2002 requires 'L-N OMITTED' in PRA; the compiler refuses at --std 2002 with COBOL2936 citing §2023:14.9.4.3 SR14. Compiler-at-2002: wrong (the same defect the reader recorded under 2002-GR-14.8.4.3-7, not a new one). The same-signature control r9 (CALL PA AS PRA USING OMITTED) prints 'L-N OMITTED' at 2002 and 2023.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.3 GR11",
+      "quote": "or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to true in the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.4 GR11",
+      "quote": "or a trailing argument is omitted, the omitted-argument condition for that parameter evaluates to true in the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.3 GR7",
+      "quote": "or the program prototype specified in the definition of identifier-1 if it is defined as a restricted program-pointer, is used to determine the characteristics of the called program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR14",
+      "quote": "the signature of the program-prototype specified in the definition of that pointer shall be the same as the signature of program-prototype-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR17",
+      "quote": "A restricted program-pointer shall contain only the predefined address NULL or the address of a program with the same signature",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-21/r8-gr11-restricted-ptr-omitted.cob (control r9-gr11-restricted-ptr-same.cob; outputs in refute-u-21/out/)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.7.3-3",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format 2 (boolean-compute) is identical in both editions; 2002 8.8.2 boolean expressions are a subset of 2023's (2023 adds only the B-SHIFT operators); national, display and bit boolean usages exist in both. 2002 'moved ... according to the rules of the MOVE statement' (2002 MOVE GR4d: conversion plus 14.5.8 alignment and zero fill for a boolean receiver) equals 2023 'stored' under the same alignment rules, including JUSTIFIED (identical text in both). The COMPUTE clause names no data section, so its receiver rule is section-independent; checked anyway: r10 (boolean receivers in a CD record, COMPUTE CB8 CB2 = A B-OR B with A=1100, B=101) gives CB8=11100000 CB2=11 at --std 2002, correct. The reader's witnesses MATCH at 2002 in its caseresults-2002.txt.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.7.3 GR3",
+      "quote": "The resulting value is moved to the data item referenced by identifier-2 according to the rules of the MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.8.4 GR3",
+      "quote": "The resulting value is then stored in each data item referenced by identifier-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.24.3 GR4d",
+      "quote": "When a boolean data item is a receiving item, the boolean value of the sending item is moved",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-21/r10-gr3-compute-bool-cd.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "2e73ffe3b0caf5488373372aa3f961a4b73aca836c49573c7bc1b80deb6f8899",
+  "read": "b73c2d478e265e2eab870b206ef6488890003f9842701f8e42933f32425ba9ea",
+  "refute": "67190cfa4ed45411e2bca463efd184b64e484c3fc4882e973e60205e77f18479"
+ }
+}

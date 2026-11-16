@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-2",
+ "rule-digest": "e33321d9b0bb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "b7dd903d6ad39170359f16ecf8ef0b190e8636aa25b7eacf27fccaf3071e84d0",
+   "refuter": "72cde02a173cafda51c731952073bf7e1ce2596a784ab8f11dcf25af4f414fa4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.4.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 executing a SORT with an INPUT PROCEDURE and/or an OUTPUT PROCEDURE, or a MERGE with an OUTPUT PROCEDURE, must transfer control implicitly to each associated procedure (paragraph or section range, THRU) at its phase, including when the sort file receives no records, and return to the statement afterwards; 1985 has no MERGE INPUT PROCEDURE and no table SORT, so those forms are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+    "switches": "ConstructRegistry check table-sort-2002: a SORT with no USING/GIVING/procedure phrases (Format 2) is refused at 85; does not touch the procedure transfer",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior|ConstructRegistry' in CodeGen/Verbs/SortEmitter.cs and CodeGen/DispatchEmitter.cs: no hit; the transfer (SortEnterProcedure + Statements.EmitProcedureRange -> __Dispatch(start, end)) is one arm",
+  "behaviour-differs-by-edition": "no: the transfer is the same; only the admission of Format 2 table SORT differs (refused at 85, admitted at 2023)",
+  "witnesses-cover": "part: the witness covers SORT/MERGE procedures transferring; SORT INPUT PROCEDURE with GIVING, USING with OUTPUT PROCEDURE over an empty file, a procedure that releases nothing, and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c3b.cob",
+    "printed": "IN2 IN-SEC2-LAST OUT1 R 1EY1 R 2EY2 R 3EY3 OUT2 AFTER-SORT ... OUT1 R CCC1 R BCC2 R BBB3 R ABB1 R AAA2 OUT2 AFTER-MERGE",
+    "expected": "SORT enters its input procedure (sections IN-SEC THRU IN-SEC2) then its output procedure; MERGE USING M1 M2 enters its output procedure"
+   },
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c4a.cob",
+    "printed": "OP1-ENTERED OP1-EOF AFTER-1 0 / IP1-ENTERED G ZZZZ G AAAA / IP0-ENTERED OP1-ENTERED OP1-EOF AFTER-3 0",
+    "expected": "USING an empty file still enters the output procedure (its RETURN finds at end); INPUT PROCEDURE with GIVING enters the procedure and GIVING gets ZZZZ, AAAA descending; an input procedure releasing nothing is entered and the output procedure then is too"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c4b.cob",
+    "printed": "COBOL5506 unexpected 'INPUT' (MERGE ... INPUT PROCEDURE)",
+    "expected": "the 1985 MERGE format has no INPUT PROCEDURE phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c4c.cob",
+    "printed": "--std 85: COBOL0870 SORT of a table (Format 2) requires COBOL-2002; --std 2023: AAAABBBBCCCC",
+    "expected": "a 1985 SORT operates on a sort-merge file only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.4.2 GR2",
+    "check": "OK  §1985:IV.4.4.2 GR2  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GR2"
+   }
+  ],
+  "notes": "SortEmitter emits the input procedure in the release phase and the output procedure in the return phase as bounded dispatcher calls; an IsEmpty procedure (no statements) is skipped, which is observably the same as entering it. No edition is consulted on the transfer path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.4.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r4a.cob at --std 85 (sequential files written by the probe): SORT DESCENDING INPUT PROCEDURE IN-1 THRU IN-2 GIVING G1 G2, where IN-1 releases MMM and GO TOs FAR-1 outside the range, which releases ZZZ and GO TOs IN-2 (the range includes statements reached by GO TO, §1985:XI.4.4.4 GR7): IN1 G1-OPEN 35 FAR1 IN2 AFTER-SORT1, and both GIVING files (the 1985 GIVING list) hold ZZZ first; OPEN of a GIVING file inside the input procedure finds it not yet initiated (35, GR12a: initiation after any input procedure); SORT USING M1 M2 OUTPUT PROCEDURE: OPEN INPUT M1 inside the output procedure 00 (GR9c: USING files closed before sequencing), then R AAA R BBB R CCC AFTER-SORT2; MERGE USING M1 M2 OUTPUT PROCEDURE: the same OPEN gives 41 (§1985:XI.4.1.4 GR7a: initiated before control passes, closed after the output procedure), R AAA R BBB R CCC AFTER-MERGE; the output procedure PERFORMs a paragraph outside its range and returns at the end of OUT-1. The refusal half (MERGE INPUT PROCEDURE, table SORT) was witnessed by the reader's c4b/c4c. cite.py: OK §1985:IV.4.4.2 GR2; OK §1985:XI.4.4.4 GR7; OK §1985:XI.4.4.4 GR9c; OK §1985:XI.4.4.4 GR12a; OK §1985:XI.4.1.4 GR7a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

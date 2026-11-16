@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-6",
+ "rule-digest": "2d56c1b034d4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "be5b8a9f63afcd2551b9a44890e5b9796f7f9a29003b403560df386e250b7198",
+   "refuter": "fdd79538ab382b813bff244131d28ae5b605cf9f8f3ccf9b790ae305f418b24c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file's file control entry admits RESERVE integer-1 [AREA | AREAS] (once, in any order after SELECT) with the Sequential I-O rule (§1985:VII.2.9.3 GR1): the number of input-output areas allocated equals integer-1, an integer literal neither signed nor zero (§1985:III.2), and without the clause the count is the implementor's; the file must still process its records under every access mode.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileReserveClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#IntegerOperandValue; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.Slots; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitAreaRegistrations; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReserveRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReserve; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InputOutputAreas; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#AttachHandleTo",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantNamesExist",
+    "switches": "ConstructRegistry.IsAvailable(constant-entry-2002): at 85 a word in the integer-1 position is refused as 'not an integer literal' (no constant-names), at 2023 a constant-name is admitted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.ZeroMessage",
+    "switches": "dialectLevel < 2002 picks the §1985:III.2 wording of the zero refusal; the refusal itself is the same",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectLevel|ConstructRegistry' in FileControlBinder.cs RESERVE arm, SequentialIoEmitter.EmitReserveRegistration, KeyedConnector.Attach (none); the area count path is edition-free",
+  "behaviour-differs-by-edition": "no for the area count; the integer-1 operand admits a constant-name from 2002 only (refused at 85, as 85 has no constant entry)",
+  "witnesses-cover": "part: pb643 runs RESERVE 1 AREA on a random-access indexed file; RESERVE on dynamic and sequential access indexed files, the AREA-word omitted, the clause before ORGANIZATION, and the refusal forms (signed, zero, decimal, NO ALTERNATE, duplicate) at --std 85 are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c6a.cob",
+    "printed": "RAND 150 00 / COUNT 300 10 / D EE / Y 7   00 / Z 9   00",
+    "expected": "RESERVE 3 AREAS (dynamic, clause written before ORGANIZATION), RESERVE 1 AREA (sequential), RESERVE 2 with no AREA word (random) each compile; 300 records of 43 bytes (beyond 3 areas) written, randomly read and rewritten, read back sequentially: 300 then 10; records unchanged"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c6r.cob",
+    "printed": "RESERVE 0: COBOL2386 (§1985:III.2 nonzero); -1 and +2: COBOL0312/COBOL1970; 2.0: COBOL5506; NO ALTERNATE AREA: COBOL5506; AREAS alone: COBOL5506; RESERVE 2 RESERVE 3: COBOL2423; 524288: COBOL2897 (implementor limit)",
+    "expected": "integer-1 is an integer literal neither signed nor zero, the clause appears once; a limit refusal is the implementor's (§2023 limit, the 85 count is exact)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c6k.cob",
+    "printed": "--std 85: RESERVE W (data item): COBOL1547 'not an integer literal ... COBOL-85 has no constant-name'; 01 K CONSTANT: COBOL0900 requires COBOL-2002; --std 2023: COBOL1547 'not a defined constant-name'",
+    "expected": "integer-1 is a literal at 85; constant-names are a later edition's operand class"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.4 GR6",
+    "check": "OK  §1985:IX.2.3.4 GR6  (2.3.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.2.9.3 GR1",
+    "check": "OK  §1985:VII.2.9.3 GR1  (2.9.3 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "One fileReserveClause serves every organization; FileControlBinder stores the count, EmitAreaRegistrations (called by every registering arm, indexed included) emits RegisterReserve, and KeyedConnector.Attach sizes the store handle's page cache from InputOutputAreas. The count is not observable to a program beyond records passing unchanged, which the probes show.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e,f",
+  "evidence": "r6a.cob at --std 85: SELECT OPTIONAL A1 RESERVE 007 AREAS ASSIGN ... (RESERVE before ASSIGN, leading zeros; §1985:IX.2.3.3 SR1 any order after SELECT) dynamic access: OPEN I-O of the absent optional file 05, 500 records of 64 bytes written in descending key order, START > '0000' and READ NEXT returns all 500 in ascending order then 10; SELECT A2 ... FILE STATUS, INDEXED, RECORD KEY, ALTERNATE RECORD KEY WITH DUPLICATES, then RESERVE 200 AREA (singular word, after the key clauses), ACCESS MODE RANDOM: WRITE then random READ 00 X. The compiler also enforces the 1985 operand rules on the way (numeric RECORD KEY refused COBOL0863 §1985:IX.2.7.3 SR2; unterminated WRITE in an inline PERFORM refused). Read FileControlBinder.cs#BindFileControl RESERVE arm: no edition switch; the COBOL2897 limit (524287 areas, one 4096-byte area each, not probed at host scale) is permitted at 85 by §1985:I.1.7 (limits 'may prevent the successful translation of some programs'), though its message cites §2023:4.2.15 at --std 85 (wording only, not this rule). cite.py: OK §1985:IX.2.3.4 GR6; OK §1985:VII.2.9.3 GR1; OK §1985:IX.2.3.3 SR1; OK §1985:I.1.7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

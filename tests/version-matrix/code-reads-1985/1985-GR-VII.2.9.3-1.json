@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-VII.2.9.3-1",
+ "rule-digest": "d759151bbec9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-022",
+  "sources": {
+   "reader": "b4dc09eedfbd7b49c984491593390a3668618bbd6b562ba2120a0b2476979d7a",
+   "refuter": "0195d2811228bbe91c9c39dfacd1cf762db94dc3f53580199a91ba4b46c11e51"
+  },
+  "imported": {
+   "reader": "a736ffadfc030b7e5b3f176bd81517f497e71059b92e54982a47b4a886d6154b",
+   "refuter": "feacf152710bdf715dbaf2ffea83b61f1e1aeb3a57a654e80870d2c210641b7e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.9.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (level 2) RESERVE integer-1 [AREA | AREAS] on a file control entry makes the connector allocate exactly integer-1 input-output areas, and without the clause the implementor's count; integer-1 is an unsigned nonzero integer (the 1985 III.2 integer), so RESERVE 0 is refused, and the clause applies to every organization the 1985 modules give it. The witness covers RESERVE on every organization with the records passing through unchanged; the area count itself is not observable to the program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReserveRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReserve; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InputOutputAreas; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#InputOutputAreaBuffer; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#Attach; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Classify",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#ZeroMessage",
+    "switches": "the citation in the zero-integer refusal: 1985 III.2 below 2002, 2023 5.5 1) from 2002; the refusal itself (FileReserveClauseContext -> Nonzero slot) is the same",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Classify",
+    "switches": "the slot's .At(dialectLevel); RESERVE maps to Nonzero at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Dialect|Edition|DialectBehavior over FileControlBinder.cs (RESERVE arm), SequentialIoEmitter.cs#EmitReserveRegistration, FileRegistry.cs#RegisterReserve, FileSupport.cs#InputOutputAreaBuffer, KeyedConnector.cs: no edition test on the area-count path",
+  "behaviour-differs-by-edition": "no: the count is registered and allocated identically; only the zero refusal's citation names the edition",
+  "witnesses-cover": "part: RESERVE 0, the singular AREA spelling, the clause written before ORGANIZATION, and a failed OPEN of a RESERVE file are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p5res.cob",
+    "printed": "SQ 0300 00 | S1 00 ONE | RL 00 REL5 | IX 00 DATA | MS-OPEN 35 | MS-READ 47",
+    "expected": "RESERVE 3 AREAS (sequential, 300 x 64-byte records), RESERVE 1 AREA, RESERVE 7 (relative), RESERVE 2 AREAS (indexed) all compile and pass records unchanged; OPEN INPUT of a missing file with RESERVE 4 AREAS is '35', the READ after it '47'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p5res0.cob",
+    "printed": "COBOL2386: RESERVE 0 AREAS: the integer operand 0 shall be nonzero (cites 1985 III.2)",
+    "expected": "refused: integer-1 is a 1985 integer, neither signed nor zero"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.9.3 GR1",
+    "check": "OK  §1985:VII.2.9.3 GR1  (║2.9.3 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The binder captures integer-1, the emitter registers it with the connector only when the clause is written, and each organization sizes its one buffer as integer-1 areas of 4,096 bytes (HostFile.InputOutputAreaBuffer); without the clause the implementor's count is one (DOC-A.1-164). Counts above 524,287 are refused (COBOL2897) and were not probed at run time under the host-safety rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs": "fileReserveClause arm of the file-control clause loop"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.9.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "refute-1985-022 at --std 85: class c, the 1974 forms 1985 dropped are refused: R5NO-001 RESERVE NO ALTERNATE AREAS (COBOL5506 at NO), R5ALT-001 RESERVE 2 ALTERNATE AREAS (COBOL5506 at AREAS); class b: R5NEG-001 RESERVE -1 (COBOL1970), R5DEC-001 RESERVE 1.5 (COBOL5506); r5sd-001 RESERVE on a sort file refused COBOL1900 citing §1985:XI.2.3.3 SR2; R5ONE-001 RESERVE 1 with no AREA word compiles and passes ABCDEFGH. Class e: a report file (1985 Report Writer file control entry carries RESERVE) r5rd3-001 RESERVE 3 AREAS runs and its generated code holds CobolFile.RegisterReserve(\"R5RD::REPF\", 3) (SequentialIoEmitter.cs#EmitAreaRegistrations reaches the report arm). The area count itself is not observable to the program. cite.py: OK  §1985:VII.2.9.3 GR1  (║2.9.3 General Rules║)  the text is in GR1; OK  §1985:XI.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb5188-source-index-data-item
-*> rules: [SR-13.18.53.3-2, SR-13.18.60.3-10]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb5188-source-index-data-item
+      *> rules: [SR-13.18.53.3-2, SR-13.18.60.3-10]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB5188. §2023:13.18.53.3 SR2: identifier-1 "shall be described such that a MOVE statement is valid
       *> with identifier-1 as the sending operand", and §2023:14.9.25.3 SR1: "The class of identifier-1 or
       *> identifier-2 shall not be index, message-tag, object, or pointer". SOURCE IS IX names an index data item,

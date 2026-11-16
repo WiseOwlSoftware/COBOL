@@ -1,0 +1,87 @@
+{
+ "rule-id": "1989-AR-A.2.8.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-174",
+  "sources": {
+   "reader": "8a2dec28f86e235a9e21fb901ad02fb325a9f759c756cb55241e4581382feff4",
+   "refuter": "f3a1dcd4089b1d6fc6f6ff97d0c1f808a1c18a7466120fc3fb72152d1b93cf74"
+  },
+  "imported": {
+   "reader": "fce9753d5d2e83f5aa0a29df241a235b8a936d4a4fdc93c16e87a41600f5503d",
+   "refuter": "7b4aba1ba89100f70e0314eb45f759844f48bce61287ff0e020b6a6a347dbd96"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the one argument of FUNCTION ATAN must be of class numeric, i.e. an arithmetic expression (a numeric elementary item, numeric literal, ZERO, or an expression over them, nested numeric/integer functions included); an alphanumeric, alphabetic, numeric-edited, group, reference-modified, nonnumeric-literal, ALL-literal, SPACE/HIGH-VALUE or alphanumeric-function argument must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: sig.IntroducedIn (85 for ATAN) vs ctx.Edition.DialectLevel, and RemovedIn; ATAN is admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) for per-position predicates; ATAN's Uniform('n') row carries none, so the class screen is edition-neutral",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "ConstructRegistry RepositoryFunction2002: below 2002 the keyword-omitted ATAN(x) route is inert (stays a data reference)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over IntrinsicBinder.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs; the class screen (Violation/CandidateClasses/Admissible) reads no edition",
+  "behaviour-differs-by-edition": "no: the class-numeric screen is the same code at every edition; only routes outside this rule (keyword-omitted form, numeric function as an identifier operand) differ",
+  "witnesses-cover": "part: g85_f32_05 covers the accept half (item, negative literal, expression); the refusal half (alphanumeric, numeric-edited, group, ref-mod, figurative, alphanumeric function) and ODO/scaled/COMP/ZERO/18-digit operands are not exercised by a witness",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/atan-ok.cob",
+    "printed": "ODO= 0.7854 SCALED=-0.7854 ZERO= 0.0000 BIG-NEG=-1.5708 COMP= 0.7854 NESTED= 0.7854 EXPR=-0.7854",
+    "expected": "all compile and run; arctangent in (-pi/2, +pi/2) per §1989:A.2.8.4"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-174/atan-bad.cob",
+    "printed": "COBOL1627 on each of ATAN(A PIC X), ATAN(\"1\"), ATAN(numeric-edited), ATAN(group), ATAN(SPACE), ATAN(ALL \"1\"), ATAN(FUNCTION CHAR(50)), ATAN(NM(1:1)), ATAN(PIC A), ATAN(HIGH-VALUE)",
+    "expected": "each refused: not class numeric (§1989:A.2.8.3 AR1, §1989:A.2.2 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.8.3 AR1",
+    "check": "OK  §1989:A.2.8.3 AR1  (2.8.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:VI.6.2.1",
+    "check": "OK  §1985:VI.6.2.1  (6.2.1 Definition of an Arithmetic Expression)  the text is in the clause"
+   }
+  ],
+  "notes": "The catalog-driven class screen (Verified['ATAN'] = Uniform('n')) runs after arity for every function and refuses every non-numeric class probed at --std 85, while admitting ZERO (a 1985 arithmetic-expression operand), ODO elements, scaled, COMP and 18-digit items and nested numeric functions. The diagnostic prose cites 2023 clauses and says 'alphanumeric or national' for a figurative at 85, a wording matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-174: atan-idx.cob refuses ATAN(index data item IX) COBOL6979 citing §1985:VI.5.14.3 SR5, ATAN(index-name XN) COBOL1637, ATAN(condition-name F-ON) COBOL1639 (none is a numeric arithmetic-expression operand); atan-ok2.cob admits a data item named ATAN as the argument (context-sensitive function-name), a P-scaled item 9PP=100 (1.5608), SVPP9 times 1000 (-0.7854), unary minus (-0.7854) and ATAN in a relation condition (COND=OK). cite.py: OK §1989:A.2.8.3 AR1 'Argument-1 must be class numeric'; OK §1989:A.2.2 (lies in AR4 for the integer kind; AR1 numeric kind = arithmetic expression); OK §1985:VI.5.14.3 SR5; OK §1985:IV.4.2.2.1.4 'may appear in different contexts in a program as either a system-name or as a user-defined word'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

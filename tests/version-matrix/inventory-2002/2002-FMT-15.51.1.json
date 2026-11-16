@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.51.1",
+ "rule-digest": "43f1355c21bd",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.59.4-Returned-value-rules/max_min_leftmost_tie",
+ "notes": "Own verdict from the read lineage-reads-2002/u-54.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.63.2, witnessed at 2002 by the cases test-ref names. The read: The 2002 and 2023 general formats are the same text: the catalog similarity is below 0.90 only because the 2023 rule text carries the next clause anchor and the clause number moved (15.51 -> 15.63). Same function name, parentheses, operands and optionality. A format rule governs only the shape of the reference; argument classes and returned values are other rules. No communication-section, debugging-line, report-writer or removed-form reach. At --std 2002 the compiler accepts the format and computes the expected value, and refuses other operand counts, identically to --std 2023. Cited: §2002:15.51."
+}

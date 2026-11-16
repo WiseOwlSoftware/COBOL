@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.3.3-1",
+ "rule-digest": "df73853ff061",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#ImplementsClosure; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ValidateImplements; src/WiseOwl.Cobol.Compiler/Binding/Passes/StorageFormPass.cs",
+ "test-ref": "conformance:cases/11.4-FACTORY/oo_implements_repeated",
+ "notes": "§2002:11.3.3 GR1 (with GR2a): FACTORY. IMPLEMENTS PB946I makes the factory object implement PB946I, so SET S TO PB946C with S typed PB946I is legal (§2002:14.8.35.2 SR11) and INVOKE S \"SPEAK\" runs the factory's SPEAK -> FACTORY SPEAKS; cobol.exe --std 2002 --source-format free --run printed OBJECT SPEAKS / FACTORY SPEAKS, MATCH against the case's .out."
+}

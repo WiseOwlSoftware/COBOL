@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-13",
+ "rule-digest": "04f199c7eaea",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-023",
+  "sources": {
+   "reader": "2a1b9ce771cb26875d4537a3ada881b7fa908e3c37f01e788153bb24311ccd4c",
+   "refuter": "bfe58dd96295a9a99e558e5cd0636af6b9ca2168b0e8e14aa3571a83c253fa28"
+  },
+  "imported": {
+   "reader": "563af58d1a9d2251555da9b4f00e7ab9f6e3dfed31a455de679569aa4a8c2867",
+   "refuter": "15f901351d619ff88e8de4f9c3fdb48bfa1f159eeb40e74feef9e52e9bb5e56b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the implementation shall choose, and apply consistently, whether format 3 (RECORD CONTAINS integer-4 TO integer-5) produces fixed or variable length records; this compiler's documented choice (DOC-A.1-148) is variable length: each record written at its own description's size, never padded to integer-5, in every organization.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#RecordFraming; docs/conformance/7/DOC-A.1-148.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced = VARYING || DialectBehavior.RecordContainsRangeBindsRecordSize (active from 2002): at 85 format 3's integers do not bound a WRITE; the variable-length choice itself (Varying non-null for any TO form) is edition-free",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the variable-length choice is the same at every edition, but from 2002 a record outside integer-4..integer-5 is refused with '44' (2023 GR19), while at 85 the record descriptions alone set the sizes.",
+  "witnesses-cover": "part: l1c23_record_format3_variable covers a record sequential file with records inside 5..10; relative and indexed organizations, an OCCURS DEPENDING ON record and descriptions outside the integers are exercised only by the probes.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec1.cob",
+    "printed": "RECORD CONTAINS 5 TO 10 with 3-, 20- and ODO (2 + 2*n) records: WA..WD 00; read back L=03 [ABC], L=20, L=06 [12ZZYY], L=04 [12ZZ]; file bytes carry a 4-byte length head per record (03, 24, 06, 04)",
+    "expected": "variable length per the documented choice; each record at its own size"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec2.cob",
+    "printed": "RELATIVE: RG 00 L=05 [ABCDE], RG 00 L=10 [FGHIJKLMNO], RG 10; INDEXED: XG 00 L=05 [K1xyz], XG 00 L=10 [K2abcdefgh], XG 10; READ after failed OPEN (35): USE MISS 47, MREAD 47",
+    "expected": "variable length in every organization; a READ of an unopened file is unsuccessful"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-023/rec1.cob",
+    "printed": "--std 2023: WA 44, WB 44, WC 00, WD 44",
+    "expected": "2023 GR19 binds the range; 1985 does not (edition arm)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13 [quote: It is implementor defined whether format 3 of the RECORD clause produces fixed length records or variable length records]"
+   }
+  ],
+  "notes": "Any TO form binds FileModel.Varying, so format 3 is variable length at every edition, as DOC-A.1-148 documents; measured in sequential, relative and indexed files. The only edition switch is whether the integers bound a WRITE, which is GR14's business at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same variable framing; out-of-range records refused with 44 per 2023 GR19",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-13",
+  "refutation": "UPHELD",
+  "classes": "a,c",
+  "evidence": "The implementor choice (variable length for format 3) is made and documented in docs/conformance/7/DOC-A.1-148.md and applied: rr1.cob at --std 85 writes a format 3 record with a 4-byte length head (04 00 00 00 '12AB'), unlike the same record under RECORD CONTAINS 10 or no RECORD clause (10 bytes, padded). GR13 only asks the choice be made; the size of an ODO record inside a variable format 3 file is GR14/GR15's business (see the GR14 case). cite.py: OK §1985:VII.3.8.4 GR13.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-3",
+ "rule-digest": "19a91b5296f0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#LibraryPlaces; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook; docs/CONFORMANCE.md#DOC-A.1-40",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located",
+ "notes": "§2002:7.1.2.3 GR3 leaves locating text and the default library to the implementor; under DOC-A.1-40 COPY pb1355a. finds the .cpy text in the default library ([CPY]) and pb1355d IN pb1355lib the .cbl ([CBL]) at --std 2002."
+}

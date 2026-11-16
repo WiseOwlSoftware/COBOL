@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb190_reverse_argument_shapes
       *> rules: [RV-15.78.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

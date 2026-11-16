@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1907_keyed_rewrite_past_record
       *> rules: [GR-14.9.35.4-15, GR-14.9.51.4-13]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

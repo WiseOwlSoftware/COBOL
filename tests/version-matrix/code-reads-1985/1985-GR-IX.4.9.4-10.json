@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-10",
+ "rule-digest": "e15e2b43dfd9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-100",
+  "sources": {
+   "reader": "9e5378ca97e05fd5bba8e43b47606534d2137f69cec1c0ac4622461e31655677",
+   "refuter": "d533c8ba750d4760f54937eb28a6e16e363a8fe9911fbefaff634446f6c2abe6"
+  },
+  "imported": {
+   "reader": "faeea28802ca26fbf8fec0fef000f84b03452b66c0ad8ddec744c4a015f5c743",
+   "refuter": "62fde1e3c8c292a1a9c1f9a91cbbc1e0281839d4729e0de25397815e1b3998a0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 END-WRITE closes the scope of an indexed WRITE, so the statements after it are not part of its INVALID KEY / NOT INVALID KEY phrases and a delimited WRITE can stand as an imperative inside another statement's conditional phrase, an IF arm or an inline PERFORM; an END-WRITE with no open WRITE is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#writeStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#UnownedScopeTerminator; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteStatement",
+    "switches": "GateFilePhrase refuses WRITE FILE below 2002; GateRetryLockPlace places RETRY/LOCK (refused at 1985); END-WRITE itself is not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of END_WRITE in the grammar (one optional token closing writeStatement) and of Edition|DialectLevel|CobolVersion around VisitWriteStatement; the scope is parse-tree structure, the same at every edition.",
+  "behaviour-differs-by-edition": "no (for END-WRITE; 1985 refuses the 2002 FILE phrase)",
+  "witnesses-cover": "part: g85_bf02_07 covers the top level and an IF; not a delimited WRITE nested in another WRITE's or a READ's INVALID KEY, in an inline PERFORM, or a stray END-WRITE",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr10_endwrite.cob",
+    "printed": "D1 00 / INNER-WRITTEN / OUTER-INVALID-TAIL 00 / D2 / READ-INVALID-TAIL / LOOP-INVALID 1 / LOOP-TAIL 1 / LOOP-INVALID 2 / LOOP-TAIL 2 / W4-WRITTEN",
+    "expected": "each END-WRITE ends its own WRITE; the tails belong to the enclosing phrase, loop or IF"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr10_stray.cob",
+    "printed": "COBOL0306: unexpected 'END-WRITE'. END-WRITE appears without a matching WRITE statement.",
+    "expected": "refused: a scope terminator with no statement to end"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr10_filephrase.cob",
+    "printed": "COBOL0900: the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002",
+    "expected": "the 1985 format prints record-name-1 alone"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.4.9@1985-WRITE-STATEMENT/g85_bf02_07.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR10",
+    "check": "OK  §1985:IX.4.9.4 GR10  (4.9.4 General Rules)  the text is in GR10",
+    "quoted": "The END-WRITE phrase delimits the scope of the WRITE statement"
+   }
+  ],
+  "notes": "END-WRITE is the optional closing token of writeStatement and nesting falls out of the grammar. Every nested form ran as the scope rules require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "r10_nest.cob (r10_nest-001): a delimited WRITE with its own NOT INVALID KEY nested in an outer WRITE's INVALID KEY (O-INV 22 / I-NOTINV 00 / O-INV-TAIL, outer NOT INVALID not run); a delimited inner WRITE inside an outer NOT INVALID KEY, followed by a statement that stays in the outer phrase up to the period (outer INVALID taken: AFTER2-WRONG not printed, AFTER2-SENT printed); a delimited WRITE in a SEARCH WHEN (S-NOTINV 00 / S-TAIL); a doubly delimited WRITE in WRITE (INNER-AGAIN 22 / AFTER-DOUBLE). r10_after.cob (--compile-only, r10_after-001): a NOT INVALID KEY after END-WRITE refused with COBOL2269 (its text cites §2023:5.2.1 at --std 85, a label nit outside this rule). cite.py: 'OK  §1985:IX.4.9.4 GR10  (4.9.4 General Rules)  the text is in GR10'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

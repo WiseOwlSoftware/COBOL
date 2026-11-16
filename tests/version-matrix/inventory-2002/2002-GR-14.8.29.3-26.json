@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-26",
+ "rule-digest": "c770a1ba50f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SetPendingKey",
+ "test-ref": "conformance:cases/14.9.30-READ/pb370_read_relative_invalid_key",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.30.4-29, witnessed at 2002 by the cases test-ref names. The read: Same words; only the invalid-key clause number differs, as for GR25. The pointer's test passes at 2002, including the USE path. Cited: §2002:14.8.29.3 GR26."
+}

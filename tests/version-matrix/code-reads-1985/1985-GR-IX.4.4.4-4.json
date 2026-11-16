@@ -1,0 +1,100 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-4",
+ "rule-digest": "50ce99c43360",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-096",
+  "sources": {
+   "reader": "4885c94b53f00c92261aa337973cfa772e2e53555c523fdf10e285f06db771e3",
+   "refuter": "9e7b7d463898bf2aef2f6e898c1e390033f25e3495d88a95c4dec25178b53b19"
+  },
+  "imported": {
+   "reader": "f0560883ebb570a64d4d5198e4a2b5bdaaf8473670b04747b21f48a294b3f9fc",
+   "refuter": "9a5d739c2946d6ba8bf8ae74b607a05007297b09ea3f580f0bc233eee0539bdd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a successful OPEN of an indexed file, each X cell of Table 2 (by access mode and open mode) must execute and each blank cell must not: the compiler refuses EXTEND on random/dynamic access (SR1) and START on random access, and the runtime refuses the rest with IX.1.3.4's 47/48/49; a statement after an unsuccessful OPEN is refused too. The witness covers the X cells only.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckOpenModeForFile; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "bakes --std (85) into each connector's registration (FileConnector.Edition); no rule of this case reads it except the gates listed",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "file sharing facility off at 85 (no Table 19 arbitration, no '61'); not an outcome of this rule in one run unit",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior|Year|DialectLevel' over the guards, IndexedConnector.Write, StatementValidation.CheckOpenModeForFile (its EXTEND/access arm has no edition test; only the FORMAT-clause arm reads DialectLevel, not reached here) and KeyedIoBinder.BindStart's random-access test (no edition)",
+  "behaviour-differs-by-edition": "no: the Table 2 outcome is identical at 85 and 2023 (p2table2-002 at 2023 printed the same lines)",
+  "witnesses-cover": "part: g85_bf24_09 runs every X cell; the blank cells (refusal half) are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b,c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p2table2-001/p2table2.cob",
+    "printed": "every blank Table 2 cell: Seq OUTPUT READ 47/REWRITE 49/START 47/DELETE 49; Seq EXTEND READ 47/REWRITE 49/START 47/DELETE 49; Seq INPUT WRITE 48/REWRITE 49/DELETE 49; Seq I-O WRITE 48 (file unchanged: K001, K002, at end 10); Random OUTPUT READ 47/REWRITE 49/DELETE 49; Random INPUT WRITE 48/REWRITE 49/DELETE 49; Dynamic OUTPUT READ 47/READ NEXT 47/START 47/REWRITE 49/DELETE 49; Dynamic INPUT WRITE 48/REWRITE 49/DELETE 49; every X cell used gives 00",
+    "expected": "Table 2 X cells succeed; blank cells are not permissible and are refused with the IX.1.3.4 4x value (the Seq I-O WRITE cell has no value 1985 assigns, so the 48 is the implementor's choice)"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p2refuse-001/p2refuse.cob",
+    "printed": "COBOL2372 OPEN EXTEND 'XR' (RANDOM) and 'XV' (DYNAMIC) refused; COBOL0862 START on random-access 'XR' refused",
+    "expected": "§1985:IX.4.4.3 SR1: EXTEND only for sequential access (Table 2's Random/Dynamic Extend column); Table 2's blank Random START row"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-096/p1notopen-002/p1notopen.cob",
+    "printed": "OPEN INPUT of a non-optional absent indexed file = 35; then READ NEXT 47, WRITE 48, CLOSE 42",
+    "expected": "no permissible statement executes without a successful OPEN"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR4",
+    "check": "OK  §1985:IX.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4  [\"An OPEN statement must be successfully executed prior to the execution of any of the permissible input-output statements\"]"
+   },
+   {
+    "cite": "§1985:IX.4.4.3 SR1",
+    "check": "OK  §1985:IX.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1  [\"The EXTEND phrase must only be used for files in the sequential access mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f  [\"The execution of a READ or START statement is attempted on a file not open in the input or I-O mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5g  [\"The execution of a WRITE statement is attempted on a file not open in the I-O, output\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h  [\"The execution of a DELETE or REWRITE statement is attempted on a file not open in the I-O mode\"]"
+   },
+   {
+    "cite": "§1985:IX.1.3.4 GR6",
+    "check": "OK  §1985:IX.1.3.4 GR6  (1.3.4 I-O Status)  the text is in GR6  [\"If more than one value applies, the implementor determines which of the applicable values\"]"
+   }
+  ],
+  "notes": "Every Table 2 cell was probed. The sequential-access I-O WRITE cell is blank but 1985's 48 text names 'not open in the I-O, output, or extend mode', so no listed value applies; the runtime answers 48 and writes nothing, within the implementor's choice for a 4x critical condition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Re-read Table 2 (IX-25): reader's cell list matches. The sequential-access I-O WRITE cell is blank in Table 2 while IX.4.9.4 GR1 admits I-O mode and IX.1.3.4's 48 names only 'not open in the I-O, output, or extend mode', so 1985 assigns no status to that cell; the runtime writes nothing and answers 48. GR4 itself only says which statements may be used and prescribes no runtime result for a blank cell, so the 48 is outside this rule (noted, not a ground to overturn). START on random access is refused at compile time, consistent with IX.4.7.3 SR1. q2misc-001: CLOSE WITH LOCK, OPEN 38, then READ 47 (no permissible statement runs without a successful OPEN). Later-edition OPEN/READ phrases refused at 85 (q3l1..q3l5). cite: OK §1985:IX.4.4.4 GR4 [may be used with the open mode given at the top of the column]; OK §1985:IX.4.9.4 GR1 [must be open in the output, I-O, or extend mode].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

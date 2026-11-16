@@ -1,0 +1,82 @@
+{
+ "rule-id": "1989-AR-A.2.15.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "fdc1f45829975a6335a619135fc24bc7a71cc1a91938b435bc134074d5bfd91e",
+   "refuter": "0be5b13254c8181b02a7188cd5ec19b245a98a8985dcd378f5f06cc27bd20807"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.15.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION INTEGER's argument-1 must be class numeric, i.e. an arithmetic expression (A.2.2 type 1: identifiers of numeric elementary items, numeric literals, expressions); an alphanumeric, alphabetic, numeric-edited (class alphanumeric in 1985), group, nonnumeric-literal or nonnumeric figurative argument must be refused, and every numeric form must be accepted and floored.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(edition year) gates the per-position predicates (CharacterCategory etc.); the class-kind test itself is edition-invariant",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Version|AppliesAt in IntrinsicBinder.cs and IntrinsicArgumentRules.cs; INTEGER's Verified row is Uniform('n') with no predicates, so no edition-gated predicate applies",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_integer_floor_85 exercises only accepted DISPLAY S9V99 items; the refusal half (alphanumeric item/literal, numeric-edited, group, alphabetic, SPACE, ALL literal), COMP/COMP-3, subscripted, expression, ZERO and 18-digit operands are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/intok.cob",
+    "printed": "A=-100000000000000000 B=-000000000000000001 C=-000000000000000007 D= 000000000000000012 E= 000000000000000003 X=-000000000000000002 Z= 000000000000000000 M0= 000000000000000000 BIG= 999999999999999999",
+    "expected": "floor of each numeric operand (A.2.15.4 RV1): -99999999999999999.5->-1E17, -1E-17->-1, COMP -7, COMP-3 12.99->12, E(2)=3.5->3, -7.5+6.495->-2, ZERO->0, 999999999999999999"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/intbad.cob",
+    "printed": "COBOL1627 on each of INTEGER(X alnum), INTEGER(\"12\"), INTEGER(NE numeric-edited), INTEGER(G group), INTEGER(AL alphabetic), INTEGER(SPACE), INTEGER(ALL \"1\") (plus an unrelated COBOL0900 for my VALUE 1.5 on a numeric-edited item, correct at 85)",
+    "expected": "each argument is not class numeric -> refused (A.2.15.3 AR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.15.3 AR1",
+    "check": "OK  §1989:A.2.15.3 AR1  (2.15.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR1 ('An arithmetic expression must be specified')"
+   },
+   {
+    "cite": "§1989:A.2.15.4 RV1",
+    "check": "OK  §1989:A.2.15.4 RV1  (2.15.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "The class screen is the catalog-driven CheckArgumentClasses over the spec-verified Verified table (INTEGER = Uniform('n')); it runs identically at every edition. Every non-numeric operand class is refused with COBOL1627 at --std 85 and every numeric form is accepted and floored correctly. The diagnostic text cites §2023 clauses, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.15.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,f",
+  "evidence": "rint1.cob (--compile-only, --std 85): INTEGER(index data item IX) COBOL6979 citing §1985:VI.5.14.3 SR5; INTEGER(index-name XN) COBOL1637; INTEGER(N(1:2)) on a PIC 9(4) item COBOL1627 class alphanumeric (right: ref-modification of a numeric item is class alphanumeric at 1985); INTEGER(88 C1) COBOL1639; INTEGER(FUNCTION CHAR(50)) COBOL1627; INTEGER(HIGH-VALUE) and INTEGER(QUOTE) COBOL1627. rint2.cob runs: SQRT(2)->1, INTEGER-PART(-12.345)->-12, -12.345->-13, SIGN LEADING SEPARATE -7->-7, COMP S9(18) -999999999999999999 unchanged, S9PPP -5000->-5000, SPP9 -0.005->-1, ZEROES->0, unary -N->12, N**2=152.399->152, each right per RV1. cite.py: OK §1989:A.2.15.3 AR1 'Argument-1 must be class numeric'; OK §1985:IV.4.3.8.4.4 GR5 (ref-mod of numeric is class alphanumeric); OK §1985:VI.5.14.3 SR5; OK §1985:IV.4.3.8.3.3 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

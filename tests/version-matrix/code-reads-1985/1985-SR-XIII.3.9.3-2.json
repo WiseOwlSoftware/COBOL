@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-2",
+ "rule-digest": "5115b953f180",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-165",
+  "sources": {
+   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
+   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+  },
+  "imported": {
+   "reader": "0c334ed4eba2c678e40b6bae481619c148178e257feb41211ca007bd900cd1fc",
+   "refuter": "007330619ed5205b59d0b5abbbf0744f6ef3aa1195049d778ec085743bece207"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.9.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a report group description entry's data-name-1, when written, must immediately follow the level-number (a name written after any clause refused), and every other clause of formats 1-3 must be accepted in any sequence with the same effect, each at most once; the witness covers one reordered entry.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupBody; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "row.At(DialectLevel); the ReportGroupClauseContext row has no Earlier figure and Sequence null, so 85 reads the 2023 order-free figure",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs",
+    "switches": "FILLER as a report entry name and the multiple COLUMN form are refused below 2002 (COBOL0900); not the order path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the entryNameHere predicate and reportGroupClause* consult no edition (grep DialectLevel in CobolReportWriter.g4 actions: none)",
+  "behaviour-differs-by-edition": "no for the order; 85 has a smaller clause set (no FILLER name, no PRESENT WHEN, no VARYING, no multiple COLUMN)",
+  "witnesses-cover": "part: g85_bf09_04 reorders one entry; a name after a clause, repeated clauses and the format 3 edited/signed/justified clauses in odd orders are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg1.cob",
+    "printed": "RAN; '-03  A  END     A  -3' / ' 02     END     A  +2' / '-001' / '-001'",
+    "expected": "accepted with LINE before TYPE, NEXT GROUP first, SOURCE before COLUMN, GROUP INDICATE second, VALUE before COLUMN, JUST/SIGN first; edited -99, BLANK WHEN ZERO, JUST RIGHT, SIGN LEADING SEPARATE and SUM all correct; GROUP INDICATE blank on the second detail"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg2.cob",
+    "printed": "COBOL0001 unexpected 'DE-G' (01 LINE PLUS 1 TYPE DETAIL DE-G)",
+    "expected": "refused: data-name must immediately follow the level-number"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg6.cob",
+    "printed": "COBOL0001 unexpected 'XNAME' (02 GROUP INDICATE XNAME COLUMN 1 ...)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg4.cob",
+    "printed": "COBOL2423 the clause 'COLUMN 1' is written 2 times",
+    "expected": "refused: any sequence, each once"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg3.cob",
+    "printed": "COBOL1547 + COBOL0900 the multiple COLUMN clause form requires COBOL-2002 (02 COLUMN 1 X1 ...)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/rg5.cob",
+    "printed": "COBOL0900 the word FILLER as a report group description entry name requires COBOL-2002",
+    "expected": "refused at 85 (format prints data-name-1 only)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.3 SR2",
+    "check": "OK  §1985:XIII.3.9.3 SR2  (3.9.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "reportGroupEntry takes the optional dataName only right after levelNumber (guarded by entryNameHere), and reportGroupBody is reportGroupClause*, so a name after a clause has no production; ClosedFormatPass counts each clause once with no order rank.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.9.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "The 1985 SUM clause prints {SUM {identifier-2}... [UPON ...]}..., so SUM may be written more than once within one clause. RGA.cob tests this alongside entry names that are reserved only in later editions: 03 PRESENT COLUMN 1 PIC 999 SUM N SUM M, and 03 CENTER PIC 999 SUM N UPON DE-G SUM M COLUMN 5, and 03 COLS COLUMN 9 ... VALUE. It compiles and runs at 85. The report line is '031 031 OK' (N=3+8, M=10+10), so the cardinality screen does not count a repeated SUM phrase as a repeated clause, and a 2002-reserved word in the name slot is taken as data-name-1. RGB.cob writes RESET ON FINAL before SUM (RESET is a phrase of the SUM clause, not a free clause) and is refused with COBOL0001 unexpected 'RESET'. cite.py: 'OK  §1985:XIII.3.9.3 SR2  (3.9.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

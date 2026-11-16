@@ -1,0 +1,3 @@
+NLT 2 -> R2 RK=02
+EQ 3  -> R3 RK=03
+GT 3  -> INVALID

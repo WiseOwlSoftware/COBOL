@@ -285,6 +285,13 @@ public enum DialectBehavior
     /// specified", so at <c>--std 2002</c> every such statement selects its entry by the conditions (kb/Work PB5578; VCR row 7.78). Both editions are
     /// QUOTED. The consumer is <c>SequentialIoEmitter</c>'s record-entry argument of the governed WRITE and REWRITE.</summary>
     SelectWhenOnlyForFilePhraseStatements = 23,
+    /// <summary>§2002:14.8.44.3 GR2 — "If the data item referenced by identifier-1 is a zero-length item, execution of the UNSTRING
+    /// statement terminates immediately" (§2023:14.9.48.4 GR2 the same), before the overflow test of GR15a, so a zero-length sender is
+    /// neither an overflow nor a completed transfer: neither phrase runs. §1985:VI.6.27.4 has no such rule, and its GR17 makes a POINTER
+    /// value "greater than the size of the data item referenced by identifier-1" an overflow, so at <c>--std 85</c> a zero-length sender
+    /// with the implicit or any pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). Both editions
+    /// are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
+    UnstringZeroLengthSenderTerminates = 24,
 }
 
 /// <summary>
@@ -417,6 +424,11 @@ public static class DialectBehaviors
             "the SELECT WHEN clauses of the file section select a record description entry for a WRITE or REWRITE only when the "
             + "statement has the FILE phrase, from COBOL-2014; COBOL-2002 evaluates them for every WRITE and REWRITE of the file, "
             + "so a record-name-1 statement there is formatted by the entry the conditions select"),
+        new(DialectBehavior.UnstringZeroLengthSenderTerminates, "unstring-zero-length-sender-terminates", 2002,
+            "7.80", "§2002:14.8.44.3 GR2", "§1985:VI.6.27.4 GR17",
+            "an UNSTRING whose sending item is a zero-length item terminates immediately, running neither the ON OVERFLOW nor the "
+            + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a POINTER value of 1 is greater than the "
+            + "sender's size of 0 and the statement is an overflow"),
     ];
 
     static DialectBehaviors()

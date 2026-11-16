@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-3",
+ "rule-digest": "8e3ed3369b37",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-067",
+  "sources": {
+   "reader": "e68b85fc8164787675e3b6f139342c367136fa91abc125e8a7b452b82be5eaf0",
+   "refuter": "1c8a6916d7af502ce51e76a8dd8a74a9aa4a682140753836f7c9b2ffa409772a"
+  },
+  "imported": {
+   "reader": "cc37e766aeccd704bb9fad22ae874957235af1600d4acfd75b782f01555a7989",
+   "refuter": "fb2a198c69403ad4364109b34e416b926ca14e0a94e00841447e76db3f530649"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "Within one Procedure Division a file-name may be named in at most one USE AFTER STANDARD EXCEPTION/ERROR statement (ERROR and EXCEPTION are synonyms, SR4): a second USE statement naming it is refused, while one statement writing it twice, a mode-scoped USE (INPUT/OUTPUT/I-O/EXTEND) that also covers it, a USE FOR DEBUGGING naming it, and a contained program's own USE on the same GLOBAL file (a different Procedure Division) are legal; this holds for sequential, relative and indexed files alike.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/ConstructOperandRegister.cs#Register",
+  "edition-consulted": [],
+  "edition-search": "Read DeclBindUse's file-name arm (_useFiles.Register -> Duplicate -> COBOL0897), DeclEndUseStatement, the per-builder register fields (one ProcedureTableBuilder per bound unit, reset per method), ConstructOperandRegister; grepped ConstructOperandRegister.cs and the DeclBindUse region for Edition|Year|CobolVersion: none. The USE GLOBAL / Format 3 gates of VersionConformancePass concern other phrases.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_use_sr8_file_named_twice is the accepting half (one statement naming F1 twice, sequential files); the refusal across two statements, relative/indexed files, mode-scoped overlap, the debugging USE and the nested-program Procedure Division boundary are not witnessed at 85",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usesr3a.cob",
+    "printed": "error COBOL0897: declarative section 'D2': file 'RELF' already has a USE procedure in this procedure division (ISO §2023:14.9.49.3 SR8)",
+    "expected": "refused: RELF (relative) named in USE AFTER STANDARD EXCEPTION and in a second USE AFTER STANDARD ERROR statement"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usesr3b.cob",
+    "printed": "OUTER DECL ST=22 / OUTER AFTER DUP ST=22 / INNER DECL ST=22 / INNER AFTER DUP ST=22",
+    "expected": "legal: outer and contained program each have their own USE on the GLOBAL relative file GRF; each program's duplicate-key WRITE invokes its own declarative (VIII.4.8.4 GR1)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usesr3c.cob",
+    "printed": "D1 ST=22 ST2=?? / AFTER DUP ST=22 / D1 ST=00 ST2=35 / AFTER OPEN ST2=35",
+    "expected": "legal: indexed IXF and sequential SQF named in one USE while USE ON INPUT and ON I-O also exist; the file-name USE takes precedence for both (GR4, GR5b), D2 never runs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usesr3e.cob",
+    "printed": "DEBUG RELF / D1 ST=22 / DEBUG RELF / END",
+    "expected": "legal at 85: USE FOR DEBUGGING ON RELF (a 1985-only form) is not a USE AFTER EXCEPTION statement, so naming RELF in it and in one USE AFTER EXCEPTION is not a repeat"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-067/src/usesr3d.cob",
+    "printed": "COBOL0307 unexpected 'RELF' (INPUT and a file-name in one USE)",
+    "expected": "refused by the general format (one brace alternative per statement); degenerate form"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR3",
+    "check": "OK  §1985:VIII.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The 1985 SR3 as amended by X3.23b-1993 is the same rule as 2023's SR8, and the compiler applies one register keyed by file-name, closed per USE statement and reset per Procedure Division. usesr3a draws the same COBOL0897 at --std 2023. The diagnostic cites only the 2023 clause.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "usesr3a: same COBOL0897 refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VIII.4.8.3 SR3 (as amended by X3.23b-1993), SR4, GR4, §1985:X.5.5.2 (USE [GLOBAL] AFTER). ProcedureTableBuilder.cs#DeclBindUse keys _useFiles by fn.GetText() with CobolNames.Comparer, reset per Procedure Division. Probes at 85: rsr3a - USE ... ON RELF and a second USE ... ON relf (lowercase): refused 'COBOL0897: declarative section D2: file relf already has a USE procedure in this procedure division'. rsr3b - USE GLOBAL AFTER ... ON RELF and a plain USE AFTER ... ON RELF in the same Procedure Division (1985 IPC form): refused COBOL0897. rsr2c - the 2002 Format 3 file form is refused at 85 (COBOL0877), so it cannot enter the register. cite.py: 'OK  §1985:VIII.4.8.3 SR3  (4.8.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

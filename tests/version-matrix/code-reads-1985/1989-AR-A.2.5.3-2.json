@@ -1,0 +1,78 @@
+{
+ "rule-id": "1989-AR-A.2.5.3-2",
+ "rule-digest": "735d262a1025",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-081",
+  "sources": {
+   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
+   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+  },
+  "imported": {
+   "reader": "9f744fc50860c17174876fa32a7fb59b94c4be54c60dd914883906830f5969ba",
+   "refuter": "da42d9a6c096aca61953edee5aef00d3eee43df46d2b3d1142f0605007a44e4d"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, ACOS must return the arccosine for every argument-1 in the closed interval [-1, +1] (both endpoints, values a hair inside them, items of any usage, literals and expressions); outside it the result is undefined (A.2.2), and a never-executed out-of-range reference must not stop the program from compiling and running.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DomainArg; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 edition window: IntrinsicSig.IntroducedIn (85 for the 1989 module rows) against ctx.Edition.DialectLevel, COBOL1502/COBOL1503",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+    "switches": "EC-ARGUMENT-FUNCTION is fatal only under enabled checking (unreachable at 85); default result 0",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Version in IntrinsicRenderer DomainArg/RenderFloat and CobolIntrinsics.Float.cs (Admits/ClosedUnit): no edition test on the domain or the body",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_acos_domain_accept covers literals 1, -1, 0; values a hair inside the bounds, binary and expression operands and the undefined out-of-range arm are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/acos.cob",
+    "printed": "M1= 3141592653 P1= 0000000000 HALF= 1047197551 NEARM1= 3141592649 NEARP1= 0000000004 EXPR= 0000000000 OUT= 0000000000 OUT2= 0000000000",
+    "expected": "acos(-1 COMP)=pi, acos(1)=0, acos(0.5)=1.047197551, acos(-0.99999999999999999)=pi-4.47E-9=3.141592649, acos(0.99999999999999999)=4.47E-9; V-2, 1.00000000000000001 and -2 lie outside [-1,+1]: undefined"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-081/acoslit.cob",
+    "printed": "START END (compiles and runs; the unexecuted ACOS(2) is not refused)",
+    "expected": "a reference never evaluated has no value; the program runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.5.3 AR2",
+    "check": "OK  §1989:A.2.5.3 AR2  (2.5.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause ('do not have values within the permissible range, then the result of such a reference is undefined')"
+   }
+  ],
+  "notes": "The ClosedUnit screen decides the domain on the exact scaled operand, so values one unit in the 17th place inside the bounds are admitted and computed accurately, and values just outside are screened rather than rounded onto the bound. Out-of-range values give 0 under unchecked EC-ARGUMENT-FUNCTION, which 1985 leaves undefined.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "racos2.cob runs at --std 85: ACOS(SV9(18) -0.999999999999999999)=3.141592652 (pi - 1.414E-9, right), +0.999999999999999999 -> 0.000000001, COMP-3 -0.5 -> 2.094395102, COMP -1 * 1 -> pi, SPPP9 -0.0001 -> 1.570896326, ZERO -> 1.570796326, ACOS(FUNCTION COS(1)) -> 1.000000000, -0.5 - 0.5 -> pi, +1.00000000000000000 -> 0. Edition arm: racos.cob's 19-digit literal +1.000000000000000000 is refused COBOL0802 (1985's 18-digit limit), right at 85. cite.py: OK §1989:A.2.5.3 AR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

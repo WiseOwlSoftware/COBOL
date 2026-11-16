@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-IX.2.3.4-8",
+ "rule-digest": "e01f1bd9a07e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-090",
+  "sources": {
+   "reader": "6ab038ea6035d8f9ae4367c0d745ed9e52de3169af37c155f45817b22effaac4",
+   "refuter": "dc715fbd8dfc0a125afb51673dcf17c36c19afbfa88e462ab1fae41831d4fcd7"
+  },
+  "imported": {
+   "reader": "84160c5a1f4ad1246332fc985b1773496be070c835bbd9b4029cdfe3349997a6",
+   "refuter": "867ced3784ce8e8dd860c70572187d76040e420f405b73c56fc6b5976282f474"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.3.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the indexed file control entry accepts the ACCESS MODE clause (SEQUENTIAL, RANDOM, DYNAMIC; omitted means sequential), ALTERNATE RECORD KEY clauses (with or without DUPLICATES), ORGANIZATION IS INDEXED (with or without ORGANIZATION IS) and the required RECORD KEY clause, in any order after SELECT and with their optional words omitted, and gives each the meaning and syntax rules its own 1985 clause (IX.2.4 through IX.2.7) prescribes, refusing forms that clause does not print.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#accessModeClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#alternateKeyClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ResolveFiles; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "below 2002 the 1985 rows (1985-SR-IX.2.7.3-2, IX.2.5.3 SR2) supersede the 2023 key-placement and category rows: a key must be alphanumeric within the file's records",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen",
+    "switches": "SUPPRESS WHEN refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordKeySourcePhrase",
+    "switches": "the RECORD KEY / ALTERNATE RECORD KEY SOURCE phrase refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "LINE SEQUENTIAL / RECORD SEQUENTIAL gated to 2023; INDEXED is not gated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: 1985 refuses the SOURCE phrase (2002+) and SUPPRESS WHEN (2023), and requires an alphanumeric key (FileControlKeyRules 1985 rows)",
+  "witnesses-cover": "part: g85_bf21_07 covers the accepted forms and their access semantics; not covered: the refusal of a missing RECORD KEY, of a later edition's phrases, and of the clauses' own syntax-rule violations",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p6a_keys.cob",
+    "printed": "COBOL5701 indexed file 'F1' has no RECORD KEY clause / COBOL0863 ALTERNATE RECORD KEY 'K2-SAME' begins at the same byte position as the prime record key / COBOL0863 RECORD KEY 'K3' is a category-numeric item ... (ANSI §1985:IX.2.7.3 SR2)",
+    "expected": "RECORD KEY is required (IX.2.3.2 format); §1985:IX.2.5.3 SR4 and §1985:IX.2.7.3 SR2 refusals"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p6b_suppress.cob",
+    "printed": "error COBOL0900: the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused: §1985:IX.2.5.2 prints no SUPPRESS phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p6c_source.cob",
+    "printed": "error COBOL0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:IX.2.7.2 prints RECORD KEY IS data-name-1 only"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.2.3@1985-FILE-CONTROL-ENTRY/g85_bf21_07.cob",
+    "printed": "EXPECT: MATCH (random, sequential by default, dynamic with duplicates)",
+    "expected": "the witness's derived output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.3.4 GR8",
+    "check": "OK  §1985:IX.2.3.4 GR8  (2.3.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "GR8 is a pointer to the four clauses' own pages; the grammar accepts each in the forms 1985 prints (the witness passes), the binder maps and screens them with 1985-specific key rows, and the later editions' phrases are refused by VersionConformancePass. The clauses' own syntax and general rules are separate catalog rows, and each was probed here only for whether the pointer reaches it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.3.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Rendered the printed 1985 page 484 (IX-14) from specs-private: the RECORD KEY format underlines RECORD only, so KEY and IS are optional words. r6a_forms.cob (run, --std 85): clauses in any order after SELECT with optional words omitted (RECORD K OF R1 qualified, bare INDEXED, ACCESS RANDOM, ACCESS DYNAMIC, ORGANIZATION INDEXED, ALTERNATE RECORD A2 WITH DUPLICATES, an alternate key described only in the file's second record description) -> F1 BY ALT 02 K001 (1985 random READ by a duplicated alternate key gives 02), F2 BY ALT K002 YYYY. r6b_bad.cob (--compile-only): group RECORD KEY containing an ODO item -> COBOL0863 (§1985:IX.2.7.3 SR3); alternate key beyond the minimum size of variable records -> COBOL0863; prime key beyond the minimum size -> COBOL0863; ACCESS MODE IS RANDOM file in SORT USING -> COBOL1757. Later-edition/unprinted forms: ALTERNATE KEY IS (RECORD omitted) -> COBOL5506; RECORD KEY ... WITH DUPLICATES -> COBOL1970; file COLLATING SEQUENCE clause -> COBOL0900 requires COBOL-2002. cite.py: OK §1985:IX.2.3.4 GR8; OK §1985:IX.2.7.3 SR3; OK §1985:IX.2.7.3 SR4; OK §1985:IX.2.5.3 SR5; OK §1985:IX.2.4.3 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

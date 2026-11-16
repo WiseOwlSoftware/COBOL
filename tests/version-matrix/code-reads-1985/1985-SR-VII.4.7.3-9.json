@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-9",
+ "rule-digest": "6778bc3fb757",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-07",
+  "sources": {
+   "reader": "9e72b95aeaf2386e6b0225ad32fc510fa05daebbacf5f6cdf53fe9c8fb6f5022",
+   "refuter": "61367aa677a245292474507a02e0f62dd01c1dd87d9e527d7c73929a8681bbfb"
+  },
+  "imported": {
+   "reader": "4170bff449854fcad9203e373b59dc6fb291854a024f5281921a80083395ca1a",
+   "refuter": "b740c65f78a491c954c0e6d02700536b2ba3a1da92b4d5baf6e76473a79df3ee"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the words EOP and END-OF-PAGE must be accepted interchangeably in both the [AT] END-OF-PAGE and NOT [AT] END-OF-PAGE phrases of the sequential WRITE statement, with identical meaning (same branch taken at run time), and EOP is a reserved word.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhraseHead; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#FamilyOfHeadToken; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#EOP",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (row \"EOP\")",
+    "switches": "reservation per edition: true at 85, 2002, 2014, 2023 (same as END-OF-PAGE)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "ConstructRegistry.IsAvailable(edition, format.Construct) for the owner's phrase formats; WRITE's EndOfPage Pair has no construct, so the pair associates at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grammar arm `AT? (END_OF_PAGE | EOP)` is edition-blind; FamilyOfHeadToken maps both tokens to ConditionalPhraseFamily.EndOfPage with no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness mixes spellings in AT/NOT AT with LINAGE overflow; the NOT phrase without AT, the ADVANCING form with EOP, and the reserved-word half are not in it (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c3/mix.cob",
+    "printed": "A-NOT 1|A-EOP 2|A-EOP 3|A-EOP 4|B-NOT 1|B-EOP 2|B-EOP 3|B-EOP 4|C-EOP 2|C-EOP 3|C-EOP 4",
+    "expected": "same output as the all-END-OF-PAGE spelling"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c3/mixlong.cob",
+    "printed": "identical to mix.cob",
+    "expected": "identical (SR9 equivalence)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-07/c3/eopname.cob",
+    "printed": "error COBOL0901: 'EOP' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
+    "expected": "refused: EOP is a 1985 reserved word"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.51-WRITE/l1c37_write_eop_spelling.cob",
+    "printed": "W1 NOT 2|W2 AT 3|W3 AT 4",
+    "expected": "matches the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR9",
+    "check": "OK  §1985:VII.4.7.3 SR9  (4.7.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "One lexer token each, one grammar alternative and one phrase family: the two spellings cannot diverge downstream. Run-time branches are identical for EOP and END-OF-PAGE in every position probed. The mix probe also showed that an un-terminated conditional WRITE inside an inline PERFORM is refused (COBOL2796), which is correct for 1985.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run separately: the path is edition-blind",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-9",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read §1985:VII.4.7.2-3 (both phrases print END-OF-PAGE | EOP as alternatives; SR9 equivalence) and the reader's sites (one grammar alternative AT? (END_OF_PAGE | EOP), ConditionalPhrases.FamilyOfHeadToken maps both tokens to EndOfPage). Probes at --std 85 (refute-1985-07/c3): fte.cob / ftl.cob, identical programs except EOP vs END-OF-PAGE in BOTH the AT-less end-of-page phrase and the AT-less NOT phrase, on a LINAGE 6 WITH FOOTING AT 3 file over five writes: both print 'NOT 1 2 | AT 2 3 | AT 3 4 | AT 4 5 | AT 5 6' and diff reports them identical, which is GR18's footing-area condition reached by both spellings at the same line; eopsec.cob END-OF-PAGE as a data-name -> COBOL0901 reserved at COBOL-85 (the reader had probed EOP; both are reserved, so neither spelling can be shadowed). cite.py: 'OK  §1985:VII.4.7.3 SR9  (4.7.3 Syntax Rules)  the text is in SR9'. No form of 1985 where the words diverge was found.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

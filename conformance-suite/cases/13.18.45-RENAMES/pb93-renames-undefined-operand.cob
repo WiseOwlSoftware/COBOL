@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb93-renames-undefined-operand
-*> rules: [SR-13.18.45.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb93-renames-undefined-operand
+      *> rules: [SR-13.18.45.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.45.3 SR4: RENAMES data-name-2 and data-name-3 "shall be names of elementary items or groups of
       *> elementary items in the same record" - an operand naming nothing was skipped silently (kb/Work PB93).
        IDENTIFICATION DIVISION.

@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-13",
+ "rule-digest": "1e24fad40719",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-017",
+  "sources": {
+   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
+   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+  },
+  "imported": {
+   "reader": "25c0a80aeb3f607047e98b320df09f8fc73506e59e51b4f56ec74c32a7bf6a90",
+   "refuter": "305ded1e8391de7d171ffbd58a8fc2a68cdd7e5d90badbf7fb4e95d49a61a6fb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a PERFORM's procedure-name-1 and procedure-name-2 must resolve only to sections or paragraphs of the program that contains the PERFORM (never of a containing, contained or separately written program in the run unit), and statements of another program may be reached from a PERFORM range only through CALL / EXIT PROGRAM in that range.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BinderContext.cs#Table; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#RejectProcedureName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#CheckProcedures",
+    "switches": "the 1985 segmentation restriction on the PERFORM range (ConstructRegistry SegmentNumbersRemoved2002); not part of GR13, which is decided by the per-unit procedure table",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped ControlFlowBinder.cs and ProcedureTableBuilder.cs for CobolVersion|IsAtLeast|DialectBehavior|ConstructRegistry|Edition.Version: the only hit in ControlFlowBinder is the STOP literal gate (not on this path); ProcedureTableBuilder has none. The name scope is structural: BinderContext.Table is one ProcedureTableBuilder per unit, so another program's procedure-names are not in the maps at any edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise a single program; no witness PERFORMs into a contained, containing or sibling program or performs a range that CALLs another program",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13a.cbl",
+    "printed": "error COBOL1639: PERFORM 'IN-PARA' names no procedure ... (outer program performs a paragraph of its contained program)",
+    "expected": "refused: must not name paragraphs in any other program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13b.cbl",
+    "printed": "error COBOL1639: PERFORM 'O-PARA' names no procedure (contained program performs its container's paragraph)",
+    "expected": "refused, irrespective of containment"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13d.cbl",
+    "printed": "error COBOL1639: PERFORM 'S-PARA' names no procedure (sibling separately-written program)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13e.cbl",
+    "printed": "error COBOL1639: PERFORM 'IN-SEC' names no procedure (a section of the contained program)",
+    "expected": "refused: sections too"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13f.cbl",
+    "printed": "error COBOL1639: PERFORM THRU 'IN-P' names no procedure ... SR13 (procedure-name-2 in the contained program)",
+    "expected": "refused for procedure-name-2"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g13c.cbl",
+    "printed": "OUTER BEFORE CALL 1 / INNER SAME-NAME / OUTER AFTER CALL 1 / OUTER BEFORE CALL 2 / INNER SAME-NAME / OUTER AFTER CALL 2 / OUTER SAME-NAME / BACK IN OUTER",
+    "expected": "a PERFORM THRU range 2 TIMES whose range CALLs the contained program (EXIT PROGRAM back) obeys the other program's statements; each program's same-named paragraph resolves to its own"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR13",
+    "check": "OK  §1985:VI.6.21.4 GR13  (6.21.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VI.6.21.4 GR11",
+    "check": "OK  §1985:VI.6.21.4 GR11  (6.21.4 General Rules)  the text is in GR11"
+   }
+  ],
+  "notes": "Conforms structurally: the procedure table is per unit, so a cross-program procedure-name finds nothing and ResolveProcedureOperand reports COBOL1639 at both operands, in every containment direction and for a sibling program. Same output at --std 2023. Cosmetic only: the message at --std 85 cites ISO §2023:14.9.28.3 SR12/SR13 and §2023:8.4.6.1 rather than the 1985 rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "g13a: same COBOL1639; g13c: same output (plus the COBOL0903 EXIT PROGRAM archaic warning)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-13",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/g1.cbl: a contained program CB PERFORMs CA-P, a paragraph of its COMMON sibling CA: error COBOL1639 'names no procedure' at --std 85. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/g2.cbl: outer PERFORM PA THRU PB 2 TIMES whose range CALLs a separately written program SIB (which also has a paragraph PB) that ends by EXIT PROGRAM: prints OUTR PA/SIB/OUTR PB twice then OUTR DONE, and SIB's PB is never reached. That matches GR13's second sentence and shows the name resolves only within the program. Grep of ProcedureTableBuilder.cs and ControlFlowBinder*.cs for EditionContext|CobolVersion|ConstructRegistry|DialectBehavior finds no edition switch on name resolution. cite.py: 'OK  §1985:VI.6.21.4 GR13  (6.21.4 General Rules)  the text is in GR13'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

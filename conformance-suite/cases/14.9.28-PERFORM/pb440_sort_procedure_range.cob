@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb440_sort_procedure_range
-*> rules: [GR-14.9.28.4-6, GR-14.9.40.4-11, GR-14.9.40.4-14]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb440_sort_procedure_range
+      *> rules: [GR-14.9.28.4-6, GR-14.9.40.4-11, GR-14.9.40.4-14]
+      *> accept: [85, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB440 (sibling) - a SORT INPUT PROCEDURE range is resolved by the SAME procedure resolver
       *> as PERFORM, so it inherited the same defect: the emitter decoded "is this range empty?" as
       *> `Start <= End`, which is ALSO true of a legal INVERTED range, and dropped the whole procedure.

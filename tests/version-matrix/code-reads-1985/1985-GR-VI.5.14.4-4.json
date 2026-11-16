@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-4",
+ "rule-digest": "98e6dac8aada",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "0e6e7dd352e35c3ca34a9b064377b905421e03d570ba3d04f36622023b14fb45",
+   "refuter": "d5563f9b4731ffa5e2330852e68a1d7500c9229224c3ed96b2ebeea60f492eb6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, USAGE COMPUTATIONAL/COMP uses the implementor's documented radix, format, alignment, sign and range. DOC-A.1-208 says it is identical to BINARY, with the PICTURE digit count as its range. So a COMP item must give the same image, width and size-error boundary as BINARY with the same picture, at every 1985 picture size, scaled or unsigned.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation; docs/conformance/7/DOC-A.1-208.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "edition.Extension flags vendor spellings (COMP-1..COMP-5) only under the extension-flagging option; BINARY/COMP/COMPUTATIONAL/PACKED-DECIMAL/DISPLAY map to one Usage at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "numeric item digit limit: 18 at COBOL-85, 31 at 2002+ (COBOL0802 for 19-31 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "COMP and COMPUTATIONAL map to Usage.Binary in ParseUsage's keyword switch with no edition test. PicInfo members have no edition reads (grep DialectLevel|Edition.).",
+  "behaviour-differs-by-edition": "no (gr4a identical at 2023); the 18-digit cap applies at 85 as for BINARY",
+  "witnesses-cover": "part: g85_bf12_06 covers S9(4) COMP/COMPUTATIONAL/BINARY image identity and range; it does not cover other width tiers, scaled items, unsigned COMP receiving a negative value, or a REDEFINES of a COMP group",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr4a.cob",
+    "printed": "GCLEN=0017 IMG=YES RDF=YES CV=-1.23456789 U9SIZE U9=999999999 U9A=000000005 C18=+000000000000000000 C5LO=+00000",
+    "expected": "A COMP group at the 1/4/8/4-byte tiers equals the BINARY group's image, also through REDEFINES. Scaled COMP holds -1.23456789. 9(9) COMP size errors at 10^9 and keeps its value. An unsigned COMP stores the absolute value. LOW-VALUE in the image reads as zero."
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/u_pics919comp.cob",
+    "printed": "error COBOL0802: ... 19 digit positions; COBOL-85 limits fixed-point items and literals to 18 digits",
+    "expected": "19-digit COMP refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR4",
+    "check": "OK  §1985:VI.5.14.4 GR4  (5.14.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The rule is met by the implementor's statement (DOC-A.1-208) and by holding the code to it. ParseUsage maps COMP and COMPUTATIONAL to the one Usage.Binary arm, so the image, width and truncation are BINARY's by construction. The probes confirm this across width tiers and REDEFINES.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr4a prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-4",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "GR4 leaves radix, format, alignment, sign and range to the implementor; docs/conformance/7/DOC-A.1-208.md documents COMPUTATIONAL as identical to BINARY with picture-digit truncation, and PicInfo.Truncation/StorageWidth give COMP (Usage.Binary) exactly that. r2b: COMP item as STRING POINTER behaves as BINARY. cite.py: OK  §1985:VI.5.14.4 GR4  (5.14.4 General Rules)  the text is in GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

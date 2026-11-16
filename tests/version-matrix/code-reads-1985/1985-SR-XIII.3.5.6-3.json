@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.6-3",
+ "rule-digest": "0a03c7918749",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-078",
+  "sources": {
+   "reader": "b0bd5c2450046e0dd7a170d5666b191062e8062c4935c1bcaccc2bdaea756290",
+   "refuter": "5d47e263f056ccc1b2ad9a07051a4408b8f30631fb90247c56a4af11c777622c"
+  },
+  "imported": {
+   "reader": "59fa94725090286f7576e867bf2c3f7e46c4e5d5a5c25e0b7c9617a5ac03a5c1",
+   "refuter": "8a24e9b7bdc0ddb9ff3ca4395a4aa6db3d1beafb762720857c69598abaa03c55"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.6-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a Procedure Division reference to LINE-COUNTER must be qualified by a report-name when the program has more than one report (an unqualified one is refused; with one report it resolves), and in the Report Section an unqualified LINE-COUNTER means the enclosing report's counter while another report's counter must be qualified by that report's name (report-name is the highest qualifier, XIII.3.5.3 SR3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|DialectLevel|Has(' over CounterResolver.cs: the only edition test is LinageFileOf's Has(2014) (LINAGE-COUNTER, another rule); ReportOf and CounterExpr consult none. ReservedWords.Table.cs row LINE-COUNTER is reserved at all four editions (identical, no switch). No ConstructRegistry/VersionConformancePass entry for the counter reference. RD GLOBAL (the only thing that widens NearestInScope) is not in the 1985 RD format (XIII.3.5.2), so the 1985 path is the latest edition's code.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1456_other_report_counters_85 covers the Report Section half (implicit qualification and explicit qualification of another report's counter); the Procedure Division refusal of an unqualified counter with two reports, the single-report unqualified case, and a non-report qualifier are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lc2unq.cob",
+    "printed": "COBOL2729 unqualified LINE-COUNTER with more than one report description entry (line 26), exit 65",
+    "expected": "refused: two RDs, unqualified LINE-COUNTER in the Procedure Division (SR3 first sentence)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lcdecl.cob",
+    "printed": "COBOL2729 at the MOVE LINE-COUNTER inside a USE BEFORE REPORTING declarative, exit 65",
+    "expected": "refused: a declarative is Procedure Division, not the Report Section"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lcbadq.cob",
+    "printed": "COBOL2729 LINE-COUNTER OF 'P1': the qualifier shall name a report description entry, exit 65",
+    "expected": "refused: the qualifier must be a report-name"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lc2q.cob",
+    "printed": "R1 02 / R2 01 / R1 AHEAD; R2's file holds '02' (SOURCE LINE-COUNTER OF R1 in R2)",
+    "expected": "qualified OF/IN references resolve to the named report's counter, in the Procedure Division and in another report's SOURCE"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lc1unq.cob",
+    "printed": "A 00 / B 02",
+    "expected": "one RD: unqualified reference legal; 0 after INITIATE (XIII.3.5.6 rule 4), 2 after two lines"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-078/lcnest.cob",
+    "printed": "INNER 02, exit 0",
+    "expected": "a contained program with its one own RD: its unqualified LINE-COUNTER is its own report's (the container's two RDs are not global in 1985)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 SR3",
+    "check": "OK  §1985:XIII.3.5.6 SR3  (3.5.6 LINE-COUNTER Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:XIII.3.5.3 SR3",
+    "check": "OK  §1985:XIII.3.5.3 SR3  (3.5.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "ReportOf is the one resolver both directions use: an OF/IN qualifier must name a report, an unqualified reference inside an RD takes the enclosing report, otherwise exactly one report must be visible. Every probe matched the 1985 text. At --std 85 the diagnostic cites §2023:8.4.2.2.3 SR9 instead of the 1985 rule; only the wording is affected.",
+  "seeded": true,
+  "at-2023": "same code path, no edition arm",
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.6-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "The reader's premise that RD GLOBAL is not in 1985 is false: the IPC module's RD format has [IS GLOBAL] (OK §1985:X.4.4.2 'RD report-name-1 IS GLOBAL CODE literal-1') and makes the counters global names (OK §1985:X.4.4.4 GR1 'the special registers LINE-COUNTER and PAGE-COUNTER are global names'). So I attacked the global path the reader skipped, through CounterResolver.ReportOf's NearestInScope arm, at --std 85 (run_case.py, refute-1985-078/): lcglob1 (container RD R1 IS GLOBAL, contained program with no RD, unqualified LINE-COUNTER) exit 0, 'INNER 02': resolves to the one accessible counter. lcglob2 (two GLOBAL RDs, contained program with no RD, unqualified) gives COBOL2729 'unqualified LINE-COUNTER with more than one report description entry', exit 65. lcnong1 (one non-GLOBAL RD in the container, contained program unqualified) gives COBOL2729 'the program has no report description entry', exit 65: a local counter is not visible. lcnongq (LINE-COUNTER OF R1 in the contained program, R1 not GLOBAL) gives COBOL2729 'the qualifier shall name a report description entry', exit 65: a qualifier that is not accessible is refused. lcglobq (R1 GLOBAL, LINE-COUNTER OF R1 in a contained program that has its own R3) exit 0, 'INNER 02'. lcgloby (two GLOBAL RDs plus the contained program's own R3, unqualified) exit 0, 'INNER 00' (R3's counter). That follows §1985:X.1.3.8.2 GR3a (OK: 'If the name is declared in program B, the object in program B is the referenced object'), reading 'more than one LINE-COUNTER exists in a program' as the counters the X.1.3.8.2 resolution leaves. Every probe matched OK §1985:XIII.3.5.6 SR3 'must be qualified by a report-name whenever it is referenced in the Procedure Division'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

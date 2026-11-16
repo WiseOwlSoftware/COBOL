@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.32.3-3",
+ "rule-digest": "0441d622cb29",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReturnStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Return; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb349_sort_merge_flow_ec",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.34.4-3, witnessed at 2002 by the cases test-ref names. The read: The only change is the wording of the transfer after imperative-statement-1: 2002 spells out explicit transfer and falling off the end, while 2023 says 'if control is returned'. The two are equivalent. EC-SORT-MERGE-RETURN has the same name and class (Fatal), and the RETURN format is identical. The pointer's tests pass at 2002. Cited: §2002:14.8.32.3 GR3."
+}

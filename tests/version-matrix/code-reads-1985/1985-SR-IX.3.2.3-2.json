@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-IX.3.2.3-2",
+ "rule-digest": "68e537e3eba2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-154",
+  "sources": {
+   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
+   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+  },
+  "imported": {
+   "reader": "17a0258091485468478ad13a5d7d7cb345206a6ee7e48e4f0258ae24cef95cda",
+   "refuter": "1518ebef9511ccd72ac5cc6cb68794dc8ef2e5ac2b7565ec06ec78f65723b032"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.3.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the indexed-file FD clauses (BLOCK CONTAINS, RECORD in its three forms, LABEL RECORDS, VALUE OF, DATA RECORDS) are accepted in any order after file-name-1, each at most once.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#FileDescriptionFormats; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitValueOfClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDataRecordsClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause",
+    "switches": "ConstructRegistry LabelRecordsRemoved2002 (and the VALUE OF / DATA RECORDS siblings): accepted at 1985, refused from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the order itself is fileDescriptionClause+ in the grammar, with no predicate; the edition enters only through the removal gates of the three 1985-only clauses.",
+  "behaviour-differs-by-edition": "yes: LABEL RECORDS, VALUE OF and DATA RECORDS exist only at 1985; ordering freedom is the same at every edition",
+  "witnesses-cover": "part: g85_bf22_03 covers one reversed order of DATA, LABEL, RECORD CONTAINS, BLOCK; not covered: VALUE OF, RECORD VARYING ... DEPENDING, BLOCK ... TO ... CHARACTERS, a repeated clause",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/f1.cob",
+    "printed": "DATA RECORDS, RECORD IS VARYING ... DEPENDING ON N, LABEL RECORD OMITTED, BLOCK 1 TO 5 RECORDS: R1=01AAAAAAAA/R2=02BB/EOF",
+    "expected": "accepted in this order; variable records written and read back"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/f2.cob",
+    "printed": "BLOCK 20 TO 100 CHARACTERS, DATA RECORD, RECORD CONTAINS 4 TO 10, LABEL: same output",
+    "expected": "accepted"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/f3.cob",
+    "printed": "RECORD VARYING TO 10, BLOCK 2 RECORDS, LABEL, DATA RECORDS (noise words omitted): same output",
+    "expected": "accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/f5.cob",
+    "printed": "VALUE OF FILE-ID first, then DATA, RECORD VARYING, LABEL, BLOCK: same output",
+    "expected": "accepted at 1985 (VALUE OF is a 1985-only clause)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/f4.cob",
+    "printed": "LABEL RECORDS written twice: error COBOL2423 the clause is written 2 times",
+    "expected": "any order, but each bracketed clause once"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.3.2.3 SR2",
+    "check": "OK  §1985:IX.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar takes the FD clauses as an unordered repetition and FileDescriptionFormats decides admission per clause, so any permutation is accepted; repetition is refused by UnrepeatedElements. COBOL2423 cites §2023:13.4.5.2 at --std 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.3.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "The composite skeleton (§1985 V, indexed FD) puts IS EXTERNAL and IS GLOBAL among 'the clauses which follow file-name-1'. g1.cob --std 85: FD XF LABEL RECORDS ARE STANDARD IS GLOBAL BLOCK CONTAINS 2 RECORDS IS EXTERNAL -> accepted, R=01AAAAAAAA. g4.cob: DATA RECORD, VALUE OF FILE-ID IS data-name, LABEL, RECORD CONTAINS in that order -> accepted. Refusal half for clauses outside the indexed format: g2.cob LINAGE and g3.cob CODE-SET in an indexed FD -> COBOL2604 'not a clause of Format 2 (relative-or-indexed)' (cites §2023, wording only). Runs refute-1985-154/runs/g1-001..g4-001. cite.py: 'OK  §1985:IX.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

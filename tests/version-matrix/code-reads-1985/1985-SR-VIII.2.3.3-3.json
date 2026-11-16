@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-VIII.2.3.3-3",
+ "rule-digest": "f86530250e99",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-065",
+  "sources": {
+   "reader": "66f332126c0c206103e030806e532fcfacdaf4b7490128589ff01dd02a46e1c6",
+   "refuter": "f825c12005b3e32f1ec902150273b86d6da02878634e3a8cde542efec0612be3"
+  },
+  "imported": {
+   "reader": "107d1bae488f3b8ffddfd0e005d10be7e6511de161aab6418472834150d02865",
+   "refuter": "7222a3e079bbd58220dae1d3cfbcf7b78d7a1eb8eee933f51e5a7d62ecd68af0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.2.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "ASSIGN TO literal-1 in a relative file control entry must be a nonnumeric literal and not a figurative constant (including ALL literal); implementor-name-1 and the literal's value mean what the implementor defines.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#WordText; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#ResolveHostPath",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen",
+    "switches": "sortMerge1985: below 2002 an SD's entry skips EntryShapeFindings (numeric/figurative literal-1); a relative file is not an SD, so its findings are reported",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (hexadecimal alphanumeric literal construct)",
+    "switches": "X\"..\" refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (zero-length literal construct)",
+    "switches": "\"\" refused below 2014 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel in AssignTargetRule.cs (none) and FileControlKeyRules.cs (RulesFor, sortMerge1985); the literal-shape checks are edition-free and the hex and zero-length gates are the version pass's.",
+  "behaviour-differs-by-edition": "yes: X\"41\" and \"\" are 2002/2014 literals and are refused as such at 85; the numeric and figurative refusal is the same at every edition for a non-SD file",
+  "witnesses-cover": "part: the witnesses do not exercise a relative entry, ZERO/QUOTE/HIGH-VALUES, ALL literal, or the hex and zero-length forms at 85",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p3a.cob (run p3a-001)",
+    "printed": "COBOL2645 for ASSIGN TO 123 (alphanumeric literal required), SPACE, ALL\"X\", ZERO, QUOTE, HIGH-VALUES (shall not be a figurative constant)",
+    "expected": "all six refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p3b.cob (run p3b-001)",
+    "printed": "error COBOL0900: the hexadecimal alphanumeric literal X\"...\" requires COBOL-2002",
+    "expected": "refused: no hexadecimal literal in 1985"
+   },
+   {
+    "class": "c,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p3c.cob (run p3c-001)",
+    "printed": "COBOL2645 zero-length literal; COBOL0900 the zero-length literal requires COBOL-2014",
+    "expected": "refused: a 1985 nonnumeric literal has 1 to 160 characters"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p3d.cob (run p3d-002)",
+    "printed": "B=ALPHA / C=WORDS; files P3D.REL and p3dword.txt created",
+    "expected": "literal, DISK + literal, and implementor-name all accepted and mapped per the implementor's determination (DOC-A.1-71)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.3.3 SR3",
+    "check": "OK  §1985:VIII.2.3.3 SR3  (2.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "AssignTargetRule screens a numeric literal and every figurative constant, including ALL literal, into EntryShapeFindings, and Screen reports them for every non-SD entry at every edition. Non-1985 literal forms are refused by the version pass. The implementor-name mapping is the documented determination. Messages cite §2023:12.4.5.2 SR4.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.2.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe r3a at --std 85: a figurative constant placed after a literal in the ASSIGN list (DISK \"x\" SPACES, \"x\" LOW-VALUE) refused COBOL2645 'shall not be a figurative constant' (and COBOL2256 for the operand count); signed -12 and decimal 1.5 refused COBOL2645 'shall be an alphanumeric literal'; national N\"..\" refused COBOL0900 (requires COBOL-2002) plus COBOL2645; the 2002 ASSIGN USING data-name refused COBOL0900. cite.py: OK §1985:VIII.2.3.3 SR3 (2.3.3 Syntax Rules) the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb447_search_all_index_stays_in_table
       *> rules: [GR-14.9.37.4-9, DOC-A.1-170]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

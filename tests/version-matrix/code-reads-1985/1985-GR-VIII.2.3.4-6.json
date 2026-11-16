@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-VIII.2.3.4-6",
+ "rule-digest": "aea68ec50687",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-129",
+  "sources": {
+   "reader": "b3071f7b6436600a50ce0da5153ddc103ba8737cb68a57ef384e86e7577a20da",
+   "refuter": "b96e05144740c9f8385ccfef50ac159ad5d6ab142c44ae60b5d3f8a3c15bc20a"
+  },
+  "imported": {
+   "reader": "2121fd419d65a5991969e0750324bf82742a508bebfdff0432ea7a99496e0a76",
+   "refuter": "8bfaf7efa3bcca900cdee16e61f3a8723b3f01a26eb6c5f37bed7b1962e8a4d2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file's FILE STATUS clause obeys the Sequential I-O clause (§1985:VII.2.5: data-name-1 may be qualified; it is a two-character alphanumeric item outside the File, Report and Communication Sections; it is updated whenever the I-O status is), and it receives the relative I-O status values of §1985:VIII.1.3.4 (00, 05, 10, 14, 22, 23, 24, 30, 35, 37, 38, 39, 41 to 49).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileStatusClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataNameSubscripted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#FileStatusShapeFault; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.Resolve.cs#ScreenFileStatusItem",
+    "switches": "Edition.SubscriptedClauseOperands (true only at 2002): at 85 an item subject to OCCURS is refused, as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseDataNameSubscripted",
+    "switches": "Edition.SubscriptedClauseOperands: at 85 a written subscript is refused (COBOL2024), as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Write",
+    "switches": "DialectBehavior.RelativeWriteKeyOutOfRangeIsPermanentError (2014): at 85 a random WRITE with key 0 gives the invalid key 24, at 2023 the permanent error 34",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (2002): what CLOSE WITH LOCK locks; the 38 at the next OPEN is given at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a random WRITE of a relative file with a key below 1 gives 24 (invalid key) at 85, which is what §1985:VIII.1.3.4 (3) c gives, and 34 from 2014.",
+  "witnesses-cover": "part: g85_f17_04 covers 00, 22 and 23; not the syntax rules of §1985:VII.2.5.3 or the statuses 05, 10, 14, 24, 35, 38, 39, 41 to 49 (all probed here).",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p2g1-001 .. p2g7-001",
+    "printed": "COBOL2455 for an item in the File Section, a 3-character item, PIC 99 (numeric), PIC AA (alphabetic) and an item in the Communication Section; 'FSQ OF G2' (qualified) and a two-X group compile and run: OPEN 00",
+    "expected": "§1985:VII.2.5.3 SR1 and SR2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p4e9-001; p4e10-001",
+    "printed": "COBOL2455 'is subject to an OCCURS clause'; COBOL2024 for FILE STATUS IS FST (1)",
+    "expected": "data-name-1 is a data-name: no subscript, no table element"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p3st-002",
+    "printed": "W0 INV 24 / READ ON OUTPUT 47 / OPEN TWICE 41 / CLOSE TWICE 42 / R1 READ1 00 K1=3 / R1 END + R1 READ2 14 / WRITE ON INPUT 48 / RQ WRITE 10 INV 24 / REWRITE NO READ 43 / DELETE ON INPUT 49 / RQ AT END 10 / READ AFTER END 46 / RV WRITE LEN 2 44 / RV WRITE LEN 6 00 / OPEN AFTER LOCK 38",
+    "expected": "each status as §1985:VIII.1.3.4 defines it; 14 and 24 are the RRN-digit statuses of a 1-digit key"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/p3st-002; p5fix-001",
+    "printed": "RECORD VARYING 3 TO 6: a 2-character WRITE gives 44; a fixed FD opening a varying file gives 39, then READ 47",
+    "expected": "44 boundary violation (GRL 5 d 1); 39 fixed-attribute conflict"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-129/runs/g85_f17_04-001",
+    "printed": "EXPECT: MATCH (g85_f17_04.out)",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.3.4 GR6",
+    "check": "OK  §1985:VIII.2.3.4 GR6  (2.3.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.2.5.3 SR2",
+    "check": "OK  §1985:VII.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c"
+   }
+  ],
+  "notes": "The FILE STATUS screen cites the 2023 clause, but its conjuncts (category alphanumeric, two characters, not File/Report/Communication) are the 1985 SR2's, and every 1985 status value probed came back as defined. The one edition arm that changes a status value (key below 1 on a random WRITE) takes the 1985 value 24 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,d,c",
+  "evidence": "Operand-class probes of §1985:VII.2.5.3 SR2 the reader did not try (runs r6*-002, --std 85, 'STATUS FS' written without the optional word FILE): PIC XB (alphanumeric-edited) refused COBOL2455; PIC Z9 (numeric-edited) refused COBOL2455; PIC A9 (category alphanumeric in 1985) admitted, OPEN INPUT 35 / OUTPUT 00 / CLOSE 00; a group holding one PIC 99 (group is alphanumeric) admitted; PIC XX JUSTIFIED RIGHT admitted; an XX item redefined as 99, and an XX item that REDEFINES a 99 item, admitted; a LINKAGE SECTION item (r6LK-001, --compile-only) admitted. Status values: r3a-002 shows the status updated before the USE procedure runs (46 visible in the declarative), §1985:VIII.1.3.4 first paragraph; r42-002 and r44-002 give 23 for random REWRITE/DELETE/READ of an absent or zero key, 46 after a failed random READ, 10 at end. cite.py: 'OK  §1985:VII.2.5.3 SR2  (2.5.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VIII.2.3.4 GR6  (2.3.4 General Rules)  the text is in GR6'. The reader's list of status values omits 04 and 30/37; 04 (record-length conflict on READ) is not reachable when one program writes and reads with its own description (the reader's p5fix gives 39 at OPEN, an applicable value the implementor may choose, §1985:VIII.1.3.4 'If more than one value applies, the implementor determines'), so no overturn.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

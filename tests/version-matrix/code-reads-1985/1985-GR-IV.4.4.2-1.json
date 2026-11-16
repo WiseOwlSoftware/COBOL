@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-IV.4.4.2-1",
+ "rule-digest": "2968502123b9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "98817257bd3594a4f8aab4218c852e5b744c8ea0ede36c133fdd03fc85fd9812",
+   "refuter": "92cbd3f08f25c1a35ae9ca765b286f49221f7219ca4541ad762909184ed99bbb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.4.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a paragraph executed under control of PERFORM (THRU, TIMES, UNTIL, VARYING, section operand), a USE declarative, or a SORT/MERGE input or output procedure must return control from the end of the last paragraph of the range to the control mechanism of the last executed controlling statement, and an iterative PERFORM must re-enter the first paragraph of its range for each iteration; a paragraph reached by fall-through (no controlling statement) continues to the next paragraph.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#ExplicitTransferOut; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+    "switches": "dispatchState.SegmentEntry (set by AlterSwitchEmitter.EmitSegmentState when the program has independent segments, §1985:XVI) wraps the same dispatch loop with segment state save/restore; it is construct-driven, not an edition comparison, and the range-exit test (__atExit && __pc == __exitPc + 1) is the same code",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior|ConstructRegistry' in CodeGen/DispatchEmitter.cs, EmitterState.cs, DispatchState.cs, Verbs/SortEmitter.cs, Verbs/Perform*.cs: no hit; the only 1985-specific branch is the segmentation wrapper",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the SORT/MERGE procedure ending at its last paragraph; PERFORM THRU/TIMES/VARYING ranges, nested PERFORMs sharing an exit, USE declaratives and independent segments are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c3a.cob",
+    "printed": "A1 A2 0 A3 BACK1 / A1 A2 0 A1 A2 0 BACK2 / A2 1 A3 A2 2 A3 BACK3 / S21 S22 BACK4 / A4 A5 A4-AFTER A5 BACK5 / D1 35 D2 BACK6 / FALL-M9 S21 S22 S31",
+    "expected": "each range returns after its last paragraph; iterative PERFORMs re-enter the first paragraph; PERFORM A-5 inside PERFORM A-4 THRU A-5 returns to the inner (last executed) PERFORM first; the USE section returns after D-2 to the statement after the failed OPEN (status 35); M-9 reached by GO TO falls through S-2, S-3"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c3b.cob",
+    "printed": "IN2 IN-SEC2-LAST OUT1 R 1EY1 R 2EY2 R 3EY3 OUT2 AFTER-SORT OUT1 R CCC1 R BCC2 R BBB3 R ABB1 R AAA2 OUT2 AFTER-MERGE; --std 2023 output identical (md5)",
+    "expected": "input procedure IN-SEC THRU IN-SEC2 returns to SORT after its last section's last paragraph (TAIL never runs); output procedure OUT-P1 THRU OUT-P2 returns after OUT-P2 for SORT and MERGE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c3c.cob",
+    "printed": "I1 1 I2 I1 2 I2 BACK-IND I1 3 I2 BACK-IND2",
+    "expected": "PERFORM of an independent segment (section 60, a 1985 segmentation form) returns after its last paragraph and re-enters its first paragraph per iteration"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.4.2 GR1",
+    "check": "OK  §1985:IV.4.4.2 GR1  (4.4.2 Explicit and Implicit Transfers of Control)  the text is in GR1"
+   }
+  ],
+  "notes": "Every controlled range is a call of the one __Dispatch(start, exit) loop, which returns when the exit paragraph completes (__atExit && __pc == __exitPc + 1), so the return goes to the innermost caller; iteration is a repeated call that starts at the first paragraph. No edition is consulted; the 1985 segmentation wrapper keeps the same loop.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.4.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r3a.cob at --std 85: PERFORM of an empty paragraph returns (BACK-EMPTY); PERFORM X-1 THRU X-EXIT ending in EXIT; out-of-line PERFORM ... THRU ... VARYING I ... AFTER J re-enters X-1 for each of the four iterations (X1 112/123/214/225); THRU ... 2 TIMES; GO TO inside the range to the exit paragraph G-3 returns (G1 G3 BACK-GO); a USE section D-SEC that PERFORMs its own D-2, falls through D-2 and an empty D-3, then returns to the statement after the failed OPEN (D1 35 D2 D2 AFTER-OPEN BACK-IO 35); PERFORM Q-1 OF S2 (qualified, same name in S3) and PERFORM S3 (section ending in Q-2); SORT INPUT PROCEDURE IN-1 THRU IN-2 where IN-1 PERFORMs IN-2 (shared exit: IN2 IN1-AFTER-PERFORM IN2 then OUTPUT, BACK-SORT). r3b.cob: GO TO out of the active PERFORM B-2's range to H-0, falling back through B-1 into B-2 returns at B-2's end (B2 N H0 B1 B2 Y BACK1); a performed paragraph looping on itself by GO TO (BACK2 3); ALTER A-GO TO PROCEED TO A-3 inside a PERFORM THRU range (A1 A3 BACK3) (class c: ALTER is a 1985 form); PERFORM of a fixed overlayable segment section 55, 2 TIMES (OV1 OV2 OV1 OV2 BACK4); a PERFORM in segment 70 of segment 55 is refused COBOL6877 (§1985:XVI segmentation, not this rule). cite.py: OK §1985:IV.4.4.2 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

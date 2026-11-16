@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-VII.3.2.3-2",
+ "rule-digest": "68e537e3eba2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-160",
+  "sources": {
+   "reader": "06e7f0c524cb2ee3f5bb1704ee3939a3b37bb5828fcf7f1964f8abd7e2f96744",
+   "refuter": "0a07f13600d8ff8d67ac2ca675b9c78a9f000660be3a12d7c5632ea1c2b5ddfe"
+  },
+  "imported": {
+   "reader": "1376cd5fad1aa3b33326ba995d8c48e240fb1217d6ec7ac801562c7d08d486d3",
+   "refuter": "67016259d856242592c70b074ff9bcb75fdda675b64e5479ce622ef3ff22c960"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, the FD clauses that follow file-name-1 (BLOCK CONTAINS, RECORD in all three forms, LABEL RECORDS, VALUE OF, DATA RECORDS, LINAGE, CODE-SET, and the IPC module's EXTERNAL and GLOBAL) must be accepted in any order, each taking effect; order freedom does not license a repeated clause or a later edition's clause.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ByClauseContext; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "row.At(DialectLevel) picks the edition's figure; the FD row has no Earlier figure and Sequence null, so order is free at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFormatClause",
+    "switches": "FORMAT clause introduction gate (2002); refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read the FD row of ClauseCardinalities (no Earlier) and ClauseList.At, and grepped the FD grammar (a plain '+' list, no predicate)",
+  "behaviour-differs-by-edition": "no for order. The clause SET differs (LABEL, VALUE OF and DATA RECORDS removed at 2002, FORMAT added at 2002), which is outside this rule",
+  "witnesses-cover": "part: g85_bf22_01 covers the reverse printed order for two FDs. It does not cover VALUE OF, RECORD VARYING ... DEPENDING, BLOCK ... TO ... CHARACTERS, EXTERNAL/GLOBAL interleaved, or a scrambled non-reverse order",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c5a.cob",
+    "printed": "R2A=ABCDEFG              LINAGE-COUNTER-FREE / DONE",
+    "expected": "two FDs with every 1985 clause scrambled (CODE-SET, LINAGE, DATA, VALUE OF, LABEL, RECORD, BLOCK; and RECORD VARYING DEPENDING ON first) accepted; the variable record written at length 7 and read back"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c5b.cob",
+    "printed": "EXIT 0, OK",
+    "expected": "RECORD / IS GLOBAL / LABEL / IS EXTERNAL in mixed order accepted at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c5c.cob",
+    "printed": "COBOL0900: the FORMAT clause requires COBOL-2002 (targeting COBOL-85), plus COBOL7342 citing §2002:13.3.4.2 SR5",
+    "expected": "the 2002 FORMAT clause refused at 85"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c5d.cob",
+    "printed": "COBOL2423: the clause 'BLOCK CONTAINS 1 RECORDS' is written 2 times",
+    "expected": "any order, but each bracketed clause once"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.2.3 SR2",
+    "check": "OK  §1985:VII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar is an unordered '+' list, and the cardinality row's Sequence is null with no 1985 figure, so no out-of-order refusal can fire at 85. Side observation: at 85 the FORMAT refusal also emits a COBOL7342 cascade citing a 2002 rule, which is a second diagnostic for one fault.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,e",
+  "evidence": "r5j.cob (runs/r5j-001): FD F1 DATA RECORDS / CODE-SET / IS EXTERNAL / VALUE OF FILE-ID IS FID (a data-name operand) / RECORD CONTAINS 4 TO 12 CHARACTERS / LABEL RECORDS ARE OMITTED / BLOCK CONTAINS 3 RECORDS, and FD F2 LABEL RECORD STANDARD / IS GLOBAL / BLOCK 24 CHARACTERS / RECORD 6 TO 12 (CONTAINS and CHARACTERS omitted, as the 1985 format allows) / DATA RECORD R2: accepted, writes 12- and 4-character records and reads back 1:ABCDEFGHIJKL 2:WXYZ. r5a (scrambled) and r5d (the same clauses in printed order) both end with I-O status 39 on the OPEN INPUT, and r5g (r5d without LINAGE) runs, so the failure is order-independent: it is the LINAGE file read back (r5k: OPEN/WRITE/CLOSE OUTPUT of LINAGE with RECORD 4 TO 12 all 00; r5i: a fixed LINAGE file read back gives a misaligned record at 85 and 2023 alike), a print-file reread outside this rule. r5c.cob (runs/r5c-001): LABEL RECORDS written twice around RECORD refused COBOL2423. r5b.cob (runs/r5b-001): the later IS EXTERNAL AS literal phrase refused at 85 COBOL0900. cite: OK  §1985:VII.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

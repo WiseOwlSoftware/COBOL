@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1280-redefines-external-larger
-*> rules: [SR-13.18.44.3-8]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1280-redefines-external-larger
+      *> rules: [SR-13.18.44.3-8]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1280 - SR8 - a level-1 data-name-2 WITH the EXTERNAL clause does not exempt a larger redefiner.
       *>   cite.py --check 13.18.44.3 "The storage area required for the subject of the entry shall not be larger than the storage area required" -> OK
       *> COBOL2739 (redefines-entry-rule; SR8 is COBOL1539, SR10 COBOL1654). The positive twin is

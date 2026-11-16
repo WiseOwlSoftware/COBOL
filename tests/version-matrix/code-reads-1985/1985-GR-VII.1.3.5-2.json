@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-GR-VII.1.3.5-2",
+ "rule-digest": "9066b13af819",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-03",
+  "sources": {
+   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
+   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+  },
+  "imported": {
+   "reader": "a7b47feeca0f722881e14521e24e5aada2e09689f3aad115b1eaa5f8fdb5a243",
+   "refuter": "9b2ed5e9c5b140bf860e38b6620591e509846fe37cb670ebe9dbedaecddb30a2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.1.3.5-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a sequential READ that finds no next logical record (end of file, or the first READ of an absent OPTIONAL input file) is unsuccessful with I-O status '10' (the at end condition, class 1), the AT END imperative runs instead of any USE procedure, a USE AFTER STANDARD EXCEPTION procedure runs when AT END is absent, and the following READ is '46' rather than another at end.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadUnsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#AtEnd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#InForce",
+    "switches": "Year < 2002: a READ with no AT END and no applicable USE procedure is refused (COBOL6826, §1985:VII.4.4.3 SR2); at 2002+ no such requirement",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateStatement",
+    "switches": "READ ... PREVIOUS refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "passes --std into the connector (FileConnector.Edition); on the sequential READ path the only reader of it is SharingFacilityInEffect, which the read guard and the '10'/'46' arms do not consult",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|IsActive|DialectLevel in SequentialConnector*.cs, FileConnector.cs, SequentialIoBinder.cs, SequentialIoEmitter.cs, DispatchEmitter.cs, EcEmitter.cs, IoStatusClass.cs; DialectBehavior enum has no at-end member. The runtime at-end arms (ReadRecord EOF -> AtEnd, SequentialReadGuard OptionalAbsent -> AtEnd, LastReadUnsuccessful -> 46) carry no edition test.",
+  "behaviour-differs-by-edition": "yes: only at compile time: at 85 READ without AT END needs an applicable USE procedure (SR2) and READ PREVIOUS is refused; the runtime at end condition ('10', AT END vs USE, then '46') is the same code at every edition",
+  "witnesses-cover": "part: the witnesses exercise '10' / '46' sequencing and the absent-OPTIONAL first read, and PREVIOUS at 85; not exercised: the USE procedure taking '10' when AT END is absent, a RECORD VARYING / OCCURS DEPENDING file read to its end, a READ after a failed OPEN",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r1/p1a.cob",
+    "printed": "GOT REC1 00 / GOT REC2 00 / ATEND3 FS=10 / AFTER3 10 / USE RAN FS=46 (AT END not taken) / AFTER4 46 / no-AT-END read at EOF: USE RAN FS=10, AFTER-NO-ATEND FS=10 / OPTIONAL absent: OPT OPEN 05, OPT ATEND FO=10, second READ not at end / missing non-optional: OPEN 35 (USE ran), READ 47 (USE ran, AT END not taken)",
+    "expected": "EOF read: '10' and AT END runs, USE not run (VII.4.4.4 GR10 b); without AT END the USE procedure runs (GR10 c); next READ '46' (VII.1.3.5 status list 4 e 2); absent OPTIONAL first READ '10' (status list 2 a 2); READ after failed OPEN is '47', not at end"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r1/p1b.cob",
+    "printed": "W FS=00 / W FS=00 / GOT 3-ABC RL=05 FS=00 / GOT 1-Z RL=03 FS=00 / ATEND FS=10 RL=03",
+    "expected": "two variable-length records (RECORD VARYING DEPENDING ON, OCCURS DEPENDING ON in the record) then the at end condition '10'"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r1/p1c.cob",
+    "printed": "error COBOL6826 READ of sequential file 'SQ' specifies no AT END phrase, and no applicable USE ... (§1985:VII.4.4.3 SR2); error COBOL0900 READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "85 requires AT END when no USE applies; PREVIOUS is not in the 1985 READ format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.1.3.5 GR2",
+    "check": "OK  §1985:VII.1.3.5 GR2  (1.3.5 I-O Status)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.2",
+    "check": "OK  §1985:VII.1.3.5 GRL2.2  (1.3.5 I-O Status)  the text is in GRL2.2"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.4",
+    "check": "OK  §1985:VII.1.3.5 GRL2.4  (1.3.5 I-O Status)  the text is in GRL2.4"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR10",
+    "check": "OK  §1985:VII.4.4.4 GR10  (4.4.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR12",
+    "check": "OK  §1985:VII.4.4.4 GR12  (4.4.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:VII.4.4.3 SR2",
+    "check": "OK  §1985:VII.4.4.3 SR2  (4.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The at end condition is produced by the runtime connector's EOF and absent-OPTIONAL arms with no edition test; the 85-only differences are compile-time (mandatory AT END-or-USE, PREVIOUS refused) and both behave as the 1985 text says. Every probe printed what VII.1.3.5 and VII.4.4.4 GR10/GR12 require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.1.3.5-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 aimed past the reader's: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-03/r1/q1.cob: I-O mode EOF READ NEXT INTO -> AT END runs, FS=10, INTO target unchanged (GR8 'implied MOVE ... does not occur'), NOT AT END ignored; REWRITE after at end 43; next READ 46; empty present file first READ 10 via USE ON INPUT (open-mode USE accepted as the applicable USE for SR2); absent OPTIONAL opened I-O 05 -> READ 10 then 46; reopen after at end reads REC1 00. r1/q2.cob: contained program READ of a GLOBAL file with no AT END, container's USE GLOBAL -> USE ran with 10 then 46. Class c: r1/q3.cob READ WITH NO LOCK -> COBOL0900 (2002 form refused); r1/q4.cob USE AFTER EXCEPTION CONDITION EC-I-O-AT-END -> COBOL0877/0878 and READ refused COBOL6826. cite.py: 'OK §1985:VII.1.3.5 GRL2.2 ... the text is in GRL2.2'; 'OK §1985:VII.4.4.4 GR12 ... the text is in GR12'; 'OK §1985:VII.4.4.4 GR8 ... the text is in GR8'. Runtime IO members grep (Edition|Dialect|CobolVersion|Year) find only SharingFacilityInEffect and CloseWithLock on this path, as the reader listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

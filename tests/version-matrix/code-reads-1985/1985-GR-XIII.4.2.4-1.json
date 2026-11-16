@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-XIII.4.2.4-1",
+ "rule-digest": "b4152c377ea4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-040",
+  "sources": {
+   "reader": "87a159dee40eebd9c5854a4555e55289b63f2d4fa4c328aa80f6d931aac6b60a",
+   "refuter": "1c401387c5da048a01f363a9bf8dd3fcdd5928c8d4d488fbd8f689d73c835ed2"
+  },
+  "imported": {
+   "reader": "c73742ed5a8cfa3e4b7ece4fcd793fcfeb22ddb8e3d6ee7320c3e0a6354a5132",
+   "refuter": "5e3e3f0dbec87c221d3e1482419f3b5b2bb8fcc6392b19a0501a97d590cc7e55"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a CLOSE of a report file (one with a REPORT clause) is executed only for a file in an open mode; a CLOSE of a report file not in an open mode (never opened, already closed, after an unsuccessful OPEN, or after CLOSE WITH NO REWIND/LOCK) is unsuccessful with I-O status 42 (VII.1.3.5 4b, via GR4) and performs no closing action. This holds for every CLOSE format the Report Writer allows (plain, REEL/UNIT [FOR REMOVAL], WITH NO REWIND, WITH LOCK).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterReport",
+  "edition-consulted": [],
+  "edition-search": "Grepped Edition|DialectBehavior|CobolVersion in SequentialIoBinder.BindClose, SequentialIoEmitter.EmitClose, FileRegistry.CloseByFormat/CloseCell and FileConnector.Close: the not-open guard (CloseCell's `if (!c.IsOpen)` and the CloseUnit arm's `!c.IsOpen ? FileNotOpen`) reads no edition. The only edition read near it is CloseWithLock's DialectBehavior.CloseWithLockLocksFileConnector, which runs only after a successful close and is not part of this rule.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb140_close_status uses an ordinary sequential file, not a report file; the report-file CLOSE on a never-opened file, after a failed OPEN, and the REEL/LOCK/NO REWIND forms on a closed report file are covered only by probes here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p1close.cob",
+    "printed": "NEVER-OPENED-CLOSE=42 OPEN=00 REEL=07 UNITREM=07 CLOSE1=00 CLOSE2=42 REOPEN-EXT=00 NOREW=07 AFTER-NOREW=42 OPEN2=00 LOCK=00 LOCK-AGAIN=42 REOPEN-LOCKED=38 MULTI=42 42",
+    "expected": "42 for every CLOSE of a report file not in an open mode (never opened, after a plain close, after NO REWIND, after LOCK, each file of a multi-file CLOSE); a REEL/UNIT close leaves the file open (F, non-reel), so the next CLOSE succeeds"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p5openb.cob",
+    "printed": "EXTEND-OVER-REL=39 CLOSE-AFTER-FAILED=42",
+    "expected": "after an unsuccessful OPEN EXTEND the report file is not in an open mode, so CLOSE gives 42"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.2.4 GR1",
+    "check": "OK  §1985:XIII.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.4b (\"A CLOSE statement is attempted for a file not in the open mode\")"
+   }
+  ],
+  "notes": "A report file registers as a SequentialConnector (FileRegistry.RegisterReport), so it takes the one CLOSE dispatch; the not-open guard is hoisted ahead of every Table 14 symbol and sets 42 with no closing action. Every not-open form probed answers 42 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe refute-1985-040/r1decl.cob (--std 85, a report file with NO FILE STATUS and a USE AFTER STANDARD ERROR PROCEDURE ON PRT): a CLOSE of the never-opened report file, then CLOSE WITH NO REWIND, CLOSE REEL and CLOSE UNIT FOR REMOVAL of the file after a CLOSE WITH LOCK each ran the declarative (DECL-RAN 1, 2, 3, 4; COUNT=4) and execution continued, so the not-open guard reaches every Table 1 format and the 42 drives the USE procedure the same as a FILE STATUS item; the successful CLOSE WITH LOCK did not run it. Probe r5idx.cob: CLOSE after a failed OPEN EXTEND (39) answered 42. The reader's p1close covers FILE STATUS. cite.py: OK §1985:XIII.4.2.4 GR1 (the text is in GR1); OK §1985:VII.1.3.5 (status 07 in GRL2.1d; the 42 line is the reader's checked GRL2.4b).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

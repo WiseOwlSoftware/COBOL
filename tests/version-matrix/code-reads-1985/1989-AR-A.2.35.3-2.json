@@ -1,0 +1,69 @@
+{
+ "rule-id": "1989-AR-A.2.35.3-2",
+ "rule-digest": "b66dbae09a0b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-171",
+  "sources": {
+   "reader": "b9e1fb2dbadce3c7a5d8fb6b4c742c50d1f946596a6ce67df9c7c2055b5bf3a5",
+   "refuter": "cb6f0ea645b0cd3ae00802e52db865e1a5964587e93a9697ae35be5074b42c28"
+  },
+  "imported": {
+   "reader": "30e9a699daecbe6b9e51f8f4a95f80f9213e2c6029d8596f33857b15c61f1e4b",
+   "refuter": "303d396f3a54c7b00ff270805c7ae91103891e4db3ca6d3dc69a004a14680628"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.35.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every FUNCTION RANDOM reference that specifies argument-1, not only the first, starts a new pseudo-random sequence from that seed, whatever came before. The witness covers a later reseed by a literal and by an item; probes add the other integer argument shapes and reseeding after an unseeded start.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Random",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: whether FUNCTION RANDOM exists at the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Greps of IntrinsicRenderer.cs (FloatBody 'Random' arms), CobolIntrinsics.Float.cs#Random, RandomSequence.cs and RunUnit.cs for Edition/DialectLevel/CobolVersion/DialectBehavior: none; the seeded arm always calls Random(Int128) -> RandomSequence.Restart at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: later reseeds by literal 5 and item 17; not reseeding by other argument shapes or after an unseeded first reference",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_accept.cob",
+    "printed": "SEED5=SAME seven times: each later reference with seed 5 (item, COMP, COMP-3, expression, integer function, subscripted item) restarts the sequence literal 5 began; SEED6=DIFFERS",
+    "expected": "a later reference with argument-1 starts a new sequence (§1989:A.2.35.3 AR2), equal for equal seeds (§1989:A.2.35.4 RV2)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-171/src/rnd_runit.cob",
+    "printed": "UNSEEDED=ADVANCES; CALLED=CONTINUES-SEQUENCE (seed 7 after two unseeded references restarts seed 7's sequence)",
+    "expected": "a seeded reference after the implementor-seeded start starts a new sequence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.3 AR2",
+    "check": "OK  §1989:A.2.35.3 AR2  (2.35.3 Arguments)  the text is in AR2"
+   }
+  ],
+  "notes": "The renderer emits CobolIntrinsics.Random(seed) for every seeded reference, and that calls RunUnit.Current.Random.Restart, which replaces the one run-unit generator; nothing in the path is edition-dependent. Probe class e (files) does not apply; the run-unit probe stands in for it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.35.3-2",
+  "refutation": "UPHELD",
+  "classes": "d,e,f",
+  "evidence": "rs1.cob --std 85 (runs/rs1-002): RANDOM (5) - RANDOM (5) in one COMPUTE = 0 (SEED-SEED=ZERO); RANDOM (5) inside a MAX argument list restarts the sequence (MAX=OK); a reseed through the item W-K on each PERFORM VARYING pass makes the next unseeded value equal the 2nd value of seed 5's sequence every pass (LOOP-DONE with no LOOP-BAD); a reseed inside an IF condition (COND=OK). rs3.cob (runs/rs3-001): a reseed with 11 in a separately compiled callee RS2SUB2 restarts the caller's sequence (CALLEE-RESEED=OK). cite.py: OK §1989:A.2.35.3 AR2 the text is in AR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

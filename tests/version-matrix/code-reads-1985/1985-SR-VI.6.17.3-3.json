@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-3",
+ "rule-digest": "5a8aeff59e73",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "bd5937d78453cc7a362ffc937bd4cd164e9278b575392f2fe2978973d1964484",
+   "refuter": "33c67c5de0cf6b04318577adcd9916c1dacbb34c590996bcc484906211ed1497"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.17.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an INITIALIZE whose REPLACING phrase names any of the five 1985 categories (ALPHABETIC, ALPHANUMERIC, NUMERIC, ALPHANUMERIC-EDITED, NUMERIC-EDITED) more than once, adjacent or separated, with a group or an elementary identifier-1, must be refused at compile time; distinct categories must be admitted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#CategorySetOf; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeCategoryUnique; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+    "switches": "refuses (COBOL0900, construct initialize-replacing-category-set-2002) a REPLACING item naming more than one category below 2002; the repeat check itself is edition-blind",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+    "switches": "refuses the 2002/2014/2023 category words (NATIONAL, BOOLEAN, pointers...) below their editions; the five 1985 words are ungated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of InitializeBinder.cs for DialectLevel|CobolVersion|Edition.Year|ConstructRegistry finds nothing; CheckInitializeCategoryUnique reads no edition; the gates found by grepping the COBOL0900 messages into ConstructRegistry.g.cs and VersionConformancePass.cs",
+  "behaviour-differs-by-edition": "no for the repeat itself (COBOL0834 at 85 and 2023 alike); yes around it: the one-item multi-category form and the later category words are refused at 85 only",
+  "witnesses-cover": "part: the witnesses are free-format, edition-unbanded NUMERIC repeats; adjacent repeats of other categories, an elementary identifier-1 and the 85-only refusal of the multi-word item were not exercised by them",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1sep.cob",
+    "printed": "COBOL0834 INITIALIZE REPLACING repeats the category-name NUMERIC",
+    "expected": "refused: NUMERIC repeated (separated by ALPHANUMERIC)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1adj.cob",
+    "printed": "COBOL0834 ... ALPHANUMERIC-EDITED",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1alpha.cob",
+    "printed": "COBOL0834 ... ALPHABETIC",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1elem.cob",
+    "printed": "COBOL0834 ... NUMERIC (elementary identifier-1)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1ok.cob",
+    "printed": "EXIT 0, [042P  Q  MN    8]",
+    "expected": "all five distinct categories admitted; 042 / P / Q / MN with B insertion / edited 8"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1word.cob",
+    "printed": "COBOL0834 NUMERIC repeated + COBOL0900 an INITIALIZE REPLACING item naming more than one category requires COBOL-2002",
+    "expected": "refused: the 1985 format has one category per item and the repeat breaks SR3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i1natl.cob",
+    "printed": "COBOL0900 INITIALIZE category-name NATIONAL requires COBOL-2002",
+    "expected": "refused: NATIONAL is not a 1985 category word"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.3 SR3",
+    "check": "OK  §1985:VI.6.17.3 SR3  (║6.17.3 Syntax Rules║)  the text is in SR3"
+   }
+  ],
+  "notes": "The running union in CategorySetOf feeds CheckInitializeCategoryUnique for every REPLACING item, so a repeat at any distance is COBOL0834 at 85 and 2023 alike. The diagnostic cites §2023:14.9.20.3 SR6 at --std 85 rather than the 1985 SR3 (cosmetic, not a conformance failure).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "i1sep: COBOL0834 likewise",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.17.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.6.17.3 whole (format: one category per REPLACING item, DATA optional) and StatementValidation.cs#CheckInitializeCategoryUnique (running union, edition-blind). Probes at --std 85 under refute-1985-057: r1nodata (NUMERIC BY 1 ... NUMERIC DATA BY 2, DATA omitted on one item, separated by ALPHANUMERIC) -> COBOL0834 repeats NUMERIC; r1ok2 (two identifier-1, NUMERIC and NUMERIC-EDITED distinct) -> EXIT 0 [007     5][007], B left untouched as GR2a requires. Reader's probes already cover each of the five words, adjacency, elementary identifier-1 and the 85-only multi-word item. cite.py: OK §1985:VI.6.17.3 SR3 'The same category cannot be repeated in a REPLACING phrase'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

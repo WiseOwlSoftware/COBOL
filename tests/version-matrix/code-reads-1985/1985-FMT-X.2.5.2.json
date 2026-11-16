@@ -1,0 +1,135 @@
+{
+ "rule-id": "1985-FMT-X.2.5.2",
+ "rule-digest": "6ab38046adab",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-003",
+  "sources": {
+   "reader": "73584da0799ab42f3edfc4b3993b3fa5a0a666c6471569a40b01e7bf727d4a7f",
+   "refuter": "4b70dd01aa64b402015783da02daecdc5f13dd314ec9021380b25f8599d5fe05"
+  },
+  "imported": {
+   "reader": "9aa13ee9511fcd923c1564430cc36ff61476fa52c50c7c1ed7b94aabab78372c",
+   "refuter": "c4e22ff4f8c9b29254c0b426bd3bf0631f440924aa36be36bb173827383e6aeb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-X.2.5.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the end program header must be accepted exactly as END PROGRAM program-name followed by a separator period, with program-name a user-defined word (X.2.5.3 SR1, including words reserved only by later editions), closing a single or a contained program; forms outside the format (no period, no name, a literal name, END without PROGRAM, END FUNCTION closing a PROGRAM-ID, a duplicated header) must be refused. The witnesses cover only the END FUNCTION / FUNCTION-ID side.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programName; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReservedGatedWord",
+    "switches": "a word reserved only in a later edition (TYPEDEF, FACTORY, VALIDATE) is a user-defined program-name at 85 and refused (COBOL0901) at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionIdParagraph",
+    "switches": "refuses FUNCTION-ID (and so the END FUNCTION form) below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "from 2002 a containing program must have a procedure division before its contained programs; not the end header's format, same END PROGRAM keyword check at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep EditionContext/Edition.Year/DialectLevel in SourceUnitShape.cs and EndMarkerPass.cs (EndMarkerPass uses the edition only for the diagnostic cursor); VersionConformancePass searched for EndProgramHeader (no arm)",
+  "behaviour-differs-by-edition": "no for the header itself: the same grammar rule and screens run at 85 and 2023; only the set of words admissible as program-name differs (later-reserved words are user words at 85), which the 85 arm gets right",
+  "witnesses-cover": "part: the witnesses exercise END FUNCTION / FUNCTION-ID refusal at 85; none exercises END PROGRAM's own spellings, the period, or the program-name word class",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2a.cob",
+    "printed": "OUTER / INNER",
+    "expected": "nested program closed by END PROGRAM INNERP. then END PROGRAM OUTERP.: compiles and runs"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2h.cob",
+    "printed": "SOLO",
+    "expected": "single program with END PROGRAM SOLOP.: accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2b.cob",
+    "printed": "error COBOL0001: unexpected 'END' (line 15)",
+    "expected": "missing separator period after program-name: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2c.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "END PROGRAM with no program-name: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2d.cob",
+    "printed": "error COBOL5506: the alphanumeric literal \"INNERP\" is not expected here",
+    "expected": "program-name is a user-defined word (SR1), a literal is refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2f.cob",
+    "printed": "error COBOL5506: missing token before 'INNERP' ... expected FUNCTION or PROGRAM",
+    "expected": "END without PROGRAM: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2i.cob",
+    "printed": "error COBOL0001: unexpected 'END'",
+    "expected": "a second END PROGRAM with nothing to close: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2g.cob",
+    "printed": "error COBOL2793: PROGRAM-ID 'OUTERP' contains another source unit, so its end marker END PROGRAM OUTERP shall be present",
+    "expected": "containing program without its end header: refused (X.2.5.4 GR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2e.cob",
+    "printed": "error COBOL2274: END FUNCTION cannot close a program definition",
+    "expected": "the 2002 END FUNCTION keyword is not the 1985 format: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-003/p2j-TYPEDEF.cob",
+    "printed": "at 85: IN TYPEDEF; at 2023: error COBOL0901 'TYPEDEF' is a reserved word in COBOL-2023",
+    "expected": "TYPEDEF is not reserved in 1985, so it is a legal program-name in PROGRAM-ID and END PROGRAM at 85 (FACTORY and VALIDATE probed the same: run at 85, COBOL0901 at 2023)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.5.1",
+    "check": "OK  §1985:X.2.5.1  (2.5.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:X.2.5.3 SR1",
+    "check": "OK  §1985:X.2.5.3 SR1  (2.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:X.2.5.4 GR1",
+    "check": "OK  §1985:X.2.5.4 GR1  (2.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "endProgramHeader (END (PROGRAM|FUNCTION) programName DOT) is one rule for every edition; SourceUnitShape refuses END FUNCTION on a PROGRAM-ID and VersionConformancePass refuses FUNCTION-ID below 2002, so at 85 only END PROGRAM program-name. reaches a program. Diagnostics at 85 cite ISO 2023 clause numbers (COBOL2274, COBOL2793), a citation-presentation matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p2a runs (OUTER/INNER), p2b refused identically; later-reserved program-names refused with COBOL0901",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-X.2.5.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probed the SRs the reader skipped, at --std 85: e1 END PROGRAM WRONGP closing SOLOP -> COBOL2793 name not identical (SR2); e2 nested end headers swapped -> COBOL2793 out of order (SR3); e8 inner program's end header missing -> COBOL2793 (GR1); e7 a DISPLAY after a separate program's END PROGRAM -> COBOL0001 (GR4); e6 two separately compiled programs each closed by END PROGRAM -> 'P1 / P2' (GR4 legal form); e9 lowercase 'end program solop.' -> runs (lowercase equivalent, §1985:IV.4.2.2.1); e11 extra spaces -> runs; e5 'SOLOP-' -> COBOL2773 hyphen last; e4 all-digit 12345 -> COBOL5506 (user word needs a letter, §1985:IV.4.2.2.1.1). Class c: e3 a 31-character name (legal at 2023, 63 max) -> COBOL1567 30-character maximum for COBOL-85; e3b 30 characters runs; e10 SOLO_P -> COBOL0900 underscore requires COBOL-2002 (runs at 2023); e12 PROGRAM-ID ... AS literal -> COBOL0900. cite.py: OK §1985:X.2.5.3 SR1, SR2, SR3; OK §1985:X.2.5.4 GR1; OK §1985:IV.4.2.2.1 (30 characters); OK §1985:IV.4.2.2.1.1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

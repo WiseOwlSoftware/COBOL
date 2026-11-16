@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-6",
+ "rule-digest": "30e14cb53f7c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-057",
+  "sources": {
+   "reader": "ab7040499af21b07388b4fd170124a5fcefbfe1114402ba069cdc3d2ffd4c1d2",
+   "refuter": "fc56b3be0adc1c3bef0322333f30b164577bedae94d51baee9a12ab897c9ad15"
+  },
+  "imported": {
+   "reader": "50425d1f6ea559b8ad32110249c38a63cdf39ca74e37cc6b9f7cfd4cd4d633d3",
+   "refuter": "a06cbf97f89fe456fc68f007e52c9c95f04f5baf8a96ce25a0f24dcb0e8032c3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.17.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an INITIALIZE whose identifier-1 (any of several, qualified or reference-modified) names a level-66 RENAMES entry, of the THRU form or the single data-name form over an elementary or a group item, must be refused at compile time, while a record beside which a 66 entry is written is initialized normally.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeTargetRenames",
+  "edition-consulted": [],
+  "edition-search": "grep of InitializeBinder.cs for DialectLevel|CobolVersion|Edition.Year|ConstructRegistry: no match; CheckInitializeTargetRenames reads Place.DenotedItem.Renames only (data.Edition is used as the diagnostic sink, not as a switch). The path consults the edition nowhere, and the 1985 and 2023 rules say the same thing.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness is the positive half (a record with a 66 entry beside it); the refusal of each RENAMES form was not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2thru.cob",
+    "printed": "COBOL0835 INITIALIZE 'R-THRUINREC' — ... shall not contain a RENAMES clause",
+    "expected": "refused (66 RENAMES R1 THRU R2, qualified)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2one.cob",
+    "printed": "COBOL0835 'R-ONE'",
+    "expected": "refused (66 RENAMES of an elementary item)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2grp.cob",
+    "printed": "COBOL0835 'R-GRP'",
+    "expected": "refused (66 RENAMES of a group item)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2qual.cob",
+    "printed": "COBOL0835 'R-THRUOFREC2'",
+    "expected": "refused (same-named 66 entry under the other record, by qualification)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2refmod.cob",
+    "printed": "COBOL0835 'R-THRUINREC(1:2)'",
+    "expected": "refused: the reference names the RENAMES entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2second.cob",
+    "printed": "COBOL0835 'R-ONE' (second identifier-1 of the list)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-057/src/i2ok.cob",
+    "printed": "EXIT 0, [000   00  ][000] then [000   09  ]",
+    "expected": "REC, REC2 and R3 initialized (spaces / zeros; R31 by 9) — the 66 entries beside them do not reach the rule"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.3 SR6",
+    "check": "OK  §1985:VI.6.17.3 SR6  (║6.17.3 Syntax Rules║)  the text is in SR6"
+   }
+  ],
+  "notes": "The check runs on the resolved place and asks the entry the name denotes (DenotedItem, walking decorators for a reference modification), so every RENAMES form and every qualification is refused and an ordinary record is not. The message cites §2023:14.9.20.3 SR5 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.17.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Read InitializeBinder.cs#BindInitializeTarget: the only arm before the RENAMES check is the OCCURS DYNAMIC whole-table arm, which no 1985 program reaches; CheckInitializeTargetRenames asks DenotedItem through decorators. Probes at --std 85: r2fd (66 RENAMES THRU in an FD record, with REPLACING; and a 66 single-name alias in WORKING-STORAGE as the second identifier-1 after a plain record) -> COBOL0835 for FREN and WREN, the plain record W not diagnosed. cite.py: OK §1985:VI.6.17.3 SR6 'must not contain a RENAMES clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

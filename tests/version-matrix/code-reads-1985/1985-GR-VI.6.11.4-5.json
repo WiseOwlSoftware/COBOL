@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-5",
+ "rule-digest": "7f7c451e34e1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "c14d0e7d7e50d1ac70dd8cd9eb88b16dda53116adfed1c3b61a14e28f6b425e9",
+   "refuter": "64cd0f8f297ebff290c983523cd98146b540f2b04bb7b34799a33bc9ef6fc81e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "DIVIDE format 5 (BY ... GIVING identifier-3 [ROUNDED] REMAINDER identifier-4) divides operand 1 by operand 2 and continues exactly as format 4: quotient into identifier-3, remainder per GR6/GR7 into identifier-4 with its subscript evaluated just before that store, GR8 under ON SIZE ERROR; the witness covers unsigned positive operands and the subscript timing.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#divideByPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#NativeSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary",
+    "switches": "1985 unsigned identifier-3: subsidiary quotient is the magnitude",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "1985 unphrased size error continues",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "as GR4; formats 4 and 5 share one BoundDivideRemainder after the binder orders (dividend, divisor).",
+  "behaviour-differs-by-edition": "yes: as GR4 (unsigned identifier-3 sign of the intermediate; unphrased size error)",
+  "witnesses-cover": "part: g85_bf14_04 L9-L11; negative and ROUNDED and size error probed here and by pb5182 (format 5 throughout)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d45.cob",
+    "printed": "F5R -01.8 -0.20 for DIVIDE -11 BY 6 GIVING Q ROUNDED REMAINDER R",
+    "expected": "Q -1.8 (rounded -1.83), remainder -11 - (-1.8 x 6) = -.20"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d45b.cob",
+    "printed": "SER 9 8 (195 BY 20: remainder 15 into PIC 9 unchanged, SIZE ERROR taken); SEU 9 +1.0 (-195 BY 20 into unsigned PIC 9: remainder -375 overflows S9V9, unchanged)",
+    "expected": "GR8b"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/d45.cob",
+    "printed": "SUB 4 000000030000 for DIVIDE 23 BY 5 GIVING I REMAINDER T (I)",
+    "expected": "T (4) receives 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/rej9.cob",
+    "printed": "COBOL2269 unexpected ROUNDED after REMAINDER R",
+    "expected": "refused: no ROUNDED on identifier-4"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/dzero.cob",
+    "printed": "AFTER5 11 22 at --std 85 (17 BY zero, no phrase: both unchanged, statement after runs)",
+    "expected": "§1985:VI.6.4.2 GR3 the statement ends, resultants undefined"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR5",
+    "check": "OK  §1985:VI.6.11.4 GR5  (6.11.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.11.4 GR8b",
+    "check": "OK  §1985:VI.6.11.4 GR8b  (6.11.4 General Rules)  the text is in GR8b"
+   }
+  ],
+  "notes": "BindDivide's REMAINDER arm takes (dividend, divisor) = (operand 1, BY operand) for format 5 and builds the same BoundDivideRemainder as format 4, so GR5's 'continues as specified for format 4' is structural. All probes matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "refute-1985-107/r45-001 at --std 85, format 5 lines: UE/SE/CR (DIVIDE -11 BY 6 into unsigned edited, signed edited and CR edited identifier-3: -21.80 / -00.20 / -00.20, the 1985 GR6 sign clause by identifier-3's sign presence); UQ 3.5 -14.00 and UP 90 -185 (unsigned 9V9 and 9P identifier-3); RBSE 9 8 (195 BY 20 into COMP PIC 9 remainder: GR8b); AL 03 1 (DIVIDE A BY 3 GIVING A REMAINDER R1: remainder from the dividend's initial value); AL4 3 01 (identifier-4 aliasing the divisor); URU -1.8 0.20 is format 5 into unsigned identifier-4. The binder's one BoundDivideRemainder makes GR5's 'continues as specified for format 4' structural, and every format-4 probe's format-5 twin agrees. cite.py: OK §1985:VI.6.11.4 GR5 the text is in GR5.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: numeric function-identifier operand refused before 2002"
+  ],
+  "corrected": ""
+ }
+}

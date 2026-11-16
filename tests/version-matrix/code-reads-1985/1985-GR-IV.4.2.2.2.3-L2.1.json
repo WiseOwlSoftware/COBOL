@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-IV.4.2.2.2.3-L2.1",
+ "rule-digest": "0b347e335981",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "f3134f46664bbb606b09721b15322afc6f83d8301b09dda1b7b2884de677ac02",
+   "refuter": "291e5606733be2778833edde89547904fafa5bba9db1a8f518ff50db07662f44"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a figurative constant in a VALUE clause or associated with a data item (MOVE receiver, comparison operand) is repeated character by character to at least the item's size and truncated on the right to max(1, the item's character positions), before and independent of any JUSTIFIED clause, for every receiver class 85 admits (alphanumeric, alphabetic, edited, group, reference-modified, variable-length group, and numeric under the obsolete ALL-literal association).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteFill; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#SpliceInto; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundAllLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#FillText; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+    "switches": "via GateSr3 -> ConstructRegistry.Check(Constructs.AllLiteralMulticharNumericRemoved2002): a multi-character ALL literal associated with a numeric/numeric-edited item is accepted at 85 (the SRL3.2 obsolete element) and COBOL0902 at 2002+; the fill itself is the same code at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The sizing paths (MoveEmitter whole-width fill / EmitText.RepeatToWidth, the edited arm, PlaceRenderer.WriteFill -> StrSpliceInto repeat, CompareFig) take no edition parameter; grepped _edition/Edition/CobolVersion in MoveEmitter.cs (none) and read FigurativeAssociation.cs for the edition rows.",
+  "behaviour-differs-by-edition": "yes: only legality, not value; MOVE ALL \"12\" TO a numeric or numeric-edited item runs at 85 (12121 / 1212) and is COBOL0902 at 2023",
+  "witnesses-cover": "part: the witness covers ALL literals into reference-modified receivers (incl. a group, a RENAMES, a numeric ref-mod); not exercised: JUSTIFIED receivers (MOVE and VALUE), truncation of a longer ALL literal, size-1 receiver, edited and alphabetic receivers, group VALUE, ODO groups, comparisons in both operand orders, and numeric association at 85",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/f1.cob",
+    "printed": "A=[ABABA] B=[ABABA] C=[ABABA] D=[ABC] E=[X] F=[A BA] G=[ABABA] H=[12312] I=[xyzx] J=[12121] K=Y L=N M=Y N=Y O=Y U=[ ABA ] V=Y W=[00000]",
+    "expected": "repeat then truncate to size: JUSTIFIED RIGHT MOVE and VALUE both ABABA (fill precedes justification); ALL \"ABCDE\" to X(3)=ABC; to X(1)=X; XBXX gets ABAB edited = A BA; group MOVE/VALUE fill whole group; compare equal to ABABA in either order, unequal to ALL \"ABA\"; ref-mod (2:3) = ABA"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/f1.cob",
+    "printed": "P=[pqp] (CNT=3) Q=[pqpqp] (CNT=5) R=Y S=Y",
+    "expected": "an ODO group receiver is sized at its current length; compare against ALL \"pq\" at that length"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/f2.cob",
+    "printed": "85: J=[12121] K=[1212]; 2023: COBOL0902 multi-character ALL literal associated with a numeric or numeric-edited item was removed in COBOL-2002",
+    "expected": "85 admits the obsolete association (SRL3.2) and sizes to 5 / 4 positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/f3.cob",
+    "printed": "COBOL1657: the VALUE literal ALL\"12\" is alphanumeric but the item is numeric",
+    "expected": "VALUE on a numeric item admits only a numeric literal / ZERO: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.3 GRL2.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.1  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.2",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.2  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.2"
+   }
+  ],
+  "notes": "Every sized context probed at 85 gives the Amendment-2 result, including the 'prior to JUSTIFIED' clause and variable-length groups. Side observation (not this rule's verdict): the construct row all-literal-multichar-numeric-removed-2002 in src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs cites '§1985:IV.4.2.2.2.3 SR2', which cite.py --check rejects (the right designator is §1985:IV.4.2.2.2.3 SRL3.2); the text surfaces in the COBOL0902 message.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.1",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "cite.py: OK §1985:IV.4.2.2.2.3 GRL2.1 'prior to and independent of the application of any JUSTIFIED clause'. Read §1985 VALUE GR1a/b, SR3, 5.15.6 rules 3/5/6 and INSPECT SR7. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/fa.cob at 85: INSPECT REPLACING ALL \"ab\" BY QUOTE -> x\"\"yz and FIRST \"bc\" BY symbolic -> aSSabc (figurative sized to literal-1), CONVERTING \"ac\" TO QUOTES, 88 VALUE ALL \"AB\" on X(5) (true for ABABA, false for AB, SET TRUE gives ABABA), 88 VALUE QUOTES SET TRUE fills 5, IF N3 = ALL \"12\" (obsolete, 121) Y, INITIALIZE REPLACING ALPHANUMERIC BY ALL \"pq\" -> pqp, EVALUATE subject/object and reversed operand order Y, ABA-space vs ALL \"AB\" N. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/fb.cob: group VALUE ALL \"pq\" over an ODO group initialised at the maximum (CNT=2 shows pq, CNT=5 pqpqp, §1985 VALUE rule 5), VALUE ALL \"AB\" in an OCCURS entry per occurrence ABAABAABA (rule 6), VALUE QUOTE per occurrence, VALUE ALL \"12\"/ALL \"*\" on ZZ9 -> 121/***, JUSTIFIED VALUE ALL \"ABC\" X(5)=ABCAB and X(2)=AB, alphabetic and XBX0X VALUE ALL -> xyxy/ababa, signed numeric vs ALL \"12\" Y. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/ma.cob: MOVE ALL \"12\" TO 9(3)V9 -> 212.0 and TO 9V99 -> 1.00 (sized to 4/3 then moved as an unsigned integer, §1985 MOVE GR4b3). All as the text gives.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

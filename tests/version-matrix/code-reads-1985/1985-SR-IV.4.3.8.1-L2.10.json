@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.10",
+ "rule-digest": "c6996f9a49f4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-043",
+  "sources": {
+   "reader": "1667c3b1690208ab290e480852559f3da80d2a6e0d3a25d9d3d42d6d0345d701",
+   "refuter": "a2581782c82960ae1a0b9a0fa098844441970746965c02869b640ffcead6ffa4"
+  },
+  "imported": {
+   "reader": "1cb22daf6c07b505cdcad57a1bc7f671812723b274f917d02ae7a80c8b24283a",
+   "refuter": "c9ff27576579e4ff3d2639422cf8a83ca7a1eed03217dd09775f0c0baeb7e92a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.10",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 PAGE-COUNTER referenced in the Procedure Division (declaratives included) must be qualified by a report-name whenever the program has more than one RD (unqualified is refused there, legal with exactly one RD); in the Report Section an unqualified PAGE-COUNTER is implicitly the counter of the report whose RD contains the reference, and another report's PAGE-COUNTER must be qualified explicitly by that report's name (a qualifier that is not a report-name is refused).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindReportClauses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#EnclosingReport; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn",
+  "edition-consulted": [],
+  "edition-search": "CounterResolver.ReportOf has no edition test (grepped CounterResolver.cs for DialectLevel/Has(20/ConstructRegistry: only LinageFileOf's Has(2014) arm, which is LINAGE-COUNTER); ReportWriterBinder.BindReportClauses sets EnclosingReport for every edition; the DialectLevel arms in ReportSectionBinder.cs (lines 191-1312) govern CONTROL/LINE/PAGE limits, not counter qualification.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers implicit own-report qualification and explicit other-report qualification in SOURCE clauses plus a qualified procedure MOVE; the probes add the unqualified procedure-division refusal (statement and USE BEFORE REPORTING declarative), the single-RD unqualified procedure reference, and non-report qualifiers",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6a.cob",
+    "printed": "--std 85: COBOL2729 unqualified PAGE-COUNTER with more than one report description entry (MOVE PAGE-COUNTER TO N, two RDs); the unqualified SOURCE PAGE-COUNTER in each RD is accepted",
+    "expected": "refused in the Procedure Division; implicit in the Report Section"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6b.cob",
+    "printed": "--std 85: COBOL2729 at the ADD 1 TO PAGE-COUNTER of a USE BEFORE REPORTING D1 declarative",
+    "expected": "refused: a declarative is in the Procedure Division"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6c.cob",
+    "printed": "--std 85 EXIT 0: 01 / 02 (MOVE PAGE-COUNTER OF R2, ADD 1 TO PAGE-COUNTER IN R1, MOVE PAGE-COUNTER OF R1; SOURCE PAGE-COUNTER OF R1 inside R1)",
+    "expected": "qualified references legal; R2 after INITIATE = 1, R1 after +1 = 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6d.cob",
+    "printed": "--std 85: COBOL2729 PAGE-COUNTER OF 'RX': the qualifier shall name a report description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6e.cob",
+    "printed": "--std 85: COBOL2729 PAGE-COUNTER OF 'D1': the qualifier shall name a report description entry",
+    "expected": "refused: qualifier must be the report-name"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c6f.cob",
+    "printed": "--std 85 EXIT 0: 08 / 08; report file holds '07'",
+    "expected": "one RD: unqualified PAGE-COUNTER legal in the Procedure Division; MOVE 7, GENERATE prints 07, ADD 1 -> 8"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.10",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.10  (4.3.8.1 Qualification)  the text is in SRL2.10"
+   }
+  ],
+  "notes": "ReportOf resolves an explicit report-name qualifier, else the enclosing RD (set only while report clauses bind), else requires exactly one visible report; procedure-division and declarative unqualified references with two RDs are refused, single-RD and qualified references compute correctly. No edition switch on the path, and none is needed: the 1985 text states the same rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.10",
+  "refutation": "UPHELD",
+  "classes": "b,e,f",
+  "evidence": "r6a.cob (--std 85, EXIT 0): two RDs, unqualified SOURCE PAGE-COUNTER in each plus the other report's counter qualified; after ADD 4 TO PAGE-COUNTER OF R1 and ADD 7 TO PAGE-COUNTER OF R2 the files hold '05 08 01' (R1) and '08 05' (R2): the implicit qualification picks each RD's own counter. r6c.cob: two GLOBAL RDs in the containing program, an unqualified PAGE-COUNTER in a contained program with no RD is refused COBOL2729. r6b.cob: one GLOBAL RD in the containing program and one local RD in the contained program; the contained program's unqualified procedure PAGE-COUNTER is accepted and resolves to its local report (prints 01). CounterResolver.ReportOf asks 'exactly one report' of the nearest declaring program (Reports.NearestInScope). This rests on a reading: the contained program is itself a source program (§1985:X.2.1) that specifies one RD, and §1985:X.1.3.8.2 GR3a prefers the local object; the literal 'more than one report description entry is specified in the source program' could be read over the whole outer source program, which would refuse r6b. The reading the compiler takes is the one the 85 scope-of-names rules support, so the verdict stands. Checks: 'OK §1985:IV.4.3.8.1 SRL2.10 ... the text is in SRL2.10'; 'OK §1985:X.2.1 ... the text is in the clause'; 'OK §1985:X.1.3.8.2 ... it lies in GR3a'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-1",
+ "rule-digest": "c794d2c9cdfb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-116",
+  "sources": {
+   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
+   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+  },
+  "imported": {
+   "reader": "a5c57e73bc969264a378b7f1d3731dd89c524dbff389c9f796a9bf266873880c",
+   "refuter": "957d9872b962085067b20bd8c358dee33e60cead67c4cc3a86f4e474b9ec0b5f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 ADD format 1 must sum the operands before TO once into a temporary, then add it to each identifier-2 left to right, storing each result (with that receiver's ROUNDED and size-error handling) before the next receiver is identified (§1985:VI.6.4.6), for signed, scaled, binary, packed and table/ODO receivers up to 18 digits.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#MaterializesInitialEvaluation; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#Snapshot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "UnphrasedSizeErrorIsFatal: an unphrased overflowing receiver at 85 is caught (undefined value, statement ends); with the phrase the same arm as 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase",
+    "switches": "ROUNDED MODE IS refused below 2014 (COBOL0803)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|IsActive in ArithmeticBinder.cs and ArithmeticEmitter.cs: only EmitArith (size error) and UnsignedSubsidiary (DIVIDE REMAINDER only) consult it; the fold, snapshot and per-receiver store are edition-independent.",
+  "behaviour-differs-by-edition": "no for the rule's sum-and-store semantics; the only difference is the unphrased size error disposition (85 continues, 2002+ fatal), which is GR VI.6.4.2's.",
+  "witnesses-cover": "part: g85_bf14_03 L1/L2 cover a sender that is also a receiver and two receivers. Not exercised by it: a subscript changed by an earlier receiver, per-receiver ROUNDED, a size error on one receiver of several, P scaling, COMP/COMP-3, 18-digit receivers, ODO elements, and the SR1 refusals.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1.cob",
+    "printed": "F1 I=2 T1=+000 T2=+001 (ADD 1 TO I T (I))",
+    "expected": "per §1985:VI.6.4.6, ADD temp TO I, then ADD temp TO T (I) with the new I: T(2)=1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1.cob",
+    "printed": "F2 C=+2.50 B=+07 / F5 PP=300 BN=-0045",
+    "expected": "temp -1.5+4=2.5 added to C and to B ROUNDED (6.5 to 7, B's old value used as a sender); 9PP truncates 350 to 300; binary -20+(-25)=-45"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1.cob",
+    "printed": "F3 SE D=97 E=3 / F4 D=04 E=0 (unphrased, undefined) / F6 PK=+999999999999999999 BIG=+000000000000000001 / F7 SE +999999999999999999 / F9 I=3",
+    "expected": "the overflowing receiver keeps its value, the other is stored; 18-digit sums exact; -3 into unsigned gives 3"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1.cob",
+    "printed": "F8 007000007 (ADD 7 TO O (N) O (1), O OCCURS 1 TO 5 DEPENDING ON N=3)",
+    "expected": "O(3)=7, O(1)=7"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1r.cob",
+    "printed": "COBOL1675 numeric-edited ED, group G, ref-mod X(1:1); COBOL0844 alphanumeric X and literal \"1\"; COBOL1689 literal receiver 5",
+    "expected": "SR1/SR2: each identifier elementary numeric, literals numeric, identifier-2 not a literal"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add1r.cob",
+    "printed": "COBOL0803: ROUNDED MODE IS requires COBOL-2014 (targeting COBOL-85)",
+    "expected": "a later-edition phrase refused at 85"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.6@1985-ADD-STATEMENT/g85_bf14_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.4 GR1",
+    "check": "OK  §1985:VI.6.6.4 GR1  (6.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.4.6 GR2",
+    "check": "OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.6 GR1",
+    "check": "OK  §1985:VI.6.4.6 GR1  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR1"
+   }
+  ],
+  "notes": "EmitInPlace folds the senders once, snapshots the result whenever there are several receivers or one that is identified at run time, and stores each receiver in order in its own guard, so a later receiver's subscript sees the earlier store. Every probe matched the text. File class (e) does not apply.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "ra1.cob (ra1-001) at --std 85: the standard's own §1985:VI.6.4.6 example ADD AA, BB, CC, TO CC, DD (CC), EE with 1,2,1,10 printed 'E1 C=5 D1=000 D5=004 E=014' (temp 4; DD subscripted by the NEW CC=5), as 'OK  §1985:VI.6.4.6 GR2 ... in the same left-to-right sequence that the multiple results are specified' requires; ADD T (I) TO I T (I) with I=1,T(1)=3 printed 'E2 I=4 T1=003 T4=003' (sender read once in the initial evaluation, receiver T re-identified with I=4); ADD 0.5 TO R2 ROUNDED R1 ROUNDED printed 'E5 SE 1 9.5' (R2 rounded to 10.0 overflows and is kept, R1 stored 1). ra3.cob (ra3-001), class c: NOT ON SIZE ERROR before ON SIZE ERROR refused COBOL0900 at 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

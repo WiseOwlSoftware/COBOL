@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.23.3-4",
+ "rule-digest": "6a34895503fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Merge; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#NextInput; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#NextStream; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#WriteStreamChunks; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SequenceMerge; src/WiseOwl.Cobol.Runtime/IO/SortWork.cs#SortMergeCursor",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrgt4-merge-ties-format",
+ "notes": "§2002:14.8.23.3 GR4: equal-key records follow the MERGE statement's USING order (a), and each file's ties precede the next file's (b). Two MERGEs of the same three files, one a FORMAT CHARACTER DATA file, in the orders F2 F1 F3 and F3 F1 F2, print the 18 derived lines; the pinned build matched them at --std 2002."
+}

@@ -1,0 +1,88 @@
+{
+ "rule-id": "1989-AR-A.2.39.3-1",
+ "rule-digest": "26bcf8aadcad",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-172",
+  "sources": {
+   "reader": "84d0113a32c3b8fb3c49ab99c300f3444f2d3302a70d38fd45e8dc74a96cf591",
+   "refuter": "09e383fce0d4367fa35e04683e772491663c171a175bc0fe5479f69627acfcff"
+  },
+  "imported": {
+   "reader": "68d120b2a84580e9f1879f65da551c46f6df202cc11a4a92e37af006381ff482",
+   "refuter": "fa79d6f164dedb0ebf63fcb3ca456f5c4e4b75400359c365de5768fef57f4bf3"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.39.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 argument-1 of FUNCTION SIN must be class numeric, i.e. an arithmetic expression (§1989:A.2.2 AR1: numeric identifier, numeric literal, ZERO, numeric function, or expressions of them, §1985:VI.6.2.1); the compiler must accept every such form and refuse an alphanumeric, alphabetic, numeric-edited, group, nonnumeric-literal, figurative other than ZERO, ALL-literal, reference-modified or alphanumeric-function argument.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CandidateClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntroducedIn (85 for SIN) against DialectLevel: function admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(ctx.Edition.Edition.Year) gates per-position predicates; the SIN row (Uniform 'n') has none, so the class screen runs unconditionally",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_sin_format_value is a positive run; l1-sin-class-numeric refuses PIC X and numeric-edited only; group, nonnumeric literal, SPACE/HIGH-VALUE, ALL literal, ref-mod, alphanumeric function and alphabetic are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_bad_sin.cob",
+    "printed": "COBOL1627 on all 10 lines: PIC X, numeric-edited, group, \"4\", SPACE, ALL \"1\", NUM (1:1), FUNCTION UPPER-CASE, HIGH-VALUE, PIC A",
+    "expected": "each refused: not class numeric (§1989:A.2.39.3 AR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_ok_trig_sum2.cob",
+    "printed": "N1= 000.000000 SIN(0), N2=-000.500001 SIN(S9V9(4) -0.5236), N3= 000.000000 SIN(ZERO), N4= 000.997494 SIN(COMP + 0.5)",
+    "expected": "accepted; sin values truncated to 6 places"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-172/p_edition_arm.cob",
+    "printed": "SIN (1.0E2): COBOL0900 a floating-point numeric literal requires COBOL-2002",
+    "expected": "a 2002 literal form refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.39.3 AR1",
+    "check": "OK  §1989:A.2.39.3 AR1  (2.39.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1989:A.2.2 AR1",
+    "check": "OK  §1989:A.2.2 AR1  (2.2 ARGUMENTS**)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:VI.6.2.1",
+    "check": "cite.py: §1985:VI.6.2 FAIL text-not-in-clause, the right citation: §1985:VI.6.2.1"
+   }
+  ],
+  "notes": "One class screen (CheckArgumentClasses over the Verified 'n' row) serves every edition; its classifier matches the 1985 class model (numeric-edited and groups are alphanumeric, ZERO is admissible). The diagnostic text cites §2023:15.82.3 r1 even at --std 85, which names the wrong edition's clause but does not change the verdict.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.39.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Requirement re-derived from §1989:A.2.2 AR1 ('An arithmetic expression must be specified') and §1985:VI.6.2.1 (numeric elementary identifiers, numeric literals, ZERO/ZEROS/ZEROES, operators, parentheses, unary sign). Accept half, refute-1985-172/q_ok_forms.cob at --std 85 (runs/q_ok_forms-001, exit 0): SIN(66 RNUM RENAMES NUM) A1=0.479425 (sin 0.5), SIN(FUNCTION SQRT(NUM2 OF GRP)) A7=0.909297 (sin 2). Refuse half, q_bad_forms.cob --compile-only (exit 65): SIN(66 RENAMES NUM THRU NUM2) COBOL1627 class alphanumeric; SIN(88 ISONE) COBOL1639. 1985-only operand forms, q_special_regs.cob (runs/q_special_regs-003): LINAGE-COUNTER / PAGE-COUNTER / LINE-COUNTER accepted as numeric arguments with correct values. Later-edition classes at 85, q_later_forms.cob: SIN(USAGE POINTER) COBOL1627 class pointer plus COBOL0900 POINTER requires 2002. The 2002-gated ScreenIdentifierPlacement (Constructs.NumericFunctionIdentifierOperand2002) is not on the argument path (callers are identifier doors only), consistent with SIN(FUNCTION SQRT(..)) being accepted at 85. cite.py: 'OK §1989:A.2.39.3 AR1'; 'OK §1989:A.2.2 AR1'; 'OK §1985:VI.6.2.1 (6.2.1 Definition of an Arithmetic Expression) the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

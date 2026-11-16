@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-2",
+ "rule-digest": "bc108bccfa72",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-024",
+  "sources": {
+   "reader": "9709f841cac846cdc016cdfe1907176364fbbbeed2d15d9b4eb5f12004413809",
+   "refuter": "943b1a501348cb0f5cbcd3d292328f4fa0dffa4783931b13d7dcea5e8fd9c35f"
+  },
+  "imported": {
+   "reader": "7992f487ee803e7676f70f42855c51ed01a8b26f4cc44c1cfbbfc3074b1280a2",
+   "refuter": "29a5c0b364fbe905c78c175af4a764bf6046f27f2f3c41b090047e5d74488723"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every file the implementation supports must fall into one of GR2's three categories (non-reel/unit, sequential single-reel/unit, sequential multi-reel/unit), and each CLOSE form must then have that category's Table 1 effect; for the mass-storage files this implementation supports (non-reel/unit), CLOSE and WITH LOCK close (LOCK then refuses a reopen with 38), WITH NO REWIND closes with 07 (C,H), and REEL/UNIT [FOR REMOVAL] leaves the file open with its position unchanged and status 07 (F).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#Cell; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Category; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock / #ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 the PHYSICAL FILE is locked (symbol E 'The file is locked and cannot be opened again during this execution of this run unit'), so another file-name on the same file also gets 38; 2002+ locks the connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "WITH LOCK admitted at 85, refused at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Table14.Cell, PhysicalFileCategory and the Category overrides read no edition (grepped Edition|DialectBehavior in CloseTable14.cs, SequentialConnector.cs#Category, FileRegistry.cs#CloseCell); the 1985 Table 1 non-reel column (C; C,E; C,H; F; F) coincides with 2023 Table 14's non-unit column plus the LOCK layer.",
+  "behaviour-differs-by-edition": "yes: CLOSE WITH LOCK locks the physical file at 85 (any file-name) and only the connector from 2002; WITH LOCK is refused at 2023",
+  "witnesses-cover": "part: pb141 covers REEL, UNIT FOR REMOVAL, NO REWIND on an output sequential file; not input or I-O mode, the FPI after CLOSE REEL on input, WITH LOCK, or the relative/indexed files and their refusal of the sequential-only phrases",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/p5_close_gr2.cob",
+    "printed": "OUT-REEL=07 WRITE-AFTER-REEL=00 OUT-REMOVAL=07 WRITE-AFTER-REMOVAL=00 OUT-NOREW=07 WRITE-AFTER-NOREW=48 IN-R1=00 BBBB0001 IN-REEL=07 IN-R2=00 BBBB0002 IN-R3=00 BBBB0003 IN-R4=10 IN-NOREW=07 IO-UNIT=07 IO-CLOSE=00 LOCK=00 REOPEN-LOCKED=38 OTHER-NAME-LOCKED=38 REL-LOCK=00 REL-REOPEN=38 IDX-CLOSE=00",
+    "expected": "non-reel/unit column of Table 1: F keeps the file open with FPI unchanged and 07; C,H closes with 07; C,E closes and a reopen (through any file-name, the physical file) answers 38"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/c3_rel_reel.cob",
+    "printed": "error COBOL1693: CLOSE 'FR' with the REEL/UNIT phrase — the phrase may be used only with a sequential-organization file (ISO §2023:14.9.6.3 SR1)",
+    "expected": "refused: the 1985 Relative I-O CLOSE format has only WITH LOCK (VIII.4.2.2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/c4_idx_norewind.cob",
+    "printed": "error COBOL1693: CLOSE 'FI' with the NO REWIND phrase ... (ISO §2023:14.9.6.3 SR1)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-024/pb141_close_forms.cob",
+    "printed": "not rerun separately; same forms exercised in p5",
+    "expected": ""
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.4 GR2",
+    "check": "OK  §1985:VII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR3",
+    "check": "OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1d (status 07)"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3e (status 38)"
+   }
+  ],
+  "notes": "The categories are an enum on the connector (every sequential file NonUnit) and the CLOSE dispatch executes the Table cell; categories (b)/(c) exist but no supported medium is placed in them, which GR2 permits (the classification applies to the media an implementation has). The two refusals at 85 cite §2023:14.9.6.3 SR1 instead of a 1985 rule: a citation nit, outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "WITH LOCK refused (COBOL0902); other forms take the same Table cells",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-024/r5_close_gr2.cob (--std 85, run dir r5_close_gr2-002) took the open modes the reader's p5 did not, on the non-reel/unit category: EXTEND (a 1985 mode) 'EXT-OPEN=00 EXT-REEL=07 EXT-WRITE=00 EXT-REMOVAL=07 EXT-WRITE2=00 EXT-NOREW=07' (F keeps the file open, C,H closes with 07); I-O 'IO-READ=00 R=AAAA IO-REEL=07 IO-READ2=00 R=BBBB' (F leaves the file position indicator unchanged), 'IO-REWRITE=00 IO-NOREW=07'; reading back gives AAAA, bbbb, CCCC then 10 (the extended records were written and the rewrite applied); an INPUT CLOSE WITH LOCK then 'REOPEN-LOCKED=38' while another physical file opens 00 (E locks that file only). Two draft errors were 1985 refusals of my own source (COBOL6826, §1985:VII.4.4.3 SR2: READ with no AT END and no USE), correct at this edition. Every result is the non-reel/unit column of Table 1 (C; C,E; C,H; F; F) with status 07 per VII.1.3.5 item 1d. The reader's citation nit (COBOL1693 cites §2023:14.9.6.3 SR1 at --std 85) stands and lies outside this rule. cite.py: 'OK  §1985:VII.4.2.4 GR2  (4.2.4 General Rules)  the text is in GR2'; 'OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

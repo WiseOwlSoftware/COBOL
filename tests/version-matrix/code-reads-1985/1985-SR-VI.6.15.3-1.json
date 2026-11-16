@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-SR-VI.6.15.3-1",
+ "rule-digest": "9db408bc8556",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-056",
+  "sources": {
+   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
+   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+  },
+  "imported": {
+   "reader": "226e27068709a8a2d89ae27a9b2827ea8a9047cd30a41c7bbb59ad9f36c9c330",
+   "refuter": "cd5bbba1b31ffd4fc241ca6301c839604550f9a5cfff92a01fae2ee502c8b181"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.15.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the DEPENDING ON operand of a format 2 GO TO must be a numeric elementary data item that is an integer (fixed-point numeric, no digit right of the assumed point; trailing P allowed); a non-integer numeric, alphanumeric, numeric-edited, group, index data item or reference-modified operand is refused, a literal or figurative constant is not an identifier, and at 85 a numeric or integer function-identifier may appear only in an arithmetic expression (§1985:IV.4.3.8.3.3 SR4), so it is refused here too. The witness covers the refusal classes for data items only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandClassScreen; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OperandClassScreen.cs#OperandPositions; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsIntegerDescription; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry.IsAvailable(numeric-function-identifier-operand-2002): below 2002 a numeric or integer function-identifier written as an identifier operand (here identifier-1) is refused COBOL0900; from 2002 it is admitted and classed by its result",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The data-item path (BindGoTo -> OperandClassScreen.Screen -> ClassesOf/IsIntegerDescription) has no edition input: grepped ControlFlowBinder.cs, OperandClassScreen.cs for Edition|CobolVersion|ConstructRegistry|DialectBehavior; only EditionContext.Error (reporting). The one edition read is on the function-identifier arm, through IntrinsicBinder.IntrinsicOperand.",
+  "behaviour-differs-by-edition": "yes: a function-identifier identifier-1 (e.g. FUNCTION INTEGER (X)) is refused at 85 (an integer function only in an arithmetic expression, §1985:IV.4.3.8.3.3 SR4) and admitted from 2002; the data-item screen is the same at every edition",
+  "witnesses-cover": "part: pb212_operand_class_screens covers data-item refusals; not exercised there: the 85 function-identifier refusal, trailing-P integer (PIC 9P) admission, leading-P (PIC P9) refusal, reference-modified operand, and GR3 fall-through at zero/negative/out-of-range values",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gt_ok.cob",
+    "printed": "P2 / NEG-FALLS / ZERO-FALLS / SCALED-20-FALLS / Q3 (exit 0)",
+    "expected": "PIC 9 =2 selects P2; S9(3) COMP =-1, PIC 9 =0 and PIC 9P =20 (integer by description) compile and fall through (GR3); subscripted table element =3 selects Q3"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gt_bad2.cob",
+    "printed": "COBOL2324 for WS-D (9V9, not an integer), WS-X (alphanumeric), WS-G (group), WS-ED (numeric-edited), WS-I (index data item), WS-L (PIC P9, not an integer), WS-N (2:1) (reference-modified); plus an unrelated COBOL0900 on VALUE 2 for the numeric-edited item",
+    "expected": "each refused by SR1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gt_bad.cob",
+    "printed": "COBOL5506 unexpected '2' / unexpected 'ZERO' at DEPENDING ON",
+    "expected": "a literal and a figurative constant are not identifier-1: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gt_fn.cob",
+    "printed": "COBOL0900: a numeric or integer function-identifier where an identifier is written ... requires COBOL-2002 (targeting COBOL-85) — FUNCTION INTEGER (WS-D)",
+    "expected": "refused at 85 (integer function only in an arithmetic expression)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/gt_fnbad.cob",
+    "printed": "COBOL0900 and COBOL2324 for FUNCTION SQRT (WS-D)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.15.3 SR1",
+    "check": "OK  §1985:VI.6.15.3 SR1  (6.15.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.15.4 GR3",
+    "check": "OK  §1985:VI.6.15.4 GR3  (6.15.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The selector is screened by the one operand-class register row GoToDependingSelector over IsIntegerDescription (fixed-point numeric, scale <= 0), so a trailing-P item is admitted and leading-P refused. At 85 a function-identifier never reaches that screen as a legal operand: the 2002 construct row refuses numeric/integer functions outside arithmetic expressions, which matches the 1985 Intrinsic Function amendment.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.15.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "gt_r3.cob (--std 85 --run, exit 0, COMP-P2 / BIG-FALLS / PP-FALLS / P4-QUAL / P5-RENAMES): S9(4) COMP =2 selects P2; PIC 9(18) at its largest value and PIC 9PP =100 (integer by description) compile and fall through (GR3); a qualified WS-Q OF WS-GRP and a 66 RENAMES of one elementary PIC 9 item are admitted and select. gt_r2.cob (--compile-only, exit 65): COBOL2324 for an index-name IX, PIC A, PIC X/X (alphanumeric-edited), 9V99 COMP, an OCCURS group; COBOL2270 for an unsubscripted table element. gt_r4.cob: COBOL2324 for FUNCTION CURRENT-DATE (1:1) (alphanumeric), COBOL0900 for FUNCTION ORD (\"A\") (integer function outside an arithmetic expression). cite.py: OK §1985:VI.6.15.3 SR1 'must reference a numeric elementary data item which is an integer'; OK §1985:VI.6.15.4 GR3; OK §1985:IV.4.3.8.3.3 SR4 'may be used only in an arithmetic expression'. Side observation (not this rule's verdict): the COBOL2324 text for the index-name IX says \"'IX' is a numeric function-identifier\" (OperandClassScreen.DescribeFunctionResult), a misleading-diagnosis wording; the refusal itself is right.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

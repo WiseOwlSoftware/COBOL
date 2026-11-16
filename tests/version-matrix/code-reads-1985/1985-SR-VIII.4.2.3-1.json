@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VIII.4.2.3-1",
+ "rule-digest": "bd6653c35fa9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "63244708310648b08697e8411c5535bf80af97a2c57be4991a0199ae820c4f49",
+   "refuter": "7f014b4f8d10ec35486e020e439f1dfdda11f2552f1159526b5f3bb795d21744"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 one CLOSE statement must accept file-names of different organizations (sequential, relative, indexed) and access modes (sequential, random, dynamic), each with the phrase its own module allows (WITH LOCK for any; NO REWIND/REEL/UNIT for sequential only), and must close each file by its own organization's rules.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK accepted at 85, refused at 2023 (removed); not the mixed-organization path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindClose (per-file resolution, per-file phrase check, one BoundClose per file) and EmitClose (per-file FileClose): no EditionContext/CobolVersion/ConstructRegistry test on the mixing; grepped Validation/ for VisitClose/closeOption: VersionConformancePass#VisitCloseOption and FlagConformancePass#VisitCloseStatement (FIPS flag only).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf18_05 mixes relative sequential/random/dynamic with a sequential file; indexed files, WITH LOCK and NO REWIND inside a mixed list are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/clsmix.cob",
+    "printed": "CLOSE-1 07 00 00 00 / OPEN-2 00 00 00 00 / RECS AAAA BBBB CCCC DDDD / CLOSE-2 00 00 00 00 / OPEN-3 00 38 00 38 / CLOSE-3 00 00",
+    "expected": "CLOSE IXS SQ WITH NO REWIND RLF IXD closes all four (SQ 07: NO REWIND on a non-reel medium); CLOSE RLF WITH LOCK IXD SQ IXS WITH LOCK locks only RLF and IXS, so their re-OPEN is 38 and the others 00"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/clsbad.cob",
+    "printed": "COBOL1693 CLOSE 'RLF' with the NO REWIND phrase; SQ REEL in the same statement not refused",
+    "expected": "a sequential-only phrase on the relative file refused; legal on the sequential file in the same CLOSE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/clsmix.cob",
+    "printed": "--std 2023: COBOL0902 for each CLOSE WITH LOCK",
+    "expected": "WITH LOCK accepted at 85, removed at 2023"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.2.3 SR1",
+    "check": "OK  §1985:VIII.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "A multi-file CLOSE binds as a series of one-file closes, each with its own file's organization, so mixing is automatic and edition-agnostic. The only edition arm on the statement is WITH LOCK's removal at 2023, which 85 correctly keeps.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "mixing accepted; WITH LOCK refused as removed",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Grepped Validation/ for VisitClose*: VersionConformancePass#VisitCloseOption and FlagConformancePass#VisitCloseStatement, as the reader listed. cl1.cob (--std 85): CLOSE IXF RLF SQF (indexed dynamic, relative random never opened, sequential) with a USE per file -> 'USE RLF 42', 'CLOSE-1 00 42 00': the failed relative close does not stop the indexed and sequential closes (§1985 CLOSE GR 'as if a separate CLOSE statement had been written for each file-name-1', grep line 17719), and the re-OPEN gives 'REOPEN 00 00'; CLOSE SQF IXF WITH LOCK then OPEN INPUT IXF -> 'USE IXF 38', 'OPEN-LOCKED 38'. cl2.cob: CLOSE SQF REEL FOR REMOVAL IXF UNIT and CLOSE IXF WITH NO REWIND SQF UNIT FOR REMOVAL -> COBOL1693 only on IXF in each, the sequential file's phrase accepted in the same statement. cite.py: OK  §1985:VIII.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

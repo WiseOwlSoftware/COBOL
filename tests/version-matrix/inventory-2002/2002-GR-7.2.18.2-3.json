@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.18.2-3",
+ "rule-digest": "680d03276c0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatMap.cs#LibraryTextDefaultAt; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#Preprocess",
+ "test-ref": "conformance:cases/7.2.18@2002-SOURCE-FORMAT-DIRECTIVE/g2_source_format_library_text",
+ "notes": "§2002:7.2.18.2 GR3: library text starts in its COPY statement's format: g2sfl2a, copied from fixed text, opens with a fixed 'D' debugging line, and g2sfl2b, copied from free text, opens with a column-1 >>D line (§2002:6.1.1, 6.1.2). --std 2002 run of g2_source_format_library_text printed the derived [LIB-D-FIXED] and [LIB2-D-FREE] among its nine lines."
+}
