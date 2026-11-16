@@ -262,7 +262,7 @@ succeedingCondition
 // relational operator; otherwise," GRL2.2: "The NOT is interpreted as a logical operator and, therefore, the implied
 // insertion of subject or relational operator results in a negated relation condition." So `A > B AND NOT >= C OR D`
 // is ((A > B) AND (NOT (A >= C))) OR (A >= D): the stated >= is the operator carried on. The left-edge predicate IS
-// GRL2.1 (the six words, and NOT, which no reading lets follow NOT), so this alternative never competes with the
+// GRL2.1 (the six words; a NOT after NOT is the relational operator's own, kb/Work PB5784), so this alternative never competes with the
 // comparisonOperator alternatives that open on NOT. The grammar is the superset: ISO 2002 prohibited the form
 // (§2002:F.1 item 22; §2023:8.8.4.12.4 GR1 NOTE: "NOT cannot immediately precede an extended-relational operator"),
 // and VersionConformancePass refuses it from 2002 on (construct abbreviated-not-logical-removed-2002, COBOL0902).

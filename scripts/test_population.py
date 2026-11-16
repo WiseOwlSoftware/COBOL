@@ -190,10 +190,21 @@ def spelled_as_trx(names: Counter, source: str) -> Counter:
 
 def parse_listing(text: str, source: str) -> Counter:
     """The display names a `dotnet test --list-tests` output lists, as a multiset (xunit truncates long theory
-    arguments with `···`, so one name can cover several rows)."""
+    arguments with `···`, so one name can cover several rows).
+
+    ⛔ ONE LINE RULE WITH THE RETRY FILE (kb/Work PB5872 review, follow-up B): a listed name is written whole as one line
+    of a retry file (`gate_legs.Legs.plan`, ONLY_CASES), which the host reads with .NET's `File.ReadAllLines` and
+    matches by its exact display name (tests/_shared/GateLegs.cs `GateOnly`). That reader breaks a line at `\\n`, `\\r`
+    and `\\r\\n` only, so a listing line is too: never `str.splitlines`, which also breaks at U+0085, U+2028, U+2029,
+    `\\v`, `\\f` and U+001C-U+001E and would turn one display name holding one of them into two names that never run. A
+    name holding a carriage return of its own could not survive a retry file's line, so it is refused, named."""
     if LISTED_MARK not in text:
         raise PopulationError(f"{source}: no `{LISTED_MARK}` line — not a `dotnet test --list-tests` output")
-    return Counter(line[4:] for line in text.split(LISTED_MARK, 1)[1].splitlines() if LISTED_LINE.match(line))
+    lines = [line.removesuffix("\r") for line in text.split(LISTED_MARK, 1)[1].split("\n")]
+    if broken := [line for line in lines if "\r" in line and LISTED_LINE.match(line)]:
+        raise PopulationError(f"{source}: listed name(s) holding a carriage return, which no retry file line can carry: "
+                              + "; ".join(repr(b[4:])[:120] for b in broken[:3]))
+    return Counter(line[4:] for line in lines if LISTED_LINE.match(line))
 
 
 def list_population(project: str | Path, configuration: str | None = None,
@@ -907,6 +918,14 @@ def self_test() -> int:
         body = parse_listing(LISTED_MARK + "\n    A.B\n     \n  not a case\n    C.D  \n", "inline")
         arm("the listing parser keeps 4-space-indented names verbatim", body == Counter({"A.B": 1, "C.D  ": 1}),
             str(body))
+        odd = 'N.T.M(text: "a b\u0085c\x0cd")'
+        crlf = parse_listing(f"{LISTED_MARK}\r\n    {odd}\r\n    N.T.Plain\r\n", "crlf")
+        rc, why = rc_of(lambda: parse_listing(f"{LISTED_MARK}\n    N.T.M(text: \"a\rb\")\n", "cr"))
+        arm("ONE LINE RULE with the retry file (kb/Work PB5872 follow-up B): a listed name holding U+2028, U+0085 or a "
+            "form feed stays ONE name, as .NET's ReadAllLines reads its retry-file line, and a CRLF listing loses only its "
+            "line ends; a name holding a carriage return, which no retry line can carry, is refused, named",
+            crlf == Counter({odd: 1, "N.T.Plain": 1}) and rc == RC_ERROR and "carriage return" in why,
+            f"{crlf} {why}")
 
         scrubbed = ["WISEOWL_COBOL_GATE_FIRST", "wiseowl_cobol_gate_first", "WISEOWL_COBOL_GATE_ANYTHING", "VSTestTestCaseFilter",
                     "VSTestSetting", "vstest_host_debug", "RunSettingsFilePath"]

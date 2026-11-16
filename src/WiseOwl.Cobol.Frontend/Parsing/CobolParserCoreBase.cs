@@ -132,13 +132,16 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary>The NOT here is the LOGICAL operator of a negated abbreviated relation (kb/Work PB5123): §1985:VI.6.3.3
     /// GRL2.1 makes NOT part of the relational operator when the word after it is GREATER, &gt;, LESS, &lt;, EQUAL or =,
-    /// and GRL2.2 makes it the logical operator otherwise. NOT after NOT is no reading at all, so it is excluded too.
-    /// The left-edge predicate of <c>succeedingCondition</c>'s <c>negatedAbbreviatedRelation</c> alternative; whether
-    /// an abbreviated relation actually follows is the grammar's question, not this one's.</summary>
+    /// and GRL2.2 makes it the logical operator otherwise. A NOT followed by NOT is therefore the LOGICAL operator, and the
+    /// second NOT is read by the same rule against the word after IT: <c>NOT NOT &lt; C</c> is the logical NOT of the
+    /// abbreviated relation <c>NOT &lt; C</c> (kb/Work PB5784), as <c>NOT IS NOT &lt; C</c> is. The left-edge predicate of
+    /// <c>succeedingCondition</c>'s <c>negatedAbbreviatedRelation</c> alternative; whether an abbreviated relation actually
+    /// follows is the grammar's question, not this one's (<c>NOT NOT C</c>, two logical operators, parses as none: §1985:VI.6.3.2.3
+    /// "the pair 'NOT NOT' is not permissible"), and the form is refused from 2002 by its construct gate.</summary>
     protected bool logicalNotBeforeRelationalOperator()
         => TokenStream.LA(1) == CobolParserCore.NOT
            && TokenStream.LA(2) is not (CobolParserCore.GREATER or CobolParserCore.GT or CobolParserCore.LESS
-               or CobolParserCore.LT or CobolParserCore.EQUAL or CobolParserCore.EQUALS or CobolParserCore.NOT);
+               or CobolParserCore.LT or CobolParserCore.EQUAL or CobolParserCore.EQUALS);
 
     /// <summary>The cd-names the communication sections parsed so far declare (kb/Work PB4677). A data division precedes its
     /// procedure division, and an action never runs during prediction, so a name is here by the time a statement can name it.</summary>

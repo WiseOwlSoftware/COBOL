@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.6.4-3",
  "rule-digest": "30b7bcacbcb7",
- "test-ref": "conformance:cases/14.9.2-ADD/pb228_add_corresponding_values; conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4; conformance:cases/14.7.6-CORRESPONDING/l1c04_corr_occurs_redefines_subordinate",
+ "test-ref": "conformance:cases/14.9.2-ADD/pb228_add_corresponding_values; conformance:cases/14.7.6-CORRESPONDING/pb229_corresponding_filler_group_rule4; conformance:cases/14.7.6-CORRESPONDING/l1c04_corr_occurs_redefines_subordinate; conformance:cases/VI.6.6@1985-ADD-STATEMENT/pb5814_add_corresponding_subscript_once_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

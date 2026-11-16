@@ -1,0 +1,2 @@
+The 2023 row GR-8.4.3.3.4-2, which main recorded PARTIAL for this mechanism on 2026-11-16 (commit 4626d633e9), closes with this landing.
+The finisher of wave 20262068 group A merged main into the branch and re-recorded it CONFORMS with the 2023 twin `conformance-suite/cases/8.4.3.3-Reference-modification/pb5780_refmod_numeric_compares_as_characters`, which prints its golden at --std 2023 on the merged build (run_probe.py MATCH).
