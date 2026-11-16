@@ -1,4 +1,4 @@
-## The 1985 golden lane, first landing: 124 KEPT rows gain a 1985 case of their own, 1985 GAP 780 to 656
+## Entry 3727 — 2026-11-15 23:00 PST — The 1985 golden lane, first landing: 124 KEPT rows gain a 1985 case of their own, 1985 GAP 780 to 656
 
 The gl1985 lane writes a new conformance case, accepted at 85 only and citing the row's own 1985 catalog id, for each
 KEPT 1985 row that kb/Work PB5675 left without an own-edition witness and that PB5730's widening cannot reach. This
@@ -43,3 +43,4 @@ landed while this branch gated, and it closed 64 other rows. After merging it, `
   structure. That determination exists, `docs/conformance/7/DOC-A.1-159.md`, and
   `pb690_report_line_byte_image_85` already reads a report file back at 85. So the rows go back to the lane for a
   redraft on DOC-A.1-159, with no decision note.
+
