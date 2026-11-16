@@ -1,4 +1,4 @@
-## Four refusals the 1985 code reads found missing: a Linkage subscript, an INSPECT counter slice, a report group's JUSTIFIED and a reserved COPY name
+## Entry 3773 — 2026-11-16 09:13 PST — Four refusals the 1985 code reads found missing: a Linkage subscript, an INSPECT counter slice, a report group's JUSTIFIED and a reserved COPY name
 
 Source the standard forbids compiled in four places (kb/Work PB5846, PB5859, PB5850, PB5848). Each was re-probed on this tree first and reproduced.
 
@@ -11,3 +11,4 @@ Source the standard forbids compiled in four places (kb/Work PB5846, PB5859, PB5
 **PB5848, a COPY text-name or library-name that is a reserved word.** The names never reached the reserved-word screen. `VersionConformancePass.FlagCopyNameReservedWords` asks the one table of the edition under compile of each name the preprocessor recorded, through the same `ReportReservedWord` as the tree walk (COBOL0901). A user-defined word below 2002, a system-name from 2002 (2023 8.3.2.4.1, 8.3.2.3.1), so the 2023 half holds too. A literal name is not asked.
 
 Rows: witnesses recorded on 1985-GR-X.5.1-4, 1985-SR-VI.6.18.3-6, 1985-SR-VI.5.6.3-1, 1985-SR-VI.5.4.3-1, 1985-SR-IV.4.2.2.1-2 and 2023 SR-13.7.3-4, SR-14.9.22.3-5, SR-8.3.2.1-1, SR-8.3.2.1-5. Public API baselines and the 37 characterization cases are green; the gate's verdict is recorded at landing.
+
