@@ -51,6 +51,7 @@
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolIntrinsics.VarianceDec(WiseOwl.Cobol.Runtime.CobolRounding mode, params WiseOwl.Cobol.Runtime.CobolDec[]! xs) -> WiseOwl.Cobol.Runtime.CobolDec
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.AddChecked(System.Int128 a, System.Int128 b) -> System.Int128
 *REMOVED*static WiseOwl.Cobol.Runtime.CobolNum.SubChecked(System.Int128 a, System.Int128 b) -> System.Int128
+*REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.CloseIfOpen(string! name) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.RewriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
 *REMOVED*static WiseOwl.Cobol.Runtime.IO.CobolFile.WriteShared(string! name, string! image, int length, WiseOwl.Cobol.Runtime.IO.FileRecordLock phrase, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.LinagePage? page, WiseOwl.Cobol.Runtime.IO.WriteAdvance advance = default(WiseOwl.Cobol.Runtime.IO.WriteAdvance), WiseOwl.Cobol.Runtime.RecordExtents? areaExtents = null, bool nationalRecord = false) -> string!
@@ -252,6 +253,7 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.BeginClose(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Commit() -> string?
 WiseOwl.Cobol.Runtime.IO.FileRegistry.EndModeScope(string! name) -> void
+WiseOwl.Cobol.Runtime.IO.FileRegistry.IsOpen(string! name) -> bool
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.RegisterRecordFormat(string! name, WiseOwl.Cobol.Runtime.IO.RecordFormat! format) -> void
@@ -1183,6 +1185,7 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginClose(string! name) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.BeginOpen(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Commit() -> string?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.EndModeScope(string! name) -> void
+static WiseOwl.Cobol.Runtime.IO.CobolFile.IsOpen(string! name) -> bool
 static WiseOwl.Cobol.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0, bool printFile = false) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRecordFormat(string! name, WiseOwl.Cobol.Runtime.IO.RecordFormat! format) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.RegisterRecordSelector(string! name, System.Func<string!, int>! selector) -> void
