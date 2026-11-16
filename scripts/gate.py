@@ -20,7 +20,8 @@ runs the WHOLE population of every test target (scripts/build_targets.json, test
 2. The order inside each assembly is the test framework's (tests/_shared/GateLegs.cs `GateOrderer`): the test classes
 the previous run of this worktree, or the merge-group run that bounced its pull request, saw red go first, then the
 rest longest first by the committed weights file (tests/_shared/test-weights.json). Ordering changes WHEN a case runs,
-never WHETHER (owner, 2026-09-28: "order, don't skip"), and the population check proves it. CI's merge group is the
+never WHETHER (owner, 2026-09-28: "order, don't skip"), and the population check proves it; the one exception is the
+PREFLIGHT's red, which ends the gate before the population starts (owner 2026-11-16, kb/Work PB5872; step 4a below). CI's merge group is the
 first run of the merged tree, of Linux, of Release and of GitHub's runners (kb/Work/PB4323.md §5.1).
 
 ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-build-ci.md §3.17.3), in this order:
@@ -39,6 +40,12 @@ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015 Q1a, PB3022; DESIGN-test-b
      (`Host.stop_hosts`) and ends the gate RED (kb/Work PB2523, PB4326). The GnuCOBOL corpus, by the ONE rule
      scripts/external_corpus.py (kb/Work PB2611), is fetched BEFORE the slot (kb/Work PB2524);
   4. the gate slot, always after the lock, so no two gates can wait on each other in a cycle; then the solution build;
+  4a. THE PREFLIGHT (kb/Work PB5872, the owner's decision of 2026-11-16): the classes scripts/build_targets.json declares
+     whose red means a derived or pinned file is stale (a snapshot, the runtime ABI pin, a measured file), one host per
+     declaring assembly, concurrently, beside the listings (`Legs.preflight`). A red one ENDS THE GATE RED at once,
+     `RED — PREFLIGHT RED: <assembly> <case> …`, and the whole population does not run; a green one leaves step 5 to run
+     the population less its cases, which the population check reads from the preflight's own trx, so no case runs
+     twice. It needs the build, so it runs inside the slot, after the build (the slot rations the build);
   5. the gated assemblies' WHOLE populations CONCURRENTLY, each one `dotnet test --no-build` host in a scrubbed
      environment, printed through scripts/test_leg_report.py; beside them each assembly's `--list-tests` (scrubbed), and,
      only when the change touches tooling, the self-test that reads the built assemblies (`self_tests.py --built`; a red
@@ -113,7 +120,7 @@ from gate_slot import ExclusiveLock, Heartbeat, QueueAbandoned, Slot, gate_class
 from test_population import GATED_ASSEMBLIES, PopulationError  # noqa: E402
 from standard_streams import ensure_utf8  # noqa: E402
 from gate_audits import audit_shape_main  # noqa: E402
-from gate_verdict import BUSY, EXIT_BUSY, NOT_RUN_CAUSES, VERDICT, Outcome  # noqa: E402
+from gate_verdict import BUSY, EXIT_BUSY, NOT_RUN_CAUSES, PREFLIGHT, VERDICT, Outcome  # noqa: E402
 from gate_host import BESIDE, Host, Spawn, _no_slot  # noqa: E402
 from gate_runs import AWAIT_PENDING_EXIT, AWAIT_WAIT_S, KEEP_RUNS, RECORD_SCHEMA, RUNS_LOCK, RUNS_LOCK_WAIT_S, RUN_LABEL, RUN_ROOT, VERDICT_FILE, gate_running, launch_and_follow, read_record, resolve_run, run_dirs, run_order, watch, write_pid  # noqa: E402
 from gate_reuse import Carry, PassCarry  # noqa: E402
@@ -182,7 +189,9 @@ class Gate:
                 or "tests_s" not in out.timings or conformance is None):
             return
         try:
-            self.host.record_growth(run, out.timings["tests_s"], conformance.discovered)
+            # the test phase is the preflight's hosts and then the population's (kb/Work PB5872), one after the other
+            self.host.record_growth(run, round(out.timings["tests_s"] + out.timings.get("preflight_s", 0.0), 1),
+                                    conformance.discovered)
         except (OSError, ValueError, subprocess.CalledProcessError) as e:
             self.say(f"build-local: the growth sample was not recorded ({type(e).__name__}: {e}); the verdict stands")
 
@@ -478,6 +487,26 @@ class Gate:
         # self-tests that read the BUILT assemblies (kb/Work PB2563, PB4326) run BESIDE the hosts: each only lists tests,
         # and the hosts are the gate's longest step.
         listed = self.legs.pool_listings(spawn, todo)
+        # ⭐ THE PREFLIGHT (kb/Work PB5872; owner 2026-11-16; DESIGN-test-build-ci.md §3.14.15): the declared classes whose red
+        # means a derived or pinned file is stale (scripts/build_targets.json), one host per assembly, beside the listings
+        # and before the whole population. A red one ENDS THE GATE RED here: the population does not run (the owner's
+        # decision changes "order, don't skip" for this one case). A green one leaves the population to run less its cases,
+        # which the population check reads from the preflight's own trx, so no case runs twice.
+        if pre_reds := self.legs.preflight(out, run, spawn, todo, carry):
+            for future in listed.values():   # no listing process outlives the slot
+                future.exception()
+            self._join_beside(out)
+            # the tree and keys at the end, so a re-gate at unchanged keys carries the preflight's passes (`PassCarry.carry`)
+            out.tree_end = self.host.measured_tree()
+            out.keys_end = self.passes.end_keys(out)
+            return self._finish(out, run, "RED", f"{PREFLIGHT} RED: {'; '.join(pre_reds)} — fail-fast: a derived or "
+                                f"pinned file is stale; the whole population did NOT run (preflight "
+                                f"{out.timings.get('preflight_s', 0):.1f} s; kb/Work PB5872){'; ' + '; '.join(out.reasons) if out.reasons else ''}"
+                                f" · {out.slot} · toolchain {out.toolchain} (run {run.name})", 1)
+        if self.host.hosts_live.stopped_any():
+            return self._audit_red(out, run, "an audit that ran beside the preflight was RED and STOPPED its hosts: NO "
+                                   "POPULATION RAN")
+        preflown = {a: tuple(c) for a, c in (out.preflight.get("classes") or {}).items()}
         listings: dict[str, Counter] | None = None
         plan: dict[str, Path | None] = {asm: None for asm in todo}
         # ⭐ THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py; DESIGN-test-build-ci.md §3.14.13). When
@@ -506,15 +535,16 @@ class Gate:
                 selection.append(sel)
             return sel
 
-        if carry is not None:
-            # A RETRY needs the population first (what the carried passes leave is the listing less them), where a whole
-            # run joins the listings after the hosts: ~2 s each, which the retry's saved minutes repay.
+        if carry is not None or preflown:
+            # A RETRY, and a population less the preflight's cases, needs the population first (what the carried passes
+            # and the preflight leave is the listing less them), where a whole run joins the listings after the hosts: ~2 s
+            # each, already running beside the preflight.
             try:
                 listings = self.legs.listings(listed, run)
             except PopulationError as e:
                 return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                     f"the population could not be listed: {e}", 2)
-            plan = self.legs.plan(out, run, listings, carry, todo)
+            plan = self.legs.plan(out, run, listings, carry, todo, preflown)
         if prepared is not None and prepared.passed is not None and asm_d in plan:
             retry = plan[asm_d]
 
@@ -526,7 +556,7 @@ class Gate:
                     return retry
                 merged = self._with_differential(carry, sel)
                 kept, runs = dict(out.carried), list(out.composed_from)
-                one = self.legs.plan(out, run, {asm_d: listed[asm_d].result()[0]}, merged, [asm_d])
+                one = self.legs.plan(out, run, {asm_d: listed[asm_d].result()[0]}, merged, [asm_d], preflown)
                 out.carried, out.composed_from = {**kept, **out.carried}, runs or out.composed_from
                 if not merged.passed.get(asm_d):
                     sel.carried.clear()   # `Legs.plan` dropped every carried pass of a host red in an earlier run
@@ -542,7 +572,7 @@ class Gate:
             self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
         first = self.legs.first(out, run, self.previous_run(run))
         hosts_started = time.monotonic()
-        self.legs.run_hosts(out, run, first, spawn, hosts_started, plan)
+        out.runs += self.legs.run_hosts(out, run, first, spawn, hosts_started, plan)
         out.timings["tests_s"] = round(time.monotonic() - hosts_started, 1)
         reds = [r for r in out.runs if r.red]
         if reds:
@@ -565,7 +595,8 @@ class Gate:
             # the one Carry the population check composes: an earlier run's passes and the cases the differential carried
             carry = self._with_differential(carry, selection[0])
         self.legs.check_populations(out, listings, run, carry, todo)
-        stale = self.generations.check_generated(out, run, [r.asm for r in out.runs])
+        hosted = {r.asm for r in out.runs} | set(preflown)   # a preflight host is handed its assembly's outputs too
+        stale = self.generations.check_generated(out, run, [a for a in GATED_ASSEMBLIES if a in hosted])
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`PassCarry.reusable`)
         # ...but a TARGET whose declared inputs did not move keeps its pass (kb/Work PB4333): its key at the end tree
@@ -601,7 +632,12 @@ class Gate:
         first = f"{len(out.first)} class(es) first" if out.first else "no class first"
         differential = int(out.differential.get("carried", 0)) if out.differential else 0
         carried = sum(p.carried for p in pops.values()) - differential
+        pre = out.preflight
         detail = (f"{tally} (skipped {skipped:,})" + self.generations.detail()
+                  + (f" · {PREFLIGHT} GREEN: {sum((pre.get('cases') or {}).values()):,} case(s) of "
+                     f"{sum(len(c) for c in (pre.get('classes') or {}).values())} class(es) in "
+                     f"{out.timings.get('preflight_s', 0):.1f} s, before the population (kb/Work PB5872)"
+                     if pre.get("verdict") == "GREEN" else "")
                   + (f" · passes recorded: {', '.join(out.recorded)}" if out.recorded else "")
                   + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried > 0 else "")
                   + (f" · Conformance {differential:,} carried as byte-identical to passed cases at harness key "
@@ -615,6 +651,9 @@ class Gate:
         judged = self._host_judgement(out, run)
         host_reds = {r.asm for r in out.runs if r.red and judged.host_is_the_hosts(r.asm)}
         reds = [f"{r.asm} RED" for r in out.runs if r.red and r.asm not in host_reds]
+        # A preflight red ends the gate before the population (`_tested`); its cases are read by the population check as
+        # ran, so this keeps any path that reaches here past one from counting a failed case GREEN (kb/Work PB5872).
+        reds += [f"{PREFLIGHT} RED: {r}" for r in out.preflight.get("reasons") or []]
         whole = judged.whole_host & host_reds
         problems = (reds + [r for r in out.reasons if not any(r.startswith(f"{a} POPULATION ") for a in whole)]
                     + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective and a not in whole])
@@ -668,7 +707,7 @@ class Gate:
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "composed_from": out.composed_from, "carried": out.carried,
                 "keys": out.keys, "keys_end": out.keys_end, "differential": out.differential, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
-                "generated": out.generated,
+                "generated": out.generated, "preflight": out.preflight,
                 "exhausted": out.exhausted, "unjudged": out.unjudged, "peak_commit_bytes": out.peak_commit_bytes,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
