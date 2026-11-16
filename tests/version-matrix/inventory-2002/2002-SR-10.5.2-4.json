@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-10.5.2-4",
+ "rule-digest": "1b4055eee7d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/OoDefinitionRules.cs#RefusedBy",
+ "test-ref": "conformance:cases/10.5@2002-COBOL-COMPILATION-GROUP/g2-cg-method-cd-instance; conformance:cases/10.5@2002-COBOL-COMPILATION-GROUP/g2-cg-method-cd-factory",
+ "notes": "§2002:10.5.2 SR4 forbids a communication section in a method of a class definition. At --std 2002 an instance method and a factory method each carrying COMMUNICATION SECTION / CD ... FOR INPUT are refused COBOL1519 at the section header (lines 26 and 25). The message mis-names the section (a separate defect)."
+}

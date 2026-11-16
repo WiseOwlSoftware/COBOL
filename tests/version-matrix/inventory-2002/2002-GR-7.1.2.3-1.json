@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-1",
+ "rule-digest": "14a0a28e0459",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located; conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_literal",
+ "notes": "§2002:7.1.2.3 GR1 'Text-name-1 or literal-1 identifies the library text': COPY pb1355a. and COPY \"pb1355c.txt\". incorporate the named texts ([CPY], [TXT]) at --std 2002."
+}

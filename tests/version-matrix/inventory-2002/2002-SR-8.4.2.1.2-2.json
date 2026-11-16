@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.1.2-2",
+ "rule-digest": "e2883da2daa6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall",
+ "test-ref": "conformance:cases/8.4.2.1@2002-Identifier/g2idf01_function_identifier_sending",
+ "notes": "§2002:8.4.2.1.2 SR2 makes Format 1 (function-identifier, per 8.4.2.2) an identifier; §2002:8.4.2.2.2 SR1 bars it only as a receiving operand, so WRITE/RELEASE FROM, INITIALIZE REPLACING BY identifier-2 and INSPECT TALLYING identifier-1 admit it; §2002:8.4.2.2.3 GR1 gives the value as the function's result: UPPER-CASE('abcdefgh') = ABCDEFGH (§2002:15.78) for WRITE-FROM and INIT-BY; INSPECT of ABCDEFGH tallies one C and one D -> 002 (the raw lower-case argument would give 000); LOWER-CASE('ABCDEFGH') = abcdefgh (§2002:15.45) for RELEASE-FROM after the SORT GIVING.. Run at --std 2002 with the pinned compiler (tree dc1f2dcce8): exit 0, WRITE-FROM=ABCDEFGH / INIT-BY=ABCDEFGH / INSPECT-TALLY=002 / RELEASE-FROM=abcdefgh, equal to the derivation (MATCH .out)."
+}

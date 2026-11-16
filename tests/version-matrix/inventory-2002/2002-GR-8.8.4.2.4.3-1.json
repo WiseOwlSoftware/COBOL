@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.2.4.3-1",
+ "rule-digest": "fb8ea53cdbb4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AbbrevCarry; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/g2_abbreviated_insertion_not",
+ "notes": "§2002:8.8.4.2.4.3 GR1 inserts the last stated subject and operator and stops at a complete simple condition; g2_abbreviated_insertion_not L01-L07 and L09 (subject-only, subject-and-operator, NOT-operator and extended-operator carry, termination) matched the derivation at --std 2002."
+}

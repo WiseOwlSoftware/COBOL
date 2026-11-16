@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.1.2.3-2",
+ "rule-digest": "0c9dcc3f6ae6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#At; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Position; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SubscriptError",
+ "test-ref": "conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-bound-each-side",
+ "notes": "§2002:8.4.1.2.3 GR2: with checking on, subscripts 0, -1, 4 (over OCCURS 3) and 1.5 each set EC-BOUND-SUBSCRIPT and 1 and 3 do not; g2-subscript-bound-each-side's declarative output B0 Y, B- Y, B1 N 11, B3 N 33, B4 Y, BF Y matched at --std 2002."
+}

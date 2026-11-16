@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-4",
+ "rule-digest": "65f23e0650c1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+ "test-ref": "conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-1-concatenation-refused; conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-2-figurative-refused; conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-3-concatenation-refused; conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-3-figurative-refused; conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-4-concatenation-refused; conformance:cases/7.1.2@2002-COPY-STATEMENT/g2-copy-literal-4-figurative-refused",
+ "notes": "§2002:7.1.2.2 SR4 forbids a concatenation expression or figurative constant as literal-1..literal-4. At --std 2002 all six legs are refused at the COPY (COBOL2450 for literal-1/2, COBOL2449 for literal-3/4)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.2.2.1",
+ "rule-digest": "a571aa64b835",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalAndExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence",
+ "test-ref": "conformance:cases/8.8.4.2.2@2002-COMBINED-CONDITIONS/g2_combined_and_or",
+ "notes": "§2002:8.8.4.2.2.1 is condition-1 {AND|OR} condition-2 ...; g2_combined_and_or checks both truth tables, four-way chains and AND-before-OR precedence per §2002:8.8.4.2 and 8.8.4.2.3; --std 2002 run K01-K16 matched the derivation."
+}

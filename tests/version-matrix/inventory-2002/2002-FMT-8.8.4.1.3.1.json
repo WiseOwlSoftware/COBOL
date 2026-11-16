@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.1.3.1",
+ "rule-digest": "1598640e22e0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ClassConditionModel.cs#ClassConditionModel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindClassConditionOn; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#className",
+ "test-ref": "conformance:cases/8.8.4.1.3@2002-CLASS-CONDITION/g2_class_truth_values",
+ "notes": "§2002:8.8.4.1.3.1 lists NUMERIC, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, alphabet-name and class-name with optional NOT; g2_class_truth_values writes every alternative and NOT forms with values from §2002:8.8.4.1.3.3 GR2/GR3; --std 2002 run matched its .out."
+}

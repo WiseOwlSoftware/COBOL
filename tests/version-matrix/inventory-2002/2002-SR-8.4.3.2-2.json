@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.3.2-2",
+ "rule-digest": "56b9a335bdcc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ConditionName.cs",
+ "test-ref": "conformance:cases/8.4.3@2002-CONDITION-NAME/g2-cn-cd-qualified",
+ "notes": "§2002:8.4.3.2 SR2 defers to 8.4.1.1, whose Format 2 (§2002:8.4.1.1.1) ends with the file-cd-report-qualifier, so a condition-name in a CD record, subscripted or not, is qualified by its cd-name; g2-cn-cd-qualified at --std 2002 printed the derived C1 T, C2 T, C3 F, C4 T, C5 F, C6 T, C7 A Y A."
+}

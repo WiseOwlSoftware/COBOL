@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-1",
+ "rule-digest": "570ba4eaaa0b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/l1c24_replace_source_text_is_cc_group",
+ "notes": "§2002:7.1.3.3 GR1 with §2002:7.1 steps 1-3: REPLACE acts after IF selection and COPY REPLACING, so a false-path REPLACE is absent and copied text is replaced. l1c24 (accepted at 2002) matched its .out at --std 2002."
+}
