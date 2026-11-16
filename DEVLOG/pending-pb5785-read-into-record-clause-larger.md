@@ -1,0 +1,13 @@
+## READ INTO moves the record the RECORD clause sizes, not the largest record description (PB5785)
+
+**The defect.** `FD FR RECORD CONTAINS 12 CHARACTERS` over `01 RR PIC X(5)` is legal (§1985:VII.3.8.3 SR1, §2023:13.18.43.3 SR3), and `READ FR INTO W` over a file of 12-character records delivered `W=[ABCDE       ]` with status 00, at every edition. The RECORD VARYING form did the same: a 15-character record under `DEPENDING ON DR` (DR = 15) put ten characters in W. Re-probed on this build before the fix, identical at 85, 2002 and 2023.
+
+**Which result is right.** The Mythos-lane ruling (kb/Work/PB5785/2026-11-15-the-expected-result.md) took result (A): the clause sizes the file's records (§1985:VII.3.8.4 GR3, §2023:13.18.43.4 GR6/GR7), READ INTO moves the current record at that size (§1985:VII.4.4.4 GR8b, §2023:14.9.30.4 GR4 b, with GR12 / GR16 counting the characters), and a record of the size the clause states raises no length conflict, so the status is 00 and GR13/GR14's truncation has nothing to act on. The 2002 text carries the same sentences, so the fix is the same at all four editions.
+
+**Fix shape.** One predicate and one operand choice. `FileModel.RecordClauseExceedsDescriptions` says the clause (Format 1 integer-1, Format 2 integer-3) exceeds the largest description; it is false for Format 3 (§2023:13.18.43.4 GR18) and for a file with a variable-length record. `MoveBinder.BindIntoPhrase`, the one builder of the INTO sender for the sequential READ, the keyed READ and RETURN, then gives a Format 1 file a `BoundCurrentRecord` too (alphanumeric group move), and `OperandText.CurrentRecordImage` windows the connector's current record (`CobolFile.CurrentRecord`) or, for RETURN, the new `CobolSort.LastReturnedImage`, instead of the area image, which holds only the description-wide leading part. docs/FILES_DESIGN.md carries the rule.
+
+**Goldens.** `13.18.43-RECORD/pb5785_read_into_record_clause_larger`, `pb5785_read_into_varying_depending_larger`, `pb5785_relative_read_return_into_larger`, each at 85, 2002, 2014 and 2023. The relative/RETURN golden fails at all four editions with the predicate forced false.
+
+**Rows.** `GR-13.18.43.4-6`, `GR-14.9.30.4-14`, `GR-9.1.13.2-3` PARTIAL to CONFORMS (2023 GAP 32 to 29); the 1985 rows 1985-GR-VII.3.8.4-3 and 1985-GR-VII.4.4.4-13 derive OK through their KEPT bridge and carry the goldens as witnesses.
+
+**Left alone.** A Format 1/2 file whose records hold a variable-length member keeps the area image (its connector record is the fixed-form carriage, not the contiguous view); named in the note's landing addendum.

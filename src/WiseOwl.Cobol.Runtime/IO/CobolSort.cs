@@ -129,6 +129,7 @@ public static class CobolSort
                 + "output procedure of an executing SORT/MERGE statement (ISO §2023:14.9.40.4 GR10 / GR13, §2023:14.9.24.4 GR8)");
         var f = Get(name);
         f.Begin(new SortWork(Stores.Memory, keys, collation?.Snapshot(), national?.Snapshot()));
+        f.LastReturnedImage = "";
         f.LastReturnedLength = 0;
         f.LastReturnedExtents = null;
         f.LastReturnedSlots = null;
@@ -452,12 +453,14 @@ public static class CobolSort
         if (!got)
         {
             image = "";
+            f.LastReturnedImage = "";
             f.LastReturnedLength = 0;
             f.LastReturnedExtents = null;
             f.LastReturnedSlots = null;
             return false;   // at end — the record area's content is undefined (GR3); the caller leaves it as-is
         }
         image = returned.Image;
+        f.LastReturnedImage = image;
         f.LastReturnedLength = image.Length;
         f.LastReturnedExtents = returned.Extents;
         f.LastReturnedSlots = f.Work.CarriedAt(returned.Carried);
@@ -467,6 +470,10 @@ public static class CobolSort
     /// <summary>The length of the most recently RETURNed record — the value a varying SD's RECORD VARYING
     /// DEPENDING ON item receives (ISO §2023:13.18.43 GR15: each returned record restores its own length).</summary>
     public static int LastReturnedLength(string name) => Get(name).LastReturnedLength;
+
+    /// <summary>The most recently RETURNed record's image at its own length (kb/Work PB5785) — the current record a RETURN … INTO
+    /// sends when the SD's RECORD clause sizes the record larger than every record description (§2023:13.18.43.4 GR6/GR7, GR16).</summary>
+    public static string LastReturnedImage(string name) => Get(name).LastReturnedImage;
 
     /// <summary>The EXTENT TABLE the most recently RETURNed record was released with (docs/CONFORMANCE.md §3 D-FRA
     /// (v); kb/Work PB1053) — what an out-of-line variable-length group record decomposes it by, and what the
