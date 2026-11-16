@@ -53,11 +53,6 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
   golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
   uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
-  The landing records-2002-reads-2 (main 111a265843 merged in) records 375 own verdicts from pointers (every one of the
-  1,528 unpaired 2002 rules is read, `tests/version-matrix/lineage-reads-2002/`, 125 slices, and an upheld SAME becomes
-  its own verdict through `audit_batch.py own-verdict-batch`, DESIGN-spec-conformance-review.md section 10.6) and takes
-  it to **1,430 GAP** (1,412 never adjudicated, 18 open), 1,182 adjudicated: CONFORMS 1,105, DOCUMENTED-NON-SUPPORT 64,
-  DIVERGES 11, PARTIAL 2, beside the 704 KEPT change records.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary` computes every figure).** Two lines of work close it: the
   own-edition witnesses (a 1985 case that witnesses a 1985 rule, kb/Work PB5675), and the code read of every KEPT row at `--std 85`
   (kb/Work PB5683, sized by PB5692); a row a read contradicts gets its own defect note, and a non-conforming row waits on that
