@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.6.1",
+ "rule-digest": "62e7a8c25bd1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo08_lock_status_open_mode",
+ "notes": "§2002:14.8.6.1 (rendered PDF p450): CLOSE {file-name-1 [{REEL|UNIT} [FOR REMOVAL] | WITH {NO REWIND|LOCK}]}..., WITH and FOR optional. A single CLOSE that writes all four alternatives (with UNIT REMOVAL written without FOR), plus CLOSE f LOCK and CLOSE f NO REWIND written without WITH, is accepted and runs at --std 2002 (MULTI=07 07 07 00, as derived)."
+}

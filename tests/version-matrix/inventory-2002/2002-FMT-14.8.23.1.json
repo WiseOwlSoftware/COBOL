@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.23.1",
+ "rule-digest": "d59179864b66",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortCollatingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrg-format-arms",
+ "notes": "g2mrg-format-arms writes the §2002:14.8.23.1 MERGE arms: the KEY phrases, every COLLATING SEQUENCE form (IS alphabet-name-1 alone, IS alphabet-name-1 alphabet-name-2, FOR ALPHANUMERIC alone, FOR NATIONAL alone, and both choice-indicator alternatives in reverse order), GIVING one and two files, and OUTPUT PROCEDURE with THROUGH and THRU (without THRU: g2mrg01-merge-anywhere-but-declaratives). The merge order is derived from §2002:14.8.23.3 GR3-GR5 and a literal alphabet, and the case printed the eight derived lines at --std 2002 on the pinned build."
+}

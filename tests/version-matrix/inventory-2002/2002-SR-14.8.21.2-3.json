@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.21.2-3",
+ "rule-digest": "53914fb01073",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#figurativeConstant",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2ins41-sr3-cd-figurative-class; conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2ins43-sr3-cd-numeric-literal-refused; conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2ins44-sr3-cd-all-figurative-refused",
+ "notes": "§2002:14.8.21.2 SR3: a figurative literal-1/2/4 is one character, national for a national identifier-1 and boolean (ZERO only) for a boolean one. On CD record items the derived lines are AZB, 02, 02, 01 and AB*C, and --std 2002 on the pinned tree matched; g2ins42 (SPACE on a boolean CD item) is refused COBOL1757. A numeric literal (g2ins43) and ALL SPACE (g2ins44) on an alphanumeric CD item are each refused COBOL1757."
+}

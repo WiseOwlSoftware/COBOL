@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-3",
+ "rule-digest": "a7276ef7d782",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#addressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#AddressArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call08_operand_sections; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call09_byref_object_data_refused; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call10_report_operand_refused; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call11_byref_factory_data_refused",
+ "notes": "§2002:14.8.4.2 SR3: identifier-2 from file, working-storage, local-storage, linkage and communication (CD record) sections and an address-identifier is accepted and passed per §2002:14.8.4.3 GR5/GR9a1 across Formats 1-3 (--std 2002 run matched 16 lines); BY REFERENCE instance-object working storage refused COBOL1678 at the CALL line. Report-section sum counter refused COBOL1677 (sentence 1); BY REFERENCE factory working storage refused COBOL1678 (sentence 2)."
+}

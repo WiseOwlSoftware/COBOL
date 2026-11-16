@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.19.1",
+ "rule-digest": "78eeb8d980b8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategory; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeCategoryToValue; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeDefaultPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#initializeStatement; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeCategory; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeCategorySet; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeValueChoicePresent",
+ "test-ref": "conformance:cases/14.8.19@2002-INITIALIZE-STATEMENT/g2ini01_cd_initialize_phrases",
+ "notes": "§2002:14.8.19.1 grants INITIALIZE {identifier-1}... [WITH FILLER] [{ALL|category-name} TO VALUE] [THEN REPLACING {category-name DATA BY {identifier-2|literal-1}}...] [THEN TO DEFAULT] with eleven category names. The case writes every arm on a CD record group: ALL TO VALUE (I1), WITH FILLER ALL TO VALUE (I2), bare (I3), NUMERIC TO VALUE THEN REPLACING ALPHANUMERIC/NUMERIC-EDITED (literal) ALPHABETIC (identifier-2) THEN TO DEFAULT (I4), three identifier-1 with ALPHABETIC ALPHANUMERIC-EDITED TO VALUE (I5), DATA-POINTER PROGRAM-POINTER OBJECT-REFERENCE BOOLEAN NATIONAL NATIONAL-EDITED TO VALUE ... Run at --std 2002 on the pinned dc1f2dcce8 build matched."
+}

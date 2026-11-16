@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.57.3-2",
+ "rule-digest": "e1e0198cc345",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Ord; src/WiseOwl.Cobol.Runtime/Values/Text/LiteralPhraseCollation.cs#Weight; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Collate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase",
+ "test-ref": "conformance:cases/12.3.6-OBJECT-COMPUTER/alphabet_national",
+ "notes": "§2002:15.57.3 RV2: a class-national argument-1 returns its ordinal position in the current national program collating sequence. alphabet_national (accept [2002]) declares OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE FOR ALPHANUMERIC IS STD-SEQ FOR NATIONAL IS REV-NAT with ALPHABET REV-NAT FOR NATIONAL IS N\"CBA\", so by §2002:12.2.5.3 GR9 the national program collating sequence is C, B, A (positions 1, 2, 3) followed by every unspecified character in native order (§2002:12.2.6.3 GR7k.3). The lines 'MOVE FUNCTION ORD(N-A) TO ORD-R.' / 'DISPLAY \"ORD-A=\" ORD-R.' with N-A PIC N VALUE N\"A\" therefore... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}
