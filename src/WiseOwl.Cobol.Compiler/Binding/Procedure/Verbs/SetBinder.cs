@@ -908,7 +908,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary>⛔ THE ONE §2023:8.4.3.12.3 SR1 / §2023:8.4.3.13.3 SR1 SCREEN — "Identifier-1 shall be of category alphanumeric
     /// or national" — over the data item the name operand of an address-identifier references (kb/Work PB1417 +
     /// PB1452). The function-address-identifier and the program-address-identifier print the same sentence, so one
-    /// reader answers both: <see cref="ItemCategory.IsAlphanumericOrNational(Place)"/>, the compiler's ONE category
+    /// reader answers both: <see cref="ItemCategory.IsAlphanumericOrNational(Place, EditionInfo)"/>, the compiler's ONE category
     /// predicate for this rule. Both sites used to test the raw <c>Item.Pic?.Category</c>, which is null for a GROUP
     /// (an alphanumeric or national group item has class and category alphanumeric / national, §2023:8.5.2.1, and was
     /// refused as "category (none)") and which reads PIC A — category alphabetic, outside SR1's list — as
@@ -917,7 +917,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <param name="prefix">The statement as the message opens it, ending before the colon.</param>
     private bool ScreenAddressName(Place name, string prefix, string word, DiagnosticDescriptor code, string rule)
     {
-        if (ItemCategory.IsAlphanumericOrNational(name)) return true;
+        if (ItemCategory.IsAlphanumericOrNational(name, ctx.Edition.Edition)) return true;
         ctx.Edition.Error(code,
             $"{prefix}: identifier-1 shall be of category alphanumeric or national (ISO §2023:{rule}) — '{word}' is {ItemCategory.Face(name)}");
         return false;
@@ -1533,31 +1533,40 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// ("Integer-1 and integer-2 may be signed. Integer-1 must be positive."), with §1985:III.2's "neither signed nor zero
     /// unless explicitly allowed". ISO/IEC 1989:2002 prints arithmetic-expression-1 and arithmetic-expression-2 in those
     /// positions (14.8.35.1), so any other operand, a non-integer literal or item, a zero or negative integer-1, an
-    /// expression, is the 2002 form: row <c>set-arithmetic-expression-2002</c>, asked once per statement, after the
+    /// expression, is the 2002 form: row <c>set-arithmetic-expression-2002</c>, or <c>set-up-down-index-amount-2002</c> for an
+    /// index-name or index data item as Format 2's amount (kb/Work PB5593), asked once per statement, after the
     /// format is selected (a statement no format admits is refused already).</summary>
     private void GateCobol85IndexAmount(Core.ArithmeticExpressionContext amount, bool upDown)
     {
-        if (ConstructRegistry.IsAvailable(ctx.Edition.Edition, Constructs.SetArithmeticExpression2002)
-            || IsCobol85IndexAmount(amount, upDown)) return;
+        if (Cobol85AmountRefusal(amount, upDown) is not { } row
+            || ConstructRegistry.IsAvailable(ctx.Edition.Edition, row)) return;
         using var _ = ctx.Edition.At(amount);
-        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, Constructs.SetArithmeticExpression2002,
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink, row,
             $"the SET {(upDown ? "UP BY or DOWN BY" : "TO")} operand {DataBinder.WrittenText(amount)}");
     }
 
-    /// <summary>Whether <paramref name="amount"/> is one of the 1985 operands <see cref="GateCobol85IndexAmount"/> names: an
-    /// integer literal with the sign its position admits, or a data reference to an elementary numeric integer — and, for
-    /// Format 1's identifier-2 only, an index-name or an index data item (an item the reference does not resolve, or one of another class, is refused by its own
-    /// rule and is not asked here).</summary>
-    private bool IsCobol85IndexAmount(Core.ArithmeticExpressionContext amount, bool upDown)
+    /// <summary>The construct row that names why <paramref name="amount"/> is not one of the 1985 operands
+    /// <see cref="GateCobol85IndexAmount"/> names — an integer literal with the sign its position admits, or a data reference to
+    /// an elementary numeric integer, and, for Format 1's sender only, an index-name (index-name-2) or an index data item
+    /// (identifier-2, §1985:VI.6.23.3 SR2) (an item the reference does not resolve, or one of another class, is refused by its own rule and is not asked here) — or null when it is
+    /// one. An index-name or index data item as Format 2's amount has a row of its own (<see cref="Constructs.SetUpDownIndexAmount2002"/>,
+    /// kb/Work PB5593), so the refusal names the operand it refuses and not the three forms
+    /// (<see cref="Constructs.SetArithmeticExpression2002"/>) it is not.</summary>
+    private string? Cobol85AmountRefusal(Core.ArithmeticExpressionContext amount, bool upDown)
     {
         if (amount.additiveExpression().multiplicativeExpression() is not [var term]
-            || term.powerExpression() is not [var power] || power.unaryExpression() is not [var unary]) return false;
+            || term.powerExpression() is not [var power] || power.unaryExpression() is not [var unary])
+            return Constructs.SetArithmeticExpression2002;
         if (unary.primaryExpression()?.dataReference() is not { } dref)
-            return Cobol85OperandForms.IsInteger(unary, upDown ? Cobol85IntegerSign.Any : Cobol85IntegerSign.Positive);
+            return Cobol85OperandForms.IsInteger(unary, upDown ? Cobol85IntegerSign.Any : Cobol85IntegerSign.Positive)
+                ? null : Constructs.SetArithmeticExpression2002;
         // §1985:VI.6.23.3 SR3 — "Identifier-3 must reference an elementary numeric integer": an index-name and an index
-        // data item are neither (kb/Work PB5421). Format 1's identifier-2 DOES admit both (SR2), so only the UP/DOWN amount asks.
-        if (upDown && _fmt.KindOf(dref) is SetOperandKind.IndexName or SetOperandKind.IndexDataItem) return false;
-        return ctx.Refs.ProbeDeclaration(dref) is not { Pic: { Category: PicCategory.Numeric, Scale: > 0 } };
+        // data item are neither (kb/Work PB5421). Format 1's sender admits an index-name (the index-name-2 brace) and an index data
+        // item (identifier-2, SR2), so only the UP/DOWN amount asks.
+        if (upDown && _fmt.KindOf(dref) is SetOperandKind.IndexName or SetOperandKind.IndexDataItem)
+            return Constructs.SetUpDownIndexAmount2002;
+        return ctx.Refs.ProbeDeclaration(dref) is not { Pic: { Category: PicCategory.Numeric, Scale: > 0 } }
+            ? null : Constructs.SetArithmeticExpression2002;
     }
 
     /// <summary>SET Format 14 (ISO §2023:14.9.39.2; OCCURS DYNAMIC, data-model D9) — <c>SET data-name-2
