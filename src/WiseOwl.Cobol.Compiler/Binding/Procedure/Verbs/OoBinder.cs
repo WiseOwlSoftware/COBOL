@@ -298,7 +298,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // alphanumeric data item") are none of them; a reference-modified view takes §2023:8.4.3.3.4 GR6's category.
             // The run-time selector (CobolObject.NormalizeMethodName) takes the item's character value whichever of
             // the two classes it is (kb/Work PB1136).
-            if (!ItemCategory.IsAlphanumericOrNational(msrc))
+            if (!ItemCategory.IsAlphanumericOrNational(msrc, ctx.Edition.Edition))
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InvokeUniversalReferenceRule,
                     $"INVOKE: identifier-2 ('{DataBinder.WrittenText(mref)}') shall reference an alphanumeric or national data "

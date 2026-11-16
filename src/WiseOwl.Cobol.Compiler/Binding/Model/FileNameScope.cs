@@ -6,20 +6,24 @@ namespace WiseOwl.Cobol.Binding.Model;
 /// (<c>FileSlice.FilesByName</c>) over its containers' GLOBAL files (<c>InheritedGlobals.Files</c>, nearest
 /// container first), an own file-name hiding a container's of the same spelling (§2023:8.4.6.2.1 3) a)). The ONE lookup every
 /// reader of a file-name a statement or clause writes asks, in the data phases and the procedure division alike.</summary>
-public readonly struct FileNameScope(IReadOnlyDictionary<string, FileModel> own, IReadOnlyDictionary<string, FileModel> inherited)
+public readonly struct FileNameScope(IReadOnlyDictionary<string, FileModel> own, IReadOnlyDictionary<string, FileModel> inherited,
+    IReadOnlySet<string> hidden)
 {
+    private readonly IReadOnlySet<string> _hidden = hidden;
     private readonly IReadOnlyDictionary<string, FileModel> _own = own;
     private readonly IReadOnlyDictionary<string, FileModel> _inherited = inherited;
 
     /// <summary>The file <paramref name="name"/> names here: the element's own, else the nearest container's GLOBAL one.</summary>
     public bool TryGetValue(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out FileModel? file) =>
-        _own.TryGetValue(name, out file) || _inherited.TryGetValue(name, out file);
+        _own.TryGetValue(name, out file) || (!_hidden.Contains(name) && _inherited.TryGetValue(name, out file));
 
     /// <summary>True when <paramref name="name"/> is a file-name visible here.</summary>
-    public bool ContainsKey(string name) => _own.ContainsKey(name) || _inherited.ContainsKey(name);
+    public bool ContainsKey(string name) => _own.ContainsKey(name) || (!_hidden.Contains(name) && _inherited.ContainsKey(name));
 
-    /// <summary>Every visible file: the element's own in declaration order, then each container GLOBAL file no own
-    /// file-name hides, nearest container first.</summary>
+    /// <summary>Every file identifiable here: the element's own in declaration order, then each container GLOBAL file no own
+    /// file-name hides, nearest container first. A container's file whose NAME a nearer data-name hides is still here: this
+    /// is the identity walk (record-names, LINAGE-COUNTER, commit control), and the hidden word hides only the name
+    /// (§2023:8.4.6.2.1 3) a); kb/Work PB5786).</summary>
     public IEnumerable<FileModel> Values => Visible(_own, _inherited);
 
     private static IEnumerable<FileModel> Visible(IReadOnlyDictionary<string, FileModel> own,

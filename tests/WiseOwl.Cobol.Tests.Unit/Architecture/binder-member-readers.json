@@ -517,6 +517,9 @@
     "WiseOwl.Cobol.Binding.DataBinder::NamesConstant": [
       "WiseOwl.Cobol.Binding.SpecialNamesBinder"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::NearerFileNameHides": [
+      "WiseOwl.Cobol.Binding.Model.SymbolTable"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::NextUid": [
       "WiseOwl.Cobol.Binding.CompilerTemps"
     ],

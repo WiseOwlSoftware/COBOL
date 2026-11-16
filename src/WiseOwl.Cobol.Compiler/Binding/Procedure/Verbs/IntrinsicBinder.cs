@@ -2107,7 +2107,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 if (p.AppliesAt(ctx.Edition.Edition.Year)
                     && IntrinsicArgumentRules.PredicateViolation(p, args[i], KnownWidth(args[i])) is { } pWhy)
                     Emit($"FUNCTION {sig.Name} argument-{i + 1} {pWhy}", coercible: IntrinsicArgumentRules.IsCoercible(p, rule, args[i]));
-            if (IntrinsicArgumentRules.Violation(rule, args[i]) is not { } why) continue;
+            if (IntrinsicArgumentRules.Violation(rule, args[i], ctx.Edition.Edition) is not { } why) continue;
             ReportClass($"FUNCTION {sig.Name} argument-{i + 1} {why} ({rule.Clause})", args[i]);
         }
 

@@ -200,6 +200,18 @@ public sealed partial class DataBinder
     internal bool NonConditionDeclarationHides(string name, IReadOnlyList<string> qualifiers, Model.Scope scope, int depth) =>
         NonConditionDeclarationNearerThan(name, qualifiers, scope, depth) is not null;
 
+    /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) FOR A DATA-NAME AGAINST A NEARER FILE-NAME (kb/Work PB5786; §1985:X.1.3.8.2 GR3a): a
+    /// reference is "to the object which that program describes" even when the name there is "a different type of
+    /// user-defined word" (§1985:X.1.3.8), so a contained program's own file-name FX is what `FX` names there, never its
+    /// container's GLOBAL data item FX. True when an unqualified spelling names a file-name (this element's own SELECT, or a
+    /// containing element's GLOBAL file) declared in a source element NEARER than <paramref name="depth"/>; a file-name takes no
+    /// qualifier, so a qualified reference is never hidden by one. The caller meets an unidentified reference, and
+    /// <see cref="NonDataDeclarationOf"/> words it as "declared as a file-name". The reverse arm — an own data-name hiding
+    /// a container's GLOBAL file — is <c>InheritedGlobals.DropShadowed</c>'s.</summary>
+    internal bool NearerFileNameHides(string name, IReadOnlyList<string> qualifiers, int depth) =>
+        depth != 0 && qualifiers.Count == 0 && State.VisibleFiles.TryGetValue(name, out var file)
+        && State.Inherited.FileDepth(file) < depth;
+
     /// <summary>⛔ ISO §2023:8.4.6.2.1 3) a) SEEN FROM A CONDITION-ONLY POSITION, FOR THE NAME CLASSES THAT ARE NOT DATA ITEMS
     /// (kb/Work PB4432 review R1-1, the class twin of <see cref="ConditionNameHiddenByNearerDataItem"/>): the written
     /// qualifiers reach a level-88 of the spelling, but a constant-name, index-name or file-name of it declared in a

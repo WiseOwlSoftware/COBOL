@@ -1,1 +1,1 @@
-{"refuse-at": ["85"], "expect": "COBOL0900: a SET index sending operand that is an arithmetic expression, a non-integer, or a zero or negative integer requires COBOL-2002"}
+{"refuse-at": ["85"], "expect": "COBOL0900: a SET UP BY or DOWN BY amount that is an index-name or an index data item (the 1985 amount is an elementary numeric integer) requires COBOL-2002"}
