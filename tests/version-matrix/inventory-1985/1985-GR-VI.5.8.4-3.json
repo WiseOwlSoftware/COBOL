@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.8.4-3",
  "rule-digest": "5fc253e1a1e6",
- "test-ref": "conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_group_direction",
+ "test-ref": "conformance:cases/13.18.38-OCCURS/pb202_odo_refmod_group_direction; conformance:cases/VI.5.8@1985-OCCURS-CLAUSE/pb5776_string_odo_group_receiver_maximum_length",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
