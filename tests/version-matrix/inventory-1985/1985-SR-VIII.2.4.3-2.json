@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-VIII.2.4.3-2",
  "rule-digest": "3efb99490562",
- "test-ref": "conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-not-unsigned-integer",
+ "test-ref": "conformance:cases/VIII.2.4@1985-ACCESS-MODE-CLAUSE/pb5627-relative-key-signed-85; conformance:cases/VIII.2.4@1985-ACCESS-MODE-CLAUSE/pb5801_relative_key_level66_85",
+ "notes": "retired-witness: conformance:cases/12.4.5.13-RELATIVE-KEY/pb699-relative-key-not-unsigned-integer (kb/Work PB5627: at --std 85 the refusal cites the 1985 rule, so the 2023-worded refusal now runs at 2002, 2014 and 2023 only; the 85 witnesses are pb5627-relative-key-signed-85 and pb5801_relative_key_level66_85)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

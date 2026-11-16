@@ -80,7 +80,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // ONE initial evaluation (§2023:14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
             // aliasing a sender cannot change the value the remaining receivers store.
             if (MaterializesInitialEvaluation(targets)) v = Snapshot(v);
-            foreach (var r in targets) GuardedStore(ise, r.Place, r.Rounding, at => StoreArith(at, v, r.Rounding));
+            // Each store is that receiver's FINAL TRANSFER, settled for it as COMPUTE's several-receiver form settles: under
+            // standard arithmetic a standard intermediate data item "being moved to a resultant-identifier for which the ROUNDED
+            // phrase has not been specified" is rounded to 31 digits first (§2002:8.8.1.3.1.3 situation 3; kb/Work PB5575), so
+            // ADD H TO N GIVING R2 with 10^30 + .5 stores 10^30 + 1, as COMPUTE R2 = N + H does.
+            foreach (var r in targets)
+                GuardedStore(ise, r.Place, r.Rounding, at => StoreArith(at, num.Settle(v, RcvFor(r, ise), outermost: true), r.Rounding));
         });
 
     /// <summary><c>MULTIPLY a BY b GIVING r…</c> (ISO §2023:14.9.26): the product is each receiver's FINAL TRANSFER, so — like the

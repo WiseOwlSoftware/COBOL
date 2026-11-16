@@ -1,0 +1,533 @@
+#!/usr/bin/env python3
+"""gate_differential.py - THE PROGRAM DIFFERENTIAL (kb/Work PB4333, step 10 of PB4323; DESIGN-test-build-ci.md section
+3.14.13): which Conformance cases a local gate need not run because each is BYTE-IDENTICAL IN EVERY INPUT to a case that
+already passed on this host.
+
+    python scripts/gate_differential.py status [--tree <tree>]   # the harness key at a tree and whether passes stand there
+
+A CASE IS CARRIED, never run, exactly when this gate computed for it a CASE DIGEST that the store of passed cases holds at
+this gate's HARNESS KEY. Both are digests of inputs, never of names or time:
+
+  * the HARNESS KEY (`harness_key`) covers every input of the Conformance target whose class is `everything`
+    (scripts/build_targets.json `differential`: the runtime, the harness, the build, the suite's adapters and profiles),
+    the target's facets (platform, configuration, toolchain), the suite manifest's content that is no case's entry, and
+    the differential's own inputs (the capture's host, this file, the classification). Any change there is a new harness
+    key, where no pass is recorded yet: the whole population runs.
+  * the CASE DIGEST (`case_digests`) of one listed case of a carried family covers its theory and row (edition, id), its
+    manifest entry as the generator wrote it, the blob of every file that entry names (source, data, expected output),
+    and the oracle's three digests of the compile the theory performs (`WiseOwl.Cobol.ArchOracle digests`): the emitted
+    C#, the diagnostic stream, and the PROGRAM BYTES (the assembly and its runtime configuration). A `program`-class input
+    (the compiler, src/ less the runtime) reaches a carried case only through those, a `case`-class input (a test's own
+    folder and sidecars) only through its entry and its named files.
+
+So a case runs when its program or diagnostics changed, when a file it names or its entry changed, when it is new, and
+when no pass stands at the harness key; and every case NOT of a carried family (`FAMILIES`) runs, as does every case the
+digest rule cannot name exactly (a truncated display name, a multi-unit or server test, a flagged test, a compile that
+threw in the capture, a program that reads the compile clock, whose bytes differ every compile).
+
+THE STORE OF PASSED CASES is the pass store's own directory (`buildgraph.Store`, one store, kb/Work PB5218):
+`<store>/conformance-cases/<harness key>.txt`, one case digest per line, sorted. A gate whose Conformance population was
+EXACT and green, at a key that did not move while it ran, adds the digest of every case it listed (`CaseStore.record`).
+A digest is written only from such a pass, so a digest in the file is a pass of exactly those inputs.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+import tempfile
+import time
+from collections import Counter
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Callable, Iterable, Mapping
+
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / "scripts"))
+import buildgraph  # noqa: E402  - THE targets, their keys and the one store (kb/Work PB5218)
+import lane_classification  # noqa: E402
+from standard_streams import ensure_utf8  # noqa: E402
+
+#: The version of the harness key's and the case digest's composition: a change to either is a change of this.
+SCHEMA = b"program-differential 1"
+#: The assembly whose cases are carried, and its target in the targets file.
+ASSEMBLY = "Conformance"
+#: The suite manifest a carried case's entry is read from (the generator's output, `conformance-suite`).
+SUITE_MANIFEST = ("wiseowl", "manifest.json")
+#: Where a manifest entry's paths are relative to (SuiteManifest.Root).
+SUITE_ROOT = "conformance-suite/"
+#: The store of passed cases, under the store's directory: `<harness key>.txt`.
+CASE_DIR = "conformance-cases"
+#: The captures of earlier gates, under the store's directory: `<compiler key>.tsv` (`CaptureStore`).
+CAPTURE_DIR = "conformance-captures"
+#: A case set not written for this long is pruned when another is written (a harness key no tree has any more).
+PRUNE_DAYS = 21
+#: The program "digest" the capture writes for a compilation that read the compile clock (ArchOracle.ClockProgram):
+#: its bytes differ every compile, so such a case is never carried.
+CLOCK = "clock"
+#: The program "digest" of a compilation that read another ambient input (ArchOracle.AmbientProgram): never carried.
+AMBIENT = "ambient"
+#: The capture's file in the gate's run directory.
+DIGESTS_FILE = "oracle-digests.tsv"
+
+_ARG = r'"([^"\\]+)"'
+#: THE CARRIED FAMILIES: a listed display name -> (family, edition, id). A name no pattern matches exactly (another
+#: theory, a truncated argument `"..."...`) is never carried.
+FAMILIES = (
+    ("suite", re.compile(r"WiseOwl\.Cobol\.Tests\.Conformance\.ConformanceSuiteTests_P\d+\."
+                         rf"SuiteTest_IsNoWorseThanItsVerdictAllows\(edition: {_ARG}, id: {_ARG}\)"), ("edition", "id")),
+    ("refusal", re.compile(r"WiseOwl\.Cobol\.Tests\.Conformance\.ConformanceSuiteTests_P\d+\."
+                           rf"WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic\(id: {_ARG}, edition: {_ARG}\)"),
+     ("id", "edition")),
+)
+#: The fields of an entry the rule understands, by family: an entry holding any other (a multi-unit test's `build`, a
+#: server test's `servers`, a flagged test's `control` and `line`, a field a later generator adds) is not carried.
+ENTRY_FIELDS = {
+    "suite": frozenset({"id", "clause", "source", "source-format", "rules", "files", "requires", "words", "expect",
+                        "implementor-defined", "expected-output", "tree", "portable", "in-suite", "options"}),
+    "refusal": frozenset({"source", "source-format", "files", "options", "refuse-at", "expect"}),
+}
+
+
+class DifferentialError(RuntimeError):
+    """The differential cannot select: the selection is not made, and the whole population runs."""
+
+
+def _blob(raw: bytes) -> str:
+    """A `git ls-tree` entry's object id."""
+    return raw.split(b"\t", 1)[0].split()[2].decode("ascii")
+
+
+def manifest_path(suite_dir: Path) -> Path:
+    return suite_dir.joinpath(*SUITE_MANIFEST)
+
+
+def read_manifest(suite_dir: Path) -> dict:
+    try:
+        return json.loads(manifest_path(suite_dir).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise DifferentialError(f"the suite manifest {manifest_path(suite_dir)} could not be read ({e})") from None
+
+
+def _canonical(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+
+
+def harness_key(target: buildgraph.TestTarget, entries: list[tuple[bytes, str]], facets: Mapping[str, str],
+                manifest: dict, host_facts: str) -> str:
+    """THE HARNESS KEY (module doc): every `everything`-class entry the target's key covers, its facets, the differential's
+    own inputs and the manifest's non-case content. A path the target's key covers that the classification does not class
+    counts as `everything` (load_targets refuses that graph, so it never happens)."""
+    diff = target.differential
+    if diff is None:
+        raise DifferentialError(f"{target.name} has no differential classification (scripts/build_targets.json)")
+    h = hashlib.sha256(SCHEMA + b"\0harness\0" + _canonical({f: facets[f] for f in target.facets}) + b"\0")
+    for raw, path in entries:
+        if target.matches(path) and diff.class_of(path) in ("everything", None):
+            h.update(b"input\0" + raw + b"\0")
+        if any(lane_classification.under(path, p) for p in diff.inputs):
+            h.update(b"own\0" + raw + b"\0")
+    h.update(b"suite\0" + _canonical({k: v for k, v in manifest.items() if k not in ("editions", "diagnostics")}))
+    h.update(b"\0host\0" + host_facts.encode("utf-8"))
+    return h.hexdigest()
+
+
+def read_digests(path: Path) -> dict[str, tuple[str, str, str, str]]:
+    """The capture (`WiseOwl.Cobol.ArchOracle digests`): oracle id -> (C#, diagnostics, program) digests. A malformed file
+    is a DifferentialError: nothing is carried from it."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        raise DifferentialError(f"the capture {path} could not be read ({e})") from None
+    rows: dict[str, tuple[str, str, str, str]] = {}
+    for line in text.splitlines():
+        if not line:
+            continue
+        parts = line.split("\t")
+        if len(parts) != 6:
+            raise DifferentialError(f"the capture {path} has a malformed line: {line[:120]!r}")
+        rows[parts[0]] = (parts[2], parts[3], parts[4], parts[5])
+    if not rows:
+        raise DifferentialError(f"the capture {path} names no case")
+    return rows
+
+
+@dataclass
+class Inputs:
+    """The OWN INPUTS of each listed case the rule can name exactly: listed name -> (its oracle id, the digest of its
+    theory, row, manifest entry and named files' blobs); and why each other listed case cannot be carried."""
+    by_name: dict[str, tuple[str, str]] = field(default_factory=dict)
+    uncarriable: Counter = field(default_factory=Counter)
+
+    def oracle_ids(self) -> dict[str, str]:
+        """oracle id -> its case's own-input digest: what a capture must hold for this listing."""
+        return dict(self.by_name.values())
+
+
+@dataclass
+class Digests:
+    """The case digests of one listing: listed name -> its digest, for each case the rule can name exactly; and why each
+    other listed case cannot be carried (reason -> count)."""
+    by_name: dict[str, str] = field(default_factory=dict)
+    uncarriable: Counter = field(default_factory=Counter)
+
+
+def _family(name: str) -> tuple[str, str, str] | None:
+    for family, pattern, order in FAMILIES:
+        if m := pattern.fullmatch(name):
+            args = dict(zip(order, m.groups()))
+            return family, args["edition"], args["id"]
+    return None
+
+
+def case_inputs(listed: Counter, manifest: dict, blobs: Mapping[str, str]) -> Inputs:
+    """Each listed case's own inputs (module doc), or the reason it has none. `blobs`: tracked path -> blob id at the
+    measured tree."""
+    out = Inputs()
+    editions = manifest.get("editions") or {}
+    tests = {ed: {t.get("id"): t for t in ts} for ed, ts in editions.items() if isinstance(ts, list)}
+    refusals = manifest.get("diagnostics") or {}
+    for name, count in listed.items():
+        fam = _family(name)
+        if fam is None:
+            out.uncarriable["not a carried family"] += count
+            continue
+        if count != 1:
+            out.uncarriable["listed more than once"] += count
+            continue
+        family, edition, case_id = fam
+        if family == "suite":
+            entry, oracle_id = tests.get(edition, {}).get(case_id), f"suite/{edition}/{case_id}"
+            named = [entry.get("source"), *(entry.get("files") or []), *(entry.get("expected-output") or {}).values()] \
+                if isinstance(entry, dict) else []
+            plain = isinstance(entry, dict) and entry.get("expect") == "accept"
+        else:
+            entry, oracle_id = refusals.get(case_id), f"refusal/{case_id}@{edition}"
+            named = [entry.get("source"), *(entry.get("files") or [])] if isinstance(entry, dict) else []
+            plain = isinstance(entry, dict)
+        if not isinstance(entry, dict):
+            out.uncarriable["no manifest entry"] += 1
+            continue
+        if not plain or set(entry) - ENTRY_FIELDS[family]:
+            out.uncarriable["an entry the rule does not carry (build steps, servers, a flag test)"] += 1
+            continue
+        files = []
+        for p in sorted({str(p) for p in named}):
+            blob = blobs.get(SUITE_ROOT + p)
+            if blob is None:
+                files = None
+                break
+            files.append(f"{p}\0{blob}")
+        if files is None:
+            out.uncarriable["a file its entry names is not tracked"] += 1
+            continue
+        own = hashlib.sha256(SCHEMA + b"\0own\0" + "\0".join([family, edition, case_id]).encode("utf-8")
+                             + b"\0entry\0" + _canonical(entry) + b"\0files\0" + "\0".join(files).encode("utf-8"))
+        out.by_name[name] = (oracle_id, own.hexdigest())
+    return out
+
+
+def case_digests(inputs: Inputs, oracle: Mapping[str, tuple[str, str, str, str]],
+                 exists: Callable[[str], bool]) -> Digests:
+    """Each case's digest: its own inputs and the oracle's digests of its compile (C#, diagnostics, program, and the
+    paths outside its directory it probed and did not find). A case has none when its compile threw, read the compile
+    clock, read another AMBIENT input (the environment, the repository, a file outside its own directory: the compile's
+    one record of them is CompilationInputs, ArchOracle.Ambient), or when one of its absent probes now `exists` (a library
+    text appeared where the compile found none, so the same compile would now resolve otherwise)."""
+    out = Digests(uncarriable=Counter(inputs.uncarriable))
+    for name, (oracle_id, own) in inputs.by_name.items():
+        digests = oracle.get(oracle_id)
+        if digests is None or "!" in digests[:3]:
+            out.uncarriable["no digest of its compile"] += 1
+            continue
+        if digests[2] == CLOCK:
+            out.uncarriable["its program reads the compile clock (WHEN-COMPILED)"] += 1
+            continue
+        if digests[2] == AMBIENT:
+            out.uncarriable["its compile read an ambient input (the environment, the repository, a file outside its directory)"] += 1
+            continue
+        if any(exists(p) for p in digests[3].split("|") if p):
+            out.uncarriable["a path its compile probed and did not find now exists"] += 1
+            continue
+        out.by_name[name] = hashlib.sha256(SCHEMA + b"\0case\0" + own.encode("ascii") + b"\0"
+                                           + "\0".join(digests).encode("utf-8")).hexdigest()
+    return out
+
+
+def compiler_key(target: buildgraph.TestTarget, entries: list[tuple[bytes, str]], harness: str) -> str:
+    """THE CAPTURE'S KEY: the harness key and every `program`-class entry the target's key covers. A capture row at this
+    key, for a case whose own inputs are unchanged, is the compile this tree would make (the compile reads the compiler,
+    the harness and the case's own inputs, nothing else), so it is reused instead of compiled again."""
+    diff = target.differential
+    h = hashlib.sha256(SCHEMA + b"\0compiler\0" + harness.encode("ascii") + b"\0")
+    for raw, path in entries:
+        if target.matches(path) and diff is not None and diff.class_of(path) == "program":
+            h.update(raw + b"\0")
+    return h.hexdigest()
+
+
+class CaptureStore:
+    """THE CAPTURES OF EARLIER GATES (kb/Work PB4333): `<dir>/<compiler key>.tsv`, one line per compile: oracle id, its
+    case's own-input digest, and the three digests. A gate compiles only the cases this store has no row of at its
+    compiler key with the same own-input digest: a landing that changes no compiler source compiles only its new and
+    changed cases."""
+
+    def __init__(self, directory: Path):
+        self.dir = directory
+
+    @classmethod
+    def of(cls, store: buildgraph.Store) -> "CaptureStore":
+        return cls(store.dir / CAPTURE_DIR)
+
+    def _path(self, key: str) -> Path:
+        if not re.fullmatch(r"[0-9a-f]{64}", key):
+            raise ValueError(f"not a compiler key: {key!r}")
+        return self.dir / f"{key}.tsv"
+
+    def lookup(self, key: str) -> dict[str, tuple[str, tuple[str, str, str, str]]]:
+        """oracle id -> (own-input digest, digests) at `key`; {} when none is stored (or it cannot be read)."""
+        try:
+            text = self._path(key).read_text(encoding="utf-8")
+        except (OSError, ValueError):
+            return {}
+        rows = {}
+        for line in text.splitlines():
+            parts = line.split("\t")
+            if len(parts) == 6 and "!" not in parts[2:5]:
+                rows[parts[0]] = (parts[1], (parts[2], parts[3], parts[4], parts[5]))
+        return rows
+
+    def record(self, key: str, rows: Mapping[str, tuple[str, tuple[str, str, str, str]]], now: float | None = None) -> None:
+        """Write `rows` over the store at `key` (a gate's whole capture of its listing), whole; prune as CaseStore."""
+        path = self._path(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".capture-", suffix=".tsv")
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
+            fh.write("".join(f"{i}\t{own}\t{c}\t{d}\t{p}\t{a}\n" for i, (own, (c, d, p, a)) in sorted(rows.items())))
+        os.replace(tmp, path)
+        _prune(self.dir, "*.tsv", path, now)
+
+
+def _prune(directory: Path, pattern: str, keep: Path, now: float | None) -> None:
+    """Delete the files of `directory` matching `pattern` not written for PRUNE_DAYS before `keep` was (the file system's
+    own clock, so the age is measured on one clock: `now` overrides it), never `keep`."""
+    cutoff = (keep.stat().st_mtime if now is None else now) - PRUNE_DAYS * 86400
+    for other in directory.glob(pattern):
+        try:
+            if other != keep and other.stat().st_mtime < cutoff:
+                other.unlink()
+        except OSError:
+            pass   # another gate pruned it first
+
+class CaseStore:
+    """THE STORE OF PASSED CASES (module doc): `<dir>/<harness key>.txt`, one case digest per line, sorted."""
+
+    def __init__(self, directory: Path):
+        self.dir = directory
+
+    @classmethod
+    def of(cls, store: buildgraph.Store) -> "CaseStore":
+        return cls(store.dir / CASE_DIR)
+
+    def _path(self, harness: str) -> Path:
+        if not re.fullmatch(r"[0-9a-f]{64}", harness):
+            raise ValueError(f"not a harness key: {harness!r}")
+        return self.dir / f"{harness}.txt"
+
+    def lookup(self, harness: str) -> frozenset[str] | None:
+        """The case digests that passed at `harness`; None when no pass stands there."""
+        try:
+            text = self._path(harness).read_text(encoding="ascii")
+        except (OSError, ValueError):
+            return None
+        return frozenset(line for line in text.splitlines() if re.fullmatch(r"[0-9a-f]{64}", line))
+
+    def record(self, harness: str, digests: Iterable[str], now: float | None = None) -> int:
+        """Add `digests` (each a case that passed at `harness`) to its set, written whole (a temporary file renamed over
+        it); two writers at once can lose each other's additions, never add a digest no pass made. Prunes the sets not
+        written for PRUNE_DAYS. Returns the set's size."""
+        path = self._path(harness)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        merged = sorted((self.lookup(harness) or frozenset()) | set(digests))
+        fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".cases-", suffix=".txt")
+        with os.fdopen(fd, "w", encoding="ascii", newline="\n") as fh:
+            fh.write("".join(f"{d}\n" for d in merged))
+        os.replace(tmp, path)
+        _prune(self.dir, "*.txt", path, now)
+        return len(merged)
+
+
+@dataclass
+class Selection:
+    """What the differential decided for one gate's Conformance listing: the harness key, every case digest, the cases
+    CARRIED (a pass stands at their digest: listed name -> 1), and how many ran by which rule."""
+    harness: str
+    digests: Digests
+    stands: bool                       # a pass set stands at the harness key
+    carried: Counter = field(default_factory=Counter)
+    runs: Counter = field(default_factory=Counter)   # reason -> count of the cases that run
+    captured: "Captured | None" = None   # the capture it selected on (its rows are kept at `compiler` once it passes)
+    compiler: str = ""
+
+    def describe(self) -> str:
+        why = ", ".join(f"{n:,} {r}" for r, n in self.runs.most_common())
+        return (f"program differential (kb/Work PB4333): harness key {self.harness[:12]}, "
+                f"{sum(self.carried.values()):,} case(s) carried as byte-identical to a passed case, "
+                f"{sum(self.runs.values()):,} run ({why or 'none'})")
+
+    def record(self) -> dict:
+        return {"harness": self.harness, "stands": self.stands, "carried": sum(self.carried.values()),
+                "ran": dict(self.runs), "compiler": self.compiler,
+                "compiles": {"reused": self.captured.reused, "compiled": self.captured.compiled} if self.captured else {}}
+
+
+def select(harness: str, digests: Digests, passed: frozenset[str] | None) -> Selection:
+    """THE SELECTION: a case is carried when its digest is in `passed` (the set at the harness key); every other case
+    runs, by its reason."""
+    sel = Selection(harness, digests, passed is not None)
+    sel.runs.update(digests.uncarriable)
+    for name, digest in digests.by_name.items():
+        if passed is not None and digest in passed:
+            sel.carried[name] = 1
+        else:
+            sel.runs["no pass at its digest (its program, diagnostics, entry or files changed, or it is new)"
+                     if passed is not None else "no pass stands at this harness key"] += 1
+    return sel
+
+
+@dataclass
+class Prepared:
+    """The differential at one gate's measured tree before any host: its harness key, the pass set standing there (None:
+    none), the capture's compiler key, the suite manifest and the tree's blobs the case digests read."""
+    harness: str
+    passed: frozenset[str] | None
+    compiler: str
+    manifest: dict
+    blobs: dict[str, str]
+
+
+@dataclass
+class Captured:
+    """One gate's capture of its listing: oracle id -> (own-input digest, digests), how many compiles it reused from the
+    store and how many it made."""
+    rows: dict[str, tuple[str, tuple[str, str, str, str]]]
+    reused: int
+    compiled: int
+
+
+class Differ:
+    """THE GATE'S COLLABORATOR (kb/Work PB4333; the shape of `gate_generated.Generations`): it returns what it found and
+    never calls back into `Gate`. Every failure is said and leaves the selection unmade, so the whole population runs:
+    the differential can only ever carry less, never decide a verdict."""
+
+    def __init__(self, host, say):
+        self.host, self.say = host, say
+
+    def prepare(self, out, facets: Mapping[str, str], handed: Mapping[str, str]) -> Prepared | None:
+        """The harness and compiler keys at the measured tree with the suite the Conformance host is handed (`handed`),
+        and the pass set standing at the harness key; None (said) when either cannot be read."""
+        target = self.host.targets().get(ASSEMBLY)
+        suite = next(iter(handed.values()), None) if handed else None
+        try:
+            if target is None or suite is None or not out.tree:
+                raise DifferentialError("no Conformance target, no suite handed to its host, or no measured tree")
+            manifest = read_manifest(Path(suite))
+            entries = self.host.tree_entries(out.tree)
+            harness = harness_key(target, entries, facets, manifest, self.host.run_facts())
+            compiler = compiler_key(target, entries, harness)
+        except (DifferentialError, buildgraph.GraphError, OSError, ValueError, KeyError) as e:
+            self.say(f"build-local: program differential not prepared ({e}); Conformance runs whole")
+            return None
+        passed = CaseStore.of(self.host.store()).lookup(harness)
+        self.say(f"build-local: program differential: harness key {harness[:12]}, "
+                 + (f"{len(passed):,} passed case(s) stand there, so the capture decides what Conformance runs "
+                    "(the other hosts start now)"
+                    if passed is not None else "no pass stands there yet, so Conformance runs whole and its pass "
+                    "records one"))
+        return Prepared(harness, passed, compiler, manifest, {p: _blob(raw) for raw, p in entries})
+
+    def capture(self, prepared: Prepared, inputs: Inputs, run: Path, spawn, handed: Mapping[str, str],
+                say) -> Captured | None:
+        """The digests of every compile `inputs` needs: a row the capture store holds at the compiler key for the same
+        own inputs is reused, the rest are compiled (`Host.oracle_digests --only`, into `<run>/oracle-digests.tsv`). None
+        (said through `say`: the gate's console, or the lines of work beside the hosts) when the capture failed."""
+        t = time.monotonic()
+        wanted = inputs.oracle_ids()
+        stored = CaptureStore.of(self.host.store()).lookup(prepared.compiler)
+        rows = {i: stored[i] for i, own in wanted.items() if i in stored and stored[i][0] == own}
+        missing = sorted(i for i in wanted if i not in rows)
+        try:
+            if missing:
+                ids = run / "oracle-ids.txt"
+                ids.write_text("".join(f"{i}\n" for i in missing), encoding="utf-8", newline="\n")
+                made = read_digests(self.host.oracle_digests(run / DIGESTS_FILE, spawn, dict(handed), ids))
+                rows.update({i: (wanted[i], made[i]) for i in missing if i in made})
+        except (DifferentialError, OSError) as e:
+            say(f"build-local: program differential: the capture failed ({e}); nothing is carried")
+            return None
+        say(f"build-local: program differential: {len(rows) - len(missing):,} compile(s) reused from the capture at "
+            f"compiler key {prepared.compiler[:12]}, {len(missing):,} compiled, in {time.monotonic() - t:.1f} s")
+        return Captured(rows, len(rows) - len(missing), len(missing))
+
+    def select(self, prepared: Prepared, captured: Captured | None, inputs: Inputs, say) -> Selection | None:
+        """The selection over the listing whose own inputs are `inputs`, said through `say`; None when the capture
+        failed."""
+        if captured is None:
+            return None
+        oracle = {i: d for i, (_, d) in captured.rows.items()}
+        sel = select(prepared.harness, case_digests(inputs, oracle, self.host.portable_exists), prepared.passed)
+        sel.captured = captured
+        sel.compiler = prepared.compiler
+        say(f"build-local: {sel.describe()}")
+        return sel
+
+    def record(self, out, selection: Selection | None) -> None:
+        """After an EXACT green Conformance pass recorded at a key that did not move (`out.recorded`), every listed case
+        with a digest passed: add them to the set at the harness key, and keep the capture at the compiler key. Said when
+        not written; never changes the verdict."""
+        if selection is None or ASSEMBLY not in out.recorded:
+            return
+        try:
+            n = CaseStore.of(self.host.store()).record(selection.harness, selection.digests.by_name.values())
+            if selection.captured is not None and selection.compiler:
+                CaptureStore.of(self.host.store()).record(selection.compiler, selection.captured.rows)
+        except OSError as e:
+            self.say(f"build-local: program differential: the passed cases were not recorded ({e}); the verdict stands")
+            return
+        out.differential["recorded"] = n
+        self.say(f"build-local: program differential: {len(selection.digests.by_name):,} passed case(s) recorded at "
+                 f"harness key {selection.harness[:12]} ({n:,} stand there)")
+
+def status_main(tree: str | None) -> int:
+    """`status`: the harness key at a tree (HEAD's by default) with the suite the gate last generated in this worktree,
+    and whether a pass set stands there."""
+    graph = buildgraph.load_targets()
+    target = graph.by_assembly()[ASSEMBLY]
+    suite = REPO / "TestResults" / "generated" / "conformance-suite"
+    import gate_host  # noqa: PLC0415  (the host's facets: platform, configuration, toolchain)
+    host = gate_host.Host(REPO)
+    tools = host.toolchain()
+    facets = {"platform": host.platform(), "configuration": gate_host.GATE_CONFIGURATION, "toolchain": tools.tools}
+    entries = buildgraph.tree_entries(REPO, tree or "HEAD")
+    h = harness_key(target, entries, facets, read_manifest(suite), host.run_facts())
+    passed = CaseStore.of(buildgraph.Store.for_repo(REPO)).lookup(h)
+    print(f"=== PROGRAM DIFFERENTIAL: harness key {h} at {tree or 'HEAD'}; "
+          + (f"{len(passed):,} passed case(s) stand there ===" if passed is not None else "no pass stands there ==="))
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    s = sub.add_parser("status", help="the harness key at a tree and whether passes stand there")
+    s.add_argument("--tree", help="a tree or commit (default HEAD)")
+    args = ap.parse_args(argv)
+    return status_main(args.tree)
+
+
+if __name__ == "__main__":
+    ensure_utf8()
+    sys.exit(main())

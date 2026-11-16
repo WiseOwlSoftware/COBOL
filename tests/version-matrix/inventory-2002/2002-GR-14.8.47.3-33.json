@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-33",
+ "rule-digest": "ed017955abdc",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write",
+ "test-ref": "conformance:cases/14.8.33@2002-REWRITE-STATEMENT/pb5579_indexed_write_rewrite_keys_2002",
+ "notes": "kb/Work PB5579: §2002:14.8.47.3 GR33: the prime key the program sets before each WRITE is the key the record is stored under (the PK walk)."
+}

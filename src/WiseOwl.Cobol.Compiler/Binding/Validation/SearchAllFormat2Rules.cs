@@ -37,8 +37,8 @@ using WiseOwl.Cobol.Runtime;
 /// lets the diagnostic quote the rule; an ANTLR rule tightened to the printed format could only report an
 /// unexpected token. A WHEN whose shape is not Format 2 at all is reported through the EXISTING
 /// <see cref="StatementValidation.RejectStatementOperand"/> (COBOL1757 — "an operand a statement's own syntax
-/// rules or general format do not admit"), never a fourth code; a PARENTHESIZED condition is unwrapped silently,
-/// so the SR screens still apply to what is inside it.</para>
+/// rules or general format do not admit"), never a fourth code; a PARENTHESIZED condition is refused the same way,
+/// because the printed Format 2 has no parenthesis in its WHEN or AND phrase (kb/Work PB5773).</para>
 /// <para>⛔ SR8 AND SR9 ARE RULES ABOUT THE SUBSCRIPT AS WRITTEN — "shall be subscripted by the first index-name
 /// associated with identifier-1 … The index-name subscript shall not be followed by a '+' or a '–'" — which the
 /// rendered C# index expression has already erased (an index-name and an integer item of the same value render
@@ -109,9 +109,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
     /// <summary>Decompose a WHEN's <c>condition</c> into the Format-2 conjuncts — the <c>WHEN …</c> operand and
     /// every repetition of the <c>AND …</c> phrase. False, with <paramref name="why"/> naming the construct, for
     /// any shape the printed Format 2 does not admit: OR, XOR, NOT, an abbreviated combined relation (§2023:8.8.4.12 —
-    /// Format 2 writes data-name-2 out in full in every AND phrase), or a boolean condition. A PARENTHESIZED
-    /// condition is unwrapped silently: whether Format 2 admits parentheses at all is a question about its general
-    /// format, and unwrapping keeps the SR7–SR13 screens applying to what is inside.</summary>
+    /// Format 2 writes data-name-2 out in full in every AND phrase), a boolean condition, or a PARENTHESIZED
+    /// condition (the WHEN and AND braces of §2023:14.9.37.2 Format 2 print no parenthesis; only Format 1's condition-1
+    /// "may be any conditional expression", §2023:14.9.37.3 SR6; kb/Work PB5773).</summary>
     private static bool TryConjuncts(Core.ConditionContext cond, List<Core.ComparisonExpressionContext> into,
                                      out string? why)
     {
@@ -149,7 +149,9 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
         // rule, tested through its own context accessor — not a token-type match over a stream. A function
         // argument list's '(' (FNARG_LPAREN, ISO §2023:8.4.3.2.3 SR6) belongs to the separate functionCall rule and
         // can never be this node's paren, so there is no twin to consider here.
-        if (p.LPAREN() is not null && p.condition() is { } inner) return TryConjuncts(inner, into, out why);
+        // Format 2 prints no parenthesis in its WHEN or AND phrase (§2023:14.9.37.2; §1985:VI.6.22.2): refuse it.
+        if (p.LPAREN() is not null && p.condition() is not null)
+        { why = "a parenthesized condition"; return false; }
         if (p.booleanExpression().Length > 0 || p.booleanLiteral() is not null)
         { why = "a boolean condition"; return false; }
         if (p.comparisonExpression() is not { } ce) { why = "a condition Format 2 does not print"; return false; }
@@ -272,10 +274,18 @@ internal readonly struct SearchAllFormat2Rules(DataBinder data, ReferenceResolve
                                         string firstIndex, bool[] referenced)
     {
         if (SoleDataReference(operand) is not { } dref)
+        {
+            // A condition-name in parentheses reads as a grouped arithmetic operand, and it is the parenthesis Format 2
+            // does not print (§2023:14.9.37.2), so say that rather than that no condition-name was written (kb/Work PB5773).
+            string written = DataBinder.WrittenText(operand);
             return validation.RejectStatementOperand(
-                $"SEARCH ALL '{table.CobolName}' WHEN {DataBinder.WrittenText(operand)} — a WHEN phrase written without a "
-                + "relational operator is Format 2's condition-name-1 alternative, and this operand is not a "
-                + "condition-name (ISO §2023:14.9.37.2 Format 2)");
+                $"SEARCH ALL '{table.CobolName}' WHEN {written} — a WHEN phrase written without a "
+                + "relational operator is Format 2's condition-name-1 alternative, and this operand is "
+                + (written.StartsWith('(')
+                    ? "a parenthesized operand, where Format 2 prints a bare condition-name"
+                    : "not a condition-name")
+                + " (ISO §2023:14.9.37.2 Format 2)");
+        }
 
         // WrittenWordOf: a counter register's cobolWord() is its QUALIFIER, so `WHEN LINAGE-COUNTER OF F` would name F (kb/Work PB4154, PB4947).
         string name = ReferenceResolver.WrittenWordOf(dref) ?? DataBinder.WrittenText(dref);

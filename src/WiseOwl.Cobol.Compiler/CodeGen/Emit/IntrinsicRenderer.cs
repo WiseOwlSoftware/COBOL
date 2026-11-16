@@ -137,10 +137,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // exists to avoid (the RV-15.34.4-1 triage row measured it).
             if (sig.RuntimeMethod == "E") return new NumX(RuntimeApi.DecE, 0, Dec: true);
             if (sig.RuntimeMethod == "Pi") return new NumX(RuntimeApi.DecPi, 0, Dec: true);
+            // Under ARITHMETIC IS STANDARD the expression's FUNCTION E is the 32-digit standard intermediate data item, and an
+            // integer power develops one standard intermediate per multiplication (§2002:15.29.3 RV1, §2002:8.8.1.3.6; kb/Work PB5575).
+            string e = num.StandardIntermediate ? RuntimeApi.DecToSidi(RuntimeApi.DecE, num.IntermediateMode) : RuntimeApi.DecE;
             if (sig.RuntimeMethod == "Exp")
-                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecE, DecArg(ic, 0), num.IntermediateMode), 0, Dec: true);
+                return new NumX(RuntimeApi.DecPow(e, DecArg(ic, 0), num.IntermediateMode, num.StandardIntermediate), 0, Dec: true);
             if (sig.RuntimeMethod == "Exp10")
-                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), DecArg(ic, 0), num.IntermediateMode), 0, Dec: true);
+                return new NumX(RuntimeApi.DecPow(RuntimeApi.DecFrom("10", "0"), DecArg(ic, 0), num.IntermediateMode, num.StandardIntermediate), 0, Dec: true);
             if (RenderDec(ic) is { } dec)
                 return dec;
         }
@@ -996,7 +999,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// (<c>CobolIntrinsics.IntegerArgWide</c>, so MOD (BIG * BIG * K3, 1000) sees every digit of its dividend and the
     /// integrality test reads the exact fraction), a run-time-scaled exact one (<c>NumX.Exact</c>, kb/Work PB4575) its integer on
     /// its own carrier (<c>CobolIntrinsics.IntegerArgExact</c>), a float or a fractional fixed-point operand lands at scale 0
-    /// through the type-6 intake.</para>
+    /// through the type-6 intake. Under ARITHMETIC IS STANDARD a standard intermediate data item argument of a function with no
+    /// equivalent arithmetic expression is first rounded to 31 digits, the rule's own value of the argument (<see cref="StandardArgument"/>,
+    /// §2002:8.8.1.3.1.3 situation 2).</para>
     /// <para>⛔ AN EXACT VALUE IT RETURNS IS OWED A SETTLEMENT (<c>ExactWideSettlementDriftTests</c>): its readers are
     /// <see cref="RawArg"/>, which lowers it, <see cref="RenderWide"/>, whose result is a <c>NumX.Wide</c> that
     /// <c>NumericRenderer</c> settles at its public entry like any nested product (and which declines a <c>NumX.Exact</c>), and
@@ -1005,6 +1010,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private NumX RawWideArg(BoundIntrinsicCall ic, int i)
     {
         NumX x = num.AsNum(ic.Args[i], num.Receiver, keepWide: true);
+        x = StandardArgument(ic, x);
         if (!(x.Real || x.Dec || x.Exact || x.Scale != 0) || !IntrinsicArgumentRules.IsIntegerPosition(ic.Sig.Name, i)) return x;
         if (x.Wide)
             return new NumX(RuntimeApi.IntegerArgWide(x.Expr, x.Scale), 0, Wide: true,
@@ -1014,6 +1020,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             ? x with { Expr = RuntimeApi.IntegerArgUnboundedDec(x.Expr), WithPrecision = null }
             : new NumX(IntegerIntake(x, wide: true), 0);
     }
+
+    /// <summary>A written argument as its function receives it under ARITHMETIC IS STANDARD: a standard intermediate data item (an
+    /// arithmetic expression's result, <c>NumX.Dec</c>) that "is the argument of a function and there is no equivalent arithmetic
+    /// expression defined for the rules of the function" is rounded to 31 digits (§2002:8.8.1.3.1.3 situation 2; kb/Work PB5575),
+    /// unless the function is one whose argument keeps all 32 (<see cref="IntrinsicCarrierRules.RoundsStandardArgument"/>). So
+    /// FUNCTION INTEGER-OF-DATE (20000100 + 1 / K * K), K = 3 - the 32-digit 20000100.999999999999999999999999 - receives the date 20000101. Every
+    /// other mode and argument is unchanged (<see cref="NumericRenderer.SidiRounded"/>). An element of a table(ALL) argument is a data
+    /// item, never a standard intermediate data item, so this written-argument intake is the whole of the rule.</summary>
+    private NumX StandardArgument(BoundIntrinsicCall ic, NumX x) =>
+        num.StandardIntermediate && x.Dec && IntrinsicCarrierRules.RoundsStandardArgument(ic.Sig.Name, ctx.Data.DialectLevel)
+            ? x with { Expr = num.SidiRounded(x, x.Expr), WithPrecision = null }
+            : x;
 
     /// <summary>
     /// ⛔ THE WIDE INTEGER INTAKE FOR AN ARGUMENT WHOSE FUNCTION ANSWERS THE SAME PAST A BOUND — the one place a binary64
@@ -1313,9 +1331,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         string fn = ic.Sig.Name;
         bool alwaysSdidi = IntrinsicCarrierRules.CrossAligningFunctions.Contains(fn) || StandardValueFixedByRule.Contains(m)
             || IntrinsicCarrierRules.ReturnsExactParse(fn) || IntrinsicCarrierRules.ReturnsSdidiQuotient(fn);
-        if (!alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic)) return null;
+        // ⛔ UNDER ARITHMETIC IS STANDARD EVERY BODY HERE IS THE VALUE (kb/Work PB5575): the exact family's documented equivalence with
+        // the SDIDI evaluation is a 34-digit one, and the standard intermediate data item truncates each operation to 32 digits
+        // (§2002:8.8.1.3.2), so SUM (10 ** 30, .5, .25) is 10 ** 30 + .7 there and 10 ** 30 + .75 exactly.
+        if (!num.StandardIntermediate && !alwaysSdidi && !AnyDecOrRealRaw(ic) && !ArgumentRoundsAtLift(ic) && !SelectionPastReceiverHeadroom(ic))
+            return null;
 
-        string mode = num.IntermediateMode;
+        string mode = num.IntermediateMode, arithmetic = num.DecArithmetic;
         return m switch
         {
             // The NUMVAL family: the ONE positional scan's (sign, unscaled, frac[, exp]) lifted to the SDIDI exactly
@@ -1344,11 +1366,11 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             // ⛔ Guarded to STANDARD-DECIMAL: RenderDec is also consulted under NATIVE when a float-typed
             // argument is present (AnyDecOrRealRaw), and an unguarded arm would flip native float SQRT onto
             // the Dec lane — a behavior change r4's approximation licence does not ask for.
-            "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{mode}, {DecArg(ic, 0)}")),
+            "Sqrt" when num.StandardDecimal => Dec(RuntimeApi.Intrinsic("SqrtDec", $"{arithmetic}, {DecArg(ic, 0)}")),
             // FACTORIAL (§2023:15.36.4 r1c; kb/Work PB125): the SDIDI product loop — FACTORIAL(34) is exact where
             // the native Int128 lane's 33 cap returned the §2023:15.3 default 0 on a conforming argument.
             "Factorial" when num.StandardDecimal =>
-                Dec(RuntimeApi.Intrinsic("FactorialDec", $"{mode}, {IntArg(ic, 0)}")),
+                Dec(RuntimeApi.Intrinsic("FactorialDec", $"{arithmetic}, {IntArg(ic, 0)}")),
             // COMBINED-DATETIME (§2023:15.17.4 r1's EAE `argument-1 + (argument-2 / 100000)`; kb/Work PB620): the one
             // §2023:15.4.1 r1 function PB56 left on the landing intake. Argument-2 carries no fraction-digit limit
             // (§2023:15.17.3 r2 → §2023:15.5.5's magnitude-only "standard numeric time form"), so a landing at
@@ -1360,7 +1382,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "AbsScaled" => Dec(RuntimeApi.Intrinsic("AbsDec", DecArg(ic, 0))),
             "Floor" => Dec(RuntimeApi.Intrinsic("FloorDec", DecArg(ic, 0))),
             "Truncate" => Dec(RuntimeApi.Intrinsic("TruncDec", DecArg(ic, 0))),
-            "FractionPart" => Dec(RuntimeApi.Intrinsic("FractionPartDec", $"{mode}, {DecArg(ic, 0)}")),
+            "FractionPart" => Dec(RuntimeApi.Intrinsic("FractionPartDec", $"{arithmetic}, {DecArg(ic, 0)}")),
             // ⛔ UNDER NATIVE ARITHMETIC THE ARGUMENTS ENTER AS THEIR EXACT VALUES (kb/Work PB4111, PB4568; DOC-A.1-123). The arms below
             // are reached under native when an argument is SDIDI-carried (a floating-point literal, a power), an argument
             // expression the exact wide lane could not take (beside an SDIDI or binary64, or past 77 digits), a 39-digit container,
@@ -1401,27 +1423,27 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "PresentValue" when !num.StandardDecimal =>
                 Exact(LeadThenTail(ic, "PresentValueExact", $"{mode}, ", RuntimeApi.ExactType, a => ExactValueOf(ic, a))),
             "Annuity" when !num.StandardDecimal => Exact("AnnuityExact", $"{mode}, {ExactValueArg(ic, 0)}, {DecArg(ic, 1)}", null),
-            "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
-            "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "ModScaled" => Dec(RuntimeApi.Intrinsic("ModDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "RemScaled" => Dec(RuntimeApi.Intrinsic("RemDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
             "MaxScaled" => Dec(RuntimeApi.Intrinsic("MaxDec", DecArgList(ic))),
             "MinScaled" => Dec(RuntimeApi.Intrinsic("MinDec", DecArgList(ic))),
             "OrdMax" => new NumX(RuntimeApi.Intrinsic("OrdMaxDec", DecArgList(ic)), 0),
             "OrdMin" => new NumX(RuntimeApi.Intrinsic("OrdMinDec", DecArgList(ic)), 0),
-            "SumScaled" => Dec(RuntimeApi.Intrinsic("SumDec", $"{mode}, {DecArgList(ic)}")),
-            "RangeScaled" => Dec(RuntimeApi.Intrinsic("RangeDec", $"{mode}, {DecArgList(ic)}")),
-            "MeanScaled" => Dec(RuntimeApi.Intrinsic("MeanDec", $"{mode}, {DecArgList(ic)}")),
-            "MedianScaled" => Dec(RuntimeApi.Intrinsic("MedianDec", $"{mode}, {DecArgList(ic)}")),
-            "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{mode}, {DecArgList(ic)}")),
-            "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{mode}, {DecArgList(ic)}")),
-            "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{mode}, {DecArgList(ic)}")),
+            "SumScaled" => Dec(RuntimeApi.Intrinsic("SumDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "RangeScaled" => Dec(RuntimeApi.Intrinsic("RangeDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "MeanScaled" => Dec(RuntimeApi.Intrinsic("MeanDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "MedianScaled" => Dec(RuntimeApi.Intrinsic("MedianDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "MidrangeScaled" => Dec(RuntimeApi.Intrinsic("MidrangeDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "Variance" => Dec(RuntimeApi.Intrinsic("VarianceDec", $"{arithmetic}, {DecArgList(ic)}")),
+            "StandardDeviation" => Dec(RuntimeApi.Intrinsic("StdDevDec", $"{arithmetic}, {DecArgList(ic)}")),
             // ANNUITY (kb/Work PB637): §2023:15.9.3 r3's "positive integer" is a SIGN rule and says nothing about magnitude,
             // so argument-2 is a TOTAL argument and rides the SDIDI as the position intake left it (RawArg: the operand's
             // integer on the SDIDI, unbounded — an SDIDI integer reaches past Int128), never on a native integer
             // carrier. At a positive rate an enormous n is the equivalent expression's own size condition, never
             // EC-ARGUMENT-FUNCTION (see CobolIntrinsics.AnnuityDec). IntrinsicCarrierAgreementDriftTests
             // .IntegerArgumentsThatRideTheSdidi_TakeNoNativeIntake pins this arm.
-            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{mode}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
-            "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{mode}, ", "CobolDec", DecOf)),
+            "Annuity" => Dec(RuntimeApi.Intrinsic("AnnuityDec", $"{arithmetic}, {DecArg(ic, 0)}, {DecArg(ic, 1)}")),
+            "PresentValue" => Dec(LeadThenTail(ic, "PresentValueDec", $"{arithmetic}, ", "CobolDec", DecOf)),
             _ => null,
         };
 

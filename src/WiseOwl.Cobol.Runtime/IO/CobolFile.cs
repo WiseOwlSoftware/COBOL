@@ -97,9 +97,11 @@ public static class CobolFile
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
     public static void Close(string name) => _reg.Close(name);
 
-    /// <summary>The IMPLICIT close (CANCEL §2023:14.9.5 GR9 / INITIAL return §2023:14.9.18 GR2 / run-unit close): only a
-    /// connector "that is open" closes — a closed one is skipped, never stamped '42' (kb/Work PB154).</summary>
-    public static void CloseIfOpen(string name) => _reg.CloseIfOpen(name);
+    /// <summary>The guard of a program's IMPLICIT CLOSE (CANCEL §2023:14.9.5.4 GR9 / §1985:X.5.3.4 GR10, and the INITIAL
+    /// program's return, §2023:14.9.18.4 GR2 / §1985:X.5.4.4 GR3): the implicit CLOSE is executed only for a connector
+    /// "that is open", so a closed one is skipped, never stamped '42' (kb/Work PB154), and so is a name the registry does
+    /// not hold. The CLOSE itself is the explicit CLOSE's own emitted sequence (kb/Work PB5847).</summary>
+    public static bool IsOpen(string name) => _reg.IsOpen(name);
 
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
     public static void CloseWithLock(string name) => _reg.CloseWithLock(name);
@@ -206,6 +208,13 @@ public static class CobolFile
 
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e).</summary>
     public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
+
+    /// <summary>The mode a USE open-mode switch selects on (<see cref="FileConnector.UseModeView"/>); <paramref name="declaredModes"/> is
+    /// a bit mask of the mode ordinals the unit has a procedure for.</summary>
+    public static int UseModeOf(string name, int declaredModes) => _reg.UseModeOf(name, declaredModes);
+
+    /// <summary>The mode the file IS open in, −1 when not open (§2023:14.9.49.4 GR6 b)–e) "open in" mode; kb/Work PB5825).</summary>
+    public static int OpenedModeOf(string name) => _reg.OpenedModeOf(name);
 
     /// <summary>An OPEN statement begins on a file in <paramref name="mode"/> (§2023:14.9.49.4 GR6 b)–e), "in the process of being
     /// opened"): emitted before the OPEN, paired with <see cref="EndModeScope"/> after the statement's USE hook.</summary>

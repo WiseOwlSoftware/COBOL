@@ -289,9 +289,33 @@ public enum DialectBehavior
     /// statement terminates immediately" (§2023:14.9.48.4 GR2 the same), before the overflow test of GR15a, so a zero-length sender is
     /// neither an overflow nor a completed transfer: neither phrase runs. §1985:VI.6.27.4 has no such rule, and its GR17 makes a POINTER
     /// value "greater than the size of the data item referenced by identifier-1" an overflow, so at <c>--std 85</c> a zero-length sender
-    /// with the implicit or any pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). Both editions
-    /// are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
+    /// with a WRITTEN pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). With no POINTER phrase
+    /// there is no identifier-7 (GR13a: the examination begins "with the leftmost character position"), so no overflow: the first transfer
+    /// of GR13 examines zero characters and NOT ON OVERFLOW runs (GR20; kb/Work PB5858). Both editions are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
     UnstringZeroLengthSenderTerminates = 24,
+    /// <summary>§2014:8.8.1.3.1.3.1 situation 2 — under ARITHMETIC IS STANDARD a standard intermediate data item "is the argument of a
+    /// function and there is no equivalent arithmetic expression defined for the rules of the function" is rounded to 31 digits, and
+    /// the 2014 INTEGER function (§2014:15.40.3 RV1) has no equivalent expression and no exception, so its argument is rounded.
+    /// §2002:15.34.3 RV1 is that exception at 2002: "When standard arithmetic is specified, argument-1 is not rounded", so at
+    /// <c>--std 2002</c> FUNCTION INTEGER (1 - 1 / 10 ** 32) is 0 and from 2014 it is 1 (kb/Work PB5575; VCR row 7.81). Both editions
+    /// are QUOTED. The consumer is <c>IntrinsicRenderer</c>'s argument intake.</summary>
+    IntegerArgumentRoundedUnderStandardArithmetic = 25,
+    /// <summary>§2023:13.18.37.4 GR4 a) — the integer placed in the save location by an absolute NEXT GROUP lets LINE-COUNTER
+    /// be set to FOOTING, "causing a page advance to take place just before any other non-dummy body group is printed for
+    /// the report"; the 2002 text (13.16.35.3 GR4 a) words it the same. §1985:XIII.3.10.8 GR3 consults the saved integer
+    /// only after a page advance the fit test took: rule 3b's first paragraph applies the trial sum while "a body group has
+    /// been presented on the page", and its "If no body group has yet been presented on the page" paragraph reads the save
+    /// location. So at <c>--std 85</c> a body group whose trial sum does not pass its lower limit (a control footing of
+    /// LINE PLUS 0 after FOOTING was reached) stays on the current page and the save location is left for a later group
+    /// (kb/Work PB5823; VCR row 7.82). Both editions are QUOTED. The consumer is <c>CobolReport.PresentBody</c>.</summary>
+    SavedNextGroupForcesPageAdvance = 26,
+    /// <summary>§2014:13.18.54.3 GR3 and §2023:13.18.54.4 GR3 — "Each addition is tested for size error; if a size error occurs,
+    /// the EC-REPORT-SUM-SIZE exception condition is set to exist", at the addition. §2002:13.16.52.3 GR3 says the addition
+    /// sets "the associated size error indicator" and nothing else, and its GR4 raises the exception condition when the
+    /// item is presented, so at <c>--std 2002</c> a GENERATE whose addition overflows raises nothing and the condition
+    /// is raised when the entry is presented (kb/Work PB5643; VCR row 7.83). Both editions are QUOTED; 1985 has no
+    /// exception conditions. The consumer is <c>CobolReport.Accumulate</c>.</summary>
+    SumSizeErrorRaisedAtAddition = 27,
 }
 
 /// <summary>
@@ -427,8 +451,23 @@ public static class DialectBehaviors
         new(DialectBehavior.UnstringZeroLengthSenderTerminates, "unstring-zero-length-sender-terminates", 2002,
             "7.80", "§2002:14.8.44.3 GR2", "§1985:VI.6.27.4 GR17",
             "an UNSTRING whose sending item is a zero-length item terminates immediately, running neither the ON OVERFLOW nor the "
-            + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a POINTER value of 1 is greater than the "
-            + "sender's size of 0 and the statement is an overflow"),
+            + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a written POINTER value of 1 is greater "
+            + "than the sender's size of 0 and the statement is an overflow, while a statement with no POINTER phrase is none and makes its first "
+            + "transfer from zero characters"),
+        new(DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic, "integer-argument-rounded-under-standard-arithmetic", 2014,
+            "7.81", "§2014:8.8.1.3.1.3.1", "§2002:15.34.3 RV1",
+            "under ARITHMETIC IS STANDARD the argument of FUNCTION INTEGER that is a standard intermediate data item is rounded to 31 "
+            + "digits, as every argument of a function with no equivalent arithmetic expression is, only from COBOL-2014; COBOL-2002 "
+            + "says that argument-1 is not rounded, so INTEGER (1 - 1 / 10 ** 32) is 0 there and 1 from 2014"),
+        new(DialectBehavior.SavedNextGroupForcesPageAdvance, "saved-next-group-forces-page-advance", 2002,
+            "7.82", "13.18.37.4 GR4 a", "§1985:XIII.3.10.8 GR3 b",
+            "the integer an absolute NEXT GROUP saved forces a page advance before the next non-dummy body group only from "
+            + "COBOL-2002; COBOL-85 applies the page fit test to that group first and consults the saved integer only after "
+            + "the advance a failed fit takes, so a group that fits stays on the page"),
+        new(DialectBehavior.SumSizeErrorRaisedAtAddition, "sum-size-error-raised-at-addition", 2014,
+            "7.83", "§2014:13.18.54.3 GR3", "§2002:13.16.52.3 GR3",
+            "a size error in an addition into a SUM counter raises EC-REPORT-SUM-SIZE at the addition only from COBOL-2014; "
+            + "COBOL-2002 only sets the size error indicator there and raises the condition when the entry is presented"),
     ];
 
     static DialectBehaviors()

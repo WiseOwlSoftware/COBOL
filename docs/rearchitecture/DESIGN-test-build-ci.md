@@ -1564,8 +1564,15 @@ key (the counts, the facets, the worktree, run and head that proved it), written
 the store holds a pass at its key: that is the only rule, so a pass recorded in worktree A is up to date in worktree B at the
 same content (a branch re-cut from main, a second worktree). The store holds only what was proven: after its population check,
 `PassCarry.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
-it) and whose population was EXACT, at a tree that did not change while the gate ran. A red, a partial or an unmeasured
-population records nothing.
+it) and whose population was EXACT, and whose KEY did not move while the gate ran. **A pass is keyed to its target's
+declared inputs, never to the whole tree** (kb/Work PB4333): the gate computes every key again at the tree it measures after
+the hosts (`PassCarry.end_keys`, recorded as `keys_end`; a generated dependency's digest read from the store at its key
+there), and a target whose end key equals its start key had no input change while it ran. Before this, `record_passes`
+recorded nothing when the tree moved at all, so a plan file committed while a gate ran (golden-2002-8, run
+000002-20261116T031738Z: 3,184 s, `recorded: []`) voided three passes whose keys it did not touch, and the next gate re-ran
+Conformance, Unit and RepoDrift at the same keys. A target whose end key differs or cannot be resolved records nothing; the
+whole-gate REUSE (section 3.14.12) still needs the whole tree unchanged, because it answers for the audits too. A red, a
+partial or an unmeasured population records nothing.
 
 *A gate, per target.* After the lane (section 3.18) says full, the gate computes each target's key and asks the store. A
 target up to date starts no host and is not listed; its verdict-line entry is `<assembly> up to date (run <run> of
@@ -1580,9 +1587,10 @@ has exited (a self-test that hangs past the last host) stops no host (`_Live.sto
 populations are checked, each exact green one's pass is recorded, and the verdict is RED for the audit alone.
 
 *At a target's key, a re-gate runs only what has not passed* (`PassCarry.carry`, `Legs.plan`). For each target that is not up to
-date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not
-see it change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not
-itself a REUSED record, and recorded THIS key for that assembly. Its PASSES (`test_population.passed_cases`: a definition with
+date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree, is not
+itself a REUSED record, and recorded THIS key for that assembly, a key that did not move while it ran (`tree` equals
+`tree_end`, or its `keys_end` names the same key, kb/Work PB4333; an audit-stopped run has no `tree_end` and counts for
+nothing). Its PASSES (`test_population.passed_cases`: a definition with
 a Passed result and no Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate
 lists that assembly's population first (about 2 s), writes the listed names the carried passes do not cover to
 `<run>/only-<assembly>.txt` and hands the path to its host as `WISEOWL_COBOL_GATE_ONLY` (`host_env`, the one place a host's
@@ -1672,7 +1680,7 @@ and its pass is RECORDED in the store; one with no listing is left to the next g
 the carried passes do not cover, checks the population EXACT and records the pass then. Neither can turn a partial run into a
 pass.
 
-#### 3.14.13 The growth trigger, and the program differential it would build (kb/Work PB4333, step 10 of PB4323)
+#### 3.14.13 The growth trigger, and the program differential it built (kb/Work PB4333, step 10 of PB4323)
 
 The whole-population gate grows with the suite (Conformance: 10,503 cases on 2026-10-05, 20,406 on 2026-10-31), the owner's
 "drift back to more delay" built in. PIPELINE-REVIEW.md §3.4 answers with a TRIGGER, and nothing is built until it fires:
@@ -1689,13 +1697,131 @@ judged, because one afternoon of a dozen concurrent gates is not a week: the fir
 median over 16 gates in a single day, the box's three-gate steady state of §3.14.5); or **NOT MEASURED**. FIRED exits 1 and
 names the next step.
 
-**The differential, if it fires** (not built). The merge group writes, per main commit, a manifest of case to hash of the
-emitted program; a local code-lane gate whose diff leaves `src/WiseOwl.Cobol.Runtime` alone compiles the population, and
-runs only the Conformance cases whose program bytes differ from main's, plus every case that is not a compiled program. It
-is sound only while the other inputs of a case are byte-identical to main's: the runtime, and the harness (the test
-assembly's code, its goldens, the build properties). It is built only if the median fraction of changed programs over the
-newest 20 non-runtime landings is under 10 % (`python scripts/arch/emit_fraction.py`, which captures each landing and its
-first parent through the architecture oracle, `scripts/arch/capture_oracle.py`: one capture mechanism).
+**The differential: built 2026-11-15, when the trigger fired** (`GATE GROWTH: FIRED (time) -- test phase median 653 s
+over 304 gates (limit 360 s); Conformance 27004 cases`; owner: "Fix"). It was to be built only if the median fraction of
+changed programs over the newest 20 non-runtime landings is under 10 % (`python scripts/arch/emit_fraction.py`, through the
+architecture oracle, `scripts/arch/capture_oracle.py`: one capture mechanism), measured below at 0.00 %.
+
+*The rule* (`scripts/gate_differential.py`). A local code-lane gate in which Conformance is not up to date at its key does
+not run a Conformance case that is BYTE-IDENTICAL IN EVERY INPUT to a case that already passed on this host. Two digests
+decide it, each of inputs only:
+- the **harness key**: every input of the Conformance target whose class is `everything`, the target's facets (platform,
+  configuration, toolchain), the generated suite manifest's content that is no case's entry, and the differential's own
+  inputs (the capture's host `tests/WiseOwl.Cobol.ArchOracle/`, `scripts/gate_differential.py`, `scripts/buildgraph.py`
+  and the classification itself);
+- the **case digest** of each listed case of a carried family: its theory and row (edition, id), its suite-manifest entry
+  as the generator wrote it, the blob of every file that entry names (source, data, expected output) and the oracle's three
+  digests of the compile its theory performs: the emitted C#, the diagnostic stream and the PROGRAM BYTES (the assembly and
+  its runtime configuration; `ArchOracle.Observation.Program`).
+
+A case is carried when the store of passed cases holds its digest at this gate's harness key; every other case runs. So a
+case runs when its program or diagnostics changed, when its entry or a file it names changed, when it is new, when no pass
+stands at the harness key (any change of an `everything` input), and whenever the digest cannot stand for it exactly: a case
+of no carried family (every hand-written theory, NIST, the version matrix, the optional-word sweep, the runner-drift
+comparison: about 10,000 of 26,587 on 2026-11-15), a truncated or twice-listed display name, a multi-unit, server or
+flagged test (its other compiles are not the oracle's), a compile that threw in the capture, and a program that reads the
+compile clock (WHEN-COMPILED: its bytes differ every compile; 7 of 21,574 compiles). The carried families are the suite's
+two theories, `SuiteTest_IsNoWorseThanItsVerdictAllows` (an accept test) and `WiseOwlRefusal_RefusesTheSourceWithItsDiagnostic`
+(a refusal): 16,544 of 26,587 listed cases have a digest.
+
+*The classification* (`differential` of the `conformance` target in `scripts/build_targets.json`, read by
+`buildgraph.Differential`). Every input the target declares is classed by its own pattern; a narrower pattern classes a part
+of one, and the longest pattern a path lies under wins:
+- `program`: `src/`, the compiler. A carried case is compiled in process, so the compiler reaches it only through what it
+  emits and what it reports, both in the case digest. Program BYTES, not C#: a change to the C# to assembly step (Roslyn's
+  options, the reference set, the packager) changes them, and Roslyn's deterministic emit puts no output path in them (probed:
+  one program compiled in two directories is byte-identical; two captures of the whole population differ only in the 7
+  clock readers).
+- `case`: `conformance-suite/cases/`, `conformance-suite/wiseowl/cases/`, `wiseowl/diagnostics/`, `wiseowl/options/`. A
+  file there reaches a case as a file its entry names (staged byte for byte by `ConformanceSuiteRunner.Stage`, so in its
+  digest), as library text its compile reads (so in its program digest), or through the generator into its entry.
+- `everything`: the runtime (`src/WiseOwl.Cobol.Runtime/`, which the program digest leaves out: the runtime copy beside a
+  program is its build output), the harness (`tests/WiseOwl.Cobol.Tests.Conformance/`, `tests/_shared/`), the rest of
+  `conformance-suite/` (adapters, profiles, baselines, implementor-defined values, harness/run.py), every build input, and
+  every other declared input. In doubt, `everything`.
+
+`buildgraph.load_targets` refuses a declared input with no class and a class under no declared input, so the BUILD TARGETS
+audit (`buildgraph.py check`) is the drift test: an input added to the target and left unclassified fails every gate. This
+is the failure class that ended the impact map (kb/Work PB2696, PB4228: a hand list of "what a change can reach" that a new
+read escaped). Here the list is the target's own declared inputs, whose completeness the BUILD TARGETS audit already holds,
+and a path is classed by structure, never by a guess about what reads it.
+
+*The capture* (`WiseOwl.Cobol.ArchOracle digests [--only IDS]`, through `Host.oracle_digests`): the oracle's compiles
+(`ArchOracle.Population`, the suites' own option builders), with the compiled-program cache off, in the test host's scrubbed
+environment, handed the suite the Conformance host is handed. The whole population is 21,574 compiles: 76 to 86 s on the
+32-core box beside other gates, 180 to 210 s beside this gate's own hosts. That is about what running the carried family
+costs, so a capture of every compile on every gate would buy little (measured: a capture of 202.5 s ahead of every host and a
+Conformance host of 387.7 s for the 9,923 cases left, against 514 to 620 s for the whole population). Two rules make it pay:
+- *The capture store* (`CaptureStore`, `<store>/conformance-captures/<compiler key>.tsv`). The COMPILER KEY is the harness key
+  and every `program`-class entry. A compile reads only the compiler, the harness and the case's own inputs (its source and
+  declared files are staged into a scratch directory that is its copy library), so a row stored at this compiler key for a
+  case with the same own inputs is the compile this tree would make, and it is reused. Only the rest are compiled
+  (`--only`): a landing that changes no compiler source compiles only its new and changed cases; one that changes the
+  compiler compiles every case once, and its pass stores them for the next gate at that compiler.
+- *A deferred plan* (`Legs.run_hosts`, kb/Work PB4333). When a pass set stands at the harness key, Unit, RepoDrift and
+  Characterization start at once, and the Conformance host's plan is a callable its own thread runs: the capture, the
+  selection, and the ONLY file of the cases left (the retry channel of kb/Work PB5099: one `Carry`, one plan, one population
+  check; `NO_HOST` when every case is carried). When no set stands, the capture runs BESIDE the hosts, the whole population
+  runs, and the pass the gate records writes the set and the capture.
+
+*Measured* (2026-11-16, the 32-core box with other fleets' gates beside every run, so a figure is a reading, not a bench):
+the whole population (run 000005-20261116T091855Z) had a test phase of 575 s, Conformance 574.5 s and Unit 288.1 s; a
+compiler change (run 000006, a seed altering one program) 314.6 s, its capture of 17,043 compiles 90.4 s, then 9,923
+Conformance cases in 220.4 s, RED on exactly the altered case; a change to one case's source (run 000008) 292 s, its capture
+reusing 17,042 compiles and making 1 in 6.5 s. The floor is the rest of Conformance: its 9,853 cases of no carried family (the hand-written theories, NIST, the version
+matrix, the optional-word sweep) took 387.7 s of the 9,923 the seeded gate ran. Carrying them needs their own digest rule
+(their compiles are the oracle's too: NIST, the matrix and the sweep are enrolled; the hand-written theories compile inline
+source), which is the next lever after Unit.
+
+*The store of passed cases* is the pass store's own directory: `<git common dir>/cobol-build-store/conformance-cases/<harness
+key>.txt`, one case digest per line. A gate whose Conformance pass it records (EXACT, green, at a key that did not move)
+adds the digest of every listed case (`CaseStore.record`, written whole; two writers at once can lose an addition, never add
+a digest no pass made); a set not written for 21 days is pruned. It never travels: CI selects nothing (below).
+
+*What the verdict says.* The Conformance entry counts the cases it ran out of the listing, and the line adds `Conformance N
+carried as byte-identical to passed cases at harness key <12> (program differential, kb/Work PB4333)`; the record keeps
+`differential` (the harness key, whether a set stood, how many carried, how many ran by which rule, how many recorded). A
+carried selection hides no red: a case that runs and fails is RED, and the population check is the one of kb/Work PB5099.
+A differential gate writes no growth sample (it is not a whole-population measurement).
+
+*What a case's compile and run read beyond its digest* (the independent review of 2026-11-16,
+`HUNT-gate-differential.md`, F1 to F3; each rule below has a self-test arm that fails with it removed):
+- *The compile's ambient inputs.* Their one record is the compiler's own, `Frontend.CompilationInputs` (the record the
+  compiled-program cache keys and replays on). A compile that read the environment (a `>>DEFINE … AS PARAMETER`,
+  §2023:7.3.11.4 GR4: `g2df04_parameter_environment`, `pb1367_define_general_format_alternatives`), the external
+  repository, or the content of any file outside its own scratch directory, or that found anything a probe asked there, is
+  `ambient` (`ArchOracle.Ambient`): its program has no digest, and it is never carried. An observation always compiles for real (`CompiledProgramCache.Cold`, kb/Work PB5862), and the store's staging directory, named by its content, is the compile's own place, so the classification never depends on whether the store was warm. The capture runs with the store off.
+- *What a compile did NOT find.* The default library searches the working directory first, so the capture compiles in the
+  directory VSTest starts the Conformance test host in (its assembly's output directory), and each compile's absent probes
+  outside its scratch directory are part of its row: a case one of whose absent probes now exists is not carried, as the
+  cache's replay refuses it.
+- *What the run reads.* Every test host and the capture start from ONE environment, `gate_host.product_clear_env`: the
+  scrubbed environment less every product variable (`COBOL*`, `WISEOWL_COBOL_*`: the sort budget, the fixed clock, key
+  checks, collation and CLDR directories, the cache switch). That closes the hole for the whole-target store too: a shell
+  variable can no longer make a pass stand for a run its key does not name. The installed .NET runtimes (a compiled
+  program's runtimeconfig rolls forward to the newest 10.0 patch) and the process's locale are in the harness key
+  (`Host.run_facts`); the whole-target key does not yet name the runtime, a residue registered with the landing. The
+  calendar is in no key, for a carried case as for an up-to-date target: a verdict that depends on the day a case runs is
+  that test's defect, and it reddens a whole run as well.
+
+*On Windows a carried case runs NOWHERE at the landed tree.* The merge group's Linux leg runs every Conformance case in
+Release, but its Windows leg accepts the pass the landing published at the Conformance key and runs nothing of it. So for
+Windows behaviour the carry rule is the only thing standing between a wrong key and main: a key that leaves out an input
+is a Windows-only false green that only a later full run would expose. That is why every input a carried case reads is
+either in a digest or makes the case uncarriable, and why "in doubt, `everything`".
+
+*The landing and the merge group.* `enqueue.py land` reads a GREEN record at the tip, and a differential GREEN is one. The
+pass it records stands at the Conformance key, so the merge group's Windows leg accepts it like any other: THE RULE (CLAUDE.md
+Testing) becomes "every case the merge group runs on Windows already ran green at the pushed head on this host, OR is
+byte-identical in every input to a case that ran green on this host". The merge group itself selects nothing: its Linux leg
+runs every Conformance case in Release, and its Windows leg runs every case of each target with no pass at the merged tree's
+key.
+
+*Why not a manifest the merge group writes* (the design before it was built). The merge group's token reads the repository
+and never writes it (`permissions: contents: read`; section 3.14.14: "The ref adds no new writer"), and a manifest of main's
+programs would still need a pass of each case at the same harness to carry it. The store already holds such passes, keyed
+by inputs: the passes of every gate on this host, main's tree among them whenever a landing's branch was gated there. One
+mechanism, no second store, no CI write.
 
 **What was measured on 2026-11-01** (the oracle's capture of each of the 20 newest non-runtime landings of `c4a831833`,
 2026-10-31 to 2026-11-01, and of its first parent: a population of about 15,700 cases of which about 4,700 emit a
@@ -2526,4 +2652,4 @@ file"). An INERT entry is added only with a GREEN Linux watch run: `bash scripts
    landing lane (§0 item 6).
 3. **A merge-group red is one of five first-run classes, a flake, or infrastructure** (§0 item 5). A flake is a kb/Work defect
    fixed at its root, never retried inside the run; kb/Work PB1957 records each class's differences and rate.
-4. **CI time grows with the suite.** The growth trigger (§3.14.13) decides when the program differential is built.
+4. **CI time grows with the suite.** The growth trigger (§3.14.13) fired on 2026-11-15, and the program differential was built: a local gate carries the Conformance cases byte-identical to a passed case.

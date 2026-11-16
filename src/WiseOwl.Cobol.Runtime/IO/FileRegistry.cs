@@ -521,17 +521,23 @@ public sealed class FileRegistry
             c.SetStatus(FileStatusCode.PhraseOnNonReelMedium);
     }
 
-    /// <summary>The IMPLICIT close surface (§2023:14.9.5 GR9's "each … file connector that is open", §2023:14.6.11 2)'s
-    /// "each file that is in the open mode" through <see cref="CloseAll"/>, and a displaced registration's): an
+    /// <summary>The run-unit IMPLICIT close surface (§2023:14.6.11 2)'s "each file that is in the open mode" through
+    /// <see cref="CloseAll"/>, and a displaced registration's), where no program's FILE STATUS item outlives the close: an
     /// open connector gets the plain CLOSE; a closed one is skipped — no '42' stamp, no shared-close
-    /// bookkeeping — and so is a name the registry
-    /// does not hold: registration happens at activation, so an activation that raised before registering
-    /// leaves a canceled unit's names unregistered, and "never registered" is a fortiori "not open"
-    /// (kb/Work PB154 — Require() here turned GR7's no-op into an InvalidOperationException).</summary>
+    /// bookkeeping — and so is a name the registry does not hold (<see cref="IsOpen"/>). A CANCEL's and an INITIAL
+    /// program's implicit CLOSE do not come here: a program's FILE STATUS item can outlive it, so the program emits the
+    /// explicit CLOSE's own sequence behind <see cref="IsOpen"/> (kb/Work PB5847).</summary>
     public void CloseIfOpen(string name)
     {
-        if (_files.TryGetValue(name, out var c) && c.IsOpen) Close(name);
+        if (IsOpen(name)) Close(name);
     }
+
+    /// <summary>Whether <paramref name="name"/> is a registered connector in an open mode (§2023:9.1.4) — false, not a
+    /// throw, for a name the registry does not hold: registration happens at activation, so an activation that raised
+    /// before registering leaves a canceled unit's names unregistered, and "never registered" is a fortiori "not open"
+    /// (kb/Work PB154 — Require() here turned CANCEL GR7's no-op into an InvalidOperationException). The guard of
+    /// <see cref="CloseIfOpen"/> and of a program's emitted implicit CLOSE (<c>CobolFile.IsOpen</c>; kb/Work PB5847).</summary>
+    public bool IsOpen(string name) => _files.TryGetValue(name, out var c) && c.IsOpen;
 
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38). Only a
     /// SUCCESSFUL close locks: §2023:14.9.6.4 GR1 makes a not-open CLOSE ('42') unsuccessful, and an unsuccessful
@@ -773,6 +779,12 @@ public sealed class FileRegistry
 
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
+
+    /// <summary>The mode a USE open-mode switch selects on (<see cref="FileConnector.UseModeView"/>), −1 unknown.</summary>
+    public int UseModeOf(string name, int declaredModes) => _files.TryGetValue(name, out var c) ? c.UseModeView(declaredModes) : -1;
+
+    /// <summary>The mode the file IS open in (<see cref="FileConnector.OpenedModeView"/>), −1 unknown or not open.</summary>
+    public int OpenedModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenedModeView : -1;
 
     /// <summary>An OPEN statement begins on <paramref name="name"/> in <paramref name="mode"/>: the file is "in the process of being
     /// opened" in it (§1985:VII.4.6.4 GR5 b)–e); §2023:14.9.49.4 GR6 b)–e)) for the statement's whole execution, whatever its

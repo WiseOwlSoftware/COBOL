@@ -1152,6 +1152,12 @@ internal static class RuntimeApi
     /// inexact being a size error under INTERMEDIATE ROUNDING IS PROHIBITED (<paramref name="modeExpr"/>).</summary>
     public static string DecToSidi(string value, string modeExpr) => $"{value}.{nameof(CobolDec.ToSidi)}({modeExpr})";
 
+    /// <summary>The arithmetic a decimal intrinsic body evaluates its equivalent arithmetic expression in — <c>DecArithmetic</c>: the
+    /// 32-digit standard intermediate data item of ARITHMETIC IS STANDARD (<paramref name="standardIntermediate"/>, §2002:8.8.1.3)
+    /// or the 34-digit SDIDI (§2023:8.8.1.5.2), each operation at <paramref name="modeExpr"/> (kb/Work PB5575).</summary>
+    public static string DecArithmeticOf(string modeExpr, bool standardIntermediate) =>
+        $"{nameof(DecArithmetic)}.{(standardIntermediate ? nameof(DecArithmetic.Standard) : nameof(DecArithmetic.Sdidi))}({modeExpr})";
+
     /// <summary>A standard intermediate data item ROUNDED to 31 digits — <c>CobolDec.ToSidiRounded</c> — where the rounding rules
     /// of standard arithmetic apply (§2002:8.8.1.3.1.3: a comparison, a function argument with no equivalent expression, a move
     /// to a resultant without ROUNDED).</summary>
@@ -1427,11 +1433,11 @@ internal static class RuntimeApi
 
     /// <summary>One receiving area's extraction — <c>CobolStringOps.UnstringExtract</c> (out-vars for the examined
     /// field, the matched delimiter's content and its position in the DELIMITED list, −1 for none; the call's value
-    /// is −1 = not acted upon).</summary>
+    /// is −1 = not acted upon; <paramref name="initiating"/> is the first receiving area's).</summary>
     public static string UnstringExtract(string src, string dels, string noDelimSize,
-        string ptrVar, string fldVar, string dlmVar, string matchedVar) =>
+        string ptrVar, string fldVar, string dlmVar, string matchedVar, bool initiating) =>
         $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {noDelimSize}, " +
-        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar})";
+        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar}, {(initiating ? "true" : "false")})";
 
     /// <summary>The contiguous repeats of a matched ALL delimiter — <c>CobolStringOps.UnstringSkipRun</c>, run after the
     /// receiving area's INTO store (D-UNS2).</summary>
@@ -2002,13 +2008,10 @@ internal static class RuntimeApi
     // "without a SHARING phrase" arm and <see cref="FileOpenShared"/> for a phrase-bearing one — so the DRIFT IS
     // COMPILE-ENFORCED: there is no phrase-less implicit-open renderer left for a new call site to reach.
 
-    /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
-    public static string FileClose(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
-
-    /// <summary>The IMPLICIT close (§2023:14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
-    public static string FileCloseIfOpen(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
+    /// <summary>The guard of a program's IMPLICIT CLOSE (§2023:14.9.5.4 GR9 — only a connector "that is open") —
+    /// <c>CobolFile.IsOpen</c>; the CLOSE behind it is <see cref="FileClose(string, Binding.Bound.BoundCloseKind)"/>.</summary>
+    public static string FileIsOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.IsOpen)}({name})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
@@ -2233,6 +2236,15 @@ internal static class RuntimeApi
     /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
+
+    /// <summary>The one open mode a USE open-mode switch selects on, from the set of modes (a bit mask of ordinals) the unit
+    /// declares a procedure for — <c>CobolFile.UseModeOf</c>.</summary>
+    public static string FileUseModeOf(string name, int declaredModes) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.UseModeOf)}({name}, {declaredModes})";
+
+    /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
+    public static string FileOpenedModeOf(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
@@ -2518,6 +2530,11 @@ internal static class RuntimeApi
     /// <summary>The break test of a floating-point CONTROL item — <c>CobolReport.FloatControlEqual</c> as a method
     /// group for the engine's equality delegate.</summary>
     public static string ReportFloatControlEqual => $"{nameof(CobolReport)}.{nameof(CobolReport.FloatControlEqual)}";
+
+    /// <summary>The break test of an image-carried NUMERIC CONTROL item — <c>CobolReport.NumericControlEqual</c> over the
+    /// two saved character images and the item's profile (ISO §1985:XIII.3.7.4 GR3 a; kb/Work PB5782).</summary>
+    public static string ReportNumericControlEqual(string a, string b, string profile) =>
+        $"{nameof(CobolReport)}.{nameof(CobolReport.NumericControlEqual)}({a}, {b}, {profile})";
 
     /// <summary>A report VARYING FROM/BY value landed as the Int128 integer ISO §2023:13.18.64.4 GR1 makes the counter,
     /// raising EC-REPORT-VARYING for a noninteger value (GR5) — <c>CobolReport.VaryingInteger</c>. The argument

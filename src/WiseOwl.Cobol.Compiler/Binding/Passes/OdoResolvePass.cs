@@ -124,9 +124,12 @@ internal sealed class OdoResolvePass : IBindPass
             // ISO §2023:8.4.6.2.1 3) a)).
             // At COBOL-85 that rule is not the edition's: §1985:XIII.3.9.3 SR10d lets a sum counter be referenced, wherever the
             // reference is written, so a counter is data-name-1 (kb/Work PB5310).
-            var counter = !declaration && tier.Count == 0
-                ? binder.ReportSection.SumCounterOperand85(depName, spec.DependingQualifiers, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'")
-                : null;
+            DataItem? counter = null;
+            bool counterAmbiguityReported = false;
+            if (!declaration && tier.Count == 0)
+                counter = binder.ReportSection.SumCounterOperand85(depName, spec.DependingQualifiers,
+                    $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", out counterAmbiguityReported);
+            if (counterAmbiguityReported) continue;   // the ONE verdict of the reference (kb/Work PB5627)
             if (counter is null && !declaration && tier.Count != 1
                 && binder.ReportSection.ReportEntryReferenceRefused(tier, $"OCCURS DEPENDING ON '{writtenDep}' on '{subject}'", depName, spec.DependingQualifiers))
                 continue;

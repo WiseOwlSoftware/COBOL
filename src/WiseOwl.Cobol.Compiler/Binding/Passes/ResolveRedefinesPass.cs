@@ -515,13 +515,16 @@ internal sealed class ResolveRedefinesPass : IBindPass
         bool ok = true;
 
         // SR5 — "Neither data-name-2 nor data-name-3 shall refer to an entry that is described with level-number 1, 66,
-        // 77, or 88." Levels 66 and 88 are off the storage tree and already unreachable (SR4); a level-1 or level-77
-        // entry is on it, and the owner itself (a record, or the group a type was applied to) is such an entry.
-        if (operand.Level is 1 or 77 || ReferenceEquals(operand, owner))
+        // 77, or 88." Level 88 is off the storage tree and unreachable (SR4); a level-1 or level-77 entry is on it, and
+        // the owner itself (a record, or the group a type was applied to) is such an entry. A level-66 entry is reachable
+        // below 2002, where the operand candidates are the whole scope's (kb/Work PB5165) and the record's own alias passes
+        // the record test, so it is refused here: §1985:VI.5.11.3 SR4, "A 66 level entry cannot rename another 66 level
+        // entry" (kb/Work PB5772).
+        if (operand.Level is 1 or 66 or 77 || ReferenceEquals(operand, owner))
         {
             binder.Edition.Error(DiagnosticCatalog.RenamesEntryRule,
                 $"'{alias}' RENAMES: {role} '{op}' refers to an entry described with level-number "
-                + $"{(operand.Level is 77 ? "77" : "1")} (ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 "
+                + $"{(operand.Level is 77 ? "77" : operand.Level is 66 ? "66" : "1")} (ISO §2023:13.18.45.3 SR5: \"Neither data-name-2 nor data-name-3 "
                 + "shall refer to an entry that is described with level-number 1, 66, 77, or 88.\")");
             ok = false;
         }

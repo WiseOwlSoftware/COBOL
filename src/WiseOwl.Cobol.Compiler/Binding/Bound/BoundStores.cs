@@ -59,7 +59,7 @@ public static class BoundStores
     /// total.</summary>
     public static StoreKind StoreKindOf(BoundStatement s, DataItem item)
     {
-        var visitor = new StoreKindVisitor(x => ReferenceEquals(x, item), crossingsStore: true);
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.Item, item), crossingsStore: true);
         var kind = s.Accept(visitor);
         // A whole-receiver arm answered Write for a store into a WINDOW of the item: only that subset is a receiving
         // item (§2023:8.4.3.3.4 GR5), so the rest of the item is kept, which is the same polarity STRING's GR7 gives.
@@ -84,7 +84,7 @@ public static class BoundStores
     /// would reject a conforming program. The OO property desugar counts them (it must run the SET accessor after
     /// a crossing), which is why the choice is a parameter of the walk and not of the node.</para></summary>
     public static bool StoresInto(BoundStatement s, Func<DataItem, bool> matches) =>
-        s.Accept(new StoreKindVisitor(matches, crossingsStore: false)) is not StoreKind.None;
+        s.Accept(new StoreKindVisitor(p => matches(p.Item), crossingsStore: false)) is not StoreKind.None;
 
     /// <summary>The place through which <paramref name="s"/> ITSELF — never a statement nested in it — stores into
     /// <paramref name="item"/>, or null when it does not. The third client (X3.23-1985 USE FOR DEBUGGING general rule 6 c, which
@@ -94,14 +94,16 @@ public static class BoundStores
     /// operands only. A BY REFERENCE CALL argument is not a store here, for <see cref="StoresInto"/>'s reason.</summary>
     public static Place? DirectStoreOf(BoundStatement s, DataItem item)
     {
-        var visitor = new StoreKindVisitor(x => ReferenceEquals(x, item), crossingsStore: false, direct: true);
+        // "explicitly references": the data-name the operand is written with, under any decoration (Place.NamedItem, kb/Work
+        // PB5801 review R1-1), so a store through a level-66 alias is a store referencing the alias, not the item it renames.
+        var visitor = new StoreKindVisitor(p => ReferenceEquals(p.NamedItem, item), crossingsStore: false, direct: true);
         return s.Accept(visitor) is StoreKind.None ? null : visitor.FirstHit;
     }
 
     /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
     /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
     /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
-    private sealed class StoreKindVisitor(Func<DataItem, bool> matches, bool crossingsStore, bool direct = false) : IBoundStatementVisitor<StoreKind>
+    private sealed class StoreKindVisitor(Func<Place, bool> matches, bool crossingsStore, bool direct = false) : IBoundStatementVisitor<StoreKind>
     {
         /// <summary>The first <see cref="Place"/> a matching store went through, or null (<see cref="DirectStoreOf"/> reads it).</summary>
         public Place? FirstHit { get; private set; }
@@ -112,7 +114,7 @@ public static class BoundStores
         /// <see cref="StoredThroughWindow"/>.</summary>
         private bool Hit(Place? p)
         {
-            if (p is null || !matches(p.Item)) return false;
+            if (p is null || !matches(p)) return false;
             FirstHit ??= p;
             if (WholeReceiverStore(p) is StoreKind.WriteInPart) StoredThroughWindow = true;
             return true;
@@ -156,11 +158,11 @@ public static class BoundStores
             foreach (var a in actions)
                 switch (a)
                 {
-                    case InitializeStore st when matches(st.Target.Item): return true;
-                    case InitializeStoreValue sv when matches(sv.Target.Item): return true;
-                    case InitializeSetNull sn when matches(sn.Target.Item): return true;
+                    case InitializeStore st when matches(st.Target): return true;
+                    case InitializeStoreValue sv when matches(sv.Target): return true;
+                    case InitializeSetNull sn when matches(sn.Target): return true;
                     // §2023:14.9.20.4 GR4/GR6b's implicit SET stores into its TARGET (identifier-2 is the sender).
-                    case InitializeSetFrom sf when matches(sf.Target.Item): return true;
+                    case InitializeSetFrom sf when matches(sf.Target): return true;
                     case InitializeLoop lp when InitStores(lp.Body): return true;
                     // A Format-2 (table) VALUE select stores into the receiver on EVERY arm it has (ISO
                     // §2023:14.9.20.4 GR5c1c) — the arms differ only in which literal reaches it, so any one of them

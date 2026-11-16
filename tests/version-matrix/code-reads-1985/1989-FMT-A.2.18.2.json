@@ -2,14 +2,14 @@
  "rule-id": "1989-FMT-A.2.18.2",
  "rule-digest": "a9d896c1849a",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "pin": "629a880e0cc12ec63ea3fdb313dd39246d0307f7",
   "slice": "1985-081",
   "sources": {
-   "reader": "10b4aade8e8b99f9bc115cfbcccf36f29e1515815c3527e0342120b2257f790b",
-   "refuter": "353f6aa3fef4fa94d6dcd70227a67a8f22e47d6f6ce07edc9362bbe8db1e1554"
+   "reader": "baf4a96f6dfbf5f081dc766b4bc6076d91b064987dc9e6cc288ef7b41c129a0b",
+   "refuter": "2de462911a670662bdcba33cf2bd66dbe20c77a49cd52d095bba5fc82ee4ef2f"
   },
   "imported": {
-   "reader": "57f23f3175030e1ab8ff8e8eaf723532c121d86ecbebc74a63fc059ee1c55e2d",
+   "reader": "82d0e5f023a1a23a7d2cdd4c5211c6e2df3a84dc6b246e4ca69c026c77f2893f",
    "refuter": "ca4bd6da02189d1d8189472d7dd7f461cee16d62d7817c95b9f23404b95e8291"
   }
  },
@@ -17,7 +17,7 @@
   "rule-id": "1989-FMT-A.2.18.2",
   "verdict": "CONFORMS",
   "requirement": "At --std 85, FUNCTION INTEGER-PART ( argument-1 ) must be accepted with exactly one argument (any arithmetic expression, spaces allowed inside the parentheses) and truncate toward zero; zero arguments, an empty '( )', a missing parenthesized list, or two arguments must be refused.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ArgumentsOf; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
@@ -66,7 +66,7 @@
     "check": "OK  §1989:A.2.18.4 RV3  (2.18.4 Returned Values)  the text is in RV3"
    }
   ],
-  "notes": "The catalog row (Fixed 1..1, IntroducedIn 85) drives the arity check in BindFunctionResult; the grammar's functionCall carries the parenthesized list and VersionConformancePass refuses the 2002 empty list at 85. Accepted forms truncate toward zero.",
+  "notes": "The catalog row (Fixed 1..1, IntroducedIn 85) drives the arity check in BindFunctionResult; the grammar's functionCall carries the parenthesized list and VersionConformancePass refuses the 2002 empty list at 85. Accepted forms truncate toward zero. Re-sited 2026-11-16 (kb/Work PB5781 review finisher): ArgsOf was deleted, both function-identifier forms read their arguments through IntrinsicBinder.ArgumentsOf; fmtok.cob and fmtbad.cob re-run at the new pin print the values and refusals recorded above.",
   "seeded": true,
   "harm": "",
   "cause": "",

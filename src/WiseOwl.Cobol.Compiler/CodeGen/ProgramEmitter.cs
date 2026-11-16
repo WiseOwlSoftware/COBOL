@@ -480,18 +480,17 @@ internal sealed class ProgramEmitter
                 }
             Current.Transactions.EmitMembers(w);
             Current.Communication.EmitMembers(w);
-            using (w.Block("public void CloseFiles()"))   // CANCEL §2023:14.9.5 GR9 / run-unit close §2023:14.6.11
+            // The implicit CLOSE of a CANCEL (§2023:14.9.5.4 GR9; §1985:X.5.3.4 GR10), which an INITIAL program's return
+            // also executes (§2023:14.9.18.4 GR2; §1985:X.5.4.4 GR3). It is THE ONE CLOSE an explicit CLOSE is, reached
+            // through SequentialIoEmitter.EmitImplicitClose, so it stores the I-O status as every CLOSE does (kb/Work PB5847).
+            using (w.Block("public void CloseFiles()"))
                 foreach (var file in data.Files.Declared)
-                    // CANCEL closes INTERNAL connectors only (§2023:14.9.5 GR9); an EXTERNAL connector persists
+                    // CANCEL closes INTERNAL connectors only (§2023:14.9.5.4 GR9); an EXTERNAL connector persists
                     // (GR8 / §2023:13.18.22.4 GR4a). An SD is not a file connector at all — it never registers
                     // (the same skip every registration/IO loop takes), so closing it would Require() a
                     // name the registry cannot hold.
                     if (!file.IsExternal && !file.IsSortMerge)
-                        // GR9 scopes the implicit CLOSE to a connector "that is open" — the guarded entry
-                        // skips a closed one instead of stamping it '42' (kb/Work PB154); a close failure
-                        // maps to '30' inside FileConnector.Close (PB140), so the loop never abandons the
-                        // remaining files ("executed for ALL such files, even when an error occurs").
-                        w.Line($"{RuntimeApi.FileCloseIfOpen(FileKeyExpr(file))};");
+                        Current.SeqIo.EmitImplicitClose(file);
             // §2023:14.6.13.1.4 #3 for a condition raised at a RUNTIME site: the ABI face of this unit's Format-3
             // selection, so the raise site — which has no statement-level node to hang a dispatch on — reaches
             // the declaratives of the ACTIVATION that is executing (kb/Work PB367b; the activation boundary in

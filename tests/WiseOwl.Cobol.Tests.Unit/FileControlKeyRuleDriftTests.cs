@@ -420,12 +420,13 @@ public sealed class FileControlKeyRuleDriftTests
             var m = Regex.Match(rule.RuleId, @"^1985-SR-(?<clause>[IVX]+\.[0-9.]+)-(?<n>\d+)$");
             Assert.True(m.Success, $"rule-id '{rule.RuleId}' is not the 1985 inventory's 1985-SR-<clause>-<n> shape.");
             Assert.Equal(rule.Clause, m.Groups["clause"].Value);
-            string subsection = "### " + rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
+            // Chapter IV prints its subclause headings without the markdown marks the other chapters carry (4.3.8.2.3 Syntax Rules).
+            string subsection = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
             string numbered = $"({m.Groups["n"].Value}) ";
             bool found = false;
             for (int i = 0; i < lines.Length && !found; i++)
             {
-                if (Bare(lines[i]) != subsection) continue;
+                if (Bare(lines[i]).TrimStart('#', ' ') != subsection) continue;
                 for (int j = i + 1; j < lines.Length && !Bare(lines[j]).StartsWith('#'); j++)
                     if (Bare(lines[j]).StartsWith(numbered, StringComparison.Ordinal) && Norm(lines[j]).Contains(Norm(rule.RuleText)))
                         found = true;

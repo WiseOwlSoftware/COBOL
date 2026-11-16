@@ -37,13 +37,11 @@ internal enum TableSubject { None, Sort, Search }
 /// literal subscripts). <paramref name="Operand"/> is the node the position binds from: the subscript item's or
 /// the modifier's <c>functionArgument</c>; null for <c>ALL</c> and for a piece of a written item the tree cannot
 /// give a subscript reading (<see cref="SegmentsOf"/>), which the binder refuses by name.
-/// <paramref name="Cut"/> is the reference inside <paramref name="Operand"/> whose subscript list the
-/// declarations gave to the NEXT subscript (kb/Work PB136): it is read without that list.
-/// <paramref name="FromCutList"/> marks that next subscript — the list's single item, written in its own
+/// <paramref name="FromCutList"/> marks the subscript a list the declarations gave to the NEXT subscript begins
+/// (kb/Work PB136, <see cref="SubscriptBinder.GiveAwayClosingList"/>) — the list's single item, written in its own
 /// parentheses.</summary>
 internal sealed record PositionSegment(
-    List<IToken> Tokens, Core.FunctionArgumentContext? Operand,
-    Core.DataReferenceContext? Cut = null, bool FromCutList = false);
+    List<IToken> Tokens, Core.FunctionArgumentContext? Operand, bool FromCutList = false);
 
 /// <summary>One index-name written as a subscript and the declaration it resolved to — §2023:8.4.2.3.3 SR4's
 /// collector entry (<see cref="ScreenIndexNameAssociation"/>).</summary>
@@ -114,7 +112,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         List<IndexUse> ixNames = [];
         int preOpMark = data.Procedure.PendingPreOps.Mark();   // the subscripts' own pre-ops (D18 temp stores, activations) start here
         int propertyMark = data.Procedure.PropertyOps.Mark();   // ... and their object-property references (the other pending list)
-        var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
+        var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort, out bool rightmostAllWritten);
         if (e is null) return refs.SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §2023:8.4.2.3.3 SR4 (kb/Work PB459)
         if (!refs.Probing) ScreenCobol85SubscriptDataNames(subCtx);   // §1985:IV.4.3.8.2.3 SR5 (kb/Work PB5074)
@@ -124,6 +122,8 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 TableSubject.Search => false,
                 _ => ScreenSubscriptArity(dref, item, e.Count),   // §2023:8.4.2.3.3 SR2/SR3 (kb/Work PB877)
             })
+            return RefResolution.Refused(DataBinder.WrittenText(dref));
+        if (subject is TableSubject.Sort && !rightmostAllWritten && ScreenTableSubjectRightmostAll(dref, item))
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
         if (!refs.Probing) _enclosingCapture?.Offer(item, e, data.Procedure.PendingPreOps.Since(preOpMark), data.Procedure.PropertyOps.Since(propertyMark));
@@ -229,6 +229,23 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             + $"{(enclosing == 1 ? "" : "s")}, outermost first, and none for '{subject}' itself — the level the "
             + $"statement sorts; ALL may stand as the rightmost one; {written} written (ISO §2023:8.4.2.3.3 SR3, SR5 e), "
             + "SR6; §2023:14.9.40.3 SR13).");
+        return true;
+    }
+
+    /// <summary>⛔ §2002:14.8.36.2 SR13 — "If data-name-2 is subject to more than one level of OCCURS clauses, subscripts shall
+    /// be specified for all levels with the exception that the rightmost subscript shall be the word ALL": at COBOL-2002 a
+    /// table SORT subject of a nested table writes ALL as its rightmost subscript, where the later editions let the
+    /// subject omit its own level's subscript (§2023:8.4.2.3.3 SR5 e), kb/Work PB5641). Returns <see langword="true"/> when the
+    /// reference is rejected.</summary>
+    private bool ScreenTableSubjectRightmostAll(Core.DataReferenceContext dref, DataItem table)
+    {
+        if (data.Edition.DialectLevel >= 2014 || table.SubscriptArity < 2) return false;
+        if (refs.Probing) return true;   // R30 purity: a probe never diagnoses (kb/Work PB157)
+        if (!refs.Diagnosed.Add(dref)) return true;
+        data.Edition.Error(DiagnosticCatalog.TableSortSubjectRightmostAll,
+            $"'{DataBinder.WrittenText(dref)}': the table '{table.CobolName ?? table.ClrName}' is subject to {table.SubscriptArity} "
+            + "levels of OCCURS clauses, and at COBOL-2002 the SORT subject writes a subscript for every level with the word ALL "
+            + "as the rightmost (ISO §2002:14.8.36.2 SR13); write ALL where the sorted level's subscript goes.");
         return true;
     }
 
@@ -431,15 +448,20 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
     /// <summary>Bind each subscript of the written list to its typed <see cref="Position"/>, outermost first; a
     /// segment that cannot be bound yields null (→ the caller fails loud).</summary>
     private List<Position>? InterpretSubscripts(
-        Core.SubscriptPartContext ctx, List<IndexUse>? indexNames = null, bool admitRightmostAll = false)
+        Core.SubscriptPartContext ctx, List<IndexUse>? indexNames, bool admitRightmostAll, out bool rightmostAllWritten)
     {
+        rightmostAllWritten = false;
         var positions = new List<Position>();
         // kb/Work PB136 — declaration-informed '(' splitting, through the ONE predicate (kb/Work PB877): an
         // inline `IsTable` lambda stood here and answered only §2023:8.4.2.3.3 SR2's FIRST half, so a name SUBORDINATE
         // to an OCCURS — legally subscripted, and a legal arithmetic-expression-1 subscript under §2023:8.4.2.3.2 +
         // §2023:8.8.1.1 + §2023:8.4.3.1.2 Format 2 — had its own '(' split off as an EXTRA subscript.
         var segments = SegmentsOf(ctx, CannotBeSubscripted);
-        if (admitRightmostAll && segments.Count > 0 && IsAllSegment(segments[^1])) segments.RemoveAt(segments.Count - 1);
+        if (admitRightmostAll && segments.Count > 0 && IsAllSegment(segments[^1]))
+        {
+            segments.RemoveAt(segments.Count - 1);
+            rightmostAllWritten = true;
+        }
         foreach (var seg in segments)
         {
             if (BindPosition(seg, SegmentPosition.Subscript, indexNames) is not { } p) return null;
@@ -483,18 +505,14 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
 
     /// <summary>⛔ THE WRITTEN SUBSCRIPT LIST AS SEGMENTS, ONE PER SUBSCRIPT, read off the PARSE (kb/Work PB2113).
     /// The grammar already split the list — each <c>subscriptItem</c> is one operand, separated by §2023:8.3.5's space or
-    /// comma/semicolon-plus-space — so a segment is an item. The one decision the grammar cannot make is kept, and it
-    /// is asked of the tree:
-    /// <para>⛔ kb/Work PB136 — the '(' after a name, at an item's own level, is the name's subscript list when the
-    /// name can carry one and the start of a NEW subscript when it cannot (§2023:8.4.2.3.3 SR2): Annex D.3.5.3's
-    /// <c>DOG (XCOUNTER (- YCOUNTER))</c> is two subscripts, <c>DOG (BAKER (I) 3)</c> two with BAKER(I) the first. The
-    /// parser always reads the first way (the lexer typed the paren REF_LPAREN after the name), so a name that
-    /// <paramref name="parenSplitsAfterName"/> says cannot be subscripted gives its list to a new subscript — the cut
-    /// the declarations decide, which §2023:8.4.2.3.2 leaves to them. With no predicate (none is known) nothing is cut.</para>
-    /// <para>⚠ A cut has a subscript reading only when its list CLOSES the item: the item without the list is the
-    /// first subscript and the list's single item the second. A list followed by more of the item
-    /// (<c>T (A + X (- Y) + 1)</c>, where the tree joins <c>+ 1</c> to <c>X (- Y)</c>), or a second cut in one item,
-    /// has none the tree can give; its pieces carry no operand and the binder refuses them by name (COBOL2363)
+    /// comma/semicolon-plus-space — so a segment is an item. The one decision the grammar cannot make is
+    /// <see cref="GiveAwayClosingList"/>'s, the declarations' (kb/Work PB136): Annex D.3.5.3's <c>DOG (XCOUNTER (- YCOUNTER))</c>
+    /// is two subscripts, <c>DOG (BAKER (I) 3)</c> two with BAKER(I) the first. A list given away makes the item two
+    /// segments: the item itself, whose reference is read without the list (<see cref="ReferenceResolver.ReadWritten"/>),
+    /// and the list's single item, written in its own parentheses.
+    /// <para>⚠ A list hung on a name that cannot own it, with no reading the tree can give (<see cref="ListCut.Unreadable"/>:
+    /// <c>T (A + X (- Y) + 1)</c>, where the tree joins <c>+ 1</c> to <c>X (- Y)</c>, or a second such list in one item),
+    /// splits the item at the list into pieces that carry no operand, and the binder refuses them by name (COBOL2363)
     /// rather than re-cut the expression out of its tokens (DESIGN-binder-bound-tree.md §3.9.2).</para></summary>
     internal static List<PositionSegment> SegmentsOf(Core.SubscriptPartContext group,
         Func<string, List<string>, bool>? parenSplitsAfterName)
@@ -504,33 +522,85 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         foreach (var item in list.subscriptItem())
         {
             var tokens = LeafTokens(item);
-            var cuts = new List<(Core.DataReferenceContext Ref, Core.SubscriptPartContext List)>();
-            if (parenSplitsAfterName is not null) CollectCuts(item, parenSplitsAfterName, cuts);
-            if (cuts.Count == 0) { segments.Add(new PositionSegment(tokens, item.functionArgument())); continue; }
-            int at = tokens.IndexOf(cuts[0].List.Start);
-            var head = tokens.GetRange(0, at);
-            var tail = tokens.GetRange(at, tokens.Count - at);
-            var cutList = cuts[0].List;
-            bool closes = cuts.Count == 1 && ReferenceEquals(tokens[^1], cutList.Stop);
-            if (!closes)
+            switch (GiveAwayClosingList(item, parenSplitsAfterName, out var cutList))
             {
-                segments.Add(new PositionSegment(head, null));
-                segments.Add(new PositionSegment(tail, null));
-                continue;
+                case ListCut.None:
+                    segments.Add(new PositionSegment(tokens, item.functionArgument()));
+                    break;
+                case ListCut.Unreadable:
+                    int at = tokens.IndexOf(cutList!.Start);
+                    segments.Add(new PositionSegment(tokens.GetRange(0, at), null));
+                    segments.Add(new PositionSegment(tokens.GetRange(at, tokens.Count - at), null));
+                    break;
+                case ListCut.GivenAway:
+                    int cut = tokens.IndexOf(cutList!.Start);
+                    segments.Add(new PositionSegment(tokens.GetRange(0, cut), item.functionArgument()));
+                    segments.Add(new PositionSegment(tokens.GetRange(cut, tokens.Count - cut), GivenAwayOperand(cutList),
+                        FromCutList: true));
+                    break;
             }
-            segments.Add(new PositionSegment(head, item.functionArgument(), Cut: cuts[0].Ref));
-            var only = cutList.subscriptList()?.subscriptItem() is [{ } single] ? single.functionArgument() : null;
-            segments.Add(new PositionSegment(tail, only, FromCutList: true));
         }
         return segments;
     }
 
-    /// <summary>The cut points of one subscript item (see <see cref="SegmentsOf"/>): every subscript list hung on a
+    /// <summary>What <see cref="GiveAwayClosingList"/> found in one list item.</summary>
+    internal enum ListCut
+    {
+        /// <summary>No parenthesis in the item hangs on a name that cannot own it: the item is one operand as parsed.</summary>
+        None,
+        /// <summary>The item ends with such a list, which the declarations gave to the NEXT item (the list is marked
+        /// <c>SubscriptPartOwnership.GiveToNextItem</c>): the item is two operands, the second the list's content
+        /// (<see cref="GivenAwayOperand"/>).</summary>
+        GivenAway,
+        /// <summary>Such a list stands where the tree gives it no reading — followed by more of the item, or a second one
+        /// in the item — and nothing is given away.</summary>
+        Unreadable,
+    }
+
+    /// <summary>⛔ THE ONE DECLARATION-INFORMED READING OF A LIST ITEM (kb/Work PB136, PB5781): does the '(' after a name, at
+    /// the item's own level, belong to that name, or does it begin the NEXT item of the list? Every list whose items a
+    /// space may separate (§2023:8.3.5 SR1) asks it — a subscript list (<see cref="SegmentsOf"/>), and an argument list of
+    /// either function-identifier form (<c>IntrinsicBinder.ArgumentsOf</c>) — because the lexer typed the paren after
+    /// a data-name-capable word as that reference's, and only the description says whether the name may carry it:
+    /// §2023:8.4.2.3.3 SR2 lets a subscript be written only on a table element, so a paren after a name that is none can
+    /// only begin a parenthesized expression, the next item. §1985:VI.6.2.3 SR4 is the same reading from the expression's
+    /// side: a unary-led expression that "immediately follows an identifier" stands in its own parentheses, so
+    /// <c>FUNCTION MIN (A (- B))</c> has two arguments.
+    /// <para>A list is given away only when the tree has that reading: the list CLOSES the item and it is the only such
+    /// list in the item. It is then marked <c>SubscriptPartOwnership.GiveToNextItem</c>, which every reader of the written reference honours,
+    /// and returned in <paramref name="list"/> — also for <see cref="ListCut.Unreadable"/>, whose list is where the item
+    /// splits. What the list holds is the next item's own question (<see cref="GivenAwayOperand"/>). The marking is
+    /// idempotent: the same item and the same declarations give the same answer to every reader.</para></summary>
+    internal static ListCut GiveAwayClosingList(Antlr4.Runtime.ParserRuleContext item,
+        Func<string, List<string>, bool>? cannotBeSubscripted, out Core.SubscriptPartContext? list)
+    {
+        list = null;
+        if (cannotBeSubscripted is null) return ListCut.None;
+        List<Core.SubscriptPartContext>? cuts = null;
+        CollectCuts(item, cannotBeSubscripted, ref cuts);
+        if (cuts is null) return ListCut.None;
+        list = cuts[0];
+        if (cuts.Count != 1 || !ReferenceEquals(item.Stop, list.Stop)) return ListCut.Unreadable;
+        list.GiveToNextItem();
+        return ListCut.GivenAway;
+    }
+
+    /// <summary>The operand a list given to the next item begins (<see cref="ListCut.GivenAway"/>): the parenthesized
+    /// expression it is, written as the list's single item — or null when it holds anything else (none, several, ALL, a
+    /// literal that is no expression), which no parenthesized expression is, and the caller refuses by name.</summary>
+    internal static Core.FunctionArgumentContext? GivenAwayOperand(Core.SubscriptPartContext list) =>
+        list.subscriptList()?.subscriptItem() is [{ } single]
+        && single.functionArgument() is { } operand
+        && (operand.arithmeticExpression() is not null || operand.booleanExpression() is not null)
+            ? operand
+            : null;
+
+    /// <summary>The cut points of one list item (see <see cref="GiveAwayClosingList"/>): every subscript list hung on a
     /// name that cannot be subscripted, at the item's OWN level — inside a nested paren (another reference's
     /// subscripts or reference modifier, a function's arguments, a parenthesized expression) the split question
     /// belongs to that paren's owner, so the walk does not descend there.</summary>
     private static void CollectCuts(IParseTree node, Func<string, List<string>, bool> cannotBeSubscripted,
-        List<(Core.DataReferenceContext Ref, Core.SubscriptPartContext List)> cuts)
+        ref List<Core.SubscriptPartContext>? cuts)
     {
         switch (node)
         {
@@ -547,7 +617,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                     }
                     if (sp is null) continue;
                     // §2023:8.4.2.3.2 hangs the list off the whole qualified name (kb/Work PB1455's sweep)
-                    if (cannotBeSubscripted(head.GetText(), qualifiers)) cuts.Add((dref, sp));
+                    if (cannotBeSubscripted(head.GetText(), qualifiers)) (cuts ??= []).Add(sp);
                     return;   // the first list decides; what follows it is that list's own reading
                 }
                 return;
@@ -556,7 +626,7 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
             case Core.PrimaryExpressionContext p when p.LPAREN() is not null:
                 return;   // GROUPING-PAREN-ONLY: a parenthesized expression's inside is its own level (FNARG_ / REF_ parens belong to functionCall / subscriptPart, handled above)
         }
-        for (int i = 0; i < node.ChildCount; i++) CollectCuts(node.GetChild(i), cannotBeSubscripted, cuts);
+        for (int i = 0; i < node.ChildCount; i++) CollectCuts(node.GetChild(i), cannotBeSubscripted, ref cuts);
     }
 
     /// <summary>Bind one subscript / ref-mod position to its typed <see cref="Position"/> (kb/Work PB2151), or
@@ -681,11 +751,10 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
                 functionChecked = true;
                 if (IsFunctionBearing(tokens)) return null;
             }
-            // A reference carrying its own subscripts, reference modifier or object qualifier is not a bare name —
-            // unless its list is the one the declarations gave to the next subscript (kb/Work PB136).
+            // A reference carrying its own subscripts, reference modifier or object qualifier is not a bare name (a list
+            // the declarations gave to the next subscript is none of its own: ReadWritten skips it, kb/Work PB136).
             var written = ReferenceResolver.ReadWritten(dref);
-            if (!ReferenceEquals(dref, seg.Cut) && (written.SubscriptGroup is not null || written.IsReferenceModified))
-                return null;
+            if (written.SubscriptGroup is not null || written.IsReferenceModified) return null;
             if (written.PropertyObject is not null) return null;
             // ⛔ AN UNRESOLVABLE NAME ROUTES TO D18 — IT IS NOT A VERDICT (fix-queue PB50): the expression binder
             // reports a genuinely undefined name at the operand itself.
@@ -829,9 +898,9 @@ internal sealed class SubscriptBinder(ReferenceResolver refs, DataBinder data)
         if (refs.Probing) return new PositionConstant(1);
         var tokens = seg.Tokens;
         if (MaterializeSegment is null || tokens.Count == 0) return null;
-        // A reference the declarations cut (kb/Work PB136) is read without its list only by the direct walk; inside an
-        // expression the walk cannot read, the tree has no reading of the cut, so the position is refused by name.
-        if ((seg.Cut is null ? seg.Operand?.arithmeticExpression() : null) is not { } expr)
+        // A reference the declarations cut (kb/Work PB136) is read without its list by every reader (ReadWritten), so a
+        // position the walk cannot read binds through the expression binder like any other.
+        if (seg.Operand?.arithmeticExpression() is not { } expr)
         {
             // ⛔ A POSITION THAT IS NOT AN ARITHMETIC EXPRESSION IS NOT A SUBSCRIPT (kb/Work PB1030). §2023:8.4.2.3.2 writes a
             // subscript as ALL, arithmetic-expression-1, or index-name-1 [{+|-} integer-1] (the last is read directly

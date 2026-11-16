@@ -1418,6 +1418,8 @@ WiseOwl.Cobol.Runtime.IO.FileConnector.NoteRecordRead(string! record, WiseOwl.Co
 WiseOwl.Cobol.Runtime.IO.FileConnector.Open(WiseOwl.Cobol.Runtime.IO.FileOpenMode mode) -> string!
 WiseOwl.Cobol.Runtime.IO.FileConnector.OpenModeIfOpen.get -> WiseOwl.Cobol.Runtime.IO.FileOpenMode?
 WiseOwl.Cobol.Runtime.IO.FileConnector.OpenModeView.get -> int
+WiseOwl.Cobol.Runtime.IO.FileConnector.OpenedModeView.get -> int
+WiseOwl.Cobol.Runtime.IO.FileConnector.UseModeView(int declaredModes) -> int
 WiseOwl.Cobol.Runtime.IO.FileConnector.OptionalAbsent -> bool
 WiseOwl.Cobol.Runtime.IO.FileConnector.PermanentErrorInEffect.get -> string?
 WiseOwl.Cobol.Runtime.IO.FileConnector.PermanentErrorReplay() -> string?
@@ -1492,6 +1494,8 @@ WiseOwl.Cobol.Runtime.IO.FileRegistry.MintInstanceKey(string! baseKey) -> string
 WiseOwl.Cobol.Runtime.IO.FileRegistry.Open(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenModeIfOpen(string! name) -> WiseOwl.Cobol.Runtime.IO.FileOpenMode?
 WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenModeOf(string! name) -> int
+WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenedModeOf(string! name) -> int
+WiseOwl.Cobol.Runtime.IO.FileRegistry.UseModeOf(string! name, int declaredModes) -> int
 WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenShared(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, bool hasSharingOverride, WiseOwl.Cobol.Runtime.IO.FileSharing sharingOverride, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.OpenTape(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 WiseOwl.Cobol.Runtime.IO.FileRegistry.ReadExceedsRecordMaximum(string! name) -> string!
@@ -2934,7 +2938,7 @@ static WiseOwl.Cobol.Runtime.CobolString.ThruMemberFig(string? read, string? lo,
 static WiseOwl.Cobol.Runtime.CobolString.Window(string? s, int leftmost, int length) -> string!
 static WiseOwl.Cobol.Runtime.CobolString.WindowInto(string? dst, int leftmost, int length, string? slice, char pad = ' ') -> string!
 static WiseOwl.Cobol.Runtime.CobolStringOps.StringTransfer(string? dest, string? source, string? delimiter, ref long pointer, ref bool overflow) -> string!
-static WiseOwl.Cobol.Runtime.CobolStringOps.UnstringExtract(string? source, string![]! delimiters, int receiverSize, ref long pointer, out string! field, out string! delimiter, out int matched) -> int
+static WiseOwl.Cobol.Runtime.CobolStringOps.UnstringExtract(string? source, string![]! delimiters, int receiverSize, ref long pointer, out string! field, out string! delimiter, out int matched, bool initiating) -> int
 static WiseOwl.Cobol.Runtime.CobolStringOps.UnstringSkipRun(string? source, string![]! delimiters, bool[]! allFlags, int matched, ref long pointer) -> void
 static WiseOwl.Cobol.Runtime.CobolTable.AllArgs<T>(System.Func<long[]!, long>![]! counts, System.Func<long[]!, T>! element, System.Func<long[]!, T>? lead = null) -> T[]!
 static WiseOwl.Cobol.Runtime.CobolTable.ArgConcat<T>(params T[]![]! parts) -> T[]!
@@ -3414,6 +3418,8 @@ static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenIO(string! name, string! assign, b
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenInput(string! name, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenModeIfOpen(string! name) -> WiseOwl.Cobol.Runtime.IO.FileOpenMode?
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenModeOf(string! name) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenedModeOf(string! name) -> int
+static WiseOwl.Cobol.Runtime.IO.CobolFile.UseModeOf(string! name, int declaredModes) -> int
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenOutput(string! name, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenShared(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, bool hasSharingOverride, WiseOwl.Cobol.Runtime.IO.FileSharing sharingOverride, WiseOwl.Cobol.Runtime.IO.FileRetryKind retryKind, long retryAmount, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
 static WiseOwl.Cobol.Runtime.IO.CobolFile.OpenTape(string! name, WiseOwl.Cobol.Runtime.IO.FileOpenMode mode, WiseOwl.Cobol.Runtime.IO.OpenTapePhrase tape, string! assign, bool assignDynamic, WiseOwl.Cobol.Runtime.IO.LinagePage? page) -> void
