@@ -842,6 +842,19 @@ public sealed class FileModel
     /// past the character area (D-FRA).</summary>
     public int RecordMax => Records.Count == 0 ? 0 : Math.Max(RecordWidth, Records.Max(MaxRecordSize));
 
+    /// <summary>⛔ THE RECORD CLAUSE SIZES A RECORD LARGER THAN EVERY RECORD DESCRIPTION (kb/Work PB5785): a Format 1
+    /// <c>RECORD CONTAINS integer-1</c> whose integer-1 exceeds the largest description (legal — the descriptions may be
+    /// smaller, §1985:VII.3.8.3 SR1, §2023:13.18.43.3 SR3), or a Format 2 <c>RECORD IS VARYING … TO integer-3</c> whose
+    /// integer-3 does. The record the file holds is then LONGER than any record area item: §2023:13.18.43.4 GR6 /
+    /// GR7 and §1985:VII.3.8.4 GR3 give each record the clause's size, §2023:14.9.30.4 GR4 b) (§1985:VII.4.4.4 GR8b) moves THE
+    /// CURRENT RECORD sized by the RECORD clause, and §2023:13.18.43.4 GR16 / §1985:VII.3.8.4 GR12 count its bytes, so the
+    /// implied move of an INTO phrase sends the record at its own length and not the area's description-wide image. False
+    /// for Format 3, whose records the descriptions size completely (§2023:13.18.43.4 GR18), and for a file with a
+    /// variable-length record, whose contiguous image the area already states (D-FRA).</summary>
+    public bool RecordClauseExceedsDescriptions =>
+        Records.Count > 0 && !Records.Any(IsVariableLengthRecord)
+        && (Varying is { } v ? v.VaryingClause && VaryMax > Records.Max(MaxRecordSize) : RecordContains > Records.Max(MaxRecordSize));
+
     /// <summary>⛔ THE ONE READER of WHICH §2023:13.18.43.2 GENERAL FORMAT this file description entry's RECORD clause
     /// was written in, and of the integers it states — the projection every §2023:13.18.43.3 syntax rule is stated
     /// over (<see cref="RecordClauseFacts"/>). Null when the entry writes no RECORD clause, which is the one case

@@ -2,7 +2,7 @@
       *> id: pb526_linage_ec_condition
       *> rules: [GR-9.1.13.11-1, GR-13.18.34.4-3, GR-13.18.34.4-6,
       *>    DOC-A.1-110]
-      *> accept: [85, 2002, 2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -120,7 +120,9 @@
       *>         OUTPUT (GR6 b) 1), so USE-B fires there: FS=90, LC=000.
       *>         The connector STAYS OPEN — GR6 b) 2's "until the file is
       *>         closed" and "all subsequent WRITE statements referencing
-      *>         the file" both presuppose it.
+      *>         the file" both presuppose it. (COBOL-85 has no such
+      *>         continuation: its OPEN is refused and the file is not open,
+      *>         kb/Work PB5845, pb526_linage_ec_condition_85.)
       *> B-W1    the latched WRITE. NEITHER end-of-page imperative runs:
       *>   python scripts/spec/cite.py --check 14.9.51.4 "When an
       *>   end-of-page condition occurs, the WRITE statement is successful
