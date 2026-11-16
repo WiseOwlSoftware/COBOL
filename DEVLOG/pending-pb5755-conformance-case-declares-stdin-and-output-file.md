@@ -45,3 +45,4 @@ this branch; this change closes no row itself.
 On the final resume, origin/main had not moved past the branch base (merge: already up to date), and the merged tree read the same 1985 line, 49 GAP, as the fold left it.
 
 The first gate run (000001-20261116T101141Z) was RED in the BUILD TARGETS audit: the generator imported cite (16 undecided path probes of scripts/spec) and two new is_file probes were not judged. The rule text now comes straight from the rule catalogs, which are inputs of the target, and the two probes are judged in build_targets.json.
+The second gate run was RED in SELF-TESTS only (all four test targets green): the generate.py self-test reads ImplementorNames.cs, now a TOOLING_READS entry in scripts/lane_classification.py.

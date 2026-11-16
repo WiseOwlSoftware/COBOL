@@ -379,7 +379,9 @@ CLASSIFICATION = Classification(inert={
        "specs/ISO_COBOL_2023.md": "scripts/spec/cite.py, audit_code_citations.py, audit_doc_citations.py, "  # spec_pdf: names-the-file
                              "scripts/differential_fuzz.py",
        "src/WiseOwl.Cobol.Cli/WiseOwl.Cobol.Cli.csproj": "scripts/guard-compiler.sh, guard-verify.sh, linux-gate.sh",
-       "src/WiseOwl.Cobol.Frontend/Grammar/": "scripts/spec/grammar_source.py (the grammar files, whole)",
+       "src/WiseOwl.Cobol.Editions/ImplementorNames.cs": "conformance-suite/harness/generate.py --self-test (it holds "
+                                                         "cobol_source.STDIN_DEVICES to the table's input devices)",
+       "src/WiseOwl.Cobol.Frontend/Grammar/":"scripts/spec/grammar_source.py (the grammar files, whole)",
        "src/WiseOwl.Cobol.Runtime/Control/RuntimeAbi.cs": "scripts/abi_pin.py (settling the ABI pin)",
        "src/WiseOwl.Cobol.Runtime/RuntimeAbi.pin": "scripts/abi_pin.py (settling the ABI pin)",
        "tests/WiseOwl.Cobol.Benchmarks/GeneratedCode/GeneratedProgramBenchmarks.cs": "scripts/arch/perf_baseline.py",
