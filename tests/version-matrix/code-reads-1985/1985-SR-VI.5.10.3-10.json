@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-10",
+ "rule-digest": "d9c40aae776e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "92209e3509a4ace10cbf9e21cdbc597292f0d24337c98436c2c550ee0f9f8f33",
+   "refuter": "5214737244b75e97411011dd37488b718f542d50092e9022fe8c507066cc60ff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-10",
+  "verdict": "CONFORMS",
+  "requirement": "A REDEFINES subject must not be separated from data-name-2 by any entry whose level-number is numerically lower than theirs (that is, the pair must lie within the same immediate group, or both be level 01/77 entries of one section); the subordinates of data-name-2 (higher level-numbers, 88s) may lie between.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#FirstInterveningStorage; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#RedefinedEntry",
+  "edition-consulted": [],
+  "edition-search": "Grepped ResolveRedefinesPass.cs, ClassifyRedefinesClassesPass.cs and DataItem.RedefinedEntry for Edition.Edition, .Year, CobolVersion, Constructs., ConstructRegistry: none. The only edition-adjacent consult is EditionContext.Removed, the strict/permissive severity seam.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f09_01 covers the acceptance (data-name-2's own level-10 subordinates between the pair). The refusal (a lower-level entry between) is not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r10pos.cob",
+    "printed": "B=PQ C2=Q / ON",
+    "expected": "accepted: A's level-10 and 88 subordinates and an earlier redefinition lie between; B and C overlay A"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r10ref1.cob",
+    "printed": "error COBOL1654: 'B' REDEFINES 'A': data-name-2 does not name a preceding entry in the same scope (ISO §2023:13.18.44.3 SR4/SR7/SR10; §2023:8.4.2.1)",
+    "expected": "refused: level-03 Y lies between A (05) and B (05)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r10ref2.cob",
+    "printed": "error COBOL1654: 'B' REDEFINES 'A': data-name-2 does not name a preceding entry in the same scope",
+    "expected": "refused: level-01 G2 lies between"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r10ref3.cob",
+    "printed": "error COBOL2771 (level 3 not equal to its siblings' 5), COBOL2191, COBOL1654 for B REDEFINES A",
+    "expected": "refused: degenerate irregular level 03 between two 05 entries"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r10ref4.cob",
+    "printed": "error COBOL1654: 'B' REDEFINES 'A': data-name-2 does not name a preceding entry in the same scope",
+    "expected": "refused (also breaks SR2: levels differ)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR10",
+    "check": "OK  §1985:VI.5.10.3 SR10  (5.10.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:VI.5.10.3 SR2",
+    "check": "OK  §1985:VI.5.10.3 SR2  (5.10.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The rule is enforced structurally: Run resolves data-name-2 only among the subject's preceding siblings (or the roots of its own section), so a lower-level entry between the pair puts data-name-2 out of scope and COBOL1654 refuses it. The diagnostic names the scope, not the 1985 rule, but it is correct and cites the 2023 counterpart.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.5.10.3 SR1-SR12. Attacked the acceptance half with entries numerically HIGHER than 01 between a level-01 pair, which SR10 permits: a level-66 RENAMES between 01 A and 01 B REDEFINES A (d1ren) accepted and runs (B1=PQRS AR=PQRS); an 88 between (d2c88) accepted (B=Y); single-digit level 5 B REDEFINES 05 A (d3lvl5) accepted. A level-01 X between (d6lvl1x) refused COBOL2739 (SR11 also bars it). 1985-only form: REDEFINES at 05 inside a Communication Section CD record (d7cd) accepted and shares storage (ABC). Grepped ResolveRedefinesPass.cs for Edition: only the binder.Edition severity calls (Error/Removed/At), no edition branch. cite.py: 'OK  §1985:VI.5.10.3 SR10  (5.10.3 Syntax Rules)  the text is in SR10'; 'OK  §1985:VI.5.10.3 SR11  (5.10.3 Syntax Rules)  the text is in SR11'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

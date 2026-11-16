@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-6",
+ "rule-digest": "5afda919bade",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-193",
+  "sources": {
+   "reader": "eae6d14c6d368e86e72a72f9c7a1a4202a67d8f178fa4af9d42e57273d386c39",
+   "refuter": "749ba570009cf3d3f58a8ebcbdfcde9d03f3fb5eaee484f0cf11a686ed824448"
+  },
+  "imported": {
+   "reader": "97420d3a0154eca96f14f2ec0c94fa21270e146b62f2dda7570c47a1202380d5",
+   "refuter": "4a1899b70372194707f469325543ecaee3a4b6bc6efdea1091952a32fd1086c8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a DISPLAY of several operands (identifiers of any class the edition admits, literals, figurative constants, ALL literals, reference-modified and variable-length items, edited items) must transfer them as one sending item, in written order, with nothing inserted between successive operands and the device position unchanged between them; WITH NO ADVANCING carries the position into the next DISPLAY.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsDeviceString; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement",
+    "switches": "refuses END-DISPLAY (EndDisplay2002) and a numeric literal operand that is not an unsigned integer (DisplayNumericLiteral2002, §1985:VI.6.10.3 SR2) below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectLevel/Edition/CobolVersion/ConstructRegistry/DialectBehavior in AcceptDisplayBinder.cs, AcceptDisplayEmitter.cs and OperandText.cs found none; the emitter joins every operand's device string with + and writes once (Write or WriteLine); --numeric-display is a compile option, not an edition",
+  "behaviour-differs-by-edition": "no: disp6.cob prints identical lines at --std 85 and --std 2023; only the operand forms admitted differ (END-DISPLAY and signed/fractional literals refused at 85)",
+  "witnesses-cover": "part: ca3_figurative_display_pcs covers figurative operands; the probes add alphanumeric+numeric concatenation, ALL literal, reference modification, an ODO group at two lengths, numeric-edited, signed numeric, LOW/HIGH-VALUE and NO ADVANCING continuation",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/disp6.cob",
+    "printed": "L1ABC007| / L2 |0|*|\"| / L3BCCABC| / L4<<XY| 12.50| / L5<<XYZW| / L6+ABC| / L7-0050| / L8<NUL>|<U+FFFF>|",
+    "expected": "each operand's image back to back with no separator in written order; ODO group at its current length (2 then 4); one occurrence of each figurative (GR3); NO ADVANCING leaves the position after the last operand (GR8)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/disp6.cob",
+    "printed": "--std 2023: identical eight lines",
+    "expected": "same transfer at every edition"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/disp6c.cob",
+    "printed": "COBOL0816 END-DISPLAY requires COBOL-2002; COBOL0900 for -1 and for 1.5 (not unsigned integers)",
+    "expected": "refused at 85: END-DISPLAY is not in the 1985 format; §1985:VI.6.10.3 SR2 numeric literal must be an unsigned integer"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR6",
+    "check": "OK  §1985:VI.6.10.4 GR6  (6.10.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The emitter builds ONE string from every operand's device conversion joined with + and writes it in a single Write/WriteLine, so no separator or repositioning can come between operands. The HIGH-VALUE image (U+FFFF written as UTF-8 EF BF BF) is GR1's implementor-defined conversion, outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "disp6r.cob at --std 85 (runs/disp6r-002): ODO group at 0 occurrences prints only its fixed part '<<'; ALL \"AB\" once (GR3); BINARY/COMP-3/SIGN LEADING SEPARATE/JUSTIFIED/BLANK WHEN ZERO elementary operands concatenated with no separator; a group of X, COMP-3 9(3), BINARY 9(4), X transfers its 6 storage bytes '[' 12 3F 01 02 ']' back to back, so the sending item is the sum of the operands' sizes. disp6c.cob: X\"41\", N\"B\", B\"1\" operands refused at 85 (COBOL0900), as 1985 has only nonnumeric and numeric literals. Index data item as an operand refused (COBOL1694), correct for 1985 (USAGE INDEX referenced only in SEARCH/SET/relation/USING). Emitter joins every operand and writes once (AcceptDisplayEmitter.cs#EmitDisplay). cite: OK  §1985:VI.6.10.4 GR6  (6.10.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

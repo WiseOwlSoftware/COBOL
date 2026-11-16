@@ -58,6 +58,14 @@ public static partial class ReferenceFormatProcessor
         "AUTHOR", "INSTALLATION", "DATE-WRITTEN", "DATE-COMPILED", "SECURITY", "REMARKS",
     };
 
+    /// <summary>Whether <paramref name="word"/>, the first word of an Area-A line, names a comment-entry paragraph in the text the
+    /// line becomes: <paramref name="asReplaced"/> is the spelling a COPY statement's REPLACING phrase gives the word when the
+    /// text is library text (null for none) — COBOL-85 reads a comment-entry in the text a COPY statement PRODUCES, so a word the
+    /// phrase turns into <c>AUTHOR</c> heads one and an <c>AUTHOR</c> it turns into something else does not (§1985:XII.2.3 SR10;
+    /// kb/Work PB5732).</summary>
+    private static bool IsCommentEntryParagraph(string word, Func<string, string>? asReplaced)
+        => CommentEntryParagraphs.Contains(asReplaced is null ? word : asReplaced(word));
+
     /// <summary>The compiler-directive word this stage owns (ISO §2023:7.3.24; the <c>source-format-directive-2002</c>
     /// registry row's single <c>directiveWords</c> entry — FORMAT and IS are §2023:5.2.3 optional words, not part of
     /// the word).</summary>
@@ -118,10 +126,12 @@ public static partial class ReferenceFormatProcessor
     /// reads as the program text they are, not as candidates (<see cref="CommentEntryPins"/>); null for none.</param>
     /// <param name="inclusion">Which text of the run this is (<see cref="CommentEntryPin.Inclusion"/>): the pins it reads
     /// and the candidates it carries are this inclusion's.</param>
+    /// <param name="paragraphWordAsReplaced">For library text a REPLACING phrase will change: the spelling the phrase gives a
+    /// word (<see cref="IsCommentEntryParagraph"/>); null for source text and for library text copied unchanged.</param>
     public static MappedText NormalizeToFreeFormMapped(string sourceText, ReferenceFormatDiagnostics? gates, string sourcePath,
         bool? initialFixed, out ReferenceFormatMap formats, bool ccvsIndicators = false,
         IReadOnlyList<DirectiveStackOp>? implicitOps = null, bool? startsInIdentificationDivision = true,
-        CommentEntryPins? pins = null, int inclusion = CommentEntryPins.SourceText)
+        CommentEntryPins? pins = null, int inclusion = CommentEntryPins.SourceText, Func<string, string>? paragraphWordAsReplaced = null)
     {
         // THE line-entry stage (kb/Work PB1800): every line below is read from here — terminators, tabs and (under
         // --nist) archive markers are settled, so no consumer splits, trims or expands anything itself.
@@ -138,7 +148,7 @@ public static partial class ReferenceFormatProcessor
         {
             formats = ReferenceFormatMap.Create(firstFixed, detected: initialFixed is null, [], directiveLines, lines);
             bool? inIdentificationDivision = startsInIdentificationDivision;
-            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, ref inIdentificationDivision);
+            var (wl, wo) = ConvertSegment(lines, firstFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, ref inIdentificationDivision);
             return Mapped(wl, wo, sourcePath);
         }
 
@@ -163,7 +173,7 @@ public static partial class ReferenceFormatProcessor
             int segEnd = s < segments.Count ? segments[s].Index + (keepsLine ? 1 : 0) : lines.Length;   // exclusive
             if (segEnd > segStart)
             {
-                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, ref inIdentification);
+                var (sl, so) = ConvertSegment(lines[segStart..segEnd], segFixed, gates, sourcePath, ccvsIndicators, pins, inclusion, gatesLineLength: true, paragraphWordAsReplaced, ref inIdentification);
                 outLines.AddRange(sl);
                 outOrigins.AddRange(so);
             }

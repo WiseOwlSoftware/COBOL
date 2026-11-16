@@ -1,0 +1,123 @@
+{
+ "rule-id": "1985-SR-VI.6.25.3-5",
+ "rule-digest": "e02e874f4562",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "22a90c1ccad51aa638ec2c35877924abb2c083c6084e2d5d5d96db20d1b9f76c",
+   "refuter": "316d0329f06e5148b992e8e8d6311f0a2dba578c350ff9a2f14a162b094cce76"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.25.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the STRING WITH POINTER identifier-4 must be an elementary numeric integer item (signed or unsigned, any numeric usage) without P in its PICTURE, large enough to hold 1 plus the size of identifier-3; a scaled, P-scaled, alphanumeric, numeric-edited, group, index or reference-modified pointer and an undersized pointer must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#PointerTooSmall; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsUnscaledInteger",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/Edition.Edition/ConstructRegistry/DialectBehavior/Year in StringUnstringBinder.cs: no match; the pointer screens in BindString are unconditional.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb88-string-pointer-not-integer refuses a PIC 9V9 pointer; the size half, the P-symbol half and the other non-integer categories are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s1.cob",
+    "printed": "error COBOL1651: STRING WITH POINTER 'PS' (PIC 9V9): identifier-4 shall be an elementary numeric integer data item without the symbol P",
+    "expected": "refused: not an integer"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s2.cob",
+    "printed": "error COBOL1651 for 'PP' (PIC 9PP)",
+    "expected": "refused: P in the PICTURE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s3.cob",
+    "printed": "error COBOL1651 for 'PX' (PIC XX)",
+    "expected": "refused: not numeric"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s4.cob",
+    "printed": "error COBOL1651: 'P1' is too small to contain 1 plus the size of identifier-3 'T9'",
+    "expected": "refused: PIC 9 cannot hold 10"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s11.cob",
+    "printed": "error COBOL1651: 'P3' (PIC 99) too small for 'T99' (X(99))",
+    "expected": "refused: 99 cannot hold 100"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s5.cob",
+    "printed": "..AB.... 5 / OVF / ..AB..XY 9",
+    "expected": "accepted: PIC 9 holds 9 = 1 + 8 for X(8); pointer advances to 5, then overflow at 9"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s13.cob",
+    "printed": " AB|99",
+    "expected": "accepted at the boundary: PIC 99 holds 99 = 1 + 98 for X(98)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s8.cob",
+    "printed": "ABCD..... +05 / OVF0 / +00 / OVFN / -01",
+    "expected": "accepted: signed COMP integer pointer; zero and negative pointer values take ON OVERFLOW"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s6.cob",
+    "printed": "error COBOL1651 for group 'PG'",
+    "expected": "refused: not elementary"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s7.cob",
+    "printed": "error COBOL1651 for 'PE' (PIC Z9)",
+    "expected": "refused: numeric-edited"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s9.cob",
+    "printed": "error COBOL1651 for 'P3(1:1)'",
+    "expected": "refused: reference modification is not a numeric integer item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/s10.cob",
+    "printed": "error COBOL1651 for 'PI' (USAGE INDEX)",
+    "expected": "refused: an index data item is not a numeric item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.3 SR5",
+    "check": "OK  §1985:VI.6.25.3 SR5  (║6.25.3 Syntax Rules║)  the text is in SR5"
+   }
+  ],
+  "notes": "BindString asks StrUnstrIsInteger (the one integer-operand classifier plus PicInfo.IsUnscaledInteger, which excludes V and P scaling) and PointerTooSmall (1 + identifier-3's size against the pointer picture's capacity) at every edition. Every refusal half and the boundary acceptance match SR5 at --std 85; COBOL1651 cites §2023:14.9.43.3 SR7 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.25.3-5",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "cite.py: OK  §1985:VI.6.25.3 SR5  the text is in SR5. Probes at --std 85: t1 identifier-3 a variable-length group (VE PIC X OCCURS 1 TO 12 DEPENDING, current 2) with a PIC 9 pointer refused COBOL1651 (size taken at the maximum 12, so 13 does not fit; the minimum or current size would have admitted it); t2 PIC 9 COMP pointer for X(9) refused COBOL1651 (capacity read from the PICTURE digits, not the binary storage); t4 a group identifier-3 of size 10 with a PIC 9 pointer refused COBOL1651; t3 a subscripted SIGN LEADING SEPARATE PIC S9(2) pointer PE(I) into subscripted TE(I) X(8) accepted and ran '. AB     +05' (pointer 3 to 5). The reader's probes cover the P, V, edited, alphanumeric, index, refmod and boundary halves.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

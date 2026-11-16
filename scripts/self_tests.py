@@ -419,7 +419,7 @@ class HostCpu:
     def describe(start: "HostCpu | None", end: "HostCpu | None") -> str:
         if start is None or end is None or end.total <= start.total:
             return "the host's processor use not readable"
-        busy = 100.0 * (1.0 - (end.idle - start.idle) / (end.total - start.total))
+        busy = 100.0 * (1.0 - max(0, end.idle - start.idle) / (end.total - start.total))   # an idle count steps back (PB5873)
         return f"the host's {os.cpu_count() or '?'} processors {busy:.0f}% busy"
 
 
@@ -1206,11 +1206,17 @@ def self_test() -> int:
     check("arm: a reading that is missing or did not advance is said to be unreadable, never guessed",
           {HostCpu.describe(None, b), HostCpu.describe(a, None), HostCpu.describe(a, a)},
           {"the host's processor use not readable"})
+    # kb/Work PB5873: GetSystemTimes moves once a timer tick and sums per-processor counters that step back a few ticks
+    # under load (23 of 20,000 back-to-back pairs on a busy 32-processor host, idle and total both), so two readings a
+    # few microseconds apart are no witness of "advance", and an idle count need not advance at all when every processor
+    # is busy. A tenth of a second is several ticks: the total moves by the processors' whole elapsed time, far past any step.
     first = HostCpu.sample()
-    sum(range(200_000))  # some processor time, so the second reading advances
+    time.sleep(0.1)
     second = HostCpu.sample()
-    check("arm: this host's processors are readable, and their total ticks advance",
-          first is not None and second is not None and second.total >= first.total and second.idle >= first.idle, True)
+    check("arm: this host's processors are readable, and their total ticks advance over a tenth of a second",
+          first is not None and second is not None and second.total > first.total, True)
+    check("arm: an idle count that stepped back reads as a fully busy host, never above 100 %",
+          HostCpu.describe(HostCpu(500, 1000), HostCpu(499, 2000)).endswith("processors 100% busy"), True)
     check("arm: --budget takes a whole number of places, at least one",
           ([_places(v) for v in ("1", "12")], [_refused(_places, v) for v in ("0", "-2", "x", "1.5")]),
           ([1, 12], [True] * 4))

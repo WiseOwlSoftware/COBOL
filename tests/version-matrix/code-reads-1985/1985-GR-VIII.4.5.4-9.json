@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-9",
+ "rule-digest": "79f3832e797b",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "760de3fd659b4efa55ca2786b17a6bbd38a69f1cd2ddad2167725f41ce850bad",
+   "refuter": "28ff6a309cee7097e09371ccc19fed82cc309cef1f855e288e35a3c48474270e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "A format 2 (random) READ of a relative file, in random or dynamic access mode, whose file position indicator says an optional input file is not present (OPEN INPUT of an absent OPTIONAL file) must raise the invalid key condition with I-O status 23 (VIII.1.3.4 (3)b2), be unsuccessful (no INTO move, record area undefined, FPI no valid next record), run the INVALID KEY phrase or else the USE procedure, every time it is executed.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#RecordNotFound; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#InForce",
+    "switches": "below 2002 a READ with neither INVALID KEY/AT END nor an applicable USE procedure is refused (VIII.4.5.3 SR5); 2002+ accepts it",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "dynamic-access READ with AT END must write NEXT below 2002; not reached by a format 2 READ",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "runtime path: grep of DialectBehaviors.IsActive and Edition in src/WiseOwl.Cobol.Runtime/IO finds no consult on RelativeConnector.ReadRandom, RandomReadAbsentOptionalGuard or OPEN's OptionalAbsent; UseTierEmitter.cs has no Edition/Year reference",
+  "behaviour-differs-by-edition": "no for the runtime result (23, INVALID KEY, USE); yes at compile time only: 1985 SR5 refuses a READ with no exception phrase and no USE, which 2023 accepts (a separate rule)",
+  "witnesses-cover": "part: pb344_use_mode_invalid_key_85 covers one random-access READ of an absent OPTIONAL relative file with and without INVALID KEY; not exercised there: dynamic access, repeated reads, INTO, key 0 or 9999, and the sequential READ after the failed random read",
+  "probes": [
+   {
+    "class": "e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p2opt.cob",
+    "printed": "OPEN-R 05 / R1 INVALID 23 / INTO=ZZZZ / R2 INVALID 23 / R3 INVALID 23 / CLOSE-R 00 / OPEN-D 05 / D1 INVALID 23 / DECL-OPD 23 / D2 23 / DECL-OPD 46 / D3 46",
+    "expected": "OPEN 05; each format 2 READ (keys 1, 0, 9999; random and dynamic) invalid key 23 with no INTO move; without the phrase the USE procedure runs; the next READ NEXT is 46 (GR12, VIII.1.3.4 (5)e2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p2nouse.cob",
+    "printed": "error COBOL6826: READ of relative file 'OPD' specifies no INVALID KEY or AT END phrase, and no applicable USE AFTER STANDARD EXCEPTION procedure (§1985:VIII.4.5.3 SR5)",
+    "expected": "1985 SR5 refuses the phrase-less READ with no USE procedure"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p2opt.cob (--std 2023)",
+    "printed": "identical to the --std 85 output",
+    "expected": "same runtime behaviour"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR9",
+    "check": "OK  §1985:VIII.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.2"
+   }
+  ],
+  "notes": "RelativeConnector.ReadRandom asks the open-mode guard and then RandomReadAbsentOptionalGuard, which answers 23 for every random READ while the optional file is absent, through Unsuccessful so the FPI is invalidated. No edition consult on the runtime path; the only 1985-specific arm on the way is the SR5 phrase requirement, a different rule, probed and correct.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe r2opt.cob at --std 85 (runs/r2opt-001), dynamic-access OPTIONAL relative file absent, opened INPUT: OPEN 05; START (GR6 sibling) INVALID 23; format 2 READ INTO with INVALID KEY and NOT INVALID KEY and a USE procedure present: INVALID KEY runs with 23, NOT INVALID does not, the USE does not, INTO not moved (ZZZZ); the following READ NEXT with AT END gives 46 through the USE (logic error, not at end), a second random READ 23 again; after OPEN I-O (file created, 05) a random READ is 23 by GR15 not GR9. RelativeConnector.ReadRandom -> FileConnector.RandomReadAbsentOptionalGuard answers 23 with no edition consult. cites: OK  §1985:VIII.4.5.4 GR9  (4.5.4 General Rules)  the text is in GR9; OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

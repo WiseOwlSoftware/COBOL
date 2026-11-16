@@ -1,0 +1,43 @@
+{
+ "comment": "THE PARITY FIXTURE OF THE CODE-LOCATION RESOLVER (kb/Work PB5863): planted files and the locations both engines resolve in them, each with the answer the rule gives. The C# engine (SpecTraceabilityInventoryDriftTests.UnresolvedCodeLocations, the gate's resolver of the inventory's rows) writes `files` into a scratch tree; the Python engine (scripts/spec/code_location.py, the code-read importer's and planner's resolver) reads them from here. TheCodeLocationResolver_AgreesWithTheFixtureAndWithPython requires both to give `resolves` for every case, so a change to either engine that the other does not make is red. A case is added here, never in one engine's own test.",
+ "files": {
+  "src/Live.cs": "// GoneInLineComment\nnamespace N.Inner;\n/// <summary>GoneInDocComment</summary>\npublic sealed class Live\n{\n    public const string Id = \"listing-directive-2002\";\n    private static readonly string Verbatim = @\"// NotAComment\";\n    /* GoneInBlockComment */\n    public void Run() { int Helper() => 1; Helper(); }\n    public string Hole(int count) => $\"{Interpolated(count)} items\";\n    public int this[int i] => i;\n    public event System.EventHandler? Changed;\n    public int Count { get; set; }\n#if DEBUG\n    public void GoneInDisabledRegion() { }\n#endif\n    private int first = 1, second;\n}\npublic sealed class Other\n{\n    public int Elsewhere() { int onlyLocal = 0; CalledNotDeclared(); return onlyLocal; }\n}\npublic record Point(int X, int Y);\npublic enum Color { Red, Green = 2 }\n",
+  "src/Rules.g4": "// lineRule : 'x' ;\n/* blockRule : 'y' ; */\nliveRule : 'z' ;\n",
+  "notes/anchors.txt": "ANCHOR-1 is here\n"
+ },
+ "cases": [
+  {"name": "a member present", "location": "src/Live.cs#Run", "resolves": true},
+  {"name": "a member absent", "location": "src/Live.cs#NoSuchMember", "resolves": false},
+  {"name": "a name only in a line comment", "location": "src/Live.cs#GoneInLineComment", "resolves": false},
+  {"name": "a name only in a doc comment", "location": "src/Live.cs#GoneInDocComment", "resolves": false},
+  {"name": "a name only in a block comment", "location": "src/Live.cs#GoneInBlockComment", "resolves": false},
+  {"name": "a name only in a disabled region", "location": "src/Live.cs#GoneInDisabledRegion", "resolves": false},
+  {"name": "the file absent", "location": "src/Gone.cs#Run", "resolves": false},
+  {"name": "a remark after the entry is no location (the importer splits it off first)", "location": "src/Live.cs#Run (the arm)", "resolves": false},
+  {"name": "a qualified member", "location": "src/Live.cs#Live.Run", "resolves": true},
+  {"name": "a fully qualified member under a dotted file-scoped namespace", "location": "src/Live.cs#N.Inner.Live.Run", "resolves": true},
+  {"name": "a dotted namespace name is its segments, not a qualified name", "location": "src/Live.cs#N.Inner", "resolves": false},
+  {"name": "a member of the other type", "location": "src/Live.cs#Other.Run", "resolves": false},
+  {"name": "a local function, qualified by its type", "location": "src/Live.cs#Live.Helper", "resolves": true},
+  {"name": "a record's positional parameter", "location": "src/Live.cs#Point.X", "resolves": true},
+  {"name": "an enum member", "location": "src/Live.cs#Color.Green", "resolves": true},
+  {"name": "an indexer", "location": "src/Live.cs#Live.this", "resolves": true},
+  {"name": "a field-like event", "location": "src/Live.cs#Live.Changed", "resolves": true},
+  {"name": "a property", "location": "src/Live.cs#Live.Count", "resolves": true},
+  {"name": "a field's second declarator", "location": "src/Live.cs#Live.second", "resolves": true},
+  {"name": "a name the file only calls", "location": "src/Live.cs#CalledNotDeclared", "resolves": true},
+  {"name": "a name the file only calls, qualified, is not declared", "location": "src/Live.cs#Other.CalledNotDeclared", "resolves": false},
+  {"name": "a local variable, qualified, is not declared", "location": "src/Live.cs#Other.onlyLocal", "resolves": false},
+  {"name": "a string literal's anchor", "location": "src/Live.cs#listing-directive-2002", "resolves": true},
+  {"name": "a comment marker inside a verbatim string is text", "location": "src/Live.cs#NotAComment", "resolves": true},
+  {"name": "a name in an interpolation hole", "location": "src/Live.cs#Interpolated", "resolves": true},
+  {"name": "a grammar rule", "location": "src/Rules.g4#liveRule", "resolves": true},
+  {"name": "a grammar rule only in a line comment", "location": "src/Rules.g4#lineRule", "resolves": false},
+  {"name": "a grammar rule only in a block comment", "location": "src/Rules.g4#blockRule", "resolves": false},
+  {"name": "a document's anchor is the document audit's, even with no file", "location": "docs/NoSuchView.md#DOC-A.1-1", "resolves": true},
+  {"name": "a bare path present", "location": "src/Live.cs", "resolves": true},
+  {"name": "a bare path absent", "location": "src/Gone.cs", "resolves": false},
+  {"name": "an anchor in another kind of file", "location": "notes/anchors.txt#ANCHOR-1", "resolves": true},
+  {"name": "an anchor absent from another kind of file", "location": "notes/anchors.txt#ANCHOR-2", "resolves": false}
+ ]
+}

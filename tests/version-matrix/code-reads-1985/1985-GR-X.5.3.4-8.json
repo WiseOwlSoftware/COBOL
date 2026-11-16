@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-8",
+ "rule-digest": "ac14d0c8c6b3",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "6bac18454c6104e4d3492510eb62b3f29e2cb828b24fc69783472a598a654276",
+   "refuter": "36e8376b81ed9d4bd7b301d8dc77d268ec637d808e2850539b6ce7bf374bd080"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "An explicit or implicit CANCEL naming a program not called in this run unit, or called and at present cancelled (explicitly or by an INITIAL program's EXIT PROGRAM), takes no action and control passes to the next executable statement; at 85 this includes the run unit's main program, which was never called.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ActivateMain; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "folds DialectBehavior.CancelRefusesEveryActiveProgram (active from 2002) into BoundCancel: false at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+    "switches": "refusesEveryActiveProgram selects the GR5 active test: at 85 the never-called active MAIN program is GR8's no-action case instead of EC-PROGRAM-CANCEL-ACTIVE (kb/Work PB5241); every later step of CancelNode (GR8 test, GR4 cascade, implicit close, reset) is one arm for all editions",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectBehavior/DialectLevel over ProgramTable.cs and CallBinder.BindCancel; the CalledSinceCancel predicate itself is edition-free.",
+  "behaviour-differs-by-edition": "yes: CANCEL of the active main program is GR8's no action at 85 and EC-PROGRAM-CANCEL-ACTIVE (abnormal termination) at 2023 (p8a at --std 2023: 'abnormal run-unit termination: CANCEL P8A: program is active'); the never-called and already-cancelled cases take the same arm",
+  "witnesses-cover": "part: g85_f02_07 covers a never-called program and a second CANCEL of a cancelled one, by literal; not exercised by it: identifier-1, several operands in one CANCEL, an INITIAL program after its return, the main program (pb5241_cancel_main_program_85 covers that), CANCEL inside a conditional",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p8a.cob",
+    "printed": "AFTER 1 / CK1 KK1 KK AFTER ZZ / CK2 KK2 / IN1 IN1 / AFTER 2 / AFTER 3 / AFTER MAIN / IN IF / AFTER IF / CK1 KK1 KK AFTER ZZ / NV1 (MATCH)",
+    "expected": "no-action CANCELs of never-called NV (through identifier), never-called INITIAL IN, cancelled CK, returned INITIAL IN, the main P8A and an unreachable sibling ZZ, each followed by the next statement; CK still cancelled when named after a no-action operand; NV's first call finds its VALUE (NV1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p8a.cob",
+    "printed": "at --std 2023: stops after AFTER 3 with EC-PROGRAM-CANCEL-ACTIVE on CANCEL \"P8A\" (exit 1)",
+    "expected": "edition arm: 85 takes GR8's no action for the uncalled main"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR8",
+    "check": "OK  §1985:X.5.3.4 GR8  (║5.3.4 General Rules║)  the text is in GR8 -- 'No action is taken when an explicit or implicit CANCEL statement is executed'"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR5",
+    "check": "OK  §1985:X.5.3.4 GR5  (║5.3.4 General Rules║)  the text is in GR5 -- 'must not refer directly or indirectly to any program that has been called'"
+   }
+  ],
+  "notes": "Node.CalledSinceCancel is set by CallProgram, left alone by ActivateMain, and cleared by CancelNode and EndInitialActivation; CancelNode returns at once when it is false. A name the caller cannot reach (ResolveVisible null) is also no action, a permissible result of violating GR3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/q8.cob (run q8-001, --std 85): a separately compiled called program Q8S and a contained program Q8C each execute CANCEL \"Q8M\" naming the active, never-called main program; then the main cancels Q8C and Q8S (the latter through reference-modified W(3:3)) and calls Q8S again. Printed 'S1 / S AFTER CANCEL MAIN / M AFTER S MN=1 / C AFTER CANCEL MAIN / M AFTER CANCEL REFMOD / S1': both CANCELs of the uncalled main are no action with control to the next statement (main's MN kept), the ref-modified identifier names Q8S and cancels it (S1 again). The 85 arm (CancelNode's refusesEveryActiveProgram false: n.Active > (MainActive ? 1 : 0)) is what lets a CANCEL of the main from a callee through; GR5 at 85 forbids only a called program that has not executed EXIT PROGRAM. cite.py: OK §1985:X.5.3.4 GR8 'No action is taken when an explicit or implicit CANCEL statement is executed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

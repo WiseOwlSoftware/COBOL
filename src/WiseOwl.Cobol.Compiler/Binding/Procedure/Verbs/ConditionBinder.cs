@@ -1309,8 +1309,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                     + "form of arithmetic expression\" (ISO §2023:8.8.4.7.3 SR1)");
                 return Refused($"sign condition over '{DataBinder.WrittenText(signAddr)}'");
             }
-            return BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
+            var written = BindSignConditionOn(cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z',
                 not, operands[0].valueOperand(), carry);
+            // §1985:VI.6.3.1.5 — asked of the sign condition as WRITTEN (an EVALUATE subject spliced into one is the EVALUATE's).
+            if (written is BoundSignCondition sign) ctx.Validation.CheckSignConditionHasVariable(sign.Expr);
+            return written;
         }
 
 

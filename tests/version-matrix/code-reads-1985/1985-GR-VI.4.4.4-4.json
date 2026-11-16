@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-4",
+ "rule-digest": "c9b20ee742a5",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "afcab3ffe2403b0f836b178489be677f5d4d1afc562582195e714871e9c7350e",
+   "refuter": "bca7f306955e8cdd20ed07b1fd85ca4a9efa7662cdd23bf851349b149cedc517"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a bare OBJECT-COMPUTER header (the whole bracketed entry, computer-name included, omitted) must be accepted and the program run on the implementor's object computer, which DOC-A.1-126 documents as the one .NET runtime with the native collating sequence; the second period without an entry and a clause without computer-name lie outside the 1985 format and must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#objectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLonePeriod; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph",
+    "switches": "ComputerNameOptional2002: a clause without computer-name-1 is refused below 2002; a header-only paragraph is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLonePeriod",
+    "switches": "ConfigurationParagraphLonePeriod2002: OBJECT-COMPUTER. . refused below 2002 (the 1985 format prints the period inside the bracket)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/DialectLevel/CobolVersion in ObjectComputerEmit.cs, ConfigurationStep.cs and the grammar rule: none; the two gates above are in VersionConformancePass",
+  "behaviour-differs-by-edition": "yes: at 85 OBJECT-COMPUTER. . and a clause with no computer-name are refused (2002 relaxations); the header-only form behaves the same at every edition",
+  "witnesses-cover": "part: g85_f06_02 covers the bare header; the refusal edges (second period, clause without name) and native order in a contained program are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/oc4a.cob",
+    "printed": "A<B YES / Z>A YES / a>Z YES / 1<A YES / I Z>A YES (contained program)",
+    "expected": "bare header accepted; native (ASCII) collating sequence, also in the contained program (GR3/GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/oc4b.cob",
+    "printed": "COBOL0900 OBJECT-COMPUTER followed by a second separator period and no entry requires COBOL-2002",
+    "expected": "refused: §1985:VI.4.4.2 prints the period inside the bracket"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/oc4c.cob",
+    "printed": "COBOL0900 an OBJECT-COMPUTER clause without computer-name-1 requires COBOL-2002",
+    "expected": "refused: the 1985 format hangs PROGRAM COLLATING SEQUENCE inside the computer-name bracket"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/oc4d.cob",
+    "printed": "Z>A YES (MEMORY SIZE 8000 CHARACTERS accepted)",
+    "expected": "1985-only MEMORY SIZE clause accepted at 85"
+   },
+   {
+    "class": "b",
+    "file": "conformance-suite/cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/g85_f06_02.cob",
+    "printed": "MATCH",
+    "expected": "OBJECT-COMPUTER HEADER ONLY / N=042"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR4",
+    "check": "OK  §1985:VI.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The grammar makes computer-name and clauses optional; VersionConformancePass refuses only the 2002 relaxations. The implementor definition is DOC-A.1-126 (one object computer, native sequence), and the bare header binds no Collating, so ObjectComputerEmit emits no __COLLATE and comparisons use the native order.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "r44a-002: OBJECT-COMPUTER. header with no entry, followed directly by INPUT-OUTPUT SECTION (no SOURCE-COMPUTER, no SPECIAL-NAMES) at --std 85 compiles and runs: LOW-VALUE < 'Z' < 'a' < HIGH-VALUE holds (native order, DOC-A.1-126) and a SORT with no COLLATING SEQUENCE returns 1, Z, a (native). Reader's oc4b/oc4c cover the 2002 relaxations refused at 85. cite.py: OK  §1985:VI.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.4.3.4-3",
+ "rule-digest": "dfe22831c5b3",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "466d0b507c34c202a1b4c65004a4e7d59a0afa1a7ec6b07bf487849de7264193",
+   "refuter": "a3e305d76d487c86064c5bb7a754afae1fc0d0a6c762498c1a458621c138d7ea"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.3.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SOURCE-COMPUTER paragraph written with no source-computer-entry (the header and its period alone) must be accepted and the program compiled for the host, with no WITH DEBUGGING MODE in effect; the 1985 format makes the entry (computer-name, then optionally WITH DEBUGGING MODE) all-or-nothing.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSourceComputerParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLonePeriod; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSourceComputerParagraph",
+    "switches": "Constructs.ComputerNameOptional2002: at 85 WITH DEBUGGING MODE without computer-name is refused (COBOL0900); ConfigurationParagraphLonePeriod2002 via GateLonePeriod",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: from 2002 WITH DEBUGGING MODE may be written without computer-name-1; at 85 that form is refused (COBOL0900), so the 85 entry is computer-name first",
+  "witnesses-cover": "part: g85_f05_04 covers the bare header; the refusal of a partial entry (WITH DEBUGGING MODE with no computer-name) and a bare header in a container are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc3.cob",
+    "printed": "SC3 EMPTY SOURCE-COMPUTER (no D line)",
+    "expected": "bare SOURCE-COMPUTER. accepted; compiled for the host; no debugging mode"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc4.cob",
+    "printed": "SC4 EMPTY SOURCE-COMPUTER, NO PERIOD ENTRY / SC4IN CONTAINED (no D line)",
+    "expected": "bare header in a container: containee compiled for the host with no debugging mode"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc5.cob",
+    "printed": "error COBOL0900: a SOURCE-COMPUTER or OBJECT-COMPUTER clause without computer-name-1 requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 85: the 1985 format brackets WITH DEBUGGING MODE inside computer-name"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.3.4 GR3",
+    "check": "OK  §1985:VI.4.3.4 GR3  (4.3.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The grammar admits the header alone; the VersionConformancePass keeps the 1985 shape of the entry. With no entry nothing is set in the configuration slice, so the host is the source computer and DebuggingModeDeclared stays false.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.3.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-189/sc10.cob: 'SOURCE-COMPUTER.' then a comment line then 'OBJECT-COMPUTER. HOST-PC.' with two D lines (one not COBOL) -> compiles, prints only SC10 EMPTY SC THEN OC. sc12.cob: SC12 WITH DEBUGGING MODE (END PROGRAM) followed by separately compiled SC13 with a bare 'SOURCE-COMPUTER.' -> SC12's D line runs, SC13's does not. sc11.cob: 'SOURCE-COMPUTER. .' (the 2002 lone second period) -> COBOL0900 at --std 85, right since §1985:VI.4.3.2 prints the period inside the bracket. With the reader's sc5 (WITH DEBUGGING MODE without computer-name refused) the 1985 entry is all-or-nothing and an absent entry means the host. cite.py: OK  §1985:VI.4.3.4 GR3  (4.3.4 General Rules)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

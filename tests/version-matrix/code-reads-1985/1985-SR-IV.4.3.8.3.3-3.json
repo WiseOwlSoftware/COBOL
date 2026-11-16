@@ -1,0 +1,132 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.3.3-3",
+ "rule-digest": "93328607825a",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "07302852fa34c65f0b1d6eca52a8f6c32879e5fde4206e8675500565f6a00dd3",
+   "refuter": "4fd009d2edcaeba22b02656bf4001595389bcfbdae3ee10629f6b7cea7a1d278"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an alphanumeric function-identifier is accepted wherever a sending identifier is permitted (conditions, EVALUATE, INSPECT TALLYING subject, STRING/UNSTRING senders and delimiters, INSPECT REPLACING/CONVERTING operands, WRITE FROM, function arguments, with reference modification), and refused (a) as any receiving operand and (b) where the position requires characteristics its result lacks (a numeric operand, an integer pointer).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#receivingIdentifier; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn > ctx.Edition.DialectLevel refuses a function the 1989 module does not hold (COBOL1502); where a function-identifier may stand is not gated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Receiving positions are grammar rules (receivingIdentifier/dataReference admit no FUNCTION) at every edition; InspectBinder's COBOL1632 and the COBOL0844 arithmetic-operand refusal carry no edition test; grepped InspectBinder.cs and the receiving-operand grammar for DialectLevel/ConstructRegistry: none.",
+  "behaviour-differs-by-edition": "no: only which function names exist differs (FUNCTION TRIM refused at 85, COBOL1502)",
+  "witnesses-cover": "part: g85_f04_08 and 1985-SR-IV_4_3_8_3_3-3 cover permitted sending positions; neither exercises exception a or b",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-move-to.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (MOVE ... TO FUNCTION UPPER-CASE)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-inspect-repl2.cob",
+    "printed": "COBOL1632 INSPECT identifier-1 is the function-identifier ..., but this INSPECT REPLACES characters in it",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-string-into.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (STRING INTO)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-unstring-into.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (UNSTRING INTO)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-accept.cob",
+    "printed": "COBOL5506 FUNCTION is not expected here (ACCEPT)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-initialize.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (INITIALIZE)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-tallying-ctr.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (TALLYING counter)",
+    "expected": "refused, exception a"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-pointer2.cob",
+    "printed": "COBOL5506 unexpected 'FUNCTION' (WITH POINTER)",
+    "expected": "refused, exceptions a and b"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-add2.cob",
+    "printed": "COBOL0844 FUNCTION UPPER-CASE (an alphanumeric function) is not a numeric operand",
+    "expected": "refused, exception b"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-later-edition.cob",
+    "printed": "COBOL1502 FUNCTION TRIM was introduced by ISO/IEC 1989:2014",
+    "expected": "refused at 85 (not a 1989 intrinsic function)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-ok-more2.cob",
+    "printed": "ELL / LE / 20 / 003 / [A    ] / EV / olleh / ALPHA",
+    "expected": "reference-modified function, relation, CURRENT-DATE (1:2), INSPECT TALLYING subject, CHAR (66), class condition all accepted with the defined values"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/fn-sending-io.cob",
+    "printed": "W HELLO / U a    /b     / R heXXo / T 002 / C ABllo",
+    "expected": "WRITE FROM, UNSTRING DELIMITED BY, INSPECT REPLACING BY, TALLYING FOR ALL and CONVERTING operands accept a function"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR3",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR3  the text is in SR3"
+   }
+  ],
+  "notes": "Exception a is structural (no receiving grammar position admits FUNCTION) plus InspectBinder's format 2/3/4 screen; exception b is the operand-class screens. Side lead, not this rule: COBOL1632 and READ's COBOL0864 print the operand as glued token text (FUNCTIONUPPER-CASE(A1), DTOFIXR); no kb/Work note found for it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "fn-more.cob at 85 (alphanumeric function in positions the reader did not try): MOVE FUNCTION UPPER-CASE(A) TO a numeric item (M 123), SEARCH WHEN and SEARCH ALL WHEN relation objects (S HELLO, SA HELLO), STRING sender and DELIMITED BY function (ST ABHE 05), INSPECT ... BEFORE INITIAL function (IB 002), EVALUATE WHEN object, PERFORM UNTIL condition, CALL FUNCTION UPPER-CASE(NM) as identifier-1 (CALLED) and CANCEL all accepted with the defined values. Exception b: IF FUNCTION UPPER-CASE(A) IS POSITIVE refused COBOL0844; GO TO DEPENDING ON function refused COBOL2324; PERFORM function TIMES refused COBOL1646; MOVE CORRESPONDING FUNCTION refused COBOL5506. 'Rules that specifically prohibit reference to functions': CALL USING FUNCTION UPPER-CASE(A) refused COBOL0900 citing §1985:X.5.2.3 SR4 (Identifier-2 must not be a function-identifier). (The duplicate A in fn-ref-*.cob also drew COBOL1639, a probe slip; the rule's own diagnostic is printed beside it.) cite.py: OK §1985:IV.4.3.8.3.3 SR3 the text is in SR3.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall: ConstructRegistry call-function-identifier-argument-2002 refuses a function-identifier CALL USING argument at 85, the prohibition SR3 defers to",
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement: numeric-function-identifier-operand-2002 refuses a numeric or integer function as an identifier at 85 (SR4); an alphanumeric function passes, the SR3 arm"
+  ],
+  "corrected": ""
+ }
+}

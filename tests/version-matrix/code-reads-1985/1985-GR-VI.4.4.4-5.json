@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-5",
+ "rule-digest": "e69d32757ebf",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "211159ee5184fb9058911ae254e4d57aad9ea44a5440903dbea41208f3bbabbb",
+   "refuter": "de1dcc587092ae49e149c0f2fa53328cda16e977b388a8f3251ef8abc078526c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 PROGRAM COLLATING SEQUENCE IS alphabet-name-1 (the single-name IS form, PROGRAM and COLLATING optional words) must make the alphabet's sequence (STANDARD-1, STANDARD-2, NATIVE, implementor-name or the literal phrase with THROUGH/ALSO) the program collating sequence; a name that is not an alphabet, and the 2002 alphabet-name-2/FOR forms, must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programCollatingSequenceClause; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#CollateArgFor; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramCollatingSequenceClause",
+    "switches": "ProgramCollatingNational2002: alphabet-name-2 and the FOR ALPHANUMERIC/NATIONAL forms refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitObjectComputerParagraph",
+    "switches": "ComputerNameOptional2002: the clause without computer-name refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition/DialectLevel in SpecialNamesBinder.ResolveProgramCollating, ObjectComputerEmit, EmitCore.CollateArgFor: none; the resolution and the __COLLATE carrier are edition-independent",
+  "behaviour-differs-by-edition": "yes: at 85 only the single-name IS form is accepted; the resolution of that form is identical at every edition",
+  "witnesses-cover": "part: g85_f06_01 covers one literal alphabet with ALSO; THROUGH (descending), numeric ordinals, STANDARD-1 and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5a.cob",
+    "printed": "B<A YES / K=Q YES / 3<1 YES / 1<Z NO / #<X YES / Y<0 YES / X<Y YES / Y<B NO",
+    "expected": "ALPHABET REV IS Z B A K ALSO Q 3 THRU 1 36 XY: Z<B<A<K=Q<3<2<1<#<X<Y< unspecified chars in native order"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5e.cob",
+    "printed": "A<B YES (SEQUENCE NAT with NAT IS STANDARD-1, PROGRAM COLLATING omitted)",
+    "expected": "STANDARD-1 sequence = ASCII; optional words accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5b.cob",
+    "printed": "COBOL5989 'NOSUCH' is not an alphabet declared in SPECIAL-NAMES",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5f.cob",
+    "printed": "COBOL5989 'WS-A' is not an alphabet declared in SPECIAL-NAMES",
+    "expected": "refused: alphabet-name-1 must be an alphabet-name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5c.cob",
+    "printed": "COBOL0900 PROGRAM COLLATING SEQUENCE national surface (FOR forms) requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/pcs5d.cob",
+    "printed": "COBOL0900 alphabet-name-2 requires COBOL-2002 (plus COBOL5989 class mismatch)",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/g85_f06_01.cob",
+    "printed": "MATCH",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR5",
+    "check": "OK  §1985:VI.4.4.4 GR5  (4.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "ResolveProgramCollating sets Cfg.Collating to the alphabet's definition (null for an identity alphabet), ObjectComputerEmit emits it as __COLLATE and every alphanumeric comparison takes it through CollateArgFor. pcs5d prints a second, 2023-worded class-mismatch error beside the edition gate at 85; cosmetic, outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "r5a-001: ALPHABET REV IS \"ZYX\" 67 \"A\" (multi-character literal without THRU/ALSO, numeric ordinal 67 = B) as PROGRAM COLLATING SEQUENCE: Z<Y<X<B<A<space all YES, and LOW-VALUE becomes 'Z' (LOW=Z YES, Z=LOWV YES). r5b-001: ALPHABET EB IS EBCDIC (implementor-name-2): '1'>'A' YES, 'a'<'Z' YES (EBCDIC order). r5c-001: ALPHABET IS STANDARD-2 with a NATIVE alphabet beside it: '1'<'A', 'a'>'Z' (ISO 646 order). Edition sites: SpecialNamesBinder.Alphabets gates (RangeInAlphabet2002, alphabet LOCALE <2002) are 2002-form refusals off the 1985 single-name path. cite.py: OK  §1985:VI.4.4.4 GR5  (4.4.4 General Rules)  the text is in GR5",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

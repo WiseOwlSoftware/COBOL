@@ -1,0 +1,95 @@
+{
+ "rule-id": "1989-FMT-A.2.37.2",
+ "rule-digest": "302542f52e4f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-213",
+  "sources": {
+   "reader": "07a3bc781ea4553ae95c6f4c46d319a4ba3926e90fd22d0612a8c806a5a59f7f",
+   "refuter": "dcc28c5606f0ba555728df0bbafe761ad65887dcddc2af0e1f9e17a8d30cc23b"
+  },
+  "imported": {
+   "reader": "99e567c3b2d972f16d0751fef63ef5fdad6221f98c53d76a32ce5dfbf3a6c920",
+   "refuter": "ad634cfdd18752455da06978db487c74fa170ebf65305dcd6c595491a3851048"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.37.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION REM is written with the FUNCTION keyword and exactly two arguments in parentheses (space- or comma-separated); the forms with one, three or no argument, an empty '( )', or no FUNCTION keyword are refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RemScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: IntroducedIn 85 against DialectLevel",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct function-empty-argument-list-2002: '( )' after a function name refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "numeric-function-identifier-operand-2002: REM as a MOVE source refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs and VersionConformancePass.cs for Edition/ConstructRegistry/Constructs; the arity check (COBOL1504) reads only the catalog row",
+  "behaviour-differs-by-edition": "yes: '( )' and REM as an identifier operand are refused at 85 and admitted (the latter) at 2002+; the two-argument format itself is the same",
+  "witnesses-cover": "part: g85_f39_02 covers the accepted two-argument forms with space and comma; not the refusals",
+  "probes": [
+   {
+    "class": "a,f,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/rem1.cob",
+    "printed": "R-TAB= 1.50 / R-BIG= 0.00 / R-ZERO= 0.00 / R-NEGNEG=-1.50 / R-FIG= 0.00 / R-NEST= 3.00 / R-SUBEXP= 1.50 (leading zeros elided)",
+    "expected": "REM(7.5,-2)=1.5; REM(10**18-1,7)=0; REM(0,3)=0; REM(-7.5,-2)=-1.5; REM(ZERO,4)=0; REM(REM(17 5) 3)+1=3"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/rem2.cob",
+    "printed": "COBOL1504 for 1, 3 and 0 arguments; COBOL1627 for alphanumeric arguments; COBOL1639 'REM (17 5)' not defined without FUNCTION; COBOL0900 MOVE FUNCTION REM requires 2002",
+    "expected": "only FUNCTION REM ( argument-1 argument-2 ) is the format"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/rem3.cob",
+    "printed": "COBOL1504 0 given; COBOL0900 empty function argument list '( )' requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.37.2",
+    "check": "OK  §1989:A.2.37.2  (2.37.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.37.3 AR1",
+    "check": "OK  §1989:A.2.37.3 AR1  (2.37.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "The grammar's functionCall is a superset; the catalog row (Fixed 2..2) drives the arity refusal and VersionConformancePass refuses the 2002 empty list. Without the FUNCTION keyword REM is an undefined data-name at 85, which is the correct refusal since the keyword-omitted call needs a 2002 REPOSITORY.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.37.2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "xrem5.cob at --std 85: COMPUTE R = FUNCTION REM (A (- B)) with A PIC S9 VALUE 7, B PIC S9 VALUE 2 (A is not a table) is refused: COBOL2096 'A (- B)': a subscript is written on 'A' ...; COBOL1504 FUNCTION REM takes 2 argument(s); 1 given; COBOL0900 arithmetic-expression subscript - B requires COBOL-2002. The same at --std 2023 (COBOL2096 + COBOL1504). xrem1.cob line 13 FUNCTION REM (A (- 2)) the same. The 1985 text makes (- B) after an identifier the REQUIRED spelling of a second argument that begins with a unary operator: cite.py: OK  §1985:VI.6.2.3 SR4  (6.2.3 Formation and Evaluation Rules)  the text is in SR4 ('If the first operator in an arithmetic expression is a unary operator, it must be immediately preceded by a left parenthesis'); OK  §1985:IV.4.3.8.3.3 SR1 ('Argument-1 must be an identifier, a literal, or an arithmetic expression'); OK  §1989:A.2.37.2 (FUNCTION REM ( argument-1 argument-2 )). A has no OCCURS and '- B' is no 1985 subscript form, so no subscript reading exists. Controls that pass at 85 and 2023: REM (A -2) = 1.00, REM (A - 1 4) = 2.00, REM (A, -2) = 1.00, REM ((A + 10) 4) = 1.00 (xrem1b). Other refusals correct: REM (7 - 2) is one argument, COBOL1504 (xrem2); REM (T (ALL)) COBOL1645 (xrem3); FUNCTION REM (17 5) (1:1) COBOL1629 per §1985:IV.4.3.8.3.3 SR2 (xrem4).",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (rejects-legal-source, cause b: the same refusal at --std 2023). Repro: FUNCTION REM (A (- B)) with A, B elementary numeric non-table items; expected REM(7, -2) = 1 per §1989:A.2.37.2 with argument-2 the arithmetic expression (- B) required by §1985:VI.6.2.3 SR4; observed COBOL2096 + COBOL1504 + COBOL0900. Site: src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList (the optional separator lets A's dataReference take the following '(' as its subscriptPart). Known note: kb/Work PB5781 (open; its inventory_rows name only 1985-SR-VI.6.2.3-4, so this format row should be added to it)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`FUNCTION REM (A (- B))` is refused: the mechanism of the open kb/Work PB5781.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ },
+ "work": "PB5781"
+}

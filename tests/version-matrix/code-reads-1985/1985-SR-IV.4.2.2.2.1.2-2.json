@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.1.2-2",
+ "rule-digest": "b0de0a0cd086",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "17a99d3b0ac8b1a381e752ce988ca9a744d596dcb6cbf4f4007ff9c16fd33926",
+   "refuter": "8ee890374e4062ccdfcb1fc3be2be1bff4349dbe7234d779195dc71300128d57"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.2.1.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a quotation mark inside a nonnumeric literal is written as two contiguous quotation marks and denotes one quotation-mark character of the value, in every place a nonnumeric literal may appear (procedure operands, VALUE, ALL literal, continued literals), and an undoubled quotation mark ends the literal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#SplitLiteral; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#Decode; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#IsUnterminated; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "ConstructRegistry.Check of apostrophe-quotation-symbol-2002 and zero-length-literal-2014: refuses an apostrophe-delimited or zero-length literal at 85; the doubled-quotation-mark lexing and decoding is not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read STR_BODY and CobolLiteral.SplitLiteral/Decode/IsUnterminated: no edition reference; grepped CobolLiteral.cs for Edition/Version/Construct (only LiteralLength81912014, the length rule); the one edition switch on the path is LiteralScreen.GateFormat.",
+  "behaviour-differs-by-edition": "yes: not for the doubled quotation mark itself; at 85 only the quotation mark delimits (an apostrophe-delimited 'IT''S' is refused COBOL0900, legal from 2002) and the zero-length literal \"\" is refused (a 2014 form)",
+  "witnesses-cover": "part: g85_f03_03 covers doubled marks in procedure operands and a MOVE; not the VALUE clause, an ALL literal, a doubled mark at the end of a continued line, or the undoubled refusal",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/lit-ok.cob",
+    "printed": "[\"   ] / [\"\"\"\"\"\"] / [IT'S \"X\"] / \"\" / [\"\"\"  ] / 53 A then \"C\" / CONT-OK",
+    "expected": "VALUE \"\"\"\" is one quotation mark; ALL \"\"\"\" fills with quotation marks; an apostrophe inside is ordinary; a literal ending in a doubled mark at columns 71-72 stays open, continues, and keeps one mark"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/lit-undoubled.cob",
+    "printed": "COBOL5563 the literal B\" is not closed; COBOL2633 the literal \"A\" is immediately followed by 'B'",
+    "expected": "an undoubled quotation mark ends the literal, so \"A\"B\" is not one literal: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/lit-apos.cob",
+    "printed": "COBOL0900 the apostrophe-delimited literal requires COBOL-2002",
+    "expected": "a 1985 nonnumeric literal is delimited by the quotation mark only: refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/lit-zero.cob",
+    "printed": "COBOL0900 the zero-length literal requires COBOL-2014",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.1.2 SR2",
+    "check": "OK  §1985:IV.4.2.2.2.1.2 SR2  the text is in SR2"
+   }
+  ],
+  "notes": "The doubled-mark rule is one edition-independent lexer fragment plus one decoder; every probed position (VALUE, ALL, MOVE, DISPLAY, continuation) yields one quotation mark. The refusal diagnostics for the undoubled form cite §2023 text at --std 85, a wording matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.2.1.2-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probes under refute-1985-206/src, all --std 85. lit-160.cob: a 160-position literal (158 B + doubled mark + E, 161 source characters, continued over three lines) is accepted at the 1985 bound of 160 (§1985:IV.4.2.2.2.1 'nonnumeric literals of 1 through 160 characters', counted on the value) and prints BBBB\"E; INSPECT TALLYING FOR ALL QUOTE counts 1; COMPUTE N = FUNCTION LENGTH(\"A\"\"B\") gives 3; 88 VALUE \"\"\"\" matches QUOTE; VALUE \"A\"\"B\" is A\"B; INSPECT REPLACING ALL \"\"\"\" BY \"-\" gives A-B; IF W3 = \"X\"\"Y\" is true. lit-copy.cob / lit-copy2.cob: COPY REPLACING \"A\"\"B\" BY \"C\"\"D\" replaces (C\"D) and pseudo-text == \"==\"\"\" == BY == \"\"\"==\" == replaces a literal holding == and a doubled mark (\"==). Class c: X\"22\" (COBOL0900 hex literal requires 2002) and \"A\"\"\" & \"B\" (COBOL0900 concatenation requires 2002) are refused. cite.py: OK §1985:IV.4.2.2.2.1.2 SR2 the text is in SR2; OK §1985:IV.4.2.2.2.1 the text is in the clause.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions: ConstructRegistry literal-length-8191-2014 sets the 160 bound at 85; it measures the decoded value, so a doubled mark counts once (probe lit-160)"
+  ],
+  "corrected": ""
+ }
+}

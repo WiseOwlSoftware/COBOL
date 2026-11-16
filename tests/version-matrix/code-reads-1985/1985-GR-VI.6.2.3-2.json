@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VI.6.2.3-2",
+ "rule-digest": "ec3451df8d01",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "d899d1e9da8f3f92410e537127814adbe84b117cb856891ae5aea8833a9ffa25",
+   "refuter": "2421f5d3d87503e29d295f2be9b36f2bc19a42d18ae3e5532e3fd8ecf490694a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.2.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "Absent parentheses, consecutive operations of one hierarchical level (addition/subtraction, multiplication/division, exponentiation) execute left to right, and parentheses override the GR1 hierarchy (unary, exponentiation, multiplication/division, addition/subtraction) in every arithmetic expression (COMPUTE, relation operands, function arguments).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#additiveExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#powerExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindChain; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower",
+    "switches": "DialectBehavior.NegativeBaseRequiresIntegerExponent: the negative-base exponentiation rule (GR5c at 85), not the order of execution; the left fold is the same at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The grammar tiers and BindChain/BindPower's left folds take no edition; the one DialectBehaviors call on the path (BindPower) selects the negative-base rule only. grep Edition|DialectBehavior in the expression spine.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: func_expr_arg covers left-folding ** and compound function arguments; subtraction/division chains, mixed * / chains, unary-over-power and nested parentheses are not exercised.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/ax1.cob",
+    "printed": "SUB 3.00, DIV 2.00, POW 64.00, POWID 64.00, DM 4.00, DM2 7.00, UNARY 4.00, PAREN 0.00, P2 1.50, P3 512.00, AS 3.00, HIER 18.00, REL OK (identical at --std 2023)",
+    "expected": "10-4-3=3; 100/10/5=2; 2**3**2=(2**3)**2=64; 8/4*2=4; 7/2*2=7; -2**2=(-2)**2=4 (unary is 1st); 2-(3-1)=0; 12/4/(1+1)=1.5; 2**(3**2)=512; 1-2+3-4+5=3; 2*3**2=18; relation operand 10-4-3 = 3"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/func_expr_arg.cob",
+    "printed": "EXPECT: MATCH (func_expr_arg.out)",
+    "expected": "the witness's derived values"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.2.3 GR2",
+    "check": "OK  §1985:VI.6.2.3 GR2  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 GR1",
+    "check": "OK  §1985:VI.6.2.3 GR1  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar gives one tier per hierarchical level with a repeated tail, and BindChain/BindPower fold each tier from the left, so same-level operations run left to right, exponentiation included. Probe classes b, c and e do not apply: the rule states an order, not a refusal or an edition-only form.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.2.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "Probed what the reader did not: a unary operator after a binary one (legal at 85: §1985:VI.6.2.3 SR3 table, binary then unary = P), long mixed chains and same-level chains in conditions and function arguments. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/ra1.cob at --std 85 (runs/ra1-002): 2 * - 3 ** 2 = 18 (unary 1st per GR1, then **), 10 - - 4 - 3 = 11, 64/4/2/2 = 4, 2 ** - 1 ** 2 = 0.25 (left to right), 100 - 10*2 - 5 = 75, ((2+3)*(4-1)) - (T-(T-1)) = 14, 2 - T + 4*T/2 - 1 = 4 (T=3), sign condition 10-4-6 IS ZERO true, relation 10-4-3 = 9/3/1 true, 2**3**2 = 64 in a compound condition, FUNCTION MAX(8-2-1, 30/3/2) = 5, + 6 - + 2 - - 1 = 5. All as GR2 requires. cite.py: OK §1985:VI.6.2.3 GR2 the text is in GR2; OK §1985:VI.6.2.3 GR1; OK §1985:VI.6.2.3 SR3 the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

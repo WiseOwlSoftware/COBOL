@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-6",
+ "rule-digest": "e7f3021ce83e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-211",
+  "sources": {
+   "reader": "89b67344229a37eb0eddba80cdf702b072e623423da097df8296dd2f13f92c3f",
+   "refuter": "baa2b9e02b0d2dc6e63040c74f240ef10e0668610646917a07e6528204dcc4ed"
+  },
+  "imported": {
+   "reader": "fb312620673e9c5422d1d76556ae1dc437cf13b3eb0970486280f2ec104c66d5",
+   "refuter": "df141afbc2e02a027b1edbc007a2d286f6b3688f12ba9870b521a9bf71402f5f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.15.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, within one report group description entry (the 01 and its subordinates) the NEXT PAGE phrase may be written at most once and only in the first LINE NUMBER clause of the group; a NEXT PAGE in any later LINE clause (including a second one) must be refused, while separate report groups may each carry their own in their first clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MultipleLineOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand",
+    "switches": "a LINE operand of NEXT PAGE with no integer (the 2002 third alternative) refused below 2002 (COBOL0900, report-line-next-page-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause",
+    "switches": "a multiple LINE clause and the LINES/NUMBERS/ARE spellings refused below 2002 (COBOL0900, report-multi-line-2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR6 test (op.NEXT() && k == 0 && !firstLineClause, firstLineClause reset at each level-01 entry) consults no edition; the only edition switches reached are the two parse-arm gates on 2002 LINE forms.",
+  "behaviour-differs-by-edition": "no: the first-clause rule is the same code at every edition; at 85 a second operand in one LINE clause (where 2002 SR10a applies) is refused as a 2002 form.",
+  "witnesses-cover": "part: g85_f30_04 covers a legal NEXT PAGE in the first LINE clause; not exercised: NEXT PAGE in a later clause, twice, after a relative first clause, and the 2002 forms.",
+  "probes": [
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6pos.cob",
+    "printed": "G1 PC 1 LC 04 / G2 PC 2 LC 04 / T  PC 3 LC 05; report bytes: page 1 lines 3-4 A,B; FF; page 2 lines 3-4 A,B; FF; page 3 line 5 RF",
+    "expected": "DE with LINE 3 ON NEXT PAGE then LINE PLUS 1 (NP R) and RF LINE 5 ON NEXT PAGE are legal; §1985:XIII.3.10.8 fit test 3c advances the page when a body group is already on it; the RF is presented alone on a new page at line 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6second.cob",
+    "printed": "error COBOL2199: RD 'R1': a NEXT PAGE phrase, if present, shall be specified only in the first LINE clause of the report group description",
+    "expected": "refused: NEXT PAGE in the second LINE clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6twice.cob",
+    "printed": "error COBOL2199: ... only in the first LINE clause (on the second NEXT PAGE)",
+    "expected": "refused: NEXT PAGE twice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6rel.cob",
+    "printed": "error COBOL2199: ... only in the first LINE clause; plus the absolute-after-relative order error",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6grpthen.cob",
+    "printed": "EXIT 0 (compiles)",
+    "expected": "accepted: two report groups, each with NEXT PAGE in its own first LINE clause"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6multi.cob",
+    "printed": "error COBOL0900: multiple LINE ... requires COBOL-2002",
+    "expected": "refused: one operand per LINE NUMBER clause at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6plusnp.cob",
+    "printed": "error COBOL2199 (SR10a) and error COBOL0900 twice: multiple LINE and bare NEXT PAGE require COBOL-2002",
+    "expected": "refused: PLUS integer-2 takes no NEXT PAGE in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6bare.cob",
+    "printed": "error COBOL0900: a LINE operand of NEXT PAGE with no integer requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.3 SR6",
+    "check": "OK  §1985:XIII.3.15.3 SR6  (3.15.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "The 'only once' half follows from the 'first clause' half: any second NEXT PAGE is in a later clause and is refused by the same test. The diagnostic cites §2023:13.18.35.3 SR7, the same sentence in the later edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.15.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes at --std 85: Q6SUB (01 DE with NEXT GROUP NEXT PAGE and no LINE; first LINE clause 'LINE NUMBER IS 4 NEXT PAGE' (ON omitted) on a 02 subordinate, then LINE PLUS 1) -> compiles and runs: NEXT GROUP's NEXT PAGE is not counted as a LINE NEXT PAGE, and a first clause on a subordinate entry is accepted; Q6SUB2 (01 DE without LINE, 02 LINE 4, then 02 LINE 6 ON NEXT PAGE) -> COBOL2199 'only in the first LINE clause'. A second RD's first group resets the first-clause state (Q6SUB compiles with a NEXT PAGE group in R1 and a later RD). cite.py: OK  §1985:XIII.3.15.3 SR6  (3.15.3 Syntax Rules)  the text is in SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

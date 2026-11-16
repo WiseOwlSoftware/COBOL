@@ -30,7 +30,7 @@ public static partial class ReferenceFormatProcessor
     /// </list>
     /// </summary>
     private sealed class FixedFormConverter(ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators,
-        bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion)
+        bool? startsInIdentificationDivision, CommentEntryPins? pins, int inclusion, Func<string, string>? asReplaced)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: true);
 
@@ -225,7 +225,7 @@ public static partial class ReferenceFormatProcessor
             // elsewhere, and a candidate when the division is not known — unless an earlier run of the text stages proved
             // this candidate to be program text (CommentEntryPins), which then reads as the paragraph it is.
             if (_division.InIdentificationDivision is not false && firstAreaAWord is not null
-                && CommentEntryParagraphs.Contains(firstAreaAWord) && !IsPinned(lineNumber))
+                && IsCommentEntryParagraph(firstAreaAWord, asReplaced) && !IsPinned(lineNumber))
             {
                 _inCommentEntry = true;                     // start (or continue, back-to-back) a comment-entry
                 _carryingCommentEntry = _division.InIdentificationDivision is null;
@@ -250,16 +250,16 @@ public static partial class ReferenceFormatProcessor
     /// candidate (<see cref="ConvertCommentEntryCandidate"/>), which the conversion that carried them has gated already.</summary>
     private static (List<string> Lines, List<LineOrigin> Origins) ConvertSegment(ReadOnlySpan<PhysicalLine> lines, bool isFixed,
         ReferenceFormatDiagnostics? gates, string file, bool ccvsIndicators, CommentEntryPins? pins, int inclusion, bool gatesLineLength,
-        ref bool? inIdentificationDivision)
+        Func<string, string>? asReplaced, ref bool? inIdentificationDivision)
     {
         if (isFixed)
         {
-            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion);
+            var fixedForm = new FixedFormConverter(gates, file, ccvsIndicators, inIdentificationDivision, pins, inclusion, asReplaced);
             var converted = fixedForm.Convert(lines);
             inIdentificationDivision = fixedForm.InIdentificationDivision;
             return converted;
         }
-        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength);
+        var freeForm = new FreeFormConverter(gates, file, inIdentificationDivision, pins, inclusion, gatesLineLength, asReplaced);
         var result = freeForm.Convert(lines);
         inIdentificationDivision = freeForm.InIdentificationDivision;
         return result;
@@ -289,7 +289,7 @@ public static partial class ReferenceFormatProcessor
     /// reading: the paragraph word first on its line, the entry the rest of that line, the next line program text.</para>
     /// </summary>
     private sealed class FreeFormConverter(ReferenceFormatDiagnostics? gates, string file, bool? startsInIdentificationDivision,
-        CommentEntryPins? pins, int inclusion, bool gatesLineLength)
+        CommentEntryPins? pins, int inclusion, bool gatesLineLength, Func<string, string>? asReplaced)
     {
         private readonly LogicalLineBuilder _builder = new(file, gates, fixedForm: false);
 
@@ -340,7 +340,7 @@ public static partial class ReferenceFormatProcessor
         {
             if (_builder.AwaitsFloatingContinuation) return CommentEntryText.None;
             _builder.ReadInto(_division);   // the division is that of the logical lines before this one
-            if (!CommentEntryParagraphs.Contains(text[first..WordEnd(text, first)])) return CommentEntryText.None;
+            if (!IsCommentEntryParagraph(text[first..WordEnd(text, first)], asReplaced)) return CommentEntryText.None;
             return _division.InIdentificationDivision switch
             {
                 true => CommentEntryText.Header,

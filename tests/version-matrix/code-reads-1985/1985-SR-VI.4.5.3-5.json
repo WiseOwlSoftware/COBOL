@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-5",
+ "rule-digest": "9a316f5f6ea1",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "21b1b919d84f0b7ac437d1972e293fa57c65028a82c8377ed58ec00d5595dbde",
+   "refuter": "25a45675968908db1f89b579adee6637d5e07b49fcc7f33854fdd7beab424298"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "In SPECIAL-NAMES, no literal of the ALPHABET clause literal phrase (literal-1, literal-2 after THROUGH, literal-3 after ALSO) and no literal of the CLASS clause (literal-4, literal-5 after THROUGH) may be a symbolic-character figurative constant (a name declared by SYMBOLIC CHARACTERS, before or after the clause, alone or as ALL symbolic-character); other figurative constants and literals stay legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#LiteralPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#SpecialNamesFigurative; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#IsSymbolicCharacterName; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#FigurativeSlotOf",
+  "edition-consulted": [],
+  "edition-search": "Grepped SpecialNamesBinder.Literals.cs and SpecialNamesBinder.Alphabets.cs for Edition.Edition, .Year, CobolVersion, Constructs., ConstructRegistry: the only hit is GateRangeAlphabetPhrase (the 2002 IN alphabet-name range phrase), not on this path. The symbolic-character screen is one code path at every edition.",
+  "behaviour-differs-by-edition": "no: the later editions keep the bar (and add a zero-length-literal half that 1985 source cannot spell); the same screen runs at 85.",
+  "witnesses-cover": "part: g85_f07_01 (literal-1) and g85_f07_02 (literal-4, no THRU). Not exercised: literal-2 (THRU operand), literal-3 (ALSO operand), literal-5, ALL symbolic-character, a symbolic-character as the first operand of a THRU range.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snpos.cob",
+    "printed": "IN CLASS / SYM AZ",
+    "expected": "accepted: ALPHABET with THRU, ALSO and SPACE, CLASS with THRU; symbolic characters usable in DISPLAY"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snl2.cob",
+    "printed": "error COBOL1906: ALPHABET ALPH-1: SYM-Z - an operand shall not be a symbolic-character figurative constant",
+    "expected": "refused (literal-2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snl3.cob",
+    "printed": "error COBOL1906: ALPHABET ALPH-1: SYM-A - an operand shall not be a symbolic-character figurative constant",
+    "expected": "refused (literal-3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snl5.cob",
+    "printed": "error COBOL1671: CLASS CLS-1: SYM-Z - an operand shall not be a symbolic-character figurative constant",
+    "expected": "refused (literal-5)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snall.cob",
+    "printed": "error COBOL1906: ALPHABET ALPH-1: ALL SYM-A - an operand shall not be a symbolic-character figurative constant",
+    "expected": "refused (ALL symbolic-character)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snl1t.cob",
+    "printed": "error COBOL1906: ALPHABET ALPH-1: SYM-A - an operand shall not be a symbolic-character figurative constant",
+    "expected": "refused (literal-1 starting a THRU range)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/snl4b.cob",
+    "printed": "error COBOL1970: cannot parse construct near 'SYM-A'. 'SYM-A' is not a clause of the SPECIAL-NAMES paragraph (same at --std 2023)",
+    "expected": "refused (literal-4 starting a THRU range in CLASS, after another operand)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR5",
+    "check": "OK  §1985:VI.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "Every literal slot refuses a symbolic-character name, declared before or after the clause. One diagnostic-quality lead: CLASS C IS \"X\" SYM-A THRU \"C\" is refused by the parser (COBOL1970, 'not a clause of the SPECIAL-NAMES paragraph') instead of the SR5 screen, at 85 and 2023; no legal 1985 source puts a word there, so the 1985 rule is unharmed, but at 2023 a constant-name in that position may be rejected (not probed). Messages cite §2023:12.3.7.3 SR11.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.4.5.2-4.5.3: at 85 the clause order is ALPHABET, SYMBOLIC CHARACTERS, CLASS, so a symbolic-character in an ALPHABET literal can only be a forward reference (covered by the reader's snl1t/snl2/snl3), and a contained program has no Configuration Section (§1985:VI.4.2), so no inherited case exists. Run at --std 85: CLASS literal-4 alone (s5cls1) COBOL1671; literal-4 opening a THRU range (s6cls4t) COBOL1671; ALL symbolic in CLASS (s2clsall) COBOL1671; symbolic declared IN alphabet-name-2 then used in an ALPHABET (s1in) COBOL1906 (plus COBOL2987 for the out-of-order clause); symbolic declared after CLASS (s3cls4) refused (COBOL2987/COBOL1970). Other figurative constants stay legal: ALPHABET \"A\" ALSO QUOTE \"B\" THRU \"D\" HIGH-VALUE with CLASS ... SPACE (s4fig) compiles and runs (IN). Edition grep of SpecialNamesBinder.Literals.cs: only the severity seam Edition.Error. cite.py: 'OK  §1985:VI.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5'; 'OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

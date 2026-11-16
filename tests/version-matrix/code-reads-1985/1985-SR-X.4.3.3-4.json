@@ -1,0 +1,105 @@
+{
+ "rule-id": "1985-SR-X.4.3.3-4",
+ "rule-digest": "6059c62cf41c",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-211",
+  "sources": {
+   "reader": "89b67344229a37eb0eddba80cdf702b072e623423da097df8296dd2f13f92c3f",
+   "refuter": "baa2b9e02b0d2dc6e63040c74f240ef10e0668610646917a07e6528204dcc4ed"
+  },
+  "imported": {
+   "reader": "b219d5dbccd1d8cc2eb5aecd8cd6e22cca21ae95d23bc0afe00123b3e6cae0d5",
+   "refuter": "559bc337787b1aab1ab586b92e6c92ba75cf37611a90d80515ba29e1e9cc6c27"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.3.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the GLOBAL clause may be written only in a data description entry whose level-number is 01 (spelled 01 or 1); the compiler must refuse GLOBAL on any 02-49 entry (in the File or Working-Storage Section), on a 77 entry, and on 66 and 88 entries, and must make a level-01 GLOBAL item and its subordinates visible to a contained program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ClausePlacementRules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ResidenceFault; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitGlobalClause",
+    "switches": "GLOBAL in the Linkage Section refused below 2002 (COBOL0900, construct linkage-global-2002); a section rule, not the level rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The level-01 test (ClausePlacementRule.ResidenceFault: level != 1) consults no edition: ScreenClausePlacement and the Rules table carry no Edition/CobolVersion/ConstructRegistry reference (grep of DataBinder.ClausePlacement.cs). The only edition switch on GLOBAL is the Linkage Section gate in VersionConformancePass.VisitGlobalClause.",
+  "behaviour-differs-by-edition": "no: the level-01 restriction is the same code at every edition; at 85 the Linkage Section placement is additionally refused (a sibling rule).",
+  "witnesses-cover": "part: g85_f06_06 exercises the accept side (a level-01 GLOBAL group seen by a contained program); the refusal of GLOBAL at levels 02-49, 77, 66 and 88 is not exercised.",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3pos.cob",
+    "printed": "ALPHA 123 [123AA] XYZ / BETA ",
+    "expected": "01 GLOBAL, 1 GLOBAL (level-number spelled 1) with an ODO table and an FD 01 GLOBAL record are visible to the contained program, which can update them"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3l05.cob",
+    "printed": "error COBOL2404: data item 'G1-A': the GLOBAL clause is not admitted here — this entry's level-number is 05",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3l02.cob",
+    "printed": "error COBOL2404: ... this entry's level-number is 02",
+    "expected": "refused"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3l77.cob",
+    "printed": "error COBOL2404: data item 'G1': the GLOBAL clause is not admitted here — this entry's level-number is 77",
+    "expected": "refused: 77 is not 01"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3l88.cob",
+    "printed": "error COBOL1747: level-number 88 on 'G1-Y' ... this entry's body is not a value clause alone",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3l66.cob",
+    "printed": "error COBOL1941: unexpected 'RENAMES' ...",
+    "expected": "refused"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3fd05.cob",
+    "printed": "error COBOL2404: data item 'F1-A': the GLOBAL clause is not admitted here — this entry's level-number is 05",
+    "expected": "refused: a subordinate of an FD record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r3lk.cob",
+    "printed": "error COBOL0900: the GLOBAL clause in the linkage section requires COBOL-2002",
+    "expected": "refused at 85 (sibling section rule)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.3.3 SR4",
+    "check": "OK  §1985:X.4.3.3 SR4  (4.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "BindEntry calls ScreenClausePlacement, whose GLOBAL Residence row refuses any level other than 1 (77 included) and drops the clause, so a refused GLOBAL never registers a global name. The diagnostic cites the 2023 clause, which states the same level restriction. 66 and 88 never reach the row: the grammar/level screens refuse GLOBAL there.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.3.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85: q3redef ('01 B REDEFINES A IS GLOBAL', GR3 form) -> compiles, contained program prints 'IN A BC' and its MOVE shows in the container 'OUT ZBC'; q3inner (GLOBAL on 03 inside a contained program's own 01 GLOBAL) -> COBOL2404 level 03; q3l02s (02 REDEFINES ... GLOBAL) -> COBOL2404 level 02; q3rptgrp (GLOBAL on a level-01 report group entry, whose 1985 format has no GLOBAL) -> COBOL0001 unexpected 'GLOBAL'; q3sd (01 GLOBAL record under an SD, File Section level 01) -> compiles, consistent with SR4 and §1985:X.4.6.3 SR1; q3const (a 2002 constant entry with GLOBAL) -> COBOL0900 requires COBOL-2002. The ScreenClausePlacement row consults no edition and the 1985 level-01 sentence is the same restriction. cite.py: OK  §1985:X.4.3.3 SR4  (4.3.3 Syntax Rules)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

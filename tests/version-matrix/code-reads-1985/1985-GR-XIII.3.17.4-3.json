@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-XIII.3.17.4-3",
+ "rule-digest": "84cfb48d213a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-222",
+  "sources": {
+   "reader": "2143dc7714c38ed9934ddc089e7bc875aa28895d5b36864710a263978fe42801",
+   "refuter": "babde845945dabf70792e28bd8e798adb2611d3d7ec91859e2f06a9b9cc79643"
+  },
+  "imported": {
+   "reader": "7df8691feb6af34060ea10cfbf435ec069bd60dce78e1df6a40774968c00a3ab",
+   "refuter": "a422a882126e01713f0d5077ede70c57bd1b03e5934dce509c589ee0d2926c6d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.17.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SIGN clause in a report group description entry (which must carry SEPARATE CHARACTER) makes the leading or trailing character position of the elementary numeric printable item its sign position (not a digit position), counts the 'S' in the item's size, and represents positive as '+' and negative as '-'; this holds for SOURCE and SUM printable items alike, including zero and the largest 18-digit item.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
+    "switches": "at DialectLevel < 2002 refuses a report SIGN clause without SEPARATE (construct report-sign-without-separate-2002, COBOL0900) and a group-level report SIGN; at 2002+ returns at once",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition in PicInfo.cs, PictureAnalyzer.cs, CobolNum.cs: the representation (SignKindFor -> LeadingSeparate/TrailingSeparate -> FormatDisplaySigned '+'/'-', width digits+1) consults no edition; the only edition arm is the 85 refusal that guarantees GR3's premise.",
+  "behaviour-differs-by-edition": "yes: 2002+ admits a report SIGN clause without SEPARATE (implementor representation) and at group level; at 85 both are refused, so every 85 report SIGN item takes the separate '+'/'-' representation this rule states",
+  "witnesses-cover": "part: g85_f08_09 covers -5 LEADING and +7 TRAILING SOURCE items; zero, an 18-digit item from a COMP-3 source, a scaled source and a SUM counter's printable item are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/col1.cob",
+    "printed": "[A-00500+-9999999999999999990123+|",
+    "expected": "S9(3) LEADING SEPARATE of -5 = -005 (4 positions); S99 TRAILING SEPARATE of zero = 00+; S9(18) LEADING of COMP-3 -999999999999999999 = 19 positions; S9(4) TRAILING of +123 = 0123+"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/sign4.cob",
+    "printed": "report lines 012- +00045 (twice) and CF FINAL SUM line 0015-",
+    "expected": "S9(3) TRAILING SEPARATE of -12 = 012-; S9(4)V9 LEADING SEPARATE of +4.5 = +00045; the SUM counter's printable item shows -15 as 0015-"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-222/signnosep.cob",
+    "printed": "error COBOL0900: a SIGN clause without SEPARATE CHARACTER in a report group description entry requires COBOL-2002 (targeting COBOL-85); at --std 2023 it compiles (EXIT 0)",
+    "expected": "refused at 85 (§1985:XIII.3.17.3 SR3, the premise of GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.17.4 GR3a",
+    "check": "OK  §1985:XIII.3.17.4 GR3a  (3.17.4 General Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:XIII.3.17.4 GR3b",
+    "check": "OK  §1985:XIII.3.17.4 GR3b  (3.17.4 General Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:XIII.3.17.4 GR3c",
+    "check": "OK  §1985:XIII.3.17.4 GR3c  (3.17.4 General Rules)  the text is in GR3c"
+   }
+  ],
+  "notes": "The printable item's image is the implicit MOVE rendered against its NumProfile; SignKindFor gives LeadingSeparate/TrailingSeparate for a DISPLAY item with SEPARATE, FormatDisplaySigned always writes '+' or '-', and ElementaryImageWidth adds one position, so contiguous COLUMN placements in the probes leave no gap or overlap.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.17.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Checked the 1985 format: SIGN appears only in the format 3 (elementary) report entry (§1985:XIII.3.9.2), so the compiler's group-level refusal at 85 matches the format. Probe sign5.cob at --std 85: VALUE -3 into PIC S9 LEADING SEPARATE printed '-3' (2 positions); VALUE 0 into S99 TRAILING printed '00+'; SOURCE 500 into S9PP LEADING printed '+5' (P not counted as a position); SOURCE -0.05 into SV99 TRAILING printed '05-'; SUM counter PIC S9(4) LEADING SEPARATE printed '-0014'; every following column began right after the sign position. cite.py: OK §1985:XIII.3.17.4 GR3 'this character position is not a digit position'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The sign representation the rule states is right for every entry the compiler admits. SIGN SEPARATE with BLANK WHEN ZERO is the open kb/Work PB5790's question.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ }
+}

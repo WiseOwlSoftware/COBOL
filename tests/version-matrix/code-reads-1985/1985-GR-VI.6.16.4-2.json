@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VI.6.16.4-2",
+ "rule-digest": "3f47086191f7",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-193",
+  "sources": {
+   "reader": "eae6d14c6d368e86e72a72f9c7a1a4202a67d8f178fa4af9d42e57273d386c39",
+   "refuter": "749ba570009cf3d3f58a8ebcbdfcde9d03f3fb5eaee484f0cf11a686ed824448"
+  },
+  "imported": {
+   "reader": "694f202b9d9f936e594a637c2200f0a8b086cc65ebf6c69dc690e6fbd9e1b6a8",
+   "refuter": "c260977f408231e0472e1365efb75111719ea09c2c65ff2e5105f826c2800d02"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.16.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 an executed IF must: on true run statement-1 (imperative, or conditional optionally preceded by imperative) and then go to the end of the IF, or on true with NEXT SENTENCE go to the next executable sentence; on false run statement-2 and go to the end of the IF, go to the end of the IF when there is no ELSE, or go to the next executable sentence for ELSE NEXT SENTENCE; explicit transfers inside an arm (GO TO, a conditional phrase's GO TO) follow their own rules.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindIf; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitIf; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitParagraphBody",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "NextSentenceArchaic2023: an archaic-feature warning at 2023 only; nothing at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition/ConstructRegistry/DialectBehaviors in ControlFlowEmitter.cs, ControlFlowBinder.cs#BindIf, StatementEmitter.cs and DispatchEmitter.cs#EmitParagraphBody: no hit on the IF/NEXT SENTENCE lowering",
+  "behaviour-differs-by-edition": "no (only the 2023 archaic warning)",
+  "witnesses-cover": "part: the witnesses (IF arms, NEXT SENTENCE in a last sentence, transfer-of-control cases) are 2023-chapter cases; the probe adds every lettered arm a-e at 85, nested IF with ELSE NEXT SENTENCE terminated by the outer ELSE, a conditional ADD ON SIZE ERROR GO TO as statement-1, NEXT SENTENCE as the last sentence of a performed paragraph and of a fallen-into paragraph",
+  "probes": [
+   {
+    "class": "b,c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/if2.cob",
+    "printed": "A1 A2 B3 C1 C2 D1 E3 F3 G3 9 I1 I3 J1 J2 K1 L1 (one per line)",
+    "expected": "a: A1 then A2; b: B3 (rest of sentence skipped); c: C1 C2; d: D1; e: E3; nested ELSE NEXT SENTENCE: F3; conditional ADD size error GO TO P2: G3 9; NEXT SENTENCE in a performed paragraph's last sentence returns: I1 I3; PERFORM in statement-1 then continue: J1 J2; false no ELSE: K1; last sentence fall-through: L1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/if2b.cob",
+    "printed": "IF ... NEXT SENTENCE ELSE ... END-IF compiles with no diagnostic at 85 and runs (H0 / H4 0); at 2023 only the archaic warning",
+    "expected": "§1985:VI.6.16.3 SR3 refusal: a sibling syntax rule, not GR2; already kb/Work PB5798"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.4 GR2",
+    "check": "OK  §1985:VI.6.16.4 GR2  (6.16.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.16.3 SR3",
+    "check": "OK  §1985:VI.6.16.3 SR3  (6.16.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "EmitIf lowers to a C# if/else over the bound arms; NEXT SENTENCE lowers to a jump to the sentence-end label EmitParagraphBody plants, or the paragraph fall-through in the last sentence, so all five arms behave per GR2 at 85. Sibling: the SR3 under-rejection (NEXT SENTENCE with END-IF accepted at 85) is kb/Work PB5798, open, and does not affect GR2's run-time arms.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.16.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "if3.cob at 85 (runs/if3-003): true NEXT SENTENCE skips the rest of the sentence including a PERFORM (A3); GO TO ... DEPENDING with an out-of-range value in statement-1 falls through to the next statement then the end of the IF (C1 C2, VI.6.15.4 GR3); NEXT SENTENCE as the last sentence of PERFORM R1 THRU R2 returns (E1 E3); ELSE NEXT SENTENCE as the last sentence of a performed SECTION returns without falling into the next section (F1 F3); THEN and nested IF in ELSE. if4.cob (runs/if4-001): imperative followed by a conditional ADD with NOT ON SIZE ERROR as statement-1, the outer ELSE matched to the IF (A1 A2 2 A3); conditional statement-2 (B1 B2 2 B3); ALTERed GO TO in statement-1 goes to the altered target (C1); nested IF/ELSE pairing (D1 D2); compound condition with ELSE NEXT SENTENCE (E1 E2). An IF with NEXT SENTENCE inside inline PERFORM/EVALUATE WHEN/SEARCH WHEN is refused unless END-IF closes it (COBOL2796), which is SR3's territory (PB5798), not GR2. cite: OK  §1985:VI.6.16.4 GR2  (6.16.4 General Rules)  the text is in GR2; OK  §1985:VI.6.15.4 GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

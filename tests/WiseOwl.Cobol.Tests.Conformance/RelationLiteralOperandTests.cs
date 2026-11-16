@@ -138,8 +138,60 @@ public sealed class RelationLiteralOperandTests
                        STOP RUN.
             """, edition);
         Assert.True(ok, string.Join(" | ", errors));
-        Assert.Single(warnings, w => w.Contains("warning COBOL3146", StringComparison.Ordinal)
-            && w.Contains("§2023:8.8.4.2.1", StringComparison.Ordinal));
+        // Each edition's own sentence: 1985's is "at least one reference to a variable" (COBOL7609), 2002's the "operand
+        // that is not a literal" (COBOL3146) at that edition's clause.
+        var (code, cite) = edition switch
+        {
+            85 => ("COBOL7609", "§1985:VI.6.3.1.1"),
+            2002 => ("COBOL3146", "§2002:8.8.4.1.1"),
+            2014 => ("COBOL3146", "§2014:8.8.4.1.1"),
+            _ => ("COBOL3146", "§2023:8.8.4.2.1"),
+        };
+        Assert.Single(warnings, w => w.Contains($"warning {code}", StringComparison.Ordinal)
+            && w.Contains($"ISO {cite} requires", StringComparison.Ordinal));
+    }
+
+    /// <summary>⛔ AT --std 85 THE RULE IS §1985:VI.6.3.1.1 — "The relation condition must contain at least one reference to
+    /// a variable" — and §1985:VI.6.3.1.5 for the sign condition: "Arithmetic-expression-1 must contain at least one
+    /// reference to a variable" (kb/Work PB5826). An arithmetic expression of literals references no variable, so
+    /// <c>IF 2 * 2 = 4</c> is outside the 1985 text though it passes the 2002 "operand that is not a literal" sentence, and
+    /// a sign condition of literals is outside it too, a sentence the 2002 and 2023 sign-condition texts do not have.
+    /// Expected values come from those sentences: the count of COBOL7609 / COBOL7610 warnings at 85, and none at 2002.</summary>
+    [Theory]
+    [InlineData("IF 1 = 2 CONTINUE END-IF", 1, 0)]
+    [InlineData("IF 2 * 2 = 4 CONTINUE END-IF", 1, 0)]
+    [InlineData("IF 2 * 2 = ND CONTINUE END-IF", 0, 0)]
+    [InlineData("IF ND = 4 CONTINUE END-IF", 0, 0)]
+    [InlineData("IF 3 IS POSITIVE CONTINUE END-IF", 0, 1)]
+    [InlineData("IF 2 * 2 IS NOT ZERO CONTINUE END-IF", 0, 1)]
+    [InlineData("IF ND IS POSITIVE CONTINUE END-IF", 0, 0)]
+    [InlineData("IF ND + 1 IS POSITIVE CONTINUE END-IF", 0, 0)]
+    [InlineData("PERFORM UNTIL 1 = 1 CONTINUE END-PERFORM", 1, 0)]
+    [InlineData("SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN 1 + 1 = 2 CONTINUE END-SEARCH", 1, 0)]
+    [InlineData("SET I1 TO 1 SEARCH E1 AT END CONTINUE WHEN 3 IS POSITIVE CONTINUE END-SEARCH", 0, 1)]
+    public void At85_AConditionWithNoVariableIsFlagged_AndFrom2002NotByTheseCodes(string statement, int relation, int sign)
+    {
+        // A 1985 head: the shared Head names a constant-name and a symbolic-character, which 1985 lacks.
+        const string head85 = """
+                   DATA DIVISION.
+                   WORKING-STORAGE SECTION.
+                   01 ND PIC 9(4) VALUE 12.
+                   01 T1.
+                      05 E1 PIC X OCCURS 3 INDEXED BY I1.
+                   PROCEDURE DIVISION.
+                   MAIN-PARA.
+
+            """;
+        string source = $"       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RNOV85.\n{head85}           {statement}.\n           STOP RUN.\n";
+        var (ok85, errors85, warnings85) = EditionHarness.CompileFull(source, 85);
+        Assert.True(ok85, string.Join(" | ", errors85));
+        Assert.Equal(relation, warnings85.Count(w => w.Contains("warning COBOL7609", StringComparison.Ordinal)));
+        Assert.Equal(sign, warnings85.Count(w => w.Contains("warning COBOL7610", StringComparison.Ordinal)));
+        // From 2002 the 1985 sentences are not the rule: no COBOL7609 or COBOL7610 at a later edition.
+        var (ok2002, errors2002, warnings2002) = EditionHarness.CompileFull(source, 2002);
+        Assert.True(ok2002, string.Join(" | ", errors2002));
+        Assert.DoesNotContain(warnings2002, w => w.Contains("COBOL7609", StringComparison.Ordinal)
+            || w.Contains("COBOL7610", StringComparison.Ordinal));
     }
 
     private static Dictionary<int, int> WarningLines(IEnumerable<string> warnings) =>

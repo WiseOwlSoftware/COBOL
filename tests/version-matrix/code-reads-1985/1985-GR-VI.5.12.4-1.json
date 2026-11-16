@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-1",
+ "rule-digest": "92157f261cbe",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "516392c7991cf719d9db81b39a1af8453160c549d655bab5c22d39bf1bfc5286",
+   "refuter": "4865b53d2f37a0c5ed04951e50b1c12968316587b177d9702e8182297b35933f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SIGN clause must fix the position (LEADING/TRAILING) and mode (embedded or SEPARATE) of the operational sign of the entry it is written on, or of every signed numeric DISPLAY entry subordinate to the group it is written on, at any depth, never touching unsigned numeric entries; the 1985 subject rules (a group needs a signed subordinate, every reached entry DISPLAY) are refused when violated.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/InheritSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#WithInheritedSign; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#GateGroupSignSubordinates",
+    "switches": "below 2002 a group SIGN with no signed subordinate (SignGroupUnsignedSubordinates2002) or reaching a non-DISPLAY signed item (SignGroupNondisplaySubordinate2002) is refused; at 2002+ it returns early",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DialectLevel/Edition in InheritSignClausesPass, PicInfo.SignKindFor, ZonedSign, CobolNum: none; the application of the clause is edition-independent",
+  "behaviour-differs-by-edition": "yes: the 1985 group subject is narrower (refusals above); the sign position and mode applied are the same at every edition",
+  "witnesses-cover": "part: g85_f08_05 covers SEPARATE group and elementary forms; embedded (non-SEPARATE) group application, subgroup depth with an embedded sign, tables, arithmetic and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg1a.cob",
+    "printed": "G1=[J23045}708- ] / G2=[12LJ23] / T3=[-1+2-3] / A1+1=-122 C1+1=-06 / A1<-100 YES",
+    "expected": "group LEADING embeds the sign in A1 and two-level C1, leaves 9(3) B1 alone, elementary D1 TRAILING SEPARATE wins; group TRAILING with an elementary LEADING override; table of LEADING SEPARATE; arithmetic and comparison read the signs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg1b.cob",
+    "printed": "COBOL2422 on PIC 9(3) SIGN LEADING; COBOL0900 group SIGN with no signed numeric subordinate requires COBOL-2002",
+    "expected": "both refused (§1985:VI.5.12.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg1c.cob",
+    "printed": "COBOL0900 group SIGN applying to a signed item whose usage is not DISPLAY requires COBOL-2002",
+    "expected": "refused (§1985:VI.5.12.3 SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg1d.cob",
+    "printed": "COBOL2422 usage of an elementary item with SIGN shall be display",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/VI.5.12@1985-SIGN-CLAUSE/g85_f08_05.cob",
+    "printed": "MATCH G=[-012007+05] GD=[03-]",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR1",
+    "check": "OK  §1985:VI.5.12.4 GR1  (5.12.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "InheritSignClausesPass propagates a group clause to each signed numeric descendant not under a nearer clause, WithInheritedSign rewrites the PicInfo, and the runtime punches or separates the sign from the profile. The 1985-only group refusals go through ConstructRegistry; the diagnostics cite 2023 text and vendor transcriptions rather than §1985:VI.5.12.3, cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "r12a-002: level-77 SIGN LEADING SEPARATE -7 -> '-07'; group SIGN TRAILING SEPARATE reaches an elementary item, an item inside a REDEFINES of a sibling (R1N -5 -> '5-') and an OCCURS DEPENDING table element ('1-2+3-'); group SIGN LEADING embeds into S9(3) USAGE DISPLAY (J23), leaves 9(2) alone (45), elementary SIGN TRAILING overrides (6P); MOVE from LEADING SEPARATE to a default-sign item converts (01K), ADD across conventions -135. Edition site CheckSignClausesPass#GateGroupSignSubordinates already in reader's list. cite.py: OK  §1985:VI.5.12.4 GR1  (5.12.4 General Rules)  the text is in GR1",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

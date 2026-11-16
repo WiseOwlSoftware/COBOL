@@ -816,6 +816,23 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, PlaceTab
         }
     }
 
+    /// <summary>⛔ THE IMAGE A GROUP SENDER GIVES A PRINTABLE ITEM (kb/Work PB5807). A report SOURCE identifier-1 "specifies the
+    /// sending data item of the implicit MOVE statement" (§1985:XIII.3.18.3 SR2; §2023:13.18.53.4 GR1), and "any move that is
+    /// not an elementary move is treated exactly as if it were an alphanumeric to alphanumeric elementary move, except that
+    /// there is no conversion of data" (§1985:VI.6.19.4 GR5), so a group sender is never converted by the receiver's category:
+    /// SOURCE a group holding <c>4X7</c> over <c>PIC 999</c> prints <c>4X7</c>, as <c>MOVE G TO N3</c> stores it. This is the
+    /// character image <see cref="EmitGroupToElementaryMove"/> stores for a fixed-length receiver — the sending image fitted
+    /// to the item's storage area (§2023:14.6.8), then decoded from that area by <see cref="ReceivingStore.StorageCharacters"/> —
+    /// stopping short of the store because a printable item has no storage: the characters ARE the printed field. Callers ask
+    /// <see cref="MoveClassifier.IsGroupSender"/> first; <see cref="ConvertSource"/> is the elementary-sender conversion.</summary>
+    public string GroupSenderImage(BoundOperand source, DataItem target)
+    {
+        string positions = $"{ReceivingStore.StoragePositions(target)}";
+        string area = ReceivingStore.Characters(target,
+            OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), ReceivingStore.StorageBytes(target, positions));
+        return ReceivingStore.StorageCharacters(target, area, positions);
+    }
+
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.
     /// <paramref name="runtimeWidth"/> — the receiver's RUNTIME character count expression for an ANY LENGTH
     /// receiver (ISO §2023:13.18.2 GR1: the item behaves as n repetitions of its picture symbol where n is the

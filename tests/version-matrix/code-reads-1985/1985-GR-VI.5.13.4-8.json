@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-8",
+ "rule-digest": "38d9f7fcabb1",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "2150687c3fbacb7488c99c1e3b0da8570f33e0e5dc40d23927bd8b30d6103d58",
+   "refuter": "6743a83bd3bd6c730e0797dabcad026d44426cadfd79d63b9a6d7a9f99ce44de"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the implementor must specify (a) the external-media format of records containing SYNCHRONIZED items and (b) any implicit FILLER generation, with such FILLER counted in group size and in group REDEFINES allocation; the implementation must document and follow its specification.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ImageWidth; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+  "edition-consulted": [],
+  "edition-search": "grep '.Synchronized' over src (no layout or record-I/O member reads it); grep Edition|DialectLevel in DataBinder.SynchronizedClause.cs finds only GateSynchronizedGroup (group placement, not media format or FILLER).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f09_02 covers a sequential record with one 2-byte SYNC item; not a PACKED-DECIMAL SYNC RIGHT or 4-byte binary SYNC item in a record",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p3sync.cob",
+    "printed": "F-1=1 C=2 E=3 F-RB=-000000005 RE=3; P3SYNC.DAT is 10 bytes",
+    "expected": "per DOC-A.1-195: media format byte-identical to the unsynchronized record (1+4+1+3+1=10), no implicit FILLER"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.5.13@1985-SYNCHRONIZED-CLAUSE/g85_f09_02.cob",
+    "printed": "EXPECT: MATCH (F-*/F2-* legs)",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR8",
+    "check": "OK  §1985:VI.5.13.4 GR8  (5.13.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "The specification exists in docs/conformance/7/DOC-A.1-195.md (no physical alignment, no implicit FILLER, external format identical) and the probe's file shows it is followed. The doc row cites the 2023 clause numbers; it states the same determination holds in every edition (DOC-A.1-197), which covers 1985's implementor-defined list item (21).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "GR8 requires the implementor to specify (a) external-media format and (b) implicit FILLER. docs/conformance/7/DOC-A.1-195.md specifies both (format byte-identical to the unsynchronized record; no FILLER generated) and lists 1985 witnesses (VI.5.13@1985 g85_bf04_02, g85_bf12_02); DOC-A.1-197 says the determination is the same in every edition. Measured: r3sync.cob group G1 with three SYNC items (SYNC RIGHT sign-separate, SYNC LEFT COMP) is 11 bytes = sum of item sizes, and an ODO table occurrence carries no per-occurrence FILLER (GR7b vacuous); the reader's file probe shows a 10-byte record. One weakness noted, not decisive: the doc cells cite §2023 clause numbers only, but the determination is edition-independent and the 1985 rule asks only that it be specified and followed. cite.py: OK §1985:VI.5.13.4 GR8 (the text is in GR8).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-VI.6.24.4-2",
+ "rule-digest": "9c54d6875d0d",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-216",
+  "sources": {
+   "reader": "3b7646bf42922a2658edef0fcc3fd548476033cb695823d8bb6c07271ee84524",
+   "refuter": "137fede05aeb2c66926551a20dcf1510fe229ca8aa9a65013918339e4f77b5f8"
+  },
+  "imported": {
+   "reader": "f15f08244f8b093b701a1c21629a2e8fab7829f6b5f82ad63db07b0fb8a2f3dc",
+   "refuter": "f69cf4a5a560e9e84df9e1438b18f311d27362215ff590bd2ef041b9971e1cf9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.24.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, STOP RUN must execute a plain CLOSE (no optional phrases) of every file in the open mode anywhere in the run unit (every organization and open mode, files of the calling and the called programs alike) and must run no USE procedure of those files, debugging sections included.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitMain; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#RunModule; src/WiseOwl.Cobol.Runtime/Control/RunUnit.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseAll; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseIfOpen; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by the connector's Edition: at 85 a lone connector's store is not shared, so its records reach the medium at CLOSE; the implicit CLOSE itself (CloseAll, CloseIfOpen, Close) is the same arm at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in RunUnit.cs, ProgramTable.cs, FileRegistry.cs (CloseAll/CloseIfOpen/CloseByFormat) and FileConnector.cs; StatementEmitter Visit(BoundStop) emits throw new StopRun() with no edition test.",
+  "behaviour-differs-by-edition": "no: STOP RUN's implicit CLOSE is the same CloseAll at every edition; only when an 85 connector's records reach the medium (at that CLOSE) differs",
+  "witnesses-cover": "part: g85_z07 is one record-sequential OUTPUT file in the program executing STOP RUN, with a debugging USE; not exercised: relative and indexed files, I-O mode, and a file opened by the calling program when a called program executes STOP RUN",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/stop_writer.cob",
+    "printed": "DEBUG RELF / DEBUG IXF / DEBUG IXF / DEBUG IXF / SUB STOP RUN (exit 0); P216SEQ.DAT holds 'SEQ-01SEQ-02' (12 bytes)",
+    "expected": "STOP RUN in the called program closes the caller's open sequential OUTPUT file (both records on the medium); the debugging section runs for the explicit OPEN, CLOSE and OPEN only, never for the implicit CLOSEs"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/stop_reader.cob",
+    "printed": "OPEN REL 00 / REL REL-01 / REL REL-02 / REL EOF / OPEN IX 00 / IX K001AAAA / IX K002BBBB / IX EOF",
+    "expected": "the relative file left open in OUTPUT mode and the indexed file left open in I-O mode (K002 written after the reopen) were closed by STOP RUN, so a later run unit reads every record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/stop_writer.cob",
+    "printed": "first version without INVALID KEY: error COBOL6826 (§1985:VIII.4.9.3 SR3)",
+    "expected": "a relative WRITE with neither INVALID KEY nor a USE AFTER EXCEPTION procedure is refused at 85 (incidental; GR2 has no refusal half)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.24.4 GR2",
+    "check": "OK  §1985:VI.6.24.4 GR2  (6.24.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VIII.4.9.3 SR3",
+    "check": "OK  §1985:VIII.4.9.3 SR3  (4.9.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "STOP RUN unwinds to Main, whose RunModule boundary calls RunUnit.Terminate and FileRegistry.CloseAll, which closes every registered open connector through the CLOSE dispatch's own entry without selecting any declarative (declaratives are dispatched by the emitted CLOSE statement only). stop_reader was run with the data files stop_writer left behind (passed with --with) to show the implicit CLOSE persisted them.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.24.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read RunUnit.Terminate -> FileRegistry.CloseAll (every registered connector through CloseIfOpen; no declarative dispatch; the emitted CLOSE statement alone selects USE procedures). Probes at --std 85 the reader did not try: s_cancel2.cob (runs/s_cancel2-001): an EXTERNAL sequential file opened OUTPUT in a called program that is then CANCELed (1985 CANCEL closes only internal connectors: 'OK  §1985:X.5.3.4 GR10 ... associated with an internal file connector') stays open, the caller writes EXT-03 to it and executes STOP RUN; R216EXT.DAT holds EXT-01EXT-02EXT-03 (18 bytes), no 'USE EXT' printed; a file whose OPEN failed (status 35) ran its USE procedure once at the OPEN and not again at STOP RUN (not in the open mode); a file already CLOSEd raised nothing. s_decl.cob (runs/s_decl-001): STOP RUN executed inside a USE AFTER ERROR procedure (status 10) with a LINAGE print file open OUTPUT: the line written in the declarative reaches the medium, and neither the file's own nor the USE ... ON OUTPUT procedure runs. The class-c probe s_cancel.cob first draft was refused COBOL0871 'FROM literal-1 requires COBOL-2002' (a 2002 form, correctly refused at 85). cite.py: 'OK  §1985:VI.6.24.4 GR2  (6.24.4 General Rules)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
