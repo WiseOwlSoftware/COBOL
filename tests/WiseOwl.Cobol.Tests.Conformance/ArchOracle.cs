@@ -270,7 +270,7 @@ public static class ArchOracle
     }
 
     /// <summary>The paths outside its scratch directory a compile probed and did NOT find (the working directory's
-    /// library first, §2023:7.3.3 and CopyProcessor's search), portable: a file appearing there later changes what the
+    /// library first: the default COBOL library is implementor-defined, §2023:7.2.3.4 GR3, and CopyProcessor searches the working directory first), portable: a file appearing there later changes what the
     /// same compile resolves, so the differential refuses a digest whose absent probe now exists (as the cache's replay
     /// does). Sorted, distinct; empty when none.</summary>
     internal static IReadOnlyList<string> AbsentOutside(CompilerDriver.Result r, string scratch)

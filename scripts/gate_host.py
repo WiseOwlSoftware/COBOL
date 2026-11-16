@@ -254,10 +254,15 @@ class Host:
         return out
 
     def test_output_dir(self, asm: str) -> Path:
-        """`asm`'s test assembly's output directory (GATED_ASSEMBLIES names the assembly; GATE_CONFIGURATION its build):
-        the working directory VSTest starts that assembly's test host in."""
-        return (self.repo / GATED_ASSEMBLIES[asm]).parent
-
+        """The directory of `asm`'s BUILT test assembly (`<project>/bin/<GATE_CONFIGURATION>/<tfm>/<project name>.dll`):
+        the working directory its test host runs in, measured 2026-11-16 by a probe test that wrote
+        `Environment.CurrentDirectory` during a run (kb/Work PB4333 R2-1: `tests/WiseOwl.Cobol.Tests.Conformance/bin/Debug/net10.0`).
+        Raises OSError unless exactly one such assembly is built."""
+        project = self.repo / GATED_ASSEMBLIES[asm]
+        found = sorted(project.glob(f"bin/{GATE_CONFIGURATION}/*/{project.name}.dll"))
+        if len(found) != 1:
+            raise OSError(f"expected one built {project.name}.dll under {project}/bin/{GATE_CONFIGURATION}, found {len(found)}")
+        return found[0].parent
     def portable_exists(self, path: str) -> bool:
         """Whether a path the capture wrote portably (`<repo>/…` is this worktree's root) exists now."""
         return (self.repo / path[len("<repo>/"):] if path.startswith("<repo>/") else Path(path)).exists()

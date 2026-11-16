@@ -125,6 +125,7 @@ public sealed class ArchOracleDriftTests
         string other = Program("PB4333A", ws, "           DISPLAY WS-A WS-A.\n");
         string clock = Program("PB4333C", "", "           DISPLAY FUNCTION WHEN-COMPILED.\n");
         string ambient = "       >>DEFINE PB4333-NO-SUCH-VARIABLE AS PARAMETER\n" + Program("PB4333E", "", "           DISPLAY \"E\".\n");
+        string copies = Program("PB4333K", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       COPY PB4333ABSENT.\n", "           DISPLAY \"K\".\n");
         var dirs = new List<string>();
         ArchOracle.Observation Observe(string source)
         {
@@ -146,6 +147,12 @@ public sealed class ArchOracleDriftTests
             Assert.Equal(ArchOracle.ClockProgram, Observe(clock).Program);
             Assert.Equal(ArchOracle.AmbientProgram, Observe(ambient).Program);
             Assert.All(first.Absent ?? [], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
+            // A COPY of a text-name neither the scratch nor the working directory holds: the working directory's absent
+            // probe is recorded, portably (kb/Work PB4333 R2-2), so a library text appearing there later refuses the carry.
+            var copied = Observe(copies);
+            Assert.Contains(copied.Absent ?? [], p => p.Contains("PB4333ABSENT", StringComparison.OrdinalIgnoreCase)
+                && (p.StartsWith("<repo>/", StringComparison.Ordinal) || Path.IsPathRooted(p)));
+            Assert.All(copied.Absent ?? [], p => Assert.DoesNotContain(TestRepo.Root, p, StringComparison.OrdinalIgnoreCase));
         }
         finally
         {
