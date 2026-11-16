@@ -1,0 +1,58 @@
+      *>--- conformance-case
+      *> id: pb5768_release_in_declarative_reached_by_call_85
+      *> rules: [1985-SR-XI.4.2.3-2]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> kb/Work PB5768. §1985:XI.4.4.4 GR7: the range of an input
+      *> procedure includes "all statements in declarative procedures
+      *> that are executed as a result of the execution of statements
+      *> in the range of the input procedure", so a RELEASE in the
+      *> declaratives is within the range (§1985:XI.4.2.3 SR2) when a
+      *> statement of the range can execute its declarative
+      *> (VersionConformancePass.DeclarativeExecutableFromRange).
+      *> THE CALL ARM: the range's only reach to the GLOBAL USE ON F
+      *> is CALL "SUBP", whose OPEN INPUT F of an absent file fails
+      *> (35) and executes D1, whose RELEASE is then in the range.
+      *> Fails (COBOL7081 on the RELEASE in D1) if a CALL in the range
+      *> is not counted as able to execute the declarative.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB5768CA.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT SA ASSIGN TO P5768SC.
+           SELECT F ASSIGN TO "pb5768ca-absent.dat" FILE STATUS IS FS.
+       DATA DIVISION.
+       FILE SECTION.
+       SD  SA.
+       01  RA.
+           05 KA PIC X(3).
+       FD  F IS GLOBAL.
+       01  FR PIC X(3).
+       WORKING-STORAGE SECTION.
+       01  FS PIC XX IS GLOBAL.
+       PROCEDURE DIVISION.
+       DECLARATIVES.
+       D SECTION.
+           USE GLOBAL AFTER STANDARD ERROR PROCEDURE ON F.
+       D1. MOVE "DDD" TO RA. RELEASE RA.
+       END DECLARATIVES.
+       M SECTION.
+       M1. SORT SA ON ASCENDING KEY KA INPUT PROCEDURE IN-P
+           OUTPUT PROCEDURE OUT-P.
+           STOP RUN.
+       IN-P SECTION.
+       I1. MOVE "ZZZ" TO RA. RELEASE RA.
+           CALL "SUBP".
+       OUT-P SECTION.
+       O1. RETURN SA AT END GO TO O9.
+           DISPLAY "R " RA. GO TO O1.
+       O9. EXIT.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SUBP.
+       PROCEDURE DIVISION.
+       S1. OPEN INPUT F. DISPLAY "SUB " FS. EXIT PROGRAM.
+       END PROGRAM SUBP.
+       END PROGRAM PB5768CA.

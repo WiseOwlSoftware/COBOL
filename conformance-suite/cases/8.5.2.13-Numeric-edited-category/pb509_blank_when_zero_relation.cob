@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb509_blank_when_zero_relation
       *> rules: [GR-8.5.2.13-2, GR-13.18.8.4-3]
-      *> accept: [85]
+      *> accept: [2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -3132,6 +3132,18 @@ the emitter encodes a national value through the one national serializer. The co
 images; sizing the relation's operands is the compiler's job because only it knows the literal's form and the key's
 category.
 
+## A record sequential print file supports no read — OPEN INPUT and OPEN I-O are '37' (kb/Work PB5815)
+
+A record sequential file whose description has a LINAGE clause, or that a WRITE with the ADVANCING phrase names, carries
+its print controls between its records (DOC-A.1-146 (c′)), and nothing on the medium marks where a record ends and a
+control begins. A READ of it cannot return the records as placed (§1985:VII.2.6.3 GR2) and a REWRITE would overwrite a
+line end, so the file "will not support read operations": OPEN INPUT and OPEN I-O are '37' (§2023:9.1.13.6 item 6 a) 3.,
+§2023:14.9.27.4 GR16; §1985:VII.1.3.5). The question is the OPEN contract's, asked ONCE above the organizations
+(`FileConnector.SupportsReadOperations`, beside the GR3 and GR16 authority answers), and the sequential connector answers
+it from its own description (`SequentialConnector.IsRecordSequentialPrintFile`); an organization added later inherits
+"supports reads". A LINE SEQUENTIAL file is not such a file (each line is a record), and another file description of the
+same physical file with neither LINAGE nor ADVANCING reads its bytes as a plain record sequential file.
+
 ## ISO citations
 
 - ISO/IEC 1989:2023 section 12.4.5.7 COLLATING SEQUENCE clause: 12.4.5.7.2's two general formats (file-level and key-level), 12.4.5.7.3 SR3 (at most one file-level clause per file control entry), SR4/SR5 (a Format-2 name shall be a declared RECORD KEY or ALTERNATE RECORD KEY), SR8 (a key in at most one clause) and 12.4.5.7.4 GR2–GR6 (which sequence applies to which key), with 5.2.7 for the ellipsis that makes the Format-2 brace group repeatable.

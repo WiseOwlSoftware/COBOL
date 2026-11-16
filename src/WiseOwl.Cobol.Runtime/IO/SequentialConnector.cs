@@ -1074,6 +1074,20 @@ public sealed partial class SequentialConnector : FileConnector
     /// to all three, as on a plain line sequential file.</summary>
     private bool IsRecordPrintStream => !_lineSequential && _recordDescribed && !HasLinageClause;
 
+    /// <summary>⛔ A RECORD SEQUENTIAL PRINT FILE IS NOT READ BACK (kb/Work PB5815; <c>docs/CONFORMANCE.md</c> DOC-A.1-146 (c′)): a
+    /// RECORD SEQUENTIAL file whose description has a LINAGE clause, or that a WRITE with the ADVANCING phrase of the program
+    /// names (<see cref="AdvancingDeclared"/>, executed or not: kb/Work PB5201), carries its print controls between its records
+    /// and, under a LINAGE clause, records less their trailing spaces. Nothing on the medium marks where one record ends and a
+    /// control begins, so a READ cannot return the records as they were placed (§1985:VII.2.6.3 GR2, "a record is identified by
+    /// a predecessor-successor relationship established when the record is placed into the file"). The file therefore does
+    /// not support read operations, and OPEN INPUT and OPEN I-O of it are '37' (<see cref="FileConnector.SupportsReadOperations"/>).
+    /// A LINE SEQUENTIAL file is not one: each line IS a record (§2023:9.1.7.2). Another file description that names the same
+    /// physical file with neither is not a print file, and reads its bytes as §2023:9.1.13.2 items 3, 5 and 7 allow.</summary>
+    private bool IsRecordSequentialPrintFile => !_lineSequential && (AdvancingDeclared || HasLinageClause);
+
+    /// <inheritdoc/>
+    private protected override bool SupportsReadOperations => !IsRecordSequentialPrintFile;
+
     /// <summary>This connector's ONE line end for the current open (<see cref="SelectLineEnd"/>).</summary>
     private string _lineEnd;
 
@@ -1357,10 +1371,12 @@ public sealed partial class SequentialConnector : FileConnector
     /// §2023:9.1.13.2) and RECORD IS VARYING (each record carries its own length prefix, so a mismatch is detected
     /// per record — §2023:14.9.30.4 GR14). Excluded too: a REPORT FILE, which has no record description to disagree
     /// with — its <see cref="FileConnector.RecordWidth"/> is the widest RD's line width and its bytes are print lines with their
-    /// terminators and spacing (<see cref="_recordDescribed"/>, kb/Work PB677).</summary>
+    /// terminators and spacing (<see cref="_recordDescribed"/>, kb/Work PB677). Excluded last: a RECORD SEQUENTIAL PRINT FILE
+    /// (<see cref="IsRecordSequentialPrintFile"/>), whose print controls between its records make its length no multiple of the
+    /// record by construction; only EXTEND reaches the question for one, INPUT and I-O being '37' (kb/Work PB5815).</summary>
     private void NoticeIfLayoutDisagrees()
     {
-        if (_lineSequential || IsVarying || !_recordDescribed) return;
+        if (_lineSequential || IsVarying || !_recordDescribed || IsRecordSequentialPrintFile) return;
         try
         {
             // No existence test at all — not FileInfo.Exists (which swallows an access error into "no file"
