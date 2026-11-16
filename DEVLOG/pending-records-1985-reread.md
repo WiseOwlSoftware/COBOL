@@ -46,6 +46,23 @@ reading of §1985:X.1.3.7 is open: `PB5628/2026-11-15-the-1985-reading-is-open.m
 
 Branch `adopt-2002-s1` is recorded ABANDONED beside PB5574 (`prune_worktrees.py` finds the record; nothing was applied).
 
+**Part 5: five 2023 rows that the 1985 code reads contradict.** These are the operator's addition. The rulings
+(`my-20261115/contradictions-b1/rulings.json`, "cause b", wrong at every edition) and notes PB5773, PB5775, PB5776 and
+PB5777 (from pull request 1745, merged in here) name five 2023 rows stored CONFORMS. Each note's repro was re-run on this
+build at `--std 2023`, and each reproduced:
+- `m2srch` prints HIT 2 (FMT-14.9.37.2, PB5773).
+- `m4gen` prints RAN and `m4use` prints BEFORE, RAN (FMT-14.9.16.2 and FMT-14.9.49.2, PB5775).
+- `m5str` prints OVF, H=[5a    ] PTR=03 (GR-13.18.38.4-8, PB5776).
+- `m5uns` prints OH=[AB] R1=[FGH] P=09 (GR-14.9.48.4-11, PB5777).
+
+The rows were re-recorded PARTIAL, following DEVLOG 3709: part of each rule holds. Each record keeps the prior prose as the
+account of that part, keeps its sites, adds the defect's site and names the note. The 2023 GAP went from 9 to 14. Each
+note now claims its rows in `inventory_rows`. The landed notes that claimed those rows in `closes_rows` gave them up, each
+with a reason naming the open note: PB351, PB332, PB365, PB80 and PB979. Eight 1985 KEPT rows chain into these targets,
+so they reopen, and the 1985 GAP rose by 8 (775 to 783 on the merged tree): 1985-FMT-VI.6.22.2, X.5.6.2, XIII.4.3.2,
+XIII.4.9.2, 1985-GR-VI.5.8.4-3, VI.6.19.4-5, VI.6.22.4-9 and VI.6.27.4-13. PB5730 had claimed `1985-GR-VI.6.22.4-9` in
+`closes_rows`, and that claim was withdrawn with a reason.
+
 **Checks.** `generate.py --check`, `case_collisions.py --check`, `work.py check`, `inventory_view.py --check`,
 `lineage_reads.py --check` and `audit_witness_loss.py --check` all GREEN. Every citation written was run through
 `cite.py --check`.
