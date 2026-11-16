@@ -234,8 +234,9 @@ public sealed partial class FileControlBinder
                         if (!RecordDelimiterNames.IsName(file.RecordDelimiter))
                             Edition.Error(DiagnosticCatalog.RecordDelimiterNameUndefined,
                                 $"file '{name}': RECORD DELIMITER IS {file.RecordDelimiter} names no method — the implementor-names "
-                                + $"of the clause are {string.Join(" and ", RecordDelimiterNames.Names)} (§1985:VII.2.8.4 GR3, "
-                                + "§2023:12.4.5.11.3 SR2)");
+                                + $"of the clause are {string.Join(" and ", RecordDelimiterNames.Names)} ("
+                                + Edition.Cite("§1985:VII.2.8.4 GR3", "§2002:12.3.4.11.2 SR2", "§2023:12.4.5.11.3 SR2", "§2014:12.4.4.10.2 SR2")
+                                + ")");
                     }
                 }
             }
@@ -357,17 +358,18 @@ public sealed partial class FileControlBinder
     {
         if (file.RecordDelimiter is not { } word || !file.HasFd || file.IsSortMerge || !file.IsSequential
             || file.HasVariableLengthRecords) return;
-        bool std85 = Edition.DialectLevel < 2002;
         string why = file.RecordContains is { } n
             ? $"its RECORD CONTAINS {n} CHARACTERS clause specifies fixed-length records ("
-              + (std85 ? "§1985:VII.3.8.4 GR3" : "§2023:13.18.43.4 GR6") + ")"
+              + Edition.Cite("§1985:VII.3.8.4 GR3", "§2002:13.16.41.3 GR6", "§2023:13.18.43.4 GR6", "§2014:13.18.43.3 GR6") + ")"
             : "it writes no RECORD clause and no record description of it is variable-length, so this implementation gives "
-              + "it fixed-length records (" + (std85 ? "§1985:II.2.1.4.3" : "§2023:13.18.43.4 GR5")
+              + "it fixed-length records ("
+              + Edition.Cite("§1985:II.2.1.4.3", "§2002:13.16.41.3 GR5", "§2023:13.18.43.4 GR5", "§2014:13.18.43.3 GR5")
               + "; docs/CONFORMANCE.md §7, Annex A.1 item 147)";
         using var at = Edition.At(file.RecordDelimiterAt);
         Edition.Error(DiagnosticCatalog.RecordDelimiterOnFixedLengthRecords,
             $"file '{file.CobolName}': RECORD DELIMITER IS {word} is specified for fixed-length records — {why}; the clause "
-            + "\"may be specified only for variable-length records\" (" + (std85 ? "§1985:VII.2.8.3 SR1" : "§2023:12.4.5.11.3 SR1")
+            + "\"may be specified only for variable-length records\" ("
+            + Edition.Cite("§1985:VII.2.8.3 SR1", "§2002:12.3.4.11.2 SR1", "§2023:12.4.5.11.3 SR1", "§2014:12.4.4.10.2 SR1")
             + "). A RECORD IS VARYING or a RECORD CONTAINS integer TO integer clause specifies variable-length records.");
     }
 

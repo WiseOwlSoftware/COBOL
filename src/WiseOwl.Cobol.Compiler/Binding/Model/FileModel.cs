@@ -703,8 +703,8 @@ public sealed class FileModel
     /// prefix every record sequential file already has, LINE-SEQUENTIAL the line sequential file
     /// (<see cref="LineSequentialByDelimiter"/>); STANDARD-1 is declined (COBOL1778). Its readers: the binder that
     /// applies it, the §2023:12.4.5.11.3 SR1 screen (<c>FileControlBinder.ScreenRecordDelimiter</c>), the format marker of
-    /// <c>FileControlKeyRules</c>, and nothing else: the external file connector's identity compares the METHOD the
-    /// file has (<c>FileEntryIdentity.Segments</c>), which the organization carries.</summary>
+    /// <c>FileControlKeyRules</c>, and the external file connector's identity, whose item c) is this written arm, null
+    /// agreeing with every arm (<c>FileEntryIdentity.Segments</c>, <c>ExternalDescriptor.RecordDelimitersAgree</c>).</summary>
     public string? RecordDelimiter { get; set; }
 
     /// <summary>The source position of the RECORD DELIMITER clause's operand, where the clause's post-build rule

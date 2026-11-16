@@ -99,6 +99,21 @@ public sealed class RecordDelimiterClauseTests
     public void OnFixedLengthRecords_IsRefused(int edition, string operand, string fd, string cited) =>
         AssertRefused(Program($"               RECORD DELIMITER IS {operand}", fd), edition, OnFixedLength, cited);
 
+    /// <summary>Each refusal cites the rule in the text of the edition compiled (kb/Work PB5844 review R1-2,
+    /// <c>EditionContext.Cite</c>): COBOL7599's syntax rule and RECORD clause rule, and COBOL7598's names rule, at each of the four
+    /// editions. A message text only; no verdict of any edition rides on it.</summary>
+    [Theory]
+    [InlineData(85, "§1985:VII.2.8.3 SR1", "§1985:VII.3.8.4 GR3", "§1985:VII.2.8.4 GR3")]
+    [InlineData(2002, "§2002:12.3.4.11.2 SR1", "§2002:13.16.41.3 GR6", "§2002:12.3.4.11.2 SR2")]
+    [InlineData(2014, "§2014:12.4.4.10.2 SR1", "§2014:13.18.43.3 GR6", "§2014:12.4.4.10.2 SR2")]
+    [InlineData(2023, "§2023:12.4.5.11.3 SR1", "§2023:13.18.43.4 GR6", "§2023:12.4.5.11.3 SR2")]
+    public void Refusals_CiteTheEditionsOwnText(int edition, string sr1, string format1, string names)
+    {
+        const string fixedFd = "\n           RECORD CONTAINS 10 CHARACTERS";
+        AssertRefused(Program("               RECORD DELIMITER IS BINARY-SEQUENTIAL", fixedFd), edition, OnFixedLength, sr1, format1);
+        AssertRefused(Program("               RECORD DELIMITER IS FOOBAR", Varying), edition, NameUndefined, names);
+    }
+
     /// <summary>SR1's three ways to variable-length records, each accepted: RECORD IS VARYING, RECORD CONTAINS integer TO
     /// integer (Annex A.1 item 148), and a line sequential file with no RECORD clause (§2023:9.1.7.2) — here made line
     /// sequential by the clause itself, and at 2023 by its ORGANIZATION clause.</summary>

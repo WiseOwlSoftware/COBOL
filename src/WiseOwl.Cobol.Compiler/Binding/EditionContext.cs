@@ -50,6 +50,13 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// <summary>The targeted ISO edition year (85 / 2002 / 2014 / 2023) — delegated to <see cref="Edition"/>.</summary>
     public int DialectLevel => Edition.Year;
 
+    /// <summary>The citation of one rule in the text of the targeted edition: <paramref name="y1985"/> at COBOL-85,
+    /// <paramref name="y2002"/> at COBOL-2002, <paramref name="y2014"/> at COBOL-2014 (the 2002 citation where a caller gives
+    /// none), and <paramref name="y2023"/> at COBOL-2023, so a diagnostic sends the reader to the text of the edition they compile
+    /// at (kb/Work PB5844 review R1-2; the one spelling of the choice, read by every per-edition message).</summary>
+    public string Cite(string y1985, string y2002, string y2023, string? y2014 = null) =>
+        DialectLevel < 2002 ? y1985 : DialectLevel < 2014 ? y2002 : DialectLevel < 2023 ? y2014 ?? y2002 : y2023;
+
     /// <summary>Whether a data-name-n clause operand may be written subscripted — delegated to <see cref="Edition"/>
     /// (<see cref="EditionInfo.SubscriptedClauseOperands"/>; kb/Work PB5602).</summary>
     public bool SubscriptedClauseOperands => Edition.SubscriptedClauseOperands;

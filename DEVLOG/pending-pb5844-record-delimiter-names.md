@@ -23,8 +23,13 @@ sequential keeps its RESERVE and BLOCK CONTAINS clauses. COBOL1778 is STANDARD-1
 
 **Siblings.** The 1985 AT END rule skipped every line sequential file (`ExceptionPhraseRequirement.Rule.TryGet`),
 which at 85 now means a file made line sequential by the clause: fixed, so its READ owes AT END (COBOL6826). The
-external connector identity compares the method instead of the spelling (`FileEntryIdentity.Segments`, DOC-A.1-149),
-and COBOL6847 cites §1985:VII.2.8.4 GR6 at 85. NIST SQ219A writes the X-card XXXXX070 in the clause; the preprocessor
+external connector identity's RECORD DELIMITER item compares the written arm pairwise: STANDARD-1 and each name
+disagree, an omitted clause agrees with every arm (kb/Work PB5311). The relation is not an equality, so it left the
+fingerprint for a descriptor field of its own, `ExternalDescriptor.RecordDelimiter`, compared by one relation,
+`RecordDelimitersAgree`, at compile time (now pairwise over every earlier describer) and at run time (review R1-1; the first
+draft mapped STANDARD-1, BINARY-SEQUENTIAL and an omitted clause to one value and accepted a STANDARD-1 entry beside a
+BINARY-SEQUENTIAL one). COBOL6847 cites §1985:VII.2.8.4 GR6 at 85, and every per-edition citation of these messages comes
+from one chooser, `EditionContext.Cite` (review R1-2: COBOL7598 and COBOL7599 cited 2023 numbering at 2002 and 2014). NIST SQ219A writes the X-card XXXXX070 in the clause; the preprocessor
 now substitutes BINARY-SEQUENTIAL, and SQ218A and SQ219A stay green. The 1985 case
 `pb5311-external-reserve-and-delimiter-defaults` wrote the clause on a fixed-length file and now has RECORD CONTAINS 1 TO 4.
 

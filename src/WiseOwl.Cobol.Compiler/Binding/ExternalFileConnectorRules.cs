@@ -76,10 +76,10 @@ internal static class ExternalFileConnectorRules
                 if (f.Organization == FileOrganization.Relative && f.RelativeKeyName is not null
                     && f.RelativeKeyItem?.ExternalItemIdentity(f.RelativeKeySubscripts) is null)
                     NotExternal(edition, externalName, f.ClauseOrEntryAt(f.RelativeKeyAt), "RELATIVE KEY", f.RelativeKeyName,
-                        EditionSeverity.Error, "ISO " + Cite(edition, "§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"));
+                        EditionSeverity.Error, "ISO " + edition.Cite("§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"));
                 if (f.Padding is { DataName: { } pad, Item: not null } p && p.Item.ExternalItemIdentity() is null)
                     NotExternal(edition, externalName, p.At, "PADDING CHARACTER", pad,
-                        EditionSeverity.Error, "ISO " + Cite(edition, "§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)", "§2002:12.3.4.3 GR1 h)"));
+                        EditionSeverity.Error, "ISO " + edition.Cite("§1985:VII.2.7.4 GR6", "§2002:12.3.4.3 GR1 h)", "§2002:12.3.4.3 GR1 h)"));
                 if (is2023 && f.Linage is { } lin)
                     foreach (var op in lin.Operands)
                         if (op.DataName is not null && op.Item?.ExternalItemIdentity() is null)   // literal operands are exempt
@@ -111,26 +111,28 @@ internal static class ExternalFileConnectorRules
                     DiagnosticCatalog.ExternalRelativeKeyConsistency, EditionSeverity.Error,
                     $"external relative file '{externalName}': all corresponding SELECT statements in the run unit "
                     + "shall specify RELATIVE KEY naming the same external data item (ISO "
-                    + Cite(edition, "§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)") + ")",
-                    Cite(edition, "§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"), externalName);
+                    + edition.Cite("§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)") + ")",
+                    edition.Cite("§1985:VIII.2.4.4 GR8", "§2002:12.3.4.3 GR1 i)", "§2023:12.4.5.3 GR1 h)"), externalName);
 
-            // Every other specification: the entry identity's segments, compared with the first describer's.
-            var first = FileEntryIdentity.Segments(conns[0]);
-            foreach (var f in conns.Skip(1))
+            // Every other specification: the entry identity's segments, each entry against EVERY earlier describer, by each
+            // segment's own agreement (FileEntrySegment.Agrees). Pairwise, because the RECORD DELIMITER item's agreement is not
+            // transitive (an omitted clause agrees with STANDARD-1 and with BINARY-SEQUENTIAL, which disagree; kb/Work PB5844),
+            // so agreeing with the first describer proves nothing about the second; the run time compares pairwise too.
+            var seen = new List<IReadOnlyList<FileEntrySegment>>();
+            foreach (var f in conns)
             {
                 var mine = FileEntryIdentity.Segments(f);
-                for (int i = 0; i < mine.Count; i++)
-                {
-                    if (string.Equals(mine[i].Value, first[i].Value, StringComparison.Ordinal)) continue;
-                    using (edition.At(f.EntryAt))
-                        edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
-                            $"external file '{externalName}': this file control entry and the first one in the run unit "
-                            + $"that describes the file connector differ in {mine[i].Clause} — every entry of an external "
-                            + "file connector specifies it the same way (ISO "
-                            + Cite(edition, "§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VII.2.8.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
-                                "§2002:12.3.4.3 GR1", "§2023:12.4.5.3 GR1") + ")");
-                    break;   // one report per entry: the first clause that differs
-                }
+                var differing = seen.SelectMany(earlier => Enumerable.Range(0, mine.Count).Where(i => !mine[i].Agrees(earlier[i])))
+                    .Select(i => (int?)i).FirstOrDefault();
+                seen.Add(mine);
+                if (differing is not { } d) continue;   // one report per entry: the first clause that differs
+                using (edition.At(f.EntryAt))
+                    edition.Error(DiagnosticCatalog.ExternalFileEntryDisagreement,
+                        $"external file '{externalName}': this file control entry and an earlier one in the run unit "
+                        + $"that describes the file connector differ in {mine[d].Clause} — every entry of an external "
+                        + "file connector specifies it the same way (ISO "
+                        + edition.Cite("§1985:VII.2.3.4 GR1, §1985:VII.2.7.4 GR6, §1985:VII.2.8.4 GR6, §1985:VIII.2.3.4 GR1, §1985:IX.2.3.4 GR1",
+                            "§2002:12.3.4.3 GR1", "§2023:12.4.5.3 GR1") + ")");
             }
             if (edition.DialectLevel < 2002) CheckFileDescriptions(edition, externalName, conns);
             else CheckFormat(edition, externalName, conns);
@@ -190,10 +192,6 @@ internal static class ExternalFileConnectorRules
             }
         }
     }
-
-    /// <summary>The rule of the edition being compiled, by the edition's own citation.</summary>
-    private static string Cite(EditionContext edition, string y1985, string y2002, string y2023) =>
-        edition.DialectLevel < 2002 ? y1985 : edition.DialectLevel < 2023 ? y2002 : y2023;
 
     private static void NotExternal(EditionContext edition, string ext, Editions.DiagnosticCursor at, string clause, string name,
         EditionSeverity severity, string cite)

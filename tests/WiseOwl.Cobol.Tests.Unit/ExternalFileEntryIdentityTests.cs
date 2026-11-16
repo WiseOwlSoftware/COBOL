@@ -38,14 +38,7 @@ public sealed class ExternalFileEntryIdentityTests
         { "a) OPTIONAL", f => f.Optional = true },
         { "b) ASSIGN literal-1", f => f.AssignTarget = "y.dat" },
         { "b) ASSIGN USING data-name-1", f => f.AssignUsingName = "FNAME" },
-        // c) the method the clause selects (kb/Work PB5844): LINE-SEQUENTIAL is the line sequential file's, which the
-        // organization carries, so the row changes both as the binder does.
-        { "c) RECORD DELIMITER feature-name-1", f =>
-            {
-                f.RecordDelimiter = "LINE-SEQUENTIAL";
-                f.Organization = FileOrganization.LineSequential;
-                f.LineSequentialByDelimiter = true;
-            } },
+        // c) RECORD DELIMITER is not an equality item, so it has its own facts below (RecordDelimiter_*).
         { "d) RESERVE integer-1", f => f.ReserveAreas = 3 },
         { "e) organization", f => f.Organization = FileOrganization.Relative },
         { "f) access mode", f => f.AccessMode = FileAccessMode.Random },
@@ -64,23 +57,75 @@ public sealed class ExternalFileEntryIdentityTests
         { "m) lock mode", f => f.LockMode = new LockModeInfo(LockKind.Manual, false) },
     };
 
-    /// <summary>An omitted RESERVE clause is the implementor's one area and an omitted RECORD DELIMITER clause the implementor's one method, which RESERVE 1
-    /// AREA and BINARY-SEQUENTIAL specify too and the declined STANDARD-1 leaves in force (§1985:VII.2.9.3 GR1, §1985:VII.2.8.4 GR4; DOC-A.1-164,
-    /// DOC-A.1-150, DOC-A.1-151), so the entries specify the same connector (kb/Work PB5311, PB5844); a clause that specifies something else still differs.</summary>
+    /// <summary>Whether two entries agree on every GR1 item, each by its own relation (<c>FileEntrySegment.Agrees</c>): the
+    /// question the compile-time check asks of each pair and the run time asks of the fingerprint and the RECORD DELIMITER field.</summary>
+    private static bool Agree(FileModel a, FileModel b)
+    {
+        var x = FileEntryIdentity.Segments(a);
+        var y = FileEntryIdentity.Segments(b);
+        return x.Count == y.Count && x.Zip(y).All(p => p.First.Agrees(p.Second));
+    }
+
+    /// <summary>A record sequential entry writing <paramref name="delimiter"/> (null: no RECORD DELIMITER clause).</summary>
+    private static FileModel Sequential(string? delimiter)
+    {
+        var f = new FileModel { CobolName = "SF", AssignTarget = "s.dat", RecordDelimiter = delimiter };
+        if (delimiter == "LINE-SEQUENTIAL") { f.Organization = FileOrganization.LineSequential; f.LineSequentialByDelimiter = true; }
+        return f;
+    }
+
+    /// <summary>An omitted RESERVE clause is the implementor's one area and an omitted RECORD DELIMITER clause the implementor's
+    /// method, which RESERVE 1 AREA writes, BINARY-SEQUENTIAL names and the declined STANDARD-1 leaves in force (§1985:VII.2.9.3 GR1,
+    /// §1985:VII.2.8.4 GR4; DOC-A.1-164, DOC-A.1-149, DOC-A.1-151), so the entries specify the same connector (kb/Work PB5311,
+    /// PB5844); a clause that specifies something else still differs.</summary>
     [Theory]
     [InlineData("STANDARD-1")]
     [InlineData("BINARY-SEQUENTIAL")]
     public void An_omitted_clause_is_its_implementor_value(string delimiter)
     {
-        var plain = Entry();
-        plain.RecordDelimiter = null;
-        plain.ReserveAreas = null;
-        var written = Entry();
-        written.RecordDelimiter = delimiter;
+        var plain = Sequential(null);
+        var written = Sequential(delimiter);
         written.ReserveAreas = 1;
-        Assert.Equal(FileEntryIdentity.Of(plain), FileEntryIdentity.Of(written));
+        Assert.True(Agree(plain, written));
+        Assert.True(Agree(written, plain));
         written.ReserveAreas = 3;
-        Assert.NotEqual(FileEntryIdentity.Of(plain), FileEntryIdentity.Of(written));
+        Assert.False(Agree(plain, written));
+    }
+
+    /// <summary>§1985:VII.2.8.4 GR6: "all RECORD DELIMITER clauses in the run unit which are associated with that file connector
+    /// must have the same specifications" (kb/Work PB5844, review R1-1). Two WRITTEN clauses agree only when they say the same
+    /// thing: STANDARD-1 differs from each implementor-name, and the two implementor-names, which name two methods, differ.
+    /// The pairs are disagreements in both orders, because the relation is checked pairwise in both directions.</summary>
+    [Theory]
+    [InlineData("STANDARD-1", "BINARY-SEQUENTIAL")]
+    [InlineData("STANDARD-1", "LINE-SEQUENTIAL")]
+    [InlineData("BINARY-SEQUENTIAL", "LINE-SEQUENTIAL")]
+    public void RecordDelimiter_TwoWrittenArmsThatDiffer_Disagree(string a, string b)
+    {
+        Assert.False(Agree(Sequential(a), Sequential(b)), $"{a} against {b}");
+        Assert.False(Agree(Sequential(b), Sequential(a)), $"{b} against {a}");
+    }
+
+    /// <summary>The same written arm agrees with itself; the relation is not transitive (omitted agrees with both STANDARD-1 and
+    /// BINARY-SEQUENTIAL, which disagree), which is why the compile-time check compares every pair.</summary>
+    [Theory]
+    [InlineData("STANDARD-1")]
+    [InlineData("BINARY-SEQUENTIAL")]
+    [InlineData("LINE-SEQUENTIAL")]
+    public void RecordDelimiter_TheSameWrittenArm_Agrees(string a) => Assert.True(Agree(Sequential(a), Sequential(a)));
+
+    /// <summary>The run time asks the same relation (separately compiled programs, EC-EXTERNAL-FILE-MISMATCH): an entry that
+    /// writes no clause registers beside STANDARD-1 and beside BINARY-SEQUENTIAL, and those two refuse each other.</summary>
+    [Fact]
+    public void RecordDelimiter_TheRunTimeCheck_IsPairwise()
+    {
+        var table = new WiseOwl.Cobol.Runtime.ExternalTable();
+        var gate = WiseOwl.Cobol.Runtime.ExternalChecks.FileMismatch;
+        WiseOwl.Cobol.Runtime.ExternalDescriptor Desc(string? delimiter) => new("file", SelectFingerprint: "F", RecordDelimiter: delimiter);
+        table.Describe("P0", "XF", Desc(null), gate);
+        table.Describe("P1", "XF", Desc("STANDARD-1"), gate);
+        var x = Assert.Throws<WiseOwl.Cobol.Runtime.CobolCallException>(() => table.Describe("P2", "XF", Desc("BINARY-SEQUENTIAL"), gate));
+        Assert.Contains("EC-EXTERNAL-FILE-MISMATCH", x.Message, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -91,6 +136,7 @@ public sealed class ExternalFileEntryIdentityTests
         change(changed);
         Assert.True(FileEntryIdentity.Of(Entry()) != FileEntryIdentity.Of(changed),
             $"§2023:12.4.5.3 GR1 {item}: an entry differing only in it has the same identity '{FileEntryIdentity.Of(changed)}'");
+        Assert.False(Agree(Entry(), changed), $"§2023:12.4.5.3 GR1 {item}: an entry differing only in it agrees");
     }
 
     [Fact]

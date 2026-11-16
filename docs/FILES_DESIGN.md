@@ -570,8 +570,12 @@ The clause "may be specified only for variable-length records" (§2023:12.4.5.11
 binder asks `FileModel.HasVariableLengthRecords` post-build (`FileControlBinder.ScreenRecordDelimiter`, COBOL7599) on
 both arms — the RECORD clause's variable formats and the implied format 2 (A.1 items 147, 148), or a line sequential
 file whose entry writes no format 1 RECORD clause — the same predicate the FORMAT clause's rule asks. The external file
-connector's identity compares the method (`FileEntryIdentity`, A.1 item 149), so BINARY-SEQUENTIAL, STANDARD-1 and an
-omitted clause agree.
+connector's entries compare the clause's WRITTEN arm (§1985:VII.2.8.4 GR6, "the same specifications"; A.1 item 149):
+STANDARD-1 disagrees with each implementor-name and the two names disagree with each other, while an entry that writes no
+clause agrees with every arm (kb/Work PB5311). That relation is not an equality, so it is the one `OmittedAgrees` segment
+of `FileEntryIdentity` (`FileEntrySegment.Agrees`), compared pairwise at compile time (`ExternalFileConnectorRules.Check`)
+and at run time, where it travels beside the fingerprint as `ExternalDescriptor.RecordDelimiter` and
+`ExternalDescriptor.RecordDelimitersAgree` is the one relation both read (kb/Work PB5844 review R1-1).
 
 **§2023:9.1.6's own last-sentence obligation** — "The implementor shall specify whether the ability to share a
 physical file is a fixed file attribute" — is answered **NO**: a sharing mode is established per FILE CONNECTOR
@@ -2499,8 +2503,9 @@ agreement (LABEL RECORDS §1985:VII.3.6.3 GR4, BLOCK CONTAINS §1985:VII.3.3.3 G
 clauses), each entry that writes a clause with the first entry that writes it (COBOL6847, at the clause). The identity is compile-time only; the
 run time's fingerprint stays the file control entry's. An omitted clause is no clause ("all LABEL RECORDS clauses in the run unit"), so it agrees
 with anything. **Entry identity compares effective values** (kb/Work PB5311): an omitted RESERVE is the implementor's one area and an omitted
-RECORD DELIMITER the implementor's record sequential method (DOC-A.1-164, DOC-A.1-151), so they agree with RESERVE 1 AREA, BINARY-SEQUENTIAL and the
-declined STANDARD-1, at compile and run time (the segment compares the method, DOC-A.1-149; kb/Work PB5844).
+RECORD DELIMITER the implementor's method (DOC-A.1-164, DOC-A.1-151), so they agree with RESERVE 1 AREA and with any written RECORD DELIMITER clause
+(STANDARD-1 or an implementor-name), at compile and run time; two WRITTEN RECORD DELIMITER clauses agree only when they say the same thing (DOC-A.1-149;
+kb/Work PB5844).
 Witnesses: `12.4.5-File-control/pb5069_*` and `pb5069-*`, `pb5070_padding_one_character` and the two `pb5070-padding-*` refusals.
 
 ## C# mapping
