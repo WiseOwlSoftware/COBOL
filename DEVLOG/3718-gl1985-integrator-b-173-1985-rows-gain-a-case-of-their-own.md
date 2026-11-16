@@ -1,4 +1,4 @@
-## gl1985 integrator b: 173 1985 rows gain a case of their own (waves 3 and 4, 24 slugs), 1985 GAP 844 to 671
+## Entry 3718 — 2026-11-15 19:55 PST — gl1985 integrator b: 173 1985 rows gain a case of their own (waves 3 and 4, 24 slugs), 1985 GAP 844 to 671
 
 The 1985 golden lane (gl1985) writes a new conformance case, accepted at `--std 85` only and citing the row's own
 1985 catalog id, for each KEPT 1985 row that kb/Work PB5675's own-witness rule left open and no widening reaches. This
@@ -32,3 +32,4 @@ landing: the unpopulatable-antecedent rows `1989-RV-A.2.11.3-2`, `-3`, `1989-RV-
 every program meets at WiseOwl's determinations, `1989-RV-A.2.19.4-3`, `1985-GR-VII.4.3.4-22` and
 `1985-GR-XIII.4.5.4-15` (PB5758's); and the disputed `1985-GR-XIII.4.5.4-9`. No draft was held back and the writers
 deferred nothing.
+
