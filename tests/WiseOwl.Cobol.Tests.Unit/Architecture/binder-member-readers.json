@@ -424,6 +424,10 @@
       "WiseOwl.Cobol.Binding.Passes.ResolveRedefinesPass",
       "WiseOwl.Cobol.Binding.Procedure.AddressOfOperandScreen"
     ],
+    "WiseOwl.Cobol.Binding.DataBinder::IsDescribedInContainer": [
+      "WiseOwl.Cobol.Binding.Passes.OdoResolvePass",
+      "WiseOwl.Cobol.Binding.ReportSectionBinder"
+    ],
     "WiseOwl.Cobol.Binding.DataBinder::IsDescribedLater": [
       "WiseOwl.Cobol.Binding.ConstantEntryBinder"
     ],
@@ -512,6 +516,9 @@
     ],
     "WiseOwl.Cobol.Binding.DataBinder::NamesConstant": [
       "WiseOwl.Cobol.Binding.SpecialNamesBinder"
+    ],
+    "WiseOwl.Cobol.Binding.DataBinder::NearerFileNameHides": [
+      "WiseOwl.Cobol.Binding.Model.SymbolTable"
     ],
     "WiseOwl.Cobol.Binding.DataBinder::NextUid": [
       "WiseOwl.Cobol.Binding.CompilerTemps"

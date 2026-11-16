@@ -217,10 +217,10 @@ public sealed class AcceptDifferentialTests
             stdin: "00012.50\n-00012.50\n+005\n",
             numericDisplay: WiseOwl.Cobol.Binding.NumericDisplayForm.Digits);
 
-    // The decimal form, receiver by receiver (DOC-A.1-1): a DISPLAY item reads its own size in characters, a binary or packed item
-    // the whole record; the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
-    // integer digits is lost (§2023:14.6.8.2 4), "zero fill or truncation on either end"); a COMP-5 container keeps every digit and
-    // wraps (1234567890 mod 2**16 = 722). SIGN LEADING SEPARATE has six positions, so "+12.567" reads "+12.56".
+    // The decimal form, receiver by receiver (DOC-A.1-1): every item reads its own size in leftmost characters whatever its usage
+    // (GR4b, kb/Work PB5856); the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
+    // integer digits is lost (§2023:14.6.8.2 4), "zero fill or truncation on either end"): S9(5)V99 COMP-3 reads "1234567" and
+    // keeps 34567, S9(4) COMP-5 reads "1234". SIGN LEADING SEPARATE has six positions, so "+12.567" reads "+12.56".
     [Fact]
     public void Device_NumericReceivers_ReadTheDecimalFormByUsage()
         => AssertOutputs(
@@ -242,14 +242,14 @@ public sealed class AcceptDifferentialTests
                 ACCEPT WS-G.
                 DISPLAY WS-A "|" WS-B "|" WS-C "|" WS-D "|" WS-E "|" WS-F "|" WS-G "|".
             """),
-            expected: "00012.50|-00012.50|+012.56|-012.50|+67890.00|+00722|00100|",
-            stdin: "12.5\n-12.5\n+12.567\n-00012.50\n1234567890\n1234567890\n123\n",
+            expected: "00012.50|-00012.50|+012.56|-012.50|+34567.00|+01234|00100|",
+            stdin: "12.5\n-12.5\n+12.567\n-12.50\n1234567890\n1234567890\n123\n",
             dialect: 2023);
 
     // Text that is not a number converts to ZERO and sets no exception (DOC-A.1-1; §2023:14.6.13.2 leaves such content undefined):
     // a trailing sign, a letter before the last digit position is filled, a second decimal point. A DISPLAY item stops reading
     // when its last position is filled, so what follows never matters ("12.50CR" fills PIC 9(5)V99's fraction); a binary item
-    // reads the whole record, where the same "CR" is a letter.
+    // takes the same five-character window (GR4b), so "12.50CR" is 12.50 there too and "12.5CR" (window "12.5C") is a letter.
     [Fact]
     public void Device_NumericReceiver_InvalidTextConvertsToZero()
         => AssertOutputs(
@@ -272,13 +272,31 @@ public sealed class AcceptDifferentialTests
                 DISPLAY WS-D "|".
             """),
             expected: "00000.00|\n00012.50|\n+00000.00|\n+00000.00|\n000.00|\n012.50|",
-            stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.50CR\n12.50\n");
+            stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.5CR\n12.50CR\n");
+
+    // A BINARY-CAPACITY item keeps every digit its container holds and wraps to it (DOC-A.1-208): the nine-character window
+    // 999999999 into PIC S9(4)V9(5) COMP-5 is the unscaled 99999999900000, which wraps to the four-byte container (the
+    // two's-complement value 276347232, shown 2763.47232); the same text into the COMP item truncates to its PICTURE, 9999.
+    [Fact]
+    public void Device_BinaryCapacityReceiver_WrapsAScaledValueToItsContainer()
+        => AssertOutputs(
+            Program("ACCWRAP", """
+                01 WS-A PIC S9(4)V9(5) COMP-5.
+                01 WS-B PIC S9(4)V9(5) COMP.
+                """, """
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-B.
+                DISPLAY WS-B "|".
+            """),
+            expected: "+02763.47232|\n+9999.00000|",
+            stdin: "999999999\n999999999\n");
 
     // kb/Work PB3573: a text wider than the item's integer positions loses its HIGH-order digits (§2023:14.6.8.2 4), and the
     // characters ahead of the last digit dropped are skipped unexamined, a non-digit among them included, as GnuCOBOL 3.2.0
     // does (the results below are its own, measured 2026-10-25): "Y123" into PIC 9(2)V99 holds 23.00 where "1Y23" is not a
-    // number; a binary or packed item converts through a 38-digit intermediate, so a non-digit is skipped there only
-    // ahead of a 39th integer digit.
+    // number; a binary or packed item takes the same five-character window (GR4b), so a leading non-digit is invalid
+    // there ("X1234" is zero) and a surplus of digits keeps the low-order ones ("91234" is 234).
     [Fact]
     public void Device_NumericReceiver_SkipsANonDigitAheadOfADroppedHighOrderDigit()
         => AssertOutputs(
@@ -301,9 +319,8 @@ public sealed class AcceptDifferentialTests
                 ACCEPT WS-E.
                 DISPLAY WS-E "|".
             """),
-            expected: "23.00|\n00.00|\n-23.00|\n+000.00|\n+678.00|\n+678.50|",
-            stdin: "Y123\n1Y23\n-X123\nX12345678901234567890123456789012345678\nX912345678901234567890123456789012345678\n" +
-                   "Y912345678901234567890123456789012345678.5\n");
+            expected: "23.00|\n00.00|\n-23.00|\n+000.00|\n+234.00|\n+000.00|",
+            stdin: "Y123\n1Y23\n-X123\nX1234\n91234\nY9123\n");
 
     // §2023:12.3.7.4 GR14 (DECIMAL-POINT IS COMMA exchanges the decimal separator and the grouping separator): the comma is the point
     // the item reads, and a period is a grouping separator, skipped like a space.
