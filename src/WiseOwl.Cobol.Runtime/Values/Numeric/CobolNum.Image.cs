@@ -39,6 +39,46 @@ public static partial class CobolNum
         _ => throw NoByteImage(item),
     };
 
+    /// <summary>⛔ THE 1985 AND 2002 NUMERIC STORE INTO AN IMAGE-CARRIED SIGN HOLDER (kb/Work PB5852;
+    /// DESIGN-data-model §2.1.1). §1985:VI.6.19.4 GR4b1 and §2002:14.8.24.3 GR4b1: "When a signed numeric item is the
+    /// receiving item, the sign of the sending operand is placed in the receiving item." The sign is the OPERAND's,
+    /// not the stored value's, so a sender whose digits all truncate away leaves a NEGATIVE zero, which only a zoned
+    /// image can hold: this is <see cref="FormatImage(Int128, in NumProfile)"/>, except that a zero value of a signed
+    /// zoned item takes <paramref name="senderNegative"/>. A non-zero value's sign is its own (the sender's, since
+    /// the store never changes a sign). BINARY and PACKED-DECIMAL images write the value's sign, the representation
+    /// this implementation documents for them. From 2014 the compiler never calls this (the sign is "the sign of the
+    /// numeric value", §2014:14.9.24.3 GR6d2a).</summary>
+    public static string FormatImageSendersSign(Int128 unscaled, bool senderNegative, in NumProfile item) =>
+        unscaled == 0 && senderNegative && item.Signed && item.ByteForm is NumericByteForm.Zoned
+            ? FormatDisplaySigned(Int128.Zero, true, item)
+            : FormatImage(unscaled, item);
+
+    /// <summary>Is a sending VALUE negative? The one sign test of <see cref="FormatImageSendersSign"/>'s
+    /// <c>senderNegative</c> over every carrier a sending value is rendered on, so the compiler reads the sender ONCE
+    /// and asks its sign before the store truncates it.</summary>
+    public static bool IsNegative(long value) => value < 0;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(Int128 value) => value < 0;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(UInt128 value) => false;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(ulong value) => false;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(double value) => value < 0;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(CobolDec value) => value.Sig < 0;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(CobolWide value) => value.Sign < 0;
+
+    /// <inheritdoc cref="IsNegative(long)"/>
+    public static bool IsNegative(CobolExact value) => value.Sign < 0;
+
     /// <summary>Storage-shape bridge (the <see cref="FormatDisplay(string, in NumProfile)"/> pattern): a field whose
     /// backing the whole-group analysis already turned into its character IMAGE is in image form — pass it
     /// through. Lets the compiler emit ONE expression whose field storage is decided later.</summary>
