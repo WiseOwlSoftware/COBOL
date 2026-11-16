@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.4.3.4-1",
+ "rule-digest": "71757b15c74c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-040",
+  "sources": {
+   "reader": "87a159dee40eebd9c5854a4555e55289b63f2d4fa4c328aa80f6d931aac6b60a",
+   "refuter": "1c401387c5da048a01f363a9bf8dd3fcdd5928c8d4d488fbd8f689d73c835ed2"
+  },
+  "imported": {
+   "reader": "393a40e69a94a72b4242f6a8e746903a599e273b6dd75b9a6921cda20780d0f6",
+   "refuter": "62574ae1a6873799e896c944e07a315266e5583d7f481bc6fe60b52bc05355dd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 GENERATE report-name-1 performs summary processing: the report heading, page and control headings/footings and control-break processing run as for GENERATE data-name, and the single detail group (if any) is processed through 11a-11d (its subtotalling and its USE BEFORE REPORTING procedure run) but is never presented; when every GENERATE of a report is the report-name form, no detail group is presented. With no detail group, step 11a still runs as though one existed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitGenerate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateSummary; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+    "switches": "ctx.Edition.DialectLevel < 2002: the 85-only SR6 refusal of the report-name form when the RD has more than one detail group (COBOL6823)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore",
+    "switches": "DialectBehavior.GroupIndicateConsumedByIssuedGenerate on CobolReport.Edition: whether a GENERATE that did not present a detail consumes the GROUP INDICATE occasion (85 keys it to presentation); on the detail-name arm only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "emits `{ Edition = DialectLevel }` on each CobolReport, the value GenerateCore reads",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the summary path (GenerateSummary -> GenerateCore with printDetail false -> BeginGroup(print: false)) is the same at every edition; the 85 arms are SR6's refusal and GROUP INDICATE consumption, neither of which changes what a report-name GENERATE presents",
+  "witnesses-cover": "part: l1c12 mixes detail and summary GENERATEs and has no SUM, no declarative and no FINAL footing; an all-summary report, the detail's subtotalling and USE procedure under the report-name form, and a report with no detail group are covered only by probes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p2summ.cob",
+    "printed": "USE-RUNS=3 [CH1] [CF030] [CH2] [CF005] [FF035]",
+    "expected": "all GENERATEs are GENERATE R-1: no DE line anywhere (summary report); the detail's SUM AMT subtotalling runs on each (11a: 10+20=30, 5; FINAL 35); its USE BEFORE REPORTING runs each time (11b: 3)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p3nodet.cob",
+    "printed": "USE-RUNS=0 [CH1] [CF030 05] [CH2] [CF005 05] [FF035]",
+    "expected": "a report with no detail group (SR6: not required when no GENERATE data-name is written) still sums per 11a and presents no detail"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p4refuse.cob",
+    "printed": "error COBOL6823 ... holds 2 detail report groups ... (ISO §1985:XIII.3.20.3 SR6); error COBOL0899 GENERATE R-2: the report-name form requires a CONTROL clause",
+    "expected": "the report-name form refused for an RD with two details (85 arm) and for one without CONTROL (XIII.4.3.3 SR2a/b)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.3.4 GR1",
+    "check": "OK  §1985:XIII.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "BindGenerate binds the report-name form to BoundGenerate with SummaryDetail set to the sole detail, the emitter calls GenerateSummary, and GenerateCore runs the group prologue for that detail with print: false, matching TYPE GR11 a-d. The all-summary report printed no detail line and kept its subtotals.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probe r4summ.cob (--std 85; PAGE LIMIT 6 HEADING 1 FIRST DETAIL 2 LAST DETAIL 5; the detail has LINE PLUS 2 NEXT GROUP NEXT PAGE, a GROUP INDICATE item and is the UPON object of SUM AMT UPON DE1): four GENERATE R-1 left LINE-COUNTER at 1 and PAGE-COUNTER at 1 (G1 and G4 LC=1, PC=1), so the summary detail processed no LINE and no NEXT GROUP NEXT PAGE (§1985:XIII.3.20.4 GR11d, 'there is no further processing done for the report group'); the PH was presented at the first GENERATE (GR5b); the control break printed CF100 = 10+20+30+40 (SUM ... UPON DE1 subtotalled on the summary GENERATEs, 11a); the USE BEFORE REPORTING DE1 ran on every GENERATE (USE-RUNS=6, 11b); a later GENERATE DE1 after the break presented DE06 with the group-indicated K1 (the summary GENERATE did not consume the GROUP INDICATE occasion), and CF011 = 5+6 at TERMINATE. Probe r4nobody.cob: an RD with CONTROL and no body group is refused (COBOL2749). (The COBOL2199 refusals beside it in r4nobody and r4body are correct: with PAGE LIMIT 10 and no HEADING/FIRST DETAIL, integer-2 = integer-3 = 1 and the page heading region is empty, §1985:XIII.3.8.3 SR8b, cite.py OK.) cite.py: OK §1985:XIII.4.3.4 GR1; OK §1985:XIII.3.20.4 GR11d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

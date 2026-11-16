@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.15.1",
+ "rule-digest": "990662132714",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#generateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindGenerate",
+ "test-ref": "conformance:cases/14.9.16-GENERATE/l1c12_generate_detail_and_summary",
+ "notes": "Own verdict from the read lineage-reads-2002/u-49.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.16.2, witnessed at 2002 by the cases test-ref names. The read: Identical format and SR1; no communication-section or 2002-only operand. The row's witness runs and passes at 2002. Cited: §2002:14.8.15.2 SR1."
+}

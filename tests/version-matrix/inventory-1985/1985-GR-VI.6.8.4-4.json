@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.8.4-4",
  "rule-digest": "e4e9fbe0dac9",
+ "test-ref": "conformance:cases/14.9.8-COMPUTE/pb157_compute_multi_sizeerr; conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_mixed_descriptions; conformance:cases/14.7.7-Arithmetic-statements/l1c04_arith_multiple_receivers; conformance:cases/14.7.7-Arithmetic-statements/pb5386_arith_receiver_identified_at_store; conformance:cases/14.6.10-Overlapping-operands/pb1907_overlap_move; conformance:cases/14.6.10-Overlapping-operands/pb1910_overlap_in_place_move; conformance:cases/14.6.10-Overlapping-operands/l1c09_overlap_same_entry",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

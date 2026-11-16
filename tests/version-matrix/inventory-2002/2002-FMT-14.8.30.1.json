@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.30.1",
+ "rule-digest": "43f45889176b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#releaseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+ "test-ref": "conformance:cases/14.8.30@2002-RELEASE-STATEMENT/g2rel01_release_from_senders_2002",
+ "notes": "All three §2002:14.8.30.1 RELEASE arms (no FROM, FROM identifier-1, FROM literal-1) are written in g2rel01_release_from_senders_2002 with the records §2002:14.8.30.3 GR4 gives; rerun at --std 2002 on the pinned build, output identical to its .out."
+}

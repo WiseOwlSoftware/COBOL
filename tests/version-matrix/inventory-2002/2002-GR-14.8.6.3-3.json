@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.6.3-3",
+ "rule-digest": "5063c56d02aa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseNoRewind; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseByFormat; src/WiseOwl.Cobol.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+ "test-ref": "conformance:cases/14.8.6@2002-CLOSE-STATEMENT/g2clo08_lock_status_open_mode",
+ "notes": "§2002:14.8.6.3 GR3 table 15 with DOC-A.1-24 placement: non-unit UNIT/REEL FOR REMOVAL = f (07, stays open), NO REWIND = c,h (07, closed), CLOSE = c, WITH LOCK = c,e (00, later OPEN 38 per §2002:9.1.12.5) for sequential and relative files; the --std 2002 run matched every derived line."
+}

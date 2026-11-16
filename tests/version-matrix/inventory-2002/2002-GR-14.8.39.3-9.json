@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.39.3-9",
+ "rule-digest": "c3459b0d3d78",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/phrase_order_overflow",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.43.4-9, witnessed at 2002 by the cases test-ref names. The read: The words differ only in the closing sentences: 2002 spells out an explicit transfer in imperative-statement-2, 2023 says \"If control is returned from imperative-statement-2\". Both mean control leaves on a GO TO and otherwise reaches the end of the STRING; nothing a program can show differs. The pointer witness phrase_order_overflow passes at 2002. Cited: §2002:14.8.39.3 GR9."
+}

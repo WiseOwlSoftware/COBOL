@@ -1,6 +1,10 @@
 {
  "rule-id": "1989-GR-A.2.3-2",
  "rule-digest": "d213abb3beeb",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#IntegerViolation; docs/CONFORMANCE.md#DOC-A.1-92",
+ "test-ref": "conformance:cases/A.2@1985-GENERAL-DESCRIPTION/g85_x42; conformance:cases/A.2@1985-GENERAL-DESCRIPTION/g85_x03",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter. §1989:A.2.3 GR2: a numeric function may not be referenced where an integer operand is required, even though a particular reference yields an integer value, and a numeric function is always considered to have an operational sign. g85_x03 is the refusal (FUNCTION CHAR (FUNCTION SQRT (4)): SQRT is numeric, CHAR needs an integer argument; COBOL1627 at --std 85), g85_x42 the accepted half (NUMVAL (\"-2.5\") keeps its sign, REM (-7 2) is -1; output equal to its .out). The CHANGED relation to the 2023 rows stands: 2023 drops the limit.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

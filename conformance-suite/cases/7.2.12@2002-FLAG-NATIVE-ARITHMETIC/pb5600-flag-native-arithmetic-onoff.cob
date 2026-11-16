@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb5600-flag-native-arithmetic-onoff
 *> rules: [2002-FMT-7.2.12.1, 2002-SR-7.2.12.2-1, 2002-GR-7.2.12.3-1, 2002-GR-7.2.12.3-2, 2002-GR-7.2.12.3-3,
-*>    2002-GR-7.2.12.3-4, 2002-GR-7.2.12.3-5, 2002-GR-7.2.3-4]
+*>    2002-GR-7.2.3-4]
 *> accept: [2002]
 *> source-format: free
 *> portable: unverified

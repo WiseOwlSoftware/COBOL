@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-6",
+ "rule-digest": "0b64fceb0765",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ReadTableSubjectSubscripts; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#IllegalPositionMessage",
+ "test-ref": "conformance:cases/8.4.1.2@2002-Subscripts/g2-subscript-all-function-and-sort; conformance:cases/8.4.2.3-Subscripts/pb1030-all-subscript-outside-function",
+ "notes": "§2002:8.4.1.2.2 SR6: ALL as an intrinsic argument expands row-major (§2002:15.2), and ALL identifies the table of a table SORT (§2002:14.8.36.2 SR13). The key is named explicitly as KEY E (SR14a, GR2). Both legs matched at --std 2002. ALL used anywhere else is refused (pb1030)."
+}

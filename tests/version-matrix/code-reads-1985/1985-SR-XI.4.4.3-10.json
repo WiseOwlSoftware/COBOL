@@ -1,0 +1,168 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-10",
+ "rule-digest": "dbb3519c53a1",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-08",
+  "sources": {
+   "reader": "202d91b2ed26e5c3ce2e3f4679bd6b14d1db0526e78703866c5edf4ae776acb2",
+   "refuter": "50d13ea7be3d7dc9403270870e5e7a135de95c4fcd134e35ff35643863b226a8"
+  },
+  "imported": {
+   "reader": "d190a6de26fa06f9d296a43013b392f8a8f252ae13e9aa2ad8235a44a95b9ae1",
+   "refuter": "23ce12f4528a4eaad340d70fa533ef8a0088c459522e3fc83787aab3e333a547"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for each GIVING file-name-3 of a SORT: when that file contains variable length records, the SD's records must be refused if any is smaller than the smallest or larger than the largest record described for it; when it contains fixed length records, the SD's records must be refused if any is larger than its largest record. Whether a file without a RECORD clause, or with Format 3 (RECORD CONTAINS integer-4 TO integer-5), has fixed or variable records is implementor-defined (§1985:II.2.1.4.3, §1985:VII.3.8.4 GR13).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#ScreenTransferRecordSizes; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeRange; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMax; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced for a Format 3 clause = DialectBehaviors.IsActive(RecordContainsRangeBindsRecordSize, DialectLevel), active from 2002; FileModel.VaryMin/VaryMax then answer the record descriptions' smallest and largest record at 85 and integer-4/integer-5 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition.Edition, DialectLevel, Year <, DialectBehavior in SortBinder.cs and FileModel.cs; the size screen itself is edition-neutral, the one consult on its path is the Format 3 bounds flag read through FileModel.VaryMin/VaryMax",
+  "behaviour-differs-by-edition": "yes: for a Format 3 GIVING file the 1985 arm bounds by the record descriptions (GR14: 'the size of each data record is completely defined in the record description entry'), the 2023 arm by integer-4/integer-5; c4-v36-gf2t10 (RECORD CONTAINS 2 TO 10 over records of 8 and 4, SD VARYING 3 TO 6) is refused at --std 85 and admitted at --std 2023, each matching its own edition's text",
+  "witnesses-cover": "part: the witnesses cover fixed and RECORD VARYING GIVING files; not exercised: a Format 3 GIVING file, a GIVING file whose record holds OCCURS DEPENDING ON, a GIVING file with several record descriptions of different sizes and no RECORD clause, and several GIVING files",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-g3.cob",
+    "printed": "error COBOL1757: SORT GIVING file 'G1': 'G1' describes fixed-length records of 3 bytes but 'SW' describes fixed-length records of 5 bytes",
+    "expected": "refused (fixed arm, SD record larger)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-g5.cob",
+    "printed": "[01DEF] [02GHI] [03ABC]",
+    "expected": "admitted, equal size"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-g8.cob",
+    "printed": "[01DEF   ] [02GHI   ] [03ABC   ]",
+    "expected": "admitted, SD smaller than a fixed GIVING record"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-gv38.cob",
+    "printed": "[01DEF   ] ...",
+    "expected": "admitted: 5 within 3..8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v26-gv38.cob",
+    "printed": "error COBOL1757 ... 3 to 8 bytes but 'SW' describes variable-length records of 2 to 6 bytes",
+    "expected": "refused: SD smallest 2 < 3"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v49-gv38.cob",
+    "printed": "error COBOL1757 ... 3 to 8 bytes but 'SW' ... 4 to 9 bytes",
+    "expected": "refused: SD largest 9 > 8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v36-gv38.cob",
+    "printed": "[01DEF   ] ...",
+    "expected": "admitted: 3..6 inside 3..8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix7-godo.cob",
+    "printed": "error COBOL1757 ... 'G1' describes fixed-length records of 6 bytes but 'SW' describes fixed-length records of 7 bytes",
+    "expected": "refused: GIVING file with an ODO record and no RECORD clause is fixed by the implementor's choice (D-FRA), largest 6 < 7"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-godo.cob",
+    "printed": "[0] [0] [0] (records written; the DISPLAY sizes G1R by the ODO count byte of the probe's data)",
+    "expected": "admitted: 5 <= 6"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v26-gf3t8.cob",
+    "printed": "error COBOL1757 ... 'G1' describes variable-length records of 3 to 8 bytes but 'SW' ... 2 to 6",
+    "expected": "refused: Format 3 is variable (DOC-A.1-148), smallest record described 3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-gf3t8.cob",
+    "printed": "[01DEF   ] ...",
+    "expected": "admitted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v36-gf2t10.cob",
+    "printed": "--std 85: error COBOL1757 ... 'G1' describes variable-length records of 4 to 8 bytes but 'SW' ... 3 to 6; --std 2023: runs",
+    "expected": "1985: refused, the smallest record described for G1 is 4 (GR14 sizes records by their descriptions)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v26-gmr.cob",
+    "printed": "[01DEF   ] ...",
+    "expected": "admitted: no RECORD clause, records 8 and 3, fixed by the implementor's choice, so only the largest (8) bounds"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-fix5-g2-g3.cob",
+    "printed": "error COBOL1757 for G1 (GIVING G2 G1)",
+    "expected": "refused for the offending one of two GIVING files"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c4-v26-g8.cob",
+    "printed": "[01DEF   ] ...",
+    "expected": "admitted: fixed GIVING 8, SD largest 6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR10",
+    "check": "OK  §1985:XI.4.4.3 SR10  (4.4.3 Syntax Rules)  the text is in SR10"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR14",
+    "check": "OK  §1985:VII.3.8.4 GR14  (3.8.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "One comparison of two RecordSizeRanges: the GIVING file bounds both ends when its records vary and only the top when they are fixed. That is the 1985 sentence. The implementor choices it leans on are documented (no RECORD clause: D-FRA; Format 3 variable: DOC-A.1-148). The one edition arm, the Format 3 bounds flag, gives the 1985 reading of 'records described'. Messages cite §2023:14.9.40.3 SR11.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-10",
+  "refutation": "OVERTURNED",
+  "classes": "a,c",
+  "evidence": "§1985:VII.3.8.4 GR15 (under the FORMAT 3 heading, after GR13/GR14; the SD's RECORD clause is the same clause by §1985:XI.3.2.4 GR2) sizes each record of a format 3 file as 'the sum of the number of characters in all fixed length elementary items plus the sum of the maximum number of characters in any variable length item subordinate to the record'; GR14: 'the size of each data record is completely defined in the record description entry'. The 85 arm (VaryingRecordInfo.BoundsEnforced false) takes FileModel.VaryMin = Records.Min(MinRecordSize), which counts an OCCURS DEPENDING ON table at its MINIMUM occurrences (the Format 2 rule GR5a / §2023 GR8a), not GR15's maximum. Probes: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r4-f3odo-clean.cob (GIVING G1 RECORD CONTAINS 8 TO 9 over G1R = 9 + X OCCURS 1 TO 7 DEPENDING (GR15 size 8) and G1S X(9); SD fixed 5): --std 85 RAN (admitted; 5 < smallest record 8 must be refused, DOC-A.1-148 makes format 3 variable); --std 2023 COBOL1757 '8 to 9 bytes but SW describes fixed-length records of 5'. E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r4-sdf3odo-clean.cob (SD RECORD CONTAINS 6 TO 7 over SN 9 + X OCCURS 1 TO 5 DEPENDING (GR15 size 6) and X(7); GIVING VARYING 3 TO 8): --std 85 COBOL1757 'SW describes variable-length records of 2 to 7 bytes' (refuses legal source: SD records 6 and 7 lie in 3..8); --std 2023 RAN. Also E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r4-f3odo.cob (RECORD CONTAINS 3 TO 8, one ODO record) RAN at 85. cite.py: 'OK §1985:VII.3.8.4 GR15 ... the text is in GR15'; 'OK §1985:VII.3.8.4 GR14 ... the text is in GR14'; 'OK §1985:XI.4.4.3 SR10 ... the text is in SR10'; 'OK §1985:VII.3.8.4 GR13 ... the text is in GR13'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin: with BoundsEnforced false (the 85 Format 3 arm) falls to Records.Min(MinRecordSize), the minimum-occurrence summation, where §1985:VII.3.8.4 GR15 sizes a format 3 record at the maximum of its variable items",
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize: GR8a/1985 Format 2 GR5a summation, used for a 1985 format 3 file"
+  ],
+  "corrected": "NON-CONFORMING, cause (a): at --std 85 a format 3 file (GIVING or SD) whose record holds an OCCURS DEPENDING ON table is sized with the table at its minimum; GR15 sizes it at its maximum. Harm both ways: r4-f3odo-clean compiles (under-rejects) and r4-sdf3odo-clean is refused (rejects-legal-source). At --std 2023 both are judged by integer-4/integer-5 and come out right."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Mechanism 1 UPHELD, cause (a): at --std 85 a format 3 record holding an OCCURS DEPENDING ON table is sized at the table's minimum, where §1985:VII.3.8.4 GR15 sizes it at the maximum; harm both ways. The file names no verdict word for this mechanism: PARTIAL is the inventory's verdict for code that breaks part of the rule, the refuter's corrected verdict (NON-CONFORMING) in the vocabulary.",
+  "ref": "kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md"
+ },
+ "work": "PB5731"
+}

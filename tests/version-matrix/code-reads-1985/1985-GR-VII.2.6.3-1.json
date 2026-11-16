@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.2.6.3-1",
+ "rule-digest": "46c442b5a481",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-022",
+  "sources": {
+   "reader": "b4dc09eedfbd7b49c984491593390a3668618bbd6b562ba2120a0b2476979d7a",
+   "refuter": "0195d2811228bbe91c9c39dfacd1cf762db94dc3f53580199a91ba4b46c11e51"
+  },
+  "imported": {
+   "reader": "beece5d5e06bfad150200d062a6d370b2ee09dc8280783bdb16a13a91483e66b",
+   "refuter": "5d6b1872c22d3a7a5c05156c9341881c75371860c5daf5acdefd4bca4aad9175"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 a file described ORGANIZATION IS SEQUENTIAL (or with the clause omitted, or with only the word SEQUENTIAL) has sequential organization fixed when the file is created, so no later OPEN through a description of another organization (or a sequential description over a file created relative or indexed) may treat or rewrite the file as a different organization; which fixed attributes OPEN validates is the implementor's (1985 OPEN GR8), and the mismatch is status 39. The witnesses cover a sequential description over relative/indexed stores and a relative description over a plain byte file, but not an INDEXED description over a file created sequential, nor the statement after the failed OPEN.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsKeyedStore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Describes",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "refuses ORGANIZATION LINE SEQUENTIAL and the written word RECORD of RECORD SEQUENTIAL below 2023 (COBOL0900); bare [ORGANIZATION IS] SEQUENTIAL passes at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Dialect|Edition|CobolVersion over FixedFileAttributes.cs, SequentialConnector.cs, KeyedConnector.cs, MetaPage.cs and FileControlBinder.cs#MapOrganization: the runtime conflict check consults no edition; FileConnector.Edition exists but the OPEN fixed-attribute test (FileConnector.cs:1245) does not read it",
+  "behaviour-differs-by-edition": "no: the conflict check is edition-independent; only the LINE/RECORD SEQUENTIAL spellings are refused at 1985",
+  "witnesses-cover": "part: an INDEXED description over a file created sequential, and the READ after the failed OPEN, are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p4org.cob",
+    "printed": "SQ-MAKE=00 | RL-IN=39 | RL-READ-AFTER-FAIL=47 | RL-IO=39 | IX-IN=39 | IX-IO=39 | IX-READ-AFTER-FAIL=47 | SQ-EXT=00 | SQ-IO=00 | AAAA0009 | BBBB0002 | CCCC0003 | SQ-EOF=10",
+    "expected": "a file created sequential (SELECT ... SEQUENTIAL with ORGANIZATION IS omitted) is refused by RELATIVE and INDEXED descriptions in INPUT and I-O ('39', the status 1985 defines for a fixed-attribute conflict), the READ after that failed OPEN is '47', and the file stays sequential: EXTEND appends, I-O REWRITE replaces in place, INPUT reads three records then '10'"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p4line.cob",
+    "printed": "COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused at 85: the 1985 format is [ORGANIZATION IS] SEQUENTIAL only"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-022/p4rec.cob",
+    "printed": "COBOL0900: ORGANIZATION RECORD SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused at 85 (RECORD is not in the 1985 format)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.6.3 GR1",
+    "check": "OK  §1985:VII.2.6.3 GR1  (2.6.3 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "A relative or indexed store records its organization in its meta pages, and a plain sequential file is Foreign to the keyed connector, so every OPEN that would read or write the file as another organization returns '39' before OpenCore touches the file; OPEN OUTPUT creates a new file and establishes the organization afresh. Probed at --std 85 with the 1985 short form SELECT ... SEQUENTIAL.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "refute-1985-022/r4orgd-001 at --std 85 (the reverse direction the reader did not probe): a file created RELATIVE and one created INDEXED, then opened through ORGANIZATION IS SEQUENTIAL descriptions: OPEN EXTEND -> 39 (the WRITE after it 48), OPEN I-O -> 39 (READ after it 47), and both stores still read back under their own descriptions (REL00002, KEY2DAT2), so the organization fixed at creation is not changed. OPEN OUTPUT of the sequential description over the relative store re-creates it (a new creation), after which RELATIVE INPUT and I-O answer 39 and the sequential READ returns SEQSEQ01. CORRECTION to the reader's notes: OPEN INPUT of a SEQUENTIAL description over a relative or indexed store answers 00 and the READ returns the store's meta-page bytes with status 00 (SequentialConnector.cs#FixedAttributeConflict validates only I-O and EXTEND); the reader's 'every OPEN that would read ... returns 39' is false. That arm stays conforming: INPUT cannot change the organization, and amended OPEN GR8 makes the validated set implementor-defined, documented in docs/conformance/7/DOC-A.1-129.md item (4). cite.py: OK  §1985:VII.2.6.3 GR1  (2.6.3 General Rules)  the text is in GR1; OK  §1985:VII.4.3.4 GR8  (4.3.4 General Rules)  the text is in GR8 (SequentialConnector.cs#FixedAttributeConflict carries no edition switch; its mode test, not an edition site, is what the reader's notes missed.)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

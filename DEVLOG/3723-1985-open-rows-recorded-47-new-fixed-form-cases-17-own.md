@@ -1,0 +1,14 @@
+## Entry 3723 — 2026-11-15 20:31 PST — 1985 open rows recorded: 47 new fixed-form cases, 17 own verdicts, ten witness pairs, GAP 780 to 764
+
+The registrar put on record the decisions of the Mythos lane's 1985 adjudications (each attacked by a refuter), with the repository's own tools.
+
+**Cases.** 47 new fixed-form 1985 cases, each validated on this build at `--std 85` (an accepted case prints its `.out`; a refusal gives its one expected code at the violating line): `g85_x01` to `g85_x43` (35 refusals and 8 accepted cases for the conditional-statement lists, the function-identifier rules, the GLOBAL name rule) and `g85_y91` to `g85_y94` (CONTINUE in nine positions, a BLANK WHEN ZERO item's category, a refused REDEFINES-object reference, a refused numeric FILE STATUS item). Two drafts were corrected first, as the refuter required: `g85_x39` gained the `MOVE` before its START, `g85_x43` lost its CHAR leg. `generate.py --check` and `case_collisions.py --check` GREEN.
+
+**Records.** `record_verdicts.py --edition 1985`: 17 own verdicts (`rows changed : 17`, `GAP : 780 → 764`): CONFORMS for `1985-SR-IV.4.3.8.3.3-4`, `1989-GR-A.2.3-2`, `1989-GR-A.2.3-3`, the eleven conditional-statement rules, `1985-GR-X.2.4.1-3`, `1985-SR-X.4.6.3-2`, with no `next` (the 2023 side has no catalog row until PB5451); PARTIAL for `1985-GR-VI.6.4.3-3`, naming PB5778. Ten witness pairs: seven references retired from five 1985 rows and two from two 2023 rows, three new witnesses (`g85_y91`, `g85_y92`, `g85_y94`), three case headers gained the rule they witness. 1985 line before: 2274 rules, 780 GAP (738 inherited, 14 never adjudicated, 28 open); after: 764 GAP (738 inherited, 1 never adjudicated, 25 open).
+
+**Notes.** PB5791 (`1985-GR-IV.4.4.2-L2.1` and `-L2.2`: undefined flow of control, no program can witness either; L2.1's "cannot be reached" argument fell to a conforming counterexample), PB5792 (`1985-GR-X.2.3.3-3`: a property of object code no program can observe), finding files beside PB5454, PB5683 and PB5771.
+
+**Refused or stopped.**
+- `g85_y93` on `1985-GR-X.4.6.4-3`: `lineage_reads.py --check 1985` printed `only a diagnosis at 85, which witnesses no rule that grants a form or states a behaviour` and RED. The reference was retired from the row and the `pb1523` header fix taken back (the refuter forbade that fix alone). The case `g85_y93` stays in the suite. The row remains open.
+- `pb509_blank_when_zero_relation`'s 85 band: emptying `accept:` makes `generate.py --check` refuse ("neither accepted nor flagged anywhere"), so the case is unchanged; the reference to it was retired from the one 1985 row that names it. The band is PB5771's to set.
+

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb1148_resume_at_paragraph_after_perform_exit
 *> rules: [GR-14.9.33.4-3]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.4.5.4-1",
  "rule-digest": "f81962f3e939",
+ "test-ref": "conformance:cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_f06_04",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.7.1",
+ "rule-digest": "34fcb50207f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.7.2, witnessed at 2002 by the cases test-ref names. The read: The slice gave no pointer because 2002 has two one-word NULL formats (8.4.2.7 object reference, 8.4.2.10 address). The same-subject 2023 rule is FMT-8.4.3.7.2 (8.4.3.7 NULL object reference), CONFORMS; its clause text (general sentence, SR1, SR2, GR1) is word-identical to 2002 8.4.2.7. Cited: §2002:8.4.2.7."
+}

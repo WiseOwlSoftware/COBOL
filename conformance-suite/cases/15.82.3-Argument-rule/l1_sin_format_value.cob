@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_sin_format_value
       *> rules: [AR-15.82.3-1, RV-15.82.4-1, FMT-15.82.2]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,120 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-3",
+ "rule-digest": "ba1c8b3309d8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-049",
+  "sources": {
+   "reader": "10dca661834ae36992a491f98e1f7036352d6834b1823ead606ba66e666e3cd8",
+   "refuter": "c6c580ba56f1b3930b355fe8d0149fff62abb7811726ac73a12ff5d5031b511b"
+  },
+  "imported": {
+   "reader": "02906a76339599ef94cf414f170c00455eeccdcd8dde600c82c3087fe24c1ea2",
+   "refuter": "e54c16a6a03fbfe34b1ff3ae233e272364d17b2be36c33eb36aae6c168eba718"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when the ALPHABET clause's literal phrase is used, each character may be specified at most once across the whole clause, whether written as a nonnumeric literal (single or multi-character), a numeric ordinal, a THRU range (either direction), an ALSO member, or a figurative constant (SPACE, ZERO, QUOTE, HIGH-VALUE, LOW-VALUE); any repetition must be refused and a clause of distinct characters accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#OneCharacterOperands; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Build",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the FOR ALPHANUMERIC/NATIONAL phrase and the national coded-set phrases are 2002 introductions",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "IS LOCALE binds nothing below 2002 (Edition.DialectLevel < 2002); not on the literal-phrase path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "AlphabetLiteralPhrase and its Assign closure read no edition (grep 'DialectLevel|Edition.Year' in SpecialNamesBinder.Alphabets.cs/Literals.cs finds only the LOCALE return at line 216); the duplicate test is the same code at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c30 and pb1557 accept a full 65536-character THRU range (no repetition); no witness exercises a repeated character in any form",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-same.cob",
+    "printed": "EXIT 65; COBOL1906 the character 'A' is specified more than once",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-num.cob",
+    "printed": "EXIT 65; COBOL1906 'A' specified more than once (\"A\" 66)",
+    "expected": "refused: ordinal 66 is the native character A"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-multi.cob",
+    "printed": "EXIT 65; COBOL1906 'B' (\"AB\" \"B\")",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-thru2.cob",
+    "printed": "EXIT 65; COBOL1906 for 'B' and 'C' (\"C\" THRU \"A\" \"B\" THRU \"D\"); \"A\" THRU \"C\" \"B\" and 66 THRU 68 \"B\" likewise",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-also.cob",
+    "printed": "EXIT 65; COBOL1906 'B' (\"A\" ALSO \"B\" \"B\"); \"A\" ALSO \"A\" likewise",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-dup-space.cob",
+    "printed": "EXIT 65; COBOL1906 U+0020 (SPACE \" \"); ZERO \"0\", QUOTE \"\"\"\", HIGH-VALUE 65536 (U+FFFF), LOW-VALUE 1 (U+0000) likewise",
+    "expected": "refused: a figurative constant specifies its character"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-ok.cob",
+    "printed": "EXIT 0; REVERSED (\"Z\" \"Y\" \"A\" as program collating sequence)",
+    "expected": "accepted, A collates after Z"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-ok-case.cob",
+    "printed": "EXIT 0; NATIVE (\"a\" \"A\" distinct characters)",
+    "expected": "accepted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c6-ok-also.cob",
+    "printed": "EXIT 0; REVERSED",
+    "expected": "accepted"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR3",
+    "check": "OK  §1985:VI.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR4d",
+    "check": "OK  §1985:VI.4.5.4 GR4d  (4.5.4 General Rules)  the text is in GR4d"
+   }
+  ],
+  "notes": "AlphabetLiteralPhrase maps every operand to native characters before its Assign closure, which refuses a second specification of any character (COBOL1906) whatever form wrote it; every duplicate form probed was refused and distinct-character clauses compiled and collated correctly. Edition-blind; the diagnostic cites §2023:12.3.7.3 SR14 a at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "c6-dup-num refused identically (COBOL1906) at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-049/src at --std 85, aimed at forms the reader did not try: a character repeated INSIDE one multi-character literal (\"ZAZ\" -> COBOL1906 'Z'; \"Z\" \"AA\" -> COBOL1906 'A'); ZERO 49, ZEROS ZERO -> COBOL1906 '0'; QUOTE 35 -> COBOL1906 '\"'; SPACE \"!\" THRU \" \" (descending range ending at space) -> COBOL1906 U+0020; LOW-VALUE THRU \"A\" 1 -> COBOL1906 U+0000; \"Z\" ALSO 66 \"A\" -> COBOL1906 'A'; \"Z\" ALSO \"Y\" \"Y\" THRU \"X\" -> COBOL1906 'Y'; an alphabet never referenced (r6-unref) and one in a program that contains a nested program (r6-nested) -> COBOL1906. Admitted as the rule requires: \"Z\" \"A\" THRU \"A\" (single-character range, EXIT 0 REVERSED), \"Z\" 66 THRU 66 (EXIT 0 REVERSED), two ALPHABET clauses sharing characters (\"Z\" \"A\" and \"A\" \"Z\", EXIT 0 REVERSED: 'in that clause' is per clause). cite.py: OK  §1985:VI.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3. The 1985 format repeats the whole [ALPHABET alphabet-name-1 IS ...] entry, so no 1985-only form of the clause escapes the check; the FOR/national phrases are 2002 forms gated in VersionConformancePass#VisitAlphabetClause as the reader listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

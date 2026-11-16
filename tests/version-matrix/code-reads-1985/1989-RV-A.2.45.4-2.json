@@ -1,0 +1,131 @@
+{
+ "rule-id": "1989-RV-A.2.45.4-2",
+ "rule-digest": "e2a1957be82b",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-10",
+  "sources": {
+   "reader": "3d30a56ccbda16d118316e117b197172c15c128a6ba71ed78f12a663676b0d1d",
+   "refuter": "c9a32fd6314b887eaa2ab65ffdac7428d3df9534ddb6c7fdbbf6f9b26c20edab"
+  },
+  "imported": {
+   "reader": "93fb786e2a0a4ab256557e7d5aee5be580b9af8d782b49322d674060735e474d",
+   "refuter": "5fbc01f3ffea6cd2afa3a4f10d527e744f7b78dec36ba39212be86225c35ecf3"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.45.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION VARIANCE of one or more class-numeric arguments returns the square of the population standard deviation: the sum of the squared deviations from the arithmetic mean, divided by the number of values. The arguments can be items, literals, expressions, or table references with ALL subscripts (an ODO table at its current count).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactListBodies; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#VarianceExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Variance",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: sig.IntroducedIn (85 on the catalog row) > ctx.Edition.DialectLevel raises COBOL1502, RemovedIn raises the removal error; at --std 85 neither fires",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: below 2002 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; a function inside an arithmetic expression is not screened",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph",
+    "switches": "the OPTIONS paragraph (so ARITHMETIC IS STANDARD-*) is refused below 2002, so NumericRenderer#StandardDecimal is false at 85 and the renderer takes its native arm, the same arm 2023 takes with no OPTIONS paragraph",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition/CobolVersion over IntrinsicRenderer.cs and src/WiseOwl.Cobol.Runtime/Intrinsics: no hits. The value path's only switch is num.StandardDecimal (the ARITHMETIC mode), which 85 cannot reach.",
+  "behaviour-differs-by-edition": "no for the returned value: var1.cob prints the same output at --std 85 and 2023. Use as an identifier operand is refused only at 85.",
+  "witnesses-cover": "part: the witnesses cover the exact-intake cancellation case and native equivalent-expression values. Only the probes exercise ALL over one- and two-dimensional tables, ODO tables at their current count, negative and scaled COMP arguments, and size error.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/var1.cob",
+    "printed": "V1234=1.25; VTE (TE(ALL): 2 4 4 4 5 5 7 9)=4.00; VNEG (-3, 3, 1+2)=8.00; V122=000.222222222222222 (the same with ROUNDED); V00=0; VM (S9V9(4) -0.0001 and COMP 0.0002)=000.000000022500000",
+    "expected": "Σ(x-mean)²/n: 1.25, 4, 8, 2/9, 0, 2.25E-8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/var1.cob",
+    "printed": "VODO4 (ODO N=4: 1 2 3 4)=1.25; VODO1 (N=1)=0; V2D (CL(ALL ALL))=1.25; V2DC (CL(ALL 1): 1 3)=1.00",
+    "expected": "the ODO object sets the ALL range, expanded left to right (§1989:A.2.2)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/var1.cob",
+    "printed": "VB (100000000000000001, 100000000000000002)=0.25; VBIG (999999999999999999, -999999999999999999) into a receiver with 10 integer digits -> ON SIZE ERROR taken",
+    "expected": "exactly 0.25; about 1E36, which overflows the receiver"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/var2.cob",
+    "printed": "COMPUTE N = VARIANCE(OE(ALL)) * 4, where N is the ODO object -> N=5",
+    "expected": "the arguments are evaluated at the current N=4 before the store: 1.25 * 4 = 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/var0.cob",
+    "printed": "COBOL1504: at least 1 argument; 0 given (+ COBOL0900 empty '( )')",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/vara.cob",
+    "printed": "COBOL1627: argument-2 is of class alphanumeric",
+    "expected": "refused (§1989:A.2.45.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/varmv.cob",
+    "printed": "COBOL0900: numeric function-identifier as an identifier operand requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/w-pb257_variance_eae_native.cob",
+    "printed": "matches the golden at --std 85 (the pb1565 witness matches too)",
+    "expected": "population variance"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.45.4 RV2",
+    "check": "OK  §1989:A.2.45.4 RV2  (2.45.4 Returned Values)  the text is in RV2 ['defined as the square of the standard deviation']"
+   },
+   {
+    "cite": "§1989:A.2.41.4 RV2",
+    "check": "OK  §1989:A.2.41.4 RV2  (2.41.4 Returned Values)  the text is in RV2 ['divided by the number of values in the argument-1 series']"
+   },
+   {
+    "cite": "§1989:A.2.45.4 RV3",
+    "check": "OK  §1989:A.2.45.4 RV3  (2.45.4 Returned Values)  the text is in RV3 ['consists of only one value']"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4 ['the range of values is determined by the object of the OCCURS DEPENDING ON clause']"
+   }
+  ],
+  "notes": "An all-fixed-point list goes to VarianceExact. It forms (n·Σd² − (Σd)²)/n² exactly on shifted integers and divides once, which gives the population variance: the square of the quantity in the 1985 STANDARD-DEVIATION's RV2. A binary64 argument takes the double body, which uses the same formula. The value path consults no edition.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "var1.cob prints the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "VARIANCE row: Numeric, Variadic 1..inf, Float, IntroducedIn 85",
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec": "\"Variance\" when !num.StandardDecimal -> VarianceExact"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.45.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "Read CobolIntrinsics.Float.cs#Variance: the binary64 body is two-pass (mean, then sum of (x-mean)^2 / n), so no cancellation. VRF.cob/VRD.cob at 85 = 2023: 100000000.1/.2/.3 exact, via NUMVAL, via MEAN, via expressions -> 0.006666666; SQRT(1E16), SQRT((1E8+1)^2), SQRT((1E8+2)^2) (binary64 path) -> 0.666666666, four values -> 0.1875, STANDARD-DEVIATION -> 0.816496580; same values -> 0. VRB.cob: TE(ALL) with 0 -> 1.5, TE(ALL) TE(ALL) -> 2.25, ODO N=1 single and doubled -> 0 (RV3), 14/9 ROUNDED 1.555555556 / truncated 1.555555555. VARIANCE(0 999999997) into 9(18) = 249999998500000000 where the exact value is 249999998500000002.25: the result is narrowed to binary64 once; the 1985 rule asks only for 'the approximation of the variance' and leaves the precision to the implementor, so this is within the rule (noted, not overturning). cite.py: OK §1989:A.2.45.4 RV2; OK §1989:A.2.41.4 RV2 'This quantity is divided by the number of values'; OK §1989:A.2.45.4 RV3; OK §1989:A.2.3 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

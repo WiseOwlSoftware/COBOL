@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-7",
+ "rule-digest": "d5d5b11622d4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-017",
+  "sources": {
+   "reader": "dcfa501a8d9e23682a253699446f0667fcf40e93f91e44956b8b3ed15dfa9cac",
+   "refuter": "00822282c49cf16a5507b1a2fc5c8b46f547a3ffbbb9acf8f0cab6159066940a"
+  },
+  "imported": {
+   "reader": "8271fd02b6da5de1c70901847ab89d73dc55a7ba10ed4c1536cf70e3aafd7d02",
+   "refuter": "53faef6eb8a861198c254e60e27db4c612847a85b57bedbfceb8fe7063cbc606"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 executing a PERFORM must transfer once to the first statement of the specified set and return after the last statement of procedure-name-1 (paragraph), of its last paragraph (section), of procedure-name-2 (paragraph) or of procedure-name-2's last paragraph (section), or after the last contained statement (in-line); a GO TO as that last statement transfers away.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformedRange; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DispatchCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerform",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform",
+    "switches": "segment last-used flag and DEBUG-CONTENTS 'PERFORM LOOP' only when the unit has independent segments / USE FOR DEBUGGING",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The return point is the bounded dispatch over the range's end pc; no edition comparison on that path (grepped ControlFlowEmitter.cs for Edition|CobolVersion: none).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb440 covers the empty set (no transfer); GR7a-d return points with GO TO inside the range are not in the listed witnesses",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g7b.cbl",
+    "printed": "PA PC PB RET1 (7c after GO TO out and back) / S2-A S2-C RET2 (7b) / PA PB PC S2-A S2-C RET3 (7d) / S2-A S2-C S3 END (PERFORM S2 THRU S2-A whose last statement GO TO S2-C transfers away; RET4 not printed)",
+    "expected": "return after the last statement of the named end; a GO TO executed as that last statement leaves the range"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/p1.cbl",
+    "printed": "7a PERFORM PA returns before PB; 7e nested in-line IN IN OUT twice",
+    "expected": "as GR7a and GR7e"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-017/g7.cbl",
+    "printed": "PA PC PB S2-A S2-C S3 END (PB's last statement GO TO PEND)",
+    "expected": "no return: control leaves the range by the GO TO"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR7",
+    "check": "OK  §1985:VI.6.21.4 GR7  (6.21.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The out-of-line PERFORM is a bounded dispatch that returns when the end pc completes, so a GO TO ending the range leaves it and a GO TO back in still returns. A first draft of g7b looped by design (PC GO TO PB, PB falls into PC); I stopped it, and it was a fault of the probe, not of the compiler.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "p1 identical; g7b not re-run at 2023 (same emitter, no edition switch)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-017/p3.cbl at --std 85, identical at --std 2023 apart from COBOL0903 warnings. A NEXT SENTENCE executed in the last sentence of a performed paragraph PA returns to the PERFORM (RET T=+001, without falling into PB). The ELSE arm returns as well (RET2). PERFORM SX, a section whose last paragraph is empty, returns after SX-1 (RET3). PERFORM PA THRU PB, where PB's last sentence is IF ... NEXT SENTENCE, returns (RET4). cite.py: 'OK  §1985:VI.6.21.4 GR7  (6.21.4 General Rules)  the text is in GR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

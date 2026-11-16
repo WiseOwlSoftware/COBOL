@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.19.3-4",
+ "rule-digest": "609fd90ca813",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/TurnState.cs#EnabledAtHeader; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Frontend/Preprocessor/TurnDirectiveProcessor.cs#ParseTurn",
+ "test-ref": "conformance:cases/7.2.19@2002-TURN-DIRECTIVE/g2trn04_on_enables_following; conformance:cases/7.3.25-TURN/pb1381_turn_at_procedure_header",
+ "notes": "§2002:7.2.19.3 GR4 witnessed on EC-I-O-AT-END: an ON inside a READ does not apply to it, applies to following statements, stays on until an OFF, and with file-name-1 only for that file; the --std 2002 run of the rebuilt case matched the derived output."
+}

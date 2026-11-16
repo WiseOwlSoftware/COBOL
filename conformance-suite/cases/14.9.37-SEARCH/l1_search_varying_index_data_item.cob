@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_search_varying_index_data_item
       *> rules: [GR-14.9.37.4-3]
-      *> accept: [2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

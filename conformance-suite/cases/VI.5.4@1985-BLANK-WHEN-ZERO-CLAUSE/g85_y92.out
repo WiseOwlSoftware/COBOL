@@ -1,0 +1,6 @@
+WP=[012]
+WP-NE
+WN-EQ
+WP-NOT-GT
+WN-GT
+WP-WN-EQ

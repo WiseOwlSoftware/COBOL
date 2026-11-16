@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.3.4-2",
  "rule-digest": "bd0dd14a5e91",
+ "test-ref": "conformance:cases/VI.6.3@1985-CONDITIONAL-EXPRESSIONS/g85_bf15_02",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

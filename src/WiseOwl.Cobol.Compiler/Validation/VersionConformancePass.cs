@@ -181,6 +181,7 @@ internal sealed class VersionConformancePass
             if (!ranges.TryGetValue((file, release), out var range))
                 ranges[(file, release)] = range = procedures.Range(prog, file, release);
             if (range.ContainsKey(pc)) continue;
+            if (procedures.Refused.Contains(file)) continue;   // a statement for this file was refused, its procedures' ranges are unknown, so the use is no cascade of ours (kb/Work PB5496)
             if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
             if (_calledFromRange.TryGetValue(prog, out var reached) && reached.Contains((file, release))) continue;   // a CALLed program's statements
             using var _ = _sink.At(node.At);
@@ -199,19 +200,22 @@ internal sealed class VersionConformancePass
     }
 
     /// <summary>A program's SORT and MERGE procedures and its RELEASE and RETURN statements, each with the pc of its paragraph: what
-    /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk.</summary>
+    /// <see cref="GateReleaseReturnRange"/> and <see cref="CalledFromRange"/> both read, collected by one walk. <see cref="Refused"/> holds the
+    /// file of every refused SORT or MERGE: its procedures' ranges are unknown, so a RELEASE or RETURN for it is no cascade of ours (kb/Work PB5496).</summary>
     private sealed record SortMergeProcedures(
         List<(PcRange Range, FileModel File)> Inputs,
         List<(PcRange Range, FileModel File)> Outputs,
-        List<(BoundStatement Node, FileModel File, bool Release, int Pc)> Uses)
+        List<(BoundStatement Node, FileModel File, bool Release, int Pc)> Uses,
+        HashSet<FileModel> Refused)
     {
         public static SortMergeProcedures Of(BoundProgram prog)
         {
-            var procedures = new SortMergeProcedures([], [], []);
+            var procedures = new SortMergeProcedures([], [], [], new HashSet<FileModel>(ReferenceEqualityComparer.Instance));
             void Collect(BoundStatement s, int pc)
             {
                 switch (s)
                 {
+                    case BoundRejected { RefusedSortMergeFile: { } rf }: procedures.Refused.Add(rf); break;
                     case BoundSort so:
                         if (so.InputProcedure is { } ip) procedures.Inputs.Add((ip, so.File));
                         if (so.OutputProcedure is { } op) procedures.Outputs.Add((op, so.File));

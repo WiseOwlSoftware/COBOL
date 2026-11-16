@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.2.4.2-2",
+ "rule-digest": "32826deac44f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#logicalOrExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation",
+ "test-ref": "conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/l1-abbrev-relation-insertion-not-not",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.12.3-2, witnessed at 2002 by the cases test-ref names. The read: Words identical but for the table number. 2002 Table 6 equals 2023 Table 5 minus the EXCLUSIVE-OR/XOR rows (a 2023 addition), so the 2002 requirement is a subset. The only insertion result that can violate Table 6 in a 2002 program is a NOT NOT pair, which 2002 SR3 also forbids; the pointer's witness is refused at 2002. Cited: §2002:8.8.4.2.4.2 SR2; §2002:8.8.4.2.3."
+}

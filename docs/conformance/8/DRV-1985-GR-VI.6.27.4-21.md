@@ -1,0 +1,3 @@
+---
+cells: ["DRV-1985-GR-VI.6.27.4-21", "undefined-in-rule", "\"the result of the execution of this statement is undefined\"", "§1985:VI.6.27.4 GR21 (UNSTRING, level 2): \"If identifier-1, identifier-2, or identifier-3, occupies the same storage area as identifier-4, ... or if identifier-7 and identifier-8 occupy the same storage area, the result of the execution of this statement is undefined, even if they are defined by the same data description entry.\" The rule declares its own consequence undefined; every behaviour conforms. Mechanical arm; no Annex A.2 at 1985.", "claude: 2026-11-16", "—"]
+---

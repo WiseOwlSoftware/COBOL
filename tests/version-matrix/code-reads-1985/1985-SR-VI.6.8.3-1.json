@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VI.6.8.3-1",
+ "rule-digest": "b2dfa80df179",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-160",
+  "sources": {
+   "reader": "06e7f0c524cb2ee3f5bb1704ee3939a3b37bb5828fcf7f1964f8abd7e2f96744",
+   "refuter": "0a07f13600d8ff8d67ac2ca675b9c78a9f000660be3a12d7c5632ea1c2b5ddfe"
+  },
+  "imported": {
+   "reader": "4e8ffd4ac9fd4b0f2965eb73fb9961111e5c6bae704bf94d24775cded13bc94b",
+   "refuter": "07bd944757638d55a4bf16b5cdc339d381eb4222fe9a60b17b778aa6a988a319"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, every COMPUTE identifier-1 must be an elementary numeric or elementary numeric-edited item, and the compiler must refuse at compile time a group, an alphanumeric, alphanumeric-edited or alphabetic item, a reference-modified slice and an index data item (§1985:VI.5.14.3 SR5).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#computeStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindCompute; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolvedReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComputeStatement",
+    "switches": "introduction gate on format 2 (boolean COMPUTE, 2002); refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenResultant reads the edition only for the diagnostic position (ctx.Edition.At); I grepped Year/DialectLevel/CobolVersion in ExpressionBinder.cs and ArithmeticBinder.cs#BindCompute and found no other read",
+  "behaviour-differs-by-edition": "no: the receiver screen is the same at 85 and 2023. Only boolean COMPUTE (format 2) is gated",
+  "witnesses-cover": "part: pb128 covers a PIC X receiver only. It does not cover group, edited, alphabetic, ref-mod or index receivers, numeric-edited acceptance, or several receivers",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c2a.cob",
+    "printed": "NSE / -0024.69 -  24.69   $24.69CR -00024 024 / 999999999999999999 / 000000000000000000 / 3 024 003",
+    "expected": "scaled signed, numeric-edited (ROUNDED), currency-edited, COMP and subscripted receivers accepted; 18-digit and zero values; COMPUTE I T(I) = 3 stores T(3) (multiple results in order)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c2b.cob",
+    "printed": "seven COBOL1675 errors: XR (PIC X), AE (PIC XX/XX), G (group), N1(1:2) (ref-mod), IX (index), AB (PIC A), and XR as the second receiver of COMPUTE N1 XR",
+    "expected": "each non-numeric, non-numeric-edited identifier-1 refused at compile time"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c2d.cob",
+    "printed": "error COBOL0900: the boolean operators ... requires COBOL-2002 (targeting COBOL-85), plus COBOL0900 for USAGE BIT",
+    "expected": "boolean COMPUTE (a 2002 format) refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c2c.cob",
+    "printed": "error COBOL0001: cannot parse construct near 'EQUAL' (same at --std 2023)",
+    "expected": "1985 prints only '='; EQUAL is not in any edition's COMPUTE format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.8.3 SR1",
+    "check": "OK  §1985:VI.6.8.3 SR1  (║6.8.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.14.3 SR5",
+    "check": "OK  §1985:VI.5.14.3 SR5  (5.14.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "Every refusal is correct. A wording nit at every edition: ScreenResultant prints pic.Category, not AnalyzedCategory, so an alphanumeric-edited (XX/XX) or alphabetic (PIC A) receiver is reported as 'of category Alphanumeric', and the message cites §2023 at --std 85. This affects diagnosis text only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "r2a.cob (runs/r2a-001, compile-only): COMPUTE RG = 1 with 66 RG RENAMES N1 THRU N2 refused (COBOL1675, a group-like rename); COMPUTE TE = 1 on an unsubscripted OCCURS element refused (COBOL2270); COMPUTE C-ON = 1 on a condition-name refused (COBOL1639). r2b.cob (runs/r2b-002): accepted and correct: 66 R1 RENAMES N2 (an elementary rename) gets 077; a numeric REDEFINES of PIC X(4) gets 1234; PIC 9PP and VPP9 scaled receivers; SIGN LEADING SEPARATE -012; PIC 9(3) BLANK WHEN ZERO (numeric edited at 85) as a second receiver gets 012 and spaces for 0; 999.99DB gets 001.50DB and **9.9 gets **1.5. Side observation outside this rule: DISPLAY of PIC 9PP prints 400 and of VPP9 prints .000 (the P positions are printed), which is a DISPLAY-rule question, not a COMPUTE receiver one. cite: OK  §1985:VI.6.8.3 SR1  (║6.8.3 Syntax Rules║)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

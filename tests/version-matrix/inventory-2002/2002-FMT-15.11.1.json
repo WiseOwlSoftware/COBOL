@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.11.1",
+ "rule-digest": "08b88266f1e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+ "test-ref": "conformance:cases/15.2-Types-of-functions/intrinsics_boolean_conv",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.13.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; witness runs at 2002. Cited: §2002:15.11."
+}

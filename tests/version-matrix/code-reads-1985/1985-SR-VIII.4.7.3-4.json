@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-VIII.4.7.3-4",
+ "rule-digest": "d8f564afd39d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "a40da291d333ca5572ee81ea7a3000d633f7d5b35b332ee4b0592acfe47fd878",
+   "refuter": "d6df3c1808d0086fd4374da1a8c1378c59b2de4facdfca73452d33269327a9bd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.7.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 data-name-1 of a relative START KEY phrase, which may be qualified (SR2), must be the very data item named in the RELATIVE KEY phrase of the file's ACCESS MODE clause; any other item (same name under another qualifier, an unrelated item, a group, a record of the file, a reference-modified slice, a RENAMES alias) and any KEY phrase on a file with no RELATIVE KEY are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#DenotedItem",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#SubscriptedClauseOperands",
+    "switches": "Year == 2002 only: whether an OCCURS-subject operand is screened by 2023 SR4 or compared by its subscripts; false at 85 as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Edition.Year < 2002: mandatory INVALID KEY (SR3), another rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The identity test is `!ReferenceEquals(operand.DenotedItem, file.RelativeKeyItem) || ConstantOccurrence mismatch` in BindStart's relative arm, with no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb602_start_key_identity is the positive control (the key itself, RENAMES storage sharing); refusal of a same-named item under another qualifier, an unrelated item, a group, the record, and a file with no RELATIVE KEY are not exercised by it",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st4bad.cob",
+    "printed": "COBOL0862 'data-name-1 shall be the RELATIVE KEY item' at lines 30 (RK2 OF OTHER-KEYS), 33 (unrelated LONE), 36 (RK2 OF KEYS (1:2)), 39 (66 RK-ALIAS RENAMES RK2), 42 (group KEYS), 45 (file with no RELATIVE KEY: item '(none)'), 48 (record XF-REC) (exit 65); identical at --std 2023",
+    "expected": "each operand that is not the RELATIVE KEY item is refused (§1985:VIII.4.7.3 SR4)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st4f.cob",
+    "printed": "F1=NIK 00 / F1 REC=EEEE RK=0005 / F2=IK 23 / F3=IK 23 / F4=IK 23",
+    "expected": "the qualified RELATIVE KEY item binds; NOT LESS THAN 0 positions on record 5; NOT < 9999, = 0 and > 6 raise invalid key (GR4 b, GR10)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/st1ok.cob",
+    "printed": "S4 REC=AAAA FS=00 (START YF KEY IS EQUAL TO RK2 OF KEYS where OTHER-KEYS also holds an RK2)",
+    "expected": "the qualified RELATIVE KEY item is accepted (SR2/SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.3 SR4",
+    "check": "OK  §1985:VIII.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "BindStart's relative arm compares the operand's DenotedItem with file.RelativeKeyItem by reference, so qualification resolves to the one item and every other item, slice or alias is refused with COBOL0862; the 85 path takes the same arm as 2023. The message cites §2023 SR5 rather than the 1985 rule, message-only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.7.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "stkey-001 at --std 85, refused COBOL0862 each time: START YF KEY = XK (another file's RELATIVE KEY item, line 33); START XF KEY > YK (line 36); in a contained program, START on the GLOBAL file GF KEY = GK, where GK is the contained program's own local item with the same name as the outer non-GLOBAL RELATIVE KEY item GK (line 49). That proves the check is identity, not name. stocc-001: a table element TK(1) refused COBOL0862 'subject to an OCCURS clause' (KeyedIoBinder.BindStart; SubscriptedClauseOperands is false at 85). That is right for 1985, because a RELATIVE KEY data-name cannot name a table element. A subscript on the non-OCCURS key XK(1) refused COBOL2096. cite.py: OK  §1985:VIII.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

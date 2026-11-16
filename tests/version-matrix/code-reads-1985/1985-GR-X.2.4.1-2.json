@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-X.2.4.1-2",
+ "rule-digest": "8c5f21f4f01e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-139",
+  "sources": {
+   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
+   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+  },
+  "imported": {
+   "reader": "9c1bfe75920546d292cb6a4dca3daf9f48ed4710a19f30aac77eff0a6bb9d9b7",
+   "refuter": "d26d29e79cc82d19d4019cd5f163f9b7720b61199a1726a9b2c648d57a4fb106"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.4.1-2",
+  "verdict": "CONFORMS",
+  "requirement": "Whenever a program is in its initial state (first call in the run unit, first call after a CANCEL of it or of a program containing it, every call of an INITIAL program, first call after a CALL of an INITIAL program containing it), every file with an internal file connector of that program, of any organization, is not in the open mode, while external file connectors keep their open mode.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "DialectBehavior.CancelRefusesEveryActiveProgram (from 2002) folded into ProgramTable.Cancel: at 85 only a called program that has not executed EXIT PROGRAM is refused (§1985:X.5.3.4 GR5), so whether the CANCEL acts differs; once it acts, the implicit close of internal files (CancelNode -> CloseFiles) is the same code",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect over ProgramEmitter (CloseFiles emission: only IsExternal/IsSortMerge filters), ProgramTable (only the CANCEL refusal flag), FileRegistry Register (DialectLevel recorded on the connector for other behaviours, not open mode); the close-on-initial-state path is edition-free",
+  "behaviour-differs-by-edition": "no: for this rule's effect; the CANCEL-of-an-active-program refusal differs (a separate rule)",
+  "witnesses-cover": "part: g85_bf06_02 covers first call and CANCEL of the program and of its container with a sequential file; not the INITIAL attribute (X.2.4.2 (3)), a program contained in an INITIAL program (X.2.4.2 (4)), relative or indexed files, or the external-connector control",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x6init.cob",
+    "printed": "three calls of INITIAL X6INIT each print INIT N=1 REL OPEN 00 IDX OPEN 00 and INNER M=1 SEQ OPEN 00; INIT EXT OPEN 00 then 41, 41; MAIN EXT WRITE 00",
+    "expected": "INITIAL program and its contained program are in the initial state on every call: their internal relative, indexed and sequential files, left open at exit, are not open (OPEN 00, not 41); the external file stays open (41 on reopen, MAIN's WRITE 00)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x6init.cob",
+    "printed": "PROGRAM-ID. X6INIT IS INITIAL accepted and honoured at --std 85",
+    "expected": "1985 X.2.4.2 (3)/(4) INITIAL attribute forms"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.4.1 GR2",
+    "check": "OK  §1985:X.2.4.1 GR2  (2.4.1 Characteristics of a Program)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.2.4.2 GR3",
+    "check": "OK  §1985:X.2.4.2 GR3  (2.4.2 Programs in the Initial State)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.2.4.2 GR4",
+    "check": "OK  §1985:X.2.4.2 GR4  (2.4.2 Programs in the Initial State)  the text is in GR4"
+   }
+  ],
+  "notes": "The emitted CloseFiles closes every open internal connector and skips external ones; ProgramTable runs it on CANCEL (with the contained programs first) and at the end of each INITIAL activation (with CancelContained), so the next call finds the files closed. ProgramEmitter.cs#CloseFiles in the seed list is emitted text inside EmitProgramClass, not a C# member.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.4.1-2",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Read §1985:X.2.4.1, X.2.4.2 (1)-(4), X.5.2.4 GR5-GR7 and X.5.3.4 GR2/GR4/GR7. The attack is the connector the rule does NOT reach: a container's GLOBAL file used by a contained program is the container's internal connector, so cancelling or re-initializing the contained program must not close it. p6.cob at --std 85 (runs/p6-001): A opens GLOBAL GF, contained P6B writes it ('B WRITE 00'), A CANCELs P6B and writes ('A WRITE AFTER CANCEL B 00', not 48); INITIAL P6I writes GF on two calls ('I WRITE 00' twice) and A writes after ('A WRITE AFTER INITIAL 00'); p6gf.dat holds BBBBAAA1IIIIIIIIAAA2. INITIAL P6E opens its own internal file and ends by falling off the end of its Procedure Division with the file open: the second call opens it again with 'E OPEN 00' (not 41), and p6ef.dat holds the one EEEE of the second activation. cite.py: 'OK  §1985:X.2.4.1 GR2 ... the text is in GR2'; 'OK  §1985:X.2.4.2 GR3 ... the text is in GR3'; 'OK  §1985:X.5.3.4 GR4 ... the text is in GR4'; 'OK  §1985:X.1.3.7 GR2 ... the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

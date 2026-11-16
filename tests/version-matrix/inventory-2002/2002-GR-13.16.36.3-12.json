@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.36.3-12",
+ "rule-digest": "3df9e5cd3810",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RepeatedPlacements; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RepeatedLine",
+ "test-ref": "conformance:cases/13.15-Report-group-description/pb565_report_vertical_repetition; conformance:cases/13.15-Report-group-description/pb565_report_repeating_entry",
+ "notes": "Own verdict from the read lineage-reads-2002/u-15.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.38.4-12, witnessed at 2002 by the cases test-ref names. The read: The one difference is b): the printed 2002 page (PDF p.332, rendered and read) says 'integer-5', but format 3 has no integer-5; STEP's only operand is integer-3, so 'integer-5' is an erratum with one possible reading, which 2023 corrected. No 2002 program can name another operand, so the behaviour required is the same. Witness for b) runs at 2002. Cited: §2002:13.16.36.3 GR12b; §2002:13.16.36.1."
+}

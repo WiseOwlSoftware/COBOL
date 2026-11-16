@@ -1,0 +1,122 @@
+{
+ "rule-id": "1985-SR-X.4.2.3-3",
+ "rule-digest": "1fe9a12ef5a0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-068",
+  "sources": {
+   "reader": "e9614878ba96246d48d75121106d940b2f8b1fb0065e0ab6f5367233bd01bcce",
+   "refuter": "a70639c62e4b57bd4d67f8fc8c54f17a668fbe354e47e21f6cbb21e91d9b02c5"
+  },
+  "imported": {
+   "reader": "93635685057913a52ee682873cf647bd33835ac3f201a6aa52fdc203a7dc67a6",
+   "refuter": "5ea31697d99651bc6def4403c2ff03f30f7d9a5d6533977d207f2761885dce4e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an FD with a REPORT clause is the report-file Format 3: it must admit IS EXTERNAL, IS GLOBAL, BLOCK CONTAINS, RECORD, LABEL RECORDS, VALUE OF, CODE-SET and REPORT, and refuse what Format 3 does not print (LINAGE, DATA RECORDS) and a REPORT clause on a non-sequential file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenDataRecords; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLabelRecordsClause / #VisitValueOfClause / #VisitDataRecordsClause",
+    "switches": "removal gates of the '85-only FD clauses (deleted at 2002): admitted at --std 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFormatClause",
+    "switches": "FORMAT clause (a 2002 addition) refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause",
+    "switches": "CODE-SET national phrases (alphabet-name-2 / FOR) refused below 2002; the single-name '85 form is admitted at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "DialectBehavior.RecordContainsRangeBindsRecordSize (RECORD CONTAINS m TO n bounds a WRITE only from 2002); not part of format admission",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "FileDescriptionFormats.Rows/Of and FileControlBinder.FileSection#FileDescriptionClauseAdmitted consult no edition (grep CobolVersion|IsAtLeast|ConstructRegistry|DialectBehavior over FileDescriptionFormats.cs and FileControlBinder.FileSection.cs: one hit, line 406, the RECORD CONTAINS range bound); the format table is the same at every --std. The edition enters only through VersionConformancePass's clause gates.",
+  "behaviour-differs-by-edition": "yes: LABEL RECORDS and VALUE OF admitted on a report FD at 85 only; DATA RECORDS (not in 1985 Format 3) is refused at 85 by the record rules rather than by the format table, and at 2002+ by the removal gate",
+  "witnesses-cover": "part: the witnesses show a bare 'FD RPF REPORT IS RPT' and LINAGE refused; BLOCK, RECORD, LABEL, VALUE OF, CODE-SET, EXTERNAL on a report FD, DATA RECORDS on a report FD and REPORT on a relative file are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3rep.cob",
+    "printed": "DONE (exit 0); report file holds HELLO: FD IS GLOBAL BLOCK CONTAINS 1 RECORDS RECORD CONTAINS 80 LABEL OMITTED VALUE OF CODE-SET REPORT IS RPT",
+    "expected": "every Format 3 clause admitted"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3ext.cob",
+    "printed": "DONE (exit 0) with IS EXTERNAL",
+    "expected": "admitted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3lin.cob",
+    "printed": "COBOL2604 the LINAGE clause is not a clause of Format 3 (report)",
+    "expected": "refused: LINAGE not in Format 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3data.cob",
+    "printed": "COBOL6849 DATA RECORDS W-TEXT: 'W-TEXT' is not the name of an 01 record description of file 'RPF' (§1985:VII.3.5.3 SR1)",
+    "expected": "refused: DATA RECORDS is not in 1985 Format 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3data2.cob",
+    "printed": "COBOL2578 report FD has 1 record description entry subordinate to it",
+    "expected": "refused: the only way to give DATA RECORDS a valid name violates XIII.3.2.3 SR4"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/f3rel.cob",
+    "printed": "COBOL2604 the REPORT clause is not a clause of Format 2 (RPF RELATIVE)",
+    "expected": "refused: a report file may only reference a sequential file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/fedarm.cob",
+    "printed": "COBOL0900 the AS externalized-name phrase requires COBOL-2002; COBOL0900 the FORMAT clause requires COBOL-2002 (plus COBOL7342 on the FORMAT clause)",
+    "expected": "neither the AS phrase of EXTERNAL nor the FORMAT clause is in any 1985 FD format (X.4.2.2): both refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.2.3 SR3",
+    "check": "OK  §1985:X.4.2.3 SR3  (4.2.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:XIII.3.2.3 SR3",
+    "check": "OK  §1985:XIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:XIII.3.2.3 SR4",
+    "check": "OK  §1985:XIII.3.2.3 SR4  (3.2.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "The format table marks DATA RECORDS as admitted in all three formats (its comment says it 'stood in every 85 FD format', untrue for Format 3), but no DATA RECORDS clause on a 1985 report FD can compile: a name that is not a record of the file draws COBOL6849 and a record under the report FD draws COBOL2578. The program is always refused, with a diagnosis naming the record rule rather than the format; the table row's comment is inaccurate for Format 3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "LINAGE and REPORT-on-relative refused identically; DATA RECORDS refused by the 2002 removal gate",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:X.4.2.2 Format 3 and XIII.3.2.2/XIII.3.2.3 (SR2 any order, SR3 sequential only, SR4 no record entries). X-17 prints RECORD IS VARYING in Format 3 although XIII-7 does not; the compiler admits it, which is the reading X.4.2.3 SR3's own format supports. Probes at --std 85: h3var.cob (REPORTS ARE RPT RPT2 written FIRST, then RECORD IS VARYING FROM 1 TO 80, BLOCK CONTAINS 1 TO 2 RECORDS, LABEL RECORD STANDARD, explicit ORGANIZATION/ACCESS SEQUENTIAL) compiled and ran 'DONE'; h3fmt.cob FORMAT CHARACTER DATA on a report FD refused COBOL2604 + COBOL0900, and IS EXTERNAL AS \"H3X\" refused COBOL0900. The reader's DATA RECORDS finding holds: the program is always refused (COBOL6849 or COBOL2578), only the table row's comment is inaccurate. cite.py: 'OK  §1985:X.4.2.3 SR3  (4.2.3 Syntax Rules)  the text is in SR3'; 'OK  §1985:XIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

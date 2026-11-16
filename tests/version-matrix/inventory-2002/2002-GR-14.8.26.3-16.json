@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-16",
+ "rule-digest": "c30fcd8c8f13",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode; conformance:cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-18, witnessed at 2002 by the cases test-ref names. The read: Only 'physical file'/'file' differs. Cited: §2002:14.8.26.3 GR16."
+}

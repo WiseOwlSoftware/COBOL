@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-X.4.6.4-3",
+ "rule-digest": "ee070baade5a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "257455c655e91f9c2babf7a3a108afd92eb0f75355c95421de5ead663a1f0979",
+   "refuter": "d1913653c0bd7a1a928d89f54f24f8b1f6874448a3911a6cf90ecf993aa16d0c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.6.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a level-01 File/Working-Storage entry carries both REDEFINES and GLOBAL, only that entry (the subject) and its subordinates are global names visible in contained programs; the redefined object (and its subordinates) is not global unless it carries GLOBAL itself, and conversely a GLOBAL object does not make an un-GLOBAL redefiner global.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#AnchorOf",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect|Std' over LinkageBinder.cs (global section 236-344, 609-682), InheritedGlobals.cs, InheritStep.cs: only diagnostic emission via data.Edition.Error, no switch. The GLOBAL placement row in DataBinder.ClausePlacement.cs (line 128) is one edition-free table row (residence: file/WS/local/linkage) - that is SR1's concern, not GR3's; GR3's mechanism (registration only of the entry carrying the admitted clause) has no edition arm.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1523 covers the positive half (GLOBAL redefiner reachable two levels deep, storage shared); it does not exercise the refusal half (the un-GLOBAL redefined object, or an un-GLOBAL redefiner of a GLOBAL object, being invisible in the contained program).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/g1pos.cob",
+    "printed": "12/35 then 1235/PQRS (group GLOBAL redefiner's subordinates WS-B1/WS-B2 reachable, ADD 1 TO WS-B2 changed WS-A's storage; GLOBAL object WS-C written from inner)",
+    "expected": "12/35, 1235/PQRS: GR1 subordinates of the global subject are global; one storage area"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/g1negA.cob",
+    "printed": "error COBOL1639: 'WS-A' is not defined (inner program DISPLAY WS-A where WS-B REDEFINES WS-A GLOBAL)",
+    "expected": "refused: WS-A, the object of the REDEFINES, does not possess the global attribute (GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/g1negD.cob",
+    "printed": "error COBOL1639: 'WS-D1' is not defined; 'WS-D' is not defined (WS-C GLOBAL, WS-D REDEFINES WS-C without GLOBAL)",
+    "expected": "refused: WS-D is not described with GLOBAL and is not subordinate to a global name (GR1, GR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.6.4 GR3",
+    "check": "OK  §1985:X.4.6.4 GR3  (║4.6.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.4.6.4 GR1",
+    "check": "OK  §1985:X.4.6.4 GR1  (║4.6.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "Global-name registration takes exactly the entries whose GLOBAL clause was admitted, so the REDEFINES object never becomes global through its redefiner; the Tier-A bridge reuses the canonical's storage member without exposing its name. Both refusal directions and the positive group form behave as the 1985 text says.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry": "hasGlobal = written & ~placementRefused & Global -> DataItem.HasGlobalClause",
+   "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal": "only items with HasGlobalClause join _globalRoots",
+   "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#AnchorOf": "a Tier-A redefiner bridges its canonical's storage member without making the canonical's NAME visible"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.6.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probes at --std 85 (refute-1985-033/src): r1pos.cob (WS-B REDEFINES WS-A GLOBAL, group with 88 B-YES, reached two levels deep via R1IN->R1IN2) printed 'B-YES TRUE / YN/34 / OUTER QQ34' (condition-name of the global subject global per GR1, qualified WS-B1 OF WS-B reachable, store shared). r1negA1 (subordinate WS-A1 of the redefined object), r1negAYES (88 A-YES of the redefined object), r1negE (second un-GLOBAL redefiner WS-E of the same object) each refused COBOL1639 'not defined' in the contained program, as GR3 requires (only the subject is global). cite.py: OK §1985:X.4.6.4 GR3 the text is in GR3; OK §1985:X.4.6.4 GR1 the text is in GR1. No 1985-only form of GR3 exists (REDEFINES at 01 in the File Section is barred by the REDEFINES clause itself), so no class c arm.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

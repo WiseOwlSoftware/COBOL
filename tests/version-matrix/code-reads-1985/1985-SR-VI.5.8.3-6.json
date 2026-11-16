@@ -1,0 +1,138 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-6",
+ "rule-digest": "4910bdc7225a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-055",
+  "sources": {
+   "reader": "e17011329c83db2a64c309c533ec6164d114805fedbceecf89eb286f7b81ab8f",
+   "refuter": "03a7276e8e8d8c28b115d796f66fd6a7e6d6087cac7da7ec860eb12498b71df9"
+  },
+  "imported": {
+   "reader": "50d5bdca99338c2b5add6ac5bd512b1974e31a5dc8123e527f8584798431fe59",
+   "refuter": "49bbf4f78ef958aa6975c893ee99f43f16e0625d36730e7371c3ace0df4d72e4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse an OCCURS ... DEPENDING ON whose data-name-1 is not an integer data item (1985 glossary: a numeric data item with no digit positions right of the decimal point), so a fraction-scaled (9V9, P9), alphanumeric, numeric-edited, group or index item is refused, and a signed, COMPUTATIONAL or trailing-P (9P) integer item, or a COBOL-85 report SUM counter of integer picture, is admitted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingAdmission; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsIntegerDescription; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsClassNumericFixedPoint",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates",
+    "switches": "ClauseOperandsTakeImplicitQualifiers (DialectLevel >= 2002): at 85 data-name-1 is looked up over the whole scope, no implicit qualification by shared groups; the lookup only, not the integer test",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+    "switches": "DialectLevel < 2002: a report SUM counter may be data-name-1 (the counter then passes the same DependingAdmission integer test)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|Year|Construct in OdoResolvePass.cs, DataBinder.Odo.cs, PicInfo.cs (IsIntegerDescription has no edition input); EditionContext.Error records unconditionally",
+  "behaviour-differs-by-edition": "no: the integer predicate is one edition-free PicInfo.IsIntegerDescription; only how data-name-1 is found (implicit qualification from 2002; SUM counter at 85) differs",
+  "witnesses-cover": "part: the witness exercises only PIC 9V9; P9, 9P, X, Z9, group, USAGE INDEX, signed/COMP and the 85 SUM-counter arm are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6frac.cob",
+    "printed": "error COBOL0852: ... data-name-1 shall describe an integer",
+    "expected": "refused (PIC 9V9 has a digit position right of the decimal point)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6p9.cob",
+    "printed": "error COBOL0852",
+    "expected": "refused (PIC P9 is fractional)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6trailp.cob",
+    "printed": "EXIT 0, 20 A's (CNT PIC 9P = 20)",
+    "expected": "admitted: 9P has no digit position right of the decimal point"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6x.cob",
+    "printed": "error COBOL0852",
+    "expected": "refused (not numeric)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6edit.cob",
+    "printed": "error COBOL0852",
+    "expected": "refused (numeric-edited is class alphanumeric, not a numeric data item)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6grp.cob",
+    "printed": "error COBOL0852",
+    "expected": "refused (group is alphanumeric)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6idx.cob",
+    "printed": "error COBOL0852 (plus the probe's own SET error)",
+    "expected": "refused (index data item has no digit positions; not a numeric data item)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6sign.cob",
+    "printed": "EXIT 0, AAA",
+    "expected": "admitted (S99 integer)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6comp.cob",
+    "printed": "EXIT 0, AAAA",
+    "expected": "admitted (S9(4) COMP integer)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6zero.cob",
+    "printed": "EXIT 0, empty line (CNT=0 below integer-1)",
+    "expected": "compiles (SR6 holds); value outside 1..50 is undefined by GR2b"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6sumfrac.cob",
+    "printed": "error COBOL0852 on DEPENDING ON TOT (SUM counter PIC 9V9)",
+    "expected": "refused: the 85 sum counter is not an integer"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/o6sumint.cob",
+    "printed": "EXIT 0, AA (counter = 2 after GENERATE)",
+    "expected": "admitted: integer sum counter"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR6",
+    "check": "OK  §1985:VI.5.8.3 SR6  (5.8.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:p.III-12",
+    "check": "OK  §1985:p.III-12  ()  the text is in the clause"
+   }
+  ],
+  "notes": "One edition-free predicate (PicInfo.IsIntegerDescription: class numeric, fixed point, scale <= 0, USAGE INDEX excluded) matches the 1985 definition of integer, as amended. Every probe class gave the result the text requires. The diagnostic text cites §2023:13.18.38.3 SR17 at --std 85, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-055/src (run dirs r6*-001), aimed at forms the reader did not try: PIC 99 BLANK WHEN ZERO (numeric edited by §1985:VI.5.4.4 GR2, so not a numeric data item) -> COBOL0852 refused; COMP-1 (implementor float) -> COBOL0852; PIC SPP9 -> COBOL0852; 66 RENAMES R1 THRU R2 (a group) -> COBOL0852; 88 condition-name -> COBOL0851; PIC A -> COBOL0852; admitted with the right occurrence count (AAA|): PIC 9(4) BINARY, PIC S9(5) PACKED-DECIMAL, PIC S99 SIGN LEADING SEPARATE, 66 RENAMES R1 (elementary PIC 99). Every result matches the 1985 definition of integer (numeric data item with no digit positions right of the decimal point). cite.py: OK §1985:VI.5.8.3 SR6 'Data-name-1 must describe an integer'; OK §1985:VI.5.4.4 GR2 'the category of the item is considered to be numeric edited'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

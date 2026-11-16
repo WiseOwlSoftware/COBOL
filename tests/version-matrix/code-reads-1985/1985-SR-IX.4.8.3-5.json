@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-5",
+ "rule-digest": "7f33710f23a7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-155",
+  "sources": {
+   "reader": "0de8f709c2b4ee3ffec721fd32c4bd152a11c5331bcb981f9d433bcb8682d5a8",
+   "refuter": "61677f953081c0603a4306d57d35c598bc4ebcb6f35cb94ba979f66aba39782c"
+  },
+  "imported": {
+   "reader": "f659d77078f611d65ccc02114cd97faa5ce3da6e8f00f48a9a5ac0a9350dbf41",
+   "refuter": "0185f605aa8491e09e916d427ccb89492ee4e76d5f6a22845136dc6c3d18a830"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.8.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the files a USE statement names explicitly, or covers through an open-mode phrase, may be of any mix of organization and access mode, and the one procedure must be selected for each of them (and count as the applicable procedure that excuses the 1985 mandatory exception phrase).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#HasApplicableUse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): the 85-only mandatory INVALID KEY/AT END, excused by a USE naming the file or a mode, whatever the file's organization (EXTEND only for a file that can be opened EXTEND)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_03 covers an explicit USE over indexed dynamic plus sequential and an INPUT USE serving sequential plus indexed random; not a relative file, nor a mode USE serving indexed plus relative",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/runs/g85_bf28_03-001",
+    "printed": "EXPECT: MATCH (g85_bf28_03.out)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p6use2.cob",
+    "printed": "U-FILES 23 00 00 / A1 23 / U-FILES 23 23 00 / A2 23 / U-FILES 23 23 10 / A3 10 / U-IO 23 00 / A4 23 / U-IO 23 22 / A5 22",
+    "expected": "USE ON XR RL SQ (indexed random, relative dynamic, sequential) fires for each file's failure; USE ON I-O fires for indexed dynamic and relative random files; no exception phrase is demanded for any of them"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.3 SR5",
+    "check": "OK  §1985:IX.4.8.3 SR5  (4.8.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "DeclBindUse resolves each named file with no organization test (only an SD is refused, SR2 of the sort module), and the generated selector switches on the file key and the run-time open mode only. The 85-only mandatory-phrase screen treats a covering USE the same for every organization.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.8.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r6mix-001 at --std 85: USE ... ERROR ON XR RS (indexed random, relative sequential), USE ... EXCEPTION ON EXTEND, USE ... EXCEPTION ON INPUT, all files missing. Printed U-F 35 99 / U-F 35 35 / A1 35 35 (the explicit USE fires for both organizations and the INPUT USE does not, §1985:IX.4.8.4 GR4) / U-X 35 99 99 / U-X 35 35 99 / U-X 35 35 35 / A2 35 35 35 (the EXTEND USE serves sequential, indexed sequential and relative sequential files opened EXTEND, §1985:IX.4.8.4 GR5e) / U-I x2 / A3 35 35 (INPUT USE serves indexed and relative). r4glob-002: an outer GLOBAL mode USE serves a contained program's indexed random and relative dynamic files and excuses the 85 mandatory INVALID KEY on the relative READ. cite.py: OK §1985:IX.4.8.3 SR5; OK §1985:IX.4.8.4 GR4; OK §1985:IX.4.8.4 GR5e.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

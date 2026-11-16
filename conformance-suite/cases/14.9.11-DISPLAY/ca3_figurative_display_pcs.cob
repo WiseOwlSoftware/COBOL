@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: ca3_figurative_display_pcs
-*> rules: [GR-14.9.11.4-3, GR-14.9.11.4-6]
-*> accept: [2002]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: ca3_figurative_display_pcs
+      *> rules: [GR-14.9.11.4-3, GR-14.9.11.4-6]
+      *> accept: [85, 2002]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> CA3 (CONFORMANCE-FIX-QUEUE): when HIGH-VALUE / LOW-VALUE is referenced at runtime (DISPLAY included, ISO
       *> §2023:8.3.3.6.4 GR6/GR7 + NOTE 2) it is the character with the highest / lowest ordinal position in the runtime
       *> alphanumeric PROGRAM COLLATING SEQUENCE — NOT the native pin. Under ALPHABET AL (Z..A occupy the first 26

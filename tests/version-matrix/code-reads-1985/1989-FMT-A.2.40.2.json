@@ -1,0 +1,119 @@
+{
+ "rule-id": "1989-FMT-A.2.40.2",
+ "rule-digest": "de698264706b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-177",
+  "sources": {
+   "reader": "bda26f7583c657c28f2195edf3e889872cf48df1ee26286766d3f80b66200e69",
+   "refuter": "4f8ae01b2d2c870ec6c03c7544fd4bbe5035185ca4f07c7ef93ab412e6f52ec9"
+  },
+  "imported": {
+   "reader": "a81130152391728a1455485ef4cd06b1358841f036b1a471d828a6737ab82a90",
+   "refuter": "cef7c5dce68111afdf1b5497d6574584312ea0758c736c894ae2b41af9ab353e"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.40.2",
+  "verdict": "CONFORMS",
+  "requirement": "Accept FUNCTION SQRT ( argument-1 ) with exactly one argument-1 (identifier, literal or arithmetic expression) and refuse no argument, two arguments, and an ALL subscript (the format repeats no argument)",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicArgs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#TryBindAllArgument; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the catalog row's D8 window IntroducedIn 85 against Edition.DialectLevel (COBOL1502/COBOL1503); at --std 85 the row is inside its window, no diagnostic",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct function-empty-argument-list-2002: an empty '( )' after the function name is refused with COBOL0900 below 2002 (§1985:IV.2.1.4 braces need one option); at 2023 it parses and the arity check refuses it (COBOL1504) for these functions",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+    "switches": "keyword-omitted reserved-name call (SUM without FUNCTION): REPOSITORY FUNCTION is not available at 85 (ConstructRegistry RepositoryFunction2002), so COBOL1543 with the 'write FUNCTION SUM' remedy; at 2023 the same refusal with the REPOSITORY remedy",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs for DialectLevel|ConstructRegistry|IsAvailable; VersionConformancePass#VisitFunctionCall; ReservedWords.Table.cs rows FUNCTION, ALL, SUM (all reserved since 1985); TryBindAllArgument and the arity check in BindFunctionResult consult no edition",
+  "behaviour-differs-by-edition": "yes: an empty '( )' is refused at 85 by COBOL0900 as a 2002 form; at 2023 it reaches the arity check (COBOL1504). Accepted forms and the arity refusals are the same code at both",
+  "witnesses-cover": "part: the refusal half (no argument, two arguments, ALL) is not exercised by the witness",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.40@1985-SQRT-FUNCTION/g85_bf42_05.cob",
+    "printed": "EXPECT: MATCH (g85_bf42_05.out)",
+    "expected": "0.0000 4.0000 0.2500 1.5000 12.0000 5.0000 1.4142"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-177/accept-forms.cob",
+    "printed": "SQRT-SUM 4.0000 for SQRT (FUNCTION SUM (9 7)); SQRT-BIG 1000000000.0000 for SQRT of 18 nines",
+    "expected": "a nested function-identifier is an argument (§1985:IV.4.3.8.3.4 GR2): 4; the largest 1985 item: an approximation of 999999999.99999999995"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-177/refuse-arity.cob",
+    "printed": "COBOL1504 for ORD-MIN with no list and with '()' (at least 1; 0 given), PRESENT-VALUE (1) (at least 2; 1 given) and with no list, RANGE (), SQRT (4 9) (takes 1; 2 given), SQRT () and SQRT with no list (0 given), STANDARD-DEVIATION (), SUM () and SUM with no list; COBOL1645 for SQRT (WS-E (ALL)); COBOL0900 'an empty function argument list ( ) requires COBOL-2002' on each '()'. At --std 2023 the same 12 COBOL1504/COBOL1645 and no COBOL0900",
+    "expected": "each form outside the general format refused: braces with an ellipsis need at least one argument-1 (§1985:IV.2.1.4), PRESENT-VALUE needs argument-1 and at least one argument-2, SQRT exactly one argument-1 and no ALL (§1989:A.2.2: ALL only where an argument repeats)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-177/edition-arms.cob",
+    "printed": "COBOL1543 'SUM' is written without the word FUNCTION ... the REPOSITORY FUNCTION entry is a COBOL-2002 introduction (targeting COBOL-85), so write 'FUNCTION SUM'; COBOL1639 'SQRT (9)' is not defined; COBOL1544 OMITTED shall not be specified as an intrinsic-function argument",
+    "expected": "1985 has only the FUNCTION function-name-1 form (§1985:IV.4.3.8.3.2) and argument-1 is an identifier, a literal or an arithmetic expression (§1985:IV.4.3.8.3.3 SR1): the keyword-omitted call and OMITTED are refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-177/separators.cob",
+    "printed": "SUM-SEP 2.0000; PV-SEP 10.0000; SD-SEP 0.0000; RANGE-PAREN 11.0000; SQRT-EXP 4.0000; ORDMIN-SGN 1.0000",
+    "expected": "comma and semicolon separators, a signed item, a binary-minus expression continued on the next line, parenthesized and exponent expressions are each one argument: SUM(1;2,3,-4)=2, PV(0;5,-5,10)=10, SD(-4,-4,-4)=0, RANGE(-8,3)=11, SQRT(16)=4, ORD-MIN(-4,4,5)=1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.40.1",
+    "check": "OK  §1989:A.2.40.1  (2.40.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.40.2",
+    "check": "FAIL [quote-too-short]: the format 'FUNCTION SQRT ( argument-1 )' has 3 real word(s); the clause is verified through A.2.40.1"
+   },
+   {
+    "cite": "§1989:A.2.40.3 AR2",
+    "check": "OK  §1989:A.2.40.3 AR2  (2.40.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR1",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR1  (4.3.8.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.2.1.4",
+    "check": "OK  §1985:IV.2.1.4  (2.1.4 Brackets, Braces, and Choice Indicators)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4"
+   }
+  ],
+  "notes": "Catalog row Fixed 1..1, IntroducedIn 85; COBOL1504 refuses 0 and 2 arguments and COBOL1645 refuses ALL because RepeatsAnArgument is false. SQRT of 18 nines prints 1000000000.0000 under truncation, the binary64 approximation the returned-value rule leaves to the implementor; that is a returned-value question, not this format rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "refuse-arity.cob at --std 2023: the same 12 COBOL1504/COBOL1645 refusals, no COBOL0900",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.40.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "SQRT: own-name data item SQRT(SQRT)=4; SQRT(ALL) refused, SQRT(B\"1\") refused, MOVE FUNCTION SQRT refused at 85; the reader's COBOL1645 for an ALL table and 0/2-argument arity refusals stand. Shared probes at --std 85 (run_probe.py, runs under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-177/runs): names.cob (data items named SQRT, RANGE, ORD-MIN, PRESENT-VALUE, STANDARD-DEVIATION, legal user words at 85, used as arguments of their own functions) printed SQRT-NAME 4, RANGE-NAME 8, ORDMIN-NAME 2, PV-NAME 21, SD-NAME 0, all right; pvall.cob: SUM(WS-Q(ALL 2))=4, ORD-MIN(WS-Q(RX + 1 ALL))=2, RANGE(WS-Q(WS-I + 2 ALL))=1 (relative subscripts beside ALL), ORD-MIN(WS-S(ALL) \"ABC\")=2, ORD-MIN over group occurrences WS-R(ALL)=1, SD(WS-E(ALL) WS-E(ALL))=11.1803, PV(0 WS-Q(ALL ALL) 100)=113, all right; x_1.cob: IF FUNCTION SUM(1 2) = 3 AND FUNCTION ORD-MIN(WS-S(ALL)) = 2 -> IF-OK, ORD-MIN(WS-S(1)(2:2) \"AAZ\" \"AB\")=2, ORD-MIN(WS-S(ALL)(3:1))=2; refusals (one statement per file, --compile-only): r2_1 SUM(WS-A(ALL)) on a non-table COBOL2096; r2_2/r2_3 SUM(1 2)(1:1), ORD-MIN(3 1)(1:1) COBOL1629 (§1985:IV.4.3.8.3.3 SR2); r2_4..r2_6 MOVE FUNCTION SQRT(4), DISPLAY FUNCTION RANGE(1 5), MOVE FUNCTION SUM(1 2) COBOL0900 (§1985:IV.4.3.8.3.3 SR4); x_2 ORD-MIN as a subscript COBOL0900; refuse2 SQRT(ALL)/SUM(ALL) COBOL0001; class c: c_1 N\"..\", c_2 X\"..\", c_3 1.0E2, c_4 WS-Q(WS-I * 2 ALL), c_5 B\"1\" each COBOL0900 at 85; c_7 ORD-MIN(\"B\" ALL \"A\") accepted =2 (ALL literal is a 1985 figurative constant, length of the literal). cite.py: OK §1989:A.2.2 'When the definition of a function permits an argument to be repeated a variable number of times'; OK §1989:A.2.2 'the effect is as if each table element associated with that subscript position were specified'; OK §1985:IV.4.3.8.3.3 SR2; OK §1985:IV.4.3.8.3.3 SR4; OK §1985:VI.6.2.1 'the figurative constant ZERO (ZEROS, ZEROES)'; OK §1985:IV.4.2.2.2.3 GRL2.3 'When the figurative constant ALL literal is not associated with another data item, the length of the string is the length of the literal'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord: IsBareFunctionArgumentWord skips the reserved-word funnel for a sole-word argument (edition-keyed reserved set); harmless here, a declaration of such a word is still screened"
+  ],
+  "corrected": ""
+ }
+}

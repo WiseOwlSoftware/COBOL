@@ -5,7 +5,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
-*> kb/Work PB5575, VCR row 7.80. Under ARITHMETIC IS STANDARD (2014, an
+*> kb/Work PB5575, VCR row 7.81. Under ARITHMETIC IS STANDARD (2014, an
 *> obsolete element) a standard intermediate data item that "is the
 *> argument of a function and there is no equivalent arithmetic
 *> expression defined for the rules of the function" is rounded to 31

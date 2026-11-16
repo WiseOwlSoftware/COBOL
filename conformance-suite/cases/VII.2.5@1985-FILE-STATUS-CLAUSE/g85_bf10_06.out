@@ -1,0 +1,4 @@
+OPEN A=00 B=**
+WRITE A=00 B=**
+READ A=00 B=**
+EOF A=10 B=**

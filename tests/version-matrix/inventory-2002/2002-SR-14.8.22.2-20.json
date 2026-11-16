@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-20",
+ "rule-digest": "3e1e41c51473",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv-sr20-cd-sending-operands",
+ "notes": "§2002:14.8.22.2 SR20 makes identifier-5 and the identifiers inside arithmetic-/boolean-expression-1 sending operands, so output-CD items passed BY CONTENT / BY VALUE (record items, a level-1 OBJECT REFERENCE record, the implicit TEXT LENGTH item, and expressions over them) reach the method by value and stay unchanged; g2inv-sr20-cd-sending-operands at --std 2002 on the pinned build (dc1f2dcce8) printed the 14 derived lines."
+}

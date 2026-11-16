@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-3",
+ "rule-digest": "8e668ac78738",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "9974af43a76b04a12b9ca33085ada6c9da9feb21fc7fc286e5f3e8a942cb3592",
+   "refuter": "19294b827e90e6ae4f444c8d07953d38c70e484be172e87b846693d5974726ec"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a figurative constant written as literal-1 or literal-2 (ZERO/ZEROS/ZEROES, SPACE/SPACES, QUOTE/QUOTES, HIGH-VALUE(S), LOW-VALUE(S), a symbolic character) stands for an implicit one-character DISPLAY item, so it contributes or matches exactly one character.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Fill; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over StringEmitter.cs, CobolStringOps.cs, FigurativeConstants.cs: none; the figurative's character comes from the program collating sequence (num.Collating), not the edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf02_03 S5 covers SPACE, QUOTE, ZERO as literal-1; not exercised: plural spellings, symbolic characters, HIGH-/LOW-VALUE, figurative literal-2",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr234.cob",
+    "printed": "D [ 0\"+********] (SPACES ZEROS QUOTES STAR as literal-1); F OK (HIGH-VALUES LOW-VALUE one char each into X(3), third position untouched); C/E figurative and symbolic literal-2 one char",
+    "expected": "each figurative one character"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/refall1.cob",
+    "printed": "COBOL1757 STRING sending operand 'ALL \"A\"' refused",
+    "expected": "SR1 refuses ALL figurative as literal-1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR3",
+    "check": "OK  §1985:VI.6.25.4 GR3  (║6.25.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "Bound figuratives render through OperandText.AsString as a one-character string; the ALL forms are screened by BeginsWithAllWord in BindString.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-3",
+  "refutation": "UPHELD",
+  "classes": "d",
+  "evidence": "cite.py 'OK §1985:VI.6.25.4 GR3 the text is in GR3'. hv.cob/hv2.cob STRING HIGH-VALUE LOW-VALUE DELIMITED BY SIZE contributes exactly one character each and the same character a MOVE of that figurative yields under the program collating sequence (LOW-VALUE = native 256 under 256 THRU 1: '1 LV=FF'); hv4.cob figurative literal-2 one character. No form found that contributes more or other than one character.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

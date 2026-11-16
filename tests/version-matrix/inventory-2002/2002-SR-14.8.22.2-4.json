@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-4",
+ "rule-digest": "b3ad70c3fe01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInstanceInvoke; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach; conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv45-cd-receiver-unknown-method",
+ "notes": "§2002:14.8.22.2 SR4a/b: a FACTORY OF CD object reference invokes the factory method NEW and a class-typed CD reference invokes instance methods (g2inv42), and an unknown method name on a CD reference is refused COBOL0825 (g2inv45). --std 2002 on the pinned tree matched. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9). SR4e (a CD object reference described with an interface-name) is not exercised by this package."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.45.3-5",
+ "rule-digest": "c6409b09d917",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse",
+ "test-ref": "conformance:cases/14.9.49-USE/pb370_use_file_beats_mode_method",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.49.4-5, witnessed at 2002 by the cases test-ref names. The read: Identical text, same format 1. Cited: §2002:14.8.45.3 GR5."
+}

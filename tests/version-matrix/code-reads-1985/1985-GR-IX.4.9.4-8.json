@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-8",
+ "rule-digest": "2d3c13d9f236",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-011",
+  "sources": {
+   "reader": "091e3b25e3d00b1a40bd0009ebeae128d3db24f1dc25c012a419ab97b24c8613",
+   "refuter": "1a816b12394bef79e79a2accf7a8521e70c9d4b42ce4dd9c00d4b4cc911a6bc8"
+  },
+  "imported": {
+   "reader": "613671ae4ae92ae8bc5be8c3772a73e516befb24dba7816d91f017768b6fabdd",
+   "refuter": "3944c00e91eb604410a84877c159a441260d220ae7603ed7a44a66bc5fe4d584"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, a WRITE to an indexed file whose FD has RECORD IS VARYING must, when the record's character positions (the DEPENDING ON data-name-1 value, else the record's size or its ODO-current size per §1985:VII.3.8.4 GR10) fall below the clause's minimum or above its maximum, be unsuccessful: nothing written, record area (and every SAME RECORD AREA peer) unchanged, I-O status 44 (§1985:IX.1.3.4 status 44 item 1), no INVALID KEY branch. The witnesses are sequential-organization cases only; this rule is the Indexed module's.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|CobolVersion|DialectLevel|DialectBehavior over IndexedConnector.cs (Write), KeyedConnector.cs (RecordRulesFailure), FileConnector.cs (Stored), FileRegistry.cs (WriteShared/WriteSharedInStatement) and KeyedIoEmitter.EmitWrite: the bounds test (Stored: len < VaryMin || len > VaryMax -> '44') consults no edition; the only edition-keyed member near it is FileConnector.SharingFacilityInEffect (record locking), reached after the size check and irrelevant to it.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses (pb1168, pb1190) are sequential-file cases; not exercised there: an indexed file, DEPENDING ON at 0/min-1/min/max/max+1/99, a SAME RECORD AREA peer left unchanged, the record-description SR2 refusal",
+  "probes": [
+   {
+    "class": "a,f,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c4/p1.cob",
+    "printed": "VARYING 6..20 DEPENDING ON RL, indexed DYNAMIC: RL=5 -> W5 44 (RB, RL unchanged, no IK branch); RL=6 -> 00; RL=20 -> 00; RL=21 -> W21 44 RB unchanged; RL=0 -> 44; RL=99 -> 44; RL=3 -> 44 with SAME RECORD AREA peer RG still 1234.56; READ back only K06 (06) and K20 (20), EOF 10",
+    "expected": "outside 6..20: unsuccessful, not written, record area unaffected, status 44 (§1985:IX.1.3.4); at the bounds written"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c4/p2.cob",
+    "printed": "error COBOL2010: record 'RA' describes 4 bytes, which is fewer than the integer-2 = 6 ... (ANSI §1985:VII.3.8.3 SR2)",
+    "expected": "a record description below integer-2 is refused at compile time (SR2), so GR8's size test is reached through DEPENDING ON"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-011/c4/p3.cob",
+    "printed": "VARYING 5..20 without DEPENDING ON, ODO 0..15: N=0 (5 chars) W1 00; WRITE FROM 20-char item, N=15 -> W2 00; reread K0100 and K0215ABCDEFGHIJKLMNO 00",
+    "expected": "ODO-current size at the minimum and maximum is in range and written (§1985:VII.3.8.4 GR10 c)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR8",
+    "check": "OK  §1985:IX.4.9.4 GR8  (4.9.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5d.1"
+   }
+  ],
+  "notes": "The emitter passes the DEPENDING ON value (VaryingLengthArg) and the connector's Stored() refuses a length outside VaryMin..VaryMax before any key work, returning '44' with nothing stored; the also-available store to SAME RECORD AREA peers is emitted under a success test (EndReleasedRecord), so the area stays unaffected. Probed at --std 85 at both bounds and beyond them.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "refute-1985-011/c4/r1.cob (--std 85, indexed ACCESS SEQUENTIAL, VARYING 6..20 DEPENDING ON RL, two 01s of 6 and 20): WRITE RS (6-char 01) with RL=21 -> 44, RL unchanged; then K03 (lower than the refused K05) with RL=20 -> 00, so the failed WRITE did not take place (no '21'); RL=5 -> 44; OPEN EXTEND WRITE RLONG RL=6 -> 00, RL=0 -> 44; reread K03 (20 chars, RL 20) and K09abc (RL 06), EOF leaves RL 06. Size taken from data-name-1, not from the 01 written (§1985:VII.3.8.4 GR10a). OK  §1985:IX.4.9.4 GR8 the text is in GR8; OK  §1985:VII.3.8.4 GR9 the text is in GR9.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

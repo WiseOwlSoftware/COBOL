@@ -1,0 +1,141 @@
+{
+ "rule-id": "1985-FMT-VII.2.13.2",
+ "rule-digest": "6df16ec31572",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-002",
+  "sources": {
+   "reader": "b0e6d8ba59e5e93a5a02cf4c1257b21348190cb94cafef1c08994c368f793594",
+   "refuter": "1b8643170d13b1e11aaae7e09151deeab16da3bcb67e4f2b7fcb310ee921d082"
+  },
+  "imported": {
+   "reader": "1c5d88f0346bb89b0410f6323dd1f06b099da9aa8ce190d30ab2608e5512da40",
+   "refuter": "cc0d93c2764eca23a4d7f0c39e27be5a0bc1289cc6934b05d61f5f80a2388446"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VII.2.13.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept SAME [RECORD] AREA FOR file-name-1 {file-name-2}... in the I-O-CONTROL paragraph with AREA and FOR optional words, comma separators, at least two file-names, and several SAME clauses within the paragraph's one sentence, and refuse a clause naming fewer than two files, a non-file operand, a literal, and a misordered RECORD; the witness covers only the one-file refusal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Edition.Year < 2002: the report-file row of the SR occurrence limits (1985 lets a report file be in any number of SAME SORT/SORT-MERGE AREA clauses); not the format shape",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition.Edition/CobolVersion/Constructs/DialectBehavior in FileControlBinder.IoControl.cs (one hit, SameOccurrenceRule); grep Same in VersionConformancePass*.cs (only SAME AS); sameClause grammar carries no predicate.",
+  "behaviour-differs-by-edition": "no: the format shape is parsed and screened by the same code at 85 and 2023; the only edition arm on the path is an SR occurrence limit for report files.",
+  "witnesses-cover": "part: the witness pins the one-file refusal; optional AREA/FOR, RECORD, commas, several clauses in one sentence and the record-area sharing at run time are not exercised by it at 85",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_legal1.cob",
+    "printed": "ABCD:ABCDEF",
+    "expected": "SAME RECORD AREA FOR F1, F2 F3 accepted; records share the area aligned leftmost (GR2)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_legal2.cob",
+    "printed": "ABCD",
+    "expected": "SAME AREA FOR F1 F2 and SAME RECORD F1 F2 (AREA, FOR omitted) in one sentence accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_legal3.cob",
+    "printed": "XYZXYZ",
+    "expected": "SAME F1 F2 (both optional words omitted) accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_one.cob",
+    "printed": "error COBOL2738: SAME AREA names only one file",
+    "expected": "refused: file-name-2 required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_dup.cob",
+    "printed": "error COBOL2738: SAME RECORD AREA names only one file",
+    "expected": "refused: F1 F1 is one file"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_none.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_bare.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_dataname.cob",
+    "printed": "error COBOL2738: 'W' is not a file specified in the FILE-CONTROL paragraph",
+    "expected": "refused (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_literal.cob",
+    "printed": "error COBOL2738 only one file + COBOL1970 '\"F2\"' is not a clause of the I-O-CONTROL paragraph",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_order.cob",
+    "printed": "error COBOL5506: unexpected 'RECORD'",
+    "expected": "refused: RECORD precedes AREA"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_r_twice.cob",
+    "printed": "error COBOL2738: file 'F2' is named in more than one file-area format clause",
+    "expected": "refused (SR3a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sm_legal4.cob",
+    "printed": "COBOL2738 'F3X' is not a file + COBOL3407 a separator period splits the run of SAME clauses",
+    "expected": "refused: the 1985 I-O-CONTROL format closes all its clauses with one period (§1985:VII.2.10.2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.2",
+    "check": "OK  §1985:VII.2.13.2  (2.13.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR1",
+    "check": "OK  §1985:VII.2.13.3 SR1  (2.13.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3",
+    "check": "OK  §1985:VII.2.13.3 SR3  (2.13.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.2.10.2",
+    "check": "OK  §1985:VII.2.10.2  (2.10.2 General Format)  the text is in the clause"
+   }
+  ],
+  "notes": "The grammar superset-parses one or more file-names with optional AREA/FOR and ScreenSameOperands narrows to two or more distinct files of this program, the format's required file-name-2. Every legal spelling ran and every off-format spelling probed is refused by name.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VII.2.13.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Rendered the PDF page 393 (1985): SAME [RECORD] AREA FOR file-name-1 {file-name-2}..., RECORD boxed (level 2), AREA and FOR optional. Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/: sm_area_rec (SAME AREA F1 F2 + SAME RECORD AREA F1 F2 F3) printed ABCD:ABCDEF; sm_area_rec_bad refused COBOL2738 (SR3c); sm_rec2 (F2 in two SAME RECORD AREA clauses) refused COBOL2738 (SR3b); sm_areas / sm_records (AREAS, RECORDS) refused COBOL5506; sm_sort / sm_sortmerge / sm_recsd (the Sort-Merge module's SAME forms with an SD) accepted, which the 1985 sort module allows. sm_dup3 (SAME AREA FOR F1 F2 F1) is accepted; the reader's F1 F1 is refused as naming one file, which rests on GR1's 'two or more files' (cite.py: OK §1985:VII.2.13.4 GR1; OK §1985:VII.2.13.3 SR3). No format form mishandled.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

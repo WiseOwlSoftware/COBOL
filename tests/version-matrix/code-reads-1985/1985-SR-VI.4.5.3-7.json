@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-7",
+ "rule-digest": "455fe731f86f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "07d8d42f51f1c2e00f222b666584d155860e506925bb45145e08b9a8abc857b1",
+   "refuter": "11fb9609f87702eef93f96912b564103b4d911a2b045b616792c51c33c4fe11d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a symbolic-character-1 written twice in one SYMBOLIC CHARACTERS clause (in the same group or in two groups) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SwitchBindSymbolic; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Classes.cs#SymbolicClauseOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSymbolicCharactersClause",
+    "switches": "FOR ALPHANUMERIC/NATIONAL phrase refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the duplicate test is Cfg.SymbolicCharacters.TryAdd in SwitchBindSymbolic, with no DialectLevel test (grep).",
+  "behaviour-differs-by-edition": "no: the duplicate check is one arm; the check covers the whole paragraph, a superset that name uniqueness also requires",
+  "witnesses-cover": "part: the witnesses test the count and the ordinal range, not a duplicate name",
+  "probes": [
+   {
+    "class": "b",
+    "file": "src/sr7_dup_samegroup.cob",
+    "printed": "COBOL1670 'S1' is already defined",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr7_dup_twogroups.cob",
+    "printed": "COBOL1670 'S1' is already defined",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr7_dup_twoclauses.cob",
+    "printed": "COBOL1670 'S1' is already defined",
+    "expected": "refused (user-defined word defined twice)"
+   },
+   {
+    "class": "b",
+    "file": "src/sr7_ok_twoclauses.cob",
+    "printed": "AB",
+    "expected": "legal: distinct names"
+   },
+   {
+    "class": "c",
+    "file": "src/sr8_for85.cob",
+    "printed": "COBOL0900 the FOR ALPHANUMERIC/NATIONAL phrase requires COBOL-2002",
+    "expected": "refused: no FOR phrase in 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR7",
+    "check": "OK  §1985:VI.4.5.3 SR7  (4.5.3 Syntax Rules)  the text is in SR7"
+   }
+  ],
+  "notes": "The duplicate is refused in both the one-group and the two-group forms; the diagnostic cites §2023:12.3.7.3 SR16 a at 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read §1985:VI.4.5.3 SR7 and §1985 NOTE 2 (a lowercase letter is equivalent to the uppercase one outside literals). Probes at --std 85: r7_case (S1 s1 ARE 66 67) COBOL1670 's1' is already defined; r7_dup_in (S1 IS 1 IN AL, then a second SYMBOLIC CHARACTERS S1 IS 66) COBOL1670; r7_dup_badfirst (S1 IS 70000 S1 IS 66) COBOL1670 out-of-range plus COBOL1670 already defined (the recovery placeholder still counts the first); r7_dup_mismatch (S1 S2 S1 ARE 66 67) refused COBOL1670 by the count; r7_sameord_ok (S1 IS 66 S2 IS 66, distinct names, one ordinal) accepted and printed AA. Duplicate test is Cfg.SymbolicCharacters.TryAdd in SpecialNamesBinder.Classes.cs#SwitchBindSymbolic, no edition test. cite.py: OK §1985:VI.4.5.3 SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

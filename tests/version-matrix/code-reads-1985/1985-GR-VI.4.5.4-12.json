@@ -1,0 +1,134 @@
+{
+ "rule-id": "1985-GR-VI.4.5.4-12",
+ "rule-digest": "0bbd145484f0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-102",
+  "sources": {
+   "reader": "0aca3eed776d10077df1ada3f233644bd2d0ebb07e39741ed7b1f57803851a1a",
+   "refuter": "8820ad5928eff40479d7638c4a2f01dc02a28a619de196373de9498143191521"
+  },
+  "imported": {
+   "reader": "387ca192a82fbe85fd095617525dcec457ca44e94fea8ee432c9f048dc34cba8",
+   "refuter": "84db9f9822d0f8111b1e025ade869eda873fe886ec2c4ebd6839916045667368"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-VI.4.5.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, under DECIMAL-POINT IS COMMA the comma takes the decimal-point role and the period the insertion role in every PICTURE character-string (fixed and floating insertion, check protection, CR/DB, BLANK WHEN ZERO, the decimal point counted once) and the comma is the decimal separator in every numeric literal (VALUE, MOVE, arithmetic, relation), in the program and its contained programs; a period written as a decimal point in a numeric literal is then not a numeric literal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#SwitchBindDecimalPoint; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#AnalyzeCharacterString; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#RepeatableSymbol; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Frontend/Common/NumericLiteral.cs#Normalize; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#DecimalPointIsComma; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#MaskScale",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#RepeatableSymbol",
+    "switches": "which symbols may take a repetition factor: at 85 the §1985:VI.5.9.4 GR7 list, read with the comma/period swap (under DPC the insertion period takes one and the decimal-point comma does not); 2002+ admits any symbol",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#MaxStringLength",
+    "switches": "the character-string length bound per edition (not DPC-specific)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#FoldPictureCase",
+    "switches": "lowercase folding of PICTURE letters (85 folds only the symbol letters); comma and period are not letters, so the swap is untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "BLANK WHEN ZERO with S (2002+); not DPC-specific",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DecimalPointIsComma/DecimalComma over src (binder, Frontend NumericLiteral and SeparatorRule, PicInfo, CobolEdit); grep DialectLevel/CobolVersion/Construct in PictureAnalyzer.cs, PictureComposition.cs, SpecialNamesBinder.cs, NumericLiteral.cs, SeparatorRule.cs: the DPC flag (SwitchBindDecimalPoint, NumericLiteral.Normalize, the edit masks) is edition-neutral; the only edition-dependent reading of the swap is RepeatableSymbol's 85 list.",
+  "behaviour-differs-by-edition": "yes: only the 85 repetition-factor list (PIC 99,(1)9 under DPC is refused at 85 with COBOL7078 and accepted at 2023); the exchange itself is the same at every edition.",
+  "witnesses-cover": "part: g85_bf08_01 covers fixed insertion, the comma decimal point, numeric literals in MOVE/ADD/IF/COMPUTE; not floating insertion, check protection, CR/sign editing, BLANK WHEN ZERO, VALUE literals, de-editing, repetition of the insertion period, contained programs, or the refusals (probed here).",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2dpc.cob",
+    "printed": "E1=[ $1.234,50] E2=[ -1.234,50] E3=[*1.234,50] E4=[ 1.234,50CR] E5=[3..4,56] E6=[ -1.234,5] E7=[      ] E7B=[ 12,30] E8=[012,34-] N3=0,25000 N2=001,00 E9=[12.345] DE=-01234,50 EQ EA=[-999.999.999.999.999.999]",
+    "expected": "comma = decimal point, period = insertion in every edited form; VALUE -1234,5 and ,25 are numeric literals; COMPUTE 0,25*4+0,005 truncates to 1,00; de-editing E4 gives -1234,50"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2dpc.cob",
+    "printed": "EA=[-999.999.999.999.999.999] N2=001,00",
+    "expected": "the largest 1985 numeric item (18 digits), negative, edits through the insertion period; truncation without SIZE ERROR"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2twodp.cob",
+    "printed": "error COBOL1934: invalid PICTURE 9,9,9 ... the symbol ',' appears 2 times",
+    "expected": "refused: under DPC the comma is the decimal point, which may appear once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2dotlit.cob",
+    "printed": "error COBOL0895: numeric literal '1.5': under DECIMAL-POINT IS COMMA the decimal separator is the comma",
+    "expected": "refused: the period is not the decimal point of a numeric literal under DPC"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2rep85.cob",
+    "printed": "at 85: error COBOL7078 the repetition factor '(1)' follows the symbol ','; at 2023: compiles and runs",
+    "expected": "refused at 85: §1985:VI.5.9.4 GR7 lists the comma by its insertion role, the period under DPC"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2dpc.cob",
+    "printed": "E5=[3..4,56] (PIC 9.(2)9,99 accepted)",
+    "expected": "the insertion period takes a repetition factor at 85 under DPC"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2dotlast.cob",
+    "printed": "E1=[ 12.] (PIC ZZ9. then the separator period)",
+    "expected": "a trailing insertion period belongs to the character-string"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-102/p2nest.cob",
+    "printed": "IN=[1.234,50]",
+    "expected": "the containing program's DPC applies to a contained program (§1985:VI.4.5.4 GR1)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.4.5@1985-SPECIAL-NAMES-PARAGRAPH/g85_bf08_01.cob",
+    "printed": "MATCH",
+    "expected": "the witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.4 GR12",
+    "check": "OK  §1985:VI.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:VI.5.9.4 GR7",
+    "check": "OK  §1985:VI.5.9.4 GR7  (5.9.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VI.4.5.4 GR1",
+    "check": "OK  §1985:VI.4.5.4 GR1  (4.5.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "One flag (ConfigurationSlice.DecimalPointIsComma) set by SwitchBindDecimalPoint drives the literal normalizer and is captured per PICTURE clause (PicInfo.DecimalPointIsComma) for editing, de-editing and scale. DISPLAY of a numeric DISPLAY item with V prints the decimal comma, the implementor's conversion (§1985:VI.6.10.4 GR1), not this rule. Diagnostics at 85 cite §2023 clause numbers, a message-text matter."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.5.4-12",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under DECIMAL-POINT IS COMMA. r2dpc-002 (d,f): PIC 99V.99 <- 12,34 gives [12.34] (V plus the insertion period, legal under DPC); PIC 999.99 <- 123,45 gives [001.23] (period is simple insertion, all five 9s integer); PIC ZZ9, (decimal comma last, followed by the separator period: ',.' per §1985:VI.5.9.5 GR5) <- 123,9 gives [123,]; PIC ZZ9.. (insertion period last) <- 45 gives [ 45.]; PIC ZZ.ZZZ,ZZ <- 0 gives all spaces and <- 0,05 gives [      ,05]; floating PIC $.$$$,99 <- 1,5 gives [   $1,50]; 88 VALUE 0,5 THRU 1,5 tested true for 1,25; MOVE -,5 then IF = -0,50 true; COMPUTE ROUNDED = 1,005 + +,004 gives 001,01; IF 2,7 > 2,69 true; PIC 9.999.999,99 <- 1234567,89 gives [1.234.567,89]. r2sep-002: ADD 1, 5 (comma+space is the separator) gives 006,00; ADD 1,5 2,5 gives 004,00. Refusals (b,c): r2v99V99-001 PIC 99V,99 and r2v999V9-001 PIC 9,99V9 refused COBOL1934 (V with the actual decimal point, §1985:VI.5.9.5 GR5); r2flt-001 floating literal 1,5E3 refused COBOL0900 at 85; DISPLAY 1,5 refused at 85 by §1985:VI.6.10.3 SR2 (a different rule, consistent). cite.py: 'OK  §1985:VI.4.5.4 GR12  (4.5.4 General Rules)  the text is in GR12'; 'OK  §1985:VI.5.9.5 GR5  (5.9.5 Editing Rules)  the text is in GR5' (the ',.' combination and the V/actual decimal point exclusion); 'OK  §1985:VI.5.9.4 GR8d  (5.9.4 General Rules)  the text is in GR8d' (the period/comma exchange in PICTURE).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

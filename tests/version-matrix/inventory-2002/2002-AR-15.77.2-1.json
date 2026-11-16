@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.77.2-1",
+ "rule-digest": "27c3311d6105",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Admissible; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.77@2002-TEST-NUMVAL-F-FUNCTION/g2-testnumvalf-argument-classes",
+ "notes": "§2002:15.77.2 AR1 admits an alphanumeric literal (LIT), a national literal (NATLIT), and data items of class alphanumeric (ITEM PIC X; EDIT numeric-edited, class alphanumeric by §2002:8.5.2 Table 3) or national (NAT PIC N). Each is accepted; by §2002:15.77.3 RV1 the conforming contents (per the NUMVAL-F argument format) return 0 and the BAD content returns the position of the first character in error: LIT=000 NATLIT=000 ITEM=000 EDIT=000 NAT=000 BAD=004. Refused: PIC A (class alphabetic), PIC 9(3) (class numeric), PIC S9(3) USAGE NATIONAL (class numeric at 2002 by kb/Work PB5625 reading B). Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

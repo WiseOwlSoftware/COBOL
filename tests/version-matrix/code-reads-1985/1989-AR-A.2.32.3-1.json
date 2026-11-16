@@ -1,0 +1,115 @@
+{
+ "rule-id": "1989-AR-A.2.32.3-1",
+ "rule-digest": "e291d783a8ff",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-170",
+  "sources": {
+   "reader": "9068f7d16290245a182e477a81ec5b4ba4a7d80cd8d843c4ce024176ee06e05a",
+   "refuter": "5cb3ba6f29ecc81323b9250fcbe87686f3e18c53e6236dc04bdbd884007a5098"
+  },
+  "imported": {
+   "reader": "21736e7486b9e17159fedcbe56e44c3afe711aa03af075f130892bd6d795dc97",
+   "refuter": "ba0be4cacaa97e6d162f548a36713022eae2a8bec20c7e22b656e17703a64885"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.32.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 (Amendment 2 applied), when ORD-MAX has more than one argument-1 all arguments must be of one class (alphabetic, numeric or alphanumeric per §1985:IV.4.3.3, where numeric-edited, alphanumeric-edited and group items are class alphanumeric), except that alphabetic and alphanumeric may be mixed; a mixed numeric/nonnumeric list must be refused and every same-class list accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossViolation; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#CrossBlock; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#TableTwoClass; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against DialectLevel: ORD-MAX available",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior|ConstructRegistry over IntrinsicArgumentRules.cs (no hit); CheckArgumentClasses consults the edition only through ArgPredicate.AppliesAt, and ORD-MAX's row has no predicate. The 2023 classes the 'p' negative list excludes (boolean, pointer, object) cannot be declared at 85.",
+  "behaviour-differs-by-edition": "no: the same cross-class screen, with the alphabetic|alphanumeric merge that Amendment 2 writes into the 1985 text and §2023:15.71.3 keeps",
+  "witnesses-cover": "part: g85_f33_04 covers the accept half (alphabetic+alphanumeric mix, all-numeric with a scaled item); no witness covers the refusal half, numeric-edited or group arguments, figuratives, ALL subscripts or reference modification",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/om_ok.cob",
+    "printed": "X1=2 X2=2 X3=2 X4=5 X5=3 X6=1 X7=1 (EXPECT: MATCH after correcting two hand-computed expectations to the alphanumeric comparison)",
+    "expected": "accepted: numeric-edited+alphanumeric item+literal, alphabetic+group+literal, SPACE+alphabetic+literal, signed scaled numeric+ZERO+literals+expression, T (ALL) over an ODO table (K=4 excludes T(5)=99), single numeric-edited argument, ref-mod with tie (leftmost)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r1.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric ... ISO §2023:15.71.3 r3 requires all arguments to be of the same class",
+    "expected": "refused: numeric + alphanumeric item"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r3.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric + numeric-edited (class alphanumeric, §1985:IV.4.3.3)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r4.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric + group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r5.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: alphabetic + numeric"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r6.cob",
+    "printed": "COBOL1627 argument-2 is of class alphanumeric",
+    "expected": "refused: numeric literal + nonnumeric literal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r7.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: alphanumeric + arithmetic expression"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r8.cob",
+    "printed": "COBOL1627 argument-2 is of class numeric",
+    "expected": "refused: SPACE + numeric"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/o_r9.cob",
+    "printed": "COBOL1627 argument-3 is of class alphanumeric",
+    "expected": "refused: numeric + ZERO + alphanumeric"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.32.3 AR1",
+    "check": "OK  §1989:A.2.32.3 AR1  (2.32.3 Arguments)  the text is in AR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.3",
+    "check": "OK  §1985:IV.4.3.3  (4.3.3 Concept of Classes of Data)  the text is in the clause"
+   }
+  ],
+  "notes": "CrossViolation intersects each argument's candidate classes after projecting to the class column and merging alphabetic into alphanumeric, which is exactly the amended 1985 rule; figuratives take their class from the context. All eight refusal shapes are refused and all accept shapes return the right ordinal. Diagnostics cite §2023:15.71.3 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.32.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked operand classes the reader did not try, at --std 85. Function arguments (§1989:A.2.3: alphanumeric functions class alphanumeric, integer/numeric functions class numeric): ORD-MAX(FUNCTION CHAR(66) 5) refused COBOL1627 'argument-2 is of class numeric'; ORD-MAX(FUNCTION CHAR(70) AL AX) accepted, O=1; ORD-MAX(FUNCTION LOWER-CASE(AX) AL 'Z') accepted, O=1. Reference modification (§1985:IV.4.3.8.4.4 GR5: a ref-modified numeric item is class alphanumeric): ORD-MAX(NU(1:1) AX) accepted, O=2; ORD-MAX(NU(2:1) NE(2:1) AL) accepted, O=3. ALL 'Q' and HIGH-VALUE with alphanumeric and alphabetic items accepted, O=1. Index data item: refused COBOL6979 (§1985:VI.5.14.3 SR5); index-name refused COBOL1637. National literal N\"AB\" refused at 85 by COBOL0900. The 2023 'p' negative list and r2 have nothing to act on at 85. cite.py: 'OK  §1989:A.2.32.3 AR1  (2.32.3 Arguments)  the text is in AR1'; 'OK  §1989:A.2.3  (2.3 TYPES OF FUNCTIONS)  the text is in the clause; it lies in GR1'; 'OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

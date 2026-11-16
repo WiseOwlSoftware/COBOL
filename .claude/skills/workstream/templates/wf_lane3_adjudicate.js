@@ -66,8 +66,10 @@ in your checkpoint file and return at once with what is decided (summary startin
 ` : ''}You work in the WiseOwl COBOL project. SOURCE OF TRUTH FOR CODE: the PINNED worktree ${PIN} (read-only snapshot, so verdicts
 are attributable; it carries its OWN built compiler at ${PIN}/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe — use THAT
 for probes, never the main tree's). SPEC: E:\\COBOL\\specs\\ISO_COBOL_2023.md (ISO/IEC 1989:2023). Read E:\\COBOL\\CLAUDE.md
-first — its eight rules bind you. You may run python scripts under ${PIN}/scripts (cite.py) and the pinned cobol.exe
-(compile-and-run a scratch program under ${OUT}/probe/<slug>/). You MUST NOT run dotnet build/test, git, or write inside
+first — its eight rules bind you. You may run python scripts under ${PIN}/scripts (cite.py) and the pinned cobol.exe,
+ALWAYS through the probe runner: python E:\\COBOL\\scripts\\orchestrator\\run_probe.py --root ${OUT}/probe/<slug> --std <edition>
+--tree ${PIN} [--expect <file.out>] <program.cob> (each run a NEW directory under the root, so nothing is ever deleted;
+never a recursive delete of a path that holds a variable: MANDATORY-PRACTICES P17). You MUST NOT run dotnet build/test, git, or write inside
 any repository tree; write only under ${OUT}.
 ⛔ CHECKPOINT PER RULE. The session limit can kill you at any moment and a killed agent's transcript is worthless; the
 checkpoint file is what survives. Your checkpoint file is named below. FIRST read it if it exists and SKIP every rule

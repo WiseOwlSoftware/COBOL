@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-1",
+ "rule-digest": "8f3be215c8cf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-106",
+  "sources": {
+   "reader": "03e88e7bff35ac76e8e68c99dc85a880522de7d1334116fc4471a93059560858",
+   "refuter": "3317c8d04e9c6809595b476721c27213369c7446bd459c4bb93645d1801fb202"
+  },
+  "imported": {
+   "reader": "fc404a25d863f7fcd784cbf7f204148902cb4442abb16a1276d6c2f17af81652",
+   "refuter": "e733de33cb841c05f7f072b51cb9c67777c767ab54095a07adbe353d8d10b701"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "DIVIDE format 1 stores literal-1 or identifier-1's value once in a temporary and divides it into each identifier-2 in left-to-right order, each quotient replacing that dividend (a later identifier-2's subscript seeing earlier stores, per the multiple-results equivalence of VI.6.4.6).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#MaterializesInitialEvaluation; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#Snapshot; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FinalQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error (zero divisor) is caught and the run continues; from 2002 it is fatal EC-SIZE",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "below 2002 the composite is the receiving items only, capped at 18 digits (EditionInfo.MaxDigits); 31 digits over all operands later (SR3, not GR1)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ArithmeticEmitter.cs for Edition, DialectLevel, DialectBehavior: line 264 (the format 4 and 5 remainder's subsidiary quotient, not format 1) and line 719 (EmitArith); the format 1 temporary-and-loop itself (EmitDivide) has no edition arm.",
+  "behaviour-differs-by-edition": "yes: an unphrased zero divisor continues at 85 (receivers unchanged) and is fatal EC-SIZE-ZERO-DIVIDE at 2023; the GR1 quotients are identical (div1 stdout identical at --std 2023)",
+  "witnesses-cover": "part: aliasing of identifier-1 with an identifier-2, a subscript changed by an earlier receiver, ROUNDED, scaled, signed and 18-digit receivers and size error are not exercised by g85_bf14_04",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/div1.cob",
+    "printed": "A=+001 B=+005 C=+004 / I=2 T=+010+005+010+010+010 / I=2 T=+010+002+010+002+010 / S=-2.33 R=+0.3 Q=0.6 / BIG=-333333333333333333 / SE1 SM=9 ZD=000 / SE2 SM=9 ZD=005 / SMSM=0 / SM=1 ZD=000",
+    "expected": "the divisor taken once before any store (DIVIDE A INTO A B C gives 1 5 4), a later identifier-2's subscript evaluated after an earlier store (T(2) divided after I became 2), per-receiver ROUNDED and truncation, an 18-digit negative quotient, a size error on one receiver leaving the others stored, a zero divisor with ON SIZE ERROR changing nothing"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/div2.cob",
+    "printed": "AFTER-ZERO SM=9 ZD=006 / BIG=000000000000120000 / SM=4 ZD=003 ; at --std 2023: EC-SIZE-ZERO-DIVIDE fatal",
+    "expected": "VI.6.4.2: an unphrased size error leaves the affected resultants undefined and control goes to the end of the statement"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/div3.cob",
+    "printed": "COBOL1689 (literal as identifier-2), COBOL1675 (numeric-edited identifier-2), COBOL0844 (alphanumeric identifier-1)",
+    "expected": "SR1 and SR2 refuse each"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR1",
+    "check": "OK  §1985:VI.6.11.4 GR1  (6.11.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "EmitDivide renders the divisor once and snapshots it whenever there are several receivers or one identified at run time, then forms each receiver's quotient as receiver / temp at that receiver's scale and ROUNDED mode, left to right, each in its own GuardedStore. VI.6.4.6 has no numbered rules, so it is named in prose only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "d1.cob (d1-001) at --std 85: DIVIDE .99999999999999999 (literal and a V9(17) item) INTO a 9(18) holding 99999999999999998 stores 99999999999999998 (exact quotient 99999999999999998.99999..., truncated; checked with Python Fraction), 1/3 into 9V9(17) = 0.33333333333333333, 2/3 ROUNDED = 0.66666666666666667, -5/3 ROUNDED into S9V9 = -1.7, -1/7 ROUNDED into S9V9(17) = -0.14285714285714286, DIVIDE K INTO K K K (K=12) = 0 (temporary taken once, each later receiver divided after the earlier store). d2a: receivers 9(10) and V9(9) (19-digit composite) refused COBOL0805 (SR3); d2b: ROUNDED MODE IS refused COBOL0803; d2c: USAGE INDEX and group receivers refused COBOL1675; d2d: alphanumeric literal refused COBOL0844, ZERO accepted (1985 allows figurative ZERO where a numeric literal is required); d3: FUNCTION INTEGER as identifier-1 refused COBOL0900 (1985: a numeric function only in an arithmetic expression). Read ArithmeticEmitter.cs#EmitDivide: divisor snapshotted when MaterializesInitialEvaluation (several receivers or a run-time-identified one), quotient per receiver left to right. cite.py: OK  §1985:VI.6.11.4 GR1 (the text is in GR1); OK  §1985:VI.6.11.3 SR3 (the text is in SR3)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

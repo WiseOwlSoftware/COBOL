@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-VI.6.3.3-L2.1",
+ "rule-digest": "2705fecd6821",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-021",
+  "sources": {
+   "reader": "d8b04f25894c554c86c7c009c255e91a675061cd161721206e4d73509e56127f",
+   "refuter": "7ed834854b592c4129cae5be328aeb61a7b43d5647cc251a4a1fb77878085e52"
+  },
+  "imported": {
+   "reader": "f7ed3f233faa91526e48baf86d758dcca5a4f30787370717670a8c2212078a6b",
+   "refuter": "b1987f44ac2d5a9887ca2b94c9286c403bb96212e951f8cb0f7d72f8836008bc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.3-L2.1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in an abbreviated combined relation condition, a NOT immediately followed by GREATER, >, LESS, <, EQUAL or = is part of the relational operator (and that negated operator is what is carried to later abbreviations); after any other word (IS, >=, <=, an object) the NOT is the logical operator of a negated relation (GRL2.2).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#succeedingCondition; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#negatedAbbreviatedRelation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindNegatedAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindAbbreviatedRelation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindNegatedAbbreviatedRelation",
+    "switches": "ctx.Edition.Edition.Has(2002) && form IsLedSimpleOperator reads NOT IS > as part of the operator (2002 GR2b); at 85 every negatedAbbreviatedRelation is BoundNot of the stated relation",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNegatedAbbreviatedRelation",
+    "switches": "refuses the logical-NOT shape from 2002 (construct abbreviated-not-logical-removed-2002, COBOL0902) and the IS-led shape from 2014; nothing at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/Constructs.g.cs#AbbreviatedNotLogicalRemoved2002",
+    "switches": "the ConstructRegistry.g.cs row 'abbreviated-not-logical-removed-2002', 85..2002, for the logical NOT before an operator",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 'NOT >=', 'NOT <=' and 'NOT IS >' in an abbreviation are the logical NOT with the stated operator carried; at 2023 the first two are refused (COBOL0902, removed 2002) and 'NOT IS >' is refused (removed 2014), and at 2002 'NOT IS >' is read as the operator NOT >.",
+  "witnesses-cover": "part: pb1034 and pb1390 exercise operator spellings and AND/OR tails; not NOT before IS, >= or <=, nor the carry of a negated operator into a later abbreviation, nor the standard's five expansion examples",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/abnot.cob",
+    "printed": "--std 85: 11 forms x 81 value combinations (A,B,C,D in 1..3), each abbreviated form against its hand-expanded equivalent: F01-F11 MISMATCH 000 (TRUE counts 056 072 063 030 075 055 033 071 051 073 043). Forms: the standard's five examples, NOT >= C OR D, NOT IS > C OR D, NOT GREATER C OR D, NOT = C AND D, NOT <= C OR D, NOT LESS THAN C OR EQUAL TO D",
+    "expected": "the expanded equivalents printed under VI.6.3.3 and GRL2.1/GRL2.2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/abnot.cob",
+    "printed": "--std 2023: COBOL0902 at line 54 (NOT >=), 59 (NOT IS >), 75 (NOT <=); exit 65",
+    "expected": "a later edition's refusal of the 1985-only shapes; 85 accepts them"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/abnotref.cob",
+    "printed": "COBOL0001 at 'NOT NOT < C' and at 'NOT GREATER OR EQUAL C'; exit 65",
+    "expected": "NOT NOT is no reading (Table 1); NOT before GREATER joins the operator and NOT GREATER THAN OR EQUAL is no 1985 relational operator"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.3 GRL2.1",
+    "check": "OK  §1985:VI.6.3.3 GRL2.1  (║6.3.3 Abbreviated Combined Relation Conditions║)  the text is in GRL2.1"
+   }
+  ],
+  "notes": "GRL2.1 is the parser predicate itself: logicalNotBeforeRelationalOperator excludes exactly GREATER, >, LESS, <, EQUAL, = (and NOT), so those NOTs parse inside comparisonOperator and every other NOT before an operator takes negatedAbbreviatedRelation, bound at 85 as BoundNot with the stated operator carried. The exhaustive 81-combination truth-table probe found no mismatch.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.3-L2.1",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "The 1985 abbreviation format (rendered PDF page 293, folio VI-61) is 'relation-condition {{AND|OR} [NOT] [relational-operator] object}...', and the relational-operator table (PDF page 287, VI-55) prints 'IS [NOT] <' with IS not underlined (optional). So 'A > B OR NOT NOT < C' is [NOT] + relational-operator 'NOT <' (IS omitted) + object. GRL2.1/GRL2.2 then read it: the first NOT is followed by NOT, which is not GREATER, >, LESS, <, EQUAL or =, so 'otherwise' it is the logical operator; the second NOT is followed by < and joins the operator; expansion (A > B) OR (NOT (A NOT < C)). Table 1's 'NOT NOT' bar governs 'The result of such implied insertion' (§1985:VI.6.3.3 SR2-located text, cite OK), and the result 'NOT A NOT < C' contains no NOT NOT pair (NOT followed by a simple-condition, which Table 1 permits). Probe refute-1985-021/abn3.cob --std 85 (abn3-001): COBOL0001 'cannot parse construct near NOT' at 'A > B OR NOT NOT < C', 'OR NOT NOT = C', 'OR NOT NOT LESS C', while 'A > B OR NOT IS NOT < C' (the same operator with its optional IS) compiles; abn2.cob --std 85 (abn2-001): 11 further forms x 81 combinations all MISMATCH 000, incl. 'A > B AND NOT IS NOT < C' (TRUE 003), 'A > B AND NOT = C OR NOT D', 'A > B OR NOT IS NOT = C', 'A NOT > B OR NOT >= C OR NOT D'. Same refusal at --std 2023 (abn3-002). Code: CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator lists NOT among the words after which a NOT is NOT logical (LA(2) is not ... or CobolParserCore.NOT), adding a seventh word to GRL2.1's six; the comparisonOperator arm then cannot take 'NOT NOT <', so neither reading exists. kb/Work PB5123/2026-11-14-landed.md asserts 'NOT NOT > C ... stay COBOL0001 at 85, correctly' without argument; no note files it as a defect. cite: OK  §1985:VI.6.3.3 GRL2.1; OK  §1985:VI.6.3.3 GRL2.2 'The NOT is interpreted as a logical operator'; OK  §1985:VI.6.3.1.1 'NOT and the next key word or relation character are one relational operator'; OK  §1985:VI.6.3.2.3 'the pair NOT NOT is not permissible' (Table 1, about the logical-operator element).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator: excludes LA(2)==NOT at every edition, which at 85 removes GRL2.2's 'otherwise' arm for a NOT followed by NOT (the IS-less spelling of 'NOT IS NOT <')"
+  ],
+  "corrected": "NON-CONFORMING (rejects-legal-source), cause (b)/(c): at --std 85 'A > B AND NOT NOT < C' (equivalently 'NOT NOT = C', 'NOT NOT LESS C') is legal 1985 source meaning (A > B) AND (NOT (A NOT < C)) by GRL2.1's 'otherwise' and GRL2.2, yet it is refused with COBOL0001; the IS-spelled 'NOT IS NOT < C' with the same meaning compiles and evaluates correctly. The rest of the rule (the six words, the carry of a negated operator, logical NOT before IS/>=/<=/object) conforms on 1,782 checked combinations."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "`IF A > B OR NOT NOT < C` is refused at 85. By `§1985:VI.6.3.3 GRL2.1` the second NOT, followed by `<`, is part of the relational operator and the first is the logical operator, so the condition is `A > B OR NOT (A NOT < C)`; the same condition written `NOT IS NOT <` compiles. I ran both.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-2.md"
+ },
+ "work": "PB5784"
+}

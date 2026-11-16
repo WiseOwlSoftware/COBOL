@@ -1,0 +1,115 @@
+{
+ "rule-id": "1985-SR-VI.5.11.3-7",
+ "rule-digest": "d8079715d1cc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-156",
+  "sources": {
+   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
+   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+  },
+  "imported": {
+   "reader": "183c2575c9f77a09e0fa33d07d065ae6239e430823f7606d94344b04df2716d6",
+   "refuter": "e8b78d0edd34a116ceec17f08af40d91eee0333a4496306fa38113b4c6becc87"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.11.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 THROUGH and THRU in a RENAMES entry are one phrase: either spelling (any letter case) is accepted wherever the other is, gives the same range (GR1), and is refused under the same conditions (missing data-name-3, data-name-3 before or subordinate to data-name-2).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run",
+  "edition-consulted": [],
+  "edition-search": "renamesClause is RENAMES dataReference ((THRU | THROUGH) dataReference)? with no predicate; BindRenames folds the two tokens into one bool (rc.THRU() is not null || rc.THROUGH() is not null). Grepped BindRenames, ResolveRedefinesPass and VersionConformancePass for Edition/DialectLevel/Year and for THROUGH: none; ReservedWords.Table reserves both words at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness shows both spellings giving the same storage; the refusal side under each spelling, lowercase spellings and a group data-name-2 with THROUGH are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/w_thru.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "R1=[ABCD] R2=[ABCD] R1=[WXYZ] C=[EF]"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_lc_through.cob",
+    "printed": "R=ABCD12",
+    "expected": "renames A through S: group data-name-3 with a numeric item, lowercase through"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_lc_thru.cob",
+    "printed": "R=CD12EF",
+    "expected": "renames S thru D: group data-name-2, lowercase thru"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_through_grp_elem.cob",
+    "printed": "R=CD12",
+    "expected": "B THROUGH C within one group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_rev_through.cob",
+    "printed": "error COBOL2740: 'R' RENAMES D THRU A: the beginning of data-name-3 precedes the beginning of data-name-2",
+    "expected": "refused (SR8), same as THRU"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_rev_thru.cob",
+    "printed": "error COBOL2740: (identical)",
+    "expected": "refused (SR8)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_sub_through.cob",
+    "printed": "error COBOL2740: 'R' RENAMES S THRU B: the end of data-name-3 does not follow the end of data-name-2",
+    "expected": "refused (SR8: data-name-3 subordinate to data-name-2), same as THRU"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_sub_thru.cob",
+    "printed": "error COBOL2740: (identical)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_same_through.cob",
+    "printed": "error COBOL2740: 'R' RENAMES A THRU A ...",
+    "expected": "refused (SR4: not the same data-name)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p7_nothru3.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused: THROUGH without data-name-3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.11.3 SR7",
+    "check": "OK  §1985:VI.5.11.3 SR7  (║5.11.3 Syntax Rules║)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.11.3 SR8",
+    "check": "OK  §1985:VI.5.11.3 SR8  (║5.11.3 Syntax Rules║)  the text is in SR8"
+   }
+  ],
+  "notes": "The two spellings are one grammar alternative and one bound flag, so they cannot diverge; every refusal reads 'THRU' in its message whichever was written. No edition is consulted on this rule's path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.11.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85: c5_mixed (ThRoUgH and tHrU, Amendment 2 lowercase equivalence) printed 'R1=ABCD R2=CDEF'; c5_cont (THROUGH split across a fixed-form continuation line, THRO / '-' UGH) printed R1=ABCDEF; c5_fdq (THROUGH and THRU with file-name and record-name qualified operands on the second of two same-layout FDs) printed 'RA=WXYZ RB=WXYZ'; c5_twice ('A THROUGH B THRU C', degenerate double phrase) refused COBOL0300. Grammar renamesClause takes (THRU | THROUGH) as one alternative with no predicate; ReservedWords.Table reserves both at 85 (mechanical list check in case 1). Cite: OK §1985:VI.5.11.3 SR7 'The words THROUGH and THRU are equivalent'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

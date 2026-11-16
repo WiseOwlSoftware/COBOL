@@ -500,7 +500,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // (§2023:8.8.4.2.4 — "when native arithmetic is in effect, comparison proceeds by the rules of native
         // arithmetic"). IEEE NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# —
         // spec-conformant, no epsilon. Under STANDARD-DECIMAL this branch is SKIPPED so the float lifts to SDIDI below.
-        if ((l.Real || rr.Real) && !num.StandardDecimal)
+        // ⛔ NATIVE ARITHMETIC IS A 2002+ RULE (kb/Work PB5835): "the comparison proceeds by the rules of native arithmetic" is
+        // §2002:8.8.4.1.1.3 and §2023:8.8.4.2.4; §1985:VI.6.3.1.1.1 knows only "a comparison is made with respect to the
+        // algebraic value of the operands", so at --std 85 a float operand lifts to its exact value and compares decimally below.
+        if ((l.Real || rr.Real) && !num.StandardDecimal && ctx.Data.DialectLevel >= 2002)
             return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
         // Under standard-decimal, §2023:8.8.4.2.4 requires EACH operand converted to standard-decimal intermediate form
         // and compared decimally — a float lifts via the §2023:8.8.1.5.1 float→SDIDI conversion (DecOperand →

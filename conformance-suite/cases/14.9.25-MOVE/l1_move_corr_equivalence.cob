@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: l1_move_corr_equivalence
-*> rules: [SR-14.9.25.3-11]
-*> accept: [2002, 2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: l1_move_corr_equivalence
+      *> rules: [SR-14.9.25.3-11]
+      *> accept: [85, 2002, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO §2023:14.9.25.3 SR11 MOVE statement (FORMAT 2) — "The words CORR and CORRESPONDING are
       *> equivalent."
       *>   python scripts/spec/cite.py --check 14.9.25.3 "The words CORR and CORRESPONDING are

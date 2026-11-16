@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.12.2-3",
+ "rule-digest": "44d3a7c80651",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#valueRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#RangeAlphabet; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetOperandClass; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetClassMismatch; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RangeAlphabetUndeclared; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindRangeHigh; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#WithoutTrailingSuffix; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#TryResolveRangeAlphabet; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#RegisterRangeCollation; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#IsAlphabetName",
+ "test-ref": "conformance:cases/14.8.12@2002-EVALUATE-STATEMENT/g2eva03_cd_range_alphabet",
+ "notes": "§2002:14.8.12.2 SR3: alphanumeric CD range operands SD1/SK with alphanumeric alphabets NATIVE and REV give E1 IN, E2 IN per §2002:14.6.7 and §2002:12.2.6.3 GR7k, while numeric CD operands (COBOL1998) and a national alphabet with alphanumeric operands (COBOL1999) are refused; the --std 2002 runs matched."
+}

@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-IX.4.5.4-3",
+ "rule-digest": "db9f0a64c7b8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-008",
+  "sources": {
+   "reader": "7d984fa77d3938f96da55d818a1513326d938e008383fed059cfa43e4963c849",
+   "refuter": "a17135ef97d0d1c1ce3bc11aae9b5d592cb7d8874820b569c8d2b127911dce29"
+  },
+  "imported": {
+   "reader": "ea98eb5135f5e6fa2449d3e86e62e77cea4bf4e001e15f9aef9d8e00ec061c81",
+   "refuter": "2f089e9bbc1bd85ea858e9f1eec0c3f785ac3c5822fa9d1bdb592d946e82e324"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every execution of a READ (format 1 or 2, any access mode) of an indexed file must update the file's I-O status to the IX.1.3.4 value for its outcome (00, 02 incl. a random READ whose alternate key of reference duplicates the next record's, 04, 10, 23, 30, 46, 47), before any USE procedure runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedReadStatus; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RandomReadAbsentOptionalGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (ChangedIn 2002): at 85 a random READ by an alternate key whose next record duplicates it answers 02; from 2002 00",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord",
+    "switches": "DialectBehavior.IndexedReadPreviousAfterOpenAtEnd (READ PREVIOUS after OPEN); unreachable at 85, where READ PREVIOUS is refused (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Edition",
+    "switches": "the compiling program's edition baked on the connector at registration, read by the two DialectBehaviors.IsActive calls above",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO and the READ emitter; the status store (EmitStoreFileStatus) itself is unconditional and edition-blind.",
+  "behaviour-differs-by-edition": "yes: at 85 a random READ by an alternate key with a following duplicate sets 02 (IX.1.3.4 item 1b 1), at 2023 00; READ PREVIOUS does not exist at 85",
+  "witnesses-cover": "part: pb336_optional_absent_read_46_85 covers 05/10/46/23 for optional-absent files and failed START/random reads; not covered are 02 (alternate duplicate, random and sequential), 47 (READ on a file not open), status reset to 00 after an earlier failure, and the status as seen inside a USE procedure.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p2/read85.cob",
+    "printed": "USE SEES 47 / NOT-OPEN-SEQ=47; NOT-OPEN-RAND=47; RAND-ALT-DUP=02 0001AAAone; NEXT-ALT=00 0002AAAtwo; NEXT-ALT=00 0003BBBthree; AE NEXT-ALT-END=10; USE SEES 46 AFTER-END=46; INV23 RAND-NF=23; RAND-PRIME=00 0002AAAtwo (INTO); NEXT-PRIME=00; RAND-ALT-UNIQ=00",
+    "expected": "47 for READ of a file not open (IX.1.3.4 5f), visible in the USE procedure; 02 for the random alternate-key READ whose next record has the same AK (1b 1); 10 at end, 46 after it (5e 3); 23 not found; a later success resets to 00"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p2/read85.cob",
+    "printed": "--std 2023: RAND-ALT-DUP=00 (every other line identical)",
+    "expected": "85 arm 02 vs 2002+ arm 00, the one edition difference on this path"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p2/readprev85.cob",
+    "printed": "error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "READ PREVIOUS is not in the 1985 format 1 (IX.4.5.2), so it is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.4 GR3",
+    "check": "OK  §1985:IX.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.1b.1"
+   }
+  ],
+  "notes": "The emitter stores the connector's status into the FILE STATUS item unconditionally after every READ, before the USE hook and the phrase branches. The connector computes the status per outcome and has an 85-specific arm for 02 on a random alternate-key READ, which the probe shows taking effect at 85 and not at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/b/rd.cob at --std 85 (USE procedures, no AT END/INVALID KEY phrases): random and sequential READ on a file open OUTPUT 47, sequential READ on a file open EXTEND 47, READ after CLOSE 47, random not found 23 seen in the USE procedure, found 00, random READ KEY IS alt-key with a following duplicate 02 (the 85 arm), last duplicate 00, at end 10 seen in USE. Later-edition READ phrases refused (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/f/l4,l5,l6,l10: lock phrases, ADVANCING ON LOCK, RETRY). cite.py: 'OK  §1985:IX.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5f'. Edition grep over Runtime/IO confirms the reader's sites (IndexedConnector lines 445, 580; FileConnector.Edition).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

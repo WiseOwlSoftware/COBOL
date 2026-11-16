@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-IX.1.3.4-1",
+ "rule-digest": "d64dac7ddf57",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-088",
+  "sources": {
+   "reader": "39110929ecfc0dd99ae45321e31f75511cd828c0db0cb06751c3ae1f00ff5afc",
+   "refuter": "aef7968fb202f68c58a66835384d08e702f15bfa628f711628a49ef1fd10d2ae"
+  },
+  "imported": {
+   "reader": "6a4c4eda0948545f4cb283129af749eb42be735808813dc06d59a450cd4d0327",
+   "refuter": "3bbbdd437f7a0e9fc27ad4044a2f7d5614d637d36318a51233a5ee8d045fec70"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every successfully executed input-output statement on an indexed file (OPEN, CLOSE, READ random/sequential/dynamic, WRITE, REWRITE, START, DELETE) must leave a successful-completion I-O status (first digit 0: 00, or 02/04/05 where their conditions hold) and, being successful, must not execute any USE AFTER STANDARD EXCEPTION procedure.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#Success; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#DuplicateAlternateKey; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#OptionalFileNotFound; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#IndexedReadStatus; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly (changed 2002): at 85 a random READ by an alternate key whose next record has the same key answers 02, from 2002 only a sequential READ does",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (2002): at 85 no connector restricts another, so OPENs of a second connector succeed with 00",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "bakes the --std edition into the file connector (FileConnector.Edition) that the two behaviours above read",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: a random READ by an alternate key with a following duplicate gives 02 at 85 (as §1985:IX.1.3.4's 02 item, 'For a READ statement', names no access mode) and 00 at 2023; every other success status takes the same arm",
+  "witnesses-cover": "part: g85_bf18_06 is one success case; not exercised: 02 on WRITE/REWRITE of an alternate duplicate, 02 on sequential and random READ, 05 on OPEN INPUT and OPEN I-O of an absent optional file (with creation), DELETE/START/CLOSE 00, and that no USE procedure runs on 02/05",
+  "probes": [
+   {
+    "class": "e,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/io1.cob",
+    "printed": "OPEN-OUT 00, W1 00, W2 00, W3-DUPALT 02, CLOSE 00, OPEN-IO 00, RR1 00, RW1 00, RW2-DUPALT 02, RK-ALT 02 001AAone, ST 00, RN1 02, RN2 02, RN3 00, DEL 00, CLOSE2 00, OPT-IN 05, OPT-CLOSE 00, OPT-IO 05, OPT-W 00, OPT-REOPEN 00, OPT-R 00 XYZ, USE-COUNT 0 (at --std 2023: RK-ALT 00)",
+    "expected": "every statement succeeds with a 0x status; 02 for an alternate duplicate written/rewritten and for a READ whose next record has the same key; 05 for an absent optional file, the I-O open creating it; the USE procedure on IX/OX/OY never runs"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-088/io4c.cob (and io4d, io4e control)",
+    "printed": "fixed-size reader IB (RECORD CONTAINS 10) opened INPUT on a zero-byte file, a 20-character record written by IA (VARYING 5 TO 20): RR-IB 00 / R-IB 00; the same with IB VARYING 9 TO 10: RR-IB 04 / R-IB 04",
+    "expected": "the READ is successful either way (GR1 holds); the specific value 04 belongs to 1985-GR-IX.1.3.4-L2.1 c and §1985:IX.4.5.4 GR18, recorded as a lead in notes"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.4 GR1",
+    "check": "OK  §1985:IX.1.3.4 GR1  (1.3.4 I-O Status)  the text is in GR1"
+   }
+  ],
+  "notes": "Successful statements report 00/02/05 and never reach the USE machinery. LEAD (not this row; for 1985-GR-IX.1.3.4-L2.1 and 1985-GR-IX.4.5.4-18): kb/Work PB5480 (landed) added the 04 arm but it fires only for a RECORD VARYING reader; a fixed-size indexed reader that reads a longer record written by another connector on a file it opened while zero-byte gets 00 (io4d: RR-IB 00 001abcdefg) where the varying twin gets 04 (io4e). Site: IndexedConnector.IndexedReadStatus / FileConnector.RecordLengthConflicts fixed arm; PB5480 records that two concurrent connectors are a 1985-undefined setup.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe refute-1985-088/src/p5.cob at --std 85 (run p5-001) covers what io1 did not. A prime-key sequential READ NEXT over records that share an alternate key gave 00 for each (PN1/PN2), not 02. A random READ by the prime key gave 00. A random READ KEY IS AK gave 02, and the READ NEXTs that followed gave 02 and then 00 at the last duplicate. START KEY GREATER gave 00. Sequential-access READ, REWRITE and DELETE on a second connector gave 00. OPEN EXTEND of an absent OPTIONAL indexed file gave 05, its WRITE gave 00, and the file was created (re-read 00 100). USE-COUNT stayed 0. One reading point that does not decide this row: a REWRITE that leaves an already duplicated alternate key value unchanged gave 00, not 02; both are successful-completion values, and the 02 item is a sub-item of its own. cite.py: OK §1985:IX.1.3.4 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

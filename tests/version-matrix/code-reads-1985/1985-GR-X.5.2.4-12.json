@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-12",
+ "rule-digest": "f39214107506",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "9d7ba48518a0f9ebaec42ccfe13873ed13242abe6632d3d877b22623e695bfe4",
+   "refuter": "b98a06249d2c90b295e3ed94c387d745c0a2a64881eebca40cff289886e1a183"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.2.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in CALL ... USING, a BY CONTENT or BY REFERENCE phrase (BY optional) applies to every following identifier-2 until the next such phrase, and arguments before any phrase are passed BY REFERENCE; the 1985 USING admits only identifier-2 operands under those two phrases, so BY VALUE, OMITTED and literal operands are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#CarriedModeAfter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format2OnlySpellingOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format1Narrowing",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramPrototypeNamesExist",
+    "switches": "ConstructRegistry program-prototype-name-2002: false at 85, so BindCall takes the judgedUpFront arm (every argument's spelling judged before binding, carried mode threaded by CarriedModeAfter)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format1Narrowing",
+    "switches": "ConstructRegistry availability of each Format-2-only spelling (BY VALUE, OMITTED, literal/expression operand): refused COBOL0900 at 85, admitted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+    "switches": "ConstructRegistry call-function-identifier-argument-2002 (the 1985 SR4 refusal of a function-identifier operand) in the up-front arm",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: 2023 adds BY VALUE (also transitive) and literal/OMITTED operands; at 85 those are refused, and the transitive mode itself (CarriedModeAfter, the one writer) is the same code at every edition.",
+  "witnesses-cover": "part: pb131 covers BY CONTENT A B BY REFERENCE C D with BY written; it does not exercise the bare leading default before a later phrase, the BY-less REFERENCE/CONTENT spelling, a subordinate elementary operand, or the refusal of 2002 operand forms.",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/c1pos.cob",
+    "printed": "DEF A=0011 B=0012 C=0013 D=0014 G1=0015; MIX A=0021 B=0012 C=0013 D=0024 G1=0015; LEAD A=0031 B=0012 C=0023 D=0024 G1=0015",
+    "expected": "all by reference with no phrase; USING REFERENCE A CONTENT B C REFERENCE D CONTENT G1 changes only A and D; USING A BY CONTENT B BY REFERENCE C BY CONTENT D G1 changes only A (assumed BY REFERENCE) and C"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/c1val.cob",
+    "printed": "error COBOL0900: the CALL BY VALUE phrase requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format has only BY REFERENCE and BY CONTENT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/c1lit.cob",
+    "printed": "error COBOL0900: a literal or expression as a CALL argument requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: BY CONTENT takes identifier-2 only in 1985"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/c1omit.cob",
+    "printed": "error COBOL0900: the omitted-argument facility (OMITTED / OPTIONAL / IS OMITTED) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: OMITTED is not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR12",
+    "check": "OK  §1985:X.5.2.4 GR12  (5.2.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "One writer (CarriedModeAfter) threads the transitive mode from an initial BY REFERENCE in both the 85 up-front judgement and the binding loop. All three mixes printed the values GR12 derives, and the 2002-only operand forms are refused at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-12",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "r3pos.cob at --std 85 (refute-1985-033/r3pos-001): the identifier-1 (dynamic) CALL path with ON OVERFLOW, 'CALL PN USING BY CONTENT A TE (I) BY REFERENCE B TE (3) G1', printed 'DYN A=0001 T2=0007 B=0012 T3=0017 G1=0015' (content transitive over a subscripted element, reference transitive over a subscripted element and a subordinate elementary item); the literal path with ON EXCEPTION/NOT ON EXCEPTION and repeated BY-less phrases 'CONTENT A CONTENT B CONTENT TE (1) REFERENCE TE (2) G' printed 'NOEXC / LIT A=0001 B=0012 T1=0007 T2=0017 G1=0025' (all content operands unchanged, the 01 group by reference changed). Degenerate forms refused: 'USING BY CONTENT BY REFERENCE A' COBOL0001 unexpected 'BY'; 'USING A BY CONTENT' and 'USING BY REFERENCE' COBOL0001 unexpected '.'; 2002 operand forms 'BY CONTENT ADDRESS OF A' COBOL0900 and 'BY CONTENT LENGTH OF A' COBOL5506. cite.py: OK §1985:X.5.2.4 GR12 the text is in GR12; OK §1985:X.5.2.3 SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

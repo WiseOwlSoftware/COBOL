@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-RV-A.2.42.4-3",
  "rule-digest": "491b4b58cc84",
+ "test-ref": "conformance:cases/A.2.42@1985-SUM-FUNCTION/g85_bf40_08",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

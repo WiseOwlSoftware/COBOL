@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-XIII.4.9.4-4",
+ "rule-digest": "0eada0536fd7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "a8f63c3157ae60e0353a974bcdc2538942386bae238467b6041d28e8ac6dad5f",
+   "refuter": "16041cbd7cb17c9e910956567cfbf3f29cf0095f889db133b849cfd9fb30040c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.9.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the USE BEFORE REPORTING procedure for a report group is executed by the RWCS just before that group is produced, for every group type (RH, PH, CH, DE, CF, PF, RF), each time it is produced (page-advance PF/PH included, and the detail processed unprinted under GENERATE report-name per GR11 b).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitBeforeReportingSelectors; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall",
+  "edition-consulted": [],
+  "edition-search": "Grepped DialectLevel|Edition.Has|IsActive(|CobolVersion in ReportWriterEmitter.cs and EmitterState.cs (only the engine construction's Edition = DialectLevel) and Edition in ReportWriter.cs: RunBeforeReporting, BeginGroup and EmitSelectors read no edition. USE GLOBAL BEFORE REPORTING is a 1985 IPC level-2 feature (§1985 XVII substantive change 105), so the GLOBAL selector arm is legitimately live at 85.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb369 covers DE and CF FINAL declarative selection across nested programs; RH, PH, CH, PF, RF timing and the page-advance interleaving are not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/supa.cob",
+    "printed": "USE RH LC=00, USE PH LC=01, USE DE, USE CF LC=11, USE PF LC=12, USE RF LC=18; each printed line carries the tag its own declarative moved (rh, ph, de, cf, pf, rf)",
+    "expected": "each declarative runs before its group's SOURCE items are formatted"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/usebr.cob",
+    "printed": "sequence counter SOURCEd by every group: report PH 01, CH 02, DE 03-06, CF 07 10, PF 09, PH 10, CH 10, DE 11-12, CF 14 17, PF 15; CH(K=2) declarative (08) runs, then the page advance's PF (09) and PH (10), then the CH; GENERATE R1 runs USE DE 13 without printing",
+    "expected": "USE before each production (§1985:XIII.3.20.4 GR9a/GR10c/GR11b); GR12 lets the page advance intervene after the body group's USE and before its presentation"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.4 GR4",
+    "check": "OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR12",
+    "check": "OK  §1985:XIII.3.20.4 GR12  (3.20.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR11b",
+    "check": "OK  §1985:XIII.3.20.4 GR11b  (3.20.4 General Rules)  the text is in GR11b"
+   }
+  ],
+  "notes": "Every presentation path funnels through BeginGroup, which calls RunBeforeReporting after the group's sum additions and before the presence snapshot and lines. The printed CH 10 shows its SOURCE is formatted after the intervening page advance; GR12 permits the interruption, and when the print lines are formatted within GR9c is not this rule's question.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.9.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe u1_dummy_use.cob (--std 85): nonprintable (no LINE) RH, CH, DE, CF, CF FINAL, RF each with a USE BEFORE REPORTING: printed USE RH-X / USE CH-X K=1 / USE DE-X N=1 / USE CF-X K=1 (prior on the break) / USE CH-X K=2 / USE DE-X N=3 / TERMINATE / USE CF-X K=2 / USE CF-F / USE RF-X, and nothing for a TERMINATE after an INITIATE with no GENERATE: the USE runs each time the group is produced, printable or not (§1985:XIII.3.20.4 GR9a, GR10c, GR11b). Probe u2_orpage.cob (class c): the 2002 OR PAGE control-heading reprint path, which re-enters BeginGroup, is refused at 85 (COBOL0900), so no second USE arm is live. cite.py: OK §1985:XIII.4.9.4 GR4; OK §1985:XIII.3.20.4 GR9a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

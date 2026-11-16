@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-XIII.3.17.4-4",
  "rule-digest": "5f676516c2ac",
+ "test-ref": "conformance:cases/13.18.52-SIGN/l1_sign_signed_item_conversion",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1171_report_file_legal_references
       *> rules: [SR-13.4.5.3-8, SR-13.4.5.3-9, SR-13.18.46.3-3]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

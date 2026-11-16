@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.23.2-3",
+ "rule-digest": "b482ec2882cb",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.25-FROM/a42-screen-from",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.25.3-3, witnessed at 2002 by the cases test-ref names. The read: The cross-reference differs only by number: 2002 OCCURS SR12 and 2023 OCCURS SR13 are the same screen-table rule (texts compared). Screen section only; licensed and declined at 2002. Cited: §2002:13.16.23.2 SR3; §2002:13.16.36.2 SR12; §2002:3.1.5; §2002:B.3."
+}

@@ -1,0 +1,199 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-4",
+ "rule-digest": "53f39118d1d6",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-08",
+  "sources": {
+   "reader": "202d91b2ed26e5c3ce2e3f4679bd6b14d1db0526e78703866c5edf4ae776acb2",
+   "refuter": "50d13ea7be3d7dc9403270870e5e7a135de95c4fcd134e35ff35643863b226a8"
+  },
+  "imported": {
+   "reader": "ad37cdb632f089cebe102978c52b7456efd382bdc33384fabd617ab4ba71d9a5",
+   "refuter": "8bbe44b1bc875983a4dabb505b5aa38e7bbea305f736f364e992f70940acce3c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each SORT key data-name must resolve, possibly qualified, to an item described in a record description of the SD (any one of several), which is not a group containing a variable-occurrence item, whose entry carries no OCCURS and is not subordinate to one carrying OCCURS, and which lies within the first x character positions (x the minimum record size) when the SD's records vary in length. A key violating any of a, c, e or f is refused; b and d are admissions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortKeyAdmission.cs#Violation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRootOf; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#OffsetInRecord; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced for a Format 3 RECORD CONTAINS integer-4 TO integer-5 SD = DialectBehavior.RecordContainsRangeBindsRecordSize (from 2002); FileModel.VaryMin, the x of item f, is the smallest record description at 85 and integer-4 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition, DialectLevel, Year <, DialectBehavior, CobolVersion in SortBinder.cs, SortKeyAdmission.cs, RecordLayout.cs and DataBinder.ScreenDataNameShape: the key predicate and the window walk are edition-neutral; the one consult on the path is the Format 3 bounds flag behind VaryMin",
+  "behaviour-differs-by-edition": "yes, for item f with a Format 3 SD only: c5-f-format3 (RECORD CONTAINS 2 TO 8, records of 8 and 4, key at 3..4) is admitted at --std 85 (x = 4, the smallest record described, §1985:VII.3.8.4 GR14) and refused COBOL0874 at --std 2023 (x = integer-4 = 2); every other probe is the same code at both editions",
+  "witnesses-cover": "part: the witnesses cover a key outside the record, a group key over an ODO table, a key from the second record, an OCCURS key and an index-data-item key; not exercised: a qualified key, a key subordinate to an OCCURS entry, a group key containing a fixed OCCURS (legal), item f for RECORD VARYING and Format 3, a key straddling the minimum size, signed and edited keys",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-ok.cob",
+    "printed": "[01DEF3Y8] [02GHI2Z7] [03ABC1X9]",
+    "expected": "admitted, ascending"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-a-ws.cob",
+    "printed": "error COBOL1757: SORT/MERGE key 'WK' is not described in a record of 'SW'",
+    "expected": "refused (a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-a-fd.cob",
+    "printed": "error COBOL1757: key 'U1R' is not described in a record of 'SW'",
+    "expected": "refused (a)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-a-samerec.cob",
+    "printed": "error COBOL1757: key 'U1R' is not described in a record of 'SW' (with SAME RECORD AREA FOR SW U1)",
+    "expected": "refused under the reading that 'records associated with file-name-1' are the SD's own record descriptions (see notes)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-b-qual.cob",
+    "printed": "[03ABC1X9] [02GHI2Z7] [01DEF3Y8]",
+    "expected": "admitted: KEY SK OF SR, descending (b)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-c-odogroup.cob",
+    "printed": "error COBOL1757: SORT key 'SG' is an occurs-depending group item",
+    "expected": "refused (c)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-c-record-odo.cob",
+    "printed": "error COBOL1757: SORT key 'SR' is an occurs-depending group item",
+    "expected": "refused (c): the record itself as key"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-c-odo-ok.cob",
+    "printed": "[015DEFY8] [024GHIZ7] [033ABCX9]",
+    "expected": "admitted: DESCENDING SN (the ODO object, 5,4,3) then SK, in an SD record with an ODO table"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-d-second.cob",
+    "printed": "[03ABC1X9] [02GHI2Z7] [01DEF3Y8]",
+    "expected": "admitted: key in the second record description, applied to every record (d)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-d-signed-edited.cob",
+    "printed": "[+1 2GHIJ] [+1 3ABCD] [-1 1DEFG]",
+    "expected": "admitted: DESCENDING S9 SIGN LEADING SEPARATE then ASCENDING Z9 edited"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-e-occurs.cob",
+    "printed": "error COBOL1757: SORT key 'SK' is described with an OCCURS clause",
+    "expected": "refused (e)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-e-under-occurs.cob",
+    "printed": "error COBOL1757: SORT key 'SK' is subordinate to 'SO', which carries an OCCURS clause",
+    "expected": "refused (e)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-e-group-with-occurs.cob",
+    "printed": "[01DEF3Y8] [02GHI2Z7] [03ABC1X9]",
+    "expected": "admitted: the group SG's own entry has no OCCURS and is subordinate to none; its fixed OCCURS child is not a variable-occurrence item"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-beyond.cob",
+    "printed": "error COBOL0874: key 'SN' occupies character positions 6..6 ... minimum size 3",
+    "expected": "refused (f), VARYING 3 TO 8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-within.cob",
+    "printed": "[01DEF3Y8] [02GHI2Z7] [03ABC1X9]",
+    "expected": "admitted (f): key at 1..2 within 3"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-straddle.cob",
+    "printed": "error COBOL0874: key 'SK' occupies character positions 2..4 ... minimum size 3",
+    "expected": "refused (f): the key ends past x"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-format3.cob",
+    "printed": "--std 85: [03ABC1X9] [01DEF3Y8] [02GHI2Z7]; --std 2023: COBOL0874 minimum size 2",
+    "expected": "1985: admitted, key 3..4 within the smallest record described (4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-format3-beyond.cob",
+    "printed": "error COBOL0874: key 'SY' occupies character positions 5..8 ... minimum size 4",
+    "expected": "refused (f)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c5-f-implied-mixed.cob",
+    "printed": "[03ABC1X9] [01DEF3Y8] [02GHI2Z7]",
+    "expected": "admitted: no RECORD clause, records 8 and 4, fixed by the implementor's choice (§1985:II.2.1.4.3, D-FRA), so f does not apply"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR4",
+    "check": "OK  §1985:XI.4.4.3 SR4  (4.4.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR4c",
+    "check": "OK  §1985:XI.4.4.3 SR4c  (4.4.3 Syntax Rules)  the text is in SR4c"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR4e",
+    "check": "OK  §1985:XI.4.4.3 SR4e  (4.4.3 Syntax Rules)  the text is in SR4e"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR4f",
+    "check": "OK  §1985:XI.4.4.3 SR4f  (4.4.3 Syntax Rules)  the text is in SR4f"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR14",
+    "check": "OK  §1985:VII.3.8.4 GR14  (3.8.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:II.6.2.2.1.3",
+    "check": "OK  §1985:II.6.2.2.1.3  (6.2.2.1.3 Record Areas for Files)  the text is in the clause"
+   }
+  ],
+  "notes": "SortAddFileKeys and SortKeyAdmission.Violation implement a, c, e and f, and admit b and d; every lettered refusal and admission probed at --std 85 matched, including runtime order. One reading question for the refuter: §1985:II.6.2.2.1.3 calls the record entries of files in one SAME RECORD AREA clause 'associated', and the compiler refuses a key described in such a peer FD's record (c5-a-samerec), at 2023 too. I read SR4a's 'records associated with file-name-1' as the SD's own entries, as SR4d does.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-4",
+  "refutation": "OVERTURNED",
+  "classes": "a,c",
+  "evidence": "Item f's x is 'the minimum record size specified for the file referenced by file-name-1'. For a format 3 SD at --std 85 the compiler takes x = FileModel.VaryMin = Records.Min(MinRecordSize) (ODO table at minimum occurrences), but §1985:VII.3.8.4 GR15 (FORMAT 3; SD RECORD clause per §1985:XI.3.2.4 GR2) sizes each record at the maximum of its variable items. Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r5-f3odo-key.cob: SD RECORD CONTAINS 6 TO 7 CHARACTERS over 01 SR (SN PIC 9, ST PIC X OCCURS 1 TO 5 DEPENDING ON SN: GR15 size 6) and 01 SR2 (SA XX, SB XX, SC XXX: 7); KEY SB at 3..4. Under either reading of 'specified' (integer-4 = 6, or the smallest record described = 6) x = 6 and the key is admitted. --std 85: COBOL0874 'SW describes variable-length records with minimum size 2 — all key data items shall be contained within the first 2 bytes' (rejects legal source); --std 2023: RAN. A second, weaker point: the reader's c5-f-format3 (RECORD CONTAINS 2 TO 8 over records 8 and 4, key 3..4) is admitted at 85 with x = 4, while SR4f's 'specified' can be read as integer-4 = 2 (refuse). cite.py: 'OK §1985:XI.4.4.3 SR4f ... the text is in SR4f'; 'OK §1985:VII.3.8.4 GR15 ... the text is in GR15'; 'OK §1985:VII.3.8.4 GR5a ... the text is in GR5a' (the minimum-occurrence rule is Format 2's).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin: the 85 Format 3 arm (BoundsEnforced false) sizes x with an ODO table at its minimum occurrences instead of GR15's maximum"
+  ],
+  "corrected": "NON-CONFORMING, cause (a): at --std 85 item f's x for a format 3 SD whose record has an OCCURS DEPENDING ON table is computed with the table at minimum occurrences; GR15 sizes the record at the maximum, so a legal key (r5-f3odo-key, x = 6, key 3..4) is refused COBOL0874. Harm: rejects-legal-source. At --std 2023 it compiles (x = integer-4 = 6)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "Mechanism 1 UPHELD, cause (a): at --std 85 a format 3 record holding an OCCURS DEPENDING ON table is sized at the table's minimum, where §1985:VII.3.8.4 GR15 sizes it at the maximum; harm both ways. The file names no verdict word for this mechanism: PARTIAL is the inventory's verdict for code that breaks part of the rule, the refuter's corrected verdict (NON-CONFORMING) in the vocabulary.",
+  "ref": "kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md"
+ },
+ "work": "PB5731"
+}

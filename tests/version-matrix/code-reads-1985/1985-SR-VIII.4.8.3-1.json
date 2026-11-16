@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-VIII.4.8.3-1",
+ "rule-digest": "8d997c87799f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "00ea4b20ac7d66952c997bfc7ae34fa775c0cfe993026ee78a57ee0bc13c2284",
+   "refuter": "5380801ebca4eadd5c269e3e338b5d368b541b3ba52a9bf3d1010ddba7b5f9c9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.8.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE statement must be the whole first sentence directly after a section header inside DECLARATIVES (never in a nondeclarative procedure, never after another sentence or in a declarative paragraph, never sharing its sentence), and the rest of the section must be only zero or more named paragraphs: a sentence after the USE sentence with no paragraph-name before it is refused at 85 (1985 has no paragraph-name-omitted paragraph).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#declarativeSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#BindStatementCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateLeadingSentences",
+    "switches": "construct procedure-without-leading-paragraph-2002 (ConstructRegistry, introduced 2002, COBOL0900): refuses at 85 a sentence after the USE sentence that no paragraph-name precedes; admitted at 2023 (§2023:14.4.3)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDeclarativeSection",
+    "switches": "segment-number and USE FOR DEBUGGING arms (other rules) beside the call to GateLeadingSentences",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the sentences after the USE sentence must be in named paragraphs (refused COBOL0900); at 2023 they form the paragraph-name-omitted paragraph and compile",
+  "witnesses-cover": "part: pb361-use-outside-declaratives covers a USE in a nondeclarative paragraph only; USE sharing a sentence, USE after another sentence, USE in a declarative paragraph, a declarative section with no USE, the 85-only unnamed-sentence refusal and the positive dispatch are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/use1ok.cob",
+    "printed": "XF USE FS=35 / XF USE PARA 2 / AFTER OPEN XF FS=35 N=1 / XF USE FS=47 / XF USE PARA 2 / AFTER READ XF FS=47 N=2 / AFTER OPEN YF FS=35",
+    "expected": "lone USE sentences after their section headers, with two paragraphs, zero paragraphs, and an I-O mode USE, compile; the failed OPEN (35) and the READ after it (47) run the file's declarative through both paragraphs; the zero-paragraph section runs nothing"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/use1bad.cob",
+    "printed": "COBOL0897 x3 (S-A USE sharing its sentence with DISPLAY; S-B first sentence not USE; S-C no USE before its paragraph); COBOL2377 at 29, 32, 37 (USE after a sentence, in a declarative paragraph, after a paragraph's sentence); COBOL0900 at 29 (unnamed sentence) (exit 65)",
+    "expected": "each misplaced USE and each section whose first sentence is not a lone USE refused"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/use1out.cob",
+    "printed": "COBOL2377 at 25 'this one is in the nondeclarative portion' (plus COBOL0877/0878 for the 2002 USE AFTER EXCEPTION CONDITION EC-I-O)",
+    "expected": "USE in a nondeclarative paragraph refused; the 2002 Format 3 USE refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/use1unnamed.cob",
+    "printed": "--std 85: COBOL0900 sentences before the first paragraph-name ... requires COBOL-2002, a sentence before the first paragraph-name of declarative section 'XF-ERR' (exit 65); --std 2023: compiles (exit 0)",
+    "expected": "at 85 'The remainder of the section must consist of zero, one, or more procedural paragraphs', so the unnamed sentence after USE is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.8.3 SR1",
+    "check": "OK  §1985:VIII.4.8.3 SR1  (4.8.3 Syntax Rules)  the text is in SR1 (checked with 'must immediately follow a section header in the declaratives portion' and 'must appear in a sentence by itself')"
+   }
+  ],
+  "notes": "DeclCollectSection requires the section's first sentence to be exactly one USE (COBOL0897), StatementBinder refuses every USE that reaches it (COBOL2377), and the 85 arm GateLeadingSentences refuses the unnamed sentences the 1985 format does not admit. Message nit: COBOL2377's detail says 'nondeclarative portion' for a USE inside a declarative section that lacked its own USE (use1bad lines 29, 32), though COBOL0897 names the section correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.8.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "usetwo-001 at --std 85: a second USE sentence right after the first in one declarative section refused COBOL2377 (and COBOL0900 for the unnamed sentence the 1985 format lacks). usenest-001: declaratives in both an outer program (section with segment-number 10, USE ON XF, one paragraph) and a contained program (USE ON INPUT, an empty paragraph followed by another) compile and run. A failed OPEN in each program runs only that program's own declarative: INNER USE FS=35 / INNER AFTER OPEN FS=35 / OUTER USE FS=35 / OUTER AFTER OPEN FS=35. cite.py: OK  §1985:VIII.4.8.3 SR1  (4.8.3 Syntax Rules)  the text is in SR1; OK  §1985:VIII.4.8.4 GR1  (4.8.4 General Rules)  the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

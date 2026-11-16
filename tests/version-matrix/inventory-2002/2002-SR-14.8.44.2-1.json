@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.44.2-1",
+ "rule-digest": "4d0fa4a44469",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#UnstringSenderCategory; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#IsZeroLengthLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BeginsWithAllWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringDelimiterItem",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1181_string_unstring_screen_controls; conformance:cases/8.3.3.2-Alphanumeric-literals/pb1545_hex_alphanumeric_literal",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.48.3-1, witnessed at 2002 by the cases test-ref names. The read: The 2023 words add 'nor a zero-length literal'; 2002 has no zero-length literal at all (8.3.1.2.1.2 SR1, 8.3.1.2.4.2 SR1 'greater than zero'), so the extra 2023 clause excludes nothing a 2002 program can write. Probe p5a shows '' refused at 2002 (COBOL0900 zero-length literal requires 2014, plus COBOL1651). Format identical. Cited: §2002:14.8.44.2 SR1; §2002:8.3.1.2.1.2 SR1; §2002:8.3.1.2.4.2 SR1."
+}

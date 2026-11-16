@@ -1,0 +1,101 @@
+{
+ "rule-id": "1989-RV-A.2.8.4-1",
+ "rule-digest": "709d0348d1ee",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-185",
+  "sources": {
+   "reader": "ff89fdfde760514e2bc0562bee0a433af9db278f53ae1ec61ce484c7c6abf3e0",
+   "refuter": "08c7735aaefeb2139238a831dbfc11046c362485e84f48be27128b1ebc942ad7"
+  },
+  "imported": {
+   "reader": "0be844bb9e8765952da0e455bd4c529b20c244dce5f6c617afc013930a5f04c4",
+   "refuter": "163107c7a4e77f9c425ec173ad06f2ccaeac51556e7a8e3a247d90f1fdc487c9"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION ATAN (argument-1), argument-1 class numeric (identifier, literal, arithmetic expression; signed, scaled, zero, up to 18 digits), returns an approximation of arctan(argument-1) strictly between -pi/2 and +pi/2.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IsDefinedAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Atan; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderNumericRelational",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window, IntroducedIn 85 for ATAN: admitted at 85 as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#StandardDecimal",
+    "switches": "OPTIONS ARITHMETIC mode: standard-decimal routes ATAN through RenderDec, native through RenderFloat; at 85 there is no OPTIONS paragraph so the native arm is taken, the same arm as the 2023 default",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read IntrinsicRenderer.RenderNum's dispatch (exact-parse, StandardDecimal, wide, SDIDI-argument, Float lanes) and the Atan body; grepped DialectLevel/Edition/CobolVersion in IntrinsicRenderer, CobolIntrinsics.Float.cs and ConditionRenderer's numeric arm: none on the ATAN value path beyond the two sites listed.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers +/-1, 0, +/-99999999 and an expression argument; it does not cover 18-digit arguments, scaled arguments, figurative ZERO or the refusal half, which at1/at2 cover.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/at1.cob",
+    "printed": "ATAN(+999999999999999999) 1.57079632679489660; ATAN(-999999999999999999) -1.57079632679489660; ATAN(HUGE*HUGE) 1.57079632679489660; ATAN(1E-17) 0.00000000000000001; ATAN(0) and ATAN(ZERO) 0; 4*ATAN(1) 3.14159265358979320",
+    "expected": "approximations strictly inside (-pi/2, +pi/2); pi/2 = 1.5707963267948966192..., so the stored 1.57079632679489660 is below it"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/at1.cob",
+    "printed": "ATAN(-1.73) (PIC S9V99) -1.04668439365228070; a numeric-edited argument refused (COBOL1627, class alphanumeric at 85)",
+    "expected": "scaled signed argument computed; a numeric-edited item is class alphanumeric in 1985 and violates A.2.8.3 (1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/at2.cob",
+    "printed": "COBOL1627 for alphanumeric identifier and literal argument; COBOL1504 for 2 and 0 arguments",
+    "expected": "each refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.8@1985-ATAN-FUNCTION/g85_bf38_02.cob",
+    "printed": "MATCH",
+    "expected": "witness golden"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-185/at3.cob",
+    "printed": "ATAN(HUGE) = 1.57079632679489662 TRUE and ATAN(HUGE) = 1.57079632679489650 TRUE; ATAN(HUGE) NOT < item 1.57079632679489662; stored R < 1.57079632679489662; ATAN(HUGE) - 1.57079632679489662 < 0 TRUE (same at --std 2023)",
+    "expected": "one value cannot equal two distinct literals; algebraic comparison (§1985:VI.6.3.1.1.1) of the returned value (< pi/2) against 1.57079632679489662 (> pi/2) is LESS"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.8.4 RV1",
+    "check": "OK  §1989:A.2.8.4 RV1  (2.8.4 Returned Values)  the text is in RV1 [is greater than -pi/2 and less than +pi/2]"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.1",
+    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause [a comparison is made with respect to the algebraic value of the operands]"
+   }
+  ],
+  "notes": "ATAN returns Math.Atan's binary64, whose value (and its stored 18-digit image 1.57079632679489660) is strictly inside (-pi/2, pi/2), so RV1 holds. LEAD for the relation-condition rule, not this one: ConditionRenderer.RenderNumericRelational compares a binary64 operand natively by converting the other (exact decimal) operand to double, so at --std 85 IF FUNCTION ATAN (HUGE) = 1.57079632679489662 and = 1.57079632679489650 are both true and the < test against 1.57079632679489662 (above pi/2) is false, while the difference form says negative; at 85 there is no native-arithmetic latitude, §1985:VI.6.3.1.1.1 compares algebraic values (wrong-answer, cause b, same at 2023; no kb/Work note found).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.8.4-1",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85, refute-1985-185/runs/ra1-001: IF FUNCTION ATAN (HUGE) < 1.57079632679489662 -> 'A1 NOT LT HIPI2'; IF 1.57079632679489662 > FUNCTION ATAN (CMP) (COMP S9(18) max) -> 'A3 NOT GT'; IF FUNCTION ATAN (NHUGE) > -1.57079632679489662 -> 'A4 NOT GT LOPI2'; but IF FUNCTION ATAN (HUGE) + 0 < 1.57079632679489662 -> 'A2 LT HIPI2'. 1.57079632679489662 exceeds pi/2 (1.5707963267948966192...), so a program written to test RV1 directly sees the returned value NOT less than a number above +pi/2 and NOT greater than a number below -pi/2 (the reader's at1-002 printed the same 'HUGE NOT BELOW PI/2' / 'NHUGE NOT ABOVE -PI/2' and left it out of its summary). Same at --std 2023 (ra1-002). Values otherwise correct: ATAN(999000) PIC 9(3)PPP 1.57079532579389560, ATAN(-.0005) PIC SVPPP9 -0.00049999995833333, nested ATAN(ATAN) 1.00388482185388720, ATAN(-HUGE) -1.57079632679489660. Refusals correct: ra2 floating literal 1.0E5 COBOL0900 (2002 form), ra3 MOVE/DISPLAY of ATAN COBOL0900 (§1985:IV.4.3.8.3.3 SR4), ra4 refmod COBOL1629, SPACE and ALL '1' COBOL1627. cite.py: OK §1989:A.2.8.4 RV1 [is greater than -pi/2 and less than +pi/2]; OK §1989:A.2.3 (GR2) [Those characteristics of the returned value not otherwise specified for a given function are defined by the implementor]; OK §1985:VI.6.3.1.1.1 [a comparison is made with respect to the algebraic value of the operands]. The reading that decides it: if 'the returned value' is the binary64 data item (A.2.3 leaves its characteristics to the implementor), that value 1.57079632679489655799... is inside (-pi/2,+pi/2) and RV1 holds, the defect belonging to the relation condition (ConditionRenderer.RenderNumericRelational converts the exact-decimal operand to binary64, so the literal above pi/2 collapses onto the same double); if RV1 is judged by what a program can observe of the value in the only context a numeric function may appear (an arithmetic expression, here a relation operand), RV1 fails at 85 with cause b. No kb/Work note found (grep RenderNumericRelational / binary64 comparison: PB4575, PB253, PB2635 are different mechanisms).",
+  "edition-sites-missed": [],
+  "corrected": "Under the observable-value reading: NON-CONFORMING, wrong-answer, cause b (same at 2023): IF FUNCTION ATAN (HUGE) < 1.57079632679489662 is false at --std 85 although RV1 and §1985:VI.6.3.1.1.1 make it true; root in ConditionRenderer.RenderNumericRelational's binary64 comparison. Under either reading the relation-condition defect needs a kb/Work note."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "ATAN's value is inside its range. What fails is the relation condition: at 85 a comparison of a numeric function with an 18-digit literal is made in binary floating point, so `IF FUNCTION SQRT (4) = 2.00000000000000001` is TRUE. The 1985 rule for comparing numeric operands has no row in the 1985 catalog. I ran it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md"
+ }
+}

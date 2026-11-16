@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-5",
+ "rule-digest": "f822bf0f7536",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "eef45d1c2da50ee71c18e4ef91595c0d434ea1ef361e60c1b790825ee7b1d9f9",
+   "refuter": "273de72d5808a089404a32d5c7bcce44fc784c93d786b639f0b8bb8780b34883"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.19.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the data-name of an elementary report entry that has a SUM clause names the sum counter (a numeric signed item sized per GR1), never the printable item, so every reference to it (qualified by group and/or report-name or not) reads and writes the counter; a data-name of an entry that defines no sum counter may not be referenced (§1985:XIII.3.9.3 SR10d).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFor; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused",
+    "switches": "at DialectLevel < 2002 a reference to a non-counter report entry is refused citing §1985:XIII.3.9.3 SR10d instead of §2023:13.8.6.2.3; same verdict, edition-specific citation",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+    "switches": "at COBOL-85 a sum counter may be the operand of a clause of another data division section (no 2002 section rule); null from 2002 on",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "procedure-division path: grep DialectLevel/CobolVersion/ConstructRegistry in CounterResolver.cs and ReportScope.cs: none",
+  "behaviour-differs-by-edition": "yes: at 85 a sum counter may be named by a data division clause of another section (SumCounterOperand85) and the refusal of a non-counter entry cites the 1985 rule; the procedure-division resolution to the counter is the same code at every edition",
+  "witnesses-cover": "part: pb882 references a PIC 9999 counter unqualified; the numeric-edited and alphanumeric subjects, group/report qualification and the refusal of a non-counter data-name are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sum_name.cob",
+    "printed": "AFTER-ADD CF-E=+010.00 / CF-E IS NUMERIC VALUE > 9 / AFTER-GEN CF-E=+011.50 / CF-X=+01235 / CF-N=-00003 / [ 99.99-  1235  003-]",
+    "expected": "CF-E (PIC ZZ9.99- SUM) names a numeric S999V99 counter: ADD 10 TO CF-E legal (an ADD operand must be numeric, so the name is not the edited printable item), reads +010.00, +011.50 after GENERATE; CF-X (PIC X(4)) names an integer 4-digit counter; CF-N IN R-S qualified by report-name resolves"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sum_qual.cob",
+    "printed": "same output as sum_name (SUBTRACT 7 FROM CF-N IN CFG IN R-S accepted)",
+    "expected": "qualification by the control footing group name then report-name (§1985:XIII.3.19.3 SR5) names the counter"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sum_srcref.cob",
+    "printed": "error COBOL5092: 'D-SRC' names the report group description entry 'D-SRC' of report 'R-S', which a reference here may not name. ISO §1985:XIII.3.9.3 SR10d",
+    "expected": "refusal: a data-name of an entry with SOURCE and no SUM names no counter and may not be referenced"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.4 GR5",
+    "check": "OK  §1985:XIII.3.19.4 GR5  (3.19.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The name resolves to the counter register (ReportSumCounterPlace) before ordinary lookup, so arithmetic and comparison treat it as the GR1 numeric counter even when the printable item is numeric edited or alphanumeric. Side observation (GR2/GR10, not this rule): two SUM WS-A clauses on one S999 counter with WS-A=1.5 added each addend separately with truncation (-7 -> -3), not as one ADD of the sum (-4).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs": "line 409, Counters.SumCounterFor before ordinary lookup"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.19.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "gr6_decl-001 (--std 85): after a control break on WS-K, DISPLAY of CF-K gave +00010 (the new running counter) while the footing just printed +112, and after TERMINATE CF-K = +00000 (reset, step f), so the name reads the counter, never the printable item; SOURCE CF-K in a detail group (Report Section SOURCE of a sum counter) printed the running counter +005/+012/+010; SUM CF-K in the FINAL footing rolled the counter forward (+0022). gr5_qual-001: two reports each with a counter CF-A plus a WORKING-STORAGE CF-A: CF-A IN R-S = 3, CF-A IN CFF-T = 6, CF-A IN WS-G = 42; gr5_ambig-001: unqualified CF-A refused COBOL2145 (ambiguous). gr6_verbs-001: CF-X with PIC X(20) printable is an 18-digit integer counter (MOVE 999999999999999999 held; ADD 1 raised SIZE ERROR). cite.py: 'OK  §1985:XIII.3.19.4 GR5  (3.19.4 General Rules)  the text is in GR5'; 'OK  §1985:XIII.3.19.3 SR5  (3.19.3 Syntax Rules)  the text is in SR5'. Side note: COBOL2145 at 85 cites §2023 clauses (misleading citation, not a wrong verdict).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

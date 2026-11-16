@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.3.14.4-1",
+ "rule-digest": "19d4149cbd77",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-036",
+  "sources": {
+   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
+   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+  },
+  "imported": {
+   "reader": "539fe26a944687423a6db0239b4a9a26ac6efb0198d5b91c487d565b2b6ebd30",
+   "refuter": "69a62d3238b53d4a94ed4ef7e3a650dc8444a13c5ff9004af4ab619ae6d34697"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.14.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each level-number 01 entry (written 01 or 1) under an RD begins a new report group whose subordinate entries belong to it alone, and an entry before any 01 entry belongs to no report group and is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntries; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLevelNumbers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "Edition.DialectLevel < 2002 runs ScreenReportEntryFormats (the 1985 report group entry formats, XIII.3.9.3 SR4): extra diagnostics on a misplaced entry, not the level-01 grouping",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindReportEntry's opensGroup (level == 1 && ordinal == 0) and the ReportGroupBefore01 diagnostic carry no edition test; grep DialectLevel in ReportSectionBinder.cs",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c27 and pb1246 cover the legal groupings; no witness of a first entry that is not 01",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/lv1_two_groups.cob",
+    "printed": "D1 on 2 [A 02], D2 on 3 [C] and 4 [D], D1 on 5 [A 05]",
+    "expected": "two groups, each printing only its own lines"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/lv3_level_1_written_1.cob",
+    "printed": "D1 (level 1) on 2, D2 on 4, D1 on 5",
+    "expected": "level-number 1 is the same 01 entry"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/lv2_first_not_01.cob",
+    "printed": "COBOL2772 RD 'R1': report group entry before any 01-level entry (and COBOL2247 TYPE clause at level 2)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.14.4 GR1",
+    "check": "OK  §1985:XIII.3.14.4 GR1  (3.14.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.14.3 SR1",
+    "check": "OK  §1985:XIII.3.14.3 SR1  (3.14.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "BindReportEntry opens a ReportGroupModel at every level-1 entry and attaches later entries to it until the next one; an entry with no open group is refused with COBOL2772. The probe shows the groups are kept apart at run time.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.14.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "h1_01_elementary (01 D1 TYPE DE LINE PLUS 1 COLUMN 1 PIC X(2) VALUE ...): refused COBOL2247 citing §1985:XIII.3.9.3 SR3, SR4a (a 01 entry is format 1, no PICTURE/COLUMN/VALUE); h4_01_no_type: second 01 with no TYPE refused COBOL2247; h2 level 77, h3 level 50, h6 level 88 in the RD refused COBOL1746 (1985 SR2: 01 through 49 only); h5_two_groups_sources: two 01 groups keep their own items (DA 123, DB XYZ, DA 456). cite.py: 'OK  §1985:XIII.3.14.4 GR1  (3.14.4 General Rules)  the text is in GR1'; 'OK  §1985:XIII.3.14.3 SR2  (3.14.3 Syntax Rules)  the text is in SR2'. Side observation: COBOL1746 and the TYPE diagnostic cite §2023 clauses at --std 85.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

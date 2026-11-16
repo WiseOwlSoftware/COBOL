@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb957-next-group-in-page-heading
-*> rules: [SR-13.18.37.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb957-next-group-in-page-heading
+      *> rules: [SR-13.18.37.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> A NEXT GROUP CLAUSE IN A PAGE HEADING (kb/Work PB957).
       *> ISO/IEC 1989:2023 §2023:13.18.37.3 SR4: "The NEXT GROUP clause shall not be specified in a page
       *> heading or report footing."

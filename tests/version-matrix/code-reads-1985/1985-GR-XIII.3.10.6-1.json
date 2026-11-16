@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.6-1",
+ "rule-digest": "b8e8b53e4bc7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-035",
+  "sources": {
+   "reader": "bd7eed66aebdc546ae845b67f23f0ee080e2d60df4ccadf33495768b8aca753e",
+   "refuter": "6bd50bc9f68399c732b68e4db6a56e29eec3f3c5a38de9d729df0ee82c561943"
+  },
+  "imported": {
+   "reader": "95dd23a806e83f0196cdf1ef76b8974894e6397f9df51337f12a02725e3bf3fe",
+   "refuter": "3c483031184890f18edad2c6ef4e8767c8760130e914042e6519135d278649af"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.6-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in a report with a PAGE clause, no line of the report heading may be presented above the HEADING integer: an absolute LINE above HEADING is in error, and a relative first line is placed at HEADING + integer - 1 (§1985:XIII.3.10.6 GR3 b), so LINE PLUS 0 is in error; with NEXT GROUP NEXT PAGE the same upper limit holds on the heading's own page.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeFirstLineFloor; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "takes the year, but the report heading arm does not read it (upper limit = HEADING at every edition)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitChildren",
+    "switches": "ConstructRegistry gates on the 2002 LINE clause forms the report heading's LINE clauses reach",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget",
+    "switches": "nothing: ReportHeading -> _heading + relative - 1 at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "read GroupLimits' ReportHeading case and RelativeFirstLineFloor; grep Edition / DialectBehaviors in ReportWriter.cs (no placement switch)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1270 has RH LINE 2 on HEADING 2 only; relative lines, NEXT GROUP NEXT PAGE and the refusal half are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5a.cob",
+    "printed": "P01 L03 [RH] L06 [D1]",
+    "expected": "RH LINE 3 on HEADING 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5b.cob",
+    "printed": "COBOL2199 the absolute line LINE 2 of report heading 'RH1' lies above the upper limit 3",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5c.cob",
+    "printed": "P01 L03 [RH]",
+    "expected": "LINE PLUS 1 -> HEADING + 1 - 1 = 3"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5d.cob",
+    "printed": "P01 L04 [R1] L05 [R2]",
+    "expected": "PLUS 2 -> 4, PLUS 1 -> 5"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5e.cob",
+    "printed": "COBOL2199 the relative LINE PLUS 0 ... prints it on line 2, above the HEADING integer 3",
+    "expected": "refused (integer-2 may be zero, §1985:XIII.3.15.3 SR1, but the line falls above the upper limit)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5f.cob",
+    "printed": "P01 L03 [R1] L12 [R2] / P02 L06 [D1]",
+    "expected": "NEXT GROUP NEXT PAGE: HEADING to the page limit on a page by itself (GR2 b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-035/src/rh5g.cob",
+    "printed": "COBOL2199 LINE 2 lies above the upper limit 3",
+    "expected": "refused on a page by itself as well"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.6 GR1",
+    "check": "OK  §1985:XIII.3.10.6 GR1  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR3b",
+    "check": "OK  §1985:XIII.3.10.6 GR3b  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:XIII.3.15.3 SR1",
+    "check": "OK  §1985:XIII.3.15.3 SR1  the text is in SR1"
+   }
+  ],
+  "notes": "GroupLimits gives the report heading the HEADING integer as its upper limit. ScreenReportGroupLines refuses an absolute line above it and, through RelativeFirstLineFloor, a relative first line placed above it, and the runtime places the relative first line at HEADING + integer - 1. Every legal and refusal probe matched the 1985 rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.6-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Rendered the printed Table 1 (1985 PDF page 610, XIII-28; the transcription page is blank): upper limit rule 1 applies to every permissible row with a PAGE clause (A R and R, with absolute, relative, NEXT PAGE or no NEXT GROUP); NP is not a permissible RH sequence. Probes at --std 85 (gen/mkq.py, reader's rh5a harness): q1 HEADING omitted (XIII.3.8.4 GR2a: 1) RH LINE 1 -> P01 L01; q2 HEADING omitted, RH LINE PLUS 2 -> L02 (1 + 2 - 1, GR3b); q3 LINE 4 then LINE 2 (second absolute line above HEADING 3) refused COBOL2199 (order and upper limit); q4 RH LINE 3 ON NEXT PAGE refused (NP not in the RH table); q5 LINE NUMBER IS PLUS 1 NEXT GROUP PLUS 1 -> L03, D1 L06; q6 A R with NEXT GROUP 5 -> R1 L03 R2 L04; q7 LINE 0 refused (COBOL2386 + COBOL2199 above upper limit); q8 R then A (LINE PLUS 1, LINE 2) refused. With the reader's rh5b/rh5e/rh5g refusals, no RH line reaches above HEADING. Minor: the 85 diagnostics cite §2023 and name PRESENT WHEN, a 2002 clause (diagnostic wording only, not this rule). cite.py: OK §1985:XIII.3.10.6 GR1; OK §1985:XIII.3.10.6 GR3b; OK §1985:XIII.3.8.4 GR2a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

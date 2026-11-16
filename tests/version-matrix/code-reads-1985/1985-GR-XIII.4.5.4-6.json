@@ -1,0 +1,72 @@
+{
+ "rule-id": "1985-GR-XIII.4.5.4-6",
+ "rule-digest": "8612801d7aa2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-040",
+  "sources": {
+   "reader": "87a159dee40eebd9c5854a4555e55289b63f2d4fa4c328aa80f6d931aac6b60a",
+   "refuter": "1c401387c5da048a01f363a9bf8dd3fcdd5928c8d4d488fbd8f689d73c835ed2"
+  },
+  "imported": {
+   "reader": "9d3246a47355cc6610fc441b42418f455a4f07194fd1b438be9e5a5176b26747",
+   "refuter": "bb4fd6fa55a1b536d0e1496fd1d1a5109844066223685edefcab9fe151e817c9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.5.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when an OPEN of a report file (OUTPUT or EXTEND only) meets a file attribute conflict, the OPEN is unsuccessful (status 39, VII.1.3.5 3f), the file is left unaffected and not in an open mode; which fixed attributes are validated is implementor-defined and may vary by organization or medium.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#IsKeyedStore; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "ClosedWithLock (DialectBehavior.CloseWithLockLocksFileConnector: physical-file lock at 85) and ImplementorDefaultSharing / FileConnector.SharingFacilityInEffect (DialectBehavior.FileSharingFacility: no Table 19 arbitration at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
+    "switches": "the GR10 fixed-attribute comparison itself reads no edition (mode is not Output && Present && FixedAttributeConflict())",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the attribute comparison and its validated set are the same at every edition; only the lock and sharing arms of the OPEN path differ, which are other rules",
+  "witnesses-cover": "part: open_fixed_attribute_conflict uses relative and record-sequential files, never a report file; the report file's EXTEND over a keyed store, over a plain sequential file and its OUTPUT re-creation are covered only by the probe",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-040/p5openb.cob",
+    "printed": "MAKE-REL=00 EXTEND-OVER-REL=39 CLOSE-AFTER-FAILED=42 REL-STILL-OPENS=00 REL-READ=00 [ALPHA               ] EXTEND-OVER-SEQ=00 CLOSE2=00 OUTPUT-OVER-REL=00; p5opens.dat = the 50-byte record then D2\\r\\n",
+    "expected": "OPEN EXTEND of a report file over a relative store is a conflict in the validated set: unsuccessful 39, file unaffected (the relative file still reads ALPHA), report file not open (42); over a plain sequential file nothing is validated, so EXTEND succeeds and appends; OPEN OUTPUT creates, so it is never judged"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.5.4 GR6",
+    "check": "OK  §1985:XIII.4.5.4 GR6  (4.5.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f (\"The OPEN statement is unsuccessful because a conflict has been detected between the fixed file attributes\")"
+   }
+  ],
+  "notes": "The comparison precedes OpenCore, so a conflicting OPEN truncates nothing and leaves the connector closed. For a report (sequential, unframed) connector the implementor's validated set is the keyed-store organization on EXTEND/I-O, documented at docs/conformance/7/DOC-A.1-129.md; the seed site FileRegistry#ValidateFixedFileAttributes is DELETE FILE's set, not OPEN's.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.5.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe r5idx.cob: OPEN EXTEND of a report file over an INDEXED store (the reader probed relative and sequential) answered 39, the CLOSE after it 42, and the indexed file still reads K001BRAVO with status 00, so the conflicting OPEN left the file unaffected and the report file not open. Refusal half and edition arms (compile at --std 85): OPEN I-O PRT and OPEN INPUT PRT refused COBOL2371 (§1985:XIII.4.5.3 SR1, cite.py OK); OPEN EXTEND PRT WITH NO REWIND refused COBOL1803 (not in the 1985 format); the 2002+ OPEN OUTPUT PRT SHARING WITH NO OTHER refused (COBOL2073, though its message wrongly speaks of WHEN OTHER: a misleading diagnostic of the sharing phrase, not this rule); OPEN OUTPUT PRT WITH LOCK refused COBOL5506; OPEN OUTPUT PRT WITH NO REWIND compiles and answers 07. Which attributes are validated is implementor-defined (cite.py: OK §1985:XIII.4.5.4 GR6), and the keyed-store set is documented, so no output contradicts the rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

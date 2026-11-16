@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-1",
+ "rule-digest": "0af3d17d273e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-153",
+  "sources": {
+   "reader": "c43b35e0287ee98296382ce4f6cc13740e771d83a95de5b79fc0778c3c50c6a5",
+   "refuter": "2565a1de6da999ed777ecb2ab8accfcfeb5143e208fd90ab065788bd5240fc99"
+  },
+  "imported": {
+   "reader": "876543d58899de7a99bdab18a858659f83e16924c4f7c79b7ba9d469b4fa1500",
+   "refuter": "ead859430d77a02c2ae4f591f2b3565fbee311dca09e1cb46d8f7a0701ca4526"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE AFTER EXCEPTION declarative may appear in a containing, contained or separately compiled program. It must run when its condition arises in that program's execution. Only a declarative of the separately compiled program containing the failing statement may run: a calling program's declaratives, mode-scoped or GLOBAL, never run for a called program's statement, and with no qualifying declarative none runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "ctx.Data.DialectLevel >= 2002 adds the SORT GR17 exit filter to an EC-free __RunUse; a 1985 program keeps the plain try/finally form. It does not change which declarative is selected",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped ProcedureTableBuilder.cs, DispatchEmitter.cs, EcEmitter.cs, UseTierEmitter.cs and ProgramEmitter.cs for DialectBehavior, DialectLevel, CobolVersion, .Edition and ConstructRegistry. The only hit on the selection path is DispatchEmitter line 523. UseTierEmitter states its tiers are edition-invariant (kb/Work PB344).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf10_14 covers each program's own declarative (containing, contained, separately compiled). It does not cover the no-qualifying-declarative half: a called separately compiled program with no declarative, or a nested program under a non-GLOBAL versus a GLOBAL container declarative",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/g85_bf10_14-001",
+    "printed": "identical to .out",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p81sep.cob",
+    "printed": "B 35 / BACK FROM B / A2 35 / BACK FROM A2 / A-DECL-EXTEND 35 / A 35",
+    "expected": "PA's USE ON EXTEND does not run for the OPEN EXTEND failure in the separately compiled PB or in nested PA2 (non-GLOBAL), and runs for PA's own failure"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p81glob.cob",
+    "printed": "B 35 / BACK FROM B / A-DECL-EXTEND 99 / A2 35 / BACK FROM A2 / A-DECL-EXTEND 35 / A 35",
+    "expected": "with USE GLOBAL (1985 IPC, §1985:X.5.5.4 GR1a-c) the nested PA2's failure reaches the container's declarative, and the separately compiled PB's still does not"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.4 GR1",
+    "check": "OK  §1985:XIII.4.8.4 GR1  (4.8.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1a",
+    "check": "OK  §1985:X.5.5.4 GR1a  (║5.5.4 General Rules║)  the text is in GR1a"
+   }
+  ],
+  "notes": "Each program class gets its own __IoCheck, and only a nested program walks outward (to __RunGlobalUse, GLOBAL declaratives only), so a separately compiled program never reaches a caller's declaratives. Both directions were probed, with and without GLOBAL.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.8.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Aimed at a shared file connector the reader did not try. r1ext.cob (runs/r1ext-001, --std 85): EXTERNAL file XF declared in separately compiled PA (USE ON XF and USE GLOBAL ON EXTEND) and PB (no declaratives); PB's failing OPEN EXTEND XF printed 'PB 35' with no PA declarative, PA's own failure ran PA-DECL-XF only ('PB 35 / BACK FROM PB 35 / PA-DECL-XF 35 / PA 35'). r1nest.cob (runs/r1nest-001): separately compiled PB contains PB2; PB2's failing OPEN EXTEND YF reached PB's USE GLOBAL ON YF (same separately compiled program, X.5.5.4 GR1b), and PB's own OPEN EXTEND of the EXTERNAL XF did not reach PA's USE GLOBAL ON EXTEND ('PB-GLOBAL-YF 35 / PB2 35 / BACK FROM PB2 35 / PB XF 35 / BACK FROM PB 35'). cite.py: 'OK  §1985:XIII.4.8.4 GR1 ... the text is in GR1' (\"If no qualifying declarative exists in the separately compiled program, no declarative is executed\"); 'OK  §1985:X.5.5.4 GR1b ... the text is in GR1b'. The only edition read on the path (DispatchEmitter#EmitRunUseBody, DialectLevel >= 2002) does not affect selection, as the reader said. The defect found under GR4 (a container's GLOBAL mode USE wrongly applying to a file the container names) is GR4's, not this rule's: GR1's separately-compiled boundary holds.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,121 @@
+{
+ "rule-id": "1989-RV-A.2.18.4-1",
+ "rule-digest": "6f354b3f059c",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-10",
+  "sources": {
+   "reader": "3d30a56ccbda16d118316e117b197172c15c128a6ba71ed78f12a663676b0d1d",
+   "refuter": "c9a32fd6314b887eaa2ab65ffdac7428d3df9534ddb6c7fdbbf6f9b26c20edab"
+  },
+  "imported": {
+   "reader": "57727607dcda39713472e3db777cb43c8e7b02bed03809124ceec0bf0548b100",
+   "refuter": "24ec8259bbf0d7ace7e17df9cf6a611d0e94bd5ba6e90bf68541b57c915d37eb"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.18.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION INTEGER-PART of a class-numeric argument with value zero returns the integer zero, never a negative zero, in every arithmetic-expression context. The argument can be an identifier of any usage and scale, a numeric literal, the figurative ZERO or an arithmetic expression.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Truncate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Wide.cs#TruncateExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#TruncDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: sig.IntroducedIn (85 on the catalog row) > ctx.Edition.DialectLevel raises COBOL1502, RemovedIn raises the removal error; at --std 85 neither fires",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: below 2002 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; a function inside an arithmetic expression is not screened",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph",
+    "switches": "the OPTIONS paragraph (so ARITHMETIC IS STANDARD-*) is refused below 2002, so NumericRenderer#StandardDecimal is false at 85 and the renderer takes its native arm, the same arm 2023 takes with no OPTIONS paragraph",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition/CobolVersion over IntrinsicRenderer.cs and the runtime Intrinsics: no hits. The only mode switch on the path is num.StandardDecimal, which 85 cannot reach.",
+  "behaviour-differs-by-edition": "no for the returned value: ip1.cob prints the same output at 85 and 2023. Use as an identifier operand is refused only at 85, and that is outside this rule.",
+  "witnesses-cover": "part: the witness covers only a scaled DISPLAY zero (S9V99 VALUE 0). Zero in other usages (COMP, COMP-3), a VALUE -0, the figurative ZERO, literals and expressions that evaluate to zero are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ip1.cob",
+    "printed": "Z1..Z6 (S9V99, 9(18), S9(9) COMP, S9V9(17) VALUE -0, COMP-3, SV9(18)) all +000000000000000000; ZFIG (ZERO)=+0; ZLIT (0)=+0; ZNLIT (-0.00)=+0",
+    "expected": "zero in every case (RV1)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ip1.cob",
+    "printed": "ZEXP (NZ+0.5)=+0, ZMUL (NZ*0)=+0; SIGN LEADING SEPARATE receiver: SLZ4=+0000, SLMUL=+0000; IF INTEGER-PART(Z4)=0 -> EQ0, IF ... < 0 -> NLT0",
+    "expected": "a zero with no negative sign"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ip1.cob",
+    "printed": "BIG (-999999999999999999) = -999999999999999999; INTEGER-PART(0) + INTEGER-PART(BIG) = -999999999999999999",
+    "expected": "the largest value passes through; zero adds nothing"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ip1.cob",
+    "printed": "ZTE: INTEGER-PART(TE(I)) of a subscripted zero element = +0",
+    "expected": "zero"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ipra.cob",
+    "printed": "COBOL1627: argument-1 is of class alphanumeric; requires class numeric",
+    "expected": "refused (§1989:A.2.18.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/ipmv.cob",
+    "printed": "COBOL0900: integer function-identifier where an identifier is written requires COBOL-2002",
+    "expected": "refused at 85 (§1989:A.2.3: an integer function is used only in an arithmetic expression)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/w-l1_integer_floor_85.cob",
+    "printed": "matches the golden (P-ZRO=+00)",
+    "expected": "zero"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.18.4 RV1",
+    "check": "OK  §1989:A.2.18.4 RV1  (2.18.4 Returned Values)  the text is in RV1 ['If the value of argument-1 is zero, the returned value is zero']"
+   },
+   {
+    "cite": "§1989:A.2.18.1",
+    "check": "OK  §1989:A.2.18.1  (2.18.1 Description)  the text is in the clause ['returns an integer that is the integer portion of argument-1']"
+   },
+   {
+    "cite": "§1989:A.2.18.4 RV2",
+    "check": "OK  §1989:A.2.18.4 RV2  (2.18.4 Returned Values)  the text is in RV2 ['greatest integer less than or equal to the value']"
+   }
+  ],
+  "notes": "Truncate divides the Int128 unscaled value by 10^scale, which truncates toward zero. A zero argument of any scale therefore gives 0, and Int128 has no negative zero. The wide and SDIDI arms (TruncateExact, TruncDec) behave the same way. The value path consults no edition.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ip1.cob prints the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "INTEGER-PART row: Integer, 'Truncate', IntroducedIn 85",
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum": "case \"Truncate\""
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.18.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "IPZ.cob at 85 and 2023 (identical): -0.001 moved into S9V99 DISPLAY/COMP/COMP-3/SIGN TRAILING SEPARATE/SIGN LEADING, unsigned 9V99 ZERO, P-scaled SPPP9 and S9PP, 0 - (x * -1), - 0.001 * 0, 0 / - 7, N1 + 0.5 with N1=-0.5, INTEGER-PART(Z) * -1, unary minus, nested INTEGER-PART, a literal 00000000000000000.0: every result +0 into +9, -9 (QF[ 0]), SIGN LEADING/TRAILING SEPARATE (+0 / 0+), COMP-3 tested = 0 and NOT NEGATIVE, CR/DB editing (0 with no CR/DB). IPN.cob: a stored negative-zero overpunch (REDEFINES bytes '00}', DISPLAY S shows -0.00) -> INTEGER-PART returns +0, not < 0, = 0. cite.py: OK §1989:A.2.18.4 RV1; OK §1989:A.2.18.4 RV3 (the -0.5 case lies in RV3 and also gives +0).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

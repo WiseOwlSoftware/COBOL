@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-4",
+ "rule-digest": "3bc8f40c9131",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-109",
+  "sources": {
+   "reader": "209f5f461b30b1b93dd15bf984c2d9907e18176fc8b201d69d702f16a07dcc4d",
+   "refuter": "2227f3e15da145526ed2347e66efe6397aebd1fd2813553b5f4d24b430147f00"
+  },
+  "imported": {
+   "reader": "55d41b994f9e6b323bdec99996941c7907322135476a1c7738b4e6c957f32f18",
+   "refuter": "6fd8a3d79c1e1771e79a12e3e3626cd19d59caaee8c146ebc5e3fc3e1e97ce10"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "Wherever GR6-GR19 speak of literal-1..5, an identifier-3..7 in that position supplies its whole content as the literal (trailing spaces included), read after GR3's treatment (edited and unsigned numeric as alphanumeric, signed numeric de-signed without a separate sign) and with its subscripts evaluated once first (GR5), whether it is a pattern, a BEFORE/AFTER delimiter, a replacement or a CONVERTING set.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectDelimiters; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#IdentifyOperands; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsItemCharacters; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems",
+    "switches": "DialectLevel < 2002: at 85 the SR7/SR8/SR9 size rules ask identifier-3/5/6/7 static sizes at compile time; from 2002 only literals (identifier sizes become run-time EC-RANGE-INSPECT-SIZE)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (active from 2023): at 85 a BEFORE delimiter is searched from the leftmost position (beforeFromLeftmost=true), at 2023 from the AFTER-derived start",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior in InspectBinder#InspectCharOperandOf and InspectEmitter#OperandTextOf: none; the operand read is edition-invariant, and the listed sites gate the size syntax rules and where the BEFORE search starts",
+  "behaviour-differs-by-edition": "yes: at 85 the size rules (SR7/SR8/SR9) refuse a mis-sized identifier operand at compile time, from 2002 it is a run-time EC-RANGE-INSPECT-SIZE; the identifier-as-literal substitution itself is the same",
+  "witnesses-cover": "part: g85_bf16_01 I1-I4 cover alphanumeric identifier-3/4/5/6/7 with trailing spaces; not exercised there: signed (overpunch and separate), unsigned and numeric-edited operands, subscripted operands, an AFTER identifier-4, the size refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/g85_bf16_01-001",
+    "printed": "I1=02 I2=04 I3=[* * AA] I4=[a_a_aa] (MATCH)",
+    "expected": "the whole content, trailing space included"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p2rules-002",
+    "printed": "I1=02 I2=02 I3=02 I4=01 I5=[ABX**** ] I6=[zxyyxz] I7=04",
+    "expected": "S9 SIGN LEADING SEPARATE -1 reads as 1; S9 -3 reads as 3; unsigned 9 and Z9 ' 4' as characters; identifier-4 as BEFORE and AFTER; identifiers 6/7; subscript TE (N2) evaluated before N2 is incremented (GR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfn-002",
+    "printed": "COBOL0847 INSPECT operand 'G2' shall reference an elementary item",
+    "expected": "SR2: identifier-3 must be an elementary DISPLAY item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfk-002",
+    "printed": "COBOL0846 identifier-6 and identifier-7 differ in size (§1985:VI.6.18.3 SR9)",
+    "expected": "SR9 asked of identifiers at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR4",
+    "check": "OK  §1985:VI.6.18.4 GR4  the text is in GR4 (quoted: \"apply equally to the content of the data item referenced by identifier-3\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR3c",
+    "check": "OK  §1985:VI.6.18.4 GR3c  the text is in GR3c (quoted: \"the original value of the sign is retained upon completion of the INSPECT statement\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR5",
+    "check": "OK  §1985:VI.6.18.4 GR5  the text is in GR5 (quoted: \"evaluated only once as the first operation in the execution of the INSPECT statement\")"
+   }
+  ],
+  "notes": "Every operand position goes through InspectCharOperandOf to a BoundFieldOperand that OperandTextOf reads at run time (AsItemCharacters, deSign: true), so the identifier stands for the literal in every rule. Subscripts are frozen in IdentifyOperands before any counter is stored.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "q1.cob (q1-002, --std 85): a signed identifier-5 S9 -3 as the replacement gave I1=[33X3]. A signed identifier-7 S99 -12 gave I2=[1212]. A signed identifier-4 gave I3=02 as BEFORE and I6=[AA3zz ] as AFTER in format 4. A numeric-edited identifier-3 PIC -9 \"-3\" is read with its edit character: I4=02. An identifier-6 with SIGN TRAILING SEPARATE reads de-signed: I5=[abab--]. q2.cob: 1985 Amendment 1 admits an alphanumeric function-identifier wherever a sending identifier is permitted, and one stands correctly for literal-1 (F1=02), literal-3 (F2=[babaXA]), literal-4 and literal-5 (F3=[cbacba]) and literal-2 (F4=03). Refusals: rf a COMP identifier-3 COBOL0847 (SR2); rd and re, 2002 literal classes, COBOL0900. Side observation outside this rule: CONVERTING SS2 TO \"ab\", with SS2 PIC S99 SIGN TRAILING SEPARATE, is refused with COBOL0846 because SR9 compares the item's 3-character size. That is SR9's reading of size, not GR4. cite.py: OK §1985:VI.6.18.4 GR4 (\"apply equally to the content of the data item referenced by identifier-3\"); OK §1985:VI.6.18.4 GR3c; OK §1985:IV.4.3.8.3.3 SR3 (\"may be specified anywhere in the general formats that an identifier is permitted\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

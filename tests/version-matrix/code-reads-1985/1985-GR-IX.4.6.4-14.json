@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-14",
+ "rule-digest": "b642e9fa1dcc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-008",
+  "sources": {
+   "reader": "7d984fa77d3938f96da55d818a1513326d938e008383fed059cfa43e4963c849",
+   "refuter": "a17135ef97d0d1c1ce3bc11aae9b5d592cb7d8874820b569c8d2b127911dce29"
+  },
+  "imported": {
+   "reader": "80ba23cf7e3936608fd27a2842dd275c7720266564d5fb9afd006af2908baace",
+   "refuter": "c304dcf21d822585d7bb8a6334b00ee9f13bf48b0596ba3fca7e748360482fce"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-14",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a REWRITE of an indexed file in random or dynamic access mode must replace the record whose prime record key equals the prime key value in the record area, whatever record was last read and whatever the key of reference, with invalid key 23 when no such record exists (GR16b); no prior READ is required.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+  "edition-consulted": [],
+  "edition-search": "grep 'Edition|DialectBehavior|CobolVersion' over IndexedConnector.cs (only the two READ behaviours, ReadRandom and SelectSequentialRecord, not on Rewrite), KeyedConnector.cs, FileConnector.cs, KeyedIoEmitter.cs and KeyedIoBinder.cs: the record selection in Rewrite (KeyOf(image, PrimeKey) then _st.Get) reads no edition. The only edition reads near the statement are compile-time (ExceptionPhraseRequirement for SR3, and the 85 alphanumeric-only RECORD KEY check) and not part of this rule.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c26_rewrite_indexed_prime_key covers the prime-key selection; not checked by it here: a REWRITE after a READ by the alternate key (key of reference not the prime key), a REWRITE naming a different record than the last read, a REWRITE with no prior READ, and the bounds of the key range.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p6/rwpk85.cob",
+    "printed": "READ-BY-ALT=02 0010AAAone; DYN-REWRITE-PK20=00; NEXT-AFTER=00 0020AAADYN20; DYN-REWRITE-9999=00; INV 23 DYN-REWRITE-0000=23; RAND-NO-READ-30=00; RAND-READ10-REWRITE30=00; INV 23 RAND-REWRITE-31=23; final listing 0010AAAone / 0020AAADYN20 / 0030CCCR30B / 9999ZZZHIGH / END",
+    "expected": "dynamic: after READ KEY IS AK gave 0010, a REWRITE with PK 0020 replaces 0020 and leaves 0010; random: a REWRITE with no prior READ replaces 0030, and after READ 0010 a REWRITE with PK 0030 replaces 0030; a prime key with no record (0000, 0031) is invalid key 23 (GR16b)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p6/rwpk85.cob",
+    "printed": "DYN-REWRITE-9999=00; DYN-REWRITE-0000=23",
+    "expected": "the highest existing key is replaced; the lowest value with no record is 23"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p6/rwpknum85.cob",
+    "printed": "error COBOL0863: RECORD KEY 'PK' is a category-numeric item; data-name-1 must reference a data item of the category alphanumeric (ANSI §1985:IX.2.7.3 SR2)",
+    "expected": "an 85 prime record key is alphanumeric, so the numeric key a later edition admits is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR14",
+    "check": "OK  §1985:IX.4.6.4 GR14  (4.6.4 General Rules)  the text is in GR14"
+   },
+   {
+    "cite": "§1985:IX.4.6.4 GR16",
+    "check": "OK  §1985:IX.4.6.4 GR16  (4.6.4 General Rules)  the text is in GR16"
+   }
+  ],
+  "notes": "IndexedConnector.Rewrite slices the prime key from the record image and looks it up in the prime tree, applying the last-read check only for sequential access; random and dynamic replace the record that key names. The probe confirms this after an alternate-key READ, after a READ of another record and with no READ at all.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-14",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/e/mr.cob and E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/f/fn.cob at --std 85, random access: the prime key taken from a second record description REC-B (implicit redefinition of the record area) selects 0020; REWRITE REC-B FROM a working-storage item selects 0030 by the moved key; FROM with key 0099 gives 23; REWRITE FROM FUNCTION UPPER-CASE(WB) replaces 0010 with the upper-cased image; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/d/fpi.cob uses a group prime key. cite.py: 'OK  §1985:IX.4.6.4 GR14  (4.6.4 General Rules)  the text is in GR14'; 'OK  §1985:IX.4.6.3 SR1  (4.6.3 Syntax Rules)  the text is in SR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

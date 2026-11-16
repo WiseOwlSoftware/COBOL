@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-VI.6.20.3-1",
+ "rule-digest": "88b3b8a23967",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-058",
+  "sources": {
+   "reader": "17c9a50c0599b55c526ec793a2d8245cb2c8f0691c3a03cba568a17c9962d3a5",
+   "refuter": "ae091fd372e0f5d6c34cb408fab426558f4ac6e99628334a1503734ae59c85a0"
+  },
+  "imported": {
+   "reader": "9931c6616608821c10bd22c338b644e53a4d5a38a5fab8f3714740ab1bd1f797",
+   "refuter": "e72dd9548f46cacc74c37e870f9f91341b54f147f671ffb16b646861638fcf82"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.20.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every MULTIPLY identifier (identifier-1, and identifier-2 in both formats) must reference an elementary numeric item, and each GIVING identifier-3 an elementary numeric or numeric-edited item; any other operand (alphanumeric, alphabetic, edited other than numeric-edited at GIVING, group, index data item, reference-modified slice, function-identifier written as the identifier) is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindMultiply; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#Format1Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindArithmeticStatementOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef",
+    "switches": "IndexDataItemAdmittedAt(ctx.Edition.DialectLevel): index data item admitted only in an index window (and at 2002+ as a function argument); the Arithmetic context admits it at no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002 (reached from ExpressionBinder.BindArithmeticStatementOperand): at 85 a numeric/integer function-identifier written as the whole operand is refused (COBOL0900, §1985:IV.4.3.8.3.3 SR4); at 2002+ admitted",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindMultiply through Receivers/ResolvedReceiver/ScreenResultant and the sending path BindExpr->RefExpr->OperandRef; grepped ExpressionBinder for DialectLevel/Edition.Edition/ConstructRegistry; the class screens (ClassScreenAdmits, ScreenResultant category tests) take no edition argument.",
+  "behaviour-differs-by-edition": "yes: a numeric function-identifier written as identifier-1 is refused at 85 (§1985:IV.4.3.8.3.3 SR4) and admitted at 2023; the category screens are the same code at every edition",
+  "witnesses-cover": "part: witnesses cover an alphanumeric GIVING receiver and an alphanumeric function as identifier-1; not exercised are group, alphabetic, index, numeric-edited sending/Format-1 receivers, reference-modified operands, ODO table elements and numeric functions",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulpos.cob",
+    "printed": "A 0012 / B -003.75 / C - 11.25 / D 0000 / E 0000 / F 999999999999999999 / G SIZE 50 / H 040 / I -006.00 / J 080 (exit 0)",
+    "expected": "numeric, signed scaled, numeric-edited GIVING, ODO element, 18-digit item and size error all accepted and computed: 3*4=12, -1.50*2.5=-3.75, 3*-3.75=-11.25 edited, 0, 0, max*1, 150 overflows PIC 99 so SIZE ERROR keeps 50, 10*4=40, -6, 2*40=80"
+   },
+   {
+    "class": "a,b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulref.cob",
+    "printed": "16 statements, 16 diagnostics: COBOL0844 for alphanumeric, numeric-edited (identifier-1 and Format-2 identifier-2), group, index, alphabetic and ref-modified sending operands; COBOL1675 for alphanumeric, numeric-edited, ref-modified and group Format-1 BY receivers and for alphanumeric, group, alphanumeric-edited, index and alphabetic GIVING receivers",
+    "expected": "every operand refused: SR1 numeric elementary items only, numeric-edited only after GIVING"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-058/mulfn.cob",
+    "printed": "--std 85: COBOL0900 FUNCTION LENGTH(\"AB\") as an identifier operand (§1985:IV.4.3.8.3.3 SR4); --std 2023: runs, 0014",
+    "expected": "85: a numeric function-identifier may be used only in an arithmetic expression, so not as MULTIPLY identifier-1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.20.3 SR1",
+    "check": "OK  §1985:VI.6.20.3 SR1  (6.20.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Sending operands go through the one 8.8.1.1 class screen (OperandRef, COBOL0844) and receivers through ScreenResultant with editedOk false for Format-1 BY and true for GIVING (COBOL1675); every class probed is refused or accepted as SR1 says. Diagnostics cite §2023 clauses at --std 85, and the alphabetic GIVING receiver is described as 'of category Alphanumeric' (pic.Category, not the analyzed category): wording only, the refusal is right.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.20.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under refute-1985-058/: rm1pos (66 RENAMES of an elementary numeric as identifier-1 and as BY receiver; BINARY, PACKED-DECIMAL, SIGN LEADING SEPARATE operands; GIVING $$$9.99CR and ZZZ9 BLANK WHEN ZERO; 9PP scaled; 77-level; MULTIPLY 4 BY I T (I)) printed A 014 / B 021 / C -00033 / D  $12.00   / E [    ] / F 00600 / G 36 / H 8 005020, every value right, and H matches §1985:VI.6.4.6 (temp then left-to-right results, so T(8) after I becomes 8). rm1ref: 66 RENAMES RA THRU RB (group) as identifier-1, BY receiver and GIVING receiver refused (COBOL0844, COBOL1675 x2); condition-name as identifier-1 and BY refused (COBOL1639); alphanumeric-edited sending and BY refused; FUNCTION CURRENT-DATE as Format-2 identifier-2 refused (COBOL0844, §1985:IV.4.3.8.3.3 SR3b); FUNCTION LENGTH as Format-2 identifier-2 refused (COBOL0900, SR4); numeric-edited Format-2 identifier-2 refused; GIVING FUNCTION LENGTH refused by the parser (COBOL5506). rm1c: ROUNDED MODE IS (a 2014 phrase) refused COBOL0803. rm1lin: MULTIPLY LINAGE-COUNTER BY N1 accepted (numeric special register as sending operand). cite.py: OK §1985:VI.6.20.3 SR1 the text is in SR1; OK §1985:IV.4.3.8.3.3 SR4 the text is in SR4; OK §1985:IV.4.3.8.3.3 SR3b; OK §1985:VI.6.4.6 the text is in the clause. No operand class of the 1985 formats found that the screens mis-handle.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler (ROUNDED MODE gate, COBOL0803): refuses the 2014 phrase at 85; on the MULTIPLY path but not this rule's operand class"
+  ],
+  "corrected": ""
+ }
+}

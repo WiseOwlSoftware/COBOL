@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VIII.1.3.5-2",
  "rule-digest": "53adcd2fbce1",
+ "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

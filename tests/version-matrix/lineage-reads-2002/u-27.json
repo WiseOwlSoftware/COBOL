@@ -1,0 +1,1609 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-27 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-27",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.8.33.3-15",
+   "2002-GR-14.8.33.3-16",
+   "2002-GR-14.8.33.3-18",
+   "2002-GR-14.8.33.3-4",
+   "2002-GR-14.8.33.3-8",
+   "2002-GR-14.8.33.3-9",
+   "2002-SR-14.8.34.2-6",
+   "2002-GR-14.8.34.3-1",
+   "2002-GR-14.8.34.3-3",
+   "2002-GR-14.8.34.3-4",
+   "2002-GR-14.8.34.3-5",
+   "2002-GR-14.8.34.3-6",
+   "2002-GR-14.8.34.3-7",
+   "2002-GR-14.8.34.3-9",
+   "2002-SR-14.8.35.2-10",
+   "2002-SR-14.8.35.2-11",
+   "2002-SR-14.8.35.2-12",
+   "2002-SR-14.8.35.2-13",
+   "2002-SR-14.8.35.2-14",
+   "2002-GR-14.8.35.3-4",
+   "2002-GR-14.8.35.3-5",
+   "2002-GR-14.8.35.3-6",
+   "2002-GR-14.8.35.3-9",
+   "2002-SR-14.8.36.2-14",
+   "2002-SR-14.8.36.2-6"
+  ],
+  "pointers": {
+   "2002-GR-14.8.33.3-15": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.35.4-15",
+    "similarity": 0.975
+   },
+   "2002-GR-14.8.33.3-16": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.35.4-16",
+    "similarity": 0.958
+   },
+   "2002-GR-14.8.33.3-18": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.35.4-19",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.33.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.35.4-5",
+    "similarity": 0.992
+   },
+   "2002-GR-14.8.33.3-8": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.35.4-9",
+    "similarity": 0.801
+   },
+   "2002-GR-14.8.33.3-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-14.9.35.4-10",
+    "similarity": 0.831
+   },
+   "2002-SR-14.8.34.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.37.3-8",
+    "similarity": 0.976
+   },
+   "2002-GR-14.8.34.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.37.4-1",
+    "similarity": 0.981
+   },
+   "2002-GR-14.8.34.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.37.4-3",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.34.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.37.4-4",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.34.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.37.4-5",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.34.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.37.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.34.3-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.37.4-7",
+    "similarity": 0.992
+   },
+   "2002-GR-14.8.34.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.37.4-9",
+    "similarity": 0.999
+   },
+   "2002-SR-14.8.35.2-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.39.3-10",
+    "similarity": 0.997
+   },
+   "2002-SR-14.8.35.2-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.39.3-11",
+    "similarity": 0.972
+   },
+   "2002-SR-14.8.35.2-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.39.3-12",
+    "similarity": 0.992
+   },
+   "2002-SR-14.8.35.2-13": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-14.9.39.3-13",
+    "similarity": 0.701
+   },
+   "2002-SR-14.8.35.2-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.39.3-14",
+    "similarity": 0.999
+   },
+   "2002-GR-14.8.35.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.39.4-5",
+    "similarity": 0.989
+   },
+   "2002-GR-14.8.35.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.39.4-6",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.35.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-14.9.39.4-7",
+    "similarity": 1.0
+   },
+   "2002-GR-14.8.35.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.39.4-10",
+    "similarity": 0.963
+   },
+   "2002-SR-14.8.36.2-14": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.40.3-14",
+    "similarity": 0.91
+   },
+   "2002-SR-14.8.36.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.40.3-6",
+    "similarity": 0.913
+   }
+  }
+ },
+ "read": {
+  "slice": "u-27",
+  "seed": null,
+  "pinned-compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe (tree head 24372b7b17; predates the PB5579 landing, so it still declines REWRITE/WRITE FILE with COBOL1706)",
+  "twin-runs-at-2002": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/runs-2002.txt (every conformance witness of the 25 pointer rows, compiled and run at --std 2002 with the pinned compiler by run_cases.py; per-case logs under probes-u-27/runs/2002/)",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.33.3-15",
+    "to": [
+     "GR-14.9.35.4-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "REWRITE record-name-1 [FROM] on a record sequential file whose record is longer than record-name-1",
+     "the same on a relative file",
+     "the same on an indexed file"
+    ],
+    "evidence-2002": {
+     "record sequential": "covered by pb1907_keyed_rewrite_past_record (V1/V1', RECORD VARYING) PASS at 2002, runs-2002.txt",
+     "relative": "covered by pb1907_keyed_rewrite_past_record (R1', R2') PASS at 2002",
+     "indexed": "covered by pb1907_keyed_rewrite_past_record (X1') PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR15",
+      "quote": "the content of the bytes that extend beyond the end of record-name-1 are undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR15",
+      "quote": "the content of the bytes that extend outside the end of record-name-1 are undefined",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'beyond' vs 'outside' differs; both name the bytes past the end of record-name-1, so nothing a program can show changes. The general format is the same in both editions. The 2023 row's second witness (pb1907_past_record_whole_record) is LINE SEQUENTIAL, which 2002 does not have (refused at 2002, COBOL0900); the 2002 scope is fully covered by the first witness, which passes at 2002.",
+    "probe": null,
+    "widening": "2023 also reaches line sequential files (pb1907_past_record_whole_record)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-16",
+    "to": [
+     "GR-14.9.35.4-16"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "REWRITE record-name-1 [FROM] on a (record) sequential file, record-name-1 size not equal to the record replaced -> unsuccessful, '44'",
+     "REWRITE FILE file-name-1 FROM identifier-1 / literal-1 on a sequential file, identifier-1 or literal-1 size not equal to the record replaced -> unsuccessful, '44'"
+    ],
+    "evidence-2002": {
+     "record-name-1": "covered by pb1168_rs_rewrite_size_gr16 PASS at 2002 (runs-2002.txt) and l1c25_rewrite_length_differs PASS at 2002",
+     "FILE phrase identifier-1/literal-1": "not shown: the 2023 row has no FILE-phrase witness, and the pinned compiler declines REWRITE FILE at every edition (COBOL1706; see runs/2002/pb5579_rewrite_file/log.txt), so no probe is possible with it"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR16",
+      "quote": "is not equal to the number of bytes in the record being replaced, the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR16",
+      "quote": "For a record sequential file, if the number of bytes in the data item referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR17",
+      "quote": "For a line sequential file",
+      "check": "OK"
+     }
+    ],
+    "reason": "The added words 'For a record sequential file' change nothing in 2002: 2002's SEQUENTIAL FILES heading covers only record sequential files (2002 has no LINE SEQUENTIAL; the compiler refuses it at 2002, COBOL0900). The identifier-1 and literal-1 arms of the rule matter only with the FILE phrase (with record-name-1 FROM, GR6 moves the operand into record-name-1 first, so record-name-1's size governs). That FILE-phrase arm has no witness in the 2023 row and cannot be probed with the pinned compiler, which predates the PB5579 landing.",
+    "compiler-at-2002": "not probed: the pinned compiler declines REWRITE FILE (COBOL1706, PB5579, since fixed on main)",
+    "needs": "a 2002 witness for REWRITE FILE file-name-1 FROM identifier-1 (and FROM literal-1) whose size differs from the record replaced on a sequential file (expected status '44', record unchanged), run on a compiler that includes PB5579; record-name-1 arm: pb1168_rs_rewrite_size_gr16 at 2002",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-18",
+    "to": [
+     "GR-14.9.35.4-19"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "relative REWRITE with INVALID KEY / NOT INVALID KEY / neither, incl. a USE AFTER EXCEPTION procedure on the file",
+     "indexed REWRITE with INVALID KEY / NOT INVALID KEY"
+    ],
+    "evidence-2002": {
+     "relative": "covered by l1c26_rewrite_relative_invalid_key PASS at 2002 (C1-C4: INVALID arm, NOT INVALID arm, USE procedure runs when INVALID KEY is absent)",
+     "indexed": "covered by l1c26_rewrite_indexed_prime_key PASS at 2002 (run by this reader with run_cases.py; '21' and '23' INVALID arms, NOT INVALID arm)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR18",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR19",
+      "quote": "depends on the presence or absence of the optional INVALID KEY and NOT INVALID KEY phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "a USE AFTER EXCEPTION procedure is associated with the file connector associated with the input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.14",
+      "quote": "any applicable exception processing statements are executed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the cross-reference number differs (2002 9.1.13, 2023 9.1.14, both 'Invalid key condition'). Read both: 2002 names USE EXCEPTION file procedures and USE EXCEPTION EC-I-O-INVALID-KEY procedures; 2023 says 'applicable exception processing statements', which covers those and more. The 2002 transfer rules (INVALID arm suppresses the USE procedure, no INVALID KEY -> USE procedure, success -> NOT INVALID arm) are what the relative witness shows at 2002; the indexed arm is shown by l1c26_rewrite_indexed_prime_key at 2002.",
+    "probe": null,
+    "widening": "2023's 'applicable exception processing statements' is wider than 2002's USE procedures"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-4",
+    "to": [
+     "GR-14.9.35.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "sequential access mode on a sequential file: no prior successful READ -> '43', unsuccessful; else replaces the record read",
+     "the same on a relative file in sequential access",
+     "the same on an indexed file in sequential access"
+    ],
+    "evidence-2002": {
+     "sequential": "covered by file_sharing_seq PASS at 2002 and l1m8_rewrite_unsuccessful_no_update (L2 '43') PASS at 2002",
+     "relative": "covered by probe rewrite_43_keyed.cob at 2002: REL43, then REL-OK 00 and BBBY read back",
+     "indexed": "covered by probe rewrite_43_keyed.cob at 2002: I43, then IOK 00 and AAAX read back"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR4",
+      "quote": "the I-O status in the rewrite file connector is set to '43' and the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR5",
+      "quote": "the I-O status in the rewrite file connector is set to '43' and the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "reason": "The normative sentences are word-identical; only the NOTE differs ('may'/'shall always' vs 'can'/'will always'), and a NOTE is not normative. The 2023 row's witness covers the sequential organization only; the relative and indexed sequential-access legs are shown at 2002 by this reader's probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/rewrite_43_keyed.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-8",
+    "to": [
+     "GR-14.9.35.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "REWRITE FILE f FROM identifier-1 (not a function): implicit record with identifier-1's description",
+     "REWRITE FILE f FROM literal-1: implicit record with literal-1's class, category, usage and length",
+     "REWRITE FILE f FROM an intrinsic function (alphanumeric or national, §2002 SR8): implicit record with the returned value's class, category, usage and length"
+    ],
+    "evidence-2002": {
+     "identifier-1": "covered on main by pb5579_rewrite_file (accept [2002, 2014, 2023]) and the 2002 row's own witness pb5579_rewrite_file_2002; NOT reproducible with the pinned compiler, which refuses it at 2002 with COBOL1706 (runs/2002/pb5579_rewrite_file/log.txt)",
+     "literal-1": "same as identifier-1",
+     "intrinsic function": "not shown: no witness of REWRITE FILE FROM an alphanumeric or national intrinsic function in either row"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR8",
+      "quote": "when identifier-1 references an intrinsic function, as though implicit-record-1 were a record description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.2 SR8",
+      "quote": "If identifier-1 references an intrinsic function and the FILE phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR9",
+      "quote": "equivalent to the execution of the following implicit MOVE statement and implicit REWRITE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "The differing words ('implicit MOVE statement and implicit REWRITE statement', and NOTE 3 on overlapping operands) only name and annotate the same equivalence, so the requirement is the same. But arm a) (FROM an intrinsic function) has no witness, and the pinned compiler cannot exercise the FILE phrase at all. The 2002 row already exists in tests/version-matrix/inventory-2002 as CONFORMS (PB5579, witness pb5579_rewrite_file_2002), which also lacks arm a).",
+    "compiler-at-2002": "not probed: the pinned compiler predates PB5579 and declines REWRITE FILE (COBOL1706)",
+    "needs": "a 2002 witness for arm a): REWRITE FILE f FROM an alphanumeric intrinsic function (for example FUNCTION UPPER-CASE) whose record is then read back; arms b) and c) are covered by pb5579_rewrite_file_2002 on main",
+    "probe": null,
+    "widening": "2023 SR8/SR9 say 'function' (user-defined functions too); 2002 only intrinsic functions"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-9",
+    "to": [
+     "GR-14.9.35.4-10"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.33.3",
+    "clause-2023": "14.9.35.4",
+    "scope-2002": [
+     "REWRITE record-name-1 FROM identifier-1: identifier-1 still available afterwards (identifier-1 cannot share record-name-1's storage, §2002 SR1)",
+     "REWRITE FILE file-name-1 FROM identifier-1: identifier-1 still available afterwards, INCLUDING when identifier-1 is a record of file-name-1 itself (no 2002 rule forbids that, and 2002 GR9 has no proviso)"
+    ],
+    "evidence-2002": {
+     "record-name-1 FROM": "covered by l1c25_rewrite_from_item_available PASS at 2002 (runs-2002.txt)",
+     "FILE phrase": "not shown: the 2023 rule excludes identifier-1 in the file's own records; the pinned compiler declines REWRITE FILE (COBOL1706) so no probe"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR9",
+      "quote": "the information in the area referenced by identifier-1 is available, even though the information in the area referenced by record-name-1 is not available",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.35.4 GR10",
+      "quote": "provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.2 SR1",
+      "quote": "Record-name-1 and identifier-1 shall not reference the same storage area",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.33.3 GR5",
+      "quote": "The logical record released by a successful execution of the REWRITE statement is no longer available in the record area",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description'. 2002 has no proviso. For the record-name-1 format 2002 SR1 already keeps identifier-1 out of record-name-1's storage, so nothing changes there. For the FILE format no 2002 rule forbids identifier-1 being a record of file-name-1, and 2002 GR9 then requires its content to remain available after the REWRITE (against GR5's general statement that the released record is not available). The 2023 verdict says nothing about that case.",
+    "compiler-at-2002": "not probed: the pinned compiler declines REWRITE FILE (COBOL1706, PB5579, fixed on main)",
+    "needs": "its own verdict: a 2002 witness for REWRITE FILE f FROM <a record of f> showing identifier-1's content after the REWRITE (2002 GR9 requires it available), run on a compiler that includes PB5579; record-name-1 arm covered by l1c25_rewrite_from_item_available at 2002",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-6",
+    "to": [
+     "SR-14.9.37.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.2",
+    "clause-2023": "14.9.37.3",
+    "scope-2002": [
+     "data-name-1/data-name-2 in SEARCH ALL WHEN may be qualified",
+     "shall be subscripted by the first index-name of identifier-1",
+     "shall be referenced in the KEY phrase",
+     "the index-name subscript shall not be followed by + or -"
+    ],
+    "evidence-2002": {
+     "qualified": "covered by pb1018_occurs_key_qualified (WHEN K OF B (IX) = 2) PASS at 2002",
+     "first index-name / literal subscript": "covered by pb445-search-all-when-literal-subscript refused at 2002 (COBOL1965)",
+     "KEY phrase": "covered by pb445-search-all-when-not-a-key refused at 2002 (COBOL1965)",
+     "+/-": "covered by pb445-search-all-when-index-plus refused at 2002 (COBOL1965)",
+     "legal form": "covered by pb445_search_all_format2_legal PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR6",
+      "quote": "Data-name-1 and all repetitions of data-name-2 may be qualified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR8",
+      "quote": "Data-name-1 and all repetitions of data-name-2 shall be subscripted by the first index-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 adds 'may be qualified' (2023 leaves qualification to the general rules of qualification); the row already lists pb1018_occurs_key_qualified, which passes at 2002. The en dash in '–' is typography. Format 2 of SEARCH is identical in both editions.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-1",
+    "to": [
+     "GR-14.9.37.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "successful search: index stays at the hit; WHEN imperative or NEXT SENTENCE",
+     "unsuccessful with AT END",
+     "unsuccessful, no AT END, EC-RANGE-SEARCH-* raised with an applicable declarative (USE AFTER EXCEPTION CONDITION) -> declarative, then end of SEARCH",
+     "unsuccessful, no AT END, checking not enabled -> end of SEARCH"
+    ],
+    "evidence-2002": {
+     "success / imperative": "covered by l1_search_index_default and the VARYING tests PASS at 2002",
+     "NEXT SENTENCE": "covered by pb444_search_next_sentence PASS at 2002 (run by this reader)",
+     "AT END": "covered by ec_range_search PASS at 2002",
+     "declarative": "covered by ca36_search_range_dispatch (>>TURN EC-RANGE CHECKING ON, USE AFTER EXCEPTION CONDITION EC-RANGE-SEARCH-NO-MATCH) PASS at 2002",
+     "no checking": "covered by l1_search_no_at_end_no_checking PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR1",
+      "quote": "and an applicable declarative exists, control is transferred to that declarative",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR1",
+      "quote": "an applicable exception processing statement associated with that exception condition exists",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only b)2 differs: 2002 'an applicable declarative' vs 2023 'an applicable exception processing statement'. The 2002 case (a declarative) is one of the 2023 cases and ca36_search_range_dispatch shows it at 2002.",
+    "probe": null,
+    "widening": "2023 b)2 also reaches exception processing statements other than declaratives"
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-3",
+    "to": [
+     "GR-14.9.37.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "no VARYING",
+     "VARYING index data item",
+     "VARYING integer item",
+     "VARYING index-name of the same table",
+     "VARYING index-name of another table",
+     "other indexes unchanged"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_search_index_default, l1_search_varying_index_data_item, l1_search_varying_integer_item, l1_search_varying_same_table_index, l1_search_varying_other_table_index, each PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR3",
+      "quote": "If the VARYING phrase is not specified, the search index is the index referenced by the first (or only) index-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical except 'general rule' capitalization; Format 1 is identical in both editions. The five twin witnesses pass at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-4",
+    "to": [
+     "GR-14.9.37.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "initial index < 1 or > max: unsuccessful, EC-RANGE-SEARCH-INDEX",
+     "serial evaluation in written order",
+     "past last occurrence: unsuccessful, EC-RANGE-SEARCH-NO-MATCH",
+     "hit: successful"
+    ],
+    "evidence-2002": {
+     "all": "covered by ec_range_search PASS at 2002 (low, high, no-match, success legs, observed via EXCEPTION-STATUS under >>TURN EC-RANGE CHECKING ON)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR4",
+      "quote": "the search operation is unsuccessful, the EC-RANGE-SEARCH-INDEX exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical except 'general rule' capitalization. The exception names are the same in both editions and the twin witness passes at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-5",
+    "to": [
+     "GR-14.9.37.4-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "a) keys sequenced per ASCENDING/DESCENDING (satisfied side: the search finds the element)",
+     "b) identifier-1 subordinate to an OCCURS: equal superordinate subscripts in the WHEN conditions, with identifier-1 UNSUBSCRIPTED (§2002 SR1)"
+    ],
+    "evidence-2002": {
+     "a)": "covered by probe search_all_gr5_2002.cob at 2002 (G5A-HIT=4, G5A-V=Y)",
+     "b)": "covered by probe search_all_gr5_2002.cob at 2002 (G5B-HIT=3, G5B-D=R, G5B-OX=2); NOT by the 2023 row's only witness l1_search_all_gr5_preconditions, which is refused at 2002 (COBOL0900: a subscript on SEARCH identifier-1 requires COBOL-2023)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR5",
+      "quote": "If identifier-1 is subordinate to one or more data description entries that contain an OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR1",
+      "quote": "Identifier-1 shall not be subscripted or reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR3",
+      "quote": "Identifier-1 may be contained within one or more other tables, for which the subscripting is still required",
+      "check": "OK"
+     }
+    ],
+    "reason": "The GR5 words are the same (only the OCCURS clause number differs), but the program b) is about is written differently: 2002 SR1 forbids subscripting identifier-1, so the superordinate occurrence comes only from the WHEN subscripts, whereas 2023 SR3 requires it. The row's only witness is a 2023-only program. The 2002 form was probed and is correct at 2002. Aside: the same unsubscripted program is also accepted at --std 2023, where 2023 SR3 says the subscripting 'is still required'. That may be a 2023 under-rejection and is outside this slice.",
+    "compiler-at-2002": "correct",
+    "needs": "a 2002 witness for GR5 b) with an unsubscripted identifier-1: probe search_all_gr5_2002.cob (expected and observed G5B-HIT=3 G5B-D=R G5B-OX=2 G5A-HIT=4 G5A-V=Y)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/search_all_gr5_2002.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-6",
+    "to": [
+     "GR-14.9.37.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "GR5 not satisfied, some setting matches: either a hit or NO-MATCH (undefined which)",
+     "GR5 not satisfied, no setting matches: NO-MATCH, GR1b"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_search_all_unsequenced_no_match PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR6",
+      "quote": "It is undefined which of these alternatives occurs",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical except 'general rule' capitalization. The twin witness passes at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-7",
+    "to": [
+     "GR-14.9.37.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "GR5 satisfied, several matching settings: successful, index at one of them"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_search_all_duplicate_keys PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR7",
+      "quote": "for which all conditions in the WHEN phrase can be satisfied, the search operation is successful",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR7",
+      "quote": "for which all conditions in the WHEN phrase are satisfied, the search operation is successful",
+      "check": "OK"
+     }
+    ],
+    "reason": "'can be satisfied' vs 'are satisfied' describe the same set of index settings (the conditions are evaluated against the table as it is), so no program behaves differently. The twin witness passes at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-9",
+    "to": [
+     "GR-14.9.37.4-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.34.3",
+    "clause-2023": "14.9.37.4",
+    "scope-2002": [
+     "SEARCH ALL: initial index ignored, index stays inside the table, unsuccessful -> NO-MATCH and GR1b, successful -> GR1a"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb447_search_all_index_stays_in_table and ec_range_search (SEARCH ALL leg), both PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR9",
+      "quote": "A nonserial type of search operation may take place",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR9",
+      "quote": "A non serial type of search operation may take place",
+      "check": "OK"
+     }
+    ],
+    "reason": "'nonserial' vs 'non serial' and 'general rule' capitalization only. The conformance witnesses pass at 2002. The C# conformance-tests in the row were not run at 2002, but the conformance cases cover the same scope.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-10",
+    "to": [
+     "SR-14.9.39.3-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.2",
+    "clause-2023": "14.9.39.3",
+    "scope-2002": [
+     "SET Format 5, interface-typed receiver: senders a) interface, b) class-name (FACTORY / not), c) ACTIVE-CLASS (FACTORY / not), d) SELF (factory / instance method), e) NULL"
+    ],
+    "evidence-2002": {
+     "legal senders": "covered by pb929_set_sr10_interface_receiver_senders, oo_set_self_interface, pb451_set_format5_self_sender, pb389_object_reference_descriptor, all PASS at 2002",
+     "refusals": "covered by pb929-set-sr10-interface-sender-unrelated, -class-sender-not-implementing, -factory-sender-not-implementing, -active-class-sender-not-implementing, oo-set-self-interface-not-implemented, pb451-self-sender-factory-not-implements, all refused at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR10",
+      "quote": "an object reference described with a class-name, subject to the following rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR10",
+      "quote": "an object reference described with an object-class-name, subject to the following rules",
+      "check": "OK"
+     }
+    ],
+    "reason": "'class-name' vs 'object-class-name' is a rename: 2023 separates the object-oriented class name from the class-condition name, and 2002's Format 5 class-name is the object-oriented one. Format 5 is identical apart from that rename. Every twin witness, legal and refusal, holds at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-11",
+    "to": [
+     "SR-14.9.39.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.2",
+    "clause-2023": "14.9.39.3",
+    "scope-2002": [
+     "SET interface-typed receiver TO class-name-1: the factory of class-name-1 shall IMPLEMENT the interface"
+    ],
+    "evidence-2002": {
+     "legal": "covered by pb451_set_format5_class_name_sender PASS at 2002",
+     "refusal": "covered by pb451-classname-sender-factory-not-implements refused at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR11",
+      "quote": "the factory object of class-name-1 shall be described with an IMPLEMENTS clause that references int-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR11",
+      "quote": "the factory object of object-class-name-1 shall be described with an IMPLEMENTS clause that references int-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the class-name / object-class-name rename differs.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-12",
+    "to": [
+     "SR-14.9.39.3-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.2",
+    "clause-2023": "14.9.39.3",
+    "scope-2002": [
+     "class-typed receiver, sender a) class-typed (ONLY, subclass, FACTORY presence), b) ACTIVE-CLASS, c) SELF (ONLY, subclass, instance/factory method), d) NULL"
+    ],
+    "evidence-2002": {
+     "all": "covered by l1_set_sr12a2_class_conformance, l1_set_sr12c2_self_conformance, pb451_set_format5_self_sender, pb389_object_reference_descriptor PASS at 2002 and the eleven refusal witnesses of the row refused at 2002 (runs-2002.txt)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR12",
+      "quote": "the class-name specified in the description of the data item referenced by identifier-4 shall be the same as the class-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rename class-name -> object-class-name, and a stray ';,' in 2002 c)3 (typography). No rule added or removed.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-13",
+    "to": [
+     "SR-14.9.39.3-13"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.35.2",
+    "clause-2023": "14.9.39.3",
+    "scope-2002": [
+     "SET class-typed receiver TO class-name-1: receiver shall have FACTORY",
+     "class-name-1 the same class or a subclass of the receiver's class (2002 SR13 has NO ONLY sub-rule)"
+    ],
+    "evidence-2002": {
+     "FACTORY": "covered by pb451-classname-sender-receiver-without-factory refused at 2002",
+     "same/subclass": "covered by pb451_set_format5_class_name_sender PASS at 2002 and pb451-classname-sender-superclass-name refused at 2002",
+     "ONLY receiver with a subclass name": "2002 SR13 permits it; the compiler refuses it at 2002 (pb451-classname-sender-only-receiver-subclass, citing 'ISO §2023:14.9.39.3 SR12 a)1.'). In 2002 the restriction comes from §2002:13.16.58.3 GR14d (an ONLY FACTORY reference shall reference the factory of the specified class), and §2002:9.3.7 says conformance checking is done at compile time"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR13",
+      "quote": "the data item shall be described with the FACTORY phrase and class-name-1 shall reference the same class or a subclass",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR13a",
+      "quote": "object-class-name-1 shall be the object-class-name specified in the description of the data item referenced by identifier-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR14d",
+      "quote": "If the FACTORY phrase is specified, the object referenced by this data item shall be the factory object of the specified class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7",
+      "quote": "Conformance checking is done at compile time only",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 SR13 a) (an ONLY receiver takes only its own class name) has no counterpart in 2002 SR13, which allows any same-or-subclass name. 2014 added a) in the same words. So the 2002 rule permits what the 2023 rule forbids, and the 2023 verdict does not decide the 2002 ONLY case. At 2002 the compiler refuses the ONLY case at compile time. That refusal is supported by 2002's own text (USAGE GR14d and the 9.3.7 note on compile-time conformance checking), but the diagnostic cites the 2023 SR12 a)1 instead of the 2002 basis.",
+    "compiler-at-2002": "correct (refusal of the ONLY+subclass case is supported by §2002:13.16.58.3 GR14d with §2002:9.3.7; the message cites §2023 SR12 a)1, which does not exist in 2002)",
+    "needs": "its own verdict: at --std 2002 the compiler refuses SET only-factory-ref TO subclass-name (pb451-classname-sender-only-receiver-subclass refused at 2002); record the 2002 basis as §2002:13.16.58.3 GR14d, not SR13",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/runs/2002/pb451-classname-sender-only-receiver-subclass/log.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-14",
+    "to": [
+     "SR-14.9.39.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.35.2",
+    "clause-2023": "14.9.39.3",
+    "scope-2002": [
+     "ACTIVE-CLASS receiver: sender a) ACTIVE-CLASS with the same FACTORY presence",
+     "b) SELF: b)1 receiver without FACTORY -> method in the instance definition; b)2 as PRINTED: 'if identifier-4 is described with a FACTORY phrase' -> method in the factory definition (identifier-4 is SELF, which no description carries, so b)2 restricts nothing)",
+     "c) NULL"
+    ],
+    "evidence-2002": {
+     "a)": "covered by pb389_object_reference_descriptor, pb496_active_class_positions PASS at 2002",
+     "b)1": "covered by pb451-active-class-receiver-in-factory-method refused at 2002",
+     "b)2": "the compiler refuses ACTIVE-CLASS FACTORY receiver := SELF in an instance method at 2002 (pb451-active-class-factory-receiver-in-instance-method, citing 'ISO §2023:14.9.39.3 SR14b2'); the 2002 text of b)2 does not forbid it, but §2002:13.16.58.3 GR14e does (an ACTIVE-CLASS FACTORY reference shall reference the factory object), and §2002:9.3.7 puts conformance checking at compile time",
+     "c)": "covered by pb389_object_reference_descriptor PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR14b2",
+      "quote": "if the data item referenced by identifier-4 is described with a FACTORY phrase, the method containing the SET statement shall be defined in the factory definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.3 SR14b2",
+      "quote": "if the data item referenced by identifier-3 is described with a FACTORY phrase, the method containing the SET statement shall be defined in the factory definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR14e",
+      "quote": "If the FACTORY phrase is specified, the object referenced by this data item shall be the factory object of that class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.7",
+      "quote": "Conformance checking is done at compile time only",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 b)2 is conditioned on identifier-4 (the sender, here SELF); 2023 b)2 (and 2014) on identifier-3 (the receiver). Read as printed, the 2002 syntax rule never applies, so the compiler's SR14b2 refusal is not the 2002 rule. The same program is still non-conforming in 2002 under USAGE GR14e, so the compile-time refusal is correct at 2002, but on a different basis than the one the diagnostic cites.",
+    "compiler-at-2002": "correct (refusal supported by §2002:13.16.58.3 GR14e with §2002:9.3.7; the diagnostic cites §2023 SR14b2)",
+    "needs": "its own verdict: at --std 2002 the ACTIVE-CLASS FACTORY := SELF-in-instance-method case is refused (pb451-active-class-factory-receiver-in-instance-method); record the 2002 basis as §2002:13.16.58.3 GR14e, since the printed 2002 b)2 cannot apply",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/runs/2002/pb451-active-class-factory-receiver-in-instance-method/log.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-4",
+    "to": [
+     "GR-14.9.39.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.3",
+    "clause-2023": "14.9.39.4",
+    "scope-2002": [
+     "SET mnemonic-name TO ON / OFF: the switch's condition-names then test on / off"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb400_evaluate_condition_subject_forms (SET SWM-A TO ON / OFF, then switch-status conditions) PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR4",
+      "quote": "will reflect an on status if the ON phrase is specified, or an off status if the OFF phrase is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.5.2",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.6.3 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the cross-reference differs (2002 8.8.4.1.5 'Switch-status condition', 2023 8.8.4.6 'Simple switch-status condition'). The two clauses' introduction, format and rule are word-identical. Format 3 is identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-5",
+    "to": [
+     "GR-14.9.39.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.3",
+    "clause-2023": "14.9.39.4",
+    "scope-2002": [
+     "SET condition-name TO TRUE: first literal stored per VALUE rules (alphanumeric, national, boolean categories)",
+     "group conditional variable with subordinate table: length per OCCURS",
+     "zero-length conditional variable unchanged"
+    ],
+    "evidence-2002": {
+     "categories": "covered by pb461_all_literal_value_categories PASS at 2002 (pb461_all_literal_value_roundtrip_85 is an 85-only program: refused at 2002 for VALUE ALL ZEROS on a numeric item, COBOL0902, outside the 2002 scope)",
+     "table length / zero length": "covered by pb455_set_false_group_length PASS at 2002 (its header witnesses the TRUE arm as well as FALSE: N=4 TRUE store, N=0 leaves unchanged)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR5",
+      "quote": "If the length of the conditional variable is zero, the SET statement leaves it unchanged",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical except the OCCURS clause number (13.16.36 vs 13.18.38). The table-length and zero-length parts are shown at 2002 by pb455_set_false_group_length (a witness of the sibling FALSE row; it should be added to this row's witnesses).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-6",
+    "to": [
+     "GR-14.9.39.4-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.3",
+    "clause-2023": "14.9.39.4",
+    "scope-2002": [
+     "SET condition-name TO FALSE: FALSE literal stored per VALUE rules",
+     "group with subordinate table: length per OCCURS",
+     "zero length unchanged"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb555_value_false_phrase, pb455_set_false_group_length, pb560_condition_value_float_and_false_2002, each PASS at 2002 (pb560_condition_value_numeric_edited_2023 is a 2023-only program, outside the 2002 scope)"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR6",
+      "quote": "the literal in the FALSE phrase of the VALUE clause associated with condition-name-1 is placed in the conditional variable",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical except the OCCURS clause number. The 2002 witnesses of the row pass at 2002.",
+    "probe": null,
+    "widening": "2023 also covers numeric-literal VALUE on numeric-edited conditional variables (pb560_condition_value_numeric_edited_2023)"
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-9",
+    "to": [
+     "GR-14.9.39.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.35.3",
+    "clause-2023": "14.9.39.4",
+    "scope-2002": [
+     "SET identifier-3 ... TO class-name-1: the factory object reference placed into each receiver in order"
+    ],
+    "evidence-2002": {
+     "all": "covered by pb451_set_format5_class_name_sender and pb389_object_reference_descriptor PASS at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR9",
+      "quote": "a reference to the factory object of the class identified by class-name-1 is placed into each data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.39.4 GR10",
+      "quote": "a reference to the factory object of the class identified by object-class-name-1 is placed into each data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the class-name / object-class-name rename differs.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-14",
+    "to": [
+     "SR-14.9.40.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.36.2",
+    "clause-2023": "14.9.40.3",
+    "scope-2002": [
+     "a) key same as or subordinate to data-name-2",
+     "b) key may be QUALIFIED (2002; 2023 b) instead says 'shall not be subscripted')",
+     "c) not boolean, object or pointer",
+     "d) not a variable-length data item = a group with a subordinate OCCURS DEPENDING ON (§2002:13.16.36.3 GR8)",
+     "e) no OCCURS on or between key and data-name-2"
+    ],
+    "evidence-2002": {
+     "a)": "covered by pb1173-sort-table-key-outside-table refused at 2002",
+     "b)": "covered by pb1018_table_sort_qualified_keys PASS at 2002",
+     "c) boolean": "covered by pb1173-sort-table-key-boolean refused at 2002",
+     "c) object": "covered by probe sort_table_key_object.cob at 2002 (COBOL1757 'is of class object', plus COBOL1532 for the typed element)",
+     "c) pointer": "covered by probe sort_table_key_pointer.cob at 2002 (COBOL1757 'is of class pointer')",
+     "d)": "covered by probe sort_table_key_nested_odo.cob at 2002 (COBOL1757 'is an occurs-depending group item', plus COBOL0854 nested ODO, which §2002:13.16.36.2 SR9 also forbids); the row's d) witness pb1173-sort-table-key-variable-group uses DYNAMIC LENGTH and is not a 2002 program",
+     "e)": "covered by pb1173-sort-table-key-inner-occurs refused at 2002"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR14",
+      "quote": "The data items identified by key data-names shall not be variable-length data items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR14",
+      "quote": "A key data item shall not reference a variable-length group or an occurs-depending group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR9",
+      "quote": "If the DEPENDING ON phrase is not specified, an OCCURS clause may be subordinate to a data description entry that contains another OCCURS clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Two items are worded differently. b): 2002 permits qualification, while 2023 forbids subscripts. Qualification is shown at 2002 by a row witness, and a subscripted data-name-1 is outside the 2002 format anyway because data-name-1 is not an identifier. d): 2002's 'variable-length data item' is defined by OCCURS GR8 as a group with a subordinate ODO table; 2023's wording also names dynamic-length and variable-length groups. The row's d) witness is not a 2002 program (it uses DYNAMIC LENGTH), so the 2002 d) case comes from the probe. The c) object and pointer arms have no row witness and were probed at 2002. Every part behaves correctly at 2002.",
+    "compiler-at-2002": "correct",
+    "needs": "2002 witnesses for d) (probe sort_table_key_nested_odo.cob) and for the c) object and pointer arms (probes sort_table_key_object.cob, sort_table_key_pointer.cob); a), b), c) boolean and e) are the row's witnesses at 2002",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/sort_table_key_nested_odo.cob",
+    "widening": "2023 d) also reaches dynamic-length items and variable-length groups (2014+ features)"
+   },
+   {
+    "rule-id": "2002-SR-14.8.36.2-6",
+    "to": [
+     "SR-14.9.40.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.36.2",
+    "clause-2023": "14.9.40.3",
+    "scope-2002": [
+     "a) key in a record of file-name-1",
+     "b) key may be QUALIFIED (2023 b) instead says 'not subject to any OCCURS')",
+     "c) not boolean, object or pointer",
+     "d) not a variable-length data item (a group with a subordinate ODO)",
+     "e) one record description suffices, same byte positions",
+     "f) no OCCURS on or above the key",
+     "g) variable-length records: key within the minimum record size"
+    ],
+    "evidence-2002": {
+     "a)": "covered by pb1173-sort-file-key-not-in-record refused at 2002",
+     "b)": "covered by probe sort_file_key_qualified.cob at 2002 (SORT SW ASCENDING KEY SK OF SR compiles; output A2 B1 C3); no row witness",
+     "c) boolean / pointer": "covered by pb1173-sort-file-key-boolean, pb1173-sort-file-key-pointer refused at 2002",
+     "c) object": "covered by probe sort_file_key_object.cob at 2002 (COBOL1757 'is of class object', plus COBOL1725 for USAGE OBJECT REFERENCE in the file section)",
+     "d)": "covered by pb1173-sort-file-key-odo-group refused at 2002",
+     "e)": "covered by pb1173_sort_key_second_record PASS at 2002",
+     "f)": "covered by pb1173-sort-file-key-occurs refused at 2002",
+     "g)": "covered by probe sort_file_key_beyond_min.cob at 2002 (COBOL0874); the row's g) witness pb1025-sort-key-after-dynamic-beyond-minimum uses DYNAMIC LENGTH and is not a 2002 program"
+    },
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.36.2 SR6",
+      "quote": "If the file referenced by file-name-1 contains variable-length records, all the data items identified by key data-names shall be contained within the first x bytes of the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.40.3 SR6",
+      "quote": "A key data item shall not be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.3 GR8",
+      "quote": "that specifies the variable-table format of the OCCURS clause is a variable-length data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "b), c) and d) are worded differently. b): 2002 'may be qualified' versus 2023 'not subject to any OCCURS'. The 2023 wording repeats f); the 2002 permission has no row witness, so it was probed. c): 2023 adds message-tag, which 2002 does not have; the 2002 object arm has no row witness and was probed. d): 2002's variable-length data item is the ODO group, which the row covers at 2002. The g) witness of the row is a 2014+ program, so g) at 2002 was probed. All parts are correct at 2002.",
+    "compiler-at-2002": "correct",
+    "needs": "2002 witnesses for b) qualified key (probe sort_file_key_qualified.cob), c) object (probe sort_file_key_object.cob) and g) (probe sort_file_key_beyond_min.cob); the rest are the row's witnesses at 2002",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-27/sort_file_key_qualified.cob",
+    "widening": "2023 c) adds message-tag and d) dynamic-length / dynamic-capacity items (2014+ features)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-27",
+  "refuter-probes": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-27/ (each probe compiled and run with the pinned compiler at --std 2002 and --std 2023; outputs in <name>.<std>.log)",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.8.33.3-15",
+    "verdict": "UPHELD",
+    "reason": "Format identical in both editions; 'beyond' vs 'outside' changes nothing. No CD, debugging or removed form reaches a REWRITE record-name-1. pb1907_keyed_rewrite_past_record covers the relative, indexed and record sequential VARYING legs at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR15",
+      "quote": "the content of the bytes that extend beyond the end of record-name-1 are undefined",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-18",
+    "verdict": "OVERTURNED",
+    "reason": "GR18 defers to §2002:9.1.13, and that text is not the 2023 text. 2002 9.1.13 item 2 names a specific case: with INVALID KEY specified, 'any USE EXCEPTION EC-I-O-INVALID-KEY procedure, if that exception condition was raised, is not executed'. 2023 9.1.14 says only 'applicable exception processing statements', and its items 3 and 4 (no INVALID KEY) are written differently: 2002 item 4 speaks only of a USE AFTER EXCEPTION procedure associated with the file connector, and 9.1.12 routes the raised EC to a USE procedure. The row's only witness, l1c26_rewrite_relative_invalid_key, uses a file USE procedure (USE AFTER STANDARD ERROR PROCEDURE ON RELF). It never enables EC-I-O-INVALID-KEY checking and has no EC-I-O-INVALID-KEY declarative, so the case 2002 names has no evidence at 2002. My probe shows the compiler is correct at 2002. C1 (INVALID KEY present, checking on, EC declarative): ST=23, DECL=0, ARM=INVALID, so the declarative is suppressed. C2 (no INVALID KEY): the EC declarative runs (DECL=1), which follows §2002:9.1.12. 2023 gives the same output.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR18",
+      "quote": "(See 9.1.13, Invalid key condition.)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "any USE EXCEPTION EC-I-O-INVALID-KEY procedure, if that exception condition was raised, is not executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.14",
+      "quote": "any applicable exception processing statements are not executed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.13",
+      "quote": "there is no USE AFTER EXCEPTION procedure associated with the file connector associated with the input-output statement, control is transferred to the end of the input-output statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12",
+      "quote": "the exception condition that exists determines whether an applicable USE procedure shall be executed",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "a 2002 witness for REWRITE INVALID KEY with >>TURN EC-I-O-INVALID-KEY CHECKING ON and a USE AFTER EXCEPTION CONDITION EC-I-O-INVALID-KEY declarative: probe rewrite_ik_ecdecl.cob (expected and observed C1 ST=23 DECL=0 ARM=INVALID; C2 ST=23 DECL=1)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-27/rewrite_ik_ecdecl.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.33.3-4",
+    "verdict": "UPHELD",
+    "reason": "The normative text is word-identical and the format is identical. The list of input-output statements in 2002 has nothing that 2023 lacks. The sequential leg is shown by the row's witness at 2002, and the relative and indexed legs by the reader's probe rewrite_43_keyed.cob at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.33.3 GR4",
+      "quote": "the I-O status in the rewrite file connector is set to '43' and the execution of the REWRITE statement is unsuccessful",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.34.2-6",
+    "verdict": "UPHELD",
+    "reason": "Format 2 is identical. 'Any subscripts required to uniquely identify the data item' covers the outer subscripts of a nested table in both editions. In 2002 these are the only outer subscripts, since identifier-1 is unsubscripted, and the reader's search_all_gr5_2002.cob and my search_all_gr6b.cob both compile that shape at 2002. Every arm of the rule (qualified, KEY phrase, first index-name, +/-) has a witness that passes or is refused at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.2 SR6",
+      "quote": "Data-name-1 and all repetitions of data-name-2 may be qualified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "GR1 names the nested-table case explicitly. When identifier-1 is subordinate to an OCCURS, only identifier-1's index (and the VARYING operand) is modified, and the superordinate occurrence comes from the subscripts the user writes in the WHEN phrases. In 2002 that program has an UNSUBSCRIPTED identifier-1 (§2002 SR1). 2023 SR3 requires the superordinate subscripts on identifier-1, so a 2023 program of this case is not a 2002 program. This is the same cause the reader accepted for GR5 b). Neither row witness (ca36_search_range_dispatch, l1_search_no_at_end_no_checking) nor the extra tests the reader cited has a nested table: all are one-level OCCURS. So the nested arm of the 2002 rule has no evidence. My probe shows the compiler is correct at 2002: a Format 1 SEARCH INNR (unsubscripted) WHEN V (OX, IX) = 'G' with OX=2 finds IX=3 and leaves OX=2 and the second index IX2=3 unchanged. With OX=3 it takes AT END with OX unchanged.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR1",
+      "quote": "If identifier-1 references a data item that is subordinate to a data item whose data description entry contains an OCCURS clause, only the setting of an index associated with identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR1",
+      "quote": "The subscript that is used to determine the occurrence of each superordinate table to search is specified by the user in the WHEN phrases",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR1",
+      "quote": "Identifier-1 shall not be subscripted or reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR3",
+      "quote": "Identifier-1 may be contained within one or more other tables, for which the subscripting is still required",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "class-detail": "the 2002 program form for the rule's nested-table arm (unsubscripted identifier-1, §2002 SR1) is not the 2023 form (§2023 SR3), and the row has no nested witness at all",
+    "needs": "a 2002 witness for the GR1 nested-table arm: probe search_nested_f1.cob (expected and observed 'F1-HIT OX=2 IX=3 IX2=3' and 'F1B-ATEND OX=3 IX=5')",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-27/search_nested_f1.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-3",
+    "verdict": "UPHELD",
+    "reason": "Format 1 is identical and GR3 is word-identical. The rule does not single out nested tables, and its index-selection behaviour does not depend on nesting. The five twin witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR3",
+      "quote": "If the VARYING phrase is not specified, the search index is the index referenced by the first (or only) index-name",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-4",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. The exception names and their NF classification match (2002 table: EC-RANGE-SEARCH-INDEX NF, EC-RANGE-SEARCH-NO-MATCH NF). ec_range_search passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR4",
+      "quote": "the search operation is unsuccessful, the EC-RANGE-SEARCH-INDEX exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-6",
+    "verdict": "OVERTURNED",
+    "reason": "GR6 governs 'any condition specified in general rule 5' not being satisfied, and that includes GR5 b): unequal superordinate occurrence numbers across the WHEN conditions. That violation exists only for a nested table, and in 2002 such a program has an unsubscripted identifier-1 (§2002 SR1, against §2023 SR3). The row's only witness, l1_search_all_unsequenced_no_match, violates only GR5 a) on a one-level table. The reader's scope did not list the b) leg at all. So the GR5 b) arm of GR6 has no evidence at 2002 in the row. This is the same cause as the reader's DIFFERENT verdict on GR5. My probe shows the compiler is correct at 2002: with WHEN K1 (1, IX) = 2 AND K2 (2, IX) = 5 it hits at IX=2, an allowed alternative of GR6 a). With no satisfying setting, NO-MATCH leads to AT END (GR6 b).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR6",
+      "quote": "If any condition specified in general rule 5 is not satisfied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.3 GR5b",
+      "quote": "the outermost level occurrence numbers shall all be equal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.4 GR6",
+      "quote": "If any condition specified in General rule 5 is not satisfied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.34.2 SR1",
+      "quote": "Identifier-1 shall not be subscripted or reference modified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.37.3 SR3",
+      "quote": "Identifier-1 may be contained within one or more other tables, for which the subscripting is still required",
+      "check": "OK"
+     }
+    ],
+    "class": "other",
+    "class-detail": "GR6 reaches the GR5 b) violation, which exists only for nested tables, whose 2002 program form (unsubscripted identifier-1) differs from 2023's; the row witnesses only the GR5 a) violation",
+    "needs": "a 2002 witness for GR6 with GR5 b) violated: probe search_all_gr6b.cob (observed 'G6B-HIT IX=2' and 'G6B2-NOMATCH'; either a hit at IX=2 or NO-MATCH is conforming for the first SEARCH, and the second must be NO-MATCH)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-27/search_all_gr6b.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-7",
+    "verdict": "UPHELD",
+    "reason": "GR7 applies when both GR5 conditions hold, so nesting adds no distinct behaviour: the search succeeds at one of the matching settings. The witness l1_search_all_duplicate_keys satisfies GR5 b) vacuously (a one-level table), which is a valid 2002 program. 'Can be' vs 'are' satisfied changes nothing.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR7",
+      "quote": "If both conditions specified in general rule 5 are satisfied",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.34.3-9",
+    "verdict": "UPHELD",
+    "reason": "Only 'nonserial' vs 'non serial' differs. The rule's bounds are those of the table and do not depend on nesting. pb447_search_all_index_stays_in_table and ec_range_search pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.34.3 GR9",
+      "quote": "A nonserial type of search operation may take place",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-10",
+    "verdict": "UPHELD",
+    "reason": "Format 5 is the same apart from class-name vs object-class-name. In 2002 the Format 5 class-name can only be an object-oriented class, since it is described with FACTORY or IMPLEMENTS. Arms a) to e) are word-identical otherwise, and every legal and refusal witness holds at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR10",
+      "quote": "an object reference described with a class-name, subject to the following rules",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-11",
+    "verdict": "UPHELD",
+    "reason": "Only the rename differs. The legal and refusal witnesses hold at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR11",
+      "quote": "the factory object of class-name-1 shall be described with an IMPLEMENTS clause that references int-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.35.2-12",
+    "verdict": "UPHELD",
+    "reason": "Arms a) to d) are the same in both texts (I compared the 2002 and 2023 text line by line); apart from the rename and the stray ';,' in 2002 c)3, they match. The ONLY phrase exists in 2002. The witnesses hold at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.2 SR12",
+      "quote": "the class-name specified in the description of the data item referenced by identifier-4 shall be the same as the class-name",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-4",
+    "verdict": "UPHELD",
+    "reason": "Format 3 is identical, and only the cross-reference number differs. The 2002 switch-status condition carries the same test.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR4",
+      "quote": "will reflect an on status if the ON phrase is specified, or an off status if the OFF phrase is specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-5",
+    "verdict": "UPHELD",
+    "reason": "Word-identical except the OCCURS clause number. I checked the reader's dismissal of pb461_all_literal_value_roundtrip_85: 2002 8.3.3 forbids ALL with ZERO where a numeric literal is required ('the only figurative constant permitted is ZERO (ZEROS, ZEROES) without the ALL phrase'), so that program is not 2002 and the refusal at 2002 is correct. pb461_all_literal_value_categories and pb455_set_false_group_length cover the 2002 scope.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR5",
+      "quote": "If the length of the conditional variable is zero, the SET statement leaves it unchanged",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-6",
+    "verdict": "UPHELD",
+    "reason": "Word-identical except the OCCURS clause number. The 2002-valid witnesses pass at 2002, and the numeric-edited case is a 2023 widening.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR6",
+      "quote": "the literal in the FALSE phrase of the VALUE clause associated with condition-name-1 is placed in the conditional variable",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.35.3-9",
+    "verdict": "UPHELD",
+    "reason": "Only the rename differs. The witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.35.3 GR9",
+      "quote": "a reference to the factory object of the class identified by class-name-1 is placed into each data item",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "8e7724ea166eda4400f8c1eb39a3e4b3c9ea3646b886ae8b0b7843adcac2636e",
+  "read": "da24ed8e3788960b7d583ae2751f6fa6b30760bd3252598c6080cd26d76b9419",
+  "refute": "f77fd7675e0f072455a47531bb5139b63cb5b171f57e8c0b9b9b986519b17698"
+ }
+}

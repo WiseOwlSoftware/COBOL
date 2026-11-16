@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_display_no_advancing
       *> rules: [GR-14.9.11.4-9]
-      *> accept: [2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

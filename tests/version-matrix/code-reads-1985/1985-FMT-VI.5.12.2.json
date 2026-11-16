@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-FMT-VI.5.12.2",
+ "rule-digest": "c33a102180bb",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-01",
+  "sources": {
+   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
+   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+  },
+  "imported": {
+   "reader": "5c431d28b36a9c1674c3af87cb285feb10969af0ddfde67d0cf71fb2a1fd2abc",
+   "refuter": "dfb21b3f6095d3dca9ed038b9725bf115af1429bcdb51ccf22d017aced6595bc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.12.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the SIGN clause must be accepted in the form [SIGN IS] {LEADING|TRAILING} [SEPARATE CHARACTER] (SIGN IS optional as a pair, IS and CHARACTER optional words, LEADING or TRAILING required, SEPARATE optional and after the side), once per data description entry (the VI.5.3 format brackets it with no ellipsis), and any other arrangement refused; the witnesses cover only the written-twice refusal half.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#signClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "row.At(_edition.DialectLevel) picks the per-edition figure of the clause list; the DataDescriptionClauseContext row has no Earlier figure, so 1985 gets the 2023 list (SIGN once, any order)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries (SIGN, LEADING, TRAILING, SEPARATE, CHARACTER rows)",
+    "switches": "reserved at 85/2002/2014/2023: all five rows true at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep SignClause/\"SEPARATE\"/\"LEADING\" in Validation/VersionConformancePass*.cs (only CurrencySignClause visited); grammar signClause and dataDescriptionClause carry no version predicate; DataBinder signClause arm reads LEADING()/SEPARATE() with no edition test.",
+  "behaviour-differs-by-edition": "no: the 1985 format is the same as the 2023 format and the compiler takes one arm",
+  "witnesses-cover": "part: only the SIGN-written-twice refusal; the optional SIGN IS, optional CHARACTER, the bare LEADING/TRAILING, group SIGN with subordinate override and the refusal of SEPARATE without a side are not exercised by them",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-forms.cob",
+    "printed": "-012|012-|+034|00N|}07| / 01--02 / 024-",
+    "expected": "every format arrangement accepted; SEPARATE leading/trailing '+'/'-' character (GR6c); subordinate elementary SIGN takes precedence over the group's (GR3); ADD across two sign layouts converts automatically (GR7): -12 + -12 = 024-"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-sepnoside.cob",
+    "printed": "error COBOL5506: missing token before 'SEPARATE' ... expected LEADING or TRAILING",
+    "expected": "refused: LEADING|TRAILING is a required choice"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-signalone.cob",
+    "printed": "error COBOL5506: missing token before 'VALUE' ... expected LEADING or TRAILING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-sepfirst.cob",
+    "printed": "error COBOL1941: unexpected 'SEPARATE' ... is not a clause of the data description entry",
+    "expected": "refused: SEPARATE follows the side"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-twice.cob",
+    "printed": "error COBOL2423: the clause 'SIGN LEADING SEPARATE' is written 2 times",
+    "expected": "refused: the clause once per entry"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s1-forms.cob",
+    "printed": "--std 2023 prints the identical three lines",
+    "expected": "the format has no 1985-only form; same result at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.1",
+    "check": "OK  §1985:VI.5.12.1  (5.12.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.12.3 SR1",
+    "check": "OK  §1985:VI.5.12.3 SR1  (5.12.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.12.4 GR3",
+    "check": "OK  §1985:VI.5.12.4 GR3  (5.12.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.5.12.4 GR6c",
+    "check": "OK  §1985:VI.5.12.4 GR6c  (5.12.4 General Rules)  the text is in GR6c"
+   },
+   {
+    "cite": "§1985:VI.5.3.3 SR2",
+    "check": "OK  §1985:VI.5.3.3 SR2  (5.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar rule is the 1985 diagram word for word and every arrangement it allows binds; each malformed arrangement is refused. The FMT locator itself cannot be quote-checked (cite.py finds no words in the <pre> diagram), so the Function clause and the GRs are cited. Every refusal at --std 85 cites §2023 locators in its message text, a diagnosis-wording point outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry": "ownSign = new SignSpec(LEADING, SEPARATE)"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.12.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.5.12 whole (SR1-3, GR1-7) and the grammar CobolData.g4#signClause `(SIGN IS?)? (LEADING | TRAILING) (SEPARATE CHARACTER?)?`, which is the 1985 diagram word for word. Probes at --std 85 under refute-1985-01/: s1-isonly (IS LEADING without SIGN) COBOL5506 refused; s1-charnosep (LEADING CHARACTER without SEPARATE) COBOL1941 refused; s1-signsep (SIGN SEPARATE, no side) COBOL5506; s1-both (LEADING TRAILING) COBOL2423; s1-isis (SIGN IS IS) COBOL5506; s1-sepsep COBOL1941; s1-order (SIGN before PIC, after VALUE, on a 77) runs '012-E|-03'; s1-88 (SIGN on an 88) COBOL1747. Adjacent syntax rules also hold at 85: s1-nos (no S) and s1-comp (COMP) COBOL2422, s1-grpnone (group with no signed subordinate) COBOL0900 'requires COBOL-2002', matching §1985 SR1's group wording. No later-edition SIGN form exists to refuse (the 2023 format is the same). cite.py: OK §1985:VI.5.12.4 GR6; OK §1985:VI.5.12.3 SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

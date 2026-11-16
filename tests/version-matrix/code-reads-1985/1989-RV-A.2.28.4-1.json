@@ -1,0 +1,94 @@
+{
+ "rule-id": "1989-RV-A.2.28.4-1",
+ "rule-digest": "657dc4742ae5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-181",
+  "sources": {
+   "reader": "64adde408a710636ce1336a5767ddd82683bb562f3bbf807b14cc4f6884eaab9",
+   "refuter": "ca573e4b3eb6eea966e401713476fb0266a627947ce5f3c2404df2763568ed6f"
+  },
+  "imported": {
+   "reader": "cc51e8c0122b633665c34e15d6645905528a2f4c152ddec73a40f2e09b1f42a2",
+   "refuter": "8612f22bc669599239df15aada55551b04774be37546c7413c72906824b7154c"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.28.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 MOD must return argument-1 - (argument-2 * FUNCTION INTEGER (argument-1 / argument-2)), the floored modulus with the sign of argument-2, for every integer argument form (integer items of any usage including P-scaled integers, integer literals, integer arithmetic expressions) up to the 18-digit maximum.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ModScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#ModDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntrinsicFunctionNotYetIntroduced when sig.IntroducedIn (85) exceeds DialectLevel; MOD is available at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "NumericFunctionIdentifierOperand2002: an integer function outside an arithmetic expression is refused at 85, accepted at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "no edition test in IntrinsicRenderer.cs (the ModScaled arm), NumericRenderer.cs or CobolIntrinsics.Exact.cs (grep Edition|CobolVersion|DialectLevel); the lane follows the arithmetic mode, native at 85.",
+  "behaviour-differs-by-edition": "no for the value; yes at the reference site: 85 refuses MOD outside an arithmetic expression",
+  "witnesses-cover": "part: g85_bf41_01 covers the RV2 sign table, small items and 123456789 mod 1000; not covered: 18-digit extremes, a divisor larger than the dividend, P-scaled integers, packed/binary usages, integer arithmetic-expression arguments, a subscript the statement changes",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/modp.cob",
+    "printed": "MATCH modp.out: MBIG1 999, MBIG2 -1 (999999999999999999 mod -1000), MBIG3 1, MBIG4 0, MBIG5 1, MBIG6 -999999999999999998 (1 mod -999999999999999999), MPP 6 (9PP 300 mod 7), MUSG 3 (-17 mod 4), MEXPR -1 (-34 mod -3), MZERO 0 (-0 mod 5), MEXACT 0, MSUB 1 (COMPUTE I = MOD (TE (I) + 2 4)), MSUB2 2",
+    "expected": "a - b * floor(a / b) per §1989:A.2.28.4 RV1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/exprs.cob",
+    "printed": "MODX 2 for MOD (2 ** 3 3); MODX2 1 for MOD (-7 2 ** 2)",
+    "expected": "2 and 1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/ref5.cob",
+    "printed": "error COBOL1627: FUNCTION MOD argument-1 is the numeric literal 1.5, whose value is not an integer",
+    "expected": "refused: §1989:A.2.28.3 AR1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/ref6.cob",
+    "printed": "MOD (7 0) compiles and the program prints +00000.00",
+    "expected": "argument-2 zero violates AR2; the result of such a reference is undefined (§1989:A.2.2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.28.4 RV1",
+    "check": "OK  §1989:A.2.28.4 RV1  (2.28.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.28.4 RV2",
+    "check": "OK  §1989:A.2.28.4 RV2  (2.28.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "ModScaled takes the truncating quotient and subtracts one when the remainder is nonzero and the signs differ, which is the floor the INTEGER function gives; the final subtraction is checked. A zero divisor returns 0 through ModZeroDivisor (EC-ARGUMENT-FUNCTION), which the 1985 text leaves undefined. Same output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.28.4-1",
+  "refutation": "UPHELD",
+  "classes": "d,f,b",
+  "evidence": "modx.cob (runs/modx-001): M1 +999999999999999997 for MOD (-999999999999999999 999999999999999998) and M2 -999999999999999997 for the mirrored signs (floor quotient -2, an intermediate 2 * 999999999999999998 beyond 18 digits handled exactly); M3 0 for MOD (A * 1 -1); M4 1 for MOD (FUNCTION INTEGER-PART (-7.5) 2); M5 1 for MOD (FUNCTION MIN (-7 3) 2), an integer function as integer argument; M6 -2 for MOD (-17 COMP, FUNCTION INTEGER (-2.5)); M7 0; M8 0 for MOD (-11 5) + MOD (11 -5) (RV2 table 4 + -4). Refusal half (argument rules, outside this RV, probed for completeness; modint.cob runs/modint-001): MOD (F 3) with F PIC 9V9, MOD (FUNCTION MEDIAN (1 3 5) 2) and MOD (FUNCTION MIN (1.5 2) 2) are each refused COBOL1627, as §1989:A.2.3 requires (OK  §1989:A.2.3  (2.3 TYPES OF FUNCTIONS)  the text is in the clause; it lies in GR2). Side note, not this rule: at --std 85 the COBOL1627 text cites ISO §2023:15.3 / §2023:8.4.3.2.3 SR11 rather than the 1985 clause. OK  §1989:A.2.28.4 RV1  (2.28.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-SR-VII.2.13.3-1",
+ "rule-digest": "a500bcf6a009",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-061",
+  "sources": {
+   "reader": "19a1b68739c8a501f314c55dcb2bf4acfc3981c694766c8c8858499010645818",
+   "refuter": "c924c9b72f38a1cb5d858b2aa79df0b05d2e78c6c9da2886301456a06ac8265b"
+  },
+  "imported": {
+   "reader": "0371d5251055551117f49590be3db253c6f5598de372d7f965ce62cad8bd7ff8",
+   "refuter": "19a6ac7a2e093901b0c02bc3a9144e98f72bc7a31a02e0d8006ecb572fef9dcc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.13.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every file-name in a SAME AREA or SAME RECORD AREA clause must name a file in the FILE-CONTROL paragraph of the same program; a name that is undefined, a data-name, or a GLOBAL file of a containing program must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands",
+  "edition-consulted": [],
+  "edition-search": "grep Edition.Edition|DialectLevel|CobolVersion in FileControlBinder.IoControl.cs: the only edition test is SameOccurrenceRule (Edition.Edition.Year < 2002, the report-file row of SR3's occurrence limits), which serves a neighbouring rule; ScreenSameOperands uses Edition.At for position only and looks the name up in this unit's FilesByName.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness names a file not in FILE-CONTROL; not exercised: a data-name operand, the SAME RECORD AREA form, a containing program's GLOBAL file",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r5ref.cob",
+    "printed": "COBOL2738 SAME AREA: 'FX' is not a file specified in the FILE-CONTROL paragraph; COBOL2738 SAME RECORD AREA: 'D1' is not a file ...",
+    "expected": "both refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r5nest.cob",
+    "printed": "COBOL2738 SAME AREA: 'FG' is not a file specified in the FILE-CONTROL paragraph of this source element",
+    "expected": "refused: FG is a GLOBAL file of the containing program, not in this program's FILE-CONTROL"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r56ok.cob",
+    "printed": "F2R=ABCD / ABCD (exit 0)",
+    "expected": "SAME RECORD AREA FOR F1 F2 F3 with SAME AREA FOR F3 F2 F1 accepted, F2's record views F1's record area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.3 SR1",
+    "check": "OK  §1985:VII.2.13.3 SR1  (2.13.3 Syntax Rules)  the text is in SR1 [must be specified in the FILE-CONTROL paragraph of the same program]"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3c",
+    "check": "OK  §1985:VII.2.13.3 SR3c  (2.13.3 Syntax Rules)  the text is in SR3c [all of the file-names in that SAME AREA clause must appear in the SAME RECORD AREA clause] (why the first r56ok draft was refused)"
+   }
+  ],
+  "notes": "ScreenSameOperands resolves each operand against this unit's own FilesByName, which a containing program's GLOBAL files join only after the unit's data binds, so undefined names, data-names and inherited GLOBAL files are all refused with COBOL2738. The first draft of the acceptance probe drew the correct SR3c refusal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.13.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read FileControlBinder.IoControl.cs#ScreenSameOperands (looks each operand up in this unit's FilesByName; no edition test). q5nest.cob (--compile-only): the containing program's SAME AREA naming a file only the contained program selects -> COBOL2738, and the contained program naming the container's non-GLOBAL file -> COBOL2738. q5ok.cob (run): a contained program's own file that shadows the container's GLOBAL file of the same name is admitted in its SAME RECORD AREA and shares the record (FKR=WXYZ). q5g2.cob (run): a program's own GLOBAL file in its own SAME AREA is admitted (OK). q5g.cob: the same file in SAME RECORD AREA is refused COBOL2738, a correct 1985 rule (§1985:X.4.6.3 SR3), not this one. cite.py: OK §1985:VII.2.13.3 SR1 [must be specified in the FILE-CONTROL paragraph of the same program]; OK §1985:X.4.6.3 SR3 [must not include the GLOBAL clause].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

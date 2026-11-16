@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-SR-XIII.2.4.3-1",
+ "rule-digest": "b8938410fb8c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-074",
+  "sources": {
+   "reader": "4e280ecb892567a1a70eba8a53575211af2f49a0afeef6f043c7ee194d7abde9",
+   "refuter": "bb40349bcbb5d0da945c3f118211db9163dddddb6816052f790a6399f6ca9150"
+  },
+  "imported": {
+   "reader": "0948a9a653f38e704ea4d136bb4bdc92639a8cc5026c3606e0b0e431724c69ec",
+   "refuter": "68c0233c0c284713097274546463d47c64d7197a81a87304901e8420645bfcf6"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.2.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "In the I-O-CONTROL paragraph the SAME AREA, MULTIPLE FILE TAPE (and the Sequential I-O module's RERUN) clauses may be written in any order, interleaved and repeated, with report files among their operands, closed by one separator period. The witnesses cover only the period screens and the closed list, not clause order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Frontend/Cst/ParagraphPeriods.cs#ByContext",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMultipleFileClause",
+    "switches": "MultipleFileTapeRemoved2002: accepted at 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs (RERUN check, Constructs.RerunRemoved2002)",
+    "switches": "RERUN accepted at 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitApplyCommitClause",
+    "switches": "APPLY COMMIT refused below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition",
+    "switches": "ClauseCardinalities row.At(DialectLevel); no row exists for ioControlClause, so no order screen at any edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep IoControl in Frontend/Cst and Compiler: ClosedFormats.ByContext and ParagraphPeriods.ByContext rows are edition-invariant; ClauseCardinalities has no I-O-CONTROL row (so no ordering).",
+  "behaviour-differs-by-edition": "yes: MULTIPLE FILE TAPE and RERUN exist only at 85 (removed 2002); APPLY COMMIT only at 2023. Clause order is free at every edition.",
+  "witnesses-cover": "part: no witness writes the clauses in different orders or names a report file in them",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_mft_first.cob",
+    "printed": "exit 0, DONE",
+    "expected": "MULTIPLE FILE TAPE (report files) before SAME AREA accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_same_first.cob",
+    "printed": "exit 0, DONE",
+    "expected": "SAME AREA before MULTIPLE FILE TAPE accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_interleave.cob (ioc_interleave-004)",
+    "printed": "exit 0, DONE",
+    "expected": "SAME, MULTIPLE FILE, SAME, RERUN interleaved accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_rerun_first.cob (ioc_rerun_first-003)",
+    "printed": "exit 0, DONE",
+    "expected": "RERUN first accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_period.cob",
+    "printed": "COBOL3407: a separator period follows 'SAME AREA FOR PRT SQ' ... delete this period",
+    "expected": "refused: the 1985 format prints one period after all clauses"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-074/src/ioc_apply.cob",
+    "printed": "COBOL0900: APPLY COMMIT clause requires COBOL-2023 (plus COBOL2974)",
+    "expected": "refused: no APPLY clause in 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.2.4.3 SR1",
+    "check": "OK  §1985:XIII.2.4.3 SR1  (2.4.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The grammar takes (ioControlClause DOT?)* with no order and no ClauseCardinalities row screens order, so every order is accepted; the 85-only clauses are accepted through their removal gates. Side observations, not this rule: COBOL2738 refuses a report file in two SAME AREA clauses citing an '(at most one)' reading of XIII.2.4.3 SR2, and the period diagnostics cite §2023 clause numbers at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.2.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read XIII.2.4.2 format and SR1-SR3. Probe p2_order at --std 85: RERUN; SAME RECORD AREA, MULTIPLE FILE (no TAPE) with POSITION, SAME AREA, MULTIPLE FILE TAPE, SAME AREA, with ';' and ',' separators, report files in MULTIPLE FILE and SAME AREA: exit 0 DONE. p2_samerec (report file in SAME RECORD AREA) COBOL2738 refused, matching SR2. cite.py: OK §1985:XIII.2.4.3 SR1 'the text is in SR1'; OK §1985:XIII.2.4.3 SR2 'the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.6.14.4-1",
+ "rule-digest": "8d2eccd93bf3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "1a7fdd4760101d04dca18bfc451073e5e9e34c428b7d23059e915da2a4f423c5",
+   "refuter": "8e898ff9d6c4811ab6e9251bb4f1084eb325ef3148d2c18b20452cc021ca2232"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.14.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "A bare EXIT (the only EXIT format of the 1985 Nucleus) only gives a procedure-name to a point: at run time control passes through it as if nothing were there (a PERFORM range ending at it returns, fall-through continues), and it adds no other effect; EXIT PERFORM/PARAGRAPH/SECTION are not 1985 forms; the witness covers PERFORM THRU to an EXIT paragraph and fall-through.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#exitStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement",
+    "switches": "Constructs.ExitParagraph2002 / ExitPerform2002 / ExitSection2002 refuse the 2002 structured exits at 1985 (COBOL0900); the bare EXIT is not gated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the bare EXIT arm of BindExit returns BoundNop with no edition test; StatementEmitter.Visit(BoundNop) emits nothing; grep for DialectLevel in ControlFlowBinder.BindExit found none.",
+  "behaviour-differs-by-edition": "no: the bare EXIT is a no-op at every edition; only the later formats are refused at 1985",
+  "witnesses-cover": "part: l1_exit_format1_common_endpoint covers PERFORM THRU and fall-through; PERFORM of the EXIT paragraph alone, an EXIT ending a section, GO TO an EXIT paragraph and the later formats are probed here",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/ex1.cob",
+    "printed": "BACK 01 / BACK2 01 / BACK3 03 / FALL 03 / END 03 / THRU 05 / AFTER-EXIT 05",
+    "expected": "PERFORM P-A THRU P-EXIT with GO TO P-EXIT returns; PERFORM P-EXIT alone returns with no effect; PERFORM S1 ending in an EXIT paragraph returns; GO TO an EXIT paragraph falls through to the next section"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/ex3.cob",
+    "printed": "COBOL0900 EXIT PARAGRAPH / EXIT PERFORM / EXIT SECTION require COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused at 1985: only the bare EXIT exists"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/ex2.cob",
+    "printed": "COBOL2966 EXIT ... is one of 2 sentences in its paragraph",
+    "expected": "§1985:VI.6.14.3 SR1 refusal (the placement under which GR1 applies)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.14-EXIT/l1_exit_format1_common_endpoint.cob",
+    "printed": "P1 / P2 / AFTER-1 / P1 / AFTER-2; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.14.4 GR1",
+    "check": "OK  §1985:VI.6.14.4 GR1  (6.14.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Classes a, d, e and f do not apply to a statement with no operands. A first draft of ex1.cob (ex1-002) looped because the probe's own GO TO fell back into a PERFORM; it was stopped within the tool timeout, wrote no output file, and the corrected probe ex1-003 is the evidence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.14.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-107/rex1-001 at --std 85: BACK-S2 0 (PERFORM of a section whose one paragraph is EXIT returns and does not run into the next section); L 1 / L 2 / L 3 / VARY 4 (PERFORM ... THRU an EXIT paragraph VARYING); TIMES (PERFORM of an EXIT paragraph 2 TIMES); S3 / S4 FALL (GO TO a section, fall-through past its EXIT paragraph into the next section). Class b: rex2.cob (EXIT inside IF ... END-IF) and rex3.cob (EXIT DISPLAY in one sentence) refused COBOL2966 (§1985:VI.6.14.3 SR1, the placement under which GR1 applies). Class c: rex4-001 EXIT PROGRAM, a 1985 Inter-Program Communication statement and not this Nucleus EXIT, compiles and returns (SUB / BACK), so the bare-EXIT gate does not over-refuse the other 1985 EXIT form; the reader's ex3 covers the 2002 EXIT PARAGRAPH/PERFORM/SECTION refusals. Classes a, d, e, f do not apply (no operands). cite.py: OK §1985:VI.6.14.4 GR1 the text is in GR1; OK §1985:VI.6.14.3 SR1 the text is in SR1. Side note, not this rule: COBOL2966's text quotes §2023:14.9.14.3 SR1 ('or in a section without paragraphs') at --std 85, where the 1985 SR1 names only the paragraph.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

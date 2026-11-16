@@ -1,0 +1,106 @@
+{
+ "rule-id": "1985-SR-XIII.3.8.3-6",
+ "rule-digest": "5a30ee28348b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-079",
+  "sources": {
+   "reader": "84ee836935de360f1eecdc37b4694460b2d77bb584e189d7b954072ca0835ad1",
+   "refuter": "624b2ffc5ee40fd3c1abf6988b52e3c963e8fdda830171f94e1ea14e6f070f0a"
+  },
+  "imported": {
+   "reader": "45d20dd539f30f9473c32842ecaee09b4e084899cc2db43e51ceb6d5c9ef0da0",
+   "refuter": "796e44261c1c5c9415062ac02eadf24b8e5ba0d7b5f33c53d968e88c7c323ad9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.8.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a PAGE clause whose FOOTING integer-5 is less than its LAST DETAIL integer-4, in either phrase order (SR1), where an omitted phrase takes its GR2 implicit value (LAST DETAIL omitted: integer-4 = integer-5; FOOTING omitted: integer-5 = integer-4; both omitted: both = integer-1), so only a pair written with FOOTING < LAST DETAIL can violate it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportPageSubclause",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ExceedsThreeSignificantDigits85",
+    "switches": "Edition.DialectLevel < 2002: the three-significant-digit bound of integer-1 (SR2), not this rule",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "ConstructRegistry ReportPageForms2002: refuses LAST CONTROL HEADING / DE / IS at 85, so the 1985 order set is HEADING, FIRST DETAIL, LAST DETAIL, FOOTING, page limit",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The ordering loop in ScreenReportPageIntegers itself consults no edition (one arm for every edition); the edition sites on the path are the SR2 digit bound and the VersionConformancePass refusal of the 2002 phrases.",
+  "behaviour-differs-by-edition": "no: the ascending-order comparison of LAST DETAIL to FOOTING is the same code at 85 and 2023; 2023 adds LAST CONTROL HEADING to the chain, which 85 refuses (COBOL0900)",
+  "witnesses-cover": "part: pb1270 is only the legal side (LAST DETAIL 9 = FOOTING 9); the refusal, reversed phrase order and the omitted-phrase defaults are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p1.cob",
+    "printed": "COBOL2744 the LAST DETAIL integer 9 is greater than the FOOTING integer 8 (exit 65)",
+    "expected": "refused: integer-5 must be >= integer-4"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p6.cob",
+    "printed": "COBOL2744 same, FOOTING 8 written before LAST DETAIL 9 (exit 65)",
+    "expected": "refused: phrases in any order (SR1), rule still applies"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p5.cob",
+    "printed": "DONE (PAGE 9, LAST DETAIL 9, FOOTING 9: equality accepted)",
+    "expected": "accepted: greater than or equal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p4.cob",
+    "printed": "DONE (FOOTING 9, LAST DETAIL omitted)",
+    "expected": "accepted: GR2d gives integer-4 = integer-5"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p11.cob",
+    "printed": "DONE (FOOTING 012 LAST DETAIL 011, leading zeros)",
+    "expected": "accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/p8.cob",
+    "printed": "COBOL0900 the LAST CONTROL HEADING phrase of the PAGE clause requires COBOL-2002",
+    "expected": "refused: §1985:XIII.3.8.2 has no LAST CONTROL HEADING phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.3 SR6",
+    "check": "OK  §1985:XIII.3.8.3 SR6  (3.8.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:XIII.3.8.3 SR1",
+    "check": "OK  §1985:XIII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.3.8.4 GR2",
+    "check": "OK  §1985:XIII.3.8.4 GR2  (3.8.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "ScreenReportPageIntegers sorts the WRITTEN phrases into PagePhrase order and compares each to the next written one (then the page limit), so LAST DETAIL vs FOOTING is checked whenever both are written and the GR2 defaults can never violate SR6. The diagnostic cites only §2023:13.18.39.3 SR6 at --std 85, a citation-only blemish, not a verdict defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.8.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read ReportSectionBinder.cs#ScreenReportPageIntegers: written phrases sorted into PagePhrase order and each compared with the next written one, so LAST DETAIL vs FOOTING is compared whenever both are written; GR2 d/e defaults copy one into the other and cannot violate SR6. Probes (refute-1985-079): r5 (PAGE LIMITS ARE 12 LINES, all four phrases in fully reversed order FOOTING 10 LAST DETAIL 11 FIRST DETAIL 2 HEADING 1) -> COBOL2744 LAST DETAIL 11 > FOOTING 10, exit 65; r6 (LAST DETAIL +10 FOOTING +9) -> COBOL0001 unexpected '+', correct since a general-format integer 'must be neither signed nor zero unless explicitly allowed' (§1985:III Integer definition). cite.py: OK §1985:XIII.3.8.3 SR6 'Integer-5 must be greater than or equal to integer-4'; OK §1985:III 'it must be neither signed nor zero unless explicitly allowed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

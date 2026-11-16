@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-3",
+ "rule-digest": "50322eff7727",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "bf9b5a9f1f6e7aed17a56b32a3138716a3ad0feadd259292060beacc0c43ccec",
+   "refuter": "ce686e7b39b2801a015b5f04bb4f480b0d946054f173a162eddc75c350a7bb27"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.1.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, MERGE orders records by its key data-names taken left to right across all KEY phrases as major to minor (independent of their positions in the record and of the phrase division), each ASCENDING or DESCENDING as its phrase says, comparing each key by the 1985 relation-condition rules: algebraic value for numeric keys (any usage, sign or scale, zero unique regardless of sign) and the collating sequence for nonnumeric keys (alphanumeric, numeric-edited, group).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#mergeKeyPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortAddFileKeys; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'ConstructRegistry|DialectLevel|DialectBehavior|Edition.Edition|CobolVersion' over SortBinder.cs and Runtime/IO/SortKeyColumns.cs: two hits, SortBinder.cs#BindRelease (DialectLevel < 2002: an out-of-range RELEASE fails the statement) and SortBinder.cs#ScreenSameClauses (Year < 2002: SORT GIVING in one SAME RECORD AREA), neither on the key-order path; the key list (SortAddFileKeys, in phrase order) and the comparison (SortKeyColumns.Compare, numeric columns as algebraic Int128, character columns under the key's sequence) read no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c18 covers key significance across divided phrases, DESCENDING transitivity, a signed DISPLAY key and equal-key file order; it does not exercise a major key placed after a minor key in the record, a SIGN LEADING SEPARATE scaled key, -0 equal to +0, a numeric-edited key (nonnumeric comparison) or a group key, nor keys described only in a second SD record description.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/m1keys.cob",
+    "printed": "M1: A+15T21 B+15T11 A-00T12 A+00T23 Z+00T22 A-05T13 A-20T14 B-20T24; M2:  3A0T21  3A1T11  3B0T22 -1A0T23 -5A2T12",
+    "expected": "M1 (DESCENDING K2 S9V9 LEADING SEPARATE, then ASCENDING K1 earlier in the record): 1.5 A,B; 0 ties -0/+0 on K1 A in file order (T12 F1 before T23 F2) then Z; -0.5; -2.0 A,B. M2 (ASCENDING numeric-edited KE PIC -9 and group KG, described only in the second record): nonnumeric order, space before '-', so ' 3' keys before '-1' before '-5', KG A0<A1<B0"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/m1keys.cob",
+    "printed": "A-00T12 then A+00T23 (adjacent, file order)",
+    "expected": "zero is one value regardless of sign, so -0.0 and +0.0 tie and GR4's file order decides"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.4 GR3",
+    "check": "OK  §1985:XI.4.1.4 GR3  (4.1.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR3b",
+    "check": "OK  §1985:XI.4.1.4 GR3b  (4.1.4 General Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.1",
+    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause"
+   }
+  ],
+  "notes": "Keys are collected in written order across phrases with their direction, and SortKeyColumns compares numeric keys algebraically and character keys (numeric-edited and group included) by sequence, most significant first. A first probe run with an input file out of key order was discarded (GR6 territory); the rerun with in-order files matches the derivation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.1.4-3",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "r6num.cob at --std 85 (refute-1985-033/r6num-001), usages the reader did not try, chosen so byte order differs from algebraic order: MERGE SM ON ASCENDING KEY K1 (S9(3) COMP-3) DESCENDING K2 (S9(4) COMP) ASCENDING K3 (S99 trailing overpunch), BY-less third phrase. Printed '-005 0002 00 T11 / -005 -0001 -12 T12 / -005 -0001 05 T21 / 003 0007 -12 T22 / 003 0007 05 T13 / 003 -0009 00 T23', the derived order (negative packed and binary keys algebraic, -12 before 05). r6col.cob (r6col-001): nonnumeric KA ascending then P-scaled KP PIC 9PP descending, under MERGE COLLATING SEQUENCE IS EBC (ALPHABET EBC IS EBCDIC) printed 'a 500 F1-1 / a 300 F2-1 / A 700 F2-2 / A 200 F1-2 / A 100 F2-3 / 1 900 F1-3 / 1 100 F2-4' (EBCDIC a<A<1 for the relation-condition comparison, scaled key algebraic). cite.py: OK §1985:XI.4.1.4 GR3, GR3a, GR5a (each 'the text is in').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

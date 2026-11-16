@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-2",
+ "rule-digest": "fc947c6d7b7b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "591d3e886af08561cc2bd8890a45a6eef7833e6ca835f4e884844d0249e45358",
+   "refuter": "2c862c19c09695eba00658c446a8289229cc37dfa3d4330329e7cf2fe3fdaf9d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the OCCURS DEPENDING ON data-name-1 and each ASCENDING/DESCENDING KEY data-name-2 may be written qualified (IN or OF, one or more levels, per §1985:IV.4.3.8.1), and the qualified name must bind to the one item the qualifiers select; since 1985 has no implicit qualification by the subject's groups, a name not unique in the program must be qualified.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#occursKeyClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#OdoBindOccursSpec; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegionClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "Edition.DialectLevel >= 2002: from 2002 the groups above the subject act as implicit qualifiers of DEPENDING ON and KEY names; below 2002 the whole scope's candidates are counted, so a non-unique unqualified name is ambiguous",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run",
+    "switches": "SumCounterOperand85: at 1985 a report sum counter may be data-name-1 (kb/Work PB5310); not reached by these probes",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyItemFault",
+    "switches": "takes the dialect level for the key item's own faults (another SR of 5.8.3), not the qualification",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: an unqualified DEPENDING ON or KEY name that is unique within the subject's group but declared elsewhere too is refused at 1985 (COBOL1639) and accepted at 2023 by implicit qualification; explicit qualification behaves the same at both",
+  "witnesses-cover": "part: g85_bf10_04 covers one-level OF qualification of both data-names; not exercised: two-level and IN qualification, a qualifier that selects nothing, the 1985 ambiguity of an unqualified name the 2002 rule would qualify implicitly",
+  "probes": [
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c4ok.cob",
+    "printed": "T=[D4C3B2A1  ] / FOUND B=2 / T2=[WX        ] (exit 0)",
+    "expected": "DEPENDING ON CNT IN G1 OF R1 (value 4, not R1's G2 CNT or R2's), DESCENDING KEY IS KY OF SUB IN ENT VL IN ENT, and 1985's optional ON/TIMES in DEPENDING CNT OF G2 all bind to the selected items; SEARCH ALL finds B=2; receiving T2 holds 2 occurrences"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c4bad1.cob",
+    "printed": "error COBOL1639: OCCURS DEPENDING ON data-name-1 of 'ENT' 'CNT' does not uniquely identify a data item - 2 declarations match",
+    "expected": "refused: a non-unique name must be qualified (§1985:IV.4.3.8.1 rule 1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c4bad2b.cob",
+    "printed": "error COBOL0851: OCCURS DEPENDING ON 'CNT OF R2' on 'ENT': data-name-1 is not defined under the given qualifiers; error COBOL2353: OCCURS ASCENDING KEY IS 'KY OF OTHER-G' on 'ENT': no data item so named under the written qualifiers is 'ENT' itself or subordinate to it",
+    "expected": "refused: qualifiers selecting no item, and a qualified key outside the table (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c4bad3.cob",
+    "printed": "error COBOL2024: OCCURS KEY IS 'KY OF ENT (1)' is written with a subscript",
+    "expected": "refused: qualified but subscripted data-name-2 (SR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c4imp.cob",
+    "printed": "--std 85: two COBOL1639 (DEPENDING ON CNT and KEY IS KY each ambiguous); --std 2023: exit 0",
+    "expected": "1985 has no implicit qualification, so both unqualified names must be qualified; 2023 qualifies them implicitly"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.5.8@1985-OCCURS-CLAUSE/g85_bf10_04.cob",
+    "printed": "EXIT 0, EXPECT: MATCH",
+    "expected": "the witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR2",
+    "check": "OK  §1985:VI.5.8.3 SR2  (5.8.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Both operands go through ClauseDataName, which keeps the qualifier chain, and are resolved by counted candidate sets; the 1985 arm (no implicit qualifiers) is a distinct, correct arm. An early probe named an item OTHER, which is reserved at 1985 (COBOL0901); the rerun c4bad2b renames it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "Probes: r4fd --std 85 (sequential FD record: DEPENDING ON CNT IN F1, qualified by file-name per §1985:IV.4.3.8.1 format 1, while WS also declares CNT and KY; ASCENDING KEY IS KY OF REC1) writes and reads back the variable record, prints '3 [3ABC]' and SEARCH ALL 'FOUND B AT 3'. r4amb: DEPENDING ON CNT OF G1 where G1/CNT exist in R1 (the table's record) and in R2: --std 85 refused COBOL1639 '2 declarations match' (correct: 1985 has only explicit qualification), --std 2023 exit 0 '[AB]' (implicit qualification) -- the 1985 arm is distinct and correct for partial qualification too. cite.py: 'OK  §1985:VI.5.8.3 SR2  (5.8.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:IV.4.3.8.1  (4.3.8.1 Qualification)  the text is in the clause; it lies in SRL2.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.11.3-2",
+ "rule-digest": "75ba6685a7bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#AddressOfRestriction; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#TypedItemType; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameRestriction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#ScreenBasedReceiverRestriction",
+ "test-ref": "conformance:cases/8.4.3.11-Data-address-identifier/pb1408_address_of_restricted_pointer",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.11.4-2, witnessed at 2002 by the cases test-ref names. The read: 'a data-pointer restricted to' vs 'a restricted data-pointer that is restricted to': the same thing. In 2002 identifier-1's strong group is always TYPE'd (SR4), so 'the type of identifier-1' is its TYPE; 2023's extension to untyped subordinate groups is SR4's defect (above), not this rule's. Witnesses hold at 2002. Cited: §2002:8.4.2.11.3 GR2."
+}

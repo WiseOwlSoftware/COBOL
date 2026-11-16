@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.40.2",
  "rule-digest": "de698264706b",
+ "test-ref": "conformance:cases/A.2.40@1985-SQRT-FUNCTION/g85_bf42_05",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

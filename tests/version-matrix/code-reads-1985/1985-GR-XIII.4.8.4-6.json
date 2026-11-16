@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.4.8.4-6",
+ "rule-digest": "0a94b502b2d2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-154",
+  "sources": {
+   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
+   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+  },
+  "imported": {
+   "reader": "7f3a9ee87a933404bac5408987482a236c11dd118c7b7c9bd50dc71f8feef73a",
+   "refuter": "cccf888fea4f43a4451ac1f9db1ec943fc97ff7ab5fd542c90895e6132932973"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.8.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, when a USE procedure completes, control returns to the next executable statement after the I-O statement that caused the exception if the status is not critical (not 3x/4x, nor an implementor-critical 9x); after a critical status the action is implementor-defined.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#TerminateOnUncoveredFatalStatus",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 wraps the EC-free dispatch in the GR17 ProgramReturn filter; 1985 emits try { dispatch } finally { clear guard } and falls through to the hook site",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grepped the hook and dispatch emitters for DialectLevel/Edition/DialectBehavior; the critical-status continuation is the implementor choice recorded in docs/conformance/7/DOC-A.1-218.md (continue with the next executable statement), not edition-switched.",
+  "behaviour-differs-by-edition": "no: p6 prints identically at --std 2023",
+  "witnesses-cover": "part: the three witnesses cover a READ exception, the section as the procedure and DELETE INVALID KEY transfer; not covered there: return into the middle of an IF branch, into a PERFORMed paragraph loop, relative-file non-critical 2x statuses",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/p6.cob",
+    "printed": "READ1 00 R1/USE-SQ 10/IN-IF-AFTER-READ2 10/AFTER-IF/USE-SQ 46/USE-SQ 46/AFTER-LOOP 2/USE-RL 22/WRITE-RL2 22/USE-RL 23/READ-RL 23 (MATCH)",
+    "expected": "after the procedure, the next executable statement following the failing I-O statement: the DISPLAY inside the same IF branch, the ADD after READ inside the PERFORMed paragraph, the DISPLAY after a relative WRITE (22) and READ (23)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/p5b.cob",
+    "printed": "USE-OUTPUT then OPEN-I2 41; USE-OUTPUT then WRITE-I3 22",
+    "expected": "non-critical 22 returns to the next statement; critical 41 is implementor-defined (WiseOwl continues, DOC-A.1-218)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/pb344_use_mode_read_exception_85.cob",
+    "printed": "MATCH (also pb367_use_procedure_is_the_section_85 and l1_delete_invalid_key_transfer MATCH)",
+    "expected": "witness .out"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/p6.cob",
+    "printed": "--std 2023: MATCH",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.8.4 GR6",
+    "check": "OK  §1985:XIII.4.8.4 GR6  (4.8.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause"
+   }
+  ],
+  "notes": "The hook is emitted inline at the I-O statement and the USE procedure runs as a nested dispatch that returns to the hook, so control resumes at the statement following. The critical-status latitude is taken as continue, documented in DOC-A.1-218 and exercised by w1 (41 after USE-OUTPUT).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.8.4-6",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "Probe refute-1985-154/r6.cob --std 85 (runs/r6-001) aimed at control paths the reader did not try: a READ inside an inline PERFORM 3 TIMES (USE-SQ 10/INLINE-AFTER-READ 10/USE-SQ 46/INLINE-AFTER-READ 46 x2/AFTER-INLINE), a READ inside an EVALUATE WHEN arm (USE-SQ 46 / IN-WHEN 46), a READ as the last statement of an ELSE (USE-SQ 46 / AFTER-ELSE 46), a READ with INVALID KEY and NOT INVALID KEY on a relative file that is not open (47: USE-RL 47 then AFTER-READ-PHRASE, neither phrase run), and a DELETE as the last statement of a paragraph (49: USE-RL 49 then P-3-AFTER-DELETE, falling into the next paragraph). Each returns to the next executable statement after the failing one. Critical statuses (35, 4x) continue too, which is the implementor latitude GR6 grants, documented in DOC-A.1-218. cite.py: 'OK  §1985:XIII.4.8.4 GR6  (4.8.4 General Rules)  the text is in GR6'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

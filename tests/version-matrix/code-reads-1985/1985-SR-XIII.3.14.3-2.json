@@ -1,0 +1,123 @@
+{
+ "rule-id": "1985-SR-XIII.3.14.3-2",
+ "rule-digest": "b65945bd500b",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-08",
+  "sources": {
+   "reader": "202d91b2ed26e5c3ce2e3f4679bd6b14d1db0526e78703866c5edf4ae776acb2",
+   "refuter": "50d13ea7be3d7dc9403270870e5e7a135de95c4fcd134e35ff35643863b226a8"
+  },
+  "imported": {
+   "reader": "e66376b7d82adb577d225edda40e87c187091445d7a36d971508489836614173",
+   "refuter": "12263afe698963c142094e2d5b6ac5d1afa9d9758f1b7b1c7d9e95113475c340"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.14.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every data description entry subordinate to an RD entry must carry a level-number 01 through 49, written as one or two digits; 00, 50 and above, and the special levels 66, 77 and 88 are refused there, whether the entry is nested or stands at area A after the group.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#For; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition, DialectLevel, Year, CobolVersion, DialectBehavior in LevelNumberPass.cs: the file imports WiseOwl.Cobol.Editions for the diagnostic sink only, and its own summary states the sets are the same at every edition; the grammar rule reportGroupEntry carries no edition predicate",
+  "behaviour-differs-by-edition": "no: the ReportGroup arm admits 1..49 and no special level at every edition; c6-50 is refused identically at --std 2023",
+  "witnesses-cover": "part: the witness covers a level-66 entry after a report group; not exercised: 77, 88 under an elementary entry, 00, 50, a three-digit spelling, the nested position, and the admitted 49 and one-digit forms",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-ok.cob",
+    "printed": "RAN (report line 07 written)",
+    "expected": "admitted: 01 and 02"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-49.cob",
+    "printed": "RAN",
+    "expected": "admitted: 49, the largest level"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-onedigit.cob",
+    "printed": "RAN",
+    "expected": "admitted: level 2 written with one digit"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-50.cob",
+    "printed": "error COBOL1746: level-number 50 on 'FILLER': report group description entries that are subordinate to an RD entry shall have level-numbers with the values 1 through 49",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-00.cob",
+    "printed": "error COBOL1746: level-number 00 ...",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-002.cob",
+    "printed": "error COBOL1746: level-number 002 ... a level-number is expressed as a one-digit or two-digit number",
+    "expected": "refused: not a level-number"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-66-plain.cob",
+    "printed": "error COBOL1746: level-number 66 on 'R66' ... values 1 through 49 (plus cascading COBOL2247 structure errors)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-66-renames.cob",
+    "printed": "error COBOL0001: cannot parse construct near 'RENAMES'",
+    "expected": "refused (66 RENAMES under RD); refused by the parser, not by the level-number screen"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-77.cob",
+    "printed": "error COBOL1746: level-number 77 on 'R77' ...",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-77-nested.cob",
+    "printed": "error COBOL1746: level-number 77 on 'FILLER' ...; also COBOL3734 (level 77 must begin in area A at --std 85)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-88.cob",
+    "printed": "error COBOL1746: level-number 88 on 'DA-SEVEN' ...",
+    "expected": "refused: condition-name under a report item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-08/c6-88-standalone.cob",
+    "printed": "error COBOL1746: level-number 88 on 'C88' ...",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.14.3 SR2",
+    "check": "OK  §1985:XIII.3.14.3 SR2  (3.14.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Every level-number node under reportGroupEntry is classified as the ReportGroup arm, which permits exactly 1..49 with no special levels, and is screened before binding at every edition. Each forbidden level probed at --std 85 is refused; 66 with RENAMES fails earlier as a parse error (COBOL0001), which still refuses the source but with a less specific diagnosis. The message cites §2023:13.18.33.3 SR4.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.14.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,f",
+  "evidence": "Read §1985:XIII.3.14.3 SR2 and LevelNumberPass.cs#Classify (ReportGroup arm 1..49). Probe at --std 85: E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r6-51.cob (level 51 nested under a level-49 group) -> COBOL1746 'level-number 51 ... values 1 through 49'. E:/COBOL-coord/scratch/sample-shared/out/refute-1985-08/r6-gaps.cob (1 / 49 group / 49 elementary) -> COBOL2247 per §1985:XIII.3.9.3 SR3 (a level-49 group is a format 2 entry, 02..48): another 1985 rule, not this one. cite.py: 'OK §1985:XIII.3.14.3 SR2 (3.14.3 Syntax Rules) the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

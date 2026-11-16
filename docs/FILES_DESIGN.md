@@ -2320,7 +2320,7 @@ description is known — one comparison of the DEPENDING ON item against a compi
 (`SequentialIoEmitter.OdoRecordExceedsMaximum`, which sizes the record with the arithmetic `OdoModel.WrapGroup`
 already uses) — and reports the outcome through `FileRegistry.ReadExceedsRecordMaximum`, which assigns '34' through the
 one status path. The sequential READ, the keyed READ and the SORT/MERGE USING transfer's implicit READ share that
-predicate; a file with no such record emits nothing.
+predicate; a file with no such record emits nothing, and so does a compile below `--std 2023` (the condition is 2023's alone; PB5811).
 
 **A released record is also available in the other records of its SAME RECORD AREA (PB1195; §2023:14.9.51.4 GR4,
 §2023:14.9.35.4 GR6, §2023:14.9.32.4 GR3).** Character-window records share one backing and get it for free; an OUT-OF-LINE

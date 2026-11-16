@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VIII.2.4.3-4",
+ "rule-digest": "a2cabc116575",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-065",
+  "sources": {
+   "reader": "66f332126c0c206103e030806e532fcfacdaf4b7490128589ff01dd02a46e1c6",
+   "refuter": "f825c12005b3e32f1ec902150273b86d6da02878634e3a8cde542efec0612be3"
+  },
+  "imported": {
+   "reader": "f85ab49d13d55c06bcb63046588ae7b87cb9579fd7540e15342ce8b91c5d4480",
+   "refuter": "60441f18fbdc272236b33c78de357db28a19dd33fe94d02712733b1a5b2a9650"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.2.4.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "A relative file named in the USING or GIVING phrase of a SORT or MERGE must not be described ACCESS MODE IS RANDOM (all four positions are refused); SEQUENTIAL and DYNAMIC relative files are legal there and must work.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortMapIoFiles",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel in SortBinder.cs: the only hit is line 517 (rangeFailsStatement, the record-size screen), not SortMapIoFiles; the RANDOM test reads FileModel.AccessMode with no edition switch.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses use indexed files; relative files in all four positions, and the legal DYNAMIC and SEQUENTIAL relative files running through SORT, were not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p6a.cob (run p6a-001; at 2023 p6a-002)",
+    "printed": "COBOL1757 SORT USING/GIVING file 'RLA' is described with ACCESS MODE IS RANDOM (same at 2023)",
+    "expected": "refused: SORT USING a RANDOM relative file"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p6b.cob (run p6b-001)",
+    "printed": "COBOL1757 ... 'RLA' ... ACCESS MODE IS RANDOM",
+    "expected": "refused: SORT GIVING"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p6c.cob (run p6c-001)",
+    "printed": "COBOL1757 MERGE USING/GIVING file 'RLA' ... RANDOM",
+    "expected": "refused: MERGE USING"
+   },
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p6d.cob (run p6d-002)",
+    "printed": "COBOL1757 MERGE USING/GIVING file 'RLA' ... RANDOM",
+    "expected": "refused: MERGE GIVING"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p6e.cob (run p6e-001)",
+    "printed": "1=AAtwo / 2=BBthr / 3=CCone / D1=CCone",
+    "expected": "DYNAMIC relative USING and SEQUENTIAL relative GIVING, then the reverse, sort correctly"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.3 SR4",
+    "check": "OK  §1985:VIII.2.4.3 SR4  (2.4.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "SortMapIoFiles refuses any USING or GIVING file whose AccessMode is Random, for both verbs and both phrases, with no edition switch, and 1985's rule is the same as §2023:12.4.5.5.2 SR1. Relative files run through SORT in both directions. The check lives on the statement, so a RANDOM file that no SORT/MERGE names is correctly left alone.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.2.4.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Read §1985:XI.4.4.2: USING and GIVING both take a list of file names. Probe r6a at --std 85: the RANDOM relative file last in a SORT USING list, last in a SORT GIVING list, last in a MERGE USING list, and last in a MERGE GIVING list were each refused COBOL1757; the SEQUENTIAL, default and DYNAMIC relative files in the same lists drew no finding. r6b: a contained program SORTing a GLOBAL RANDOM relative file of its container was refused COBOL1757. cite.py: OK §1985:VIII.2.4.3 SR4 (2.4.3 Syntax Rules) the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

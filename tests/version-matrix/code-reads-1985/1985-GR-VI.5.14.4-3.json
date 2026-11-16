@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VI.5.14.4-3",
+ "rule-digest": "d9d576996ecc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "504c64b70ff1500dca41ffa73aded0e044f8740ffd4f2d261f896dfbfe08a028",
+   "refuter": "93e3f38feabd3324836c0a5296ee9557cdcc612ea9157d0abbf39877b34a0f9c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.14.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, USAGE BINARY is radix 2, with alignment and representation (sign included) as the implementor documents (DOC-A.1-205: big-endian two's complement, 1/2/4/8 bytes, no alignment). It must allocate storage for the full range of the decimal PICTURE, which at 85 is up to 18 digits including P positions, scaled or not, signed or not.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#StorageWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#ByteForm; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#Truncation; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#FormatImage; docs/conformance/7/DOC-A.1-205.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#CheckDigitCapacity",
+    "switches": "numeric item digit limit: 18 at COBOL-85, 31 at 2002+ (COBOL0802 for 19-31 at 85)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+    "switches": "edition.Extension flags vendor spellings (COMP-1..COMP-5) only under the extension-flagging option; BINARY/COMP/COMPUTATIONAL/PACKED-DECIMAL/DISPLAY map to one Usage at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition.|CobolVersion in Model/PicInfo.cs, Model/DataItem.cs and Runtime CobolNum.Image.cs: none. The only edition read is the 18-digit cap, which makes the 16-byte tier unreachable at 85.",
+  "behaviour-differs-by-edition": "no within the 1985 range (gr3a identical at 2023); yes in range: 19-31 digit BINARY pictures are refused at 85 (COBOL0802) and take the 16-byte tier at 2002+",
+  "witnesses-cover": "part: g85_bf12_05 covers S9(4)/S9(9)/S9(18) extremes and the S9(4) image; it does not cover the 1-byte and 8-byte tiers' images, unsigned 1-digit, scaled V and P items, ODO with a BINARY object, or the 19-digit refusal",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr3a.cob",
+    "printed": "G1LEN=0019; B1=9 B2=-99 B5=99999 B10=-9999999999 BS=-999.99 BP=-.0099; bytes 009 157 | 000 001 134 159 | 255 255 255 253 171 244 028 001 | 255 254 121 (0xFF bytes print as 535 because ORD(HIGH-VALUE)=65536, documented PB1759/PB2919); B1SIZE B2SIZE; T1LEN=0015 (ODO on a 9(2) BINARY object)",
+    "expected": "Each width holds its PICTURE's extreme. Images are big-endian two's complement as documented. ADD past the PICTURE maximum is a size error. An ODO object of USAGE BINARY works."
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/u_pics919binary.cob; u_pics916p3binary.cob",
+    "printed": "error COBOL0802: ... 19 digit positions; COBOL-85 limits fixed-point items and literals to 18 digits",
+    "expected": "1985 caps a numeric item at 18 digit positions, P counted (the 1985 PICTURE 'P' rule), so a 19-digit BINARY picture is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.14.4 GR3",
+    "check": "OK  §1985:VI.5.14.4 GR3  (5.14.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The width ladder is sufficient for every 1985 picture: SPP99 BINARY is one byte, enough for its unscaled maximum 99. Probe values at each tier round-trip, and the group byte images match DOC-A.1-205. A 0xFF image byte is the HIGH-VALUE character, whose ORD is 65536 by the documented native-alphabet design. This is not a BINARY defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr3a prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.14.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Read PicInfo.StorageWidth (Binary: <=2 digits 1 byte, <=4 2, <=9 4, <=18 8, else 16) and PicInfo.Truncation (Binary -> DigitCount, no edition read). Signed 1-byte holds -99..99, 2-byte -9999..9999, 4-byte 10^9-1, 8-byte 10^18-1: every 1985 picture (18-digit cap, COBOL0802 at 85) fits, P positions not stored. BINARY arithmetic in r2b (DIVIDE REMAINDER, ROUNDED, CORRESPONDING, UNSTRING counters) correct. Reader's gr3a covered images and ODO. cite.py: OK  §1985:VI.5.14.4 GR3  (5.14.4 General Rules)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

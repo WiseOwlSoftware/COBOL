@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-7",
+ "rule-digest": "94d57cbc5846",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb1185_figurative_delimiter_national_pcs; conformance:cases/14.9.48-UNSTRING/pb3226_unstring_symbolic_delimiter",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.48.4-7, witnessed at 2002 by the cases test-ref names. The read: Identical text, same reference (GR11d). Cited: §2002:14.8.44.3 GR7."
+}

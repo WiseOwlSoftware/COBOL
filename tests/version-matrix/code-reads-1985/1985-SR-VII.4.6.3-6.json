@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-6",
+ "rule-digest": "e7f40e3136fa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-162",
+  "sources": {
+   "reader": "c3e815222f3db3c4f9a246f9cc40540a60c0bad3872ec9834fa92e4d8d58d304",
+   "refuter": "8da29fb07a35a84701a4ba36c5c1c5551c642f72bdbe73707ca9679d0e7dbfee"
+  },
+  "imported": {
+   "reader": "6265810d89d5fc9d6c800a8bba019ad195da730849338ae690237e114fd31bfb",
+   "refuter": "ed4527c5568fff0675626550b9e56981b3428703ba00b8efd23ed56ba8edc921"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.6.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a second USE statement naming the same open-mode phrase (INPUT, OUTPUT, I-O or EXTEND) in the declaratives of one Procedure Division, and must accept each phrase once, with each program (including a contained one) having its own Procedure Division.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclCollectSection; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "refusal of a Format-1 USE omitting AFTER or PROCEDURE (2002 optional words) and of the 2002 EC/EO formats; it does not touch the open-mode duplicate check",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read DeclBindUse and DeclCollectSection: the _useModes ConstructOperandRegister check (SR7 at 2023) has no EditionContext/CobolVersion/ConstructRegistry test; ctx.Edition there only reports the diagnostic. Grepped Validation/ for useStatement/useOnTarget: only VersionConformancePass#VisitUseStatement, a word-omission gate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_01 is the acceptance half only (each phrase once); the refusal of a repeated phrase and the per-program scope of a contained program are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/use6dup.cob",
+    "printed": "EXIT 65; COBOL0897 at U2 (INPUT twice), U4 (EXTEND twice), U6 (I-O twice), U8 (OUTPUT twice): 'this open mode already has a USE procedure in this procedure division'",
+    "expected": "each repeated phrase refused (SR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/use6nest.cob",
+    "printed": "OUTER INPUT USE 35 / OUTER AFTER OPEN / INNER INPUT USE 35 / INNER AFTER OPEN",
+    "expected": "accepted: outer and contained program each have their own Procedure Division, so one INPUT USE in each is legal and each fires for its own file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-162/use6dup.cob",
+    "printed": "--std 2023: the same four COBOL0897 errors",
+    "expected": "same refusal at 2023 (SR7)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.3 SR6",
+    "check": "OK  §1985:VII.4.6.3 SR6  (4.6.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "One register per Procedure Division (_useModes, reset per bound unit and per method) refuses the repeat; the same code at every edition. The diagnostic cites §2023:14.9.49.3 SR7 at --std 85, the 2023 numbering of the same rule; not a conformance defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same four refusals",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.6.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read ProcedureTableBuilder.cs DeclBindUse (lines 1067-1089: mode register _useModes.Register before any GLOBAL test, so GLOBAL does not escape the check) and CollectMethodDeclaratives/DeclEndUseStatement (register per procedure division, reset per method); no edition test on the path. Probes (run_probe.py --std 85): u1.cob USE GLOBAL AFTER STANDARD ERROR ON INPUT then USE AFTER STANDARD EXCEPTION INPUT (ERROR/EXCEPTION synonyms, optional ON omitted) -> COBOL0897 at D2; USE AFTER ERROR ON I-O then USE AFTER STANDARD ERROR ON I-O (1985 form without STANDARD and with) -> COBOL0897 at D4; exit 65. u2.cob a file-name USE on SQ-A beside INPUT/OUTPUT/EXTEND/I-O once each -> compiled and ran: 'FILE USE 35' (file-specific USE wins for SQ-A), 'INPUT USE 3535' (SQ-B open failure goes to the INPUT USE), 'DONE'. cite.py: OK  §1985:VII.4.6.3 SR6  (4.6.3 Syntax Rules)  the text is in SR6.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

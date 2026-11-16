@@ -1,0 +1,156 @@
+{
+ "rule-id": "1985-FMT-XI.2.5.2",
+ "rule-digest": "ead585d80b3b",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-01",
+  "sources": {
+   "reader": "ae7b0ba59b0f1dd6b06859ad490862c2cfe63129ba6bbe55d1e58bfc6bab6259",
+   "refuter": "405427b22c46a9832d3c727844362904ad33987cad19d7cb7cd35dcfb537678c"
+  },
+  "imported": {
+   "reader": "f00a5612346630f4c6599a132f8f715039bede52a3ba53c2698e41d5a4357d72",
+   "refuter": "1ad35377d6618b91761331ad952474849758aea294329691762eecdaa77738d0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XI.2.5.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the I-O-CONTROL paragraph must accept SAME {RECORD|SORT|SORT-MERGE} [AREA] [FOR] file-name-1 {file-name-2} ... (AREA and FOR optional words, SORT and SORT-MERGE equivalent per SR3), require at least two file-names that are files of the program's FILE-CONTROL paragraph (SR1), and refuse any other arrangement; the witnesses cover the SORT-MERGE spelling and the one-file refusal, not the optional words, the comma list, several clauses or the undefined name.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameClauseKind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Edition.Year < 2002 gives the report-file row its 1985 limits (a report file may be named in any number of SAME SORT/SORT-MERGE AREA clauses, §1985:XIII.2.4.3 SR2); the sort-merge-file and other-file rows, and the format itself, are one arm at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries (SAME, SORT, SORT-MERGE, RECORD, AREA rows)",
+    "switches": "reserved status; SORT-MERGE row true at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep SameClause/SORT_MERGE in Validation/VersionConformancePass*.cs: none; the grammar rule sameClause has no version predicate; ScreenSameOperands (the arity and SR1/SR2 screen) has no edition test; ScreenSameClauses reaches the edition only through SameOccurrenceRule.",
+  "behaviour-differs-by-edition": "no for the format: the 1985 sort-merge-area and record-area forms are worded as in 2023; only the report-file occurrence limit (a different rule, §1985:XIII.2.4.3 SR2) has its own 1985 arm",
+  "witnesses-cover": "part: the optional AREA/FOR words, the comma-separated list, three operands, two SAME clauses in one paragraph, an operand that is no file and the empty list are not exercised by the witnesses",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-sort.cob",
+    "printed": "AAAA / DONE",
+    "expected": "SAME SORT AREA FOR SF X1 X2 accepted (sequential and relative non-sort files with a sort file, SR6), the SORT runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-sortmerge.cob",
+    "printed": "AAAA / DONE",
+    "expected": "SAME SORT-MERGE SF, X1 accepted: AREA and FOR are optional words, comma separator"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-nofor.cob",
+    "printed": "AAAA / DONE",
+    "expected": "SAME SORT AREA SF X2 accepted (FOR optional)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-record.cob",
+    "printed": "AAAA / DONE",
+    "expected": "SAME RECORD AREA FOR SF X1 accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-two.cob",
+    "printed": "AAAA / DONE",
+    "expected": "two SAME clauses of different formats accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-one.cob",
+    "printed": "error COBOL2738: SAME SORT AREA names only one file",
+    "expected": "refused: {file-name-2} ... requires a second file-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-dup.cob",
+    "printed": "error COBOL2738: SAME SORT AREA names only one file",
+    "expected": "refused: SF SF is one file, GR1/GR2 speak of two or more files"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-none.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused: file-name-1 required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-undef.cob",
+    "printed": "error COBOL2738: 'NOFILE' is not a file specified in the FILE-CONTROL paragraph",
+    "expected": "refused by SR1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-nosort.cob",
+    "printed": "error COBOL2738: SAME SORT AREA names no sort or merge file",
+    "expected": "refused: GR2 'at least one of the file-names must represent a sort or merge file'"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-merge-word.cob",
+    "printed": "error COBOL0901: 'MERGE' is a reserved word in COBOL-85",
+    "expected": "refused: MERGE is not one of the format's keywords"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-sortfile-plain.cob",
+    "printed": "error COBOL2738: SAME AREA: sort or merge file 'SF' is named in a file-area format clause",
+    "expected": "refused by SR4: a sort file only with the SORT, SORT-MERGE or RECORD phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-01/s2-sortmerge.cob",
+    "printed": "--std 2023: AAAA / DONE (and s2-one the same COBOL2738)",
+    "expected": "same format at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.5.1",
+    "check": "OK  §1985:XI.2.5.1  (2.5.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR1",
+    "check": "OK  §1985:XI.2.5.3 SR1  (2.5.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR3",
+    "check": "OK  §1985:XI.2.5.3 SR3  (2.5.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:XI.2.5.4 GR2",
+    "check": "OK  §1985:XI.2.5.4 GR2  (2.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XI.4.4.3 SR9",
+    "check": "OK  §1985:XI.4.4.3 SR9  (4.4.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "The grammar is a superset (one optional file-name list) and ScreenSameOperands narrows it to the printed arity at bind, at every edition. A first probe set put the sort file and the SORT's USING/GIVING files in one SAME SORT AREA clause and was refused COBOL1757; that refusal is right by §1985:XI.4.4.3 SR9, so the probes name a file outside the SORT. Diagnostics at --std 85 cite §2023 locators.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XI.2.5.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:XI.2.5 whole (SR1-6, GR1-2) and CobolIO.g4#sameClause `SAME (RECORD | SORT | SORT_MERGE)? AREA? FOR? fileName (COMMA? fileName)*`, a superset narrowed at bind. Probes at --std 85 under refute-1985-01/ (aimed at what the reader did not try): r2-twosort (SAME SORT AREA FOR SF SG, two sort files, both SORTed) runs 'BBBB / DONE'; r2-three (SAME SORT-MERGE AREA FOR SF, SG, X1) runs; r2-noarea-for (SAME SORT SF SG, both optional words omitted) runs; r2-semi (semicolon separator) runs; r2-ext and r2-recext (X1 IS EXTERNAL in SAME SORT / SAME RECORD) COBOL2738 refused, as §1985:XI.2.5.3 SR2 requires; r2-sf2 (SF in two SAME SORT AREA clauses) COBOL2738, as SR5b requires. No 1985-only form and no later-edition form of this clause exists to probe for class c (the 2023 sort-merge-area format is worded the same). cite.py: OK §1985:XI.2.5.3 SR2; OK §1985:XI.2.5.3 SR5b. Diagnostics cite §2023 locators at --std 85 (wording only).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

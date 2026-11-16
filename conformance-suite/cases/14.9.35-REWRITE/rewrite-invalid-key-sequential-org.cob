@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: rewrite-invalid-key-sequential-org
-*> rules: [SR-14.9.35.3-2, 2002-SR-14.8.33.2-3]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: rewrite-invalid-key-sequential-org
+      *> rules: [SR-14.9.35.3-2, 2002-SR-14.8.33.2-3]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.35.3 SR2 FIRST ARM: "Neither the INVALID KEY phrase nor
       *> the NOT INVALID KEY phrase shall be specified for a REWRITE
       *> statement that references a file with SEQUENTIAL ORGANIZATION or

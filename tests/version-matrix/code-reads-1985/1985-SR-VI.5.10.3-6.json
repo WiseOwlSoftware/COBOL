@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-6",
+ "rule-digest": "43f916e32973",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-051",
+  "sources": {
+   "reader": "4574bde3c52a27938a3e7d9cf239b9175d7e793a78a38be118b57a76aec077ca",
+   "refuter": "0a302e34a4ab2a82b27c5284564d89181c38ba77697deab20b08bcf532313a5d"
+  },
+  "imported": {
+   "reader": "1c45bffa5b10d753cbe6f2c30e697fa028adb66461e43340e6833f226b525528",
+   "refuter": "0d63e66a5bf13341121be196067aaf53a7263cd0aa3a9873af7217d4c7e1cc10"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a subject larger than data-name-2 when data-name-2 is an external record or has a level other than 01 (77 and every subordinate level included, every usage measured in its storage), and must accept a larger subject over a non-external 01.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ScreenRedefinesEntry; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#StorageBitsOf",
+  "edition-consulted": [],
+  "edition-search": "Grepped src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2/#ScreenDataNameShape and the grammar rule CobolData.g4 redefinesClause for CobolVersion, IsAtLeast, Std, Version., ConstructRegistry, DialectBehavior, ReservedWords and EditionContext edition properties: none. The only diagnostics sink is src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Error, which records the error with no edition test. REDEFINES is ungated in the grammar.",
+  "behaviour-differs-by-edition": "no: the exemption test (Level 1 and not EXTERNAL) and the size comparison are edition-blind; sr6_bad_77 draws the same COBOL1539 at --std 2023",
+  "witnesses-cover": "part: the witness is an EXTERNAL 01 data-name-2; the subordinate-level, 77, computational and group forms and the legal non-external 01 larger subject are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_bad_05.cob",
+    "printed": "COBOL1539 the redefining storage area (24 bits) is larger than the redefined (16)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_bad_77.cob",
+    "printed": "COBOL1539 (24 bits) larger than (16)",
+    "expected": "refused (77 is a level other than 01)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_bad_comp.cob",
+    "printed": "COBOL1539 on B PIC X(8) over S9(4) COMP (64 vs 16 bits); no error for C S9(3) COMP-3",
+    "expected": "refused for B only"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_bad_grp.cob",
+    "printed": "COBOL1539 (32 bits) larger than (16)",
+    "expected": "refused (group with OCCURS subordinate)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_bad_ext.cob",
+    "printed": "COBOL1539 (32 bits) larger than (16)",
+    "expected": "refused (EXTERNAL 01)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_ok_01.cob",
+    "printed": "EXIT 0; L1=wx wxyz",
+    "expected": "accepted: no constraint over a non-external 01"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr6_ok_ext_eq.cob",
+    "printed": "EXIT 0; L1=pq p",
+    "expected": "accepted: equal and smaller over an EXTERNAL 01"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR6",
+    "check": "OK  §1985:VI.5.10.3 SR6  (5.10.3 Syntax Rules)  the text is in SR6 [quote: the number of character positions it contains must be greater than or equal to]"
+   },
+   {
+    "cite": "§1985:VI.5.10.4 GR1",
+    "check": "OK  §1985:VI.5.10.4 GR1  (5.10.4 General Rules)  the text is in GR1 [quote: Storage allocation starts at data-name-2]"
+   }
+  ],
+  "notes": "Sizes are measured in bits from ByteWidth times occurrences, so binary and packed items compare by storage. The diagnostic cites §2023:13.18.44.3 SR8 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-6",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "r6_scaled (05 A PIC 9PPP, 05 B REDEFINES A PIC 9(3)) -> COBOL1539 24 bits larger than 8 (P counts no character position; refused correctly); r6_signsep (S9(3) SIGN LEADING SEPARATE under X(4)) -> EXIT 0 L1=-012Z (4 positions each, accepted); r6_signsep_bad (X(5)) -> COBOL1539 40 vs 32 bits; r6_link (LINKAGE 01 A PIC XX, 01 B REDEFINES A PIC X(5)) -> compiles, no constraint over a non-external 01. r6_edited could not be probed at 85 (numeric VALUE on an edited item is refused by COBOL0900, another rule). cite.py: OK  §1985:VI.5.10.3 SR6 (5.10.3 Syntax Rules) the text is in SR6 [the number of character positions it contains must be greater than or equal to].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

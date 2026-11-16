@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-5",
+ "rule-digest": "e29352c0695e",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-06",
+  "sources": {
+   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
+   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+  },
+  "imported": {
+   "reader": "2b06a37980cba0cfd079775fd68b714d8cee37dfe604496754a6d721828745e6",
+   "refuter": "d2eea3119f817c5f68a867138b5bdefacc58bade8acee921abe3dbefcaadb08b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.17.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse an INITIALIZE statement whose identifier-1 or identifier-2 (the REPLACING sending operand) references an index data item (USAGE INDEX, elementary or a subscripted table element of one); a group that merely CONTAINS an index data item is a legal identifier-1, its index data items left unaffected (§1985:VI.6.17.4 GR3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#ClassOfPlace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#CheckReplacingMoveValidity; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#SenderClassRefusal; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+    "switches": "the post-bind INITIALIZE gate asks edition rows for the 1985 ODO prohibition (SR4, GateCobol85VariableOccurrence) and the figurative-to-numeric MOVE rows; it does not touch the index screen, which is upstream in the binder and identical at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -n -i 'Edition|DialectLevel|CobolVersion|ConstructRegistry' InitializeBinder.cs (only ctx.Edition.Error, a diagnostic sink); read ClassOfPlace and MoveTable16.SenderClassRefusal/Sr1ClassRefusal (no edition term); grep GateInitialize in VersionConformancePass",
+  "behaviour-differs-by-edition": "no: 1985 SR5 and 2023 SR1/SR4 both exclude index-class identifier-1 and identifier-2; the probes print identical diagnostics at 85 and 2023",
+  "witnesses-cover": "part: the witnesses exercise the index identifier-1 and the index REPLACING sender; the subscripted index table element, an index data item as the second of several identifier-1 operands, and the positive group-containing-an-index case are not exercised by them",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c2a.cob",
+    "printed": "COBOL2030 on INITIALIZE IX1, on INITIALIZE TI (2) (subscripted index table element), on INITIALIZE GN IX1 (second operand); COBOL2031 on INITIALIZE G REPLACING NUMERIC DATA BY IX1; same at 2023",
+    "expected": "each refused (SR5)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c2b.cob",
+    "printed": "[000][   ][3] then [777]: INITIALIZE G of a group holding GI USAGE INDEX compiles, GN/GX reset, GI keeps occurrence 3; INITIALIZE T REPLACING NUMERIC over an INDEXED BY table runs",
+    "expected": "accepted; index data item unaffected (GR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c2c.cob",
+    "printed": "COBOL1637: 'K' is an index-name, which is not an identifier",
+    "expected": "refused (INITIALIZE takes identifiers; an index-name is not one)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.3 SR5",
+    "check": "OK  §1985:VI.6.17.3 SR5  (║6.17.3 Syntax Rules║)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR3",
+    "check": "OK  §1985:VI.6.17.4 GR3  (║6.17.4 General Rules║)  the text is in GR3"
+   }
+  ],
+  "notes": "Identifier-1 is screened by the class classifier on the resolved receiving place, identifier-2 by MOVE's SR1 sending class refusal; neither consults the edition, which is right because the 1985 rule and the 2023 rules agree. The diagnostics cite §2023 clauses even at --std 85 (cosmetic, not a conformance defect).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical refusals and identical run output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.17.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r2a.cob at --std 85: COBOL2030 on INITIALIZE IX OF G (qualified), a FILE SECTION USAGE INDEX item, a LINKAGE index item, TX (K) (index table element subscripted by an index-name), and IX IN H as third operand; COBOL2031 on REPLACING ALPHANUMERIC BY IX OF H and REPLACING NUMERIC BY FX. The reader's c2b shows a group holding an index data item is admitted with the index unaffected (GR3). Diagnostics cite §2023 text at 85 (cosmetic). cite.py: OK  §1985:VI.6.17.3 SR5  (6.17.3 Syntax Rules)  the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

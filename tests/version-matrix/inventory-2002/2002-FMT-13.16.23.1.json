@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.23.1",
+ "rule-digest": "a893a75e2837",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.25-FROM/a42-screen-from",
+ "notes": "Own verdict from the read lineage-reads-2002/u-51.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.25.2, witnessed at 2002 by the cases test-ref names. The read: Same format; screen only (q-14 read the clause the same way); licensed and refused at 2002. Cited: §2002:13.16.23.3 GR1; §2002:3.1.5."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.15.2-1",
+ "rule-digest": "b56e634014de",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Process; src/WiseOwl.Cobol.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#listing-directive-2002",
+ "test-ref": "conformance:cases/7.3.18-LISTING/pb725_directive_facility",
+ "notes": "Own verdict from the read lineage-reads-2002/u-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-7.3.18.3-1, witnessed at 2002 by the cases test-ref names. The read: Identical but for 'implementor defined' / 'implementor-defined'. Same format (ON|OFF). The compiler produces no listing at any edition, so the directive is ignored. The pointer's witness pb725_directive_facility runs at --std 2002 and matches its golden. Cited: §2002:7.2.15.2 GR1."
+}

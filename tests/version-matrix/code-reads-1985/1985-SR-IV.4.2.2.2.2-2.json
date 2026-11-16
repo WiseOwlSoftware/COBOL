@@ -1,0 +1,121 @@
+{
+ "rule-id": "1985-SR-IV.4.2.2.2.2-2",
+ "rule-digest": "63dd359f8108",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-043",
+  "sources": {
+   "reader": "1667c3b1690208ab290e480852559f3da80d2a6e0d3a25d9d3d42d6d0345d701",
+   "refuter": "a2581782c82960ae1a0b9a0fa098844441970746965c02869b640ffcead6ffa4"
+  },
+  "imported": {
+   "reader": "22a462e625ca8021155f96b63d02b855c6f51208f45f69516d84645e8df5e0e9",
+   "refuter": "134856914d5ec463a107c7162c94a53bb5f15a537200d2335dc0292fc0a25731"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 a numeric literal has at most one sign character, and a sign, if used, is its leftmost character (abutting the digits); an unsigned literal is nonnegative. The compiler must refuse two signs, a trailing sign, a separated sign in a literal slot (VALUE, level-88 VALUE, procedure operand, argument, subscript), and must give a signed literal its sign and an unsigned one a nonnegative value.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#ScreenSign; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#SignAbuts; src/WiseOwl.Cobol.Frontend/Expressions/ArithmeticFormationRules.cs#SignedLiteralViolation; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#IsLiteralValueOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#signedNumericLiteral; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FN_SIGNED_INTEGERLIT",
+  "edition-consulted": [],
+  "edition-search": "Grepped ArithmeticFormationRules.cs, SignedIntegerLiteral.cs, SoleOperand.cs for Edition/CobolVersion/Construct/Year: none; LiteralScreen.ScreenSign takes no edition; DataBinder's VALUE-operand arm (SignedLiteralViolation, COBOL2155) is edition-blind. The only edition-dependent behaviour met on the path is DISPLAY's own 1985 rule (a numeric DISPLAY literal must be an unsigned integer), which is a different rule.",
+  "behaviour-differs-by-edition": "no: the formation rule is the same; at 85 DISPLAY of a signed literal is refused by §1985:VI.6.10.3 SR2, a different rule",
+  "witnesses-cover": "part: witnesses cover abutting/separated signs in VALUE, MOVE, ADD and relations; the probes add two signs (+-5, --5, -+3 in level-88 THRU), a trailing sign (5-, 5+), signs in an intrinsic argument and a subscript",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3a.cob",
+    "printed": "--std 85: COBOL5506 unexpected '-'... expected an unsigned numeric literal (MOVE +-5 TO N)",
+    "expected": "refused: not more than one sign character"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3b.cob",
+    "printed": "--std 85: COBOL2773 word '--5' hyphen first; COBOL5506 unexpected '-'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3c.cob",
+    "printed": "--std 85: COBOL2773 word '5-' hyphen last; COBOL5506",
+    "expected": "refused: sign must be leftmost"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3d.cob",
+    "printed": "--std 85: COBOL5506 unexpected '.' (VALUE 5+.)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3e.cob",
+    "printed": "--std 85: COBOL2155 the VALUE operand '- 5' is not a literal — its sign is separated from its digits",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3f.cob",
+    "printed": "--std 85: COBOL2155 the numeric literal `- 5` has its sign separated from its digits (MOVE - 5 TO N)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3g.cob",
+    "printed": "--std 85: COBOL2993 unary '+' not followed by a separator (FUNCTION ABS(+-5))",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3h.cob",
+    "printed": "--std 85: COBOL2993 (T(+-1))",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3i.cob",
+    "printed": "--std 85: COBOL2155 condition-name 'M3': the VALUE operand '-+3' ... contains more than one sign character",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3pos85.cob",
+    "printed": "--std 85 EXIT 0: -12.5 / 7.0 / 0.0 / -0.5 / 3.0 / UNSIGNED-POSITIVE / K-POS / 2.0",
+    "expected": "VALUE -12.5, unsigned 7 nonnegative, -0 is zero, MOVE -.5, ADD +3.5 -> 3.0, MAX(-4 2 -7)=2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-043/c3pos.cob",
+    "printed": "--std 85: COBOL0900 a numeric DISPLAY literal that is not an unsigned integer requires COBOL-2002 (DISPLAY -5 / DISPLAY +5); --std 2023 EXIT 0 prints -5 / +5",
+    "expected": "§1985:VI.6.10.3 SR2: a numeric DISPLAY literal must be an unsigned integer at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.2.2.2 SR2",
+    "check": "OK  §1985:IV.4.2.2.2.2 SR2  (4.2.2.2.2 Numeric Literals)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.10.3 SR2",
+    "check": "OK  §1985:VI.6.10.3 SR2  (6.10.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The sign-formation rule is enforced edition-blind by the lexer/grammar shape plus LiteralScreen.ScreenSign and DataBinder's VALUE-operand arm; every violation probed at --std 85 is refused with a named diagnostic, and signed/unsigned literal values are right.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.2.2.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Probe r3a.cob (--std 85, EXIT 0): VALUE -0 and VALUE -.0 into S9V9 SIGN LEADING SEPARATE print +0.0 +0.0 (a signed zero literal is the algebraic zero, GR4); MOVE -0 TO C prints +0.0; MOVE -0.0 to edited -9.9 prints ' 0.0'; IF D < -11 with D = -12 is true; COMPUTE C = -1 - -.5 gives -0.5; ADD -5 TO G (+5) gives +0. The reader's refusal probes (two signs, trailing sign, separated sign in VALUE/88/MOVE/argument/subscript) stand. Checks: 'OK §1985:IV.4.2.2.2.2 SR2 ... the text is in SR2'; 'OK §1985:IV.4.2.2.2.2 GR4 ... the text is in GR4'. (Side note, not this rule: IF -0 = +0 with two literal operands draws only warning COBOL3146 at 85; that is a relation-condition rule outside this slice.)",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

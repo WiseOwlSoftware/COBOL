@@ -12,8 +12,10 @@ header (§10: one reader of the headers). The compiler is described by `adapters
 the profile the adapter names, and its recorded verdicts by `baselines/<compiler>.json` (their formats: `config.py`).
 
 EACH TEST runs in its own fresh working directory, holding its source (under a name the harness chooses, within the
-adapter's name limit) and its declared files, with stdin closed (end of file) and the hang guard on every process;
-the directory is removed afterwards unless `--keep`. Tests run in parallel without sharing a file.
+adapter's name limit) and its declared files, with stdin closed (end of file) unless the test declares its standard
+input (`stdin`, §3.1: the program's run is fed that file) and the hang guard on every process; the directory is removed
+afterwards unless `--keep`. Tests run in parallel without sharing a file. A test that declares an output file
+(`output-file`, §3.1) is also judged on that file in its directory once the process has ended.
 
 THE VERDICTS (§5):
   PASS            an accepted test compiled, ran, and its standard output (normalized: line ends to LF, trailing
@@ -88,11 +90,13 @@ def normalize(text: str) -> str:
 
 # ── one process ─────────────────────────────────────────────────────────────────────────────────────────────────────
 
-def execute(argv: tuple[str, ...], work: Path, environment: dict[str, str], timeout: float) -> Step:
-    """Run one process in `work` with stdin closed (end of file) under the hang guard."""
+def execute(argv: tuple[str, ...], work: Path, environment: dict[str, str], timeout: float,
+            stdin: bytes | None = None) -> Step:
+    """Run one process in `work` under the hang guard, with `stdin` as its standard input (a test's declared input, §3.1),
+    or, with none, standard input closed (end of file)."""
     try:
-        done = subprocess.run(list(argv), cwd=work, env=environment, stdin=subprocess.DEVNULL, capture_output=True,
-                              timeout=timeout)
+        done = subprocess.run(list(argv), cwd=work, env=environment, capture_output=True, timeout=timeout,
+                              **({"stdin": subprocess.DEVNULL} if stdin is None else {"input": stdin}))
     except subprocess.TimeoutExpired as e:
         return Step(None, e.stdout or b"", e.stderr or b"", timed_out=True)
     except OSError as e:
@@ -174,7 +178,9 @@ class Run:
         values = self.placeholders(edition, entry, work, source, program)
         template = self.adapter.commands[op]
         argv = tuple(fill(a, values) for a in template) if template is not None else None
-        ctx = StepContext(op, argv, work, self.environment_for(entry, work, values), self.timeout, values)
+        # Only the program's run reads the test's declared input (§3.1 `stdin`); a compile always sees it closed.
+        stdin = (self.root / entry["stdin"]).read_bytes() if op == "run" and "stdin" in entry else None
+        ctx = StepContext(op, argv, work, self.environment_for(entry, work, values), self.timeout, values, stdin)
         hook = getattr(self.adapter.hook, op, None) if self.adapter.hook is not None else None
         if callable(hook):
             step = hook(ctx)
@@ -182,7 +188,7 @@ class Run:
                 raise HarnessError(f"the adapter's hook {op}() returned {type(step).__name__}, not a Step")
             return step
         assert argv is not None  # config.load_adapter refuses an operation with neither a template nor a hook
-        return execute(argv, work, ctx.environment, self.timeout)
+        return execute(argv, work, ctx.environment, self.timeout, stdin)
 
     def crashed(self, step: Step) -> bool:
         return step.returncode is not None and (step.returncode < 0 or step.returncode in self.adapter.crash_exit_codes)
@@ -264,9 +270,28 @@ class Run:
         # read_bytes, not read_text: text mode turns a lone CR into a line end before normalize sees it.
         expected = normalize((self.root / expected_path).read_bytes().decode("utf-8"))
         actual = normalize(ran.stdout.decode("utf-8", errors="replace"))
+        if actual != expected:
+            return FAIL, difference(expected, actual, expected_path)
+        if "output-file" in entry:
+            return self.output_file(entry["output-file"], work)
+        return PASS, ""
+
+    def output_file(self, declared: dict[str, str], work: Path) -> tuple[str, str]:
+        """The verdict on a test's declared output file (§3.1 `output-file`), judged once the process has ended: the file
+        the program left in its run directory equals the expected content beside the test, on the normalization of the
+        standard output. Three failures, each naming the file: the expected content is absent, the program left no file,
+        the file differs."""
+        name, expected_path = declared["name"], declared["expected"]
+        expected_file, written = self.root / expected_path, work / name
+        if not expected_file.is_file():
+            return FAIL, f"the declared output file {name} cannot be judged: its expected content {expected_path} is absent"
+        if not written.is_file():
+            return FAIL, f"the program left no output file {name} in its run directory (expected: {expected_path})"
+        expected = normalize(expected_file.read_bytes().decode("utf-8"))
+        actual = normalize(written.read_bytes().decode("utf-8", errors="replace"))
         if actual == expected:
             return PASS, ""
-        return FAIL, difference(expected, actual, expected_path)
+        return FAIL, difference(expected, actual, expected_path, f"the output file {name}")
 
     def flagged(self, edition: str, entry: dict[str, Any], work: Path) -> tuple[str, str]:
         control = self.tests[edition].get(entry["control"])
@@ -306,14 +331,14 @@ def first_lines(text: str, n: int = 3) -> str:
     return " | ".join(lines[:n])[:400] or "no output"
 
 
-def difference(expected: str, actual: str, expected_path: str) -> str:
+def difference(expected: str, actual: str, expected_path: str, what: str = "the output") -> str:
     want, got = expected.split("\n"), actual.split("\n")
     for i in range(max(len(want), len(got))):
         w = want[i] if i < len(want) else "<end of output>"
         g = got[i] if i < len(got) else "<end of output>"
         if w != g:
-            return f"the output differs from {expected_path} at line {i + 1}: expected {w[:160]!r}, got {g[:160]!r}"
-    return f"the output differs from {expected_path}"
+            return f"{what} differs from {expected_path} at line {i + 1}: expected {w[:160]!r}, got {g[:160]!r}"
+    return f"{what} differs from {expected_path}"
 
 
 # ── results ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -570,6 +595,9 @@ if op == "run":
             time.sleep(60)
         elif word == "leave":
             Path(rest).write_text("x")
+        elif word == "write":
+            name, _, text = rest.partition(" ")
+            Path(name).write_bytes(text.replace("|", chr(10)).encode("utf-8"))
         elif word == "absent":
             out.append("ABSENT" if not Path(rest).exists() else "PRESENT")
         elif word == "exit":
@@ -613,8 +641,8 @@ import subprocess
 import config
 def run(ctx):
     done = subprocess.run([ctx.placeholders["python"], ctx.placeholders["stub"], "run", ctx.placeholders["program"]],
-                          cwd=ctx.work, env=ctx.environment, stdin=subprocess.DEVNULL, capture_output=True,
-                          timeout=ctx.timeout)
+                          cwd=ctx.work, env=ctx.environment, input=ctx.stdin if ctx.stdin is not None else b"",
+                          capture_output=True, timeout=ctx.timeout)
     return config.Step(done.returncode, done.stdout.upper(), done.stderr)
 '''
 
@@ -635,7 +663,8 @@ def _stub_adapter(name: str, stub: Path, **extra: Any) -> dict[str, Any]:
 
 def _entry(test_id: str, clause: str, expect: str = "accept", files: tuple[str, ...] = (), requires: tuple[str, ...] = (),
            words: tuple[str, ...] = (), outputs: dict[str, str] | None = None, items: tuple[int, ...] = (),
-           line: int = 0, control: str = "") -> dict[str, Any]:
+           line: int = 0, control: str = "", stdin: str | None = None,
+           output_file: tuple[str, str] | None = None) -> dict[str, Any]:
     entry: dict[str, Any] = {"id": test_id, "clause": clause, "source": f"cases/{clause}/{test_id}.cob",
                              "source-format": "fixed", "rules": ["GR-1.1.1-1"],
                              "files": [f"cases/{clause}/{f}" for f in files], "requires": list(requires),
@@ -643,6 +672,10 @@ def _entry(test_id: str, clause: str, expect: str = "accept", files: tuple[str, 
     if expect == "accept":
         entry.update({"expect": "accept", "implementor-defined": list(items),
                       "expected-output": outputs if outputs is not None else {"": f"cases/{clause}/{test_id}.out"}})
+        if stdin is not None:
+            entry["stdin"] = f"cases/{clause}/{stdin}"
+        if output_file is not None:
+            entry["output-file"] = {"name": output_file[0], "expected": f"cases/{clause}/{output_file[1]}"}
     else:
         entry.update({"expect": "flag", "flag": "syntax", "line": line, "control": control})
     return entry
@@ -671,6 +704,16 @@ def self_test() -> int:
         "no-program": (["no-program"], "x\n", _entry("no-program", c)),
         "crashes": (["crash"], "x\n", _entry("crashes", c)),
         "stdin": (["run stdin"], "STDIN=''\n", _entry("stdin", c)),
+        # A declared standard input (§3.1 `stdin`, kb/Work PB5755): the run is fed the file, byte for byte.
+        "stdin-fed": (["run stdin"], "STDIN='L1\\nL2\\n'\n", _entry("stdin-fed", c, stdin="fed.in")),
+        # A declared output file (§3.1 `output-file`, kb/Work PB5765): judged after the process ends, in addition to stdout.
+        "of-pass": (["run write R.DAT A|B"], "", _entry("of-pass", c, output_file=("R.DAT", "of-pass.exp"))),
+        "of-differs": (["run write R.DAT A|C"], "", _entry("of-differs", c, output_file=("R.DAT", "of-pass.exp"))),
+        "of-missing": (["run out SILENT"], "SILENT\n", _entry("of-missing", c, output_file=("R.DAT", "of-pass.exp"))),
+        "of-no-expected": (["run write R.DAT A|B"], "", _entry("of-no-expected", c,
+                                                                output_file=("R.DAT", "nothing-here.exp"))),
+        "of-stdout": (["run out WRONG", "run write R.DAT A|B"], "RIGHT\n", _entry("of-stdout", c,
+                                                                                output_file=("R.DAT", "of-pass.exp"))),
         "staged": (["need DATA1.dat", "env DD_DATA1=DATA1.dat", "run out OK"], "OK\n",
                    _entry("staged", c, files=("DATA1.dat",))),
         # a library text in a library folder keeps its library in the working directory (kb/Work PB5067)
@@ -703,7 +746,8 @@ def self_test() -> int:
     }
     expected = {
         "passes": PASS, "differs": FAIL, "lower": FAIL, "refused": FAIL, "no-program": FAIL, "crashes": NO_VERDICT,
-        "stdin": PASS, "staged": PASS, "staged-library": PASS, "leaves": PASS, "fresh": PASS,
+        "stdin": PASS, "stdin-fed": PASS, "of-pass": PASS, "of-differs": FAIL, "of-missing": FAIL, "of-no-expected": FAIL,
+        "of-stdout": FAIL, "staged": PASS, "staged-library": PASS, "leaves": PASS, "fresh": PASS,
         "exit-status": PASS, "valued": PASS, "needs-module": NOT_APPLICABLE, "needs-claimed": PASS,
         "reserved-word": NOT_APPLICABLE, "a-very-long-test-identifier": PASS, "control": PASS, "flag-pass": PASS,
         "flag-elsewhere": FAIL, "flag-copybook": FAIL, "flag-silent": FAIL, "flag-crash": NO_VERDICT,
@@ -721,6 +765,8 @@ def self_test() -> int:
             if out is not None:
                 (folder / f"{test_id}.out").write_text(out, encoding="utf-8", newline="\n")
         (root / "cases" / c / "DATA1.dat").write_text("data\n", encoding="utf-8", newline="\n")
+        (root / "cases" / c / "fed.in").write_text("L1\nL2\n", encoding="utf-8", newline="\n")
+        (root / "cases" / c / "of-pass.exp").write_text("A\nB\n", encoding="utf-8", newline="\n")
         (root / "cases" / c / "LIB1").mkdir()
         (root / "cases" / c / "LIB1" / "TEXT1.cpy").write_text("       01  X PIC X.\n", encoding="utf-8", newline="\n")
         (root / "cases" / c / "valued.9=one.out").write_text("ONE\n", encoding="utf-8", newline="\n")
@@ -763,6 +809,15 @@ def self_test() -> int:
         reasons = {t["id"]: t["reason"] for t in doc.get("tests", []) if t["edition"] == "85"}
         check("arm: a FAIL names the line that differs", "at line 1: expected 'GOODBYE', got 'HELLO'"
               in reasons.get("differs", ""), reasons.get("differs"))
+        check("arm: a declared output file that differs FAILs naming the file and the line",
+              "the output file R.DAT differs from cases/1.1.1-Rule/of-pass.exp at line 2: expected 'B', got 'C'"
+              in reasons.get("of-differs", ""), reasons.get("of-differs"))
+        check("arm: a declared output file the program did not write FAILs naming the file",
+              "left no output file R.DAT" in reasons.get("of-missing", ""), reasons.get("of-missing"))
+        check("arm: an absent expected file FAILs naming it, apart from the other two",
+              "nothing-here.exp is absent" in reasons.get("of-no-expected", ""), reasons.get("of-no-expected"))
+        check("arm: the standard output is still judged when an output file is declared",
+              "differs from cases/1.1.1-Rule/of-stdout.out" in reasons.get("of-stdout", ""), reasons.get("of-stdout"))
         check("arm: a flagged FAIL names where the diagnostics were", "diagnostics at line(s) 9"
               in reasons.get("flag-elsewhere", ""), reasons.get("flag-elsewhere"))
         check("arm: the edition the profile lacks is NOT APPLICABLE for every test",

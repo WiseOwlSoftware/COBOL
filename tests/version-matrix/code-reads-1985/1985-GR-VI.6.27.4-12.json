@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-12",
+ "rule-digest": "0af9052f3b81",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "dbbd1ce328a84b9df4904a0982d5d1360878921e8dcc94ad1acf18324418a2b7",
+   "refuter": "3f7c0cc62b301a2bbe0a1a6d43abd1290ab4e80fa0442a60afdb0d7ca13e6d62"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, with two or more delimiters the examination must stop at the first position where any delimiter matches, testing the delimiters at that position in the order written so the first listed match wins, treat the matched characters as one delimiter, and never let a character serve in two delimiters (the scan resumes after the matched occurrence, an ALL phrase consuming only repeats of the delimiter it matched).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "refuses a reference-modified identifier-1 at --std 85 (Constructs.UnstringSenderReferenceModified2002, §1985:VI.6.27.3 SR7); a sender syntax arm, it does not touch delimiter matching",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+    "switches": "nothing behavioural: BoundRejected.Report(ctx.Edition, ...) only carries the edition context for SR diagnostics",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|Construct in StringEmitter.cs, StringUnstringBinder.cs, CobolStringOps.cs; grep of Unstring in Validation/VersionConformancePass.cs (only VisitUnstringStatement, the refmod-sender gate). The delimiter loop of BindUnstring and the UnstringExtract kernel take no edition input. Edition-gated lexemes (N\"..\", the zero-length literal) are refused at 85 by their own literal gates.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c35_unstring_or_delimiter_sequence covers the order at one position and an overlapping AB/BC pair; not exercised: three delimiters with a prefix one listed first or last, single-character neighbours (- OR +), ALL in an OR list against a longer delimiter",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "I A   |-+|-B  |  |****",
+    "expected": "'-+' OR '+-' on A-+-B: '-+' at 2 wins, its '+' is not reused for '+-'"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "J A   |- |    |+ |    |- ",
+    "expected": "'-' OR '+' on A-+-B: three contiguous single-character delimiters, empty fields between"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "K A   |- |+B  |  |**** ; L identical",
+    "expected": "ALL '-' OR '-+' (and reversed) on A--+B: at pos 2 only '-' matches, ALL consumes pos 3, '+B' remains"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "M P   |+-|Q   |-+|R   |  ",
+    "expected": "'-+' OR '+-' OR '+': at pos 2 '+-' (listed before '+') matches"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "N P   |+ |-Q  |-+|R   |",
+    "expected": "'+' OR '-+' OR '+-': at pos 2 '+' listed first wins, then '-Q' up to '-+'"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un1.cob",
+    "printed": "1 ... (literal, ALL literal, identifier, figurative SPACE in one OR list)",
+    "expected": "each delimiter class compared in sequence"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un3.cob",
+    "printed": "[5A  ][B   ][****]",
+    "expected": "an OR list over an ODO group sender"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR12",
+    "check": "OK  §1985:VI.6.27.4 GR12  (║6.27.4 General Rules║)  the text is in GR12"
+   }
+  ],
+  "notes": "UnstringExtract takes the earliest position over all delimiters with a strict < so a tie goes to the first listed, which equals testing each position against the delimiters in written order; the matched occurrence is consumed whole and UnstringSkipRun repeats only the matched ALL delimiter. No edition input on the path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same (identical code path)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-12",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Reading tested: GR12's 'Each delimiter is applied to the sending field in the sequence specified' could be read delimiter-major (scan the whole field with the first delimiter, then the next). §1985:VI.6.27.4 GR13b fixes it as position-major: 'the examination proceeds left to right until either a delimiter ... is encountered'. So the earliest position wins and the order written breaks a tie at one position, which is what UnstringExtract does (strict <). Probes (run_case.py, --std 85), u1-001: 1: 'B' OR 'AB' on 'XAB': 'AB' at position 2 wins over the first-listed 'B' at position 3 (X|AB). 6: '-' OR '-+' on 'A-+B': '-' listed first wins at position 2, then '+B', and receiver C is not acted upon (keeps ZZZZ, GR13g). 5: 'X' OR ALL ';' on 'AB;;;CD;E': AB|;|02, CD, POINTER 09. 7: 'AB' OR ALL 'A' on 'AAAB'. Each character serves in one delimiter. cite: OK  §1985:VI.6.27.4 GR12  (║6.27.4 General Rules║)  the text is in GR12; OK  §1985:VI.6.27.4 GR13b  (║6.27.4 General Rules║)  the text is in GR13b",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

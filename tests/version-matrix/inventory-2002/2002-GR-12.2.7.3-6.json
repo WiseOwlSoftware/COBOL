@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.7.3-6",
+ "rule-digest": "665e6bdecfc6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/MetadataRepositoryProvider.cs#Class; src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Find; src/WiseOwl.Cobol.Compiler/Binding/Repository/ExpansionPlacementPass.cs#Run",
+ "test-ref": "conformance:cases/8.3.2.2-User-defined-words/pb974_repository_as_phrase; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_import_class_under_another_word; conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2104_expansion_is_one_class_across_groups",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.3.8.4-6, witnessed at 2002 by the cases test-ref names. The read: Rename only; same implementor-defined latitude. Cited: §2002:12.2.7.3 GR6."
+}

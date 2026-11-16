@@ -1,0 +1,125 @@
+{
+ "rule-id": "1985-SR-XIII.4.9.3-2",
+ "rule-digest": "6023e642a822",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-080",
+  "sources": {
+   "reader": "f703bafc36b3227b4c578b07a3e6a16ad81a96c464f4b30caf0eefd646b3f18b",
+   "refuter": "3df0a3407bf807dd061238dfffcd1f6710442b1e15c2b8d8c9e2d7232e6bc4ad"
+  },
+  "imported": {
+   "reader": "161b0fb5ab501fa4c45f687bad7d18a6ed67780f09999c7af4e5736125f38fbb",
+   "refuter": "1c074f468d3b86af4cdb8c3df572a518f1ed4b29e84b704c40c61890aeb85636"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.4.9.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 identifier-1 of USE BEFORE REPORTING (optionally qualified by its report-name) must resolve uniquely to a report group (an 01-level report group description entry), and the same report group must not be named by two USE BEFORE REPORTING statements of one Procedure Division (amended by X3.23b-1993: statements of different, e.g. contained, programs' Procedure Divisions may each name it).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupReference",
+  "edition-consulted": [],
+  "edition-search": "Read DeclBindUse's REPORTING arm and ReportGroupResolution.Resolve (its EditionContext parameter is used only to report COBOL1920); grepped ReportGroupResolution.cs for Edition/Version/DialectLevel/Has(: only the parameter. VersionConformancePass#VisitUseStatement gates no BEFORE REPORTING shape. The _useReportGroups register is reset per procedure division (CollectMethodDeclaratives) with no edition test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb365_report_group_qualified_85 covers the qualified legal reference only; not covered: a non-report-group operand (data item, report-name, file-name, subordinate entry), the duplicate refusal, ambiguity, and separate procedure divisions",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3a_ws_item.cob",
+    "printed": "error COBOL0897: USE BEFORE REPORTING 'WS-N' does not name a report group",
+    "expected": "refuse: a Working-Storage item is not a report group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3b_report_name.cob",
+    "printed": "error COBOL0897: 'R-A' does not name a report group",
+    "expected": "refuse: a report-name is not a report group"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3c_02_item.cob",
+    "printed": "error COBOL0897: 'LN-A' does not name a report group",
+    "expected": "refuse: a 02-level entry inside a report group is not a report group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3j_file_name.cob",
+    "printed": "error COBOL0897: 'RA' does not name a report group",
+    "expected": "refuse: a file-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3i_undefined.cob",
+    "printed": "error COBOL0897: 'NOPE' does not name a report group",
+    "expected": "refuse"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3d_ambiguous.cob",
+    "printed": "error COBOL1920: report group 'DET-A' is described in more than one report description entry ('R-A', 'R-B') - qualify the reference",
+    "expected": "refuse: the reference is not unique"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3e_dup_same.cob",
+    "printed": "error COBOL0897 (at the second USE's operand): report group 'DET-B' already has a USE BEFORE REPORTING procedure",
+    "expected": "refuse: same identifier-1 in two USE BEFORE REPORTING statements"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3f_dup_qual_unqual.cob",
+    "printed": "error COBOL0897: report group 'DET-B' already has a USE BEFORE REPORTING procedure",
+    "expected": "refuse: DET-B and DET-B OF R-B are the same group"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3h_dup_qualified.cob",
+    "printed": "error COBOL0897: report group 'DET-A' already has ...",
+    "expected": "refuse: DET-A OF R-A and DET-A IN R-A"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3g_two_reports_legal.cob",
+    "printed": "N=3",
+    "expected": "accept: DET-A OF R-A and DET-A IN R-B are different groups; each declarative runs once"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-080/p3l_nested_rd_global.cob",
+    "printed": "OUTER / INNER / N=3",
+    "expected": "accept (amended rule: within the same Procedure Division): outer and contained program each name GLOBAL report R-B's DET-B; each GENERATE runs its own program's declarative (XIII.4.9.4 GR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.3 SR2",
+    "check": "OK  §1985:XIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Every non-report-group operand is refused, an ambiguous name draws COBOL1920, and a repeat of the same group (however qualified) in a second USE of one Procedure Division is refused while two programs' Procedure Divisions may each name a GLOBAL report's group, as the amended text says. An FD GLOBAL alone did not make the report visible to the contained program (p3k_nested); 1985 gives the RD its own GLOBAL clause, so the RD GLOBAL form was the probe.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.4.9.3-2",
+  "refutation": "DOUBTFUL",
+  "classes": "b,d",
+  "evidence": "r3a_ws_same_name at --std 85: WORKING-STORAGE '01 DET-A PIC X' and report group '01 DET-A TYPE DE' of R-A; 'USE BEFORE REPORTING DET-A.' (unqualified) compiles clean and runs N=1. The same unqualified name in GENERATE DET-A (r3d) and MOVE \"X\" TO DET-A (r3e) also compile clean; at --std 2023 r3a also compiles (N=1). r3c (USE BEFORE REPORTING on an RH and on a PF group qualified OF R-A) runs N=2, correct. The reader's own requirement says identifier-1 must 'resolve uniquely to a report group'; 1985 has no context-based disambiguation: 'Identical user-defined names may appear in a source program; however, uniqueness must then be established through qualification for each user-defined name explicitly referenced' (cite.py: 'OK  §1985:IV.4.3.8.1  (4.3.8.1 Qualification)  the text is in the clause'), and a report group's name is data-name-1 of a data description entry (XIII TYPE/report group format, 1985 line 23495 'When data-name-1 represents a report group to be referred to by a GENERATE or a USE statement'). The compiler resolves DET-A by the operand's expected class (report group) across namespaces, while the two-report case (p3d) is refused COBOL1920. cite.py: 'OK  §1985:XIII.4.9.3 SR2  (4.9.3 Syntax Rules)  the text is in SR2'. Reading: SR2's own two requirements (a report group; no repeat within one Procedure Division) are met; the under-rejection is of the general uniqueness rule IV.4.3.8.1 and hits every reference to the name (GENERATE, MOVE), the same at --std 2023, so whether it counts against THIS rule rests on reading 'Identifier-1 must reference a report group' as requiring a unique reference.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs#Resolve: searches report groups only, so a same-spelled Working-Storage data-name never makes the unqualified reference ambiguous (no edition switch; same at 2023)"
+  ],
+  "corrected": "DOUBTFUL: CONFORMS for SR2's own text; if identifier-1 must be a unique reference per §1985:IV.4.3.8.1, the compiler under-rejects USE BEFORE REPORTING DET-A when a non-report data item is also named DET-A (cause b: same at --std 2023)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5775 (a report name that is also a Working-Storage name); `SOURCE DFLD` silently taking the Working-Storage item is its other direction.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md"
+ },
+ "work": "PB5775"
+}

@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-25",
+ "rule-digest": "b8fce584c65f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-123",
+  "sources": {
+   "reader": "2a038aa4eda79245e44f17a46396a0d07259a19a45f018cc546b0a2da6fe34e4",
+   "refuter": "682fc1281745e66c275b93fc2f52298f7014de67670a15739aebe068fe2e0f23"
+  },
+  "imported": {
+   "reader": "ddda2180e44d3bb5321ce61d2d1a87f4221eeb11e876aca5f150b5ce3d4d12e1",
+   "refuter": "25faea19740e16059c26cd4242d3e5b593f8d55df8a0e31ee0df03bf8f6e464c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-25",
+  "verdict": "CONFORMS",
+  "requirement": "The minimum and maximum record sizes (fixed file attributes, II.2.1) are fixed when the OPEN OUTPUT (or optional I-O/EXTEND) creates the file and are not changed afterwards; a re-creation establishes new ones, and which attributes a later OPEN validates is the implementor's (GR8).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectBehavior|CobolVersion in FixedFileAttributes.cs, KeyedConnector.cs, SequentialConnector.cs#FixedAttributeConflict and FileConnector#OpenOnceEntered: the attribute check is edition-free",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers a fixed-length sequential re-creation only; not exercised: RECORD VARYING files, relative and indexed files opened with other sizes, EXTEND through a wider description",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p25_sizes.cob",
+    "printed": "V1-W7-OVER-MAX=44 V1-W1-UNDER-MIN=44 V2-EXTEND-WIDER=00 V2-W10=00 V1-R2=04 L=06 [012345]",
+    "expected": "the creating description's VARYING 2 TO 6 bounds hold for its WRITEs (44); a sequential file records no sizes, so a wider description's EXTEND is not validated (GR8, implementor's set) and the creator's description reads the 10-character record truncated to 6 with 04 (VII.1.3.5 1b)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p25_keyed.cob",
+    "printed": "R2-IN-WIDER=39 R2-EXT-WIDER=39 R2-IO-WIDER=39 R1-IN-SAME=00 R2-RECREATE=00 R1-IN-AFTER-RECREATE=39 I2-IO-WIDER=39 I1-IN-SAME=00",
+    "expected": "relative and indexed stores record the sizes at creation: another size on INPUT/EXTEND/I-O is a file attribute conflict, 39 (GR8, VII.1.3.5 3f); OPEN OUTPUT re-creates and re-establishes them"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p25_sizes.cob",
+    "printed": "F2-EXTEND-WIDER=00 F1-R1=00 AAAA F1-R2=00 BBBB F1-R3=00 CCCC",
+    "expected": "fixed-length sequential: no sizes on the medium, the reading description's length governs (implementor determination under GR8)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR25",
+    "check": "OK  §1985:VII.4.3.4 GR25  (4.3.4 General Rules)  the text is in GR25"
+   },
+   {
+    "cite": "§1985:VII.4.3.4 GR8",
+    "check": "OK  §1985:VII.4.3.4 GR8  (4.3.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "Keyed stores keep the creation sizes in their meta pages and refuse a different description with 39; sequential formats record no sizes, a documented determination (SequentialConnector#FixedAttributeConflict remarks; docs/conformance/7/DOC-A.1-146) that GR8 permits. A wider description EXTENDing a sequential file is a program outside GR25 that the implementor need not detect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-25",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "Read §1985:VII.4.3.4 GR25 (cite.py OK) against GR8: 'The implementor defines which of the fixed file attributes are validated during the execution of the OPEN statement' (cite.py: OK §1985:VII.4.3.4 GR8). The attack: the reader's own probe shows a wider description EXTENDing a sequential file and writing a 10-character record into a file created with a maximum of 6 (V2-W10=00), so the file's maximum did change. That change violates the program's obligation in GR25 ('must not subsequently be changed'). It is not a compiler defect, because GR8 explicitly leaves validation of record sizes to the implementor and allows it to vary by organization. The determination is documented: docs/conformance/7/DOC-A.1-146 says a record sequential file records no record boundaries or sizes. The keyed organizations validate the sizes with 39 (reader probe p25_keyed). No 1985-only form bears on this rule, since RECORD VARYING and RECORD CONTAINS integer TO integer take the same path. The verdict rests on reading GR25 as a constraint on the program, with detection governed by GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

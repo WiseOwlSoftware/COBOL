@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-SR-VII.4.6.3-5",
+ "rule-digest": "7f33710f23a7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-161",
+  "sources": {
+   "reader": "0ee01c589d82fd02e2245a993fb1d16b7696c13c6946f91dece28459ef98e1f4",
+   "refuter": "f69f057f460de758eb8ca3bd1c121864f38cd29b6dde5c291401af369111f7ee"
+  },
+  "imported": {
+   "reader": "a7309ac34e8209a150f3da6853dae7bf53e593d28f2adfbbde29cc9288cf627a",
+   "refuter": "440f428f1cf26734e36c74ef63612907792113ad4420cfad30092b1532bcc5ad"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.6.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the files a USE statement names explicitly, or reaches through INPUT, OUTPUT, I-O or EXTEND, may be of any mix of organizations and access modes; the compiler must accept the list and dispatch the procedure for each such file, while still refusing a file-name in two USE statements and a mode phrase used twice.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery;src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitDispatchSelector",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "1985 required words AFTER/PROCEDURE and the 2002 Format 3/4 gates; nothing about the files' organization",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_01 covers explicit sequential+relative and INPUT over sequential+indexed; dynamic access, a five-file mixed list and the duplicate refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/mix1.cob",
+    "printed": "USE ON SQ RL IX IR NX (sequential, relative dynamic, indexed dynamic, indexed random, indexed sequential) fires for SQ 38, IR 23 and NX 35; INPUT USE fires for OPTIONAL relative MS at end 10; the statement after each continues",
+    "expected": "GR5 a/b for each file; GR6 returns after a non-critical status"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_dup_file.cob",
+    "printed": "COBOL0897 file 'RL' already has a USE procedure",
+    "expected": "§1985:VII.4.6.3 SR3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_dup_mode.cob",
+    "printed": "COBOL0897 this open mode already has a USE procedure",
+    "expected": "§1985:VII.4.6.3 SR6"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/n_use_ec.cob",
+    "printed": "COBOL0877 USE AFTER EXCEPTION CONDITION requires COBOL-2002 and COBOL0878 for EC-I-O",
+    "expected": "Format 3 is not in the 1985 text"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.6.3 SR5",
+    "check": "OK  §1985:VII.4.6.3 SR5  (4.6.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:VII.4.6.4 GR5",
+    "check": "OK  §1985:VII.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "DeclBindUse collects any visible non-sort file without an organization test, and the dispatch keys on the file or the open mode, so mixed lists bind and fire. The duplicate-file and duplicate-mode refusals cite §2023:14.9.49.3 SR8/SR7 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.6.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "u3.cob (runs/u3-001): USE ERROR ON EXTEND over a sequential and a relative-sequential missing file fires for each (35, 35) in order; USE ERROR ON IX (indexed dynamic) and USE EXCEPTION ON INPUT: OPEN INPUT IX RR fires USE-IX for IX only (GR4 explicit file wins) and USE-INPUT for the relative random RR; USE ERROR ON OUTPUT fires for an indexed random WRITE duplicate key (22) with no INVALID KEY phrase; each statement after continues. cite.py: OK §1985:VII.4.6.3 SR5 'implicitly or explicitly referenced in the USE statement need not all have the same organization'; OK §1985:VII.4.6.4 GR4 'no other USE statement applies to file-name-1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

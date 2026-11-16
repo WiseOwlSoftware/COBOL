@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.13.1",
+ "rule-digest": "b0aeae95aef7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+ "test-ref": "conformance:cases/8.4.2.13@2002-LINAGE-COUNTER/g2lct04_linage_counter_format_forms",
+ "notes": "§2002:8.4.2.13.1 is LINAGE-COUNTER [ {IN|OF} file-name-1 ] (rendered printed page 100 / PDF page 122: the qualifier is in brackets; the 8.4.2.1.1 Format 10 OCR drops them). Run at --std 2002 with the pinned compiler (tree dc1f2dcce8): exit 0, IN-F1=03 / OF-F1=03 / IN-F2=02 / OF-F2=02 / BARE=03, MATCH .out."
+}

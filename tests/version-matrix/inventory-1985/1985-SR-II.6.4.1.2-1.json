@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-II.6.4.1.2-1",
  "rule-digest": "90f31d9bb487",
+ "test-ref": "conformance:cases/II.6.4.1@1985-Transfer-of-Control/g85_f02_01",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

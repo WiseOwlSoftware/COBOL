@@ -1,0 +1,113 @@
+{
+ "rule-id": "1989-FMT-A.2.7.2",
+ "rule-digest": "303466ff5696",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-178",
+  "sources": {
+   "reader": "466081f88f0ce2d7ede21649851d3be9463b2c67b253bb9ad3f0a72512576a4a",
+   "refuter": "b170afaa372a5943113712612817559a2675311b831254bf83e06c2c5b36ef2f"
+  },
+  "imported": {
+   "reader": "56568fe3cfe2985b31b11168df2ab0cd7b0b72c26823f71da6e7406efd0fe934",
+   "refuter": "2138d20a270d5aa7f76e11e7c9aea13cd95f0aecdc32d1860832ee77d37d1b0a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.7.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept FUNCTION ASIN followed by exactly one parenthesised argument-1 (identifier, literal or arithmetic expression, possibly itself a function-identifier) in an arithmetic expression, and refuse zero arguments, two or more, the bare name, and an empty '( )'.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgument; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window: sig.IntroducedIn (85 on this row) against ctx.Edition.DialectLevel, COBOL1502 below it",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "construct function-empty-argument-list-2002: an empty '( )' after the name draws COBOL0900 below 2002 (the 1985 format braces argument-1 inside the parentheses)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct NumericFunctionIdentifierOperand2002: a numeric function written where an identifier stands (MOVE sender) draws COBOL0900 below 2002 (§1985:IV.4.3.8.3.3 SR4)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+    "switches": "construct RepositoryFunction2002: below 2002 a name written without FUNCTION is never read as a function (it binds as a data reference, COBOL1639); at 2023 it draws COBOL1543",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "tests/version-matrix/reserved-words.json#FUNCTION",
+    "switches": "FUNCTION is reserved at r85 (true at every edition)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 an empty '( )' argument list is refused by COBOL0900 before the arity check, a numeric function-identifier as a MOVE/identifier operand is refused (2002 Annex F.2 item 60 lifted it), and the keyword-omitted form is not a function reference; at 2023 those take the later arms. The accepted forms and the arity check (COBOL1504) are the same code at every edition",
+  "witnesses-cover": "part: g85_bf38_01 exercises identifiers, a literal and an expression at the domain bounds; the refusals and the keyword-omitted form are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/acc.cob",
+    "printed": "ASIN (X - 1) X=0.50 -> -0.52359878",
+    "expected": "arcsin -0.5 = -pi/6"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/refuse.cob",
+    "printed": "FUNCTION ASIN with 0, 2 and 3 arguments and with no list -> COBOL1504 takes 1 argument(s); n given",
+    "expected": "exactly one argument-1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/bounds.cob",
+    "printed": "ASIN-1  1.57079633",
+    "expected": "arcsin 1 = pi/2 (the upper bound of the domain)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-178/arms2.cob",
+    "printed": "--std 85: MOVE FUNCTION ACOS (X) TO R and MOVE FUNCTION VARIANCE (1 2) TO R -> COBOL0900 (numeric function-identifier as identifier operand requires COBOL-2002); FUNCTION ANNUITY (0.1 3) (1:2) -> COBOL1629; FUNCTION ATAN (LEADING) -> COBOL1638; ASIN (X) without FUNCTION -> COBOL1639 not defined; MOVE FUNCTION CHAR (66) TO C (1:1) accepted. --std 2023: the two MOVEs accepted, the rest refused (ASIN -> COBOL1543)",
+    "expected": "§1985:IV.4.3.8.3.3 SR4 numeric function only in an arithmetic expression; SR2 reference-modifier only for alphanumeric functions; the 1985 format has no keyword-omitted form; a phrase word is no argument"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.7.1",
+    "check": "OK  §1989:A.2.7.1  (2.7.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.2",
+    "check": "OK  §1985:IV.4.3.8.3.2  (4.3.8.3.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR1",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR1  (4.3.8.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Catalog row ASIN (Fixed, 1..1, IntroducedIn 85, Float) binds through the generic path; BindFunctionResult enforces the arity with COBOL1504. The format citation §1989:A.2.7.2 cannot pass cite.py alone (3 real words), so the description clause and the function-identifier format are cited.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.7.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "ASIN: STRING FUNCTION ASIN (X) refused; ASIN (E1 (ALL)) refused COBOL1645. Placement attack on SR4 across doors the reader did not try (all --std 85, compile-only): IF FUNCTION ACOS (X) NUMERIC -> COBOL6918; STRING FUNCTION ASIN (X) ... -> COBOL1626; STRING ... DELIMITED BY FUNCTION ASIN (X) -> COBOL1626; SET IX TO FUNCTION ATAN (X) -> COBOL0900; GO TO ... DEPENDING ON FUNCTION ANNUITY (X 2) -> COBOL0900+COBOL2324; DIVIDE/MULTIPLY/SUBTRACT with a numeric function sender -> COBOL0900; CALL USING BY CONTENT FUNCTION ACOS (X) -> COBOL0900; WRITE FR FROM FUNCTION ACOS (X) -> COBOL0900+COBOL1914; INITIALIZE R REPLACING NUMERIC BY FUNCTION ACOS (X) -> COBOL0900; UNSTRING DELIMITED BY FUNCTION ATAN (X) -> COBOL1651; INSPECT FUNCTION ACOS (X) TALLYING -> COBOL0900. Legal positions run (plegal.cob): relation, sign condition, EVALUATE subject, refmod start FUNCTION VARIANCE (1 3) all accepted and printed G/P/E. Separator and literal splitting: VARIANCE (1 -2) -> 2.25 (two args, -2 a signed literal), VARIANCE (1 - 2) -> 0 (one expression), ANNUITY (0.1 +3) -> 0.40211480; with DECIMAL-POINT IS COMMA (dpc.cob) ANNUITY (0,1 3) and (0,1, 3) -> 0,40211480, VARIANCE (1,5 2,5) -> 0,25, ACOS (0,5) -> 1,04719755. ALL on a fixed-arity function (allfix.cob): ACOS/ASIN/ATAN (E1 (ALL)) with OCCURS 1, ANNUITY (E2 (ALL)) with OCCURS 2, CHAR (E3 (ALL)) -> COBOL1645 each (the count-matching ANNUITY case is not let through). Index-name argument ATAN (IX) -> COBOL1637; ACOS (X) (1:1) -> COBOL1629. cite.py: OK §1985:IV.4.3.8.3.3 SR4 (the text is in SR4); OK §1985:IV.4.3.8.3.3 SR3a; OK §1985:IV.4.3.8.3.3 SR2; OK §1989:A.2.2 (it lies in AR4: 'permits an argument to be repeated a variable number of times'); OK §1985:IV.4.3.8.2.3 SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

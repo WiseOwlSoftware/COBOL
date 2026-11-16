@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.10.2-2",
+ "rule-digest": "6b044280dc0e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationSlice.cs#TryGetMnemonic",
+ "test-ref": "conformance:cases/14.8.10@2002-DISPLAY-STATEMENT/g2dsp01_upon_device_mnemonic; conformance:cases/14.8.10@2002-DISPLAY-STATEMENT/g2dsp02_upon_undeclared_mnemonic; conformance:cases/14.8.10@2002-DISPLAY-STATEMENT/g2dsp03_upon_switch_mnemonic; conformance:cases/14.8.10@2002-DISPLAY-STATEMENT/g2dsp04_upon_feature_mnemonic",
+ "notes": "§2002:14.8.10.2 SR2: device mnemonics (CONSOLE, SYSOUT, SYSERR; DOC-A.1-189) are accepted (g2dsp01 stdout matched at --std 2002) and an undeclared, switch-name or feature-name mnemonic is refused COBOL0817 at the DISPLAY line (g2dsp02..04)."
+}

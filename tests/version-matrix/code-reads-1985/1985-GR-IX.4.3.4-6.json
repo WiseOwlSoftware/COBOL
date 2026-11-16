@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-IX.4.3.4-6",
+ "rule-digest": "f84fc3eada64",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-094",
+  "sources": {
+   "reader": "df7c0d371c5b7143ebc895fabc831a27059f827dcef51c7cfeebd8156d9dd1cc",
+   "refuter": "d6931f8479f7e0fb86dd72baac85ce6e669cc541f0918fe55a7cc29c6b365672"
+  },
+  "imported": {
+   "reader": "64d12e60245330165956dc9c9ed45f1530d90cf0e2fc6a1487796514c9d2543e",
+   "refuter": "d97a56e78c6014f59bad411c4266c8d138136991e72e9a230ae01b974e9eb21c"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-IX.4.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "A DELETE on an indexed file must leave the file position indicator (and the key of reference) as it was, in sequential and dynamic access, after success and after an invalid key or other failure.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ResetPosition; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#DeleteShared",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility by FileConnector.Edition (set from ctx.Data.DialectLevel at FileRegisterIndexed): whether another run unit may lock the file, so whether FileRegistry#MutationTarget/ConflictOnLockedRecord govern the DELETE by record locks; at 85 the facility is absent",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "IndexedConnector#Delete touches no _fpiKey/_readOrdinal/_refKey; grepped Runtime/IO for Edition|DialectBehavior: the only consults in IndexedConnector are IndexedReadPreviousAfterOpenAtEnd and IndexedDuplicateKeyStatusSequentialOnly (READ), neither on this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_04 covers dynamic access under the prime key; not sequential access, an alternate key of reference, or a 43/49 failure",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/IX.4.3@1985-DELETE-STATEMENT/g85_bf30_04",
+    "printed": "EXPECT: MATCH",
+    "expected": "the case's .out"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p1seqdel.cob (run p1seqdel-002)",
+    "printed": "R1=00 K01 WL=10 | D1=00 [K01ZZZZZZZZZZZZZZZZZ] WL=19 | R2=00 K02 WL=15 | D2=00 | U=43 | D3=43 [K02BBBBBBBBBBBB     ] WL=15 | R3=00 K03 WL=05 | D4=00 [QQQCC               ] WL=11 | R4=00 K04 WL=07 | U=10 | R5=10 | R6=00 K04 | U=49 | D5=49 [K04DDDD             ] WL=08 | U=10 | R7=10 K04",
+    "expected": "sequential-access indexed RECORD VARYING DEPENDING ON WL: record area and WL as set before each DELETE survive it after 00, 43 and 49 (GR5); next READ after a successful or failed DELETE is the next record (GR6); status 00/43/49 each stored (GR7)"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-094/p2dyndel.cob (run p2dyndel-001)",
+    "printed": "N1=K02 A1 | DN1=00 | A1=[K01XX3bbbbzz] N=3 | N2=K04 A1 | DN2=00 | N3=K03 C3 | DI3=23 | A3=[K99C34bbbb    ] N=4 | N4=K05 D4 | AE5=10 | O1=K02 A1 | O2=K03 C3 | O3=K05 D4 | I1=K02 A1",
+    "expected": "dynamic access, OCCURS DEPENDING ON inside the record, ALTERNATE key WITH DUPLICATES as key of reference: area and ODO object kept (GR5); READ NEXT continues on the alternate key after deleting another record, the record at the indicator, and after an invalid key (GR6); reopen I-O/INPUT starts at lowest PRIME key K02 (GR10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.4 GR6",
+    "check": "OK  §1985:IX.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:IX.4.3.4 GR2",
+    "check": "OK  §1985:IX.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The indicator is held as values (key + release ordinal) that the next READ seeks from, and Delete never writes them. Probes: sequential READ after a DELETE and after a 43 gives the next record; dynamic READ NEXT under an ALTERNATE key of reference continues on that key after deleting another record, the record at the indicator, and an invalid key."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Aimed at states the reader did not try. r1seq43-001 (SEQUENTIAL): READ K01, START >= K03, DELETE 43, then READ gets K03 (indicator set by START survives the failed DELETE). r2dyn46-001 (DYNAMIC): failed random READ 23, successful DELETE of K03, READ NEXT gives 46 ('N2=46'); READ NEXT to AT END 10, successful DELETE of K01, READ NEXT gives 46 ('N5=46'), so a DELETE does not re-establish a next record; random READ K04, DELETE K04, READ NEXT gives K05. OK §1985:IX.4.3.4 GR6; OK §1985:IX.4.5.4 GR12 (no valid next record after an unsuccessful READ).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-6",
+ "rule-digest": "0f324eaf30ec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-038",
+  "sources": {
+   "reader": "f3b868e25767543825ae53dd3a4e4af7e83b7881dfd29be45762d6d448c0beb2",
+   "refuter": "e30ccc4e1b9ad9e6428a667465d43f8ee6c7eb14c985ef145f14d12cf4b5c867"
+  },
+  "imported": {
+   "reader": "b0121191b845de0484369477a8fd4afb90cb0972ae64028d0309adff272ae936",
+   "refuter": "839b6b1492bf5c9a1ab8450d6be4fbc1cc6de5de3494ee425f393600a373ef46"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-XIII.3.5.6-6",
+  "verdict": "CONFORMS",
+  "requirement": "While each print line is presented LINE-COUNTER equals the line number it is presented on (visible to a SOURCE LINE-COUNTER on that line), and after a group LINE-COUNTER takes the final setting of the 1985 presentation rules tables (XIII-24ff: RH 5a-5e, PH 4a-4b, body 6a-6f including the lower-level CF whose NEXT GROUP is ignored, PF, RF, and the unpaged rules).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PlaceAfterSavedNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (2002+): at 85 a saved absolute NEXT GROUP integer is kept, so TERMINATE's first control footing meets it (1985 body rule 3b)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: after an absolute NEXT GROUP that went to the save location, TERMINATE's first control footing is placed from the save location at 85 (new page, line saved+1) and on the same page at 2023",
+  "witnesses-cover": "part: the witness is an unpaged report; paged RH NEXT GROUP, PH absolute-then-relative, the lower-level CF NEXT GROUP rule and the save location at TERMINATE are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p8lc.cob",
+    "printed": "RH 02, PH 05, P2 07, D1 08, D2 10, CM 11, D1 17, D2 19, CM 20, CJ 21, <page> PH 05, P2 07, D1 08, D2 10, CM 11, CJ 12; SHOW LC=10/19/10/15",
+    "expected": "each line shows its own number; RH NEXT GROUP PLUS 2 gives 4; minor CF at the highest break applies NEXT GROUP (11+5=16); minor CF under a major break does not (rule 6b), so CJ is at 21; 24+1+2 > 26 advances"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p9save.cob",
+    "printed": "85: DE 02, DE 06, <page> CF 06 02, LC=06 PC=02; same source at --std 2023: CF 07 01, LC=07",
+    "expected": "1985 body rule 3b: the saved next group integer goes to LINE-COUNTER after the page advance, first line at saved+1"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p1code.cob",
+    "printed": "SOURCE LINE-COUNTER prints 02 03 05 and 02 on page 2",
+    "expected": "the lines' own numbers"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 GR6",
+    "check": "OK  §1985:XIII.3.5.6 GR6  (3.5.6 LINE-COUNTER Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "PresentLine sets LineCounter = target before composing the line, so a SOURCE LINE-COUNTER reads the line's number; final settings come from ApplyNextGroup (applied only at the break level, matching 1985 6a/6b/6f), and the one edition arm, at TERMINATE, follows the 1985 text."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.6-6",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Aimed at the 1985 table rows the reader did not run (class c: arms the later editions dropped with the tables). r6rel-002 (PAGE 20 HEADING 3 FD 6 LD 12 FT 14): RH LINE PLUS 2 with no NEXT GROUP -> line 4 (RH rule 3b: 2 + (3-1)), final 5d; PH LINE PLUS 1 after the RH -> 5 (PH 3b: RH final LC + 1); DE LINE PLUS 3 with LC 5 < FD -> 6 (4b third paragraph), then 9, 12; 12+3>12 page advance, PF LINE 16; page 2 PH LINE PLUS 1 with no RH -> 3 (1 + HEADING-1); TERMINATE PF 16 NEXT GROUP PLUS 1 -> RF LINE PLUS 1 at 18 (RF 3b after PF, PF 5b); LC=18. r6nopf-002 (no PF): RF LINE PLUS 2 -> 16 (RF 3b: integer + FOOTING 14). r6abs-002: RH LINE 3 NEXT GROUP 4 -> PH LINE PLUS 1 at 5 (RH 5a then PH 3b); PF LINE 16 NEXT GROUP 18 -> RF LINE PLUS 1 at 19 (PF 5a). Every line's SOURCE LINE-COUNTER showed its own number. The reader's p9save already ran body 4b first paragraph (saved next group -> LC+1). cite.py: OK §1985:XIII.3.5.6 GR6; OK §1985:XIII.3.10.6 (lies in GR3b); OK §1985:XIII.3.10.10 (lies in GR3b). Note: the PH rules (folios XIII-30/31) are a reconstruction in the transcription (PB4952); the PH results follow the reconstructed 3b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

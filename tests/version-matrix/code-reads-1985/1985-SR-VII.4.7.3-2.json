@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VII.4.7.3-2",
+ "rule-digest": "439e82672dd2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-064",
+  "sources": {
+   "reader": "48b002003a3c2ef3cb7a7d1862c2bfec9faf954dfb6195f7b3e599d8a9f95474",
+   "refuter": "9bc47292e6c90111ca481f4753bcfbb8d97487629c58dc018abb14f77a8ebd41"
+  },
+  "imported": {
+   "reader": "a1040aa213373b9fbf65af53ff9ba69ca9affbbfe8cd7521eee28f76d07d6c36",
+   "refuter": "86d914f953f9521b8a026836be8a8253625d1d675a030a005eb625fed8e6e0fd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.4.7.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the WRITE operand record-name-1 must be the name of a logical record of a file description entry in the File Section, qualified where needed and with no reference modification; a working-storage item, a subordinate item, an ambiguous name, a file-name and an SD record are refused, and the 2002 FILE file-name-1 alternative does not exist.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveWriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#FileWhoseRecordIs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitWriteStatement",
+    "switches": "GateFilePhrase: WRITE FILE file-name-1 refused below 2002 (COBOL0900); GateRetryLockPlace for the lock phrases",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of SequentialIoBinder.cs and StatementValidation.cs for DialectLevel/CobolVersion/ConstructRegistry/Permissive: the record-name identity test consults no edition",
+  "behaviour-differs-by-edition": "yes: the FILE file-name-1 alternative is refused at 85 and accepted from 2002; the record-name-1 rule itself is the same code",
+  "witnesses-cover": "part: the witness covers a qualified record-name of a sequential FD at 85; refusals, two FDs sharing a record-name, a variable-length file and a relative file are not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w2a.cob",
+    "printed": "A=AAA B=BBB / V LEN=02 [SS] / V LEN=04 [3X] / R=RRRR (EXPECT: MATCH)",
+    "expected": "REC OF FA and REC IN FB (qualified, same name in two FDs), both records of a RECORD VARYING DEPENDING ON file (one with OCCURS DEPENDING ON), and RREC OF FR (relative) are each accepted and written"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-064/src/w2b.cob",
+    "printed": "COBOL1757 WREC not a logical record; COBOL1757 KEYF subordinate to REC; COBOL1757 reference-modified record; COBOL1639 REC ambiguous; COBOL0900 WRITE FILE requires 2002; COBOL1692 SD file SF; COBOL1639 FA is a file-name",
+    "expected": "each operand that is not a File Section logical record name is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.3 SR2",
+    "check": "OK  §1985:VII.4.7.3 SR2  (4.7.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "ResolveRecordName is the one identity test for WRITE/REWRITE/RELEASE and runs before the sequential/keyed reroute, so every organization is covered. Cosmetic: the COBOL1757 message prints the operand from rn.GetText(), so KEYF OF REC OF FA reads KEYFOFRECOFFA (DataBinder.WrittenText would keep the spaces); not a rule failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.4.7.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r5c.cob (r5c-002): a contained program writes GREC OF FG, the record of the containing program's GLOBAL FD, and the outer writes the record of an EXTERNAL FD: both accepted and the records read back G=GGGG E=EEEE. r5b.cob: a contained program's WRITE of the container's non-global record LREC refused COBOL1639 (not visible); 66 RENAMES of the 01 refused. The reader's w2b covers WS item, subordinate item, ref-mod, ambiguous name, SD record, file-name and WRITE FILE (2002) refusals. cite.py: OK §1985:VII.4.7.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

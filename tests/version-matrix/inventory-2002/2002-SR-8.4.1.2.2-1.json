@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.2.2-1",
+ "rule-digest": "96daecabc503",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReadSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#FindItem; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-two-cds",
+ "notes": "§2002:8.4.1.2.2 SR1: the subscripted base is a qualified-data-name per 8.4.1.1, so TAB OF CDA (TX OF TAB OF CDA) and TAB IN RECB OF CDB (TX IN CDB) address the right CD element at --std 2002 (Q4 [NO PQ.][YESS.R], matched)."
+}

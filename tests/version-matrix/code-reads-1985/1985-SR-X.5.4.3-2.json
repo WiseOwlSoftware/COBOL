@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-X.5.4.3-2",
+ "rule-digest": "8cd2de8b7bc3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-069",
+  "sources": {
+   "reader": "9f0bf86741a9ea8cc51d693425b6f68228c084eff42ed1d7fd43db717c3ec49d",
+   "refuter": "6d1250296380d24f9783d1915f0ad21da7cc6b1fb2273d7875b40718133da4a3"
+  },
+  "imported": {
+   "reader": "440e3e04c8d927f9465f5cbd5dc9d7217fd0789c5c2504df66d0e2b15cd3e3b6",
+   "refuter": "c79cdd7e121eef17b45239b8e6a711a2cd5dded809ed70329e015c64af8b85da"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.5.4.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse an EXIT PROGRAM statement written anywhere in a declarative procedure (any paragraph of the USE section, nested in a conditional statement too) whose USE statement specifies GLOBAL, and must accept it in a declarative without GLOBAL and in a nondeclarative paragraph the global declarative performs (that is GR4's run-time relation, not this syntax rule).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#RefusedInGlobalDeclarative; src/WiseOwl.Cobol.Compiler/Binding/Procedure/EnclosingContext.cs#InGlobalDeclarative",
+  "edition-consulted": [],
+  "edition-search": "Read BindExit's PROGRAM arm (SR7 element check, then PlacementRules.RefusedInGlobalDeclarative) and EnclosingContext.InGlobalDeclarative (Declarative is { Global: true }): no DialectLevel, CobolVersion, ConstructRegistry, ReservedWords or VersionConformancePass read on the path; grep of InGlobalDeclarative across src finds only these binder sites and the EC-FLOW-GLOBAL-GOBACK emitter test.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers EXIT PROGRAM as the first statement of a USE GLOBAL section's only paragraph; not exercised: a later paragraph of the section, EXIT PROGRAM nested in IF, USE GLOBAL ... ON INPUT (open-mode form), and the accept halves",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r3a.cob",
+    "printed": "EXIT 65, COBOL2102 at (22,12): EXIT PROGRAM shall not be specified in a declarative procedure whose USE statement carries the GLOBAL phrase",
+    "expected": "refused (second paragraph of the USE GLOBAL section)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r3d.cob",
+    "printed": "EXIT 65, COBOL2102 at (20,16) for EXIT PROGRAM inside IF ... END-IF in the global declarative",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r3b.cob",
+    "printed": "EXIT 0, IN DECL FS=35 / AFTER OPEN FS=35 (non-GLOBAL declarative, failed OPEN INPUT, EXIT PROGRAM continues in a non-called program)",
+    "expected": "accepted; §1985:X.5.4.4 GR1 continue"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-069/src/r3c.cob",
+    "printed": "EXIT 0, IN DECL FS=35 / X / AFTER OPEN FS=35; warning COBOL2375 for PERFORM of a nondeclarative paragraph",
+    "expected": "not refused by SR2: the EXIT PROGRAM is written outside the declarative (USE GLOBAL ... ON INPUT form)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.4.3 SR2",
+    "check": "OK  §1985:X.5.4.3 SR2  (5.4.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The refusal is a lexical-placement asker over the bind cursor's enclosing declarative and is edition-blind; every 1985 form probed is refused and the legal neighbours compile. The message cites §2023:14.9.14.3 SR2 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.5.4.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-069: x3a (EXIT PROGRAM in a USE GLOBAL BEFORE REPORTING section, the 1985 Report Writer form of SR2's 'GLOBAL phrase' the reader did not try) -> EXIT 65 COBOL2102 at (19,12); x3b (same without GLOBAL) -> EXIT 0 'DONE'; x3c (GLOBAL section D1 followed by non-GLOBAL section D2 holding EXIT PROGRAM; failed OPEN INPUT G) -> EXIT 0 'D2 35 / AFTER 35' so the global flag does not leak into the next section; x3d (EXIT PROGRAM in ELSE of IF in USE GLOBAL ... EXCEPTION ON EXTEND, and in a contained program's USE GLOBAL ERROR ON I-O) -> COBOL2102 at (21,16) and (34,12), while the contained program's nondeclarative EXIT PROGRAM drew nothing. cite.py: 'OK  §1985:X.5.4.3 SR2  (5.4.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:X.5.6.2  (5.6.2 General Format)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

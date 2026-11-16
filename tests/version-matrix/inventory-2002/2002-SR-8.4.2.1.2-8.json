@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.1.2-8",
+ "rule-digest": "01d3a6454faa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#propertyObject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.PropertyObject.cs#OoBindPropertyObject; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb987_property_per_evaluation; conformance:cases/8.4.3.1-Identifier/pb1425_object_property_identifier",
+ "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.1.3-8, witnessed at 2002 by the cases test-ref names. The read: Same words but the clause number; both witnesses run at --std 2002. Cited: §2002:8.4.2.1.2 SR8."
+}

@@ -1,0 +1,92 @@
+{
+ "rule-id": "1989-RV-A.2.32.4-2",
+ "rule-digest": "68336197bb9a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-182",
+  "sources": {
+   "reader": "773c070de287ebd159d3f15ec902758163d0fe8397e7c19041c094fffbadff16",
+   "refuter": "406e8c77483c8e6ae995c907e73a7f3bd2c7588b96deccdf1a9ec955eb164813"
+  },
+  "imported": {
+   "reader": "b0881d43292218008c5c7e2225be6c0606df161802735f2015782569fd23aabe",
+   "refuter": "6804a7623346a96be0bf545ac486f11f6c839aefcd77860b552dc35abca8d4b1"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.32.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 ORD-MAX must decide the greatest argument by the 1985 simple-condition comparison rules: numeric arguments algebraically regardless of usage and scale, alphabetic/alphanumeric arguments (numeric-edited and group items included, both class alphanumeric in 1985) as nonnumeric operands, the shorter padded with spaces and characters ordered by the program collating sequence.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CollatePrefix; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#OrdMaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ExtremeIndex; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#OrdMaxString; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#Compare",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: introduction gate; the collate flag (ctx.Data.State.Configuration.Collating) for the string arm is not edition-keyed",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt for ORD-MAX's predicates (Since 85): same screen at both editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior|Year in IntrinsicRenderer.cs, CobolIntrinsics.Exact.cs, CobolIntrinsics.Select.cs, CobolString.cs: none on the comparison path.",
+  "behaviour-differs-by-edition": "no: p8ordmax gives the same 15 lines at 85 and 2023, and the collating-sequence comparisons follow the program's own relation condition (p9: REL=X1>X2 agrees with ORD-MAX).",
+  "witnesses-cover": "part: g85_bf40_05 covers a string comparison; unequal-length padding, numeric-edited operands compared nonnumerically, group operands, mixed alphabetic/alphanumeric (the 1993 change) and a non-native program collating sequence are covered by these probes.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p8ordmax.cob",
+    "printed": "S2=1 (PIC X(2) \"AB\" vs PIC X(3) \"AB \": equal after space padding, leftmost) S1=2 (\"AB\" vs \"ABC\") S4=1 (PIC -9 holding -5 = \"-5\" vs 3 = \" 3\": nonnumeric, '-' > space) S5=1 (groups \"10\" vs \"09Z\") S3=2 (alphabetic mixed with alphanumeric)",
+    "expected": "§1985 nonnumeric comparison: 1, 2, 1, 1, 2"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p8ordmax.cob",
+    "printed": "M2=2 (DISPLAY S9(3)V99 -1.50 vs COMP-3 S9V9(4) -1.4999) M4=1 (COMP 7 vs 7.0) M6=1 (-0 vs 0 equal)",
+    "expected": "algebraic numeric comparison: 2, 1, 1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p9ordmaxpcs.cob",
+    "printed": "ALPHABET AL IS \"Z\" THRU \"A\" \"9\" THRU \"0\" \" \": P1=2 (\"ZZZ\" vs \"AB \": A collates high) P2=1 (\"A \" vs \"AB\": space highest) P3=2 (numeric 1 vs 9, not collated) P4=2 (groups \"9\" vs \"1\" collated) Q1=1 (ORD-MIN) REL=X1>X2",
+    "expected": "the program collating sequence orders nonnumeric operands; numeric operands compare algebraically"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p8ordmax.cob",
+    "printed": "M3=2 (18-digit neighbours) M5=2 (arithmetic-expression arguments)",
+    "expected": "2, 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/r5.cob",
+    "printed": "COBOL1627 for ORD-MAX (1 \"A\"): mixed numeric and alphanumeric",
+    "expected": "refused: no simple-condition comparison is defined for the mix under AR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.32.4 RV2",
+    "check": "OK  §1989:A.2.32.4 RV2  (2.32.4 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "The string arm is chosen when every argument is a string operand, so numeric-edited and group arguments compare as nonnumeric operands the way 1985 relation conditions compare class alphanumeric items, with space padding and the program collating sequence (CollatePrefix passes the weights). Numeric arguments compare algebraically on value and scale. Every probed case agrees with the program's own IF relation.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.32.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "q9pcs.cob at --std 85 (runs/q9pcs-001) with PROGRAM COLLATING SEQUENCE ALPHABET AL IS \"C\" ALSO \"A\" ALSO \"B\" 91 THRU 89: (\"B\" \"A\" \"C\") -> 1 (ALSO members compare equal, leftmost); X1 'AY' vs X2 'BZ' -> 1 and the program's own IF X1 > X2 is true; (\"D\" A1='C') -> 1 (unlisted after listed); (\"Z\" \"Y\" \"X\") -> 3 (descending numeric-literal THRU range); (\"ZZ\" \"Z\") -> 2 (shorter padded with space, which collates after the listed characters). q1ordmax M1/M2: numeric-edited, alphanumeric and group operands compared as nonnumeric operands. cite.py: 'OK  §1989:A.2.32.4 RV2  (2.32.4 Returned Values)  the text is in RV2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-IX.2.7.4-2",
+ "rule-digest": "d90ea56d5db5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "c0a32cb639e123f08a0851d20fee5d9ac2d3891ba1f228b41305a27341a8957e",
+   "refuter": "ee504cd0389454c524a935f5e18a3bb8de17bc82a76477abea23f05d27461fef"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.7.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a program's prime key must match the description and position used when the file was created; a conflicting program is an attribute conflict that the OPEN may detect (which attributes are validated is implementor-defined, §1985:IX.4.4.4 GR8), giving 39 and leaving the file unaffected.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "the connector's Edition only; the key descriptor and its comparison carry no edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed",
+    "switches": "KeyCheck comes from the WISEOWL_COBOL_KEYCHECK environment variable, not from the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehaviors in FixedFileAttributes.cs, KeyedConnector.cs and the Conflicts callers: none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf25_05 covers OPEN INPUT with a moved or longer key (39) and a same-position redescription (00); not covered: OPEN I-O and EXTEND, the statement after the failed OPEN, a group-key redescription, a variable-length file",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_bf25_05-001",
+    "printed": "MATCH",
+    "expected": "g85_bf25_05.out"
+   },
+   {
+    "class": "a,b,d,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/rk2-001",
+    "printed": "IO-MOVED 39; READ-AFTER-FAIL 47; EXTEND-MOVED 39; WRITE-AFTER-FAIL 48; GROUP-SAME 00; MG READ 00 BBK002TWO; VAR-MOVED 39; VAR-SAME 00; VV READ 00 V001LONGDATA 12; MK READ 00 BBK002TWO",
+    "expected": "a moved key is an attribute conflict at OPEN I-O, EXTEND and on a variable-length file (39, §1985:IX.1.3.4); the next READ is 47 and WRITE 48; a group key of the same position and width is accepted (the validated attributes are implementor-defined); the file is unaffected"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.7.4 GR2",
+    "check": "OK  §1985:IX.2.7.4 GR2  (2.7.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR8",
+    "check": "OK  §1985:IX.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "The rule binds the program; the compiler's duty is the OPEN's attribute-conflict check, which compares key offset and width (documented as the implementor choice DOC-A.1-129 per the witness). A redescription of the same window by a group with different subordinates is accepted, which §1985:IX.4.4.4 GR8 permits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.7.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "The rule binds the program; which fixed attributes OPEN validates is the implementor's (§1985:IX.4.4.4 GR8), so the duty is a check that does not misfire. Read src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts (organization, record sizes, key count, each KeyDescriptor's segments, duplicates and collation; no edition test; WISEOWL_COBOL_KEYCHECK opt-out default on). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-092/kcf2-001 (src/kcf2.cob), file created with key X(6) at 1: SHORT-KEY 39 (key X(4) at the same start, a case the reader's probes did not try), READ-AFTER 47, EXTRA-ALT 39 (an extra alternate key), GROUP-NUM-SAME 00 (key as a group of XXX + 999 at the same window, in the second record of a two-record FD) and RE 00 AAA002TWO (file unaffected by the failed OPENs), OUTPUT-NEW 00 and REOPEN-D 00 (OPEN OUTPUT creates a new file, no conflict). cite.py: 'OK  §1985:IX.2.7.4 GR2  (2.7.4 General Rules)  the text is in GR2'; 'OK  §1985:IX.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

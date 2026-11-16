@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.5-2",
+ "rule-digest": "d0053423a9c4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-077",
+  "sources": {
+   "reader": "3cb4542b61ada33c0173cefd725f25af623649e53faecddd82ffc6696695755c",
+   "refuter": "eab952bdb839d2f59ee994b3b51c0e6e5679aebd111e5f68b7579ced52a74a5a"
+  },
+  "imported": {
+   "reader": "f3e6ea08f1acc55b8319d58760693e7a04d0780737241a1c4728a99648c37af7",
+   "refuter": "14dcd5dfe6634fb4c09f393b1f03ab0d375ac26af677920449e57e3420da8c18"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.5-2",
+  "verdict": "CONFORMS",
+  "requirement": "In the Report Section PAGE-COUNTER may be referenced only in a SOURCE clause (as a SUM operand, CONTROL operand, TYPE CF operand, RESET operand or subscript it is refused), while in the Procedure Division it is accepted in every context that admits an integer data item, sending or receiving.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportSubscripts; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterPlace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceiving",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion/ConstructRegistry in ReportSectionNameIn, ScreenReportSubscripts, ReportWriterBinder.CounterExpr/CounterPlace and ExpressionBinder lines 840-880 and 1025: none on the counter path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb429 covers Procedure Division receiving contexts (MOVE, ADD, SUBTRACT, MULTIPLY, DIVIDE, COMPUTE, GIVING, INITIALIZE, INSPECT TALLYING, UNSTRING POINTER); the Report Section refusals and the sending contexts (subscript, reference modification, IF, PERFORM TIMES/VARYING, REMAINDER, GO TO DEPENDING) are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_source_ok.cob",
+    "printed": "OK (SOURCE PAGE-COUNTER and SOURCE PAGE-COUNTER OF R-A accepted)",
+    "expected": "legal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_sum_cf.cob",
+    "printed": "COBOL0899 SUM addend 'PAGE-COUNTER' does not resolve to a data item outside the report section",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_control.cob",
+    "printed": "COBOL0899 CONTROL operand 'PAGE-COUNTER' does not resolve to a data item",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_type_cf.cob",
+    "printed": "COBOL0899 the TYPE CF operand 'PAGE-COUNTER' shall be the same as one of the operands of the CONTROL clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_reset_cf.cob",
+    "printed": "COBOL0899 RESET ON 'PAGE-COUNTER' is not an operand of the CONTROL clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_rs_subscript.cob",
+    "printed": "COBOL2751 'PAGE-COUNTER' is used as a subscript (report section)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/pc_pd_contexts.cob",
+    "printed": "SUBSCRIPT=C REFMOD=CD IF=Y T T T VARY=1,3,5 REM=2 MAX=0999999 MAX+1=1000000 ZERO=0000000 GOTO=P2 AFTER-GEN=0000005",
+    "expected": "every integer context accepted with the statement's value"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.5 SR2",
+    "check": "OK  §1985:XIII.3.5.5 SR2  (3.5.5 PAGE-COUNTER Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XIII.1.2.2",
+    "check": "OK  §1985:XIII.1.2.2  (1.2.2 Special Register PAGE-COUNTER)  the text is in the clause"
+   }
+  ],
+  "notes": "Every non-SOURCE Report Section use is refused and every Procedure Division integer context works. Outside this verdict: four of the refusals (CONTROL, TYPE CF, RESET, SUM operand) carry COBOL0899, the catalog's NotImplemented code, for genuine rule violations at every edition (same at --std 2023), and none names this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "pc_rs_control at --std 2023: the same COBOL0899 refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.5-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "I checked the reader's subscript refusal (SOURCE TE(PAGE-COUNTER) inside a SOURCE clause, COBOL2751, which cites only §2023) against the 1985 text. 1985 has its own rule: 'OK  §1985:XIII.1.2.4  (1.2.4 Subscripting)  the text is in the clause' ('neither a sum counter nor the special registers LINE-COUNTER and PAGE-COUNTER can be used as a subscript'), so the refusal is right at 85. Outside the Report Section and the Procedure Division (§1985:XIII.1.2.2: 'may be referenced only in the SOURCE clause of the Report Section and in Procedure Division statements'), pc_ws_odo and pc_ws_odo_q (WS OCCURS DEPENDING ON PAGE-COUNTER [OF R-A]) are refused with COBOL2024. A 2002 SOURCE form, SOURCE PAGE-COUNTER + 1, is refused at 85 with COBOL0900. Procedure Division integer contexts the reader did not run, from pc_more_contexts: SET PAGE-COUNTER TO IX gives 3, and SET IX TO PAGE-COUNTER then TE(IX) gives C; STRING ... POINTER PAGE-COUNTER gives 5; UNSTRING COUNT IN gives 2 and TALLYING IN gives 2; SEARCH VARYING PAGE-COUNTER gives 4; EVALUATE gives 4. SET PAGE-COUNTER TO 5 is refused (COBOL2326), as §1985:VI.6.23.4 GR5 Table 1 requires: an integer literal to an integer data item is 'No/3c' ('OK  §1985:VI.6.23.3 SR2', 'OK  §1985:VI.6.23.4 GR5'). cite.py: 'OK  §1985:XIII.3.5.5 SR2 ...'; 'OK  §1985:XIII.1.2.2 ...'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

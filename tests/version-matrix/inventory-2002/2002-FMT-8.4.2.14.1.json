@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.14.1",
+ "rule-digest": "eb9c1cfd4340",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#ReportOf",
+ "test-ref": "conformance:cases/8.4.2.2-Qualification/pb1456_counter_in_source_expression",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.15.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; SRs and GRs word-identical except the qualification clause number. Cited: §2002:8.4.2.14."
+}

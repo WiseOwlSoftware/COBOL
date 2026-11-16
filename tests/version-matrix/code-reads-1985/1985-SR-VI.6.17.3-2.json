@@ -1,0 +1,120 @@
+{
+ "rule-id": "1985-SR-VI.6.17.3-2",
+ "rule-digest": "32631728d173",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-056",
+  "sources": {
+   "reader": "f2dd6fd8e2e40a47ca74a6f7d089ea8c9258f8b656f86bf05a13ce26348ba623",
+   "refuter": "6bd2a26383e715570a1b5dcd4381651eee54858e79ebb475849f6c924646def3"
+  },
+  "imported": {
+   "reader": "10210ff9c9212f587c3f76ade3eccdd96cd69ac027c87c73e8dea621f3787574",
+   "refuter": "3a88f911cd8b1bda32790a69ef26564a72589f1fc338e184b7d8fcc475c8e4cb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.17.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for every category written in INITIALIZE REPLACING (only the five 1985 categories ALPHABETIC, ALPHANUMERIC, NUMERIC, ALPHANUMERIC-EDITED, NUMERIC-EDITED), a MOVE of identifier-2 or literal-1 to an elementary item of that category must be legal by §1985:VI.6.19.4 GR3: SPACE, an alphabetic or alphanumeric-edited sender never to NUMERIC/NUMERIC-EDITED; a numeric literal, ZERO, a numeric or numeric-edited sender never to ALPHABETIC; a noninteger numeric literal or item never to ALPHANUMERIC/ALPHANUMERIC-EDITED; numeric-edited to numeric is legal at level 2 (INITIALIZE is level 2); HIGH-VALUE, LOW-VALUE, QUOTE and ALL literals are category alphanumeric and so legal to NUMERIC; a reference-modified sender keeps alphabetic but turns numeric, numeric-edited and alphanumeric-edited into alphanumeric (§1985:IV.4.3.8.4.4 GR5).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#CheckReplacingMoveValidity; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Validity; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#ShapeRefusal; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#SenderPosition; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#FigurativeRefusal; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+    "switches": "FigurativeAssociation.GateSr5 per NUMERIC/NUMERIC-EDITED category for a HIGH-VALUE/LOW-VALUE/QUOTE/ALL-literal sender: permitted at 85, COBOL0902 (QUOTE) or COBOL0903 (digit-only ALL literal) at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+    "switches": "ConstructRegistry rows initialize-category-2002/2014/2023: the post-1985 category-names (NATIONAL, BOOLEAN, pointers, ...) are COBOL0900 at 85; the five 1985 names are ungated",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "MoveTable16.Validity / MoveValidity.Table16Refusal / FigurativeRefusal take no edition (the table is documented as version-invariant and its 85-relevant cells match §1985:VI.6.19.4 GR3 a-c, with d's level-1 prohibition not applying at level 2); grepped MoveTable16.cs and MoveValidity.cs for Edition|Year|CobolVersion: none. The edition reads are in the post-bind VersionConformancePass.",
+  "behaviour-differs-by-edition": "yes: a QUOTE/HIGH-VALUE/LOW-VALUE sender to NUMERIC is legal at 85 and removed at 2023 (COBOL0902), a digit-only ALL literal is legal at 85 and obsolete-flagged at 2023; categories beyond the five 1985 names are refused at 85",
+  "witnesses-cover": "part: pb416_initialize_operand_screens_85 covers operand screens; not exercised there: each GR3 a-c refusal by literal, figurative and item sender, numeric-edited-to-numeric de-editing as a legal level-2 pair, the figurative-to-numeric 85 arm, and reference-modified senders",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_ok.cob",
+    "printed": "[AB 12  007  0   ] / [042  7  ] (exit 0)",
+    "expected": "ALPHABETIC BY \"AB\", ALPHANUMERIC BY 12 (integer literal), NUMERIC BY a numeric-edited item (de-edited 7 -> 007), ALPHANUMERIC-EDITED BY SPACE, NUMERIC-EDITED BY ZERO; NUMERIC BY an alphanumeric item, NUMERIC-EDITED BY a numeric-edited item, ALPHABETIC BY SPACE: all legal and stored as MOVE would"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_bad.cob",
+    "printed": "ten COBOL2031: NUMERIC BY SPACE; NUMERIC BY alphabetic item; NUMERIC-EDITED BY alphanumeric-edited item; ALPHABETIC BY 5; ALPHABETIC BY ZERO; ALPHABETIC BY numeric item; ALPHABETIC BY numeric-edited item; ALPHANUMERIC BY 1.5; ALPHANUMERIC-EDITED BY 9V9 item; ALPHABETIC BY ZEROS in a two-item phrase",
+    "expected": "each refused by GR3 a, b or c through SR2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_hv.cob",
+    "printed": "[777  ] / COMPILED-QUOTE (exit 0)",
+    "expected": "at 85 ALL \"7\" and QUOTE are category alphanumeric, legal to NUMERIC (GR3 e)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_hv23.cob",
+    "printed": "--std 2023: COBOL0903 (ALL \"7\") and COBOL0902 (QUOTE removed in COBOL-2023)",
+    "expected": "(2023 comparison) the later edition's arm differs"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_nat.cob",
+    "printed": "COBOL0900: INITIALIZE category-name (2002 words) requires COBOL-2002 — NATIONAL",
+    "expected": "a later edition's category refused at 85"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_rm.cob",
+    "printed": "[1  002] / [Y  002] / [Y  002] (exit 0)",
+    "expected": "ALPHABETIC BY WS-N (1:1) (ref-mod numeric is alphanumeric), NUMERIC BY WS-AE (3:1) (ref-mod alphanumeric-edited is alphanumeric), ALPHABETIC BY an ODO table element subscripted by its own object, ALPHANUMERIC BY an ODO group: legal"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-056/src/in_rmbad.cob",
+    "printed": "COBOL2031: NUMERIC BY WS-A(1:1): an alphabetic sending operand does not move to a numeric ... receiver",
+    "expected": "refused: a ref-mod of an alphabetic item stays alphabetic at 85 (IV.4.3.8.4.4 GR5) and alphabetic to numeric is GR3 a"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.3 SR2",
+    "check": "OK  §1985:VI.6.17.3 SR2  (║6.17.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3b",
+    "check": "OK  §1985:VI.6.19.4 GR3b  (6.19.4 General Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3d",
+    "check": "OK  §1985:VI.6.19.4 GR3d  (6.19.4 General Rules)  the text is in GR3d"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.4.4 GR5",
+    "check": "OK  §1985:IV.4.3.8.4.4 GR5  (4.3.8.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "CheckReplacingMoveValidity asks, per REPLACING item and category, the same MoveTable16 chain an explicit MOVE asks, against an elementary receiver of that category; SPACE and ZERO are flat FigurativeRefusal arms and the figurative-to-numeric edition rows are VersionConformancePass.GateInitialize's. Every 1985 GR3 cell probed answers as the 1985 text says.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.17.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "in_r1.cob (--std 85 --run, exit 0): [123] / [500] / [QQ][  1.50][1/2] / [A/][4.5][042] / [000][007][Z/Z]: NUMERIC BY a group (a non-elementary move, legal by GR5, moved as alphanumeric); ALPHANUMERIC BY a PIC 9PP integer item (P positions counted as zeros, GR4a: 500); ALPHABETIC BY HIGH-VALUE and BY ALL \"Q\"; NUMERIC-EDITED BY 1.5; ALPHANUMERIC-EDITED BY 12; ALPHABETIC BY an alphanumeric-edited item; ALPHANUMERIC BY a numeric-edited item; NUMERIC BY \"42\"; ALPHANUMERIC BY ZERO; NUMERIC BY -7 (unsigned receiver 007); ALPHANUMERIC-EDITED BY ALL \"Z\": all admitted with MOVE results. in_r2.cob (--compile-only, exit 65): eight COBOL2031: ALPHANUMERIC BY PIC P9 item, ALPHANUMERIC BY 1.0 (noninteger by the 1985 definition of Integer, a digit position right of the point), ALPHANUMERIC-EDITED BY 1.5 and BY .5, NUMERIC-EDITED BY SPACES, NUMERIC BY an alphanumeric-edited item, NUMERIC-EDITED BY an alphabetic item, ALPHABETIC BY -3. (A first in_r1 run was refused COBOL0900 for my own VALUE 4.5 on a numeric-edited item, correct at 85; rewritten as VALUE \"4.5\".) cite.py: OK §1985:VI.6.17.3 SR2; OK §1985:VI.6.19.4 GR3; OK GR3c; OK GR5; OK GR4a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
