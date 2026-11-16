@@ -1,4 +1,4 @@
-## PB5801: a level 66 entry named by a file or report clause has a place, and the compiler no longer crashes on it
+## Entry 3740 — 2026-11-16 01:43 PST — PB5801: a level 66 entry named by a file or report clause has a place, and the compiler no longer crashes on it
 
 **The defect (BLOCKER, every edition).** A level 66 entry renaming one item, named as FILE STATUS, a LINAGE operand, RECORD
 VARYING DEPENDING ON, RELATIVE KEY or a report CONTROL operand, ended the compiler with an unhandled
@@ -32,3 +32,4 @@ entry and its renamed item two data items?) and gained none.
 
 **Lead.** No top-level guard turns an unhandled exception in a compiler pass into an internal-error diagnostic with a
 source position: the .NET runtime prints its own stack (reported, not added here).
+
