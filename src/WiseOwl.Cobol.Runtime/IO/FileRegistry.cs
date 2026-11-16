@@ -2384,17 +2384,34 @@ public sealed class FileRegistry
     /// multiple record locking, WITH NO LOCK releases a lock this connector already held on the record accessed,
     /// "at the completion of the successful execution of the READ statement".
     /// <para>GR11 a)'s release is NOT here: it is tied to EXECUTION, so it fires at the top of the statement —
-    /// see <see cref="ReleasePriorRecordLocks"/>.</para></summary>
-    private void ApplyPostReadLockActions(ConnectorShare meta, PhysicalFileTable.State st, string name,
+    /// see <see cref="ReleasePriorRecordLocks"/>.</para>
+    /// <para>⛔ A REFUSED GRANT IS THE READ'S STATUS, NEVER DROPPED (kb/Work PB5770). A READ that answers success holds the
+    /// lock it was required to set (§2023:14.9.30.4 GR11 c) "If the lock mode is automatic, the record lock associated with a
+    /// successfully accessed record is set"; §2023:9.1.16). The conflict test that precedes the read and this grant are two
+    /// steps another run unit can interleave on a connector with no store statement (a sequential file,
+    /// <see cref="FileConnector.BeginStatement"/>), so the grant is itself the last conflict test: when
+    /// <see cref="PhysicalFileTable.LockRecord"/> refuses ('51' — another run unit took the record in that window), the READ
+    /// is unsuccessful with that status (§2023:9.1.13.8 1)), the record is not made available and the file position
+    /// indicator is invalidated (§2023:14.9.30.4 GR18). Returns that status, stored on the connector, or null when the READ
+    /// holds what it set.</para></summary>
+    private string? ApplyPostReadLockActions(ConnectorShare meta, PhysicalFileTable.State st, string name,
         FileConnector c, string recId, FileRecordLock phrase)
     {
         // What this READ found — so an unsuccessful verdict reached AFTER these actions (ReadExceedsRecordMaximum) restores it.
         c.RecordLockHeldBeforeRead = st.RecordLocks.TryGetValue(recId, out var holder)
             && CobolNames.Same(holder, name);
         if (ReadSetsRecordLock(meta, phrase) && LocksEffective(meta, st, name))
-            _physical.LockRecord(st, name, recId, c);           // GR11 c)/d)
+        {
+            string granted = _physical.LockRecord(st, name, recId, c);           // GR11 c)/d)
+            if (granted != FileStatusCode.Success)
+            {
+                SetStatusOf(name, granted);   // the status assignment drops the '43' gate (PB140)
+                return granted;
+            }
+        }
         else if (meta.Multiple && phrase == FileRecordLock.WithNoLock)
             PhysicalFileTable.ReleaseSingle(st, name, recId);   // GR11 b)
+        return null;
     }
 
     /// <summary>Whether this connector SETS record locks: §2023:12.4.5.9.4 GR1 a) and b) 1. — with no LOCK MODE clause a
@@ -2437,6 +2454,12 @@ public sealed class FileRegistry
     /// participant; only a LOCK MODE clause under a sharing mode other than NO OTHER does.</summary>
     private static bool RecordLocksSetUnder(ConnectorShare meta, FileSharing openSharing) =>
         meta.LockMode != FileLockMode.None && openSharing != FileSharing.NoOther;   // GR1 a)/b) 1., GR3
+
+    /// <summary>⛔ TEST SEAM (kb/Work PB5770): run, with the connector's name, between a governed Format-1 READ's retrieval and
+    /// its record-lock grant — the instant another run unit's statement can take the record on a connector with no store
+    /// statement. A case uses it to run that statement at the exact point, as <c>FaultHostMedium.BeforeOperation</c> does
+    /// for the medium. Null in every program: the cost is one null test per governed READ.</summary>
+    internal Action<string>? ReadLockWindow { get; set; }
 
     /// <summary>⛔ THE ONE GOVERNED FORMAT-1 (sequential-access) READ — sequential, relative AND indexed
     /// organization (§2023:9.1.16; the READ lock rules §2023:14.9.30.4 GR7–GR12 are ALL-FORMATS rules, and GR22 is a
@@ -2533,7 +2556,13 @@ public sealed class FileRegistry
                 c.ApplyUnsuccessfulReadPosition();
                 return denied;
             }
-            ApplyPostReadLockActions(meta, st, name, c, recId, phrase);   // GR11 b)/c)/d)
+            ReadLockWindow?.Invoke(name);   // the test seam between the read and its lock (kb/Work PB5770)
+            if (ApplyPostReadLockActions(meta, st, name, c, recId, phrase) is { } refused)   // GR11 b)/c)/d)
+            {
+                image = "";   // the grant was refused: an unsuccessful READ makes no record available
+                c.ApplyUnsuccessfulReadPosition();
+                return refused;
+            }
             return status;
         }
     }
@@ -2603,7 +2632,12 @@ public sealed class FileRegistry
         if (status.Length == 0 || status[0] != '0') return status;   // invalid key (§2023:9.1.14) or a mode failure
         if (!RecordLocksGovern(meta, st, name, c)) return status;   // no lock on the file and none to set
         string recId = c.LastReadRecordId;
-        if (recId.Length > 0) ApplyPostReadLockActions(meta, st, name, c, recId, phrase);   // GR11 b)/c)/d)
+        if (recId.Length > 0 && ApplyPostReadLockActions(meta, st, name, c, recId, phrase) is { } refused)   // GR11 b)/c)/d)
+        {
+            image = "";
+            c.ApplyUnsuccessfulReadPosition();
+            return refused;
+        }
         return status;
     }
 

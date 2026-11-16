@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.8.3-8",
+ "rule-digest": "233bdb6f681b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ApplyPostReadLockActions; src/WiseOwl.Cobol.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord",
+ "test-ref": "unit:CrossRunUnitSequentialLockDriftTests.ALockGrantAnotherRunUnitTookFirst_IsTheReadsStatus",
+ "notes": "PB5770: a READ's lock grant that another run unit took first is the READ's status ('51', no record made available, position invalidated), never dropped, so a READ that answers success holds the lock it was required to set; the grant itself is the last conflict test. Cited: §2002:12.3.4.8.3 GR8."
+}

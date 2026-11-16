@@ -151,4 +151,52 @@ public sealed class CrossRunUnitSequentialLockDriftTests
         }
         finally { FileHarness.TryDelete(host); }
     }
+
+    /// <summary>⛔ A READ'S LOCK GRANT THE HOST REFUSES IS THE READ'S STATUS (kb/Work PB5770). A sequential connector has no store
+    /// statement, so another run unit can take the record between A's conflict test and A's lock; the forced interleaving
+    /// (<see cref="FileRegistry.ReadLockWindow"/>) has B lock record 1 in that instant. §2023:14.9.30.4 GR11 c): under
+    /// automatic locking the lock of a successfully accessed record "is set", and §2023:9.1.16 makes the record inaccessible to
+    /// another run unit's connector, so A cannot both succeed and not hold it: A's READ is '51' (§2023:9.1.13.8 1)), makes no record
+    /// available, and A holds nothing — B's lock stands, and A's next READ (the file position invalidated, GR18) is not served.</summary>
+    [Theory]
+    [InlineData(Framing.Fixed, RegionHostKind.OfThisProcess)]
+    [InlineData(Framing.Line, RegionHostKind.OfThisProcess)]
+    [InlineData(Framing.Fixed, RegionHostKind.LockFiles)]
+    public void ALockGrantAnotherRunUnitTookFirst_IsTheReadsStatus(Framing framing, RegionHostKind regionHost)
+    {
+        using var forced = RegionHostSeam.Use(regionHost);
+        string host = FileHarness.Tmp($"window-{framing}");
+        try
+        {
+            Seed(host, framing, "AAAA", "BBBB");
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Register(a, "A", host, framing, shared: false);
+            a.RegisterSharing("A", FileSharing.AllOther, FileLockMode.Automatic, multiple: false);
+            Register(b, "B", host, framing);
+            a.OpenStatic("A", FileOpenMode.IO);
+            b.OpenStatic("B", FileOpenMode.IO);
+
+            string inWindow = "";
+            a.ReadLockWindow = _ =>
+            {
+                a.ReadLockWindow = null;   // once
+                inWindow = Read(b, "B", FileRecordLock.WithLock, out _);   // B takes record 1 after A's test, before A's lock
+            };
+            Assert.Equal("51", Read(a, "A", FileRecordLock.None, out string image));
+            Assert.Equal("00", inWindow);
+            Assert.Equal("", image);
+            Assert.Equal("51", a.Status("A"));
+
+            // B still holds record 1: another run unit's READ WITH LOCK of it is refused while B lives.
+            var c = new FileRegistry();
+            Register(c, "C", host, framing);
+            c.OpenStatic("C", FileOpenMode.IO);
+            Assert.Equal("51", Read(c, "C", FileRecordLock.WithLock, out _));
+            c.Close("C");
+            a.Close("A");
+            b.Close("B");
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
 }
