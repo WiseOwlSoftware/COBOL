@@ -599,7 +599,11 @@ public sealed class DerivedVerdictDriftTests
         // The rows the owner's answer settled. 127 was BLANK when the selector landed — held out of the
         // 2026-09-02 A.1 back-fill for exactly this open question — so the selector overwrote no adjudication.
         Assert.Contains("DOC-A.1-127", ids);   // OBJECT-COMPUTER computer-name: one object computer, the runtime
-        Assert.Contains("DOC-A.1-150", ids);   // RECORD DELIMITER feature-name: the set of names is empty
+        // DOC-A.1-150 (RECORD DELIMITER feature-name) LEFT on 2026-11-16 (kb/Work PB5844): two names are provided,
+        // BINARY-SEQUENTIAL and LINE-SEQUENTIAL, its cell opens "Provided" and the row carries an adjudicated CONFORMS.
+        Assert.DoesNotContain("DOC-A.1-150", ids);
+        Assert.StartsWith("Provided", ConformanceRegister.Plain(ConformanceRegister.Determinations["DOC-A.1-150"]),
+            StringComparison.Ordinal);
 
         // ⛔ AND THE ROW THAT LEFT, asserted rather than silently dropped (2026-09-09, owner decision Q30 /
         // kb/Work PB592). Item 206 was the selector's second row on the premise that the BINARY-CHAR family
@@ -656,11 +660,17 @@ public sealed class DerivedVerdictDriftTests
         Assert.InRange(ids.Count, 1, 27);   // 12 when it landed; the ceiling is A.1's 27 conditional items
 
         // The rows the owner's answer settled (kb/Work PB1536 Q1): the non-COBOL-program family, the IMP directive,
-        // the single character set and encoding, the hex-digit mapping, RECORD DELIMITER feature-name-1, the lock
-        // status and the listing controls. All twelve were BLANK when the selector landed.
+        // the single character set and encoding, the hex-digit mapping, the lock status and the listing controls. All
+        // twelve were BLANK when the selector landed.
         foreach (string id in (string[])["DOC-A.1-13", "DOC-A.1-15", "DOC-A.1-30", "DOC-A.1-34", "DOC-A.1-37",
-                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-149", "DOC-A.1-200"])
+                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-200"])
             Assert.Contains(id, ids);
+
+        // ⛔ DOC-A.1-149 (the RECORD DELIMITER feature-name consistency rules) LEFT on 2026-11-16 (kb/Work PB5844): its
+        // condition, feature-name-1 existing, now holds, so its cell opens "Provided" and the row carries CONFORMS.
+        Assert.DoesNotContain("DOC-A.1-149", ids);
+        Assert.StartsWith("Provided", ConformanceRegister.Plain(ConformanceRegister.Determinations["DOC-A.1-149"]),
+            StringComparison.Ordinal);
 
         // ⛔ AND THE ROW THAT LEFT (kb/Work PB3337, 2026-10-20): item 152's circumstance now exists — a transaction's
         // HOLDING under an active APPLY COMMIT clause answers '51' (DESIGN-runtime-library.md 2.2.1.10) — so its §7 cell

@@ -3765,50 +3765,58 @@ public static class DiagnosticCatalog
         + "clause. §2023:14.9.50.3 SR4: \"Identifier-1 shall not reference a 66-level entry.\" SR5: \"Identifier-1 shall "
         + "not be described with the ANY LENGTH clause.\"",
         "ISO §2023:14.9.50.3 SR4 / SR5");
-    // ⛔ ONE CODE FOR THE WHOLE CLAUSE, BOTH ARMS, and that is the point (kb/Work PB292). The general format
-    //    (§2023:12.4.5.11.2, rendered from the printed page) is a plain required choice — `RECORD DELIMITER IS
-    //    { STANDARD-1 | feature-name-1 }` — and the two alternatives are declined on DIFFERENT grounds that
-    //    reach the SAME disposition, so splitting them into two codes would put one rule in two places
-    //    (feedback_one_rule_one_place) and invite the two-arm defect this note was opened for: before this
-    //    descriptor existed, `recordDelimiterClause` parsed and NOTHING read it, at any edition, on either arm.
-    //    · STANDARD-1 is PROCESSOR-DEPENDENT — Annex A.3 item 26, "The STANDARD-1 phrase of the RECORD
-    //      DELIMITER clause is dependent upon a reel type of device", and §2023:12.4.5.11.4 GR2 spells the
-    //      dependency as a requirement on the run: "If STANDARD-1 is specified, the external medium shall be a
-    //      tape drive." WiseOwl COBOL provides no reel device (docs/CONFORMANCE.md §2 rows 28-30, 33-34), so
-    //      §2023:12.4.5.11.4 GR3's ISO/IEC 1001:2012 7.1.2 framing cannot be reached.
-    //    · feature-name-1 is IMPLEMENTOR-DEFINED and OPTIONAL — Annex A.1 item 150, "This item is optional",
-    //      whose licence is A.1's preamble ("Optional: The element may be provided at the implementor's
-    //      option"). §2023:12.4.5.11.3 SR2 makes the available names the implementor's to specify and this
-    //      implementation specifies NONE (docs/CONFORMANCE.md §7, A.1 item 150), so §2023:12.4.5.11.4 GR4 has no
-    //      method to associate with any spelling.
-    //    ACCEPT-INERT (Warning), not refuse, and §2023:12.4.5.11.4 GR1 is why the accept is safe where an inert
-    //    FORMAT clause (1705) is not: "Any method used shall not be reflected in the record area or the record
-    //    size used within the function, method, or program" — the framing is invisible to the program's data,
-    //    so a declined RECORD DELIMITER leaves every program-visible value identical to the conforming one and
-    //    the file still round-trips through §2023:12.4.5.11.4 GR5's implementor method (the 4-byte length prefix,
-    //    A.1 item 151, docs/CONFORMANCE.md §7). §2023:4.2.6 ¶3 then makes the warning MANDATORY rather than a house
-    //    style: "An implementation shall provide a warning mechanism at compile time to indicate use of
-    //    syntactically-detectable processor-dependent language elements not supported by that implementation."
-    //    ⚠ §2023:4.2.6 ¶3's next sentence — "it is not required to diagnose syntax errors within this unsupported
-    //    syntax" — is the express licence for NOT enforcing §2023:12.4.5.11.3 SR1 (the clause "may be specified only
-    //    for variable-length records") inside the declined clause. That is a decision, not an omission: SR1's
-    //    own NOTE makes variable-length-ness partly an implementor determination (A.1 items 147-148, still
-    //    open), and a line-sequential file's records are variable by §2023:9.1.7.2 with no RECORD clause at all, so
-    //    an SR1 test keyed on FileModel.Varying would REJECT LEGAL SOURCE to enforce a rule the standard
-    //    excuses.
+    // ⛔ THE RECORD DELIMITER CLAUSE: ONE DECLINED ARM AND TWO RULES (kb/Work PB292, PB5844). The general format
+    //    (§2023:12.4.5.11.2, rendered from the printed page; §1985:VII.2.8.2 the same with implementor-name-1) is a plain
+    //    required choice — `RECORD DELIMITER IS { STANDARD-1 | feature-name-1 }` — and the two arms take two dispositions:
+    //    · STANDARD-1 is PROCESSOR-DEPENDENT — Annex A.3 item 26, "The STANDARD-1 phrase of the RECORD DELIMITER clause
+    //      is dependent upon a reel type of device" (§1985:C.3 says the same), and §2023:12.4.5.11.4 GR2 spells the
+    //      dependency as a requirement on the run: "If STANDARD-1 is specified, the external medium shall be a tape
+    //      drive." WiseOwl COBOL provides no reel device (docs/CONFORMANCE.md §2 rows 28-30, 33-34), so it is declined
+    //      ACCEPT-INERT with COBOL1778: §2023:12.4.5.11.4 GR1 keeps any method out of the record area, so the file still
+    //      round-trips through the implementor's method, and §2023:4.2.6 ¶3 makes the warning the obligation.
+    //      §1985:I.1.5.2.5.1 is the 1985 licence ("Language elements that pertain to specific hardware components for
+    //      which support is not claimed need not be implemented").
+    //    · feature-name-1 / implementor-name-1 IS PROVIDED (kb/Work PB5844): BINARY-SEQUENTIAL and LINE-SEQUENTIAL, the
+    //      one table of `RecordDelimiterNames`, each selecting the method its name says. Any other word is no
+    //      implementor-name and is refused (COBOL7598).
+    //    And the clause's syntax rule — §2023:12.4.5.11.3 SR1 / §1985:VII.2.8.3 SR1, "may be specified only for
+    //    variable-length records" — is enforced on BOTH arms (COBOL7599): the 2023 text's own licence not to diagnose
+    //    "syntax errors within this unsupported syntax" (§2023:4.2.6 ¶3) reached only the STANDARD-1 phrase, never the
+    //    clause's placement, and 1985 has no such sentence at all.
     public static readonly DiagnosticDescriptor RecordDelimiterUnsupported = new(
         "COBOL1778", "record-delimiter-unsupported", EditionSeverity.Warning,
-        "the RECORD DELIMITER clause (ISO §2023:12.4.5.11) selects the method of determining a variable-length "
-        + "record's length on the external medium, and neither alternative of its required choice is supported. "
-        + "STANDARD-1 is a processor-dependent element (§2023:4.2.6; Annex A.3 item 26) whose §2023:12.4.5.11.4 GR2 "
-        + "medium is a tape drive, and WiseOwl COBOL provides no reel device; no feature-name is available either "
-        + "(§2023:12.4.5.11.3 SR2 leaves the names to the implementor and Annex A.1 item 150 makes providing them "
-        + "optional — this implementation provides none). The clause is ACCEPTED and has no effect: every "
-        + "variable-length record is framed by the §2023:12.4.5.11.4 GR5 implementor method (the 4-byte length "
-        + "prefix, Annex A.1 item 151), and §2023:12.4.5.11.4 GR1 keeps that framing out of the record area and the "
-        + "record size, so no program-visible value changes. See docs/CONFORMANCE.md §2 row 26 and §7.",
-        "ISO §2023:4.2.6 ¶3 / Annex A.3 item 26 / Annex A.1 items 150-151 / §2023:12.4.5.11", RecognizedNotImplemented,
+        "the STANDARD-1 phrase of the RECORD DELIMITER clause (ISO §2023:12.4.5.11) is a processor-dependent element "
+        + "(§2023:4.2.6; Annex A.3 item 26) whose §2023:12.4.5.11.4 GR2 medium is a tape drive, and WiseOwl COBOL provides "
+        + "no reel device. The phrase is ACCEPTED and has no effect: the file's variable-length records keep the "
+        + "implementor's method (the 4-byte length prefix of BINARY-SEQUENTIAL, Annex A.1 item 151), and "
+        + "§2023:12.4.5.11.4 GR1 keeps that method out of the record area and the record size, so no program-visible "
+        + "value changes. See docs/CONFORMANCE.md §2 row 26.",
+        "ISO §2023:4.2.6 ¶3 / Annex A.3 item 26 / §2023:12.4.5.11.4 GR2", RecognizedNotImplemented,
         Annex: DeclinedAnnex.A3);
+
+    /// <summary>COBOL7598 — the RECORD DELIMITER clause names a word that is no implementor-name of the clause, or one whose
+    /// method the file cannot have (kb/Work PB5844).</summary>
+    public static readonly DiagnosticDescriptor RecordDelimiterNameUndefined = new(
+        "COBOL7598", "record-delimiter-name-undefined", EditionSeverity.Error,
+        "The RECORD DELIMITER clause names a word that is not one of this implementation's implementor-names for the "
+        + "clause, or one whose method the file cannot have. §1985:VII.2.8.4 GR3: the method is \"that associated with "
+        + "implementor-name-1 by the implementor\"; §2023:12.4.5.11.3 SR2: \"The implementor shall specify the names "
+        + "available for use as feature-name-1.\" WiseOwl COBOL defines BINARY-SEQUENTIAL (the record sequential "
+        + "file's 4-byte length prefix) and LINE-SEQUENTIAL (the line sequential file's line delimiter); a file whose "
+        + "ORGANIZATION clause writes LINE SEQUENTIAL cannot take BINARY-SEQUENTIAL. See docs/CONFORMANCE.md §7, "
+        + "Annex A.1 item 150.",
+        "§1985:VII.2.8.4 GR3 / §2023:12.4.5.11.3 SR2 / §2023:12.4.5.11.4 GR4");
+
+    /// <summary>COBOL7599 — a RECORD DELIMITER clause on a file whose records are fixed-length (kb/Work PB5844).</summary>
+    public static readonly DiagnosticDescriptor RecordDelimiterOnFixedLengthRecords = new(
+        "COBOL7599", "record-delimiter-on-fixed-length-records", EditionSeverity.Error,
+        "A RECORD DELIMITER clause is specified for a file whose records are fixed-length. §2023:12.4.5.11.3 SR1 and "
+        + "§1985:VII.2.8.3 SR1: the clause \"may be specified only for variable-length records\". A file's records are "
+        + "variable-length when its RECORD clause is RECORD IS VARYING or RECORD CONTAINS integer TO integer (Annex A.1 "
+        + "item 148), when it writes no RECORD clause and a record description is itself variable-length (Annex A.1 item "
+        + "147), or when the file is LINE SEQUENTIAL (§2023:9.1.7.2); a RECORD CONTAINS integer clause specifies "
+        + "fixed-length records (§2023:13.18.43.4 GR6, §1985:VII.3.8.4 GR3).",
+        "§2023:12.4.5.11.3 SR1 / §1985:VII.2.8.3 SR1");
     // ⛔ COBOL1954 ("record-key-source-phrase-unsupported") is RETIRED — NEVER REALLOCATE IT. It refused the
     //    SOURCE phrase of the RECORD KEY / ALTERNATE RECORD KEY clause (Annex A.3 item 40) at every edition while a
     //    record key was one contiguous byte window. kb/Work PB1099 Q1 (owner rule R65: a processor-dependent

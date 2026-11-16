@@ -258,7 +258,10 @@ public sealed partial class FileControlBinder
         // BLOCK CONTAINS clause nor the RECORD CONTAINS clause shall be specified". RECORD CONTAINS is the record
         // clause's Format 1 and Format 3 (§2023:13.18.43.2, the arms spelled RECORD CONTAINS); the VARYING arm stays
         // legal, as §2023:14.9.51.4 GR22 describes a line sequential file whose RECORD clause has the DEPENDING phrase.
-        if (file.Organization == FileOrganization.LineSequential
+        // The subject is the WRITTEN phrase: a file made line sequential by RECORD DELIMITER IS LINE-SEQUENTIAL writes no
+        // such phrase, so a BLOCK CONTAINS clause stays as inert as on any sequential file, and a RECORD CONTAINS
+        // integer TO integer clause stays its variable-length format 3 (kb/Work PB5844).
+        if (file.LineSequentialPhraseWritten
             && (clause.blockContainsClause() is not null || clause.recordClause() is { } rc && rc.VARYING() is null))
         {
             Edition.Error(DiagnosticCatalog.LineSequentialBlockOrRecordContains, $"file '{fdName}' is LINE SEQUENTIAL "

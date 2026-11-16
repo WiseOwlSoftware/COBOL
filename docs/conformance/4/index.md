@@ -7,8 +7,8 @@ warned BY NAME** — never a generic parse error, and never silently accepted. W
 WHICH annex licenses the decline, and the distinction is normative, not stylistic:
 
 * A **processor-dependent** element (Annex A.3, §2023:4.2.6) may be accepted, and §2023:4.2.6 ¶3 makes the compile-time
-  **warning mechanism** mandatory — so the MCS *statements* and the RECORD DELIMITER
-  *clause* is accepted-inert with a named **Warning** (COBOL1778) and the program still runs.
+  **warning mechanism** mandatory — so the STANDARD-1 *phrase* of the RECORD DELIMITER
+  clause is accepted-inert with a named **Warning** (COBOL1778) and the program still runs.
   (The VALIDATE statement was accepted inert with the warning COBOL1580 until kb/Work PB5577 implemented it in stages; item 3 below records which
   stages exist.)
 * An **optional** element (Annex A.4, §2023:4.2.7) is different: A.4.1 says an implementation "shall accept the syntax

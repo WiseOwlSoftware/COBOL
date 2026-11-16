@@ -664,7 +664,7 @@ internal static class FileControlKeyRules
             f => f.FileLevelCollating is not null || f.KeyLevelCollating.Count > 0),
         new("ORGANIZATION IS RELATIVE", FileFormats.Format2, f => f.Organization is FileOrganization.Relative),
         new("a RELATIVE KEY clause", FileFormats.Format2, f => f.RelativeKeyName is not null),
-        new("ORGANIZATION IS LINE SEQUENTIAL", FileFormats.Format3, f => f.Organization is FileOrganization.LineSequential),
+        new("ORGANIZATION IS LINE SEQUENTIAL", FileFormats.Format3, f => f.LineSequentialPhraseWritten),
         new("a RECORD DELIMITER clause", FileFormats.Format3, f => f.RecordDelimiter is not null),
         // ⛔ A CLAUSE NO 2023 DIAGRAM PRINTS (kb/Work PB5565): §1985:VII.2.3.2 and §2002:12.3.4.1 Format 3 print PADDING CHARACTER,
         // and §1985:IX.2.3.2, §1985:VIII.2.3.2 and §2002:12.3.4.1 Formats 1 and 2 do not (the clause "specifies the character

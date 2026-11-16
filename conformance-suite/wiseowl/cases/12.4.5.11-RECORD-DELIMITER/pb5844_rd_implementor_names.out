@@ -1,0 +1,5 @@
+B LEN=06 [AB    ]
+B LEN=06 [C D   ]
+L LEN=02 [AB]
+L LEN=03 [C D]
+W=WORD

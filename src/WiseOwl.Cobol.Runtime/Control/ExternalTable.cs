@@ -36,7 +36,10 @@ public enum ExternalChecks
 /// FILE kind (§2023:14.8.4.2 / §2023:14.8.4.4): <see cref="FileStatusRef"/> / <see cref="RelativeKeyRef"/> /
 /// <see cref="LinageRef"/> = the corresponding-external-item identities of the file-referencing control items
 /// ("EXTNAME.SUB.PATH", "!" when the item exists but is NOT external, null when the clause is absent);
-/// <see cref="SelectFingerprint"/> = the §2023:12.4.5.3 GR1 a–m canonical fingerprint of the file control entry.</summary>
+/// <see cref="SelectFingerprint"/> = the §2023:12.4.5.3 GR1 a–m canonical fingerprint of the file control entry, every item an
+/// entry compares by equality; <see cref="RecordDelimiter"/> = GR1 c), the RECORD DELIMITER clause's written arm
+/// (STANDARD-1 or the implementor-name), null when the entry writes no such clause. GR1 c) is the one item whose agreement is not
+/// an equality, so it travels beside the fingerprint and is compared by <see cref="RecordDelimitersAgree"/> (kb/Work PB5844).</summary>
 public sealed record ExternalDescriptor(
     string Kind,
     int ByteCount = 0,
@@ -46,7 +49,19 @@ public sealed record ExternalDescriptor(
     string? FileStatusRef = null,
     string? RelativeKeyRef = null,
     string? LinageRef = null,
-    string? SelectFingerprint = null);
+    string? SelectFingerprint = null,
+    string? RecordDelimiter = null)
+{
+    /// <summary>⛔ THE ONE AGREEMENT RELATION of two entries' RECORD DELIMITER clauses (kb/Work PB5844), read by the compile-time
+    /// check (<c>FileEntrySegment.Agrees</c>) and the run-time one (<see cref="ExternalTable.Describe"/>). Two WRITTEN clauses agree
+    /// when they say the same thing: §1985:VII.2.8.4 GR6, "all RECORD DELIMITER clauses in the run unit which are associated with
+    /// that file connector must have the same specifications", so STANDARD-1 differs from every implementor-name, and two
+    /// implementor-names agree when they name the same method (each name names its own, so the same name). An entry that writes
+    /// NO clause agrees with every other (null): it has the implementor's method (§1985:VII.2.8.4 GR4), which both the declined
+    /// STANDARD-1 and BINARY-SEQUENTIAL leave in force (kb/Work PB5311), and a method it cannot share is the organization's
+    /// difference, which the fingerprint compares. The relation is therefore not transitive, which is why it is checked pairwise.</summary>
+    public static bool RecordDelimitersAgree(string? a, string? b) => a is null || b is null || string.Equals(a, b, StringComparison.Ordinal);
+}
 
 /// <summary>
 /// The run-unit EXTERNAL data store (ISO §2023:8.6.7 / §2023:13.18.22): ONE storage copy per external name for the whole
@@ -125,10 +140,12 @@ public sealed class ExternalTable
                         + "storage in each runtime element (ISO §2023:14.8.4.2 — EC-EXTERNAL-DATA-MISMATCH)",
                         "EC-EXTERNAL-DATA-MISMATCH");
                 if ((gate & ExternalChecks.FileMismatch) != 0 && desc.Kind == "file"
-                    && prior.SelectFingerprint != desc.SelectFingerprint)
+                    && (prior.SelectFingerprint != desc.SelectFingerprint
+                        || !ExternalDescriptor.RecordDelimitersAgree(prior.RecordDelimiter, desc.RecordDelimiter)))
                     throw new CobolCallException(
                         $"external file '{name}': the file control entries of '{other}' and '{describer}' are not "
-                        + $"consistent ('{prior.SelectFingerprint}' vs '{desc.SelectFingerprint}') "
+                        + $"consistent ('{prior.SelectFingerprint}|DELIM={prior.RecordDelimiter}' vs "
+                        + $"'{desc.SelectFingerprint}|DELIM={desc.RecordDelimiter}') "
                         + "(ISO §2023:14.8.4.4 / §2023:12.4.5.3 GR1 — EC-EXTERNAL-FILE-MISMATCH)",
                         "EC-EXTERNAL-FILE-MISMATCH");
             }
