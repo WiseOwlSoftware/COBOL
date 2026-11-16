@@ -1414,13 +1414,46 @@ public sealed class CopyProcessor(
                 $"a text-word of {length} characters is written in {place}; the limit is {edition.MaxTextWordLength:N0}");
         }
 
+        /// <summary>⛔ THE CHARACTER SCREEN OF A REPLACING OPERAND, asked of EVERY operand of COPY REPLACING and of REPLACE by
+        /// <see cref="ScreenOperandPair"/> — the one place an operand's characters are judged (kb/Work PB5608), so no operand
+        /// form carries a character another form refuses. What each form is made of decides the rule:
+        /// <list type="bullet">
+        /// <item><c>==pseudo-text==</c> (and partial-word) holds TEXT-WORDS: <see cref="TextWordCharacters"/>.</item>
+        /// <item>word-1 / word-2 is a COBOL WORD — "Word-1 or word-2 may be any single COBOL word except 'COPY'"
+        /// (§1985:XII.2.3 SR6; §2002:7.1.2.2 SR10; §2014:7.2.2.2 SR10) — and identifier-1 / identifier-2 is made of COBOL
+        /// words (data-names, qualifiers, a function-name) beside its separators and subscripts, so each of their words obeys
+        /// the edition's COBOL-word character rule: at 1985 "Each character of a user-defined word is selected from the set of
+        /// characters" (§1985:IV.4.2.2.1.1), from 2002 "Each character of a COBOL word that is not a special character word
+        /// shall be selected from the set of basic letters, basic digits, extended letters, and the basic special characters
+        /// hyphen and underscore" (§2002:8.3.1.1; §2014:8.3.1.1). That rule is stricter than the text-word's below 2014 and
+        /// still holds from 2014, where a text-word takes any character of the coded set; it is the ONE rule the token walk
+        /// asks of every program word and the COPY statement of its text-name (<see cref="Parsing.WordCharacterScreen.CheckWord"/>),
+        /// asked of each word that holds a character beyond the basic letters, digits and hyphen (the token walk's own
+        /// candidates), so an arithmetic operator or a signed integer of a subscript is never taken for a word.</item>
+        /// <item>a literal is a text-word whatever its content (§1985:III.2, a text-word's item 2: "A literal including,
+        /// in the case of nonnumeric literals, the opening quotation mark and the closing quotation mark"), which no
+        /// character rule judges.</item>
+        /// </list></summary>
+        public void Characters(in Operand operand)
+        {
+            if (diagnostics is null) return;
+            foreach (var e in operand.Elements)
+            {
+                if (e.Kind != TextWordKind.CharacterString) continue;
+                if (operand.IsPseudoText)
+                    TextWordCharacters(e);
+                else if (e.Span.Contains('_') || e.Span.IndexOfAnyExceptInRange('\0', '\x7F') >= 0)
+                    Parsing.WordCharacterScreen.CheckWord(e.Value, edition, new BagSink(diagnostics, mapped.LocateAt(e.Start)));
+            }
+        }
+
         /// <summary>COBOL2572 — a text-word made of a character outside the COBOL character repertoire, below COBOL-2014: a
         /// text-word is "any other sequence of contiguous COBOL characters bounded by separators" (§2002:7.1.1.4 item 3; §1985:III.2 item 3),
         /// so such characters form no text-word and no operand holds one (kb/Work PB5608). From 2014 a text-word is a sequence of
         /// characters "from the compile-time coded character set" (§2014:7.2.1.4 item 3), which the screen does not judge.</summary>
-        public void TextWordCharacters(in TextWord word)
+        private void TextWordCharacters(in TextWord word)
         {
-            if (!edition.TextWordsAreCobolCharacters || diagnostics is null || word.Kind != TextWordKind.CharacterString) return;
+            if (!edition.TextWordsAreCobolCharacters) return;
             foreach (var rune in word.Span.EnumerateRunes())
             {
                 int codePoint = rune.Value;
@@ -1455,14 +1488,16 @@ public sealed class CopyProcessor(
                 + "of the separators space, comma, semicolon, or period\"", mapped.LocateAt(at), default);
     }
 
-    /// <summary>Screen one operand pair against its statement's content rules (kb/Work PB1353). Only a
-    /// <c>==pseudo-text==</c> operand is screened: the COPY forms that are not pseudo-text (identifier, literal, word —
-    /// COBOL-85 through 2014) are single operands the rules do not address.</summary>
+    /// <summary>Screen one operand pair against its statement's content rules (kb/Work PB1353). The characters of EVERY
+    /// operand, whatever its form, are asked of <see cref="OperandScreen.Characters"/> (kb/Work PB5608); the other content
+    /// rules address <c>==pseudo-text==</c> alone, for the COPY forms that are not pseudo-text (identifier, literal, word —
+    /// COBOL-85 through 2014) are single operands those rules do not address.</summary>
     private static void ScreenOperandPair(OperandScreen screen, in Operand from, in Operand to, ReplaceKind kind)
     {
         var r = screen.Rules;
         foreach (var operand in (ReadOnlySpan<Operand>)[from, to])
         {
+            screen.Characters(operand);
             if (!operand.IsPseudoText) continue;
             foreach (var e in operand.Elements)
             {
@@ -1472,7 +1507,6 @@ public sealed class CopyProcessor(
                         "a compiler directive line is written inside a REPLACING operand");
                 else if (e.End - e.Start > screen.MaxTextWordLength)
                     screen.TextWordTooLong(e.Start, e.End - e.Start, "pseudo-text");
-                screen.TextWordCharacters(e);
             }
         }
         if (kind == ReplaceKind.Whole)

@@ -54,3 +54,14 @@ PB5608's refusal at 85 is right: the case now runs at 2014 and 2023 (§2014:7.2.
 batch adds the PB5732 witnesses to `1985-GR-XII.2.4-8` and the new case to `1985-FMT-XII.3.2`, and restates
 `1985-GR-XII.2.4-12`'s notes (why REPLACING cannot touch the word COPY in 1985, and GR4 for the REPLACE case). Against main
 the 1985 view goes from 125 GAP (PARTIAL 12) to 124 (PARTIAL 11), the 2002 view from 1242 GAP to 1238.
+
+**Review finding R1-1 (round 1 at bfc60bd5a3).** The PB5608 screen ran only over pseudo-text, so below 2014 the word operand
+of `COPY RVX REPLACING X€ BY "Z".` was accepted (it printed Z at 85 and 2002) while `==X€==` was refused. Every operand of
+COPY REPLACING and REPLACE now goes through ONE question, `OperandScreen.Characters`, which judges it by its form: pseudo-text
+by the edition's text-word repertoire, each word of a word or identifier operand by the COBOL-word character rule
+(`WordCharacterScreen.CheckWord`; word-1 "may be any single COBOL word", §1985:XII.2.3 SR6, §2002:7.1.2.2 SR10,
+§2014:7.2.2.2 SR10), a literal by none. The word rule still holds at 2014, so the word operand X€ is COBOL2773 at 85, 2002
+and 2014, and only the pseudo-text form is accepted from 2014. New goldens:
+`pb5608-copy-replacing-word-non-cobol-character-refused-85` (fixed form, 85),
+`pb5608-copy-replacing-word-non-cobol-character-refused` (2002 and 2014, word and identifier) and
+`pb5608-copy-pseudo-text-coded-set-character-accepted` (2014 and 2023).

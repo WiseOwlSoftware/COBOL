@@ -2,8 +2,8 @@
  "rule-id": "1985-SR-XII.2.3-6",
  "rule-digest": "7b06f2d635c5",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands",
- "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-6; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5418-replacing-reserved-words",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#Characters",
+ "test-ref": "conformance:cases/XII.2@1985-COPY-STATEMENT/1985-SR-XII_2_3-6; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5418-replacing-reserved-words; conformance:cases/XII.2@1985-COPY-STATEMENT/pb5608-copy-replacing-word-non-cobol-character-refused-85",
  "notes": "§1985:XII.2.3 SR6 (kb/Work PB5418, landed): word-1 or word-2 'may be any single COBOL word except' COPY. The exclusion half: COPY as word-1 or word-2 draws COBOL7006 (1985-SR-XII_2_3-6). The admission half: CopyProcessor reads the REPLACING operands by position, operand BY operand, so ReadOperand takes a BY where an operand stands as the operand, and ParseReplacingOperands opens the LEADING / TRAILING partial-word phrase only where ==partial-word-1== follows, so LEADING and TRAILING are word operands otherwise. Witness pb5418-replacing-reserved-words: REPLACING BY BY \"B\" TRAILING BY \"D\" LEADING BY \"F\" prints AB, CD, EF at 85 (and at 2002 and 2014, by hand).",
  "next": {
   "kind": "REMOVED",
