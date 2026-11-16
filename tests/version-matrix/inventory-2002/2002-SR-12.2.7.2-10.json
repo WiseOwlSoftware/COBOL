@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-10",
+ "rule-digest": "e44fbea4396b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RepositoryResolver.cs#ReportUnanswered; src/WiseOwl.Cobol.Compiler/Binding/RepositoryResolver.cs#ResolveFunction; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfBindCall",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb989-function-definition-follows-the-specifier; conformance:cases/12.3.8-REPOSITORY/pb1100-class-repository-function-undefined",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-10, witnessed at 2002 by the cases test-ref names. The read: The AS literal of the function-specifier is literal-3 in 2002 and literal-5 in 2023 (renumbered: §2002:12.2.7.1 FUNCTION ... AS literal-3; 2023 user-defined-function-specifier AS literal-5). Same three alternatives. Cited: §2002:12.2.7.2 SR10."
+}

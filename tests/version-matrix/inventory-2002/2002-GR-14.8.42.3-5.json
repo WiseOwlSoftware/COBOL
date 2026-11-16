@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.42.3-5",
+ "rule-digest": "11d9e48613cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Place; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.RaiseDeclarations.cs#TerminateNames",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1188_report_nonfatal_raise; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.46.4-5, witnessed at 2002 by the cases test-ref names. The read: Only 'non-fatal' vs 'nonfatal' differs. The set of non-fatal EC-REPORT conditions is the same in the 2002 exception table (COLUMN-OVERLAP, LINE-OVERLAP, NOT-TERMINATED, PAGE-LIMIT, PAGE-WIDTH NF; SUM-SIZE, VARYING fatal) as in 2023. The 2023 SR3 (multi-report TERMINATE in an exception-checking PERFORM) is 2023-only and does not touch GR5. Cited: §2002:14.8.42.3 GR5."
+}

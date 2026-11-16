@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb370_read_relative_invalid_key
       *> rules: [GR-14.9.30.4-29]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

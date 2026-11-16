@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.1.2-1",
+ "rule-digest": "7e8b10195e02",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Model/StrongTypeModel.cs#SameType",
+ "test-ref": "conformance:cases/8.8.4.2-Simple-relation-conditions/strong-group-heterogeneous-compare",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.8.4.2.3-1, witnessed at 2002 by the cases test-ref names. The read: Slice gave no pointer only because 2023 renamed the subject ('Simple relation conditions'); the word-identical rule of the renumbered clause is the pointer. Format 1 operands identical in both editions (identifier, literal, arithmetic expression, index-name). TYPEDEF STRONG is 2002 syntax. Cited: §2002:8.8.4.1.1.2 SR1."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.33.3-8",
+ "rule-digest": "187c3b9388a2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement",
+ "notes": "Own verdict from the read lineage-reads-2002/u-15.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.35.4-8, witnessed at 2002 by the cases test-ref names. The read: Identical text but for the NEXT GROUP clause number; witness runs at 2002. Cited: §2002:13.16.33.3 GR8."
+}

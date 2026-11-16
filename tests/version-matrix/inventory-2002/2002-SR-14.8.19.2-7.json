@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.19.2-7",
+ "rule-digest": "2e514b9c5b9c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#SenderFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ElementaryAction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form; conformance:cases/14.9.20-INITIALIZE/pb415_initialize_national_group_sender",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.20.3-8, witnessed at 2002 by the cases test-ref names. The read: 'the general rules of the INITIALIZE statement' and 'the following general rules' name the same rules (GR6 in both); no behavioural difference. Cited: §2002:14.8.19.2 SR7."
+}

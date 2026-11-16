@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.19.2-2",
+ "rule-digest": "cc6d2beb5e82",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInitializeReplacingSetCategoryIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundInitialize.cs#InitializeCategories; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.9.20-INITIALIZE/pb415_initialize_replacing_set_form",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.20.3-3, witnessed at 2002 by the cases test-ref names. The read: 2023 adds FUNCTION-POINTER and MESSAGE-TAG (neither in 2002; INITIALIZE FUNCTION-POINTER is refused at 2002, COBOL0900). Cited: §2002:14.8.19.2 SR2."
+}

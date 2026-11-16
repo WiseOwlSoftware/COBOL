@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-110",
+ "rule-digest": "03f6538ea2ec",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EntryOf",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/w59h_non_cobol_names_not_found",
+ "notes": "Own verdict from the read lineage-reads-2002/u-34.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-143, witnessed at 2002 by the cases test-ref names. The read: Same sentence and the same optional class in both; not provided; the witness (a CALL of .NET names takes ON EXCEPTION) runs at 2002. Cited: §2002:B.1; §2002:8.3.1.1.1.20."
+}

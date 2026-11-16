@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.33.3-5",
+ "rule-digest": "45192369c32a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
+ "test-ref": "conformance:cases/13.18.35-LINE/pb484_report_line_placement; conformance:cases/8.4.3.15-Report-counters/pb1247_line_placement_unpaged_85",
+ "notes": "Own verdict from the read lineage-reads-2002/u-15.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.35.4-5, witnessed at 2002 by the cases test-ref names. The read: Identical text but for the PRESENT WHEN clause number. Witnesses accept 2002 and pass there. Cited: §2002:13.16.33.3 GR5."
+}

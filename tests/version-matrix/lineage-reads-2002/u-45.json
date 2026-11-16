@@ -1,0 +1,1482 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-45 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-45",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-A.2.6.3-7",
+   "2002-GR-A.2.6.3-8",
+   "2002-GR-A.2.6.3-9",
+   "2002-FMT-12.2.7.1",
+   "2002-FMT-7.2.7.3.1",
+   "2002-FMT-7.2.8.1",
+   "2002-FMT-7.2.9.1",
+   "2002-FMT-7.2.10.1",
+   "2002-FMT-7.2.11.1",
+   "2002-FMT-7.2.12.1",
+   "2002-FMT-7.2.13.1",
+   "2002-FMT-7.2.14.1",
+   "2002-FMT-7.2.15.1",
+   "2002-FMT-7.2.16.1",
+   "2002-FMT-7.2.17.1",
+   "2002-FMT-7.2.18.1",
+   "2002-FMT-7.2.19.1",
+   "2002-FMT-11.3.1",
+   "2002-FMT-12.3.1",
+   "2002-FMT-13.3.1",
+   "2002-FMT-8.3.1.2.1.1",
+   "2002-FMT-8.3.1.2.3.1",
+   "2002-FMT-8.3.1.2.4.1",
+   "2002-FMT-8.3.1.2.5.1",
+   "2002-FMT-12.3.3.1"
+  ],
+  "pointers": {
+   "2002-GR-A.2.6.3-7": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": "GR-14.9.38.4-6",
+    "similarity": 0.363
+   },
+   "2002-GR-A.2.6.3-8": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": "GR-14.9.38.4-6",
+    "similarity": 0.433
+   },
+   "2002-GR-A.2.6.3-9": {
+    "bucket": "annex-A (communications)",
+    "nearest-2023": "GR-14.9.38.4-4",
+    "similarity": 0.257
+   },
+   "2002-FMT-12.2.7.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-12.3.8.2",
+    "similarity": 0.464
+   },
+   "2002-FMT-7.2.7.3.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-7.3.8.4.2",
+    "similarity": 0.862
+   },
+   "2002-FMT-7.2.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.9.2",
+    "similarity": 0.317
+   },
+   "2002-FMT-7.2.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.11.2",
+    "similarity": 0.33
+   },
+   "2002-FMT-7.2.10.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.13.2",
+    "similarity": 0.636
+   },
+   "2002-FMT-7.2.11.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-7.2.12.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-7.2.13.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-7.3.16.2",
+    "similarity": 0.895
+   },
+   "2002-FMT-7.2.14.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.17.2",
+    "similarity": 0.147
+   },
+   "2002-FMT-7.2.15.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.18.2",
+    "similarity": 0.161
+   },
+   "2002-FMT-7.2.16.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-7.3.19.2",
+    "similarity": 0.81
+   },
+   "2002-FMT-7.2.17.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.21.2",
+    "similarity": 0.12
+   },
+   "2002-FMT-7.2.18.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.24.2",
+    "similarity": 0.309
+   },
+   "2002-FMT-7.2.19.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-7.3.25.2",
+    "similarity": 0.315
+   },
+   "2002-FMT-11.3.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-11.4.2",
+    "similarity": 0.866
+   },
+   "2002-FMT-12.3.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-12.4.2",
+    "similarity": 0.902
+   },
+   "2002-FMT-13.3.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.4.2",
+    "similarity": 0.519
+   },
+   "2002-FMT-8.3.1.2.1.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-8.3.3.2.2",
+    "similarity": 0.938
+   },
+   "2002-FMT-8.3.1.2.3.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-8.3.3.4.2",
+    "similarity": 0.939
+   },
+   "2002-FMT-8.3.1.2.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.3.3.5.2",
+    "similarity": 0.434
+   },
+   "2002-FMT-8.3.1.2.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.3.3.6.2",
+    "similarity": 0.388
+   },
+   "2002-FMT-12.3.3.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-12.4.4.2",
+    "similarity": 0.851
+   }
+  }
+ },
+ "read": {
+  "slice": "u-45",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-A.2.6.3-7",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "A.2.6.3 GR7 (SEND, all formats)",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a portion of a message not ended by EMI or EGI (and not purged) is never sent to a destination: within the run unit and after it ends"
+    ],
+    "evidence-2002": {
+     "within the run unit": "covered by 1985-GR-XIV_3_6_4-8 run at --std 2002 (after SEND without EMI, ACCEPT MESSAGE COUNT 000000 and RECEIVE NO DATA), output identical to its .out: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-8-2002.out",
+     "after the run unit ends": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7 (a_partial then b_check as a second run unit at --std 2002: B COUNT 00 000000, B NO DATA; control a_whole: B COUNT 00 000001, [HELLO]); results E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7-results.txt",
+     "1985 witness": "1985-GR-XIV_3_6_4-7 at --std 2002 prints PORTION SENT, identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-7-2002.out); it shows no delivery check, so the probe is the stronger witness"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.6.3 GR7",
+      "quote": "the message does not logically exist for the MCS and hence shall not be sent to a destination",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 counterpart: the pointer GR-14.9.38.4-x is the 2023 asynchronous-messaging SEND (a run unit sends to a message server), a different facility; its witnesses (MessagingProcessTests, send-no-server, send-group-holding-tag) are refused at --std 2002 (COBOL0878, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/send-no-server-2002.out) and show nothing about the MCS. The 2002 rule is Annex A (optional per §2002:3.1). The compiler provides the facility at --std 2002 (COBOL0903 obsolete warning only). The code and test pointer is the 1985 twin 1985-GR-XIV.3.6.4-7 (CONFORMS, witness accept:[85]). Differing words from 1985: 'which'->'that', 'cannot be sent'->'shall not be sent'; nothing a program can see. The disposition is undefined, the non-delivery is testable and holds at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 an unterminated portion is not delivered, within the run unit or to a later run unit (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7-results.txt, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-8-2002.out). Candidate witness: the gr7 two-run-unit probe as a 2002 case",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7-results.txt)",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited).",
+    "pointer-1985": "1985-GR-XIV.3.6.4-7"
+   },
+   {
+    "rule-id": "2002-GR-A.2.6.3-8",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "A.2.6.3 GR8",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "after a SEND released a portion, only later SEND statements of the same run unit release the rest of that message"
+    ],
+    "evidence-2002": {
+     "rest released by a later SEND of the run unit": "covered by 1985-GR-XIV_3_6_4-8 run at --std 2002: PORTION 00 000000 / NO DATA / THE REST 00 000001 / MESSAGE 0010 2 [HELLOWORLD], identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-8-2002.out)",
+     "not released by another run unit": "covered by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/gr7: a second run unit sees no message from the first's unterminated portion"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.6.3 GR8",
+      "quote": "only subsequent execution of SEND statements in the same run unit shall cause the remaining portion of the message to be released",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 counterpart: the pointer GR-14.9.38.4-x is the 2023 asynchronous-messaging SEND (a run unit sends to a message server), a different facility; its witnesses (MessagingProcessTests, send-no-server, send-group-holding-tag) are refused at --std 2002 (COBOL0878, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/send-no-server-2002.out) and show nothing about the MCS. The 2002 rule is Annex A (optional per §2002:3.1). The compiler provides the facility at --std 2002 (COBOL0903 obsolete warning only). The code and test pointer is the 1985 twin 1985-GR-XIV.3.6.4-8 (CONFORMS, witness accept:[85]). Differing words from 1985: 'can cause'->'shall cause'; nothing a program can see.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-8-2002.out",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out. Candidate 2002 witness: 1985-GR-XIV_3_6_4-8 with 2002 added to its accept list",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-8-2002.out)",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited).",
+    "pointer-1985": "1985-GR-XIV.3.6.4-8"
+   },
+   {
+    "rule-id": "2002-GR-A.2.6.3-9",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "A.2.6.3 GR9 (SEND format 2, Table A.3)",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 2 WITH identifier-2: 0/1/2/3 give no indicator/ESI/EMI/EGI; any other character is 0",
+     "identifier-1 omitted: only the indicator is sent; identifier-2 not 1, 2 or 3 with identifier-1 omitted gives an error status and no transfer"
+    ],
+    "evidence-2002": {
+     "Table A.3 values and other-character as 0": "covered by 1985-GR-XIV_3_6_4-9 run at --std 2002, output identical to its .out (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-9-2002.out)",
+     "identifier-1 omitted, bad indicator": "covered by the same run: NO IDENTIFIER-1, 0 60 and NO IDENTIFIER-1, 7 60"
+    },
+    "citations": [
+     {
+      "cite": "§2002:A.2.6.3 GR9",
+      "quote": "Any character other than 1, 2, or 3 will be interpreted as 0",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 counterpart: the pointer GR-14.9.38.4-x is the 2023 asynchronous-messaging SEND (a run unit sends to a message server), a different facility; its witnesses (MessagingProcessTests, send-no-server, send-group-holding-tag) are refused at --std 2002 (COBOL0878, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/send-no-server-2002.out) and show nothing about the MCS. The 2002 rule is Annex A (optional per §2002:3.1). The compiler provides the facility at --std 2002 (COBOL0903 obsolete warning only). The code and test pointer is the 1985 twin 1985-GR-XIV.3.6.4-9 (CONFORMS, witness accept:[85]). The 2002 text and Table A.3 are the 1985 GR9 text and its table word for word (only the table's name changes). Status 60 is Table A.1's value for this case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-9-2002.out",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 the compiler does what the 1985 twin's witness shows, output identical to its .out. Candidate 2002 witness: 1985-GR-XIV_3_6_4-9 with 2002 added to its accept list",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/send/1985-GR-XIV_3_6_4-9-2002.out)",
+    "licence-2002": "not needed: the compiler provides the facility at 2002. §2002:3.1 would license declining it (cited).",
+    "pointer-1985": "1985-GR-XIV.3.6.4-9"
+   },
+   {
+    "rule-id": "2002-FMT-12.2.7.1",
+    "to": [
+     "FMT-12.3.8.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.2.7.1 REPOSITORY general format",
+    "clause-2023": "12.3.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "REPOSITORY. with no specifiers (period inside the outer bracket)",
+     "class-specifier, interface-specifier (AS, EXPANDS ... USING)",
+     "function-specifier format 1 (user-defined, AS) and format 2 (intrinsic: names ... INTRINSIC, ALL INTRINSIC)",
+     "program-specifier, property-specifier"
+    ],
+    "evidence-2002": {
+     "all specifiers": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb974_repository_as_phrase, pb237_program_prototype, pb759_parameterized_class, pb2727_paragraph_single_period each MATCH their .out at 2002",
+     "period placement refusals": "pb2727-repository-period-per-specifier (COBOL3407) and pb2727-repository-period-missing (COBOL3408) give the same refusal at 2002 as at 2023",
+     "AS literal": "pb974-repository-class-as-zero-length is refused at 2002 (COBOL0900 zero-length literal, plus COBOL1761 as at 2023): correct, a 2002 literal has length > 0"
+    },
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.1",
+      "quote": "FUNCTION function-prototype-name-1 AS literal-3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.8.2",
+      "quote": "FUNCTION function-prototype-name-1 AS literal-5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.2 SR13",
+      "quote": "If ALL is specified in the intrinsic format of the function-specifier",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same diagram. 2002's function-specifier with formats 1 and 2 is 2023's user-defined-function-specifier and intrinsic-function-specifier; 2002 class-name is 2023 object-class-name (renamed to separate it from the class-condition name, same referent here); the AS literals are renumbered. No form exists in one edition only. Pointer witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.7.3.1",
+    "to": [
+     "FMT-7.3.8.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.3.1 Defined condition",
+    "clause-2023": "7.3.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "compilation-variable-name-1 [IS] [NOT] DEFINED in a constant conditional expression (IF and EVALUATE format 2)"
+    ],
+    "evidence-2002": {
+     "IS DEFINED / IS NOT DEFINED / DEFINED without IS": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002 (V1-DEF, V2-UNDEF after DEFINE ... OFF, V9-UNDEF): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/d_ok-2002.out",
+     "malformed": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_defined_x.cob (IS DEFINE) refused COBOL1619 at 2002 as at 2023",
+     "pointer unit": "CompileTimeBooleanCceTests.Cce_DefinedCondition evaluates the condition with no edition input"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.3.1",
+      "quote": "compilation-variable-name-1 IS NOT DEFINED",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.4.2",
+      "quote": "compilation-variable-name-1 IS NOT DEFINED",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the pointer's unit test is edition-free and the probe shows it at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.8.1",
+    "to": [
+     "FMT-7.3.9.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.8.1 CALL-CONVENTION",
+    "clause-2023": "7.3.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>CALL-CONVENTION COBOL",
+     ">>CALL-CONVENTION call-convention-name-1 (implementor-defined)",
+     "operand missing or unknown: malformed"
+    ],
+    "evidence-2002": {
+     "COBOL accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002 and the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "malformed refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_callconv_none.cob COBOL1911 at 2002 and 2023; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "note": "pb794_directive_operands does NOT run at 2002 (COBOL0900 on >>PUSH, >>POP, >>REF-MOD-ZERO-LENGTH, 2023-only directives in the same program), so its 2002 evidence is the unit tests and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR1",
+      "quote": "The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format (2002 prints >>CALL-CONVENTION without a space, 2023 with one; §2002:7.2.2 SR5 makes them the same).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.9.1",
+    "to": [
+     "FMT-7.3.11.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.9.1 DEFINE",
+    "clause-2023": "7.3.11.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "AS arithmetic-expression-1 | literal-1 | PARAMETER, each with optional OVERRIDE",
+     "AS OFF",
+     "NOT admitted in 2002: a boolean-expression operand (2002 lists none in this format, and 7.2.6 admits compile-time boolean expressions only in EVALUATE and constant conditional expressions)"
+    ],
+    "evidence-2002": {
+     "2002 alternatives accepted": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb1367_define_general_format_alternatives MATCH at 2002 (it also carries a boolean-expression line, see below); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+     "malformed refused": "pb1367-define-off-override, -without-name, -without-operand, -words-after-off, -off-override-in-omitted-branch (COBOL2651) and -operand-malformed-in-omitted-branch (COBOL1619): same refusal at 2002 as at 2023",
+     "boolean-expression operand refused": "NOT shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_define_bool.cob (>>DEFINE V AS B\"1100\" B-OR B\"0011\") compiles and prints DEFINE-BOOL-EXPR at --std 2002, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/b_define_bool-2002.out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.6",
+      "quote": "A compile-time boolean expression may be specified in the EVALUATE directive and in a constant conditional expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.9.3 GR4",
+      "quote": "If the PARAMETER phrase is specified, the value referenced by compilation-variable-name-1 is obtained from the operating environment",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.11.3 SR4",
+      "quote": "Boolean-expression-1 shall be formed in accordance with 7.3.7, Compile-time boolean expressions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format has three operand alternatives; the 2023 pointer has four (boolean-expression-1 added). The 2023 verdict accepts the boolean form, so it says nothing about the 2002 rule's exclusion of it, and the compiler at 2002 accepts it. Already filed as kb/Work PB5601 (open); the case pb1367_define_general_format_alternatives carries accept [2002] for the boolean line, so its band is wrong too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_define_bool.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict after PB5601: at --std 2002 >>DEFINE ... AS <boolean-expression> refused; the 2002 alternatives are already shown at 2002 by the pb1367 cases",
+    "compiler-at-2002": "wrong (known: kb/Work PB5601). Program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_define_bool.cob; expected refusal per §2002:7.2.6 (cited); observed: compiles, prints DEFINE-BOOL-EXPR, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/b_define_bool-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.10.1",
+    "to": [
+     "FMT-7.3.13.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.1 EVALUATE directive, formats 1 and 2",
+    "clause-2023": "7.3.13.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: subject literal-1 | arithmetic-expression-1 | boolean-expression-1; WHEN objects with optional THROUGH/THRU; WHEN OTHER; END-EVALUATE",
+     "format 2: EVALUATE TRUE with WHEN constant-conditional-expression-1",
+     "structure errors (no WHEN, WHEN OTHER twice, WHEN after WHEN OTHER, unclosed, closed in library text, stray WHEN/END-EVALUATE, text before first WHEN)"
+    ],
+    "evidence-2002": {
+     "legal forms": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb1363_conditional_compilation_structure_legal, pb1363_omitted_branch_directives_legal MATCH at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002 (THRU/THROUGH, OTHER, TRUE format, boolean subject B\"1100\" B-OR B\"0011\" -> BOOL-EV)",
+     "structure errors": "the 13 pb1363/pb1364/pb806 refusal cases of the pointer row give the same code at 2002 as at 2023 (COBOL2649, COBOL1619, COBOL1911): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr-summary.txt",
+     "omitted-phrase check": "CompilerDirectiveCatalogDriftTests.EveryNoOperandWord_RejectsAnOperandAndAcceptsTheBareWord (edition-free)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR13",
+      "quote": "The words THROUGH and THRU are equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR11",
+      "quote": "All operands of one EVALUATE directive shall be of the same category",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same two formats, same operands (boolean-expression is already a format 1 operand in 2002, admitted by 7.2.6). Every pointer witness gives the same result at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.11.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.11.1 FLAG-85 directive",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "{ ALL | one or more of CORRESPONDING, DE-EDITING, DIVIDE, FUNCTION-ARGUMENT, MOVE, NUMVAL, SET, STANDARD-1, STANDARD-2, ZERO-LENGTH } { ON | OFF } (ON and ALL printed without underline: PDF p.71 rendered, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/pages/spec_p71.png)",
+     "anything else after FLAG-85 (an unknown option word, trailing text) is not the directive's format and only spaces and an inline comment may follow a directive"
+    ],
+    "evidence-2002": {
+     "conforming forms accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob (>>FLAG-85 ALL ON; CORRESPONDING MOVE NUMVAL OFF; DIVIDE SET) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_bare.cob (>>FLAG-85 ALL) compile at 2002 (refused COBOL0902 at 2023, correct: removed)",
+     "malformed refused": "NOT shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flag85_x.cob (>>FLAG-85 BOGUS ON) compiles with no diagnostic at --std 2002, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/b_flag85_x-2002.out); the construct row flag-85-directive-window declares the operand 'Content unchecked by decision' (src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "The word or words following FLAG-85 indicate the syntax to be diagnosed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.2 SR1",
+      "quote": "The FLAG-85 directive may be specified only between clauses in divisions other than the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR3",
+      "quote": "a compiler directive shall be written in the program-text area and may be followed only by space characters and an optional inline comment",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (the directive was removed in 2023), so no pointer. The compiler gates the word by edition only; the operand is never read, so a 2002 FLAG-85 line with an option word the format does not have is accepted in silence. Already filed as kb/Work PB5600 (open; it also records that no flagging is done).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flag85_x.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict after PB5600: at --std 2002 the operand checked against the 2002 format (malformed refused COBOL1911-like), conforming forms accepted (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob)",
+    "compiler-at-2002": "wrong (known: kb/Work PB5600). Program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flag85_x.cob; expected a diagnostic (BOGUS is no option of §2002:7.2.11.1, cited via GR4); observed: compiles, prints ABC, rc 0",
+    "licence-2002": "none: §2002:7.2.11 is in the 2002 body, not an optional annex"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.12.1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "7.2.12.1 FLAG-NATIVE-ARITHMETIC directive",
+    "clause-2023": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>FLAG-NATIVE-ARITHMETIC { ON | OFF } (ON without underline: omitted means ON)",
+     "any other operand is malformed"
+    ],
+    "evidence-2002": {
+     "conforming forms accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob (ON, OFF) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_bare.cob (bare) compile at 2002",
+     "malformed refused": "NOT shown: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flagnat_x.cob (>>FLAG-NATIVE-ARITHMETIC MAYBE) compiles with no diagnostic at --std 2002, rc 0 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/b_flagnat_x-2002.out); the same compiler refuses >>LEAP-SECOND MAYBE (COBOL1911, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/b_leap_x-2002.out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.12.3 GR3",
+      "quote": "If OFF is specified, no flagging for native arithmetic shall occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.12.3 GR5",
+      "quote": "If the FLAG-NATIVE-ARITHMETIC directive is not specified, the default is off",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR3",
+      "quote": "a compiler directive shall be written in the program-text area and may be followed only by space characters and an optional inline comment",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (removed in 2023), so no pointer. As for FLAG-85, the operand is unchecked by decision (construct row flag-native-arithmetic-directive-window), so a malformed operand is accepted in silence at 2002. Already filed as kb/Work PB5600 (open).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flagnat_x.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "its own verdict after PB5600: at --std 2002 >>FLAG-NATIVE-ARITHMETIC MAYBE refused, ON/OFF/bare accepted",
+    "compiler-at-2002": "wrong (known: kb/Work PB5600). Program E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_flagnat_x.cob; expected a diagnostic (MAYBE is neither ON nor OFF of §2002:7.2.12.1); observed: compiles, prints ABC, rc 0",
+    "licence-2002": "none: §2002:7.2.12 is in the 2002 body"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.13.1",
+    "to": [
+     "FMT-7.3.16.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.13.1 IF directive",
+    "clause-2023": "7.3.16.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>IF constant-conditional-expression-1 [text-1] [>>ELSE [text-2]] >>END-IF",
+     "structure errors (ELSE without IF, ELSE twice, ELSE in EVALUATE, END-IF without IF, unclosed, opened in library text, trailing words)"
+    ],
+    "evidence-2002": {
+     "legal forms": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): conditional_compilation, pb1363_conditional_compilation_structure_legal, pb1363_omitted_branch_directives_legal MATCH at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+     "structure errors": "the pointer's pb1363/pb806 refusal cases give the same code at 2002 as at 2023 (COBOL2649, COBOL1619, COBOL1911): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr-summary.txt"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.1",
+      "quote": "IF constant-conditional-expression-1 text-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; every pointer witness gives the same result at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.14.1",
+    "to": [
+     "FMT-7.3.17.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.14.1 LEAP-SECOND",
+    "clause-2023": "7.3.17.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>LEAP-SECOND ON",
+     ">>LEAP-SECOND OFF",
+     ">>LEAP-SECOND with ON omitted (ON printed without underline in both editions)",
+     "any other operand is malformed"
+    ],
+    "evidence-2002": {
+     "ON / OFF accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "ON omitted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_bare.cob at 2002 (no diagnostic); the unit test's omissible half (ChoiceOmissible) at 2002",
+     "malformed refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_leap_x.cob (MAYBE: COBOL1911) at 2002 and 2023; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "note": "pb794_directive_operands does NOT run at 2002 (COBOL0900 on >>PUSH, >>POP, >>REF-MOD-ZERO-LENGTH, 2023-only directives in the same program), so its 2002 evidence is the unit tests and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.14.3 GR1",
+      "quote": "If the LEAP-SECOND directive is not specified, a LEAP-SECOND directive with the OFF phrase is implied",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format (2002 prints the indicator without the space 2023 prints; §2002:7.2.2 SR5 makes them the same). The pointer's unit evidence runs at 2002 and the probe confirms at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.15.1",
+    "to": [
+     "FMT-7.3.18.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.15.1 LISTING",
+    "clause-2023": "7.3.18.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>LISTING ON",
+     ">>LISTING OFF",
+     ">>LISTING with ON omitted (ON printed without underline in both editions)",
+     "any other operand is malformed"
+    ],
+    "evidence-2002": {
+     "ON / OFF accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "ON omitted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_bare.cob at 2002 (no diagnostic); the unit test's omissible half (ChoiceOmissible) at 2002",
+     "malformed refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_listing_x.cob (MAYBE: COBOL1911) at 2002 and 2023; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "note": "pb794_directive_operands does NOT run at 2002 (COBOL0900 on >>PUSH, >>POP, >>REF-MOD-ZERO-LENGTH, 2023-only directives in the same program), so its 2002 evidence is the unit tests and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.15.2 GR2",
+      "quote": "The default LISTING directive is '>>LISTING ON'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format (2002 prints the indicator without the space 2023 prints; §2002:7.2.2 SR5 makes them the same). The pointer's unit evidence runs at 2002 and the probe confirms at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.16.1",
+    "to": [
+     "FMT-7.3.19.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.16.1 PAGE",
+    "clause-2023": "7.3.19.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>PAGE",
+     ">>PAGE comment-text-1 (not checked syntactically)"
+    ],
+    "evidence-2002": {
+     "both forms accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002 (>>PAGE A PAGE COMMENT and bare >>PAGE); the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn)); the malformed half exempts page-directive-2002 by design (no malformed operand exists)",
+     "note": "pb794_directive_operands does NOT run at 2002 (COBOL0900 on >>PUSH, >>POP, >>REF-MOD-ZERO-LENGTH, 2023-only directives in the same program), so its 2002 evidence is the unit tests and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.16.2 SR2",
+      "quote": "Comment-text-1 is not checked syntactically",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; nothing can be malformed after >>PAGE. Shown at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.17.1",
+    "to": [
+     "FMT-7.3.21.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.17.1 PROPAGATE",
+    "clause-2023": "7.3.21.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>PROPAGATE ON",
+     ">>PROPAGATE OFF",
+     ">>PROPAGATE with ON omitted (ON printed without underline in both editions)",
+     "any other operand is malformed"
+    ],
+    "evidence-2002": {
+     "ON / OFF accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "ON omitted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_bare.cob at 2002 (no diagnostic); the unit test's omissible half (ChoiceOmissible) at 2002",
+     "malformed refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_propagate_x.cob (MAYBE: COBOL1911) at 2002 and 2023; the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "note": "the pointer's PropagateDirectiveTests.MalformedOperand_Rejected1911 and the unit tests; the probe shows it at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.17.3 GR4",
+      "quote": "The default for a compilation group is PROPAGATE OFF",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.2 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format (2002 prints the indicator without the space 2023 prints; §2002:7.2.2 SR5 makes them the same). The pointer's unit evidence runs at 2002 and the probe confirms at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.18.1",
+    "to": [
+     "FMT-7.3.24.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.18.1 SOURCE FORMAT",
+    "clause-2023": "7.3.24.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>SOURCE [FORMAT] [IS] { FIXED | FREE }",
+     "other operand malformed"
+    ],
+    "evidence-2002": {
+     "accepted": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob at 2002 (>>SOURCE FORMAT IS FIXED, >>SOURCE FIXED); the pointer's unit tests CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand / _DiagnosesAMalformedOperand diagnose at the row's IntroducedIn edition, which is 2002 for this directive (Diagnose(word, operand, row.IntroducedIn))",
+     "malformed": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb794-source-format-unknown and pb794-source-format-literal COBOL1911 at 2002 as at 2023; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_srcfmt_x.cob COBOL1911",
+     "note": "pb794_directive_operands does NOT run at 2002 (COBOL0900 on >>PUSH, >>POP, >>REF-MOD-ZERO-LENGTH, 2023-only directives in the same program), so its 2002 evidence is the unit tests and the probe"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.18.2 GR1",
+      "quote": "shall be treated as fixed form if FIXED is specified, or as free form if FREE is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format, FORMAT and IS optional in both. Pointer refusal cases and the unit tests hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.19.1",
+    "to": [
+     "FMT-7.3.25.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.19.1 TURN",
+    "clause-2023": "7.3.25.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     ">>TURN { exception-name-1 [file-name-1] ... } ... CHECKING { ON [WITH LOCATION] | OFF }, ON omissible",
+     "CHECKING missing, OFF WITH LOCATION, trailing words: malformed"
+    ],
+    "evidence-2002": {
+     "legal forms": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb1365_turn_checking_implied_on, _with_location_implied_on, _location_optional_with MATCH at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/d_ok.cob (EC-ALL ... ON WITH LOCATION, two names OFF, EC-I-O ON)",
+     "malformed": "pb1365-turn-off-with-location, -turn-directive-trailing-word, -turn-file-name-is-directive-word COBOL0718 at 2002 as at 2023; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/b_turn_nochk.cob COBOL0718"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.1",
+      "quote": "TURN exception-name-1 file-name-1 CHECKING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.2 SR5",
+      "quote": "If file-name-1 is specified, exception-name-1 shall begin with the COBOL characters 'EC-I-O'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format. The set of names exception-name-1 admits is 2002's 14.5.12.1 list (SR2), which is a separate rule; this format rule's structure is the same and its witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.3.1",
+    "to": [
+     "FMT-11.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.3.1 FACTORY paragraph",
+    "clause-2023": "11.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FACTORY. [IMPLEMENTS {interface-name-1}... .]"
+    ],
+    "evidence-2002": {
+     "form": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): oo_implements_repeated MATCH at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.3.1",
+      "quote": "FACTORY IMPLEMENTS interface-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/oo_implements_repeated-2002.out",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.1",
+    "to": [
+     "FMT-12.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.1 Input-output section",
+    "clause-2023": "12.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INPUT-OUTPUT SECTION. [FILE-CONTROL paragraph] [I-O-CONTROL paragraph], in that order"
+    ],
+    "evidence-2002": {
+     "both paragraphs": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): l1c16_io_section_paragraphs MATCH at 2002",
+     "order": "l1c16-io-control-before-file-control COBOL0001 at 2002 as at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:12.3.1",
+      "quote": "INPUT-OUTPUT SECTION file-control-paragraph i-o-control-paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.3.1",
+    "to": [
+     "FMT-13.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.3.1 File section",
+    "clause-2023": "13.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FD entry followed by [constant-entry | record-description-entry]...",
+     "SD entry followed by {constant-entry | record-description-entry}...",
+     "a type declaration here is a level-1 record-description-entry with the TYPEDEF clause (2002 has no separate type-declaration-entry)"
+    ],
+    "evidence-2002": {
+     "FD and SD with interleaved constants, a TYPEDEF entry and records": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): l1c11_file_section_constant_typedef MATCH at 2002",
+     "entry before FD": "l1c11-file-section-entry-before-fd COBOL0001 at 2002 as at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.3",
+      "quote": "The purpose of the file section is to describe the structure of data, sort, and merge files",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.56.3 GR1",
+      "quote": "If the TYPEDEF clause is specified, the data description entry is a type declaration",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 lists constant-entry and record-description-entry; 2023 adds type-declaration-entry. In 2002 the same text (01 T TYPEDEF ...) is a record description entry whose TYPEDEF clause makes it a type declaration, so the 2023 witness's program is a 2002 program and it runs identically at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/l1c11_file_section_constant_typedef-2002.out",
+    "widening": "2023 names type-declaration-entry as a third entry kind; in 2002 the same source is a record-description-entry with TYPEDEF"
+   },
+   {
+    "rule-id": "2002-FMT-8.3.1.2.1.1",
+    "to": [
+     "FMT-8.3.3.2.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.1.1 Alphanumeric literals",
+    "clause-2023": "8.3.3.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: \"{character-1}...\" and '{character-1}...', one or more characters (braces)",
+     "format 2: X\"{hex-character-sequence-1}...\" and X'...', one or more"
+    ],
+    "evidence-2002": {
+     "nonzero forms": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb1545_hex_alphanumeric_literal MATCH at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob at 2002 (\"AB\"\"\" -> AB\", X'4142' -> AB)",
+     "zero length refused": "probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/z_alnum.cob, z_alnum_apos.cob, z_hex.cob: COBOL0900 'the zero-length literal requires COBOL-2014' at 2002, accepted at 2023 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format writes the content in braces (one or more); the 2023 pointer writes it in brackets (zero or more: the zero-length literal, a 2014 addition). The 2023 verdict accepts the empty literal and so says nothing about the 2002 format's exclusion of it; also the pointer's r03_hexadecimal_national_and_boolean_literals is refused at 2002 (it uses X\"\", X''). The compiler refuses every empty form at --std 2002 (COBOL0900) and runs the nonempty forms correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is correct: nonempty forms accepted and valued right (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out), empty forms refused COBOL0900 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_*-2002.out). Candidate 2002 witnesses: the l_forms and z_* probes",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_alnum-2002.out and siblings)"
+   },
+   {
+    "rule-id": "2002-FMT-8.3.1.2.3.1",
+    "to": [
+     "FMT-8.3.3.4.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.3.1 Boolean literals",
+    "clause-2023": "8.3.3.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: B\"{boolean-character-1}...\" and B'...', one or more",
+     "format 2: BX\"{hexadecimal-digit-1}...\" and BX'...', one or more"
+    ],
+    "evidence-2002": {
+     "nonzero forms": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob at 2002 (B\"1010\" -> 1010, BX'A5' -> 10100101); the pointer's only witness l1c02_boolean_literal_forms is refused at 2002 (B\"\", B'', BX\"\", BX'')",
+     "zero length refused": "probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/z_bool.cob, z_hexbool.cob: COBOL0900 at 2002, accepted at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.3.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 boolean character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format writes the content in braces (one or more); the 2023 pointer writes it in brackets (zero or more: the zero-length literal, a 2014 addition). The 2023 verdict accepts the empty literal and so says nothing about the 2002 format's exclusion of it; also the pointer's only witness l1c02_boolean_literal_forms is refused at 2002. The compiler refuses every empty form at --std 2002 (COBOL0900) and runs the nonempty forms correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is correct: nonempty forms accepted and valued right (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out), empty forms refused COBOL0900 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_*-2002.out). Candidate 2002 witnesses: the l_forms and z_* probes",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_alnum-2002.out and siblings)"
+   },
+   {
+    "rule-id": "2002-FMT-8.3.1.2.4.1",
+    "to": [
+     "FMT-8.3.3.5.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.3.1.2.4.1 National literals",
+    "clause-2023": "8.3.3.5.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "format 1: N\"{character-1}...\" and N'...', one or more",
+     "format 2: NX\"{hex-character-sequence-1}...\" and NX'...', one or more"
+    ],
+    "evidence-2002": {
+     "nonzero forms": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob at 2002 (N'XY''' -> XY', NX\"0041\" -> A); the pointer's only witness r03_hexadecimal_national_and_boolean_literals is refused at 2002",
+     "zero length refused": "probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/z_nat.cob, z_hexnat.cob: COBOL0900 at 2002, accepted at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 national character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 format writes the content in braces (one or more); the 2023 pointer writes it in brackets (zero or more: the zero-length literal, a 2014 addition). The 2023 verdict accepts the empty literal and so says nothing about the 2002 format's exclusion of it; also the pointer's only witness r03 is refused at 2002. The compiler refuses every empty form at --std 2002 (COBOL0900) and runs the nonempty forms correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is correct: nonempty forms accepted and valued right (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out), empty forms refused COBOL0900 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_*-2002.out). Candidate 2002 witnesses: the l_forms and z_* probes",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/l_forms-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/r/z_alnum-2002.out and siblings)"
+   },
+   {
+    "rule-id": "2002-FMT-8.3.1.2.5.1",
+    "to": [
+     "FMT-8.3.3.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.3.1.2.5.1 Figurative constant values, formats 1-7",
+    "clause-2023": "8.3.3.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "[ALL] ZERO/ZEROS/ZEROES, SPACE(S), HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S)",
+     "ALL literal-1 (alphanumeric, boolean or national, SR2)",
+     "[ALL] symbolic-character-1"
+    ],
+    "evidence-2002": {
+     "ALL literal-1, national and boolean": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): pb71_all_national_boolean_figurative MATCH at 2002",
+     "formats 1-6": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob at 2002 (ALL \"AB\", ALL N\"Z\", ALL B\"10\", ALL ZEROES, ALL QUOTES, ALL HIGH-VALUE/HIGH-VALUES, LOW-VALUES/ALL LOW-VALUE, ALL SPACE)",
+     "format 7": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/f_symbolic.cob at 2002 (MOVE ALL STAR -> ****), same as 2023",
+     "SR1a": "ALL ZEROES with a numeric item refused COBOL0902 at 2002 (first l_forms run), as §2002:8.3.1.2.5.2 SR1a requires"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR2",
+      "quote": "Literal-1 shall be an alphanumeric, boolean, or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.2 SR1a",
+      "quote": "If the literal is restricted to a numeric literal, the only figurative constant permitted is ZERO",
+      "check": "OK"
+     }
+    ],
+    "reason": "The seven formats are identical in both editions (2023 adds only figure notes). Pointer witness and probes hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/p/l_forms.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.3.1",
+    "to": [
+     "FMT-12.4.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "12.3.3.1 FILE-CONTROL paragraph",
+    "clause-2023": "12.4.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FILE-CONTROL. [file-control-entry]..."
+    ],
+    "evidence-2002": {
+     "zero and two entries": "pointer cases run at 2002 and 2023 by E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/run.py (outputs E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr/, comparison E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/cmp.py): l1c10_file_control_no_entries, l1c10_file_control_two_entries MATCH at 2002",
+     "period": "l1c10-file-control-no-period COBOL0307 at 2002 as at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:12.3.3.1",
+      "quote": "FILE-CONTROL file-control-entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-45/ptr",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-45",
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45",
+  "root-cause-note": "Four of the five overturns share one mechanism: at --std 2002 the compiler classifies compiler-directive words by the 2023 list (§2023:8.12, cited in its own diagnostics COBOL2650/COBOL0718/COBOL0711) instead of the 2002 list (§2002:8.12). 2002 reserves FLAG-85, FLAG-NATIVE-ARITHMETIC and 2002's exception-names; 2023 instead reserves PUSH, POP, REF-MOD-ZERO-LENGTH, EQUATE, UNDEFINE, FLAG-02, FLAG-14, the 2014/2023 exception-names, and more. So legal 2002 directives that use a 2023-only directive word as a compilation-variable-name or file-name are refused, and 2002-illegal ones that use FLAG-85 are accepted. The 2002 rows that defer to the list (7.2.7.3.2 SR1, 7.2.9.2 SR1, 7.2.19.2 SR1/SR2) carry it into every format that admits a defined condition or a TURN file-name.",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-12.2.7.1",
+    "verdict": "OVERTURNED",
+    "reason": "The 2002 format's intrinsic-function-name-1 ranges over 2002's intrinsic functions only (2002 GR14: 'the intrinsic-function-names defined in 8.11'). The 2002 text has no FORMATTED-DATE (grep count 0), but 2023 does (§2023:15.39.1). So 'FUNCTION FORMATTED-DATE INTRINSIC' does not match the 2002 format. At --std 2002 the compiler accepts it with no diagnostic (r1_repo_intr-2002.out: ABC, exit 0). The 2023 verdict accepts the same line, so it says nothing about the 2002 exclusion. The declaration is ignored afterwards: a use of FORMATTED-DATE(...) gives COBOL1639 at 2002 (r1c), so the program fails later, not at the REPOSITORY entry. The REPOSITORY check is missing at 2023 as well: 'FUNCTION NO-SUCH-FUNC INTRINSIC' is accepted at both editions (r1e), a lead against the 2023 row FMT-12.3.8.2. The rest of the reader's scope (specifier shapes, period placement) holds.",
+    "citations": [
+     {
+      "cite": "§2002:12.2.7.1",
+      "quote": "intrinsic-function-name-1 FUNCTION INTRINSIC",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.7.3 GR14",
+      "quote": "it is as if each of the intrinsic-function-names defined in 8.11, Intrinsic function names, were specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.39.1",
+      "quote": "The FORMATTED-DATE function uses a format to convert a date in integer date form",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r1_repo_intr.cob accepted at --std 2002 with no diagnostic (r/r1_repo_intr-2002.out); expected a diagnostic because FORMATTED-DATE is not a 2002 intrinsic-function-name",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r1_repo_intr.cob"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.7.3.1",
+    "verdict": "OVERTURNED",
+    "reason": "The format text is the same in both editions. Its operand is restricted by SR1 ('not the same as a compiler-directive reserved word'), and SR1 leans on 8.12's list, which differs between the editions: 2002's list has no PUSH, POP or REF-MOD-ZERO-LENGTH, and 2002 reserves FLAG-85. At --std 2002 the compiler applies 2023's list. (a) It refuses the legal 2002 condition '>>IF POP IS NOT DEFINED' with COBOL2650, citing §2023:8.12 and §2023:7.3.8.4.3 SR1 (r5c_isdef_pop-2002.out); PUSH is refused the same way (r5_def_push). (b) It accepts the 2002-illegal pair '>>DEFINE FLAG-85 AS 1' and '>>IF FLAG-85 IS DEFINED', printing F85-DEF with exit 0 (r5b_def_flag85-2002.out). The 2023 verdict cannot show either 2002 case.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.3.1",
+      "quote": "compilation-variable-name-1 IS NOT DEFINED",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.3.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.4.3 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong: r5c_isdef_pop.cob (legal 2002) refused COBOL2650; r5b_def_flag85.cob (FLAG-85 is a 2002 compiler-directive word) accepted, prints F85-DEF; outputs in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/r/",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r5c_isdef_pop.cob"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.8.1",
+    "verdict": "UPHELD",
+    "reason": "The same diagram in both editions (§2002:7.2.8.1, §2023:7.3.9.2): COBOL or call-convention-name-1. 2002 has no syntax rules here, and call-convention-name-1 is implementor-defined in both editions. The reader's probes hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.10.1",
+    "verdict": "OVERTURNED",
+    "reason": "In format 2 the operand is WHEN constant-conditional-expression-1, which SR16 sends to 7.2.7, and 7.2.7 SR1c admits a defined condition. A defined condition naming REF-MOD-ZERO-LENGTH is legal in 2002, because REF-MOD-ZERO-LENGTH is not a 2002 compiler-directive word (it is absent from the 2002 text). At --std 2002 the compiler refuses '>>EVALUATE TRUE / >>WHEN REF-MOD-ZERO-LENGTH IS NOT DEFINED' with COBOL2650, citing §2023:8.12 (r7_eval_pop-2002.out). This is the same root as 7.2.7.3.1, reached through this format's operand. The format-1 operands and the structure errors hold, as the reader showed.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.1",
+      "quote": "EVALUATE TRUE WHEN constant-conditional-expression-1 text-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.2 SR16",
+      "quote": "Constant-conditional-expression-1 shall be formed in accordance with 7.2.7, Constant conditional expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1",
+      "quote": "A constant conditional expression shall be one of the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.3.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r7_eval_pop.cob refused COBOL2650 at --std 2002 (r/r7_eval_pop-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r7_eval_pop.cob"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.13.1",
+    "verdict": "OVERTURNED",
+    "reason": "The IF operand constant-conditional-expression-1 admits a defined condition (7.2.7 SR1c). '>>IF POP IS NOT DEFINED' is a legal 2002 IF directive, because POP is not a 2002 compiler-directive word. At --std 2002 the compiler refuses it with COBOL2650, citing §2023:8.12 (r5c_isdef_pop-2002.out). This is the same root as 7.2.7.3.1. The 2023 '<>' operator in a constant conditional expression is correctly refused at 2002 (r3_if_ne-2002.out: COBOL0900).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.13.1",
+      "quote": "IF constant-conditional-expression-1 text-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1",
+      "quote": "A constant conditional expression shall be one of the following",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.3.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r5c_isdef_pop.cob refused COBOL2650 at --std 2002",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r5c_isdef_pop.cob"
+   },
+   {
+    "rule-id": "2002-FMT-7.2.14.1",
+    "verdict": "UPHELD",
+    "reason": "The same ON/OFF diagram, with ON unmarked, in both editions. The format has no user-word operand that the change in directive words could reach. The reader's probes hold at 2002. 2023's wider general rules (FORMATTED-DATE, SECONDS-PAST-MIDNIGHT) are GR rows, not this format.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.15.1",
+    "verdict": "UPHELD",
+    "reason": "The same ON/OFF diagram in both editions, with no user-word operand. The reader's probes hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.16.1",
+    "verdict": "UPHELD",
+    "reason": "The format is the same, PAGE [comment-text-1], and SR1/SR2 are the same in both editions. Nothing in the format can be malformed.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.17.1",
+    "verdict": "UPHELD",
+    "reason": "The same ON/OFF diagram in both editions, with no user-word operand. The reader's probes hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.18.1",
+    "verdict": "UPHELD",
+    "reason": "The same diagram in both editions: SOURCE [FORMAT] [IS] FIXED|FREE, with FORMAT and IS optional. 2023 adds no third form. The reader's refusal cases hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-7.2.19.1",
+    "verdict": "OVERTURNED",
+    "reason": "The format text is the same, but its file-name-1 operand is decided by SR1: a word 'that duplicates a compiler-directive word' is taken as that word, and 8.12's list differs between the editions. POP is a legal 2002 file-name (absent from the 2002 text), so '>>TURN EC-I-O POP CHECKING ON' with SELECT POP is a legal 2002 directive. At --std 2002 the compiler refuses it with COBOL0718, citing §2023:7.3.25.3 SR1 and §2023:8.12 (r6_turn_file_pop-2002.out). Two further 2002 defects belong to the SR rows (leads for 2002-SR-7.2.19.2-2 and -3). First, '>>TURN EC-BOUND-SET CHECKING ON' is accepted at 2002 (r2_turn_ec) although EC-BOUND-SET is not a 2002 exception-name; COBOL0711 shows the compiler checks against the §2023:14.6.13.1 list. Second, '>>TURN EC-I-O F1 EC-I-O F2 CHECKING ON' is accepted at 2002 (r4_turn_dup) although 2002 SR3 forbids naming one exception-name twice; that is 2023's SR3 combination rule applied at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.19.1",
+      "quote": "TURN exception-name-1 file-name-1 CHECKING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.2 SR1",
+      "quote": "Any user-defined word that duplicates a compiler-directive word is interpreted as a compiler-directive word rather than as file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.3 SR1",
+      "quote": "Any user-defined word that duplicates a compiler-directive word is interpreted as a compiler-directive word rather than as file-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.2 SR2",
+      "quote": "Exception-name-1 shall be one of the exception names listed in 14.5.12.1, Exception conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.2 SR3",
+      "quote": "No exception-name shall be specified more than once in one TURN directive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.25.3 SR3",
+      "quote": "No exception-name-1 and file-name-1 combination shall be specified more than once in a TURN directive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "compiler-at-2002": "wrong: r6_turn_file_pop.cob (legal 2002) refused COBOL0718; r2_turn_ec.cob (EC-BOUND-SET) and r4_turn_dup.cob (duplicate EC-I-O) accepted; all in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-45/p/r6_turn_file_pop.cob"
+   },
+   {
+    "rule-id": "2002-FMT-11.3.1",
+    "verdict": "UPHELD",
+    "reason": "The diagram and the syntax rules are the same in both editions (§2002:11.3, §2023:11.4). The format has no directive or communication reach. The witness holds at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.1",
+    "verdict": "UPHELD",
+    "reason": "The format is the same in both editions: [file-control-paragraph] [i-o-control-paragraph]. 2023's I-O-CONTROL adds APPLY COMMIT, which widens that paragraph's own row, not this section format. 2002's I-O-CONTROL has only SAME clauses, a subset. The witnesses hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.3.1",
+    "verdict": "UPHELD",
+    "reason": "2002 has the same bracket/brace structure as 2023, minus type-declaration-entry. In 2002 a TYPEDEF entry is a record-description-entry, so the reader's widening note is right. The rule has no communication reach: a CD lives in the communication section, not the file section.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.3.1.2.5.1",
+    "verdict": "UPHELD",
+    "reason": "Formats 1 to 7 are identical in both editions. Zero-length literal-1 is excluded in 2002 by the literal rules, and the reader's probes show it refused at 2002. The format has no user-word operand that the change in directive words reaches.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-12.3.3.1",
+    "verdict": "UPHELD",
+    "reason": "The format is identical in both editions: FILE-CONTROL. [file-control-entry]... The entry's own formats are separate rows. The witnesses hold at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "leads": [
+   "2002-SR-7.2.7.3.2-1 and 2002-SR-7.2.9.2-1: at --std 2002 the compiler judges compiler-directive words by §2023:8.12. It refuses PUSH, POP and REF-MOD-ZERO-LENGTH and accepts FLAG-85 (r5, r5b, r5c, r7).",
+   "2002-SR-7.2.19.2-2: EC-BOUND-SET, a 2023-only exception-name, is accepted in >>TURN at 2002 (r2_turn_ec).",
+   "2002-SR-7.2.19.2-3: one exception-name named twice in a TURN directive is accepted at 2002 (r4_turn_dup).",
+   "FMT-12.3.8.2 (2023 row): 'FUNCTION NO-SUCH-FUNC INTRINSIC' is accepted with no diagnostic at 2023 too (r1e_repo_bogus)."
+  ]
+ },
+ "imported": {
+  "asked": "38a1b4f9caf0bac66f535d14671d6e9cdaf48985bd1d1872f3e3d3dcd5a4ea60",
+  "read": "2cff261f9863fc9e75a6359c9d1fbf818ccae80545dba22267f7d3ed1f05aaf9",
+  "refute": "9e57cc55cb05a5c713af98df17f684abe3c652e641249cb431285014578fc277"
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-11.7.1",
+ "rule-digest": "3531d215efb6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#objectParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#implementsClause",
+ "test-ref": "conformance:cases/11.4-FACTORY/oo_implements_repeated",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-11.8.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. Cited: §2002:11.7."
+}

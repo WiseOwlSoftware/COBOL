@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.33.2-11",
+ "rule-digest": "f1f62a527afd",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.35-LINE/a42-screen-line",
+ "notes": "Own verdict from the read lineage-reads-2002/u-15.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.35.3-11, witnessed at 2002 by the cases test-ref names. The read: Same words (the en dash is the transcription of the minus symbol). The twin is DOCUMENTED-NON-SUPPORT under 2023's A.4.2; 2002 licenses the same decline through B.3 item 1 (the screen section is processor-dependent) and 3.1.5, which also requires a compile-time warning for unsupported processor-dependent elements: the compiler refuses with COBOL1560 at 2002. Cited: §2002:13.16.33.2 SR11; §2002:B.3; §2002:3.1.5."
+}

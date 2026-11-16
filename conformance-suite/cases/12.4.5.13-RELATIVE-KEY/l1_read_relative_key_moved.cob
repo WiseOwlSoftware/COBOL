@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_read_relative_key_moved
       *> rules: [GR-12.4.5.13.4-2, GR-14.9.30.4-25]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

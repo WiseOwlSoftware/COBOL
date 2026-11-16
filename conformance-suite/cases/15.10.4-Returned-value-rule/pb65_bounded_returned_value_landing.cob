@@ -2,7 +2,7 @@
 *> id: pb65_bounded_returned_value_landing
 *> rules: [RV-15.10.4-1, RV-15.11.4-1, RV-15.75.4-1, FMT-15.10.2,
 *>    FMT-15.11.2, GR-14.7.4.3-2, GR-14.7.4.3-4, GR-14.9.8.4-2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

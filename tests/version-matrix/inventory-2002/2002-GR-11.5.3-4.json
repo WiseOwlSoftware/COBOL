@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.5.3-4",
+ "rule-digest": "b9ade959ae51",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#AddSkeleton; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#SubstitutedTokens",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "notes": "Own verdict from the read lineage-reads-2002/u-08.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-11.6.4-4, witnessed at 2002 by the cases test-ref names. The read: Term rename only (OO class-name = object-class-name); identical INTERFACE-ID format. Cited: §2002:11.5.3 GR4."
+}

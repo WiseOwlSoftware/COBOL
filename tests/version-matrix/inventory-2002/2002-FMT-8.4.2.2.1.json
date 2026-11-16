@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.2.1",
+ "rule-digest": "b9a92996b7b5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptPart",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb969_empty_argument_list",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.2.2, witnessed at 2002 by the cases test-ref names. The read: 2002 lacks function-pointer-name-1 (a 2014+ addition whose golden runs at 2014); the 2002 alternatives are a subset covered at 2002. Cited: §2002:8.4.2.2."
+}

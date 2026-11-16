@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-10.6.1",
+ "rule-digest": "0e6bbcaf722a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#methodDefinition; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionIdParagraph",
+ "test-ref": "conformance:cases/10.7-End-markers/pb988_end_markers",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-10.7.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart. Cited: §2002:10.6.2 SR1."
+}

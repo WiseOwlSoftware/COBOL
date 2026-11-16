@@ -1,0 +1,1633 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-07 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-07",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-8.4.2.12.3-1",
+   "2002-SR-8.4.2.13.2-3",
+   "2002-GR-8.4.2.13.3-2",
+   "2002-SR-8.4.2.14.2-2",
+   "2002-SR-8.4.3.2-2",
+   "2002-SR-8.7.5.2-1",
+   "2002-GR-8.8.1.3.1.3-1",
+   "2002-GR-8.8.1.3.1.3-2",
+   "2002-GR-8.8.1.3.1.3-3",
+   "2002-SR-8.8.3.2-2",
+   "2002-SR-8.8.3.2-3",
+   "2002-SR-8.8.3.2-4",
+   "2002-GR-8.8.3.3-2",
+   "2002-SR-8.8.4.1.1.2-1",
+   "2002-SR-8.8.4.1.1.2-2",
+   "2002-SR-8.8.4.1.1.2-3",
+   "2002-SR-8.8.4.1.1.2-4",
+   "2002-SR-8.8.4.1.1.2-5",
+   "2002-SR-8.8.4.1.2.2-1",
+   "2002-GR-8.8.4.1.2.3-1",
+   "2002-GR-8.8.4.1.2.3-2",
+   "2002-SR-8.8.4.1.3.2-1",
+   "2002-SR-8.8.4.1.3.2-2",
+   "2002-SR-8.8.4.1.3.2-3",
+   "2002-SR-8.8.4.2.4.2-2"
+  ],
+  "pointers": {
+   "2002-GR-8.4.2.12.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-8.4.3.13.4-1",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.2.13.2-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.3.14.3-3",
+    "similarity": 1.0
+   },
+   "2002-GR-8.4.2.13.3-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-8.4.3.14.4-2",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.2.14.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.3.15.3-2",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.3.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.4.3-2",
+    "similarity": 1.0
+   },
+   "2002-SR-8.7.5.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.7.5.2-2",
+    "similarity": 0.459
+   },
+   "2002-GR-8.8.1.3.1.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.1.3.1.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.1.3.1.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.3.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.8.3.2-2",
+    "similarity": 0.981
+   },
+   "2002-SR-8.8.3.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.8.3.2-3",
+    "similarity": 0.979
+   },
+   "2002-SR-8.8.3.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.8.3.2-4",
+    "similarity": 0.98
+   },
+   "2002-GR-8.8.3.3-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-8.8.3.3-2",
+    "similarity": 0.698
+   },
+   "2002-SR-8.8.4.1.1.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.1.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.1.2-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.1.2-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.1.2-5": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.2.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.2.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.2.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.3.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.3.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.1.3.2-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.8.4.2.4.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.8.4.12.3-2",
+    "similarity": 0.992
+   }
+  }
+ },
+ "read": {
+  "slice": "u-07",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-1",
+    "to": [
+     "GR-8.4.3.13.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.12",
+    "clause-2023": "8.4.3.13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR1",
+      "quote": "creates a unique data item of class pointer and category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR1",
+      "quote": "creates a unique data item of class pointer and category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.12.2 SR1",
+      "quote": "Identifier-1 shall be of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "the program-name is treated as a COBOL word that maps to the externalized name of the program",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ADDRESS OF PROGRAM identifier-1 (alphanumeric or national item, including a CD field of a 2002 communication description entry)",
+     "ADDRESS OF PROGRAM literal-1 (alphanumeric or national)",
+     "ADDRESS OF PROGRAM program-prototype-name-1",
+     "name-to-program mapping per 8.3.1.1.1 (COBOL convention: the name treated as a COBOL word)"
+    ],
+    "evidence-2002": {
+     "identifier-1": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.13-Program-address-identifier/pb549_program_address_identifier and pb1452_program_address_identifier_operands (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "identifier-1 as CD field": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p01_pa_cd_field.cob (PASS at 2002: SYMBOLIC QUEUE content 'P01SUB' locates and CALLs the program)",
+     "literal-1": "covered by pb549_program_address_identifier (PASS at 2002) and p01 (lower-case literal \"p01sub\" locates P01SUB)",
+     "program-prototype-name-1": "covered by pb549_program_address_identifier (PROTO leg, PASS at 2002)",
+     "mapping": "covered by pb549 (lower-case content locates the program) and l1c23_program_address_outermost (PASS at 2002)"
+    },
+    "reason": "Words identical; general format identical (identifier-1 / literal-1 / program-prototype-name-1). The referenced 8.3.1.1.1 (2002) and 8.3.2.2 (2023) state the same naming-convention rule for a program-address-identifier (COBOL convention: a COBOL word mapped as a program-name without AS; CALL-CONVENTION call-convention-name: a literal). 2023 SR2 adds 'whose length is not zero', irrelevant at 2002 (no zero-length literal). The only 2002-only reach is identifier-1 naming an alphanumeric CD field; the rule's semantics are the same for any alphanumeric item and the probe shows it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p01_pa_cd_field.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.13.2-3",
+    "to": [
+     "SR-8.4.3.14.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.13",
+    "clause-2023": "8.4.3.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.2 SR3",
+      "quote": "Qualification requirements for LINAGE-COUNTER are defined by 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.3 SR3",
+      "quote": "Qualification requirements for LINAGE-COUNTER are defined by 8.4.2.2, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.2 SR6",
+      "quote": "LINAGE-COUNTER shall be qualified if more than one file description entry containing a LINAGE clause has been specified in the source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR8",
+      "quote": "may be referenced within the source element in which the reference to LINAGE-COUNTER occurs",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "unqualified LINAGE-COUNTER where more than one LINAGE FD is specified in the source element: refused",
+     "unqualified LINAGE-COUNTER where the source element specifies one LINAGE FD and a containing program has a GLOBAL LINAGE FD: legal, the own file's counter (2002 counts FDs specified in the source element)",
+     "qualified LINAGE-COUNTER IN/OF file-name"
+    ],
+    "evidence-2002": {
+     "two FDs unqualified": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03_linage_two_fd_unqualified.cob (COBOL5997 at 2002); the pointer's LinageConformanceTests.UnqualifiedCounter_TwoLinageFiles_IsRejected (C#, not run here)",
+     "own-entries count": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.1.1.2@2002-LINAGE-COUNTER/pb5166-linage-counter-own-entries-2002 (PASS at 2002); NOT shown by the pointer's row, whose rule (2023 8.4.2.2.3 SR8) counts the files that may be referenced",
+     "qualified": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03b_linage_two_fd_qualified.cob (PASS at 2002: 04 01)"
+    },
+    "reason": "Identical words but the rule only defers to 'Qualification', and the deferred rule differs: 2002 8.4.1.1.2 SR6 counts LINAGE FDs 'specified in the source element', 2023 8.4.2.2.3 SR8 counts those that 'may be referenced within the source element' (so a container's GLOBAL LINAGE FD counts in 2023, not in 2002). The pointer's evidence shows the two-FDs refusal only; the 2002-only acceptance is shown by the 2002 case pb5166.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03_linage_two_fd_unqualified.cob",
+    "class": "deferral",
+    "needs": "KEPT with the 2002 witness pb5166-linage-counter-own-entries-2002 (row 2002-SR-8.4.1.1.2-6) beside the pointer's evidence; or its own verdict: the compiler's behaviour at --std 2002 is correct (pb5166 PASS, p03 refused, p03b PASS)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03_linage_two_fd_unqualified.cob, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03b_linage_two_fd_qualified.cob, pb5166)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.13.3-2",
+    "to": [
+     "GR-8.4.3.14.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.13",
+    "clause-2023": "8.4.3.14",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13.3 GR2",
+      "quote": "The semantics of the LINAGE-COUNTER identifier is described in 13.16.32, LINAGE clause, general rule 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.4 GR2",
+      "quote": "The semantics of the LINAGE-COUNTER identifier is described in 13.18.34, LINAGE clause, General rule 7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.3 GR7",
+      "quote": "A separate LINAGE-COUNTER is supplied for each file described in the file section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR7",
+      "quote": "A separate LINAGE-COUNTER is supplied for each file described in the file section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINAGE GR7 a) separate counter per LINAGE file",
+     "b) read-only, qualified when necessary",
+     "c1) ADVANCING PAGE reset to one",
+     "c2) ADVANCING n adds n",
+     "c3) plain WRITE adds one",
+     "c4) reset to one on each succeeding logical page",
+     "d) one at OPEN OUTPUT"
+    ],
+    "evidence-2002": {
+     "c1/c4 and overflow": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.3.14-LINAGE-COUNTER/pb578_advancing_page_eop_overflow and pb578_advancing_page_overflow_85 (PASS at 2002)",
+     "a), d), c2)": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03b_linage_two_fd_qualified.cob (two counters; OPEN OUTPUT gives 1, AFTER 3 gives 4; PASS at 2002) and pb5166 (01 after OPEN OUTPUT, PASS at 2002)",
+     "b) qualification": "covered as for 2002-SR-8.4.2.13.2-3 (pb5166, p03, p03b)",
+     "c2/c3 C# witnesses": "LinageConformanceTests.Gr7c2/Gr7c3 (C#, not run here)"
+    },
+    "reason": "Pointer rule: only the clause number differs (13.16.32 vs 13.18.34). I compared the referenced LINAGE GR7 a)-d) of both editions word for word: identical, including 'qualify LINAGE-COUNTER by file-name when necessary', which itself defers to qualification (handled at the SR3 row). No CD or debugging reach (file section only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p03b_linage_two_fd_qualified.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.14.2-2",
+    "to": [
+     "SR-8.4.3.15.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14",
+    "clause-2023": "8.4.3.15",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14.2 SR2",
+      "quote": "Qualification requirements for PAGE-COUNTER and LINE-COUNTER are defined by 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.3 SR2",
+      "quote": "Qualification requirements for PAGE-COUNTER and LINE-COUNTER are defined by 8.4.2.2, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.2 SR8",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR10",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division if more than one report description entry is specified in the source element",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "PAGE-COUNTER/LINE-COUNTER qualified in the procedure division when more than one RD",
+     "report section: unqualified counter is the enclosing RD's",
+     "counter of a different report qualified by its report-name"
+    ],
+    "evidence-2002": {
+     "all three": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.2.2-Qualification/pb1456_other_report_counters_85 and pb1456_counter_in_source_expression (PASS at 2002) and pb1456-counter-qualified-by-report-group (refused COBOL2729 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)"
+    },
+    "reason": "Identical words; the deferred rules are identical: 2002 8.4.1.1.2 SR7/SR8 read word for word as 2023 8.4.2.2.3 SR9/SR10, and 2002 Format 8 (qualified-report-counter) matches 2023's. The NOTE is identical. No CD reach (counters are qualified by report-name only).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.3.2-2",
+    "to": [
+     "SR-8.4.4.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.3",
+    "clause-2023": "8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.3.2 SR2",
+      "quote": "Qualified-condition-name-with-subscripts-1 is defined by 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.4.3 SR2",
+      "quote": "Qualified-condition-name-with-subscripts-1 is defined by 8.4.2.2, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "condition-name-1 [ data-qualifier ] …[ file-cd-report-qualifier ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR5",
+      "quote": "Record description entries following an input CD entry implicitly redefine the record area established by the input CD entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "qualified-condition-name per 2002 8.4.1.1 Format 2: data-qualifiers, then file-name / cd-name / report-name",
+     "a condition-name under a record description entry following a CD, qualified by its cd-name (2002 only)",
+     "subscripts per 8.4.1.2"
+    ],
+    "evidence-2002": {
+     "data/file qualifiers": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.2.2-Qualification/pb567_condition_name_qualification (PASS at 2002; includes the FILE qualifier legs) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "cd-name qualifier": "not shown by the pointer's row; covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p02_cn_cd_qualifier.cob (PASS at 2002: IS-A OF CDIN, IS-A OF F1 OF CREC OF CDIN, IS-A OF CREC IN CDIN true; IS-A OF W false; SET IS-A OF W TO TRUE moves A)"
+    },
+    "reason": "Identical words, but the deferred-to 2002 Format 2 (qualified-condition-name) ends with file-cd-report-qualifier, whose alternatives are file-name-1, cd-name-1 and report-name-1; 2023's format has file-name-1 only. So in 2002 the rule also governs condition-names in CD record entries qualified by a cd-name, which the 2023 row's evidence cannot show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p02_cn_cd_qualifier.cob",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the cd-name qualifier of a condition-name (probe p02_cn_cd_qualifier.cob is the candidate); the rest KEPT to SR-8.4.4.3-2",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p02_cn_cd_qualifier.cob)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.7.5.2-1",
+    "to": [
+     "SR-8.7.5.2-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.7.5",
+    "clause-2023": "8.7.5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator that defines the comparison to be executed for truth value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR2",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR4",
+      "quote": "NOT > is an abbreviation for NOT GREATER THAN",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2",
+      "quote": "then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NOT with a simple relational operator (GREATER THAN, >, LESS THAN, <, EQUAL TO, =) forms ONE relational operator, in relation Formats 1 (general), 2 (boolean) and 3 (pointer/object)",
+     "in an abbreviated combined relation condition that one operator is what is carried to the following objects (2002 8.8.4.2.4.3 GR2b)",
+     "no NOT form of the extended operators (>=, <=) exists"
+    ],
+    "evidence-2002": {
+     "formats 1/2/3": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p04_not_one_operator.cob (PASS at 2002) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set, l1c26_relational_operator_spellings (PASS at 2002)",
+     "abbreviated carry": "covered by the 2002 case E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2.4@2002-ABBREVIATED-COMBINED-RELATION-CONDITIONS/pb5123_not_is_simple_operator_2002 (PASS at 2002) and p04 (A NOT = 5 OR 6 true)",
+     "no NOT >= / <=": "covered by pb1034-not-gteq, pb1034-not-lteq, pb1034-not-greater-or-equal-words, pb1034-not-less-or-equal-words (refused COBOL0001 at 2002)"
+    },
+    "reason": "No word-identical 2023 rule: 2023 drops this rule and instead lists the NOT forms (NOT >, NOT <, NOT =, ...) as extended relational operators in Format 2. The 2002 statement that NOT plus a simple operator is one operator is therefore 2002's own text; its observable consequence (the negated operator is carried as a unit in abbreviated conditions) is shown by the 2002 case pb5123 and probe p04, not by the pointer row's evidence (which tests the operator spellings).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p04_not_one_operator.cob",
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for NOT with a simple relational operator is correct (p04, pb5123_not_is_simple_operator_2002, pb1034 set)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p04_not_one_operator.cob)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.1.3.1.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.1.3.1.3",
+    "clause-2023": "none (2023 has no standard arithmetic; 8.8.1.3 is Native arithmetic)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "When a standard intermediate data item is compared except when the comparison is among the arguments of an intrinsic function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "under ARITHMETIC IS STANDARD a standard intermediate data item that is compared (relation, sign condition) is rounded to 31 digits as the ROUNDED phrase rounds",
+     "except among the arguments of an intrinsic function: not rounded, all 32 digits"
+    ],
+    "evidence-2002": {
+     "comparison rounding": "covered on main by conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation and unit:StandardIntermediateDataItemTests (inventory-2002 row recorded CONFORMS, batch pb5575-rt-std-arith-2002, kb/Work PB5575 run-time arm); the pinned tree E:/COBOL-wt/coderead85-tree-d predates that landing (no 8.8.1.3@2002 folder), so not re-run here",
+     "intrinsic-argument exception": "stated in the main row's notes as not rounded; no separate witness"
+    },
+    "reason": "No pointer: the 2023 standard has no standard arithmetic and no standard intermediate data item. The rule is 2002's own (32-digit model, 31-digit rounding). The 2002 inventory already holds its own CONFORMS row with a 2002 witness on main.",
+    "class": "own-text",
+    "needs": "its own verdict: already recorded (inventory-2002/2002-GR-8.8.1.3.1.3-1.json, CONFORMS, kb/Work PB5575 run-time arm); no read-2002 action beyond keeping that row",
+    "compiler-at-2002": "correct on main per the landed witness pb5575-rt-std-arith-32-digit-truncation; wrong on the pinned tree (34-digit model, kb/Work PB5575, known, not re-probed per the brief)",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.1.3.1.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.1.3.1.3",
+    "clause-2023": "none (2023 has no standard arithmetic)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR2",
+      "quote": "When a standard intermediate data item is the argument of a function and there is no equivalent arithmetic expression defined for the rules of the function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "under ARITHMETIC IS STANDARD a standard intermediate argument of a function with no equivalent arithmetic expression is rounded to 31 digits, unless the function's rules say otherwise or situation 1 applies"
+    ],
+    "evidence-2002": {
+     "argument rounding": "not shown: kb/Work PB5575 (open) records that situation 2 is not implemented (intrinsic bodies still form their values on the 34-digit engine and no rounding is written at the argument lift)"
+    },
+    "reason": "No pointer (2023 has no standard arithmetic). 2002's own rule; the open arm of the known defect PB5575 covers exactly this situation.",
+    "class": "own-text",
+    "needs": "its own verdict after kb/Work PB5575's situation-2 arm lands (a 2002 witness: a function with no equivalent arithmetic expression given a 32-digit standard intermediate argument)",
+    "compiler-at-2002": "wrong (known, kb/Work PB5575 open arm 'situation 2'; not re-probed per the brief: do not rediscover)",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.1.3.1.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.1.3.1.3",
+    "clause-2023": "none (2023 has no standard arithmetic)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR3",
+      "quote": "When a standard intermediate data item is being moved to a resultant-identifier for which the ROUNDED phrase has not been specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "A standard intermediate data item shall be rounded to 31 digits in the situations listed below",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "under ARITHMETIC IS STANDARD a standard intermediate moved to a resultant-identifier without ROUNDED is first rounded to 31 digits (size error / EC-SIZE-OVERFLOW possible)",
+     "with ROUNDED the receiver's rounding per 14.6.3"
+    ],
+    "evidence-2002": {
+     "both": "covered on main by conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-rt-std-arith-32-digit-truncation and pb5575-rt-std-arith-before-2002 (inventory-2002 row CONFORMS, batch pb5575-rt-std-arith-2002); pinned tree predates the landing, not re-run here. kb/Work PB5575 still lists one gap: a ROUNDED MODE IS TRUNCATION receiver is read as no ROUNDED phrase at the transfer (ROUNDED MODE is not 2002 syntax: COBOL0803 at 2002 per S1 lists, so it does not reach 2002 programs)"
+    },
+    "reason": "No pointer; 2002's own rule, already recorded CONFORMS in the 2002 inventory with its own witness on main.",
+    "class": "own-text",
+    "needs": "its own verdict: already recorded (inventory-2002/2002-GR-8.8.1.3.1.3-3.json, CONFORMS)",
+    "compiler-at-2002": "correct on main per the landed witness; wrong on the pinned tree (kb/Work PB5575, known, not re-probed)",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.3.2-2",
+    "to": [
+     "SR-8.8.3.2-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.3",
+    "clause-2023": "8.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.2 SR2",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.2 SR2",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 8,191 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "alphanumeric concatenation result at most 160 positions"
+    ],
+    "evidence-2002": {
+     "160 bound": "covered by the pointer row's conformance-test:LiteralScreenTests.LiteralLength_BoundIsTheEditions, whose rows include (2002, concat, 160, accepted) and (2002, concat, 161, COBOL1545) (C#, not run here), and by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05a_concat_160_accepted.cob (PASS) and p05b_alnum_concat_161_refused.cob (COBOL1545 'the maximum is 160 at COBOL-2002')"
+    },
+    "reason": "The words differ only in the number (2002: 160; 2023: 8,191). The pointer row records the edition-dependent bound (CobolLiteral.MaxPositions(edition), 160 below 2014) and its evidence has 2002 rows for the alphanumeric concatenation, so the 2002 requirement is covered by the pointer's evidence at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05b_alnum_concat_161_refused.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.3.2-3",
+    "to": [
+     "SR-8.8.3.2-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.3",
+    "clause-2023": "8.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.2 SR3",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 160 boolean character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.2 SR3",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 8,191 boolean character positions",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "boolean concatenation result at most 160 boolean positions"
+    ],
+    "evidence-2002": {
+     "160 bound": "not shown by the pointer's evidence (its 2002 rows test a single boolean literal and an alphanumeric concatenation, not a boolean concatenation); covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05a_concat_160_accepted.cob (B 160 accepted and correct) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05c_boolean_concat_161_refused.cob (COBOL1545 'the concatenated boolean value is 161 ... the maximum is 160 at COBOL-2002')"
+    },
+    "reason": "The words differ in the number (2002: 160; 2023: 8,191); the 2023 row's evidence shows the 8,191 bound and only alphanumeric concatenation at 2002, so the 2002 boolean bound needs its own witness. The compiler is right.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05c_boolean_concat_161_refused.cob",
+    "class": "own-text",
+    "needs": "a 2002 witness for the 160-position boolean concatenation bound (probes p05a/p05c are the candidates)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05c_boolean_concat_161_refused.cob, p05a_concat_160_accepted.cob)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.3.2-4",
+    "to": [
+     "SR-8.8.3.2-4"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.3",
+    "clause-2023": "8.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.2 SR4",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 160 national character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.2 SR4",
+      "quote": "the length of the value resulting from concatenation shall be less than or equal to 8,191 national character positions",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "national concatenation result at most 160 national positions"
+    ],
+    "evidence-2002": {
+     "160 bound": "not shown by the pointer's evidence (no national concatenation row at 2002); covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05a_concat_160_accepted.cob (N 160 accepted and correct) and E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05d_national_concat_161_refused.cob (COBOL1545 'the concatenated national value is 161 ... the maximum is 160 at COBOL-2002')"
+    },
+    "reason": "As for SR3: the number differs (160 vs 8,191) and the pointer's evidence holds no 2002 national concatenation case.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05d_national_concat_161_refused.cob",
+    "class": "own-text",
+    "needs": "a 2002 witness for the 160-position national concatenation bound (probes p05a/p05d are the candidates)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05d_national_concat_161_refused.cob, p05a_concat_160_accepted.cob)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.3.3-2",
+    "to": [
+     "GR-8.8.3.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.3",
+    "clause-2023": "8.8.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.3 GR2",
+      "quote": "The value of a concatenation expression shall be the concatenation of the value of the literals, figurative constants, and concatenation expressions of which it is composed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.3 GR2",
+      "quote": "The value of a concatenation expression shall be the concatenation of the value of the literals, figurative constants, and concatenation expressions of which it is composed",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "value of literal & literal (alphanumeric incl. hex, national, boolean)",
+     "figurative-constant operands",
+     "chained concatenation expressions"
+    ],
+    "evidence-2002": {
+     "all": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.3-Concatenation-expressions/literal_concat (PASS at 2002: alphanumeric, national, boolean, hex, figurative, chain, VALUE/MOVE/IF/EVALUATE positions) and pb5543_concat_national_symbolic_character (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py); the pointer's pb1406_concat_word_operands is refused at 2002 for its zero-length-literal legs (COBOL0900), a 2014 facility"
+    },
+    "reason": "2002 GR2 is word for word the first sentence of 2023 GR2; 2023's second sentence (two zero-length literals) concerns a 2014 facility absent from 2002. Format identical (literal-1 / concatenation-expression-1 & literal-2). The pointer's literal_concat witness runs clean at 2002.",
+    "widening": "2023 GR2 adds the zero-length-literal sentence (a 2014 facility)",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-1",
+    "to": [
+     "SR-8.8.4.2.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.1",
+    "clause-2023": "8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR1",
+      "quote": "If either identifier-1 or identifier-2 is a strongly-typed group, both operands shall be of the same type",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR1",
+      "quote": "If either identifier-1 or identifier-2 is a strongly-typed group, both operands shall be of the same type",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1: a strongly-typed group operand requires the other operand of the same type"
+    ],
+    "evidence-2002": {
+     "heterogeneous refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2-Simple-relation-conditions/strong-group-heterogeneous-compare (COBOL1533 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "same type accepted": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08b_strong_bool_equality.cob (PASS at 2002)"
+    },
+    "reason": "Slice gave no pointer only because 2023 renamed the subject ('Simple relation conditions'); the word-identical rule of the renumbered clause is the pointer. Format 1 operands identical in both editions (identifier, literal, arithmetic expression, index-name). TYPEDEF STRONG is 2002 syntax.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08b_strong_bool_equality.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-2",
+    "to": [
+     "SR-8.8.4.2.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.1.1",
+    "clause-2023": "8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR2",
+      "quote": "All identifiers shall be of class alphabetic, alphanumeric, national, or numeric or shall be strongly-typed group items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR2",
+      "quote": "All identifiers shall be of class alphabetic, alphanumeric, index, national, or numeric or shall be strongly-typed group items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.1.10",
+      "quote": "an index data item and an index-name or another index data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 identifiers of class alphabetic, alphanumeric, national, numeric, or strongly-typed groups: allowed",
+     "boolean, pointer, object identifiers in Format 1: excluded",
+     "class index identifiers (index data items): NOT in the 2002 list, yet 8.8.4.1.1 item 8 and 8.8.4.1.1.10 define comparisons of an index data item with an index-name or another index data item"
+    ],
+    "evidence-2002": {
+     "allowed classes": "covered by l1c32_relation_alphabetic_alphanumeric, l1c32_relation_national_mixed (PASS at 2002)",
+     "boolean excluded": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p07b_bool_vs_alnum_relation.cob (COBOL5995 at 2002)",
+     "pointer excluded": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p07c_pointer_vs_numeric_relation.cob (COBOL0869 at 2002)",
+     "index data item": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p07a_index_data_item_relation.cob: accepted and runs at 2002 (IXD = IX, IXD = IXD2 true)"
+    },
+    "reason": "2023 adds 'index' to the list; 2002 lists only alphabetic, alphanumeric, national, numeric and strongly-typed groups. Read alone, 2002 SR2 excludes an index data item from Format 1, which contradicts 2002's own 8.8.4.1.1.10 ('an index data item and an index-name or another index data item'). The compiler follows 8.8.4.1.1.10 (accepts); the 2023 row's evidence shows acceptance under a rule that names index, so it says nothing about how the 2002 text's tension is resolved. I read the specific rule (8.8.4.1.1.10) as governing, so the compiler is right, but the refuter should test that reading.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p07a_index_data_item_relation.cob",
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the compiler accepts index data items in Format 1 per 8.8.4.1.1.10 (p07a) and refuses boolean and pointer identifiers (p07b, p07c); a signed reading that 8.8.4.1.1.10 governs SR2's omission of class index",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p07a_index_data_item_relation.cob, p07b, p07c), under the reading that 8.8.4.1.1.10 governs",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-3",
+    "to": [
+     "SR-8.8.4.2.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.1",
+    "clause-2023": "8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR3",
+      "quote": "All literals shall be of class alphanumeric, national, or numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR3",
+      "quote": "All literals shall be of class alphanumeric, national, or numeric",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 literals of class alphanumeric, national, numeric (a boolean literal excluded)"
+    ],
+    "evidence-2002": {
+     "boolean literal refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2-Simple-relation-conditions/l1c32-relation-boolean-literal (refused COBOL5995 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "allowed literals": "covered by l1c32_relation_alphabetic_alphanumeric and l1c32_relation_national_mixed (PASS at 2002)"
+    },
+    "reason": "Words identical; the set of literal classes is the same in both editions (alphanumeric, boolean, national, numeric). Pointer chosen as the renumbered word-identical rule.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-4",
+    "to": [
+     "SR-8.8.4.2.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.1",
+    "clause-2023": "8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR4",
+      "quote": "Strongly-typed group items that contain elementary items of class boolean, pointer, or object-reference may be compared only for equality or inequality",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR4",
+      "quote": "may be compared only for equality or inequality",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "strongly-typed group containing a boolean, pointer or object-reference elementary item: equality/inequality only"
+    ],
+    "evidence-2002": {
+     "pointer": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2-Simple-relation-conditions/pb1469-strong-program-pointer-ordering (COBOL1535 at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08d_strong_pointer_ordering.cob (COBOL1535)",
+     "boolean": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08a_strong_bool_ordering.cob (COBOL1535 at 2002); equality p08b PASS",
+     "object-reference": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08c_strong_objref_ordering.cob (COBOL1535 at 2002)"
+    },
+    "reason": "2023 words add message-tag (a 2023 class) and say 'object' for 'object-reference'; the 2002 set is a subset. The pointer's C# witnesses were not run here; the case and the probes show each 2002 class at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08a_strong_bool_ordering.cob",
+    "widening": "2023 adds class message-tag"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-5",
+    "to": [
+     "SR-8.8.4.2.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.1",
+    "clause-2023": "8.8.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR5",
+      "quote": "Identifier-3 and identifier-4 shall reference data items of class pointer or object, and both shall be of the same category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR5",
+      "quote": "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer, and shall be of the same category",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 3 operands of class pointer or object, of the same category"
+    ],
+    "evidence-2002": {
+     "category mix refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2-Simple-relation-conditions/pb399-pointer-relation-category-mix (COBOL0869), w59-relation-object-vs-pointer (COBOL0868), pointer-refused-relation-figurative (COBOL0869), all at 2002 (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "same category accepted": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p09_format3_positive.cob (PASS at 2002: pointer = pointer, object = object)"
+    },
+    "reason": "2023 adds class message-tag (a 2023 class); for pointer and object the requirement is the same words. Format 3 identical apart from 2023's <> (a 2014 operator).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p09_format3_positive.cob",
+    "widening": "2023 adds class message-tag and the <> operator"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.2.2-1",
+    "to": [
+     "SR-8.8.4.3.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.2",
+    "clause-2023": "8.8.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.2 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.3 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "boolean condition over boolean items of length 1 only"
+    ],
+    "evidence-2002": {
+     "length 8 refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.3-Simple-boolean-condition/l1-bool-condition-length-8 (COBOL1511 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "length 1 accepted": "covered by boolean_ops, pb1464_parenthesized_boolean_operands, pb1465_boolean_paren_after_operator (PASS at 2002)"
+    },
+    "reason": "Words identical; format identical ([NOT] boolean-expression-1). 2002 8.8.2 boolean expressions are 2023's minus the 2023 shift operators (refused at 2002 with COBOL0900), so the rule's 2002 scope is a subset.",
+    "widening": "2023 boolean expressions add B-SHIFT-L/R/LC/RC",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.2.3-1",
+    "to": [
+     "GR-8.8.4.3.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.2",
+    "clause-2023": "8.8.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.3 GR1",
+      "quote": "Boolean-expression-1 evaluates true if the result of the expression is 1 and evaluates false if the result of the expression is 0",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.4 GR1",
+      "quote": "Boolean-expression-1 evaluates true if the result of the expression is 1 and evaluates false if the result of the expression is 0",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a boolean condition is true when the expression's result is 1, false when 0 (B-NOT, B-AND, B-XOR, B-OR, parentheses)"
+    ],
+    "evidence-2002": {
+     "truth value": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.2-Simple-relation-conditions/boolean_ops, 8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands, 8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py); the pointer's pb1412_shift_only_boolean_conditions is refused at 2002 (COBOL0900: shift operators are 2023), as it should be"
+    },
+    "reason": "Words identical; 2002 boolean-expression operators (8.8.2) are a subset of 2023's. The runnable witnesses of the pointer that use only 2002 operators pass at 2002.",
+    "widening": "2023 adds the boolean shift operators",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.2.3-2",
+    "to": [
+     "GR-8.8.4.3.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.2",
+    "clause-2023": "8.8.4.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.3 GR2",
+      "quote": "The condition NOT boolean-expression-1 evaluates to the reverse truth-value of boolean-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.4 GR2",
+      "quote": "The condition NOT boolean-expression-1 evaluates to the reverse truth-value of boolean-expression-1",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NOT boolean-expression-1 reverses the truth value"
+    ],
+    "evidence-2002": {
+     "NOT": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.3-Simple-boolean-condition/l1_search_when_boolean_omitted and pb1464_parenthesized_boolean_operands, pb1465_boolean_paren_after_operator (PASS at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)"
+    },
+    "reason": "Words identical; format identical; 2002 operators a subset of 2023's.",
+    "widening": "2023 adds the boolean shift operators",
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-1",
+    "to": [
+     "SR-8.8.4.4.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class index, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "class condition identifier-1 not of class index, object or pointer"
+    ],
+    "evidence-2002": {
+     "index": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.4-Simple-class-condition/pb571-class-condition-index-operand (COBOL2200 at the class condition, 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "pointer": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10a_class_pointer.cob (COBOL2200 at 2002)",
+     "object": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10b_class_objref.cob (COBOL2200 at 2002)"
+    },
+    "reason": "2023 adds message-tag (2023 class), strongly-typed groups and variable-length groups (2023 facility); a 2002 strongly-typed group is already excluded by 2002 SR2/SR3 (a group has no usage display of its own). The 2002 list is a subset.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10a_class_pointer.cob",
+    "widening": "2023 adds message-tag, strongly-typed group and variable-length group"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-2",
+    "to": [
+     "SR-8.8.4.4.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR2",
+      "quote": "If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR8",
+      "quote": "If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NUMERIC: usage display or national, or category numeric"
+    ],
+    "evidence-2002": {
+     "bit refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.4-Simple-class-condition/class-numeric-on-bit (COBOL6003 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "accepted forms": "covered by pb571_class_condition_one_table (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10d_class_function_positive.cob (binary numeric and alphanumeric group NUMERIC, PASS at 2002)"
+    },
+    "reason": "Words identical to 2023 SR8 (pointer chosen as the word-identical rule; 2023 renumbered it). Usages and categories involved are the same in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10d_class_function_positive.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-3",
+    "to": [
+     "SR-8.8.4.4.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.3",
+    "clause-2023": "8.8.4.4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR3",
+      "quote": "If the NUMERIC phrase is not specified, identifier-1 shall reference a data item whose usage is display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR3",
+      "quote": "If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.1.3",
+      "quote": "The class condition determines whether an operand is numeric, alphabetic, alphabetic-lower, alphabetic-upper, boolean",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "without NUMERIC (ALPHABETIC, -LOWER, -UPPER, BOOLEAN, alphabet-name-1, class-name-1): usage display or national",
+     "a function-identifier: an alphanumeric or national function"
+    ],
+    "evidence-2002": {
+     "usage bit refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.4-Simple-class-condition/pb590-boolean-class-usage-bit (COBOL2202 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "accepted": "covered by pb590_boolean_class_condition (PASS at 2002)",
+     "function-identifier": "covered by probes E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10c_class_boolean_function.cob (BOOLEAN-OF-INTEGER IS BOOLEAN refused COBOL2202 at 2002) and p10d_class_function_positive.cob (UPPER-CASE / NATIONAL-OF accepted and true)"
+    },
+    "reason": "2002 says 'If the NUMERIC phrase is not specified'; 2023 enumerates alphabet-name-1, ALPHABETIC, ALPHABETIC-LOWER, ALPHABETIC-UPPER, BOOLEAN, class-name-1 because 2023 adds float/range phrases. The 2002 format's non-NUMERIC alternatives are exactly that enumeration, so the requirement is the same for every 2002 program; the second sentence is word-identical.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10c_class_boolean_function.cob",
+    "widening": "2023 adds FARTHEST-FROM-ZERO, FLOAT-*, IN-ARITHMETIC-RANGE, NEAREST-TO-ZERO, outside this rule"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.2.4.2-2",
+    "to": [
+     "SR-8.8.4.12.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.2.4",
+    "clause-2023": "8.8.4.12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR2",
+      "quote": "The result of implied insertion shall comply with the rules of table 6, Combinations of conditions, logical operators, and parentheses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.3 SR2",
+      "quote": "The result of implied insertion shall comply with the rules of Table 5, Combinations of conditions, logical operators, and parentheses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.3",
+      "quote": "the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the result of implied insertion in an abbreviated combined relation condition complies with 2002 Table 6 (AND, OR, NOT, parentheses)"
+    ],
+    "evidence-2002": {
+     "NOT NOT after insertion refused": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.8.4.12-Abbreviated-combined-relation-conditions/l1-abbrev-relation-insertion-not-not (refused COBOL0001 at 2002) (run at --std 2002 on the pinned tree with E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/run.py)",
+     "legal insertions": "covered by pb5123_not_is_simple_operator_2002 (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p04_not_one_operator.cob"
+    },
+    "reason": "Words identical but for the table number. 2002 Table 6 equals 2023 Table 5 minus the EXCLUSIVE-OR/XOR rows (a 2023 addition), so the 2002 requirement is a subset. The only insertion result that can violate Table 6 in a 2002 program is a NOT NOT pair, which 2002 SR3 also forbids; the pointer's witness is refused at 2002.",
+    "widening": "2023 Table 5 adds EXCLUSIVE-OR / XOR",
+    "probe": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-07",
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.4.2.12.3-1",
+    "verdict": "UPHELD",
+    "reason": "General formats identical (identifier-1 / literal-1 / program-prototype-name-1). The deferred 2002 8.3.1.1.1 program-address-identifier mapping (COBOL call convention: COBOL word; CALL-CONVENTION call-convention-name: literal; prototype: entry convention) reads the same as 2023 8.3.2.2. 2023 SR2 adds 'whose length is not zero' (2002 has no zero-length literal). The 2002-only reach (identifier-1 naming an alphanumeric CD field) has the same semantics and the reader's probe p01 shows it at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.3 GR1",
+      "quote": "creates a unique data item of class pointer and category program-pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.4 GR1",
+      "quote": "creates a unique data item of class pointer and category program-pointer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p01_pa_cd_field.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.13.3-2",
+    "verdict": "UPHELD",
+    "reason": "Referenced LINAGE GR7 a)-d) is word-identical in both editions (compared line by line); LINAGE format identical; file section only, no CD or debugging reach. The reader left c3 (plain WRITE adds one) without a run at 2002; my probe r02 shows at --std 2002 and 2023: OPEN OUTPUT 01, plain WRITE 02, 03, AFTER N(=2) 05, BEFORE ADVANCING PAGE 01.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR7",
+      "quote": "When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR7",
+      "quote": "When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-07/r02_linage_plain_write.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.14.2-2",
+    "verdict": "UPHELD",
+    "reason": "Deferred 2002 8.4.1.1.2 SR7/SR8 are word-identical to 2023 8.4.2.2.3 SR9/SR10; Format 8 qualified-report-counter identical (report-name only, no cd-name); 8.4.5.1.4 counter scope (GLOBAL) identical. The procedure-division refusal is shown at --std 2002 by pb1049-unqualified-counter-two-reports (COBOL2729, run here), which the reader did not name.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.2 SR8",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.3 SR10",
+      "quote": "PAGE-COUNTER shall be qualified each time it is referenced in the procedure division",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.4.2.2-Qualification/pb1049-unqualified-counter-two-reports.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Only the bound differs (160 vs 8,191); concatenation format and SR1 identical. Re-ran p05a (A160/N160/B160 OK, matches .out) and p05b (COBOL1545 'maximum is 160 at COBOL-2002') at --std 2002: the 2002 bound holds.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.2 SR2",
+      "quote": "shall be less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.2 SR2",
+      "quote": "shall be less than or equal to 8,191 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p05b_alnum_concat_161_refused.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.8.3.3-2",
+    "verdict": "UPHELD",
+    "reason": "2002 GR2 is the first sentence of 2023 GR2; the second 2023 sentence (zero-length literals) is a later facility. literal_concat re-run at --std 2002 matches its golden output exactly.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.3.3 GR2",
+      "quote": "The value of a concatenation expression shall be the concatenation of the value of the literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.3.3 GR2",
+      "quote": "If both literal-1 and literal-2 are specified and both are zero-length literals",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format 1 operands identical (2023 adds only <>). Communication reach tested: a strong group cannot be a CD record in 2002 (a TYPE STRONG subject shall not be implicitly redefined; CD records implicitly redefine the CD area), and probe r06 at --std 2002 refuses it (COBOL5991) and refuses CR = W2 of a different type (COBOL1533).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR1",
+      "quote": "If either identifier-1 or identifier-2 is a strongly-typed group, both operands shall be of the same type",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR1",
+      "quote": "If either identifier-1 or identifier-2 is a strongly-typed group, both operands shall be of the same type",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55.2 SR4",
+      "quote": "the subject of the entry shall not be implicitly or explicitly redefined in whole or in part",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-07/r06_strong_group_cd_record.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-3",
+    "verdict": "UPHELD",
+    "reason": "Word-identical; literal classes the same in both editions; a boolean literal in Format 1 is refused at --std 2002 (l1c32-relation-boolean-literal, COBOL5995, run here).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR3",
+      "quote": "All literals shall be of class alphanumeric, national, or numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR3",
+      "quote": "All literals shall be of class alphanumeric, national, or numeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-4",
+    "verdict": "UPHELD",
+    "reason": "2023 adds message-tag (absent from 2002); the boolean, pointer and object-reference cases are identical. p08a and p08c re-run at --std 2002: COBOL1535. No CD reach (strong groups cannot be CD records, see r06).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR4",
+      "quote": "may be compared only for equality or inequality",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR4",
+      "quote": "may be compared only for equality or inequality",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p08a_strong_bool_ordering.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.1.2-5",
+    "verdict": "UPHELD",
+    "reason": "2002 pointer categories (data-pointer, program-pointer) and object-reference are a subset of 2023's; NULL's category rules agree. Re-ran at --std 2002: pb399 (COBOL0869), w59 (COBOL0868), p09 PASS.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1.2 SR5",
+      "quote": "Identifier-3 and identifier-4 shall reference data items of class pointer or object, and both shall be of the same category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.2.3 SR5",
+      "quote": "Identifier-3 and identifier-4 shall reference data items of class message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p09_format3_positive.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.2.2-1",
+    "verdict": "UPHELD",
+    "reason": "Format identical; the 2002 8.8.2 boolean expression forms are 2023's minus the shift operators (compared item by item). l1-bool-condition-length-8 is refused at --std 2002 (COBOL1511, run here).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.2 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.3 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.2.3-1",
+    "verdict": "UPHELD",
+    "reason": "Word-identical; 2002 boolean operators and precedence are a subset of 2023's. pb1464_parenthesized_boolean_operands passes at --std 2002 (run here).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.3 GR1",
+      "quote": "evaluates true if the result of the expression is 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.4 GR1",
+      "quote": "evaluates true if the result of the expression is 1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.2.3-2",
+    "verdict": "UPHELD",
+    "reason": "Word-identical; l1_search_when_boolean_omitted passes at --std 2002 (run here).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.3 GR2",
+      "quote": "evaluates to the reverse truth-value of boolean-expression-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.4 GR2",
+      "quote": "evaluates to the reverse truth-value of boolean-expression-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-1",
+    "verdict": "UPHELD",
+    "reason": "Attacked the strong-group gap: 2023 SR1 adds 'nor a strongly-typed group' (absent from 2002 and 2014), and the compiler refuses a strong group in a class condition at --std 2002 (probes r13a with USAGE DISPLAY on the typedef, r13b NUMERIC: COBOL1533). That refusal is right under 2002's own text: a group-level USAGE applies only to the elementary items, only an alphanumeric group is treated as usage display, and a strong group's class and category are its type-name, so 2002 SR2/SR3 exclude it. Index/object/pointer refused at --std 2002 (p10a, p10b re-run: COBOL2200). The 2023 'variable-length group' is the dynamic-length facility, not 2002's ODO item.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR1",
+      "quote": "nor a strongly-typed group, nor a variable-length group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR1",
+      "quote": "it applies only to each elementary item in the group and not to the group itself",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-07/r13a_strong_group_alphabetic.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-2",
+    "verdict": "UPHELD",
+    "reason": "Word-identical to 2023 SR8; usages and categories the same; strong groups excluded in 2002 as for SR1 (r13b).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR2",
+      "quote": "If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR8",
+      "quote": "If the NUMERIC phrase is specified, identifier-1 shall reference a data item whose usage is display or national or whose category is numeric",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-07/r13b_strong_group_numeric.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.1.3.2-3",
+    "verdict": "UPHELD",
+    "reason": "2002 'NUMERIC phrase is not specified' covers exactly alphabet-name-1, ALPHABETIC, -LOWER, -UPPER, BOOLEAN and class-name-1 of the 2002 format, which is the 2023 enumeration; the function-identifier sentence is identical.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR3",
+      "quote": "If the NUMERIC phrase is not specified, identifier-1 shall reference a data item whose usage is display or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.4.3 SR3",
+      "quote": "identifier-1 shall reference a data-item whose usage is display or national",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-07/p10c_class_boolean_function.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.8.4.2.4.2-2",
+    "verdict": "UPHELD",
+    "reason": "Rendered 2002 PDF p158: the abbreviated format's operator alternatives are NOT / [NOT] simple-relational-operator / extended-relational-operator; 2023 moves the NOT forms into the extended operators (8.7.5.2), so the same programs are admitted. 'AND NOT >= c' is outside the 2002 format (also 2002 F.1 item 22) despite the vestigial 2002 GR2a; it is refused at both editions (r16, COBOL0902). Legal NOT forms evaluate correctly at 2002 (r16b: T3 T5 T6). 2002 Table 6 = 2023 Table 5 minus the XOR rows.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR2",
+      "quote": "The result of implied insertion shall comply with the rules of table 6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.3 SR2",
+      "quote": "The result of implied insertion shall comply with the rules of Table 5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:F.1",
+      "quote": "The word NOT is prohibited before the relational operators meaning",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR4",
+      "quote": "NOT > is an abbreviation for NOT GREATER THAN",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-07/r16b_abbrev_not_object.cob"
+   }
+  ],
+  "disputed-different": [],
+  "note": "16 SAME attacked, 16 UPHELD. The 9 DIFFERENT rows each name a difference that exists in the text; none disputed. Side observation (not a verdict change): at --std 2002 the diagnostics cite §2023 rules (COBOL1533, COBOL2200), and COBOL0902 cites the conflicting 2002 GR2a/F.1 pair; the behaviour is correct."
+ },
+ "imported": {
+  "asked": "5825cd2cf9717147a5e7ab36d7842d24b293a8fffe145115cfbb5562cd52c54e",
+  "read": "8728a0d79431fd4aaf531311b7f88d5d827749f88983adf8cdb1b79fa5ef8f90",
+  "refute": "82d4fe63ae5be53616545c594dddef4ad838ac80c47c127b7f7bfbe545d4f6ef"
+ }
+}

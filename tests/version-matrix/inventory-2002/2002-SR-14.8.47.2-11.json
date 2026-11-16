@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.47.2-11",
+ "rule-digest": "dfb58a753864",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Write; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348-write-from-integer-function",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.51.3-11, witnessed at 2002 by the cases test-ref names. The read: 2002 says 'intrinsic function' where 2023 says 'function'; 2002 user-defined functions fall under SR4 only, so the 2002 rule is a subset. The boolean conflict with SR4 is word-for-word the same in 2002, and the compiler resolves it the same way at both editions. Cited: §2002:14.8.47.2 SR11; §2002:14.8.47.2 SR4."
+}

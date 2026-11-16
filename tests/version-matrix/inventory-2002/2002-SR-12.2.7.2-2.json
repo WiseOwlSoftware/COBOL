@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.2.7.2-2",
+ "rule-digest": "3877b4e65cff",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalizedName.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Configuration.cs#BindSpecifierExternalizedName",
+ "test-ref": "conformance:cases/12.3.8-REPOSITORY/pb974-repository-class-as-zero-length; conformance:cases/12.3.8-REPOSITORY/pb237-repository-program-literal-class",
+ "notes": "Own verdict from the read lineage-reads-2002/u-10.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.3.8.3-2, witnessed at 2002 by the cases test-ref names. The read: 2023 adds 'nor zero-length literals'. A 2002 alphanumeric literal has length greater than zero (§2002:8.3.1.2.1.2 SR1), so the 2002 rule is the 2023 rule without a case 2002 cannot write. 2002 scope: AS literal shall be alphanumeric or national, not figurative. Cited: §2002:12.2.7.2 SR2; §2002:8.3.1.2.1.2 SR1."
+}

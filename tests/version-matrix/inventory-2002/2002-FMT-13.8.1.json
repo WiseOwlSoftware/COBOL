@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.8.1",
+ "rule-digest": "23b027ea09b2",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportSection",
+ "test-ref": "conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.9.2, witnessed at 2002 by the cases test-ref names. The read: Identical format. The 2023 row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support by its own text (B.3 item 1 processor-dependent, 3.1.5), and the compiler refuses the section at 2002. COBOL1560's text cites the 2023 optional-module grounds at --std 2002 (already noted by q-09; wording only). Cited: §2002:13.8.2 SR1; §2002:B.3; §2002:3.1.5."
+}

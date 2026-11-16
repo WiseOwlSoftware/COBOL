@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.1.2.1-1",
+ "rule-digest": "da856317df0a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Pipeline/CompilationInputs.cs#ReadSourceText; src/WiseOwl.Cobol.Frontend/Pipeline/SourceTextDecoder.cs#Decode",
+ "test-ref": "conformance:cases/A.1-Implementor-defined-language-element-list/l1_encoding_per_file_bom; conformance:cases/8.1.3-COBOL-character-repertoire/pb1402_extended_letters",
+ "notes": "Own verdict from the read lineage-reads-2002/u-03.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.1.3.2-1, witnessed at 2002 by the cases test-ref names. The read: Wording only ('the basic letters' vs 'each basic letter'; NOTES 'may' vs 'can'; ISO/IEC 10646-1 vs 10646). The same implementor mapping (UTF-8/BOM/Latin-1 source decoding) is edition-free. The pointer's witnesses l1_encoding_unmarked_non_utf8_is_latin1, l1_encoding_per_file_bom and pb1402_extended_letters run at --std 2002 and match. Cited: §2002:8.1.2.1 GR1."
+}

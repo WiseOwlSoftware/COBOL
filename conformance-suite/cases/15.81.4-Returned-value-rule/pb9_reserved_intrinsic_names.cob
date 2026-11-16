@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb9_reserved_intrinsic_names
 *> rules: [RV-15.81.4-1, FMT-15.81.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

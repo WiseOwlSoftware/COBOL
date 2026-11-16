@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.14.2-6",
+ "rule-digest": "a5232b8c2bbf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportEntry",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1059-column-beyond-page-width; conformance:cases/13.18.14-COLUMN/pb1059-column-beyond-assumed-page-width",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.14.3-6, witnessed at 2002 by the cases test-ref names. The read: Same words; only the referenced clause number changes (13.16.37 / 13.18.39) and the PAGE clause text is identical in both editions (diffed). COLUMN Format 1 is identical. Report section only. Cited: §2002:13.16.14.2 SR6."
+}

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_search_all_duplicate_keys
 *> rules: [GR-14.9.37.4-7]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

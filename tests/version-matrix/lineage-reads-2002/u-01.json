@@ -1,0 +1,1475 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-01 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-01",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-6.1.2.1-6",
+   "2002-SR-6.1.2.1-7",
+   "2002-SR-6.1.2.1-8",
+   "2002-SR-7.1.2.2-10",
+   "2002-SR-7.1.2.2-11",
+   "2002-SR-7.1.2.2-12",
+   "2002-SR-7.1.2.2-4",
+   "2002-SR-7.1.2.2-8",
+   "2002-SR-7.1.2.2-9",
+   "2002-GR-7.1.2.3-10",
+   "2002-GR-7.1.2.3-12",
+   "2002-GR-7.1.2.3-13",
+   "2002-GR-7.1.2.3-8",
+   "2002-GR-7.1.2.3-9",
+   "2002-SR-7.1.3.2-10",
+   "2002-SR-7.1.3.2-9",
+   "2002-GR-7.1.3.3-10",
+   "2002-GR-7.1.3.3-11",
+   "2002-GR-7.1.3.3-4",
+   "2002-GR-7.1.3.3-5",
+   "2002-GR-7.1.3.3-8",
+   "2002-SR-7.2.2-5",
+   "2002-SR-7.2.2-7",
+   "2002-SR-7.2.2-8",
+   "2002-GR-7.2.3-2"
+  ],
+  "pointers": {
+   "2002-SR-6.1.2.1-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-6.2.3.2-6",
+    "similarity": 0.997
+   },
+   "2002-SR-6.1.2.1-7": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-6.2.3.2-5",
+    "similarity": 0.471
+   },
+   "2002-SR-6.1.2.1-8": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-6.2.3.2-5",
+    "similarity": 0.513
+   },
+   "2002-SR-7.1.2.2-10": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.2.3.3-5",
+    "similarity": 0.32
+   },
+   "2002-SR-7.1.2.2-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.2.3.3-9",
+    "similarity": 0.97
+   },
+   "2002-SR-7.1.2.2-12": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.2.3.3-8",
+    "similarity": 0.416
+   },
+   "2002-SR-7.1.2.2-4": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-7.2.3.3-4",
+    "similarity": 0.899
+   },
+   "2002-SR-7.1.2.2-8": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.2.3.3-8",
+    "similarity": 0.674
+   },
+   "2002-SR-7.1.2.2-9": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.2.3.3-8",
+    "similarity": 0.238
+   },
+   "2002-GR-7.1.2.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.3.4-9",
+    "similarity": 0.958
+   },
+   "2002-GR-7.1.2.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.3.4-11",
+    "similarity": 0.913
+   },
+   "2002-GR-7.1.2.3-13": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-7.2.3.4-3",
+    "similarity": 0.321
+   },
+   "2002-GR-7.1.2.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.3.4-8",
+    "similarity": 0.937
+   },
+   "2002-GR-7.1.2.3-9": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-7.2.3.4-2",
+    "similarity": 0.368
+   },
+   "2002-SR-7.1.3.2-10": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.2.4.3-8",
+    "similarity": 0.541
+   },
+   "2002-SR-7.1.3.2-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.2.4.3-9",
+    "similarity": 0.959
+   },
+   "2002-GR-7.1.3.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.4.4-10",
+    "similarity": 0.998
+   },
+   "2002-GR-7.1.3.3-11": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-7.2.4.4-2",
+    "similarity": 0.415
+   },
+   "2002-GR-7.1.3.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.4.4-4",
+    "similarity": 0.998
+   },
+   "2002-GR-7.1.3.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.4.4-5",
+    "similarity": 0.997
+   },
+   "2002-GR-7.1.3.3-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.2.4.4-8",
+    "similarity": 0.976
+   },
+   "2002-SR-7.2.2-5": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.3.3-5",
+    "similarity": 0.464
+   },
+   "2002-SR-7.2.2-7": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-7.3.3-1",
+    "similarity": 0.601
+   },
+   "2002-SR-7.2.2-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.3.3-8",
+    "similarity": 0.961
+   },
+   "2002-GR-7.2.3-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.4-2",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-01",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-SR-6.1.2.1-6",
+    "to": [
+     "SR-6.2.3.2-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "6.1.2.1 (Floating indicators, syntax rules) SR6",
+    "clause-2023": "6.2.3.2 SR6",
+    "scope-2002": [
+     "continued alphanumeric and boolean literals (fixed '-' continuation or floating continuation)",
+     "continued national literals (floating continuation only, §2002:6.2.4)",
+     "fixed-form and free-form source and library text"
+    ],
+    "evidence-2002": {
+     "alphanumeric, fixed": "covered by pointer witness pb1492-continuation-no-quotation-symbol / -other-quotation-symbol (diagnostics refuse-at includes 2002; re-run here at 2002: COBOL2684)",
+     "alphanumeric, floating free-form": "covered by pointer witness pb1359-floating-continuation-no-quotation-symbol (refuse-at includes 2002)",
+     "boolean": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p01b_bool_noquote.cob (2002: COBOL2684)",
+     "national, floating": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p01d_nat_float_noquote.cob (2002: COBOL2684); control p01e_nat_float_ok.cob prints ABCFGH"
+    },
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR6",
+      "quote": "the first non-blank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR6",
+      "quote": "the first nonblank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.4",
+      "quote": "National literals may be continued only with a floating literal continuation indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'non-blank' vs 'nonblank'. Same literal kinds and the same two continuation forms in both editions; the rule reaches no communication entry or debugging-only form. The pointer's diagnostics already run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p01b_bool_noquote-2002.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-7",
+    "to": [
+     "SR-6.2.3.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "6.1.2.1 SR7 (floating debugging indicator >>D)",
+    "clause-2023": "6.2.3.2 SR5 (pointer only: literal continuation; 2023 has no debugging indicator)",
+    "scope-2002": [
+     "the floating debugging indicator >>D in fixed-form and free-form lines: only spaces may precede it"
+    ],
+    "evidence-2002": {
+     ">>D after program text": "not shown by the pointer row; covered by probe p02a_floatdebug_after_text.cob (2002: refused, COBOL2269 at the '>')",
+     ">>D preceded by spaces": "covered by probes p02b (WITH DEBUGGING MODE: prints A, D) and p02c (no mode: prints A); unit LogicalLineBuilderTests.FloatingDebuggingIndicator_IsADebuggingLine_InBothFormats and _OtherSpellings_AreNotDebuggingLines (std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR7",
+      "quote": "A floating debugging indicator may be preceded on a line only by zero or more space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2",
+      "quote": "a debugging line when followed by at least one space character",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule governs the >>D floating debugging indicator, which has no 2023 counterpart; the pointer (literal continuation) shows nothing about it. The compiler reads >>D as a debugging line only when spaces alone precede it and refuses it after program text.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p02a_floatdebug_after_text.cob",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for >>D after program text is a refusal (COBOL2269) and >>D after spaces heads a debugging line (probes p02a, p02b, p02c; unit tests at std 2002)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p02a_floatdebug_after_text.cob, p02b_floatdebug_ok_dbg.cob, p02c_floatdebug_ok_nodbg.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-6.1.2.1-8",
+    "to": [
+     "SR-6.2.3.2-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "6.1.2.1 SR8",
+    "clause-2023": "6.2.3.2 SR5 (pointer only)",
+    "scope-2002": [
+     ">>D on a fixed debugging line (indicator D)",
+     ">>D on a fixed continuation line (indicator -)"
+    ],
+    "evidence-2002": {
+     "D line": "covered by probe p03a_floatdebug_on_D.cob (2002: COBOL5770) and unit LogicalLineBuilderTests.FloatingDebuggingIndicator_OnAFixedIndicatorLine_IsRefused (std 2002)",
+     "continuation line": "covered by probe p03c_floatdebug_heads_cont.cob (2002: COBOL5770) and the same unit test"
+    },
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR8",
+      "quote": "A floating debugging indicator shall not be specified on a line that contains a fixed debugging indicator or a fixed continuation indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Debugging-indicator rule with no 2023 counterpart; the pointer row (floating literal continuation on a fixed continuation line) does not show it. COBOL5770 cites this 2002 rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p03a_floatdebug_on_D.cob",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for >>D on a D line or a continuation line is COBOL5770 (probes p03a, p03c; unit test at std 2002)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p03a_floatdebug_on_D.cob, p03c_floatdebug_heads_cont.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-10",
+    "to": [
+     "SR-7.2.3.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.2 SR10 (COPY word-1, word-2)",
+    "clause-2023": "7.2.3.3 SR5 (pointer only: literal-1/2)",
+    "scope-2002": [
+     "word-1 and word-2 of the COPY REPLACING phrase: any single COBOL word except COPY, >>, >>D, *>"
+    ],
+    "evidence-2002": {
+     "COPY / >> / >>D as word-1 or word-2": "covered by conformance case 7.1.2.2@2002-COPY-STATEMENT/pb5085-replacing-directive-indicator (rules 2002-SR-7.1.2.2-10) and probes p04a, p04b, p04c, p04d (2002: COBOL7006 citing this rule)",
+     "*> as word-1": "the scanner reads *> as a comment, so it can never be an operand (CopyProcessor.CopyWord comment)",
+     "ordinary words accepted": "covered by probe p16_text_word_literal.cob (XXW BY YYW replaced)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR10",
+      "quote": "Word-1 or word-2 may be any single COBOL word except 'COPY', the compiler directive indicator, the floating debug indicator, or the comment indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "The word-1/word-2 operands exist only in the 2002 COPY format (2023 keeps only pseudo-text and partial-word), so the pointer's literal-1/2 evidence says nothing about them.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p04c_word_debugind.cob",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for COPY, >> and >>D as word-1/word-2 is COBOL7006 (case pb5085 and probes p04a-d)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p04a_word_copy.cob .. p04d_word2_debugind.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-11",
+    "to": [
+     "SR-7.2.3.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.2.2 SR11",
+    "clause-2023": "7.2.3.3 SR9",
+    "scope-2002": [
+     "text-words in COPY pseudo-text: 1 to 322 character positions",
+     "text-words in library text: 1 to 322 character positions"
+    ],
+    "evidence-2002": {
+     "323-character text-word": "not shown; probe p05l_lib_len323.cob (a 323-character literal text-word in library text AND in pseudo-text-1) compiles silently at 2002 and the text-word is matched and replaced (prints S, rc=0), also with --flag-extensions",
+     "322-character text-word": "accepted, probe p05l_lib_len322.cob (prints S)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR11",
+      "quote": "The length of a text-word within pseudo-text and within library text shall be from 1 through 322 character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR9",
+      "quote": "The length of a text-word within pseudo-text and within library text shall be from 1 through 65,535 character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "to indicate violations of the general formats and the explicit syntax rules of standard COBOL",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 limits a text-word to 322 character positions, 2023 to 65,535. The compiler applies 65,535 at every edition (CopyProcessor.cs MaxTextWordLength = 65_535, used by ScreenOperandPair and the library-text check in ResolveOneCopy), so a 2002 violation of this explicit syntax rule draws no diagnostic, which §2002:3.1.1 requires the warning mechanism to indicate.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p05l_lib_len323.cob",
+    "needs": "a fix, then a 2002 witness: a 323-character text-word in pseudo-text and in library text draws the SR11 diagnostic at --std 2002",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p05l_lib_len323.cob: expected a diagnostic citing §2002:7.1.2.2 SR11; observed 'S', rc=0, no diagnostic, also with --flag-extensions; code site src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs:1315 MaxTextWordLength, uses at :742 and :1408)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-12",
+    "to": [
+     "SR-7.2.3.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.2.2 SR12",
+    "clause-2023": "7.2.3.3 SR8 (pointer only: continuation)",
+    "scope-2002": [
+     "debugging lines inside COPY pseudo-text-1",
+     "debugging lines inside COPY pseudo-text-2"
+    ],
+    "evidence-2002": {
+     "pseudo-text-1": "covered by probes p06n/p06d_copy_pt1_debugline.cob: pseudo-text-1 spanning a D line matches library text (prints R1R2Z with and without DEBUGGING MODE)",
+     "pseudo-text-2": "covered by probes p07n/p07d_copy_pt2_debugline.cob (L1R1Z without mode, L1R1R2Z with mode)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR12",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR10",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line. Text-words within a debugging line participate in the matching",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "only those text-words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines in the resultant source text",
+      "check": "OK"
+     }
+    ],
+    "reason": "A debugging-line permission that 2023 lacks; the pointer row shows continuation only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p06n_copy_pt1_debugline.cob",
+    "needs": "its own verdict: at --std 2002 COPY pseudo-text holding debugging lines is accepted and matched/placed per GR10 c)6 and GR13 (probes p06, p07)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p06n_copy_pt1_debugline.cob, p06d, p07n, p07d)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-4",
+    "to": [
+     "SR-7.2.3.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.2 SR4",
+    "clause-2023": "7.2.3.3 SR4",
+    "scope-2002": [
+     "literal-1, literal-2 (library names)",
+     "literal-3, literal-4 (REPLACING operands, 2002 only)"
+    ],
+    "evidence-2002": {
+     "literal-1/2": "covered by the pointer row's witnesses (TextManipulationTextWordTests.IllegalLiteralForm_DrawsSr4OrSr5; pb1601 band)",
+     "literal-3/4 concatenation": "covered by probes p15a_lit3_concat.cob, p15b_lit4_concat.cob (2002: refused, COBOL2449)",
+     "literal-3/4 figurative ALL literal": "covered by probes p15d, p15e (2002: refused, COBOL2449); a bare figurative word such as ZERO is word-1 under SR10, not literal-3"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR4",
+      "quote": "A concatenation expression or figurative constant shall not be specified for literal-1, literal-2, literal-3, or literal-4",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR4",
+      "quote": "A concatenation expression or figurative constant shall not be specified for literal-1, or literal-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 names literal-3 and literal-4, operands 2023 removed. The violations are refused at 2002, though by the generic operand-shape error, not a SR4 diagnostic.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p15a_lit3_concat.cob",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a concatenation expression or ALL literal as literal-3/literal-4 is a refusal (COBOL2449; probes p15a, p15b, p15d, p15e)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p15a_lit3_concat.cob, p15b_lit4_concat.cob, p15d_lit3_figurative_all.cob, p15e_lit4_figurative_all.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-8",
+    "to": [
+     "SR-7.2.3.3-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.2.2 SR8",
+    "clause-2023": "7.2.3.3 SR8",
+    "scope-2002": [
+     "character-strings in COPY pseudo-text-1/2 continued by fixed or floating continuation, fixed and free form"
+    ],
+    "evidence-2002": {
+     "floating continuation in pseudo-text": "covered by pointer witness 6.5-Logical-conversion/pb1359_floating_continuation_copy_replacing (accept [2002]; re-run here at 2002: output matches)",
+     "fixed continuation of a literal in pseudo-text": "also shown by probe p05l_lib_len322.cob (continued literal in pseudo-text-1 matched, prints S)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR8",
+      "quote": "Character-strings within pseudo-text-1 and pseudo-text-2 may be continued in accordance with the rules of reference format",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 sentence is the 2023 sentence without 2023's NOTE (which is informative); continuation rules for the character-strings involved are the same; pseudo-text is the same operand in both formats. The pointer's witness runs and matches at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/pb1359_floating_continuation_copy_replacing-2002.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-9",
+    "to": [
+     "SR-7.2.3.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.2 SR9 (COPY text-1, text-2)",
+    "clause-2023": "7.2.3.3 SR8 (pointer only)",
+    "scope-2002": [
+     "text-1/text-2 forms: function-identifier, qualified-data-name-with-subscripts, reference-modification, qualified-linage-counter, qualified-report-counter",
+     "subscripts limited to a literal, an identifier, or identifier +/- integer",
+     "function identifiers in text-1/text-2 intrinsic only"
+    ],
+    "evidence-2002": {
+     "legal text-1/text-2 replaced": "covered by probe p16_text_word_literal.cob (T(1) BY T(3), T(I + 1) BY T(1), A1 OF G1 BY A1 IN G2: prints [cba|ywx2|R1l1|h])",
+     "arithmetic-expression subscript": "not shown; probe p16b_text1_bad_subscript.cob (text-1 T(I * 2)) compiles silently at 2002, also with --flag-extensions",
+     "non-intrinsic function": "not probed"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR9",
+      "quote": "Text-1 and text-2 shall be one of the following formats of identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.2 SR9",
+      "quote": "with the exception of a single literal or identifier, or an identifier plus or minus an integer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.2 SR9",
+      "quote": "Function identifiers in text-1 or text-2 shall be intrinsic function references only",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "to indicate violations of the general formats and the explicit syntax rules of standard COBOL",
+      "check": "OK"
+     }
+    ],
+    "reason": "Text-1/text-2 exist only in the 2002 COPY format. The legal forms work; the SR9 restrictions are not screened: CopyProcessor.ScreenOperandPair screens only ==pseudo-text== operands ('the COPY forms that are not pseudo-text ... are single operands the rules do not address').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16b_text1_bad_subscript.cob",
+    "needs": "a fix, then a 2002 witness: text-1 with a subscript that is an arithmetic expression other than identifier +/- integer draws the SR9 diagnostic at --std 2002",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16b_text1_bad_subscript.cob: COPY CB16 REPLACING T(I * 2) BY T(3). Expected a diagnostic citing §2002:7.1.2.2 SR9; observed [abb|xwx2|L1l1|g], rc=0, no diagnostic, also with --flag-extensions; code site src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs:1396 ScreenOperandPair)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-10",
+    "to": [
+     "GR-7.2.3.4-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.3 GR10",
+    "clause-2023": "7.2.3.4 GR9",
+    "scope-2002": [
+     "comparison of pseudo-text-1 and partial-word-1",
+     "comparison of text-1, word-1, literal-3 (2002 only)",
+     "matching item c)6: debugging indicator ignored, debugging-line text-words participate (2002 only)"
+    ],
+    "evidence-2002": {
+     "pseudo-text and partial-word": "covered by pointer witnesses pb1350_text_words_85 and pb1354_copy_header_2002 (re-run here at 2002: output matches)",
+     "text-1/word-1/literal-3": "covered by probe p16_text_word_literal.cob (case-folded word match, whole-word only, literal content case-sensitive, text-1 matched across separators)",
+     "debugging lines": "covered by probes p06n/p06d (debugging line inside pseudo-text-1 matches) and p10n/p10d (library text-word on a debugging line matched)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR10",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line. Text-words within a debugging line participate in the matching",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR9",
+      "quote": "For purposes of matching, text-1, word-1, and literal-3 are treated as pseudo-text containing only text-1, word-1, or literal-3, respectively",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's comparison procedure names text-1, word-1 and literal-3 throughout and carries the debugging-line item c)6; 2023 dropped both, so the pointer's witnesses cover only the pseudo-text part.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob",
+    "needs": "its own verdict: at --std 2002 text-1/word-1/literal-3 and debugging-line text match as GR10 says (probes p16, p06, p10)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob, p06n_copy_pt1_debugline.cob, p10d_by_over_lib_debugline.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-12",
+    "to": [
+     "GR-7.2.3.4-11"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.3 GR12",
+    "clause-2023": "7.2.3.4 GR11",
+    "scope-2002": [
+     "resultant text of pseudo-text-2 and partial-word-2 replacement",
+     "resultant text of text-2, word-2, literal-4 replacement (2002 only)"
+    ],
+    "evidence-2002": {
+     "pseudo-text": "covered by pointer witness gl2m2_copy_resultant_spacing_85 (re-run here at 2002: output matches)",
+     "text-2/word-2/literal-4": "covered only indirectly by probe p16_text_word_literal.cob (the resultant program compiles and runs as derived); no spacing-specific witness"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR12",
+      "quote": "additional spaces may be introduced only between text-words where there already exists a space or where a space is assumed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR11",
+      "quote": "additional spaces may be introduced only between text-words where there already exists a space or at the end of a source line",
+      "check": "OK"
+     }
+    ],
+    "reason": "'or where a space is assumed' + NOTE (end of line) vs 'or at the end of a source line': no other assumed space survives into resultant text, so the wording change is behaviour-neutral. But the 2002 rule also governs the resultant text of the text-2/word-2/literal-4 forms, which the pointer's witnesses cannot show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/gl2m2_copy_resultant_spacing_85-2002.out",
+    "needs": "a 2002 witness for resultant spacing after text-2/word-2/literal-4 replacement (p16 is the candidate)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/gl2m2_copy_resultant_spacing_85-2002.out, p16_text_word_literal.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-13",
+    "to": [
+     "GR-7.2.3.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.2.3 GR13",
+    "clause-2023": "7.2.3.4 GR3 (pointer only)",
+    "scope-2002": [
+     "COPY statement on a debugging line",
+     "library text-words on debugging lines",
+     "BY-phrase text over a library debugging line",
+     "debugging lines inside pseudo-text-2",
+     "nested COPY under a debugging-line COPY"
+    ],
+    "evidence-2002": {
+     "COPY on a debugging line": "covered by probes p08n/p08d and cases 7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/pb5214-debugging-line-copy-nested-mode, -no-mode (re-run here at 2002: match)",
+     "library debugging line": "covered by probes p09n (LN) / p09d (LN, LD)",
+     "BY text over library debugging line": "covered by probes p10n (AZ) / p10d (AR1R2Z)",
+     "pseudo-text-2 debugging line": "covered by probes p07n (L1R1Z) / p07d (L1R1R2Z)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "only those text-words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines in the resultant source text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "A debugging-line rule 2023 does not have; the pointer is unrelated (library location). Every case of the rule behaves as written at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p10n_by_over_lib_debugline.cob",
+    "needs": "its own verdict: at --std 2002 the compiler places introduced text on debugging lines exactly as GR13 says (cases pb5214-*, probes p07-p10)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p07n..p10d, cases pb5214-debugging-line-copy-nested-*)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-8",
+    "to": [
+     "GR-7.2.3.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.3 GR8",
+    "clause-2023": "7.2.3.4 GR8",
+    "scope-2002": [
+     "replacement of pseudo-text-1 and partial-word-1",
+     "replacement of text-1, word-1, literal-3 by text-2, word-2, literal-4 (2002 only)"
+    ],
+    "evidence-2002": {
+     "pseudo-text/partial-word": "covered by pointer witnesses pb1354_copy_header_2002 and pb1352_directive_lines_not_replaced (re-run here at 2002: match)",
+     "text/word/literal operands": "covered by probe p16_text_word_literal.cob and p15c_lit3_ok.cob (\"W\" BY \"C\" prints C)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1, text-1, word-1, literal-3, or partial-word-1 in the library text is replaced",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.4 GR8",
+      "quote": "Each matched occurrence of pseudo-text-1 or partial-word-1 in the library text is replaced by the corresponding pseudo-text-2 or partial-word-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1",
+      "quote": "the replacing actions of all COPY statements",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule lists five operand kinds, 2023 two; 'described in 7.1' vs '7.2' points at the same text-manipulation process (2023 adds PUSH/POP and COBOL-WORDS steps only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob",
+    "needs": "its own verdict: at --std 2002 text-1/word-1/literal-3 are replaced by text-2/word-2/literal-4 (probes p16, p15c)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob, p15c_lit3_ok.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.2.3-9",
+    "to": [
+     "GR-7.2.3.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.2.3 GR9",
+    "clause-2023": "7.2.3.4 GR2 (pointer only)",
+    "scope-2002": [
+     "text-1, word-1, literal-3 matched as one-operand pseudo-text"
+    ],
+    "evidence-2002": {
+     "all three": "covered by probe p16_text_word_literal.cob: text-1 T(1) matches library 'T (1)', T(I + 1) matches 'T ( I + 1 )', A1 OF G1 matches, word-1 XXW matches 'xxw' but not XXW-2, literal-3 \"L1\" matches \"L1\" not \"l1\""
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.3 GR9",
+      "quote": "For purposes of matching, text-1, word-1, and literal-3 are treated as pseudo-text containing only text-1, word-1, or literal-3, respectively",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rule exists only for the 2002 operand forms; the pointer (library availability) is unrelated.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob",
+    "needs": "its own verdict: at --std 2002 text-1/word-1/literal-3 match as pseudo-text (probe p16)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p16_text_word_literal.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-10",
+    "to": [
+     "SR-7.2.4.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.3.2 SR10",
+    "clause-2023": "7.2.4.3 SR8 (pointer only)",
+    "scope-2002": [
+     "debugging lines inside REPLACE pseudo-text-1 and pseudo-text-2"
+    ],
+    "evidence-2002": {
+     "pseudo-text-1": "covered by probes p11n/p11d_replace_pt1_debugline.cob (pseudo-text-1 spanning a D line matches: R1Z in both modes)",
+     "pseudo-text-2": "covered by probes p13n/p13d_replace_pt2_debugline.cob (accepted; AR1Z without mode, AR1R2Z with mode)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR8",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line. Text words within a debugging line participate in the matching",
+      "check": "OK"
+     }
+    ],
+    "reason": "Debugging-line permission with no 2023 counterpart. Note: where pseudo-text-2 holds a debugging line and the replaced text is on a normal line, 2002's REPLACE rules state no placement (Annex notes the debugging/COPY/REPLACE interaction as ambiguous); the compiler keeps the pseudo-text-2 debugging line as one, as COPY GR13 says.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p11n_replace_pt1_debugline.cob",
+    "needs": "its own verdict: at --std 2002 REPLACE pseudo-text holding debugging lines is accepted and matched (probes p11, p13)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p11n_replace_pt1_debugline.cob, p11d, p13n, p13d)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.1.3.2-9",
+    "to": [
+     "SR-7.2.4.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.3.2 SR9",
+    "clause-2023": "7.2.4.3 SR9",
+    "scope-2002": [
+     "text-words in REPLACE pseudo-text: 1 to 322 characters"
+    ],
+    "evidence-2002": {
+     "323-character text-word": "not shown; probe p05r_replace_len323.cob compiles silently at 2002 (prints OKQ, rc=0), also with --flag-extensions",
+     "322-character text-word": "accepted, probe p05r_replace_len322.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.2 SR9",
+      "quote": "The length of a text-word within pseudo-text shall be from 1 through 322 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.3 SR9",
+      "quote": "The length of a text-word within pseudo-text shall be from 1 through 65,535 characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "to indicate violations of the general formats and the explicit syntax rules of standard COBOL",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same defect as 2002-SR-7.1.2.2-11: the one edition-blind limit MaxTextWordLength = 65_535 screens REPLACE pseudo-text too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p05r_replace_len323.cob",
+    "needs": "a fix, then a 2002 witness: a 323-character text-word in REPLACE pseudo-text draws the SR9 diagnostic at --std 2002",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p05r_replace_len323.cob: expected a diagnostic citing §2002:7.1.3.2 SR9; observed OKQ, rc=0; code site src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs:1315/1408)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-10",
+    "to": [
+     "GR-7.2.4.4-10"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3.3 GR10",
+    "clause-2023": "7.2.4.4 GR10",
+    "scope-2002": [
+     "placement of pseudo-text-2 text-words in the resultant text of a format 1 REPLACE (pseudo-text and partial-word forms, same as 2023)"
+    ],
+    "evidence-2002": {
+     "all": "covered by pointer witness 7.2.4-REPLACE/l1c24_replace_free_form_result (accept [85]; re-run here at 2002: output matches)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR10",
+      "quote": "The text that results from the processing of a REPLACE statement shall be in logical free-form reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR10",
+      "quote": "The text that results from the processing of a REPLACE statement shall be in logical free-form reference format",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text except 'NOTE' vs 'NOTE 2'. The REPLACE general format is the same in both editions (ALSO, LEADING/TRAILING, LAST OFF); placement on debugging lines is GR11's, not this rule's.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/l1c24_replace_free_form_result-2002.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-11",
+    "to": [
+     "GR-7.2.4.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.1.3.3 GR11",
+    "clause-2023": "7.2.4.4 GR2 (pointer only)",
+    "scope-2002": [
+     "REPLACE replacing text that begins on a debugging line"
+    ],
+    "evidence-2002": {
+     "all": "covered by probes p12n (AZ: R1 R2 on debugging lines, commented out) / p12d (AR1R2Z)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR11",
+      "quote": "If the text being replaced begins on a debugging line, the resultant text is on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Debugging-line rule with no 2023 counterpart.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p12n_replace_over_debugline.cob",
+    "needs": "its own verdict: at --std 2002 the resultant text of a REPLACE whose replaced text begins on a debugging line is on a debugging line (probes p12n, p12d)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p12n_replace_over_debugline.cob, p12d_replace_over_debugline.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-4",
+    "to": [
+     "GR-7.2.4.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3.3 GR4",
+    "clause-2023": "7.2.4.4 GR4",
+    "scope-2002": [
+     "active, inactive (LIFO queue) and cancelled states of a format 1 REPLACE"
+    ],
+    "evidence-2002": {
+     "all": "covered by pointer witness 7.2.4-REPLACE/pb1357_replace_also_last (accept [2002]; re-run here at 2002: 9 lines identical to .out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR4",
+      "quote": "Once encountered, a format 1 REPLACE statement has one of three states",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR4",
+      "quote": "Once encountered, a format 1 REPLACE statement has one of three states",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only spelling differs (cancelled/canceled). Same REPLACE formats (ALSO, LAST OFF) and the same GR6/GR7 transitions in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/pb1357_replace_also_last-2002.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-5",
+    "to": [
+     "GR-7.2.4.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.1.3.3 GR5",
+    "clause-2023": "7.2.4.4 GR5",
+    "scope-2002": [
+     "how long a REPLACE stays active"
+    ],
+    "evidence-2002": {
+     "all": "covered by pointer witness pb1357_replace_also_last (re-run here at 2002: matches)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR5",
+      "quote": "A REPLACE statement that is placed in the active state remains active until it is placed in the inactive state, it is cancelled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR5",
+      "quote": "A REPLACE statement that is placed in the active state remains active until it is placed in the inactive state, it is canceled",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only spelling differs (cancelled/canceled).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/pb1357_replace_also_last-2002.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-8",
+    "to": [
+     "GR-7.2.4.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.1.3.3 GR8",
+    "clause-2023": "7.2.4.4 GR8",
+    "scope-2002": [
+     "REPLACE comparison items a)-g) as in 2023",
+     "matching item c)6: debugging indicator ignored, text-words on debugging lines participate (2002 only)"
+    ],
+    "evidence-2002": {
+     "common items": "covered by pointer witnesses pb1350_text_words_85 and pb1352_directive_lines_not_replaced (re-run here at 2002: match)",
+     "debugging lines": "covered by probes p11n/p11d (debugging line inside pseudo-text-1 matches source) and p12n/p12d (source text on a debugging line matched)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR8",
+      "quote": "A debugging indicator shall be treated as if it did not appear in the line. Text words within a debugging line participate in the matching",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR8",
+      "quote": "The comparison operation to determine text replacement begins with the text immediately following the REPLACE statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's matching list has seven items; item 6 (debugging indicator) has no 2023 counterpart, so the enumeration lost a case and the pointer's witnesses do not show it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p11n_replace_pt1_debugline.cob",
+    "needs": "its own verdict: at --std 2002 debugging-line text participates in REPLACE matching (probes p11, p12)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p11n_replace_pt1_debugline.cob, p12d_replace_over_debugline.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-5",
+    "to": [
+     "SR-7.3.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "7.2.2 SR5",
+    "clause-2023": "7.3.3 SR5",
+    "scope-2002": [
+     "every 2002 directive with or without a space after >>, including FLAG-85 and FLAG-NATIVE-ARITHMETIC (2002 only)"
+    ],
+    "evidence-2002": {
+     "DEFINE / IF / END-IF": "not shown by the pointer row (pb794_directive_operands uses a 2023-only directive; InlineComment_IsNotPartOfTheOperand runs at 2023); covered by probe p17_directive_space.cob (2002: A1, B2)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC": "covered by probe p19_flag85_space.cob (2002: both spellings accepted)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR5",
+      "quote": "The compiler directive indicator shall be treated as though it were followed by a space if no space is specified after the indicator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words (2023's editorial note is not normative), but the pointer's witnesses do not run at 2002 and 2002's directive set includes FLAG-85 and FLAG-NATIVE-ARITHMETIC. Probes show the compiler correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p17_directive_space.cob",
+    "needs": "its own verdict: at --std 2002 '>>' with and without a following space is accepted for DEFINE, IF, END-IF, FLAG-85, FLAG-NATIVE-ARITHMETIC (probes p17, p19)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p17_directive_space.cob, p19_flag85_space.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-7",
+    "to": [
+     "SR-7.3.3-7"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.2 SR7",
+    "clause-2023": "7.3.3 SR7 (the slice pointer SR-7.3.3-1 is the wrong rule; SR-7.3.3-7 is the subject's 2023 rule)",
+    "scope-2002": [
+     "2002 compiler-directive words (§2002:8.12) reserved inside directives, not elsewhere"
+    ],
+    "evidence-2002": {
+     "outside a directive": "covered by probe p18a_dirword_outside.cob (PARAMETER, LISTING as data names: prints pl)",
+     "inside a directive, word in both tables": "covered by probe p18b_dirword_inside.cob (>>DEFINE PARAMETER: COBOL2650)",
+     "2002-only directive word FLAG-85": "not shown: probe p18d_define_flag85.cob accepts >>DEFINE FLAG-85 AS 1 (known defect kb/Work PB5599)",
+     "2023-only word PUSH": "probe p18c_define_push.cob refuses >>DEFINE PUSH AS 1 at 2002 (COBOL2650 citing §2023:8.12; PUSH is not a 2002 directive word; PB5599)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR7",
+      "quote": "A compiler-directive word is reserved within the context of the compiler directive in which it is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.3 SR7",
+      "quote": "that compiler-directive word is reserved within the context of that directive",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 says the word is reserved 'within the context of the compiler directive in which it is specified'; 2023 ties it to the word appearing in the directive's general format. The compiler uses the 2023 word table at every edition (PB5599), so the 2002 set of reserved words is wrong in both directions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p18d_define_flag85.cob",
+    "needs": "the PB5599 fix, then a 2002 witness: FLAG-85 reserved and PUSH free inside a 2002 directive",
+    "compiler-at-2002": "wrong, known (kb/Work PB5599; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p18c_define_push.cob, p18d_define_flag85.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.2-8",
+    "to": [
+     "SR-7.3.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.2 SR8",
+    "clause-2023": "7.3.3 SR8",
+    "scope-2002": [
+     "a) to c) as in 2023",
+     "d) no compiler directive on a debugging line (fixed D or floating >>D), whatever the DEBUGGING MODE setting"
+    ],
+    "evidence-2002": {
+     "a) to c)": "covered by the pointer's pb1384-directive-within-copy/-replace (refuse-at includes 2002) and unit DirectiveWithinStatementTests",
+     "d) with WITH DEBUGGING MODE": "refused (generic COBOL0001): probes p14d, p14fd; also q-01's e_dline_dir",
+     "d) without DEBUGGING MODE": "not shown: probes p14n_directive_on_debugline.cob, p14fn_directive_on_floatdebug.cob and p14x_directive_on_debugline_effect.cob compile silently at 2002; p14x shows the >>DEFINE on the D line was dropped (NOT DEFINED), no diagnostic, also with --flag-extensions"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.2 SR8",
+      "quote": "A compiler directive may be specified anywhere in a compilation group, in source text or in library text, except",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line if the WITH DEBUGGING MODE clause is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "to indicate violations of the general formats and the explicit syntax rules of standard COBOL",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's list of exceptions has item d), which 2023 lacks. A debugging line is still a debugging line during text manipulation (it becomes comment-like only after COPY and REPLACE processing), so a directive on it violates SR8 d) with or without DEBUGGING MODE. Without the mode the compiler silently treats the line as a comment.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p14x_directive_on_debugline_effect.cob",
+    "needs": "a fix, then a 2002 witness: a directive on a D line or after >>D draws a SR8 d) diagnostic at --std 2002 with and without WITH DEBUGGING MODE",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p14x_directive_on_debugline_effect.cob: line '      D>>DEFINE VV AS 1', no DEBUGGING MODE. Expected a diagnostic citing §2002:7.2.2 SR8 d); observed NOT DEFINED, rc=0, no diagnostic, also with --flag-extensions)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.3-2",
+    "to": [
+     "GR-7.3.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "removed-form",
+    "clause-2002": "7.2.3 GR2",
+    "clause-2023": "7.3.4 GR2",
+    "scope-2002": [
+     "text-manipulation directives (DEFINE, IF, EVALUATE, SOURCE FORMAT) in the 7.1 order",
+     "compilation-stage directives in order, including FLAG-85 and FLAG-NATIVE-ARITHMETIC (2002 only)"
+    ],
+    "evidence-2002": {
+     "text manipulation order": "covered by pointer witness pb1352_directive_lines_not_replaced (accept [2002]; re-run here at 2002: match)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC in order": "not shown: the compiler recognizes and ignores both (probe p20_flag85_order.cob: a de-editing MOVE under FLAG-85 DE-EDITING ON draws no warning); known defect kb/Work PB5600"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.3 GR2",
+      "quote": "During the compilation stage, compiler directives are processed in the order encountered in the structured compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.4 GR2",
+      "quote": "During the compilation stage, compiler directives are processed in the order encountered in the structured compilation group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1",
+      "quote": "the replacing actions of all COPY statements",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical once '7.1' and '7.2' are erased, and 2002's 7.1 process is a subset of 2023's 7.2.1 (which adds PUSH/POP and COBOL-WORDS). But the 2002 directive set has two compilation-stage directives 2023 removed, and the compiler does not process them.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p20_flag85_order.cob",
+    "needs": "the PB5600 fix, then a 2002 witness: FLAG-85 ON/OFF in order changes which statements are flagged",
+    "compiler-at-2002": "wrong, known (kb/Work PB5600; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-01/p20_flag85_order.cob)",
+    "widening": "2023 also orders PUSH/POP (step 2c) and the COBOL-WORDS step 4, which 2002 lacks",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ]
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-01",
+  "cases": [
+   {
+    "rule-id": "2002-SR-6.1.2.1-6",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "In 2002 a continuation line of a literal may be a debugging line: the continuation line is 'the next line that is not a comment line or a blank line' (6.2.4), a debugging line is not a comment line until after COPY/REPLACE processing (6.2.7), and the program-text area of a D line may hold character-strings (6.2.3). SR6 therefore governs a continuation line carrying a fixed D indicator or a floating >>D indicator (6.1.2 table; for >>D the first nonblank character of the line is the indicator, not the quotation symbol), and how it interacts with logical conversion step 5 (a D line becomes a NEW >>D line, not an appended continuation). 2023 has no debugging indicator at all (6.2.3.1 table lists *>, >>, \"-/'- only), so the 2023 row's witnesses (alphanumeric/national/boolean continuation on source lines) show nothing about this 2002 scope. Probes: at --std 2002 the compiler refuses a D-line continuation whose program-text area begins with the quote (r1a, COBOL2684 + COBOL3473 citing 2023) and refuses a >>D continuation line (r1c); it accepts a >>D line continued onto a plain line (r1d, prints ABCD). Whether r1a's refusal is right under 2002 turns on whether logical-conversion step 5 or step 9 governs a D continuation line: a 2002 witness and a signed reading are needed.",
+    "citations": [
+     {
+      "cite": "§2002:6.1.2.1 SR6",
+      "quote": "the first non-blank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.2 SR6",
+      "quote": "the first nonblank character of each continuation line shall be the quotation symbol used in the opening delimiter of the literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.4",
+      "quote": "the next line that is not a comment line or a blank line is the continuation line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.1.2",
+      "quote": "a debugging line when followed by at least one space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.3",
+      "quote": "when the indicator area contains a debugging indicator, a continuation indicator, or a source indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.4",
+      "quote": "a free-form line is created in the resultant compilation group that consists of the following: a floating debugging indicator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:6.2.3.1",
+      "quote": "Floating indicators may be used in fixed-form or free-form reference format",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for a continued literal whose continuation line is a debugging line (fixed D and >>D), with the step-5-versus-step-9 reading of §2002:6.4 settled",
+    "compiler-at-2002": "not settled: refuses r1a and r1c, accepts r1d",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-01/r1a_dline_float_cont_ok-2002.out (also r1b, r1c, r1d, each -2002.out and -2023.out)"
+   },
+   {
+    "rule-id": "2002-SR-7.1.2.2-8",
+    "verdict": "OVERTURNED",
+    "class": "deferral",
+    "reason": "The rule defers to 'the rules of reference format', and those rules differ: 2002 permits continuing a COBOL word (and picture character-strings, numeric literals) with a fixed continuation indicator (6.2.4; logical conversion 6.4 step 7b), while 2023 removed continuation of COBOL words (Annex E.2 item 1; 2023 6.3.5 states continuation only for literals). So in 2002 a COBOL word inside COPY pseudo-text may be split across lines; at 2023 it is an error. Probe r2a: COPY CBR REPLACING ==TOK / -EN1== BY ==\"NEW\"== prints NEW at --std 2002 and is refused at --std 2023 (COBOL0902 'continuation of a COBOL word ... removed in COBOL-2023'). The reader's witnesses (floating continuation of a literal, a fixed-continued literal) do not show the word case.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.2.2 SR8",
+      "quote": "Character-strings within pseudo-text-1 and pseudo-text-2 may be continued in accordance with the rules of reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.3.3 SR8",
+      "quote": "Character-strings within pseudo-text-1 and pseudo-text-2 may be continued in accordance with the rules of reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.4",
+      "quote": "The continuation of a COBOL word, picture character-string, or literal other than an alphanumeric, boolean, or national literal is identified by a fixed continuation indicator in the continuation line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.4",
+      "quote": "the content of the program-text area, beginning with the first non-space character, is appended immediately to the right of the last character in the latest logical line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "Continuation of COBOL words in fixed form reference format",
+      "check": "OK"
+     }
+    ],
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a COBOL word continued inside COPY pseudo-text is correct (r2a prints NEW); record r2a as the 2002 witness",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-01/r2a_copy_pt_word_cont-2002.out (2023: r2a_copy_pt_word_cont-2023.out; control r2b)"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-10",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "In 2002 pseudo-text-2 may contain debugging lines (SR10), and GR10 is the only REPLACE rule that places inserted pseudo-text-2 text-words ('placed in accordance with the rules of free-form reference format', which in 2002 include debugging lines, 6.3.4). GR11 covers only text being replaced that begins on a debugging line, so the reader's 'placement on debugging lines is GR11's' does not cover a debugging line inside pseudo-text-2 replacing text on a source line (COPY has GR13 for this; REPLACE leans on GR10). 2023 has no debugging lines, so the 2023 row's witness (l1c24) cannot show this part. Probe r4: REPLACE ==TOKEN1== BY ==\"A\" / D DISPLAY \"B\" == prints A,END without DEBUGGING MODE and A,B,END with it at --std 2002 (the debugging line is kept); refused at 2023 (COBOL0902).",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR10",
+      "quote": "Text-words inserted into the resultant text as a result of processing a REPLACE statement are placed in accordance with the rules of free-form reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR10",
+      "quote": "Text-words inserted into the resultant text as a result of processing a REPLACE statement are placed in accordance with the rules of free-form reference format",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR10",
+      "quote": "Pseudo-text-1 and pseudo-text-2 may contain debugging lines",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.3.4",
+      "quote": "A debugging line consists of a debugging indicator, optionally preceded by one or more space characters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.3 GR11",
+      "quote": "If the text being replaced begins on a debugging line, the resultant text is on a debugging line",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.2.3 GR13",
+      "quote": "only those text-words that are specified on debugging lines where the debugging line is within pseudo-text-2 appear on debugging lines",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for pseudo-text-2 holding a debugging line (r4, both modes)",
+    "compiler-at-2002": "correct (on the reading that GR10 keeps the debugging line, as COPY GR13 states)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-01/r4_replace_pt2_dline_dbg-2002.out (and r4_replace_pt2_dline_nodbg-2002.out, r4_replace_pt2_dline_dbg-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-4",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "The state machine is word-identical, but the set of REPLACE statements 'encountered' is larger in 2002: a REPLACE may be written anywhere in source text (SR1), including on a debugging line, and 6.2.7 names REPLACE explicitly: a debugging line becomes comment-like only AFTER COPY and REPLACE processing, so a format 1 REPLACE on a D or >>D line is encountered and becomes active even without WITH DEBUGGING MODE. 2023 has no debugging lines, so a 2002 implementation that dropped debugging lines before text manipulation would pass every 2023 witness (pb1357) and violate this rule. Probe r3a: D-line REPLACE ==TOKEN1== BY ==\"NEW\"== then DISPLAY TOKEN1 prints NEW at --std 2002 with and without DEBUGGING MODE; refused at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR4",
+      "quote": "Once encountered, a format 1 REPLACE statement has one of three states",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR4",
+      "quote": "Once encountered, a format 1 REPLACE statement has one of three states",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.1.3.2 SR1",
+      "quote": "A REPLACE statement may be specified anywhere in source text or in library text",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for a format 1 REPLACE written on a debugging line, with and without DEBUGGING MODE (r3a)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-01/r3a_replace_on_dline_nodbg-2002.out (and r3a_replace_on_dline_dbg-2002.out, r3a_replace_on_dline_nodbg-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-7.1.3.3-5",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "Same ground as GR4: in 2002 the statement that places an active REPLACE in the inactive or cancelled state may itself stand on a debugging line, and it acts even without WITH DEBUGGING MODE because debugging lines turn comment-like only after REPLACE processing (6.2.7). The 2023 witness (pb1357) has no debugging lines. Probe r3c: active REPLACE, DISPLAY TOKEN1, then a D-line REPLACE OFF, DISPLAY TOKEN1 prints NEW then OLD at --std 2002 in both modes; refused at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:7.1.3.3 GR5",
+      "quote": "A REPLACE statement that is placed in the active state remains active until it is placed in the inactive state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.2.4.4 GR5",
+      "quote": "A REPLACE statement that is placed in the active state remains active until it is placed in the inactive state",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:6.2.7",
+      "quote": "After all COPY and REPLACE statements have been processed, a debugging line has the characteristics of a comment line",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for a REPLACE OFF / REPLACE on a debugging line ending an active REPLACE (r3c)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-01/r3c_replace_off_on_dline_nodbg-2002.out (and r3c_replace_off_on_dline_dbg-2002.out, -2023.out)"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "e1b63724eaea48e37fe0932b17344c20e24f6b3bccd3c4947280a78f4860b69d",
+  "read": "a86a282b480a05ad0c70592ef625062db818a02b5e3fdf3fad05a9c641356e04",
+  "refute": "cdc9efb752a00b6eb792dfc5d8e376973f28c27f708b53816228e5a194d0424b"
+ }
+}

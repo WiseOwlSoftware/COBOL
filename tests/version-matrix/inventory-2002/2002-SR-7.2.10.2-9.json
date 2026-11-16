@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.10.2-9",
+ "rule-digest": "b76d346a3a8f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#PhraseFrame",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-closed-in-library-text; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-not-closed; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-other-twice; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-when-after-when-other; conformance:cases/7.3.13-EVALUATE/pb1363-evaluate-without-when",
+ "notes": "Own verdict from the read lineage-reads-2002/u-02.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-7.3.13.3-9, witnessed at 2002 by the cases test-ref names. The read: Rewording only: 'For purposes of this rule, text-1 and text-2 are not considered phrases' and 'Excluding text-1 and text-2' state the same exemption; the nested-EVALUATE sentence is identical; 2002's EVALUATE general format is 2023's. Cited: §2002:7.2.10.2 SR9."
+}

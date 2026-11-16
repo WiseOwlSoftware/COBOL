@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.3.3-6",
+ "rule-digest": "d725c4cae8f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#CategoryOf; src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#Category; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#Kind; src/WiseOwl.Cobol.Compiler/Binding/Bound/MoveClassifier.cs#ReceivingCategory",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/pb73_table16_function_type_and_boolean_view; conformance:cases/14.9.25-MOVE/pb3512_numeric_sender_national_slice",
+ "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.3.4-6, witnessed at 2002 by the cases test-ref names. The read: 2002 has a fourth exception, d) an alphanumeric group item is considered usage display, which 2023 dropped. It changes nothing a program can show: the unique item of an alphanumeric group is class and category alphanumeric in both editions, its positions are character positions by GR5a (it is not usage bit), and an alphanumeric elementary item is usage display; the compiler treats the slice that way at 2002 (pb70_group_reference_modification passes there). Items a)-c) are word-identical. Cited: §2002:8.4.2.3.3 GR6d."
+}

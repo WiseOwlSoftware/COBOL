@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.21.3-2",
+ "rule-digest": "6d43297383da",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.23-FOREGROUND-COLOR/a42-screen-foreground-color",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.23.4-2, witnessed at 2002 by the cases test-ref names. The read: Words differ only in 'data-item' vs 'data item'. Screen section only; licensed by 2002's own processor-dependent provision and declined with a named diagnostic, as q-13/q-14 found for GR1, GR3, GR4. Cited: §2002:13.16.21.3 GR2; §2002:3.1.5; §2002:B.3."
+}

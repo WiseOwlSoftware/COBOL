@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1464_parenthesized_bare_conditions
       *> rules: [FMT-8.8.4.6.2]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,1648 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-06 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-06",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-8.4.2.4.2-4",
+   "2002-GR-8.4.2.4.3-1",
+   "2002-GR-8.4.2.5.3-2",
+   "2002-GR-8.4.2.5.3-3",
+   "2002-GR-8.4.2.5.3-4",
+   "2002-GR-8.4.2.5.3-5",
+   "2002-SR-8.4.2.7.2-1",
+   "2002-SR-8.4.2.7.2-2",
+   "2002-GR-8.4.2.7.3-1",
+   "2002-SR-8.4.2.8.2-4",
+   "2002-SR-8.4.2.8.2-5",
+   "2002-SR-8.4.2.8.2-6",
+   "2002-GR-8.4.2.8.3-2",
+   "2002-GR-8.4.2.8.3-3",
+   "2002-GR-8.4.2.8.3-4",
+   "2002-SR-8.4.2.9.2-3",
+   "2002-SR-8.4.2.9.2-4",
+   "2002-SR-8.4.2.9.2-6",
+   "2002-GR-8.4.2.9.3-3",
+   "2002-SR-8.4.2.10.2-1",
+   "2002-GR-8.4.2.10.3-1",
+   "2002-GR-8.4.2.10.3-2",
+   "2002-SR-8.4.2.11.2-4",
+   "2002-GR-8.4.2.11.3-2",
+   "2002-SR-8.4.2.12.2-2"
+  ],
+  "pointers": {
+   "2002-SR-8.4.2.4.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.4.3-4",
+    "similarity": 0.902
+   },
+   "2002-GR-8.4.2.4.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.4.4-1",
+    "similarity": 0.989
+   },
+   "2002-GR-8.4.2.5.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.5.4-2",
+    "similarity": 0.96
+   },
+   "2002-GR-8.4.2.5.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.5.4-3",
+    "similarity": 0.972
+   },
+   "2002-GR-8.4.2.5.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.5.4-4",
+    "similarity": 0.977
+   },
+   "2002-GR-8.4.2.5.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.5.4-5",
+    "similarity": 0.978
+   },
+   "2002-SR-8.4.2.7.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.4.2.7.2-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.4.2.7.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.4.2.8.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.8.3-4",
+    "similarity": 0.969
+   },
+   "2002-SR-8.4.2.8.2-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.8.3-5",
+    "similarity": 0.947
+   },
+   "2002-SR-8.4.2.8.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.8.3-6",
+    "similarity": 0.944
+   },
+   "2002-GR-8.4.2.8.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.8.4-2",
+    "similarity": 0.995
+   },
+   "2002-GR-8.4.2.8.3-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-8.4.3.8.4-3",
+    "similarity": 0.806
+   },
+   "2002-GR-8.4.2.8.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.8.4-4",
+    "similarity": 0.941
+   },
+   "2002-SR-8.4.2.9.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.9.3-3",
+    "similarity": 0.965
+   },
+   "2002-SR-8.4.2.9.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-8.4.3.9.3-4",
+    "similarity": 0.966
+   },
+   "2002-SR-8.4.2.9.2-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-8.4.3.9.3-6",
+    "similarity": 1.0
+   },
+   "2002-GR-8.4.2.9.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-8.4.3.9.4-3",
+    "similarity": 1.0
+   },
+   "2002-SR-8.4.2.10.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.4.2.10.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.4.2.10.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-SR-8.4.2.11.2-4": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-8.4.3.11.3-1",
+    "similarity": 0.433
+   },
+   "2002-GR-8.4.2.11.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-8.4.3.11.4-2",
+    "similarity": 0.944
+   },
+   "2002-SR-8.4.2.12.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-8.4.3.13.3-2",
+    "similarity": 0.812
+   }
+  }
+ },
+ "read": {
+  "slice": "u-06",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d (HEAD 24372b7b17, pinned; it predates PB5598's landing 74a3811df6)",
+  "probe-runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/runcase.py (copies a conformance case, compiles+runs it with --std <ed>, compares with its .out or its wiseowl/diagnostics refusal; each run's log is run-<ed>/<id>/result.txt)",
+  "cases": [
+   {
+    "rule-id": "2002-SR-8.4.2.4.2-4",
+    "to": [
+     "SR-8.4.3.4.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "8.4.2.4 Inline method invocation, SR4",
+    "clause-2023": "8.4.3.4 Inline method invocation, SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an inline method invocation (identifier-1 or class-name-1 :: literal-1) whose invoked method's RETURNING item is described ANY LENGTH: refused",
+     "nothing else: the 2002 rule names no ACTIVE-CLASS ban"
+    ],
+    "evidence-2002": [
+     "ANY LENGTH arm: NOT in the pointer row (its test-refs pb428-inline-invocation-returning-active-class and pb1548-inline-new-active-class are the ACTIVE-CLASS arm only); shown by probe: conformance-suite/cases/_unassigned/pb1167-inline-invocation-returning-any-length.cob refused COBOL2140 at --std 2002 (probes-u-06/run-2002/pb1167-inline-invocation-returning-any-length/result.txt)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.2 SR4",
+      "quote": "shall not be described with the ANY LENGTH clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.3 SR4",
+      "quote": "shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's words stop at ANY LENGTH (2023 adds 'or with the ACTIVE-CLASS phrase'). The pointer row's only witnesses exercise the ACTIVE-CLASS arm, which is not a 2002 requirement at all; the 2002 rule's whole scope (the ANY LENGTH arm) is witnessed only by a test in cases/_unassigned that no row cites. The compiler refuses it correctly at 2002. Adjacent: the pinned compiler also applies the ACTIVE-CLASS arm at 2002 (see 2002-GR-8.4.2.4.3-1; known PB5598).",
+    "needs": "a 2002 witness for the ANY LENGTH arm: assign pb1167-inline-invocation-returning-any-length (refused COBOL2140 at 2002) to this row",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1167-inline-invocation-returning-any-length/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.4.3-1",
+    "to": [
+     "GR-8.4.3.4.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "8.4.2.4 Inline method invocation, GR1",
+    "clause-2023": "8.4.3.4 Inline method invocation, GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 :: literal-1 [(args)]",
+     "class-name-1 :: literal-1 [(args)]",
+     "the temporary has the RETURNING item's description, including a RETURNING item described with ACTIVE-CLASS (2002 SR4 bans only ANY LENGTH; 2002 14.7.2.2 rule 2 makes an ACTIVE-CLASS returning item conform when the method is invoked through SELF or SUPER)"
+    ],
+    "evidence-2002": [
+     "identifier-1 and class-name-1 forms with arguments: covered by pb428_inline_method_invocation, pb1425_computed_object_reference_operands (PASS at 2002), refusals pb1425-invoke-receiver-not-object, pb1425-inline-function-receiver-universal (refused at 2002)",
+     "ACTIVE-CLASS returning item: not shown by the row (2023 forbids it); probe p-ac/acself.cob REFUSED at 2002 by the pinned compiler"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.4.3 GR1",
+      "quote": "temp-identifier has the same description, class, and category as the RETURNING parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.4.4 GR1",
+      "quote": "temp-identifier has the same description, class, and category as the RETURNING parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.4.2 SR3",
+      "quote": "One of the INVOKE statements specified in general rule 1 shall be valid",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.7.2.2",
+      "quote": "If the activated method is invoked with the predefined object references SELF or SUPER, the sending operand is described with an ACTIVE-CLASS phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'class-name-1' vs 'object-class-name-1' differ in the words (a rename of the OO class-name; same referent). But the 2002 rule reaches a temporary described ACTIVE-CLASS, which 2023 SR4 excludes, so the 2023 row's evidence never exercises it. Probe: inside an instance method, SET LS-B TO SELF :: \"CLONEME\" (CLONEME returns ACTIVE-CLASS, LS-B ACTIVE-CLASS in local-storage) is legal 2002 (the INVOKE statement form of GR1 is valid by 14.7.2.2 rule 2b and SET SR14a); the pinned compiler refuses it COBOL2140 citing §2023:8.4.3.4.3 SR4, while the control with INVOKE SELF \"CLONEME\" RETURNING LS-B compiles and prints STMT-SAME / INLINE-SAME.",
+    "needs": "its own verdict: a 2002 witness for an inline invocation whose method returns ACTIVE-CLASS (main's pb5598-active-class-property-2002 has SET B TO A :: \"GETME\"; PB5598 landed after the pin, not re-probed here)",
+    "compiler-at-2002": "wrong at the pinned tree (known: kb/Work PB5598, landed on main in 74a3811df6 after the pin; PB5660 open for the pb428 cascade)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-ac/acself.cob",
+     "control": "p-ac/acself-control.cob (prints STMT-SAME, INLINE-SAME)",
+     "expected": "compiles and prints STMT-SAME and INLINE-SAME at --std 2002",
+     "observed": "acself.cob(43,12): error COBOL2140: the inline method invocation of \"CLONEME\": the invoked method's RETURNING item is described with the ACTIVE-CLASS phrase (ISO §2023:8.4.3.4.3 SR4)",
+     "known-note": "PB5598"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-ac/out-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-2",
+    "to": [
+     "GR-8.4.3.5.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5 Object-view, GR2",
+    "clause-2023": "8.4.3.5 Object-view, GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 AS class-name-1 (no FACTORY, no ONLY): compile-time view and the runtime EC-OO-CONFORMANCE check"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.4.3.1-Identifier/pb1425_object_view (accept [2002]; PASS at --std 2002, probes-u-06/run-2002/pb1425_object_view)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR2",
+      "quote": "the EC-OO-CONFORMANCE exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR2",
+      "quote": "If object-class-name-1 is specified without either of the optional phrases",
+      "check": "OK"
+     }
+    ],
+    "reason": "General formats identical except the operand's name class-name-1 -> object-class-name-1 (2023 renamed the OO class-name to keep it apart from the CLASS-clause class-name; 2002's context already makes it the OO class). EC-OO-CONFORMANCE exists in both. The row's test runs green at 2002 and exercises the GR2 failure leg (HANDLED=EC-OO-CONFORMANCE / AFTER-GR2).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1425_object_view/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-3",
+    "to": [
+     "GR-8.4.3.5.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5 Object-view, GR3",
+    "clause-2023": "8.4.3.5 Object-view, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 AS FACTORY OF class-name-1 (no ONLY)"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_object_view (OFU AS FACTORY OF PB1425VA leg), PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR3",
+      "quote": "USAGE OBJECT REFERENCE FACTORY OF class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR3",
+      "quote": "USAGE OBJECT REFERENCE FACTORY OF object-class-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the operand rename differs; same format, same exception. Row witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1425_object_view/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-4",
+    "to": [
+     "GR-8.4.3.5.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5 Object-view, GR4",
+    "clause-2023": "8.4.3.5 Object-view, GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 AS class-name-1 ONLY"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_object_view (ONLY leg and AFTER-GR4 failure) and pb1425_object_view_unchecked, both PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR4",
+      "quote": "USAGE OBJECT REFERENCE class-name-1 ONLY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR4",
+      "quote": "USAGE OBJECT REFERENCE object-class-name-1 ONLY",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the operand rename differs. Row witnesses pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1425_object_view_unchecked/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-5",
+    "to": [
+     "GR-8.4.3.5.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5 Object-view, GR5",
+    "clause-2023": "8.4.3.5 Object-view, GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 AS FACTORY OF class-name-1 ONLY"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_object_view (OFU AS FACTORY OF PB1425VD ONLY leg, AFTER-GR5), PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR5",
+      "quote": "USAGE OBJECT REFERENCE FACTORY OF class-name-1 ONLY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR5",
+      "quote": "USAGE OBJECT REFERENCE FACTORY OF object-class-name-1 ONLY",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the operand rename differs. Row witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1425_object_view/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.7.2-1",
+    "to": [
+     "SR-8.4.3.7.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.7 NULL (predefined object reference), SR1",
+    "clause-2023": "8.4.3.7 NULL object reference, SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the predefined object reference NULL as a receiving operand of any statement: refused"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.4.3.7-NULL-object-reference/l1m7-null-receiving-operand (refuse-at includes 2002; refused COBOL3977 at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.2 SR1",
+      "quote": "NULL shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.3 SR1",
+      "quote": "NULL shall not be specified as a receiving operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "The slice gave no pointer ('no same-subject 2023 rule'), but 2023 8.4.3.7 'NULL object reference' carries the identical SR1 under the same one-word general format; the heading change is the only difference. I used SR-8.4.3.7.3-1 as the pointer. Its witness refuses at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/l1m7-null-receiving-operand/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.7.2-2",
+    "to": [
+     "SR-8.4.3.7.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.7 NULL, SR2",
+    "clause-2023": "8.4.3.7 NULL object reference, SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NULL is class object / category object reference (usable where an object reference is: INVOKE argument, SET sender, relation)",
+     "NULL is not a universal object reference (INVOKE NULL with identifier-2 refused; NULL as receiver)"
+    ],
+    "evidence-2002": [
+     "covered by pb1137_invoke_argument_forms, pb1136_invoke_null_receiver (PASS at 2002) and pb1136-invoke-null-identifier-2 (refused at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.2 SR2",
+      "quote": "NULL is implicitly described as class object and category object reference, and is not a universal object reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.3 SR2",
+      "quote": "NULL is implicitly described as class object and category object reference, and is not a universal object reference",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule in an identical clause; pointer chosen by me (slice gave none). All three row witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1137_invoke_argument_forms/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.7.3-1",
+    "to": [
+     "GR-8.4.3.7.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.7 NULL, GR1",
+    "clause-2023": "8.4.3.7 NULL object reference, GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NULL holds the null object reference value, which never references an object (relation with NULL; SET to NULL)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.4.3.7-NULL-object-reference/oo_universal_relation (PASS at --std 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.3 GR1",
+      "quote": "this is a unique value defined by the implementor such that it is guaranteed to never reference an object",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.4 GR1",
+      "quote": "this is a unique value defined by the implementor such that it is guaranteed to never reference an object",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule, identical clause; pointer chosen by me. Witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/oo_universal_relation/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-4",
+    "to": [
+     "SR-8.4.3.8.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "8.4.2.8 SELF and SUPER, SR4",
+    "clause-2023": "8.4.3.8 SELF and SUPER, SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "class-name-1 OF SUPER with class-name-1 not in the INHERITS clause: refused",
+     "class-name-1 OF SUPER naming any one of SEVERAL classes in the INHERITS clause: accepted (2002 11.2.1 INHERITS FROM { class-name-2 } ...; multiple inheritance is required in 2002)"
+    ],
+    "evidence-2002": [
+     "refusal arm: covered by pb1425-super-qualifier-not-inherited (refused COBOL2777 at 2002); single-base accept: pb1425_qualified_super (PASS at 2002)",
+     "multi-base accept arm: not shown, and the compiler is wrong: probe p-mi/misuper.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR4",
+      "quote": "Class-name-1 shall be the name of a class specified in the INHERITS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR4",
+      "quote": "Object-class-name-1 shall be the name of a class specified in the INHERITS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.2.1",
+      "quote": "INHERITS FROM { class-name-2 }",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "inherits from one or more classes",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words match up to the class-name rename, but in 2023 the INHERITS list's repetition is an optional element WiseOwl declines (Annex A.4.10 item 1), so the 2023 row never shows SR4 over a list of several classes. 2002 has no such licence (3.1.5 / B.3 do not list it). Probe: class U06MIC INHERITS FROM U06MIA U06MIB with INVOKE U06MIA OF SUPER / U06MIB OF SUPER is legal 2002; observed COBOL0849 (multiple inheritance declined, citing §2023) AND a false COBOL2777 \"'U06MIB' is not the class the INHERITS clause of 'U06MIC' names ('U06MIA')\" though U06MIB is named.",
+    "needs": "its own verdict: the compiler at --std 2002 refuses class-name-1 OF SUPER naming the second class of an INHERITS list (COBOL0849, then a misleading COBOL2777); a 2002 witness once PB5580 is fixed",
+    "licence-2002": "none",
+    "compiler-at-2002": "wrong (known facility: kb/Work PB5580, open; the COBOL2777 cascade naming only the first base is not in PB5580's text)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-mi/misuper.cob",
+     "expected": "compiles; prints FROM-A then FROM-B (§2002:8.4.2.8.3 GR4)",
+     "observed": "COBOL0849 at (50,46) and COBOL2777 at (62,29): 'U06MIB' is not the class the INHERITS clause of 'U06MIC' names ('U06MIA')",
+     "known-note": "PB5580"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-mi/out-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-5",
+    "to": [
+     "SR-8.4.3.8.3-5"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "8.4.2.8 SELF and SUPER, SR5",
+    "clause-2023": "8.4.3.8 SELF and SUPER, SR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "in a class whose INHERITS clause names more than one class: a bare SUPER refused, class-name-1 OF SUPER accepted"
+    ],
+    "evidence-2002": [
+     "not shown: the 2023 row is DOCUMENTED-NON-SUPPORT (oo-multi-base-super refused COBOL0849 at 2002, the whole class declined); the accept arm is refused by probe p-mi/misuper.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR5",
+      "quote": "specifies more than one class-name, class-name-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR5",
+      "quote": "specifies more than one object-class-name, object-class-name-1 shall be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.2.2 SR6",
+      "quote": "If two or more different methods with the same name are inherited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Target-not-CONFORMS pattern: the 2023 twin is declined under 2023's optional-element licence. 2002 has no optional-element list; its only licence is processor-dependent elements (3.1.5, listed in B.3), and B.3 does not list multiple inheritance. 2002 therefore requires the rule's whole subject (a class with several bases) and the compiler declines it.",
+    "needs": "2002 requires multiple inheritance (and so SR5's qualified SUPER); the compiler declines it",
+    "licence-2002": "none",
+    "compiler-at-2002": "wrong (known: kb/Work PB5580, open)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-mi/misuper.cob",
+     "expected": "accepted; bare SUPER in the same class refused",
+     "observed": "COBOL0849 'INHERITS FROM 2 base classes ... is an OPTIONAL element (§2023:4.2.7; Annex A.4.10 item 1)'",
+     "known-note": "PB5580"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/oo-multi-base-super/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-6",
+    "to": [
+     "SR-8.4.3.8.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8 SELF and SUPER, SR6",
+    "clause-2023": "8.4.3.8 SELF and SUPER, SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "single-base class: SUPER with and without class-name-1 OF both accepted"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_qualified_super and oo_super, both PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR6",
+      "quote": "specifies only one class-name, class-name-1 may be specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.3 SR6",
+      "quote": "specifies only one object-class-name, object-class-name-1 may be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rename only; the rule's subject is the single-base class, which both editions require and the row's witnesses show at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1425_qualified_super/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-2",
+    "to": [
+     "GR-8.4.3.8.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8 SELF and SUPER, GR2",
+    "clause-2023": "8.4.3.8 SELF and SUPER, GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INVOKE / inline invocation through SELF resolves on the runtime class of the object (polymorphic dispatch)"
+    ],
+    "evidence-2002": [
+     "covered by oo_self_polymorphic and l1c28_self_super_invoking_object, both PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR2",
+      "quote": "the method resolution is based upon the set of methods defined for the runtime class of the object referenced by SELF",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.4 GR2",
+      "quote": "the method resolution is based upon the set of methods defined for the runtime class of the object referenced by SELF",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same rule; the NOTE's 'may' became 'can' (informative). Witnesses pass at 2002. Multi-base classes are declined at 2002 (PB5580), but that is the INHERITS clause's defect, not a different SELF resolution rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/oo_self_polymorphic/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-3",
+    "to": [
+     "GR-8.4.3.8.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8 SELF and SUPER, GR3",
+    "clause-2023": "8.4.3.8 SELF and SUPER, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "INVOKE through SUPER ignores the containing class's methods and those of every subclass of it"
+    ],
+    "evidence-2002": [
+     "covered by l1c28_self_super_invoking_object (A<-B<-C chain, SUPER skips the containing class and subclasses: B.M, A.M legs) and oo_super, both PASS at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR3",
+      "quote": "the method resolution ignores all the methods defined in the class containing the invocation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.4 GR3",
+      "quote": "the method resolution is based on the set of methods defined within the runtime class of the object that invoked the object referenced by SELF",
+      "check": "OK"
+     }
+    ],
+    "reason": "Differing words: 2023 adds 'is based on the set of methods defined within the runtime class of the object that invoked the object referenced by SELF and'. The runtime class's method set minus the containing class's and its subclasses' methods is exactly the superclass methods 2002 resolves to, so no program can tell them apart. The witness asserts the exclusion leg the 2002 text states.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/l1c28_self_super_invoking_object/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-4",
+    "to": [
+     "GR-8.4.3.8.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "8.4.2.8 SELF and SUPER, GR4",
+    "clause-2023": "8.4.3.8 SELF and SUPER, GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "class-name-1 OF SUPER restricts the search to class-name-1's methods; meaningful only when INHERITS names several classes (single base: identical to bare SUPER)"
+    ],
+    "evidence-2002": [
+     "single-base: pb1425_qualified_super PASS at 2002 (trivially satisfied)",
+     "multi-base (the rule's real subject): not shown; probe p-mi/misuper.cob refused"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR4",
+      "quote": "the search for the method shall include only those methods defined for class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.4 GR4",
+      "quote": "the search for the method shall include only those methods defined for object-class-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rename only, but the 2023 row's evidence is single-base (2023 multiple inheritance declined under licence); 2002 requires multiple inheritance (no licence), so the rule's selecting effect between several bases has no evidence and the compiler refuses the program.",
+    "needs": "its own verdict: the compiler at --std 2002 refuses the multi-base class (COBOL0849) so GR4 cannot run; a 2002 witness (misuper.cob printing FROM-A, FROM-B) once PB5580 is fixed",
+    "licence-2002": "none",
+    "compiler-at-2002": "wrong (known: kb/Work PB5580, open)",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-mi/misuper.cob",
+     "expected": "FROM-A then FROM-B",
+     "observed": "COBOL0849 and COBOL2777 at compile time, rc!=0",
+     "known-note": "PB5580"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-mi/out-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-3",
+    "to": [
+     "SR-8.4.3.9.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "8.4.2.9 Object property, SR3",
+    "clause-2023": "8.4.3.9 Object property, SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "property-name-1 OF identifier-1 used as a sender: a get property method shall exist in the object",
+     "property-name-1 OF class-name-1 used as a sender: a get property method shall exist in the factory object of class-name-1"
+    ],
+    "evidence-2002": [
+     "identifier-1 form: covered by OoSpineTests.PropertyReference_SendingWithNoGet_0843 (ErrorsOf compiles at 2002 by default) and pb1275_property_set_formats (PASS at 2002)",
+     "class-name-1 (factory) form: not in the row; shown by probe p-prop/facprop.cob (accepted, W=7) and p-prop/facprop-noget.cob (refused COBOL0843 at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR3",
+      "quote": "a get property method shall exist for property-name-1 in the object referenced by identifier-1 or in the factory object of the class class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR3",
+      "quote": "in the factory object of the object class object-class-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same requirement in both editions (rename only), but the row's evidence never exercises the class-name-1 / factory-object arm the rule's words name. The compiler is correct at 2002 for both arms by probe.",
+    "needs": "a 2002 witness for the class-name-1 (factory property) arm: p-prop/facprop.cob and facprop-noget.cob are candidates",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-prop/out-facprop-noget-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-4",
+    "to": [
+     "SR-8.4.3.9.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "8.4.2.9 Object property, SR4",
+    "clause-2023": "8.4.3.9 Object property, SR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "property-name-1 OF identifier-1 as a receiver: set property method required",
+     "property-name-1 OF class-name-1 as a receiver: set property method required in the factory object"
+    ],
+    "evidence-2002": [
+     "identifier-1 form: covered by OoSpineTests.PropertyReference_ReceivingWithNoSet_0843 (2002) and pb1275-set-property-no-set (refused at 2002)",
+     "class-name-1 form: not in the row; probe p-prop/facprop.cob (MOVE 7 TO CNT OF U06FPC accepted) and facprop-noset.cob (refused COBOL0843 at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR4",
+      "quote": "a set property method shall exist for property-name-1 in the object referenced by identifier-1 or in the factory object of the class class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR4",
+      "quote": "a set property method shall exist for property-name-1 in the object referenced by identifier-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "As SR3: same requirement, but the class-name-1 arm has no row evidence; the compiler is correct for it at 2002 by probe.",
+    "needs": "a 2002 witness for the class-name-1 (factory property) arm: p-prop/facprop.cob and facprop-noset.cob are candidates",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-prop/out-facprop-noset-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-6",
+    "to": [
+     "SR-8.4.3.9.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.9 Object property, SR6",
+    "clause-2023": "8.4.3.9 Object property, SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a property used as a receiver takes the set method's USING parameter's description and is admitted wherever such a receiver is"
+    ],
+    "evidence-2002": [
+     "covered by pb1275_property_set_formats (PASS at 2002), pb1275-set-property-no-set (refused at 2002), pb1448_group_valued_property (group receiver, PASS at 2002); class-name-1 form additionally by probe p-prop/facprop.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR6",
+      "quote": "is the same as the description of the using parameter of the set property method",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR6",
+      "quote": "is the same as the description of the USING parameter of the set property method",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the case of 'using' differs. The rule is a property of the set method's parameter, whichever object (instance or factory) supplies it; the row's witnesses pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1275_property_set_formats/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.9.3-3",
+    "to": [
+     "GR-8.4.3.9.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.9 Object property, GR3",
+    "clause-2023": "8.4.3.9 Object property, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a property used as both sender and receiver in one statement (INSPECT ... OF obj, ADD ... TO prop OF x): one temporary, GET then SET"
+    ],
+    "evidence-2002": [
+     "covered by pb1448_group_valued_property (INSPECT leg) PASS at 2002; class-name-1 form also by probe p-prop/facprop.cob (ADD 1 TO CNT OF U06FPC -> CNT=8)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.3 GR3",
+      "quote": "temp-1 and temp-2 are the same temporary data item, where temp-2 redefines temp-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.4 GR3",
+      "quote": "temp-1 and temp-2 are the same temporary data item, where temp-2 redefines temp-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical after case ('general rule 1' vs 'General rule 1'); the referenced GR1/GR2 are identical in both editions. Witness passes at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1448_group_valued_property/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.10.2-1",
+    "to": [
+     "SR-8.4.3.10.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.10 Predefined-address, SR1",
+    "clause-2023": "8.4.3.10 NULL address pointer and message tag content, SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NULL (address) admitted as: sending operand of INITIALIZE and SET; argument of a program-prototype CALL (2002 CALL Format 3, incl. AS NESTED), a function-prototype function activation, a method invocation; operand of a data-pointer or program-pointer relation condition",
+     "NULL refused anywhere else (DISPLAY, STATUS/INSPECT operands, ...)"
+    ],
+    "evidence-2002": [
+     "admitted contexts: covered by pb1427_null_operand_model (INITIALIZE, SET, relations, EVALUATE) and pb1630_null_argument_crossing (CALL AS NESTED BY CONTENT/VALUE, FUNCTION argument, INVOKE USING), both PASS at 2002",
+     "refused contexts: pb216-status-null and pb1427-null-string-inspect-length refused COBOL2576 at 2002; pb148-display-null also refused COBOL2576 at 2002 by probe although its refuse-at lists only 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.2 SR1",
+      "quote": "or in a data-pointer or program-pointer relation-condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.3 SR1a",
+      "quote": "or in a pointer-or-object-reference relation condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "Slice gave no pointer; 2023 8.4.3.10 is the same predefined address under a renamed heading. Differing words: 2023 SR1a says 'pointer-or-object-reference relation condition' (its relation formats were merged and function-pointer added) and SR1b adds message-tag; 2002 lists only data-pointer and program-pointer relations, which are the pointer cases 2002 has. 2023 is wider, not narrower; every 2002 context is witnessed at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb148-display-null/result.txt",
+    "widening": "2023 also admits NULL for function-pointer and message-tag items (absent in 2002); pb148-display-null's diagnostics json could add 2002 to refuse-at (observed refusal at 2002)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.10.3-1",
+    "to": [
+     "GR-8.4.3.10.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.10 Predefined-address, GR1",
+    "clause-2023": "8.4.3.10 NULL address pointer and message tag content, GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NULL with a data-pointer: a data-pointer holding the null data address, distinct from any data item's address"
+    ],
+    "evidence-2002": [
+     "covered by pb1427_null_operand_model and pb1630_null_argument_crossing (PASS at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.3 GR1",
+      "quote": "The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.4 GR1",
+      "quote": "The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical rule; pointer chosen by me (slice gave none). Witnesses pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1427_null_operand_model/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.10.3-2",
+    "to": [
+     "GR-8.4.3.10.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.10 Predefined-address, GR2",
+    "clause-2023": "8.4.3.10 NULL address pointer and message tag content, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NULL with a program-pointer: the null program address"
+    ],
+    "evidence-2002": [
+     "covered by pb1427_null_operand_model (WQ program-pointer legs) and pb1630_null_argument_crossing (PB1630Q), PASS at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.3 GR2",
+      "quote": "The null program address is an implementor-defined value that is guaranteed not to represent the address of any program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.4 GR3",
+      "quote": "The null program address is an implementor-defined value that is guaranteed not to represent the address of any program",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text, renumbered GR2 -> GR3 because 2023 inserted the function-pointer rule; pointer chosen by me. Witnesses pass at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1630_null_argument_crossing/result.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.11.2-4",
+    "to": [
+     "SR-8.4.3.11.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "8.4.2.11 Data-address-identifier, SR4",
+    "clause-2023": "8.4.3.11 Data-address-identifier (no counterpart; SR-8.4.3.11.3-1 is only the slice's nearest)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADDRESS OF identifier-1 where identifier-1 is a strongly-typed group item not itself described with a TYPE clause referencing a STRONG type declaration (e.g. a group subordinate to a TYPE-STRONG record, per 2002 8.5.3's second case): refused"
+    ],
+    "evidence-2002": [
+     "not shown by the pointer (SR-8.4.3.11.3-1 is the section-list rule, unrelated); probe p-sr4/subgrp2.cob: ACCEPTED at 2002 and runs (prints ADDR-TAKEN)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR4",
+      "quote": "identifier-1 shall be defined with a TYPE clause referencing a type declaration described with the STRONG phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.3",
+      "quote": "The item is subordinate to a group item described with the TYPE clause that references a type declaration",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.3 SR2",
+      "quote": "Identifier-1 shall not reference an object reference or an elementary item subordinate to a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no such rule: it admits ADDRESS OF a subordinate strong group and makes it a pointer restricted to the subordinate's type (8.4.3.11.4 GR2). In 2002 a group subordinate to an item described with TYPE of a STRONG type is strongly typed (8.5.3), and SR4 then requires identifier-1 itself to carry a TYPE clause. Program: 01 T-REC TYPEDEF STRONG / 05 T-X PIC X(2) / 05 T-G / 10 T-A PIC X(4); 01 S TYPE T-REC; IF ADDRESS OF T-G OF S NOT = NULL DISPLAY \"ADDR-TAKEN\". Expected at 2002: compile-time refusal (SR4). Observed --std 2002: compiles, prints ADDR-TAKEN, rc 0 (same at 2023, where it is legal). Control p-sr4/typedsub.cob (T-G TYPE T-SUB) is the 2002-legal form.",
+    "needs": "its own verdict: the compiler at --std 2002 accepts ADDRESS OF a strongly-typed subordinate group not described with a TYPE clause (under-rejects); fix, then a 2002 refusal witness",
+    "compiler-at-2002": "wrong",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-sr4/subgrp2.cob",
+     "command": "cobol.exe subgrp2.cob --std 2002 --run",
+     "expected": "refused at compile time: §2002:8.4.2.11.2 SR4",
+     "observed": "ADDR-TAKEN, rc 0 (out-subgrp2-2002.txt)",
+     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AddressOfOperandScreen.cs#Admit (checks SR2's elementary-subordinate case only, line ~75; no edition-gated check of a group subordinate to a strong group without its own TYPE clause); StrongTypeModel.cs#AddressOfRestriction gives the 2023 restricted-pointer meaning at every edition",
+     "harm": "under_rejects",
+     "known-note": "none found in defects-2002*.json or kb/Work"
+    },
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/p-sr4/out-subgrp2-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.11.3-2",
+    "to": [
+     "GR-8.4.3.11.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11 Data-address-identifier, GR2",
+    "clause-2023": "8.4.3.11 Data-address-identifier, GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADDRESS OF a strongly-typed group item (TYPE'd, per 2002 SR4) or of a restricted data-pointer: a data-pointer restricted to identifier-1's type (conforming receivers accepted, others refused)"
+    ],
+    "evidence-2002": [
+     "covered by pb1408_address_of_restricted_pointer and pb665_restricted_pointer_conforming (PASS at 2002), pb1408-set-address-of-based-from-restricted-pointer-address and pb1408-call-address-of-restricted-pointer-into-target-formal (refused at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.3 GR2",
+      "quote": "the data-address-identifier is a data-pointer restricted to the type of identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.4 GR2",
+      "quote": "the data-address-identifier is a restricted data-pointer that is restricted to the type of identifier-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "'a data-pointer restricted to' vs 'a restricted data-pointer that is restricted to': the same thing. In 2002 identifier-1's strong group is always TYPE'd (SR4), so 'the type of identifier-1' is its TYPE; 2023's extension to untyped subordinate groups is SR4's defect (above), not this rule's. Witnesses hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/pb1408_address_of_restricted_pointer/result.txt",
+    "widening": "2023 also covers ADDRESS OF an untyped subordinate strong group (a 2002 SR4 violation)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.12.2-2",
+    "to": [
+     "SR-8.4.3.13.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.12 Program-address-identifier, SR2",
+    "clause-2023": "8.4.3.13 Program-address-identifier, SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ADDRESS OF PROGRAM literal-1: literal-1 alphanumeric or national (accepted); any other literal class refused"
+    ],
+    "evidence-2002": [
+     "covered by l1c23-program-address-boolean-literal (refused COBOL2157 at 2002), pb1452_program_address_identifier_operands and pb549_program_address_identifier (PASS at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.2 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.3 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal whose length is not zero",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'whose length is not zero'; 2002 has no zero-length literal at all (its literal-length rule requires more than zero positions), so the added words change nothing a 2002 program can show; l1c23-program-address-zero-length-literal is refused at 2002 too.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-06/run-2002/l1c23-program-address-boolean-literal/result.txt",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-06",
+  "compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe",
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/",
+  "cases": [
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-2",
+    "verdict": "OVERTURNED",
+    "class": "other (multiple-inheritance reach; also communication-reach)",
+    "reason": "GR2's runtime check passes for 'an object of a subclass of class-name-1'. In 2002 a subclass 'inherits from one or more classes' (9.3.9), and 2002 gives no licence to decline multiple inheritance: its only licence is processor-dependent elements (3.1.5), listed in B.3, which does not name it. 2023 makes multiple inheritance an optional element (A.4.10 item 1) that WiseOwl declines, so the 2023 row's witness (pb1425_object_view) is single-chain only, and its implementation (CobolObject.ObjectView<T>: `value is T`, per the row notes) cannot express a second INHERITS base. 2002 scope item not shown: an object of class C INHERITS FROM A B viewed AS B must conform (no EC-OO-CONFORMANCE). Probe refute-u-06/ov/ovmi.cob (SET OB TO OBJ AS R06OVB for OBJ of class R06OVC INHERITS FROM R06OVA R06OVB): --std 2002 rc=65, COBOL0849 (multiple inheritance declined, citing §2023 A.4.10). Same refusal at 2023, which is licensed there. Secondary reach: 2002 lets the view stand in SEND FROM identifier-1 via an inline invocation (8.4.2.1.3 GR1 c before e; A.2.6.2 SR2); on main pb5603 witnesses this no-phrase form in SEND, but the pinned compiler predates PB5603 and refuses even pb5603 (refute-u-06/pb5603/out.txt). needs: a 2002 witness for a multi-base subclass object; compiler-at-2002: wrong (declines a facility 2002 requires; the reader's PB5580 lead).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR2",
+      "quote": "an object of a subclass of class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.4 GR2",
+      "quote": "an object of a subclass of object-class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "The inheriting class, also known as a subclass, inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/ov/ovmi.cob (out-2002.txt, out-2023.txt)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-3",
+    "verdict": "OVERTURNED",
+    "class": "other (multiple-inheritance reach; also communication-reach)",
+    "reason": "Same cause as GR2: the check passes for 'the factory object of a subclass of class-name-1', and in 2002 a subclass may inherit from several classes (9.3.9) with no licence to decline that (3.1.5, B.3). The row's witness (pb1425_object_view, FACTORY OF leg) is single-chain only. The factory of C INHERITS FROM A B viewed AS FACTORY OF B is a 2002 case nothing shows; the compiler refuses the class C at 2002 (COBOL0849, probe ov/ovmi.cob). Communication reach: OF1 AS FACTORY OF C :: \"m\" as SEND FROM identifier-1 is 2002-legal (8.4.2.1.3 GR1; A.2.6.2 SR2) and no 2002 test covers the FACTORY form there (pb5603 covers the no-phrase and interface views only); the pinned compiler refuses it as COBOL0001 (refute-u-06/snd/v5.cob, sndview.cob line 24), the PB5603 defect that main has since fixed, while the same view in MOVE is accepted (snd/movview.cob rc=0). needs: a 2002 witness for the multi-base factory case and for the SEND FROM form; compiler-at-2002: wrong for multi-base (declined), not decidable for SEND with the pinned build.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR3",
+      "quote": "the factory object of a subclass of class-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "The inheriting class, also known as a subclass, inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.1.3 GR1",
+      "quote": "an object-view applies to the identifier on the left",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/ov/ovmi.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/v5.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/movview.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-4",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "No multiple-inheritance reach (ONLY tests the exact class). But in 2002 an object view is applied before an inline invocation (8.4.2.1.3 GR1 c then e), and that invocation may be SEND cd-name FROM identifier-1 (A.2.6.2 SR2, class alphanumeric), a statement 2023 lacks; the earlier refuter of q-04 overturned 2002-SR-8.4.2.5.2-1 for this same reach. The row's evidence (pb1425_object_view, ONLY leg) runs only in non-communication statements, and pb5603 (the 2002 SEND witness on main) has no ONLY view. The pinned compiler refuses SEND CDOUT FROM OU AS R06SNC ONLY :: \"GETX\" with COBOL0001 (snd/v4.cob), which is the PB5603 SEND-FROM-inline-invocation defect fixed after the pin; the same view in MOVE compiles at 2002 (snd/movview.cob rc=0). needs: a 2002 witness: SEND FROM x AS C ONLY :: m (accept, and EC-OO-CONFORMANCE on an object of a subclass); compiler-at-2002: not decidable with the pinned build.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR4",
+      "quote": "USAGE OBJECT REFERENCE class-name-1 ONLY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.1.3 GR1",
+      "quote": "an object-view applies to the identifier on the left",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/v4.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/movview.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.5.3-5",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "As GR4: AS FACTORY OF class-name-1 ONLY can be identifier-1 of a SEND FROM through an inline invocation of a factory method (8.4.2.1.3 GR1; A.2.6.2 SR2). No 2002 test covers it (pb5603 has no FACTORY view). Pinned compiler: COBOL0001 on SEND CDOUT FROM OF1 AS FACTORY OF R06SNC ONLY :: \"GETF\" (an isolated one-SEND variant gave COBOL0001 at line 23; its file was later reused, so sndview.cob is the kept probe), accepted in MOVE (snd/movview.cob). needs: a 2002 witness in SEND FROM; compiler-at-2002: not decidable with the pinned build (PB5603 predates).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5.3 GR5",
+      "quote": "USAGE OBJECT REFERENCE FACTORY OF class-name-1 ONLY",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.1.3 GR1",
+      "quote": "an object-view applies to the identifier on the left",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/sndview.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/movview.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.7.2-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "'NULL shall not be specified as a receiving operand' reaches every receiving operand of 2002, including RECEIVE cd-name MESSAGE INTO identifier-1, whose area receives the message (A.2.5.3 GR3); 2023 has no such statement. The row's only witness is SET NULL TO OR1. Probe refute-u-06/rcv/rcvnull.cob: RECEIVE CDIN MESSAGE INTO NULL at --std 2002 is refused with COBOL3977, this rule's own diagnostic, so the compiler is correct and the probe is a candidate 2002 witness. Caveat for the owner of the row: A.2.5.2 SR2 (category alphanumeric) also forbids it, so any refusal satisfies the requirement; the reach is real but not separately observable from the RECEIVE rule except by the diagnostic. needs: a 2002 witness (rcvnull.cob) or a recorded decision that the overlap with A.2.5.2 SR2 closes it.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.2 SR1",
+      "quote": "NULL shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.3 SR1",
+      "quote": "NULL shall not be specified as a receiving operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR3",
+      "quote": "transferred to the receiving character positions of the area referenced by identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/rcv/rcvnull.cob (out-rcvnull-2002.txt)"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.7.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical one-word format and identical rule. The implicit description reaches communication statements only as a sender of the wrong class (SEND FROM needs class alphanumeric, A.2.6.2 SR2), so no 2002-only program depends on NULL being class object or not universal beyond what the row's INVOKE witnesses show at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.2 SR2",
+      "quote": "NULL is implicitly described as class object and category object reference",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.7.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical text; the implementor-defined null value is the same requirement in both editions and appears nowhere a 2002-only facility could observe it differently (a NULL object reference cannot be a communication operand). Row witness oo_universal_relation passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7.3 GR1",
+      "quote": "guaranteed to never reference an object",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.8.2-6",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The rule's subject is a class with exactly one INHERITS base: it only permits writing class-name-1 OF SUPER there. That single base may itself have several bases in 2002 (and the compiler then refuses that base class, COBOL0849), but that refusal belongs to the INHERITS clause and to GR3/GR4 resolution, not to this permission. Row witnesses pb1425_qualified_super and oo_super pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.2 SR6",
+      "quote": "specifies only one class-name, class-name-1 may be specified",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-2",
+    "verdict": "OVERTURNED",
+    "class": "other (multiple-inheritance reach)",
+    "reason": "SELF resolution is 'based upon the set of methods defined for the runtime class', and in 2002 that set includes every method inherited from each of several INHERITS bases (9.3.9: the subclass 'has all the methods defined for the inherited class definition or definitions'); 2002 gives no licence to decline multiple inheritance (3.1.5, B.3). The reader called the multi-base gap the INHERITS clause's defect, but this rule's own result depends on it: probe refute-u-06/sup/supmi.cob (R06SPC INHERITS R06SPM2; R06SPM2 INHERITS R06SPA R06SPB; INVOKE SELF \"SAYB\" where SAYB is R06SPB's) at --std 2002 gives COBOL0849 and also COBOL0825 'class R06SPC (and its inheritance chain) does not define an instance method named SAYB', i.e. the method set it resolves against omits the second base. The row's witnesses (oo_self_polymorphic, l1c28) are single-chain. needs: its own 2002 verdict; compiler-at-2002: wrong (declines the class and resolves SELF on the first base only).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR2",
+      "quote": "based upon the set of methods defined for the runtime class of the object referenced by SELF",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "The inheriting class, also known as a subclass, inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.4.10",
+      "quote": "Multiple inheritance: CLASS-ID paragraph, INHERITS phrase, repetition of object-class-name-2",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/sup/supmi.cob (out-2002.txt, out-2023.txt)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.8.3-3",
+    "verdict": "OVERTURNED",
+    "class": "other (multiple-inheritance reach)",
+    "reason": "GR3 governs every SUPER invocation, qualified or not, and its search set (all methods except those of the containing class and its subclasses) is, in 2002, the methods of every ancestor reached through any INHERITS base (9.3.9), which 2002 requires (3.1.5, B.3). The 2023 row's implementation is searchRoot = cur.Base, a single base (row notes), and its witnesses are single-chain. Probe sup/supmi.cob: INVOKE SUPER \"SAYB\" in R06SPC, whose single base R06SPM2 inherits R06SPA and R06SPB, SAYB defined in R06SPB: --std 2002 COBOL0849 and COBOL0825 'class R06SPM2 (and its inheritance chain) does not define an instance method named SAYB'. needs: its own 2002 verdict; compiler-at-2002: wrong (multi-base ancestors not searched).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8.3 GR3",
+      "quote": "ignores all the methods defined in the class containing the invocation and all the methods defined in any subclass of that class",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.3.9",
+      "quote": "The inheriting class, also known as a subclass, inherits from one or more classes",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.8.2 SR5",
+      "quote": "If the INHERITS clause of the containing class definition specifies more than one class-name, class-name-1 shall be specified",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/sup/supmi.cob"
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.9.2-6",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The rule's second sentence admits a property 'wherever a data item with that description would be valid as a receiving item'. In 2002 that includes RECEIVE cd-name MESSAGE INTO identifier-1 (A.2.5.2 SR2: category alphanumeric; A.2.5.3 GR3), a receiving position 2023 lacks; the row's witnesses (pb1275_property_set_formats, pb1448_group_valued_property) never use it. Probe refute-u-06/rcv/rcvprop.cob: RECEIVE CDIN MESSAGE INTO NM OF OB (NM PIC X(10) PROPERTY) compiles at --std 2002, rc=0 with only the COBOL0903 obsolete warnings, so the compiler is correct (compile-only; not run against an MCS). needs: a 2002 witness for a property as RECEIVE INTO (rcvprop.cob as candidate); compiler-at-2002: correct (compile).",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR6",
+      "quote": "This object property may be specified wherever a data item with that description would be valid as a receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR6",
+      "quote": "This object property may be specified wherever a data item with that description would be valid as a receiving item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of category alphanumeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.5.3 GR3",
+      "quote": "transferred to the receiving character positions of the area referenced by identifier-1",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/rcv/rcvprop.cob (out-rcvprop-2002.txt)"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.9.3-3",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "No 2002-only statement has an operand that is both sending and receiving (RECEIVE INTO only receives, SEND FROM only sends), and the rules GR3 defers to (GR1, GR2) are identical in both editions. Witness pb1448_group_valued_property passes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.3 GR3",
+      "quote": "temp-1 and temp-2 are the same temporary data item",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.10.2-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The 2002 rule is a whitelist ('may be used only as'), so it decides NULL in every 2002 operand position, including the communication statements' operands (SEND FROM identifier-1, RECEIVE INTO identifier-1) that 2023 lacks; the row's refusal witnesses (DISPLAY, STATUS, INSPECT) are all non-communication. Probes: SEND CDOUT FROM NULL refused at --std 2002 (COBOL0001, snd/sndnull.cob); RECEIVE ... INTO NULL refused (COBOL3977, rcv/rcvnull.cob). The compiler refuses both, so it is correct; but as with SR-8.4.2.7.2-1 the communication statements' own class rules (A.2.6.2 SR2, A.2.5.2 SR2) also forbid it, so the reach is real but not separately observable. needs: a 2002 witness or a recorded decision that the overlap closes it; compiler-at-2002: correct.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.2 SR1",
+      "quote": "This format may be used only as a sending operand in an INITIALIZE or a SET statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.3 SR1a",
+      "quote": "or in a pointer-or-object-reference relation condition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.6.2 SR2",
+      "quote": "Identifier-1 shall reference a data item of class alphanumeric",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/snd/sndnull.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-06/rcv/rcvnull.cob"
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.10.3-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical text; the null data address is the same implementor-defined value. A data-pointer cannot be declared in the communication section and NULL cannot be a communication operand, so nothing 2002-only reaches it.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.3 GR1",
+      "quote": "guaranteed not to represent the address of any data item",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.10.3-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identical text (renumbered to GR3 in 2023 by the inserted function-pointer rule). Program-pointer NULL has no 2002-only context. Witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10.3 GR2",
+      "quote": "guaranteed not to represent the address of any program",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.4.2.11.3-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Identifier-1 cannot be a communication-section item (SR1 lists file, working-storage, local-storage and linkage only), and in 2002 a strongly-typed identifier-1 is always TYPE'd (SR4), a subset of the 2023 cases. 'A data-pointer restricted to' and 'a restricted data-pointer that is restricted to' name the same thing. Witnesses pass at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.3 GR2",
+      "quote": "the data-address-identifier is a data-pointer restricted to the type of identifier-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-8.4.2.12.2-2",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "2023's added 'whose length is not zero' changes nothing in 2002: both 2002 alphanumeric and national literals must be longer than zero (8.3.1.2.1.2 SR1, 8.3.1.2.4.2 SR1). No 2002 literal form is missing from 2023. Witnesses refuse/accept as expected at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12.2 SR2",
+      "quote": "Literal-1 shall be an alphanumeric or national literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 alphanumeric character positions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.4.2 SR1",
+      "quote": "shall be greater than zero and less than or equal to 160 national character positions",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "notes": "The pinned compiler predates PB5603: it refuses even conformance-suite pb5603-send-identifier-formats at --std 2002 (COBOL0001 on SEND FROM with an inline invocation; refute-u-06/pb5603/out.txt), so SEND FROM object-view forms cannot be decided with it. The communications facility is optional in 2002 (§2002:A, checked) but the compiler implements it at 2002 (docs/conformance/4/MCS.md; rcvprop.cob compiles), so its reach is required."
+ },
+ "imported": {
+  "asked": "b48be6430711118cf459b4914a88817cde80544cb29547d7a171cad515e47ed3",
+  "read": "1d3e25aa990e3ef649059f242c5368ac4b49b9b557b6aa7a1108095384fc69fb",
+  "refute": "95d0a158358f55980831a40e9aa0818fda684620c22c64576b92e8471e454bc6"
+ }
+}

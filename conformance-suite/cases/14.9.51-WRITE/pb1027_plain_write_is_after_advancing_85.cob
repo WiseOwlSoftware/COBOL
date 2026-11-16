@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1027_plain_write_is_after_advancing_85
       *> rules: [GR-14.9.51.4-25]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
