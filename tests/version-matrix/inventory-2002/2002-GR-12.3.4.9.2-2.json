@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.9.2-2",
+ "rule-digest": "a0cda151ff2c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#organizationType; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+ "test-ref": "conformance:cases/12.3.4.9@2002-ORGANIZATION-CLAUSE/g2org01_sequential_default_and_order",
+ "notes": "§2002:12.3.4.9.2 GR2: sequential organization identifies a record by the predecessor-successor relationship set when it is placed. Records written ZZZZ, AAAA, X\"410A4220\" read back through ORGANIZATION IS SEQUENTIAL in that order (not collating order), the third unchanged (a record, not a line): SEQ 1 00 ZZZZ, SEQ 2 00 AAAA, SEQ 3 00 SAME, SEQ 4 10 (§2002:9.1.12.3). run at --std 2002 on the pinned build: exit 0, 6 lines equal the derived .out (MATCH). Built from the reader's org_default.cob and seq_bytes.cob."
+}

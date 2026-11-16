@@ -1,4 +1,4 @@
-## golden-2002-8: 91 2002 rows CONFORMS from 13 wave-u slugs, two defects filed (GAP 1899 to 1808)
+## golden-2002-8: 91 2002 rows CONFORMS from 13 wave-u slugs, two defects filed (GAP 1805 to 1714 on main with golden-2002-7)
 
 The eighth landing of the 2002 golden lane (gl2002, kb/Work PB5597): the wave-u slugs g2002u-13-16-31 (LEVEL-NUMBER) through g2002u-14-8-3 (ALLOCATE), rows a 2002 read left as needs-own-witness or undecided. Each row closes on a witness that runs at `--std 2002`.
 
@@ -13,7 +13,7 @@ No validate stage ran, so I validated every draft on this worktree's build at `-
 - CRLF was normalised to LF.
 - `g2-value-cd-initial-image` and `g2-value-ws-report-no-editing` land with the six PB5577 rows removed from their `rules`. A case that names a row counts the row as witnessed, and those six rows stay open.
 
-`record_verdicts.py --edition 2002`: CONFORMS 91, all 91 closed the GAP; **GAP 1899 → 1808**. docs/conformance gains these pins:
+`record_verdicts.py --edition 2002`: CONFORMS 91, all 91 closed the GAP; **GAP 1899 → 1808** on the base 5e49d46678, and **1805 → 1714** once main (with golden-2002-7) is merged in. docs/conformance gains these pins:
 - DOC-A.1-128, DOC-A.1-197, DOC-A.1-213 and DOC-A.1-215 gain their 2002 pins.
 - DOC-A.1-173 states its `--std 2002` determination (§2002:13.16.49.3 GR5), from the select-when writer.
 

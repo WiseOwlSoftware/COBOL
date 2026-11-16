@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-12",
+ "rule-digest": "ad73863d7c56",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Frontend/Cst/DataClauseKind.cs#SameAsCoPermitted; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenReferenceComposition",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-same-as-co-clauses; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-same-as-justified",
+ "notes": "§2002:13.14.2 SR12: SAME AS with GLOBAL, EXTERNAL, OCCURS and alone (working-storage and a CD record) is accepted with WT's PIC X(4) (§2002:13.16.47.3 GR1; CDREC=[ABCDEF  GHIJ] LEN=12); SAME AS with JUSTIFIED draws COBOL1555; --std 2002 on build dc1f2dcce8."
+}

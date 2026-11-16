@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.5.3-2",
+ "rule-digest": "452b32c70ab5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitMethod; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/InitialStateBackground.cs#FillFor; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#EmitContext",
+ "test-ref": "conformance:cases/13.5@2002-LOCAL-STORAGE-SECTION/g2-ls-value-every-activation",
+ "notes": "§2002:13.5.3 GR2 with §2002:13.5.3 GR1 (automatic) and §2002:14.5.2.1.2.1: local-storage VALUE reapplied at every activation of a function (LSV1NULL twice, pointer null), a method (MLS1 twice) and a program (PLS1 twice beside static WSV1 then CHGD). The --std 2002 run printed the 6 derived lines."
+}

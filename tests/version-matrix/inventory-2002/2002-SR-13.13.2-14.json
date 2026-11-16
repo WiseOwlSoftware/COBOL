@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.13.2-14",
+ "rule-digest": "cb00479c3e47",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#ImpliedReportPicture; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ImpliedPicture.cs#Sr9ImpliedFor; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportGroups",
+ "test-ref": "conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rg-implied-picture",
+ "notes": "§2002:13.13.2 SR14 implies PIC X(n), 1(n), N(n) for a report item with an alphanumeric, boolean or national VALUE and no PICTURE; with COLUMN PLUS 1 placement (§2002:13.16.14.3 GR3, GR8, GR9) the items abut and print ABCDEFGH101XYZ. The --std 2002 run printed [ABCDEFGH101XYZ      ], equal to the derivation. The national item's two-column width follows §2002:13.16.14.3 GR2 (implementor-defined) and the documented choice DOC-A.1-160."
+}

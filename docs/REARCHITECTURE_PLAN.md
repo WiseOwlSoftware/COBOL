@@ -50,8 +50,10 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; with the fourth
   landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
   The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
-  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression.
-  The eighth golden landing (golden-2002-8, 13 wave-u slugs, on main 5e49d46678) records 91 CONFORMS: **1,899 → 1,808 GAP**.
+  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
+  golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
+  uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
+  The eighth (golden-2002-8, 13 wave-u slugs) records 91 more CONFORMS: **1,805 → 1,714 GAP**.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists
@@ -72,11 +74,17 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound (844 after the registrar landing records-sample-pb5692: eight KEPT rows
-  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732). 1985 is the earliest edition: its rows are recorded with their own
-  verdicts, never as new KEPT records (its word-identical pairing is empty). Since the PB5692 ruling of
-  2026-11-15 a shared verdict does not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at
-  `--std 85` (kb/Work PB5683), and until the record-format switch (kb/Work PB5682) shows a verdict's provenance, the
-  rows counted closed on a shared verdict are not evidence that 1985 is done.
+  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732). 1985 is the
+  earliest edition: its rows are recorded with their own verdicts, never as new KEPT records (its word-identical pairing
+  is empty). **The 1985 widening (kb/Work PB5730):** `widen` now plans the stored KEPT rows too; of the 803 it planned
+  483 widenable and 320 needing a witness of their own, proved 74 of 365 candidate cases at 85 and wrote them, and
+  `witness-batch` closed **64 rows: 1985 from 844 to 780 GAP** (738 inherited without an own-edition witness; 634 of
+  the 1,373 KEPT records now carry their own). Of the 291 cases not proven, 258 use a later construct and 33 the
+  generator refuses (a run-time expectation before 2002); none is a suspected defect. The 739 rows still owed are the
+  witness lane's (320 held, 419 in `remaining-1985.json`). Since the PB5692 ruling of 2026-11-15 a shared verdict does
+  not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at `--std 85` (kb/Work PB5683), and until
+  the record-format switch (kb/Work PB5682) shows a verdict's provenance, the rows counted closed on a shared verdict
+  (the 64 PB5730 closed among them) are not evidence that 1985 is done.
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's

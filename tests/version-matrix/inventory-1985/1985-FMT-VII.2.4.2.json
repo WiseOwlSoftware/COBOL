@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VII.2.4.2",
  "rule-digest": "24ed8cc69340",
+ "test-ref": "conformance:cases/12.4.5-File-control/l1c12_access_mode_random_dynamic; conformance:cases/12.4.5-File-control/pb692-access-random-organization-sequential; conformance:cases/12.4.5-File-control/pb692-access-dynamic-organization-sequential; conformance:cases/12.4.5-File-control/pb692-access-dynamic-organization-omitted; conformance:cases/12.4.5-File-control/pb829_assign_device_class; conformance:cases/12.4.5-File-control/pb4236_assign_clause_forms",
  "next": {
   "kind": "KEPT",
   "to": [

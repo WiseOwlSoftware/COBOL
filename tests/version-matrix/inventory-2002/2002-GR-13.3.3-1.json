@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.3.3-1",
+ "rule-digest": "135f00f4e86a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InFileSection",
+ "test-ref": "conformance:cases/13.3@2002-FILE-SECTION/2002-GR-13_3_3-1",
+ "notes": "§2002:13.3.3 GR1 with §2002:14.8.19.3 GR5/GR6: FD VALUEs (data-item and table format) apply only through INITIALIZE ... TO VALUE ([...123......] for NUMERIC, [ABC123AABBCC] for ALL) and take no part in a plain INITIALIZE ([   000      ]); matched at --std 2002. The undefined initial value is not asserted."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.2.6.1",
+ "rule-digest": "6b22568a986f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolSpecialNames.g4#specialNameEntry; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002_special_names_full_format; conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002-special-names-dynamic-length-structure",
+ "notes": "§2002:12.2.6.1: every 2002 SPECIAL-NAMES clause but the processor-dependent CURSOR/CRT STATUS (§2002:B.3 item 1), written in the 2002 order, compiles and takes effect (AMT [EUR012,50] ... DONE, values from §2002:12.2.6.3 GR7c, GR11b, GR12a, GR13, GR14); DYNAMIC LENGTH STRUCTURE, outside the 2002 format, is refused (COBOL0900); both --std 2002 runs matched. Clause order is not enforced (open analysis kb/Work PB1578)."
+}
