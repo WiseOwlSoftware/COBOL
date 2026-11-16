@@ -79,5 +79,10 @@
   "evidence": "refute-1985-230/r4a.cob at --std 85: RENAMES of an item of the other 01 record under the same FD (R-XREC RENAMES FA1 after REC-B; R-XREC2 RENAMES FB1 THRU FA2) refused COBOL1655; THRU an 88 refused COBOL1655 - all as SR4 requires. BUT r4c.cob: '66 R-QQ RENAMES A OF G1 THRU A OF G2.' (two distinct items spelled with the same data-name A, qualified per SR5) compiles and runs at --std 85, printing 'QQ=ABCDEF'. SR4 says data-name-2 and data-name-3 'cannot be the same data-name', and the 1985 glossary defines 'data-name' in a general format as 'a word' (the user-defined word), so the literal reading refuses A OF G1 THRU A OF G2; the reader's requirement reads it as 'the same data item', which SR8 already forbids (the reader's only probe of this clause, A THRU A, is refused by the SR8 window-order check COBOL2740, not by any SR4 check). cite.py: OK  §1985:VI.5.11.3 SR4 ... the text is in SR4 ('and cannot be the same data-name'); OK  §1985:VI.5.11.3 SR5 ('Data-name-2 and data-name-3 may be qualified'); OK  §1985:VI.5.11.3 SR8; OK  §1985:III.2  (2. DEFINITIONS) the text is in the clause ('represents a word which must not be reference-modified').",
   "edition-sites-missed": [],
   "corrected": "Reading-dependent: under the word reading (glossary §1985:III.2 'Data-Name') the verdict is UNDER-REJECTS (A OF G1 THRU A OF G2 accepted, ScreenRenamesOperand/ScreenRenamesWindowOrder have no same-word check); under the same-item reading it CONFORMS. The text does not settle which."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "RENAMES A OF G1 THRU A OF G2, two different items that share a word, is accepted: where the 1985 text does not say whether the same data-name is the word or the item, GnuCOBOL compares the resolved items, and so does this compiler.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-15.md"
  }
 }

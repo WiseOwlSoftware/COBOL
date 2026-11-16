@@ -97,5 +97,11 @@
   "evidence": "r3-redef.cob: in the key's own record, 05 IX-KR REDEFINES IX-KEY PIC X(4); READ IXF KEY IS IX-KR compiles at --std 85 (EXIT 0) and at --std 2023 (EXIT 0). IX-KR is not specified in a RECORD KEY or ALTERNATE RECORD KEY clause, and GR3's implicit keys reach only OTHER record description entries. A level-05 REDEFINES is in the same record description entry: the glossary says 'Record Description Entry. The total set of data description entries associated with a particular record' (cite.py: 'OK §1985:III.2 the text is in the clause'). cite.py: 'OK §1985:IX.4.5.3 SR2' ('must be the name of a data item specified as a record key associated with file-name-1'); 'OK §1985:IX.2.7.4 GR3' ('are implicitly referenced as keys for all other record description entries of that file'). RecordLayout.KeyIndexOfKeyItem says it admits 'a REDEFINES of the key, or a same-position item in a secondary 01' as GR4's other-record implicit key. That is how the REDEFINES gets through. Side observations: r3-altother (an other-record item at the alternate key's positions) compiles, which is correct under GR3. r3-numother (PIC 9(4) at the prime key's positions in IX-REC2) is refused (COBOL0864) under PB5794's 'shares class/category' reading. Under GR3 those positions are implicitly keys, so this refusal is a second reading point. kb/Work: PB354 (landed) covers START, and no note covers the same-record REDEFINES.",
   "edition-sites-missed": [],
   "corrected": "NON-CONFORMING (under-rejects), cause (b), the same at --std 2023. RecordLayout.KeyIndexOfKeyItem's positional arm accepts any identical-width item in a record of the file, including a REDEFINES inside the key's own record description entry, where §1985:IX.4.5.3 SR2 with IX.2.7.4 GR3 admits only the declared key or an item in ANOTHER record description entry. Repro: r3-redef.cob; expected a refusal (SR2); observed exit 0. No kb/Work note."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "READ ... KEY IS a REDEFINES of the record key in the key's own record description entry compiles (r3-redef.cob), where the rule admits only a data item specified as a record key, and the implicit keys reach other record description entries only.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-16.md"
+ },
+ "work": "PB5877"
 }

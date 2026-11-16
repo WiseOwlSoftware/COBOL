@@ -75,5 +75,11 @@
   "evidence": "r1-modes.cob at --std 85 (runs/r1-modes-001): a named file failing in output mode runs only USE-FILE (OPEN-A2 41, OPEN-A3 41: correct, GR4/GR5a); READ on a sequential file open OUTPUT (47) runs USE-OUTPUT and open EXTEND (47) runs USE-EXTEND (correct); OPEN OUTPUT on a file open EXTEND (41) runs USE-OUTPUT only; but OPEN EXTEND on a report file OPEN OUTPUT (OPEN-E2 41) runs ONLY USE-EXTEND, not USE-OUTPUT, although the file is 'open in the output mode'. cite.py: 'OK §1985:XIII.4.8.4 GR5b the text is in GR5b' ('for any file open in the output mode or in the process of being opened in the output mode'); 'OK §1985:XIII.4.8.4 GR5c'; 'OK §1985:XIII.4.8.3 SR3' ('Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure', which bars two procedures for file-name-1 only). FileConnector.UseModeView's own remark: 'Where both have one the text names no order and the attempted mode's runs (kb/Work PB5825)'.",
   "edition-sites-missed": [],
   "corrected": "Reading: when an OPEN of one mode fails on a file open in the other mode, GR5b and GR5c both qualify literally, and the 1985 text neither orders them nor bars running both (SR3 restricts only file-name-1). The compiler runs one procedure, chosen by the attempted mode (PB5825). The verdict rests on that reading, and the reader's requirement and notes do not state it."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "When an OPEN fails with 41 on a file open in another mode and both modes have a USE procedure, the attempted mode's procedure runs; the text names no order and the precedence gives GnuCOBOL's, the procedure of the mode the file is open in (r1-modes.cob: OPEN-E2 41 runs USE-EXTEND).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-16.md"
+ },
+ "work": "PB5878"
 }

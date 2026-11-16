@@ -185,5 +185,10 @@
   "evidence": "Probes at --std 85 (run_probe.py, runs under refute-1985-228/runs): fs66fd (66 RFS RENAMES an FD record field) COBOL2455 'defined in the file section'; fsxb (PIC XB) COBOL2455 category-alphanumeric-edited; fsjust (PIC AA) COBOL2455 category-alphabetic; fsnn (PIC NN) COBOL2455 category-national plus COBOL0900 national requires 2002; fs66thru (66 R66 RENAMES A1 THRU A2, both PIC X) compiles and runs; fsnum9 (01 FSG with two PIC 9 subordinates) compiles and runs. Every elementary conjunct and every barred section is screened. The verdict on groups rests on a reading: cite.py --check \"§1985:IV.4.3.3\" \"The class of a group item is treated at object time as alphanumeric\" -> OK, but the same clause's table gives a Nonelementary (Group) item CLASS Alphanumeric with CATEGORY listed as Alphabetic, Numeric, Numeric edited, Alphanumeric edited or Alphanumeric, and the text never says which category a group takes. cite.py --check \"§1985:VII.2.5.3 SR2\" \"two-character data item of the category alphanumeric\" -> OK. Under the reading that a group whose subordinates are all numeric is of category numeric, fsnum9 must be refused and the compiler under-rejects; under the reader's reading (a group is alphanumeric) it conforms.",
   "edition-sites-missed": [],
   "corrected": ""
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "A FILE STATUS item that is a group of two PIC 9 items is accepted: the 1985 text gives a group the class alphanumeric and no other category, and where it is silent GnuCOBOL classes a group as category alphanumeric and accepts it.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-14.md"
  }
 }

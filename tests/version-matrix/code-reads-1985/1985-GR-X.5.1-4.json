@@ -102,5 +102,11 @@
    "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#UnreferenceableLinkageRecord: consulted only for written references, never for the DEPENDING ON object a variable-length operand's reference implicitly reads"
   ],
   "corrected": "PARTIAL: legs a-e are enforced for every explicit reference, but an implicit Procedure Division reference (§1985:IV.4.4.1) to a non-operand Linkage item through an operand's OCCURS DEPENDING ON is admitted and reads storage that does not exist (LN = 0). Harm: under-rejects / wrong-answer. Cause (b): the same at --std 2023. Reading stated: an implicit reference counts as 'referenced within the Procedure Division' (IV.4.4.1); under PB1249's reading (only written references) the verdict stays CONFORMS. Known note: PB1249 (landed; its sweep excluded OCCURS DEPENDING)."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A Linkage item that is not addressable (the DEPENDING ON object of a USING operand's table, in a record that is no operand) is referenced implicitly by every statement that references the table's record, which the rule forbids; the program compiles and reads no storage (lk_odo.cob: S L1= prints empty).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-16.md"
+ },
+ "work": "PB5876"
 }

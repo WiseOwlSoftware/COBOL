@@ -109,5 +109,11 @@
    "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#logicalNotBeforeRelationalOperator: edition-blind left-edge predicate; excludes NOT after NOT, so the 85-only logical-NOT abbreviation arm cannot carry a negated relational operator written without IS"
   ],
   "corrected": "DIVERGES (rejects-legal-source, cause c): at --std 85 'IF A > 1 AND NOT NOT < 5' is the SR2 format with [NOT] followed by the relational operator 'NOT <' and must compile as (A > 1) AND NOT (A NOT < 5); the compiler refuses it with COBOL0001 while accepting 'AND NOT IS NOT < 5'. Minimal repro: refute-1985-223/src/ab1.cob. Expected: compiles, prints N1 T and N2 F for A=3."
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "At --std 85 an abbreviated combined relation condition with NOT NOT before a relation character (IF A > 1 AND NOT NOT < 5) is refused with COBOL0001, where the 1985 text reads the first NOT as the logical operator and NOT < as the relational operator.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
+ },
+ "work": "PB5861"
 }
