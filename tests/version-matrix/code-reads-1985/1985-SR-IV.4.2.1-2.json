@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-2",
+ "rule-digest": "51c05b292f56",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-042",
+  "sources": {
+   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
+   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+  },
+  "imported": {
+   "reader": "6398c707e14c68ae1e059764b5285798df82145b62e679fae3f69261431b9fb4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-2",
+  "verdict": "PARTIAL",
+  "requirement": "At --std 85 a comma or semicolon immediately followed by a space is a separator that may stand anywhere the separator space may stand (except a comma inside a PICTURE character-string, which is a picture symbol), and a comma or semicolon with no space after it is no separator.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#InListRegion; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations",
+  "edition-consulted": [],
+  "edition-search": "Read SeparatorRule.cs whole (remarks: edition-invariant), the FNARG_SEPARATOR/COMMA/SEMICOLON lexer rules and the list-region actions (OnDefaultLParen, OpenRegion, OnDefaultRParen), and the subscriptList / functionArgList parser rules; grepped Edition|Version|Std in SeparatorRule.cs (none). Frontend.cs#LexAndParse passes the edition only to retypes.PrimeLexer and the debugging-line rewriter.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: w73a_separator_context_conforming covers comma/semicolon between MOVE receivers and DISPLAY operands; nothing exercises a comma separator inside a subscript, reference-modifier or function-argument parenthesis other than between two items",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_comma.cob",
+    "printed": "A=007 / B=YXZ / C=1,234 D=12 E=34 / F / H=014 I / J=015008 (EXPECT: MATCH)",
+    "expected": "comma/semicolon separators after a level number, between clauses, after a verb and its operands, in IF/ELSE, after an arithmetic operator, at line end, concatenated (', ;'), PIC 9,999 (comma is a picture symbol) and PIC 99, (comma ends the picture): all accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_paren.cob",
+    "printed": "A=016 / B (EXPECT: MATCH)",
+    "expected": "comma separators after '(' , after an operator and before ')' of a grouping parenthesis: accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub1.cob",
+    "printed": "DISPLAY W-E (I +, 1): COBOL0001 cannot parse construct near ', ' (same at --std 2023)",
+    "expected": "accepted, W-E (I + 1): the comma-space stands where the separator space between '+' and integer-2 stands"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub2.cob",
+    "printed": "DISPLAY W-E (I, ): COBOL0001 cannot parse construct near ')' (same at --std 2023)",
+    "expected": "accepted: the optional separator space before ')' (SR8) may be a comma-space"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub3.cob",
+    "printed": "DISPLAY W-E (, I): COBOL0001 near ', ' (same at --std 2023)",
+    "expected": "accepted: the optional separator space after '(' (SR9) may be a comma-space"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub15.cob",
+    "printed": "DISPLAY W-S (2 :, 1): COBOL0001 near ', ' (same at --std 2023); W-S (2, : 1) c3_sub14: COBOL0001 near ':'",
+    "expected": "accepted as W-S (2 : 1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub11.cob",
+    "printed": "W-F (1; 2): B=B at 85 and 2023",
+    "expected": "semicolon separator between two subscripts: accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.3.5-Separators/w73a-comma-not-followed-by-space.cob",
+    "printed": "COBOL2631 at N,M and N;M",
+    "expected": "a comma or semicolon with no space after it is no separator: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR2",
+    "check": "OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.2.1 SR8",
+    "check": "OK  §1985:IV.4.2.1 SR8  (4.2.1 Separators)  the text is in SR8"
+   },
+   {
+    "cite": "§1985:IV.4.2.1 SR9",
+    "check": "OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9"
+   },
+   {
+    "cite": "§2023:8.3.5 SR2",
+    "check": "OK  §2023:8.3.5 SR2  (Separators)  the text is in SR2"
+   }
+  ],
+  "notes": "Outside parentheses that open a list region, the comma-space is skipped exactly as a space is and SR2 holds everywhere probed. Inside a REF_LPAREN or FNARG_LPAREN region (subscripts, reference modifiers, function arguments, and any grouping parenthesis nested in them) the lexer keeps ', '/'; ' as a real FNARG_SEPARATOR token, and the grammar admits that token only between two list items, so a comma or semicolon separator in any other separator-space position inside the region is a parse error.",
+  "seeded": true,
+  "harm": "rejects-legal-source",
+  "cause": "b",
+  "at-2023": "the same COBOL0001 parse error for every repro (§2023:8.3.5 SR2 says the same as the 1985 rule)",
+  "repro": "01 W-T VALUE \"XYZ\". 05 W-E OCCURS 3 TIMES PIC X. 01 I PIC 9 VALUE 1. ... DISPLAY W-E (I +, 1). (also W-E (I, ), W-E (, I), W-S (2 :, 1), FUNCTION MAX (I +, 1, 2))",
+  "expected": "\"the punctuation characters comma and semicolon, immediately followed by a space, are separators that may be used anywhere the separator space is used\" (§1985:IV.4.2.1 SR2): W-E (I +, 1) is W-E (I + 1) and displays Y",
+  "observed": "error COBOL0001: cannot parse construct near ', ' (exit 65) at --std 85 and --std 2023",
+  "known_note": "none (PB4246 is the open naming analysis of FNARG_SEPARATOR as the separator token of every list region; it does not record this refusal)"
+ },
+ "work": "PB5793"
+}

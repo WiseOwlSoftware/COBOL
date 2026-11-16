@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-VIII.4.6.4-11",
+ "rule-digest": "c473a6cfa39d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-028",
+  "sources": {
+   "reader": "ecc6b3fea65b7e8f346e8afe9c69f717ee3390855a48f4828683119993b37cf6",
+   "refuter": "2e3ef5aa81e9ebe44f10c9b93e0a7c1fb1aae8ad67192c39e7bfeaaf6cc8e905"
+  },
+  "imported": {
+   "reader": "b5da52fcc2ff96c15ec065a867785a82403fecdbc6ce761da263e1bc4cfded17",
+   "refuter": "f899564f2018363d562cfb11f25668a344ec3aa7e9f43296e0b2a9f8f2b8d43b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.6.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, END-REWRITE ends the scope of the REWRITE it closes (§1985:IV.6.4.3, IV.4.4.4): a delimited REWRITE is an imperative statement that may stand inside another statement's imperative phrase; the statements after END-REWRITE, and the containing statement's next phrase, belong to the containing statement; nested REWRITEs pair END-REWRITE with the innermost unterminated one; END-REWRITE may close a REWRITE written with no phrases; without END-REWRITE an unterminated REWRITE is conditional, which an imperative-statement slot refuses, and is ended implicitly by the containing statement's next phrase (ELSE) or the period. The 1985 format admits only REWRITE record-name-1 [FROM identifier-1] [INVALID KEY] [NOT INVALID KEY] [END-REWRITE], in that order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#ConditionalPhraseAssociation; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "GateFilePhrase (REWRITE FILE file-name, 2002) and Constructs.RewriteRecordWord2002 (the word RECORD after record-name): refused at 85 with COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+    "switches": "Constructs.ConditionalPhrasesAnyOrder2002 via ConditionalPhraseAssociation.OutOfPrintedOrder: NOT INVALID KEY before INVALID KEY refused at 85 (COBOL0900), accepted from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "Constructs.FromLiteral2002: FROM literal-1 refused at 85 (COBOL0871)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordLockPhrase",
+    "switches": "Constructs.RecordLockPhrase2002: REWRITE ... WITH LOCK refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The END-REWRITE scope itself (grammar END_REWRITE?, phrase association in ConditionalPhraseAssociation, the imperative-slot check COBOL2796) consults no edition; the four sites listed gate the surrounding 2002 format elements at 85.",
+  "behaviour-differs-by-edition": "yes: the scope of END-REWRITE is the same at every edition; what differs is the format it closes: at 85 the FILE phrase, the word RECORD, FROM literal, the lock phrases and the reversed phrase order are refused, all accepted from 2002",
+  "witnesses-cover": "part: the witness pins END-REWRITE on an indexed file's REWRITE (with FROM, INVALID KEY only, both phrases); nesting inside READ INVALID KEY, IF/ELSE, inline PERFORM and another REWRITE, a phraseless REWRITE, the unterminated-in-imperative refusal, a stray or doubled END-REWRITE and the 2002 format elements are covered only by probes p6scope and p6neg1..p6neg9",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p6scope.cob",
+    "printed": "S1 INNER-IK 23 / S1 AFTER-INNER 23 / S1 END 23 / S2 INNER-NIK 00 / S2 END 00 / S3 NIK 00 / S3 STILL-IN-IF / S4 NIK 1 / S4 AFTER 1 / S4 NIK 2 / S4 AFTER 2 / S4 IK 3 23 / S4 AFTER 3 / S5 00 / S6 INNER-NIK / S6 OUTER-IK-TAIL / S6 END",
+    "expected": "END-REWRITE closes the inner REWRITE in READ INVALID KEY (the DISPLAY after it is the READ's, no USE runs), ELSE implicitly ends an unterminated REWRITE in IF, the IF and inline PERFORM continue after END-REWRITE, a phraseless REWRITE takes END-REWRITE, nested REWRITEs pair END-REWRITE innermost-first"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p6neg1.cob; p6neg2.cob; p6neg8.cob; p6neg7.cob",
+    "printed": "p6neg1: COBOL2796 READ INVALID KEY: this REWRITE statement is written without its explicit scope terminator END-REWRITE, so it is a conditional statement ...; p6neg2: COBOL0306 END-REWRITE appears without a matching REWRITE statement; p6neg8: COBOL0306 (second END-REWRITE); p6neg7: COBOL1720 INVALID KEY on a sequential-access relative REWRITE",
+    "expected": "§1985:IV.6.4.2.3.1: an imperative statement is a conditional statement delimited by its explicit scope terminator, so an unterminated conditional REWRITE in READ's INVALID KEY is refused; a stray or doubled END-REWRITE has no REWRITE to close; §1985:VIII.4.6.3 SR3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-028/p6neg3.cob; p6neg4.cob; p6neg5.cob; p6neg6.cob; p6neg9.cob",
+    "printed": "p6neg3: COBOL0900 REWRITE writes INVALID KEY after NOT INVALID KEY (§1985:IV.2.1); p6neg4: COBOL0900 record-lock phrase requires COBOL-2002; p6neg5: COBOL0900 FILE phrase of REWRITE requires COBOL-2002; p6neg6: COBOL0871 FROM literal-1 requires COBOL-2002; p6neg9: COBOL0900 the word RECORD after the record-name requires COBOL-2002",
+    "expected": "the 1985 relative REWRITE format (§1985:VIII.4.6.2) prints record-name-1 [FROM identifier-1] [INVALID KEY] [NOT INVALID KEY] [END-REWRITE] in that order, so each later-edition element is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.6.4 GR11",
+    "check": "OK  §1985:VIII.4.6.4 GR11  (4.6.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IV.6.4.2.3.1",
+    "check": "OK  §1985:IV.6.4.2.3.1  (6.4.2.3.1 Definition of Imperative Statement)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.4.4",
+    "check": "OK  §1985:IV.4.4.4  (4.4.4 Explicit and Implicit Scope Terminators)  the text is in the clause; it lies in GR2"
+   },
+   {
+    "cite": "§1985:VIII.4.6.2",
+    "check": "OK  §1985:VIII.4.6.2  (4.6.2 General Format)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VIII.4.6.3 SR3",
+    "check": "OK  §1985:VIII.4.6.3 SR3  (4.6.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The grammar ends rewriteStatement with END_REWRITE?, and ConditionalPhraseAssociation gives each phrase to the innermost unterminated statement, so END-REWRITE closes the innermost REWRITE and hands later phrases to the container. Every nesting shape behaved as the 1985 scope rules say. The edition switches on the path gate only the 2002 format elements around the statement, and each refused at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.6.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe r11scope.cob (r11scope-001): the Amendment 1 form REWRITE A-REC FROM FUNCTION UPPER-CASE (W) INVALID KEY ... END-REWRITE compiles at 85, status 00, and reads back 'LOWER'; END-REWRITE inside READ ... NOT AT END ... END-READ hands the next DISPLAY to NOT AT END. Probe r11assoc.cob (r11assoc-001): REWRITE A INVALID KEY DISPLAY .. REWRITE B NOT INVALID KEY DISPLAY .. END-REWRITE DISPLAY ..: per §1985:IV.6.4.3 NOT INVALID KEY belongs to the inner unterminated REWRITE B and END-REWRITE closes that inner one, making it a delimited (imperative) statement inside the outer INVALID KEY; outer success printed nothing from inside (C1 00 00), outer failure ran OUTER IK, inner 23 with no INVALID KEY went to the USE procedure ('USE 2323') and the trailing DISPLAY ran in the outer phrase. The reader's p6neg* already cover the 2002 elements refused at 85. cite.py: OK  §1985:VIII.4.6.4 GR11 (the text is in GR11); OK  §1985:IV.6.4.3 (the text is in the clause); OK  §1985:VIII.4.6.3 SR1 (the text is in SR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

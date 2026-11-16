@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """THE STORE OF CODE READS and the outcome of a record: the half of the code reads the inventory view reads (kb/Work
 PB5759; DESIGN-spec-conformance-review.md section 10.6.1). `code_reads.py` is the rest (the record's shape, the import,
-`work`, `adjudicate`, `plan` and the CODE READS audit) and the only writer.
+`work`, `adjudicate`, `withdraw`, `plan` and the CODE READS audit) and the only writer.
 
 WHY TWO FILES. `inventory_view.py` is in the conformance-suite generator's import closure (scripts/build_targets.json, the
 BUILD TARGETS audit), and the view prints the code reads' counts (`view_line`). The shape checks need the citation
@@ -79,9 +79,13 @@ def outcome(record: dict[str, Any], rows: dict[str, Row]) -> str:
 
 def owed(rows: dict[str, Row], schema: Schema, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
     """The KEPT rows of `rows` (in their order) that no confirmed or contradicted record decides: a stale or an undecided
-    record is still owed. `witnessed` keeps those that carry a test-ref of their own (`lineage.own_witness_refs`)."""
+    record is still owed. `witnessed` keeps those that carry a test-ref of their own (`lineage.own_witness_refs`). A chained
+    row the view computes OK with no test-ref of its own is closed on a derivation of its own (kb/Work PB5822, the one
+    predicate `lineage.derivation_refusals`, asked through the state): it needs no code read and is not owed one
+    (kb/Work PB5842)."""
     decided = {rid for rid, r in records.items() if outcome(r, rows) in (CONFIRMED, CONTRADICTED)}
     return [rid for rid, row in rows.items() if lineage.chained(row, schema) and rid not in decided
+            and not (row.get("state") == "OK" and not lineage.own_witness_refs(row, schema))
             and (not witnessed or lineage.own_witness_refs(row, schema))]
 
 

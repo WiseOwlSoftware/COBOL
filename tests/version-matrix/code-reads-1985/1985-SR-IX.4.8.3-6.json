@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-IX.4.8.3-6",
+ "rule-digest": "e7f40e3136fa",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-155",
+  "sources": {
+   "reader": "0de8f709c2b4ee3ffec721fd32c4bd152a11c5331bcb981f9d433bcb8682d5a8",
+   "refuter": "61677f953081c0603a4306d57d35c598bc4ebcb6f35cb94ba979f66aba39782c"
+  },
+  "imported": {
+   "reader": "f679d40210f077bc50e19e68bfbe7fd7b1fb71c7444ed961553b19ed411fc241",
+   "refuter": "6344e19218616b00b01017864b8f7808ecb27c74ce039577a055b5c5d1e6a537"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.8.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each of the INPUT, OUTPUT, I-O and EXTEND phrases may appear in at most one USE statement of a given Procedure Division (ERROR and EXCEPTION counting as one), so a second USE with the same mode in the same Procedure Division is refused, while one of each mode, and the same mode in a contained program's own Procedure Division, are accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclEndUseStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#CollectMethodDeclaratives",
+  "edition-consulted": [],
+  "edition-search": "Read DeclBindUse's mode arm (the _useModes ConstructOperandRegister, per bound unit, reset per method) and grepped ProcedureTableBuilder.cs for _useModes; no Edition/Year/DialectLevel read on that arm. VersionConformancePass#VisitUseStatement consults the edition only for an omitted AFTER/PROCEDURE or the 2002 formats.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf28_03 covers the acceptance of one USE per mode; not the refusal of a repeated mode nor separate Procedure Divisions of nested programs",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/runs/g85_bf28_03-001",
+    "printed": "EXPECT: MATCH (g85_bf28_03.out)",
+    "expected": "the witness .out"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p7usedup.cob",
+    "printed": "COBOL0897 at U-D (INPUT twice), U-F (OUTPUT twice), U-H (I-O twice), U-J (EXTEND twice): this open mode already has a USE procedure in this procedure division",
+    "expected": "each repeated mode phrase refused (§1985:IX.4.8.3 SR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-155/src/p8nested.cob",
+    "printed": "U-OUTER 10 / OUTER-AFTER 10 / U-INNER 23 / INNER-AFTER 23",
+    "expected": "an INPUT USE in the outer and another in the contained program (two Procedure Divisions) both accepted, each serving its own program's file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.3 SR6",
+    "check": "OK  §1985:IX.4.8.3 SR6  (4.8.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "One register per bound unit enforces the rule for all four modes; the probes show every mode's repeat refused and a contained program's own Procedure Division kept separate. The diagnostic cites the 2023 number (SR7) rather than 1985's SR6 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.8.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "ProcedureTableBuilder#DeclBindUse registers the mode in _useModes regardless of the GLOBAL phrase or the ERROR/EXCEPTION word. r5dup-001 at --std 85: GLOBAL ERROR ON INPUT then plain EXCEPTION ON INPUT in one Procedure Division -> COBOL0897 at U-B; GLOBAL ERROR then GLOBAL EXCEPTION ON EXTEND -> COBOL0897 at U-F (GLOBAL does not escape the once-only rule). r4glob-002: outer USE GLOBAL ... ON INPUT and a contained program's own USE ... ON INPUT both accepted (separate Procedure Divisions) and the contained one is the one invoked for its file (L-IN fired 35). cite.py: OK §1985:IX.4.8.3 SR6; OK §1985:X.5.5.4 GR1a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

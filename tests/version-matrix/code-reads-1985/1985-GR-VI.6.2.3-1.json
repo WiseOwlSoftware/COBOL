@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-VI.6.2.3-1",
+ "rule-digest": "02a16c8fda00",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "331db07a24934df3bdbb2b00b5799b1608e419207a0b23b5ad75f14e5df64e4a",
+   "refuter": "a7b6eb054eae439cfa6626e7b1710c98ee6c2f4ff881215ef0b01edcf4894db0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an arithmetic expression must be evaluated parenthesized sets first, innermost first, and otherwise in the order unary plus/minus, then exponentiation, then multiplication/division, then addition/subtraction (with GR2's left-to-right order inside one level), in every statement that takes an arithmetic expression (COMPUTE, relation and sign conditions).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#additiveExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#multiplicativeExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#powerExpression; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryExpression; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindExprCore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindChain; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPower",
+    "switches": "DialectBehavior.NegativeBaseRequiresIntegerExponent picks the negative-base rule (realRoots) carried on BoundPower: §1985:VI.6.2.3 GR5c at 85; it does not change the order of evaluation (the left-fold over the ** chain is the same at every edition)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of CobolExpressions.g4 and ExpressionBinder.cs BindExprCore/BindChain/BindPower/BindPrimary for DialectBehavior/Edition/DialectLevel: the only edition input on the precedence path is BindPower's negative-base flag",
+  "behaviour-differs-by-edition": "no: precedence is the grammar's tiering (additive > multiplicative > power > unary > primary) and a left fold per tier at every edition",
+  "witnesses-cover": "part: g85_bf14_01 covers each tier, nested and same-level parentheses and unary over **; not exercised: left-to-right within one level (- - and / / and ** **), unary after a binary operator, precedence inside a condition",
+  "probes": [
+   {
+    "class": "f,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/arx1.cob",
+    "printed": "Q1 3 Q2 8 Q3 64 Q4 7.0 Q5 0.5 Q6 -6 Q7 4 Q8 8 Q9 4 Q10 3 Q11 5 Q12 2 Q13 OK",
+    "expected": "10-4-3=3; 64/4/2=8; 2**3**2=(2**3)**2=64 (GR2 left to right); 7/2*2=7; 2** -1=0.5; +3*-2=-6; - C ** A with C=-2 is (+2)**2=4 (unary first); 2 - -3*2 = 8; 2*3**2/6+1=4; nested parens 3; 100/(5)/2**2=5; 1-2+3=2; condition operands same precedence. All match."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/arx1b.cob",
+    "printed": "COBOL0001 near '*' (A + * B); COBOL5506 near '.' (unbalanced parenthesis)",
+    "expected": "invalid symbol pair and unbalanced parentheses refused (GR3 Table 1, GR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/arx1.cob (at --std 2023)",
+    "printed": "identical to --std 85",
+    "expected": "no edition arm for precedence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.2.3 GR1",
+    "check": "OK  §1985:VI.6.2.3 GR1  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.2.3 GR2",
+    "check": "OK  §1985:VI.6.2.3 GR2  (║6.2.3 Formation and Evaluation Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "The grammar's tiers encode GR1's hierarchy and ExpressionBinder folds each tier left to right, so ** chains are left-associative as 1985 GR2 requires. The unaryExpression in the power base gives (-x)**n, the 1985 order. Only the negative-base rule (GR5c) consults the edition, off this rule's path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "rarx1.cob at --std 85 and 2023 (rarx1-001, -002, identical): 2 ** - 1 ** 2 = 0.25 (unary first, then left to right); - A ** 2 * 3 = 12; - (A + 1) ** 2 = 9 (parentheses, then unary, then power); 8 / A ** 2 = 2; A - B ** 2 = -7; A + + B = 5; - A - B = -5; mixed tiers 5; (A - B) ** 2 = 1; 2 ** (B - 1) ** 3 = 64 (left to right per GR2, not 256); precedence in a sign condition, an EVALUATE subject, an EVALUATE TRUE relation and a WHEN THRU range all OK. rarx2.cob --compile-only: '- - A' and '+ - A' refused COBOL1719 (Table 1 unary-unary pair), 'A ( )' refused COBOL2309. cite.py: OK §1985:VI.6.2.3 GR1 '1st - Unary plus and minus'; OK §1985:VI.6.2.3 GR2 'from left to right'; OK §1985:VI.6.2.3 SR3 (Table 1; GR3 FAILs, it is typed SR3).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#BindPrimary: context.IndexDataItemAdmittedAt(ctx.Edition.DialectLevel) admits an index data item as a primary by edition; it governs an operand class, not the order of evaluation, so it does not bear on GR1"
+  ],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VI.5.10.4-2",
+ "rule-digest": "34c761b986cc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-012",
+  "sources": {
+   "reader": "772d04de36b8dcb0c7a9bad79fbde06fa7f4b1574a81c0b1293adb73ea60c2da",
+   "refuter": "685481e42a190f590cc0945a0736c04a0507fdcc67d71c0f44c2c8b6494c9eec"
+  },
+  "imported": {
+   "reader": "531b594401a18dfcded8ce1c0aa596b861576e167f0f01ed1ba46081850ce0a5",
+   "refuter": "c1e303771808d3473d4c8df6a4f462241d0d217b7d4869c0e3b7b707c4b20f78"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.10.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when one character position is described by more than one data description entry (data-name-2 and its redefinitions, and their subordinates), every one of those data-names references that position: a store through any description is seen through every other, for elementary and group views, alphanumeric, numeric DISPLAY (signed, scaled), edited, COMP and COMP-3 descriptions, condition-names under a redefinition, and reference modification, in working-storage and in file records.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Model/RedefinesModel.cs#RedefinesTier; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/Binding/Model/PlaceBuilder.cs#BuildBackingPath; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#PlaceForItem; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition./CobolVersion/DialectLevel/Has( over ClassifyRedefinesClassesPass.cs, RedefinesModel.cs, PlaceBuilder.cs, ReferenceResolver.cs, CodeGen/Roslyn/PlaceRenderer.cs and CodeGen/DataDivision/PhysicalModel.cs, RecordStructEmitter.cs: only diagnostic Edition.At/Error appear; the one Edition.Has(2002) in ReferenceResolver.cs is the EXCEPTION-OBJECT register test, off this path. A view's place is built the same way at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises alphanumeric and DISPLAY-numeric views inside OCCURS, a group view, ref-mod and an ODO table; not exercised: COMP/COMP-3 views of the same bytes, signed and scaled DISPLAY, edited views, condition-names under a redefinition, several redefinitions of one area, and file records",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd2.cob",
+    "printed": "M1 X(3) \"abc\" with M2 X(2), M3 group (M31 with 88 M31-A VALUE \"a\", M32 X(2)) and M4 999: M31-A true; M2=ab M31=a M32=bc; MOVE \"z\" TO M31 -> M1=zbc; MOVE 7 TO M4 -> M1=007 M2=00 M32(2:1)=7",
+    "expected": "every one of the three redefinitions and data-name-2 references the same positions (GR2; SR8 several redefinitions of one area)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd3.cob",
+    "printed": "Q PIC 9(5) COMP VALUE 16706 seen through QX X(4): bytes 00 00 41 42; S X(2) \"AB\" seen through SN 9(4) COMP: 16706",
+    "expected": "the binary item's character positions are the alphanumeric view's (byte order is the implementor's)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd1.cob",
+    "printed": "G2 999 over G1, G5 S99 over G4 (0P for -7), N2 X(6) over S9(4)V99 (00123M), E2 ZZZZ9 over 9(5) (01234)",
+    "expected": "numeric, signed, scaled and edited descriptions read the same positions"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/rd2.cob",
+    "printed": "FD record FBODY X(9) with FNUM group (COMP-3, COMP, FILLER): READ yields FN1=-12345 FN2=+123456789 then BODY=ABCDEFGHI",
+    "expected": "the record area's positions referenced through either description"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-012/hv.cob",
+    "printed": "R PIC 9(4) COMP VALUE 255 through RX X(2): RX(2:1) = HIGH-VALUE is true, RX(2:1) > \"A\" is true; at --std 2023 the same; ORD of that character is 65536 (rd4.cob, hv.cob), the PB1759 design",
+    "expected": "the 0xFF byte read through the alphanumeric view is the highest character"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.4 GR2",
+    "check": "OK  §1985:VI.5.10.4 GR2  (5.10.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.5.10.4 GR1",
+    "check": "OK  §1985:VI.5.10.4 GR1  (5.10.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Every description of a shared area is a window on the one backing (Tier B) or a pass-through of the one field (Tier A), so a store through any name is seen through all. A 0xFF byte read through an alphanumeric view is HIGH-VALUE, held as U+FFFF (ORD 65536, DISPLAY writes EF BF BF): that is the landed design of kb/Work PB1759 (owner R52, a 65,536-character native alphanumeric set), not a REDEFINES defect.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.10.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,e",
+  "evidence": "Read §1985:VI.5.10.4 GR2. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c1.cob: CALL BY REFERENCE of a level-01 same-size redefinition B, of data-name-2 A, of NX over 9(4), and of a subordinate G2 over G1: the callee's store is seen through every name (A=WXYZ B=WXYZ; N=WXYZ; G1=123 G=123w); STRING, INSPECT REPLACING, UNSTRING and ACCEPT FROM DATE through a redefinition reach data-name-2. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c2.cob: bytes C8 C8 C8 C8 of a COMP item moved through X views and back, through a COMP-3 X view, by ref-mod, and through a sequential record (FD with two 01 records) round-trip exactly (WN=-926365496, P2N=-9876543, file bytes ff ff ff fe c8 c8 c8 c8). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-012/c14.cob: EXTERNAL record redefinitions in two programs reference the same positions. cite.py: OK §1985:VI.5.10.4 GR2 (the text is in GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

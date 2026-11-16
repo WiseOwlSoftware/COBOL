@@ -1,0 +1,89 @@
+{
+ "rule-id": "1989-RV-A.2.13.4-1",
+ "rule-digest": "eef6424ab90b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "50702e870afb0771432b5a8c55ce7ecd67f9c9340c8a94de8bba6e6b71d1a8be",
+   "refuter": "cb852a285b2d47fefe04b02d6c585eb0780c35da051652b32a2b1fb10da5699a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.13.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION DAY-OF-INTEGER(argument-1), argument-1 a positive integer counting days after 1600-12-31 (A.2.13.3 AR1, no upper bound in the 1989 module), returns the Julian date of that same day: the year and day of year the day count lands on in the proleptic Gregorian calendar.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DayOfInteger; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearAndDayOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85) against ctx.Edition.DialectLevel: DAY-OF-INTEGER is admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "DialectBehaviors.IsActive(DialectBehavior.IntegerDateFormBounded, year): inactive at 85, so BoundIntrinsicCall.IntegerDateFormUnbounded = true and the renderer passes unbounded: true to CobolDate.DayOfInteger (no 3,067,671 cap)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "Constructs.NumericFunctionIdentifierOperand2002: an integer function written outside an arithmetic expression (DISPLAY FUNCTION DAY-OF-INTEGER(1)) is refused at 85, as A.2.3 (3) requires",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs, IntrinsicRenderer.cs, CobolDate.cs and DialectBehavior.cs for Edition, DialectLevel, DialectBehavior, ConstructRegistry; the day arithmetic (YearAndDayOf) has no edition input.",
+  "behaviour-differs-by-edition": "yes: at 85 an argument past 3,067,671 (9999-12-31) is still a positive integer and returns its Julian date (3067672 -> 10000001, 4382911 -> 13601001); at 2023 the same arguments return 0 (EC-ARGUMENT-FUNCTION default).",
+  "witnesses-cover": "part: g85_f35_03 covers 59, 36524/36525 (century non-leap), 145792, 146097/146098 (400-year boundary); it does not exercise day 1, 365/366, the 2002+ cap 3,067,671, days past 9999-12-31 (the 1985-only arm), or a subscripted ODO-table argument.",
+  "probes": [
+   {
+    "class": "a,c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/doi2.cob",
+    "printed": "D1=01601001 D365=01601365 D366=01602001 DMAX=09999365 D3067672=10000001 D12001=+000000000013601001 D0=00000000 DNEG=00000000 DODO=02000061 (argument from an ODO table element) DSELF=+000000002 (argument item is the receiver) CMP OK DPLUS=01601060",
+    "expected": "the Julian equivalent of each day: 1->1601001, 365->1601365, 366->1602001, 3067671->9999365, 3067672->10000001 (no upper bound at 85), 4382911->13601001; 0 and -5 violate AR1 (result undefined, A.1.2.2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/doi1.cob",
+    "printed": "error COBOL0900: a numeric or integer function-identifier where an identifier is written (not in an arithmetic expression) requires COBOL-2002 (targeting COBOL-85) (DISPLAY FUNCTION DAY-OF-INTEGER (1))",
+    "expected": "refused: an integer function may be used only in an arithmetic expression (§1989:A.2.3 (3))"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/doi2.cob (--std 2023)",
+    "printed": "D3067672=00000000 D12001=+000000000000000000, every other line the same as at 85",
+    "expected": "the 2023 bound of 3,067,671 applies at 2023 only"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.13.4 RV1",
+    "check": "OK  §1989:A.2.13.4 RV1  (2.13.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.13.3 AR1",
+    "check": "OK  §1989:A.2.13.3 AR1  (2.13.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "The 1985 run takes its own arm (unbounded integer date form) and that arm matches the 1989 module's text, which bounds the day count only below. Every probed day converts to the right year and day of year, including century and 400-year boundaries and days past 9999. The brief's citation form §1985:A.2.13.4 fails cite.py (Section A is X3.23a-1989), so the catalog's §1989 form is used.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.13.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "Read §1989:A.2.13 whole (AR1 bounds the argument only below; A.1.2.2 makes a non-complying argument undefined) and CobolDate.DayOfInteger/YearAndDayOf (long arithmetic, unbounded arm at 85 via DialectBehavior.IntegerDateFormBounded). Probe refute-1985-179/rdoi1.cob at --std 85 (runs/rdoi1-001): BIG (10^14 days) +000273790702299311, matching an independent proleptic-Gregorian computation; PACKED 730120 -> 3600001, COMP 730485 -> 3600366 (Python datetime: 3600-01-01, 3600-12-31 day 366); nested INTEGER-OF-DATE(20000229) -> 2000060; INTEGER-OF-DAY(2000366)+1 -> 2001001; arithmetic-expression argument H*4 (2.0) -> 1601002; 109572 -> 1900365 (1900 non-leap), 109573 -> 1901001, 146097 -> 2000366. Class c later-edition refusals: X\"..\" and N\"..\" literals refused COBOL0900 (rc1-001); the reader's DISPLAY FUNCTION DAY-OF-INTEGER refusal stands. cite.py: OK  §1989:A.2.13.4 RV1  (2.13.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

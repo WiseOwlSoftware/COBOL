@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-7",
+ "rule-digest": "1e4117418c10",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "d621d6cb1b669c7be21ebe1ad24c21607462974bb0786c9f50756f8435f414fa",
+   "refuter": "42ddc96a68b02f7fa0d865fb1c0ded624206b4921851e07f5fb15a64c61d8838"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 control after START follows IX.1.3.5: on an invalid key the INVALID KEY imperative runs (USE not run, NOT INVALID KEY ignored) or, absent the phrase, the USE procedure; on success NOT INVALID KEY runs if present, its explicit transfers (GO TO) honoured; on a non-invalid-key exception (47) the USE procedure runs and neither phrase.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook (ec.IoMaskFor)",
+    "switches": "EC-I-O checking arm (2002+ >>TURN); at 85 the mask is 0 and the plain format-1 USE arm is taken, the same arm a 2023 program without >>TURN takes",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement / #VisitStartKeyPhrase / #VisitStartWithLength",
+    "switches": "2002 START forms refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior in SequentialIoEmitter.cs: only NamedRecordEntry (SELECT WHEN, not START); EmitInvalid/EmitPhrasePair read none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f15_04 covers the six phrase/match combinations with a USE procedure; GO TO out of NOT INVALID KEY and the 47 routing with both phrases present are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st1.cob",
+    "printed": "CLOSED-START=47 USES 2 (no CLOSED-INVALID, no CLOSED-NOT-INVALID) / S1-NOT-INVALID / S2-NOT-INVALID / USE-X 23 S3 / S4=00 without S4-FELL-THROUGH / S5-INVALID with USES unchanged",
+    "expected": "IX.1.3.5: 47 with both phrases -> USE only; success -> NOT INVALID KEY; GO TO P-AFTER in NOT INVALID KEY transfers (no fall-through); invalid key with phrase -> phrase, USE not run; without phrase -> USE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/edarm_c2.cob",
+    "printed": "error COBOL0900: a reverse-search START KEY operator ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "KEY IS LESS THAN is not in the 1985 format: refused (also <= in edarm_c3, WITH LENGTH in edarm_c4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR7",
+    "check": "OK  §1985:IX.4.7.4 GR7  (║4.7.4 General Rules║)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:IX.1.3.5 GR2",
+    "check": "OK  §1985:IX.1.3.5 GR2  (1.3.5 The Invalid Key Condition)  the text is in GR2"
+   }
+  ],
+  "notes": "EmitPhrasePair renders INVALID KEY on the 2x class and NOT INVALID KEY on the 0x class gated by the hook, so a 47 reaches neither; the USE hook is told invalidKeyHandled so a written INVALID KEY suppresses the declarative.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe src/s1.cob (s1-001) aimed at USE selection the reader did not try: 47 with both phrases on a never-opened file -> file-name USE only (USE-N 47, no N-INVALID/N-NOT-INVALID); 47 in OUTPUT mode -> USE ... ON OUTPUT only; invalid key without INVALID KEY on an I-O file -> USE ... ON I-O, NOT INVALID KEY ignored (D2); on an INPUT file -> USE EXCEPTION ON INPUT (M1); invalid key with INVALID KEY -> phrase, no USE (M2-INVALID, no USE line); success -> NOT INVALID KEY (D1, A-OK, B-OK in c1-001). c3.cob refuses the 2002 reverse operator at 85. cite.py: 'OK  §1985:IX.4.7.4 GR7  (║4.7.4 General Rules║)  the text is in GR7'; 'OK  §1985:IX.1.3.5  (1.3.5 The Invalid Key Condition)  the text is in the clause; it lies in GRL2.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

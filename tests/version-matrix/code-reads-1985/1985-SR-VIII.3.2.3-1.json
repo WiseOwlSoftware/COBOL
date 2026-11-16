@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VIII.3.2.3-1",
+ "rule-digest": "7c13660df623",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-066",
+  "sources": {
+   "reader": "782a15d6d4ed2b34c9f2b420d14fa857d1b86bc0d29c612eb4f7e3b9990dbe87",
+   "refuter": "133b0ee88928662624958649568689b37ceefe6eea1878bdcd746ed49b26a742"
+  },
+  "imported": {
+   "reader": "74b07b37ec9a1c45aaebc6fccd7d293bca086bcb6a73a54b689e41223a220ed0",
+   "refuter": "599f3080fa84aef67f1d37bfd3697a2cde7c2e2eecf431804c397821e02a62dd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.3.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative file's file description entry must begin with the level indicator FD written before file-name-1, followed by any of the 1985 Format clauses (BLOCK CONTAINS, RECORD incl. VARYING DEPENDING ON, LABEL RECORDS, VALUE OF, DATA RECORDS); an entry without FD, with FD after the file-name, or with no file-name is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows",
+  "edition-consulted": [],
+  "edition-search": "The rule lives in the grammar production `fileDescriptionEntry : FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*` (CobolData.g4), reached from `fileSection`; neither carries a semantic predicate or version guard. FileDescriptionFormats.Rows carries DeletedAt2002 only as a message/admission flag for LABEL/DATA/VALUE OF (their removal gate is elsewhere and they are admitted at 85, probed). Grepped CobolData.g4 for isVersion/Edition predicates near fileDescriptionEntry and ClosedFormatPass.cs for Edition/Year: none switches the FD-before-file-name shape.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1238_fd_formats_admitted exercises admitted FD clauses; the refusal half (FD missing, FD after file-name, FD with no file-name) and a relative FD carrying the 1985-only LABEL/VALUE OF/DATA RECORDS clauses with RECORD VARYING DEPENDING ON are not exercised there",
+  "probes": [
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/fd1ok.cob",
+    "printed": "R1 FS=00 RL=0005 N=03 T=ABC / R2 FS=00 RL=0010 N=08 T=HGFEDCBA (exit 0)",
+    "expected": "FD XF with BLOCK CONTAINS, LABEL RECORDS, VALUE OF, DATA RECORD and RECORD VARYING 2 TO 10 DEPENDING ON RL over an ODO record compiles and the two variable-length records read back with their lengths (§1985:VIII.3.2.2 format; SR2 clauses in any order)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/fd1after.cob",
+    "printed": "error COBOL0001: unexpected 'XF' (exit 65)",
+    "expected": "refused: `XF FD.` puts file-name-1 before FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/fd1none.cob",
+    "printed": "error COBOL0001: unexpected 'XF' (exit 65)",
+    "expected": "refused: no level indicator FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-066/src/fd1noname.cob",
+    "printed": "error COBOL0901: 'LABEL' is a reserved word in COBOL-85 and cannot be used as a user-defined word (exit 65)",
+    "expected": "refused: FD not followed by file-name-1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.3.2.3 SR1",
+    "check": "OK  §1985:VIII.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The rule is a pure syntax shape that the grammar production enforces at every edition. Every refusal form is refused (the diagnostic for the misplaced FD is the generic parse error, which still refuses), and a relative FD with every 1985 clause and a variable-length record compiles and runs correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.3.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probes under refute-1985-066 at --std 85: fdareab-001 `FD XF YF.` (two file-names) refused COBOL1970 'YF' is not a clause of the file description entry; fdlit-001 `FD \"XF\".` (literal for file-name-1) refused COBOL5506; fdglobal-001 a relative FD with the 1985 IS GLOBAL phrase, RECORD CONTAINS and LABEL RECORD IS OMITTED, read from a nested program, compiles and prints G FS=00 REC=ABCD. Together with the reader's FD-after-name, no-FD and FD-without-name refusals every shape SR1 forbids is refused. cite.py: OK  §1985:VIII.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

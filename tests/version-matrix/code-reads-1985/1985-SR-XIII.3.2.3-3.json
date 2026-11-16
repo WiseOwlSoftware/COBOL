@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-SR-XIII.3.2.3-3",
+ "rule-digest": "d6febec96884",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "b7bc5c8008cc6849e1f8612fca5475fbfcd4f754875c7be11a2c0db425ed4b1d",
+   "refuter": "602c6576b15fbeb2ee414b0e0f9bfa7dbdafd45c6e561ddfba7a8677b457751d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the file named in a report-file FD (one carrying a REPORT clause) must be a sequential file: a REPORT clause on a file whose SELECT gives ORGANIZATION RELATIVE or INDEXED, under any access mode, must be refused, and the default or explicit ORGANIZATION SEQUENTIAL must be accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel|Edition in FileDescriptionFormats.cs (only the DeletedAt2002 data flag) and in FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted (Edition.At/Error only, no edition test). FileDescriptionFormats.Of puts a relative or indexed file in Format 2 at every edition, and the REPORT row's Formats = Report refuses it there",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover legal sequential report files. RELATIVE and INDEXED report files, and the random access mode, are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-rel.cob",
+    "printed": "COBOL2604 the REPORT clause (REPORT IS RPT) is not a clause of Format 2 (relative-or-indexed): file 'PRTF' is RELATIVE; also cascades COBOL1837 and COBOL2714",
+    "expected": "refused: relative, sequential access"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-relk.cob",
+    "printed": "COBOL2604 (RELATIVE, ACCESS RANDOM, RELATIVE KEY)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-idx.cob",
+    "printed": "COBOL2604 file 'PRTF' is INDEXED",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-seq.cob",
+    "printed": "runs, report 'X' (ORGANIZATION IS SEQUENTIAL ACCESS MODE IS SEQUENTIAL) (run org-seq-001)",
+    "expected": "accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-def.cob",
+    "printed": "runs, report 'X' (no ORGANIZATION clause: sequential by default) (run org-def-002)",
+    "expected": "accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/org-rel.cob",
+    "printed": "at --std 2023: the same COBOL2604 (run org-rel-002)",
+    "expected": "same at every edition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.2.3 SR3",
+    "check": "OK  §1985:XIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The organization decides the format once (FileDescriptionFormats.Of), and the REPORT clause is admitted only in Format 3, so every relative and indexed report file is refused at 85. Lead: the refusal cascades into COBOL2714, 'RD RPT is not named in any file description entry's REPORT clause', though the FD does name it (the clause was dropped as inadmissible). That follow-on message is false; the primary error is right.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Probes at --std 85 from the reader org-relk.cob: r-orgrd.cob ORGANIZATION RELATIVE ACCESS DYNAMIC -> COBOL2604 REPORT clause not of Format 2 (r-orgrd-001); r-orgls.cob ORGANIZATION IS LINE SEQUENTIAL (no 1985 organization) -> COBOL0900 requires COBOL-2023 (r-orgls-001); r-orgsd.cob ORGANIZATION SEQUENTIAL ACCESS DYNAMIC -> COBOL1858 (r-orgsd-001). With the reader relative/indexed refusals and sequential acceptances, every non-sequential report file is refused at 85. The reader COBOL2714 cascade lead reproduces (r-orgrd-001) but is a diagnostic-quality issue, not this rule. cite.py: OK  §1985:XIII.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-1",
+ "rule-digest": "4e105eda2a4d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-140",
+  "sources": {
+   "reader": "6b022913011a7954552e476d1ae0c92653e5f48c9f52fe81a4aeeede9db9996b",
+   "refuter": "935017612894b9e3812a77af1bb77f4690a6005610d5a6c20117a4126c77cf1d"
+  },
+  "imported": {
+   "reader": "1346b299375b54681aa14ccc5020f04c565dcc20ec61aee76467d6a3877d2579",
+   "refuter": "cde13b9b74b1be600397ec9c02e6fe97ff695ad24f7fe91abf21c00befe3ecc4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the data of a record described EXTERNAL must be one storage area in the run unit, accessed and changed by every program (contained or separately compiled) that describes it, including one that describes it with a different subordinate layout or completely redefines it, and must not be reset by a CANCEL of a describing program.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitExternalBackings; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+  "edition-consulted": [],
+  "edition-search": "grep of DialectLevel, Edition.Year, DialectBehaviors.IsActive, ConstructRegistry, EditionContext in LinkageBinder.cs (one doc-comment hit only), OoEmitter.cs (one hit at line 843, a method-source spelling, not this path) and ExternalTable.cs (none)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf31_05 covers contained programs, a complete REDEFINES and display items; not exercised there: separately compiled describers, COMP and signed separate items, ODO inside the external record, a CANCEL of a describer, a same-named non-external record in another program",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p5_extdata.cob",
+    "printed": "SEP CNT=1 EXR=3ABC EB=-1234 ES=-99999999999999999.9 / MAIN EN=3 ET2=Y EB=-1233 / SEP CNT=1 EXR=3XYZ EB=-1233 (after CANCEL) / MAIN EB=-1232 / NEST LOCAL EN=7 / MAIN AFTER NEST EN=3",
+    "expected": "one shared area: separately compiled P5SEP sees the ODO record as X(4) and through REDEFINES, COMP and 18-digit signed items shared; the CANCEL resets P5SEP's own MYCNT but not the external data; a non-EXTERNAL EXR in P5NEST is private"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.4.5@1985-EXTERNAL-CLAUSE/g85_bf31_05.cob",
+    "printed": "EXPECT: MATCH (... P XY 9234 / MAIN PQ 9239)",
+    "expected": "contained describers and a complete redefinition share the record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.5.4 GR1",
+    "check": "OK  §1985:X.4.5.4 GR1  (║4.5.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "The external record is a run-unit cell keyed by its name (ExternalTable.Cell), reached by every describing unit's emitted backing; no edition switch on the path. All probes matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Aimed at what the reader did not try: an INITIAL describer, an elementary 01 EXTERNAL item, condition-names on external data, EXTERNAL GLOBAL reached from an INITIAL contained program, a SIGN LEADING SEPARATE item seen through a different layout. r2_extinit.cob at --std 85: 'INI IC=1 XE=008 XN=110 XF=N / INI IC=1 XE=009 XN=120 XF=Y' (the INITIAL program's own WS resets, its external data does not), 'MAIN SEES XF-ON' (SET of an 88 in one describer seen in another), 'NEST NC=1 GLOBAL XG1=-0011', 'RAW XR=120Y XGS=- XGD=0011' then 'MAIN AFTER RAW XN=987 XF=N XG1=+0042' (one storage area across layouts, including the separate sign). r12_ext_later.cob: the 2002 forms EXTERNAL AS (COBOL0900) and VALUE on an EXTERNAL item (COBOL0900, §1985 X.4.5.3 SR3) are refused at 85. cite.py: 'OK  §1985:X.4.5.4 GR1 ... the text is in GR1'; 'OK  §1985:X.5.3.4 GR9 ... the text is in GR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,183 @@
+{
+ "rule-id": "1985-FMT-VI.6.22.2",
+ "rule-digest": "3bc7dfb52aa8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-002",
+  "sources": {
+   "reader": "b0e6d8ba59e5e93a5a02cf4c1257b21348190cb94cafef1c08994c368f793594",
+   "refuter": "1b8643170d13b1e11aaae7e09151deeab16da3bcb67e4f2b7fcb310ee921d082"
+  },
+  "imported": {
+   "reader": "5112c14cbd27477ad4efa56fc52230bd6c4b4741b805fde93af93a1d10614c7d",
+   "refuter": "93d8ba310f0d1147aa77248bbe5b70146b51775bfd1a61fccfced6f19a85aa93"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.6.22.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept Format 1 SEARCH identifier-1 [VARYING {identifier-2 | index-name-1}] [AT END imperative-1] {WHEN condition-1 {imperative-2 | NEXT SENTENCE}}... [END-SEARCH] and Format 2 SEARCH ALL identifier-1 [AT END imperative-1] with exactly ONE WHEN {data-name-1 IS EQUAL TO/IS = {identifier-3 | literal-1 | arithmetic-expression-1} | condition-name-1} [AND ...]... {imperative-2 | NEXT SENTENCE} [END-SEARCH], and refuse every other shape (no WHEN, a second WHEN in Format 2, VARYING on SEARCH ALL, a NOT AT END or other phrase, AT END after WHEN, an empty or conditional imperative operand, a non-equality or OR-joined Format-2 condition, a literal VARYING operand); the witnesses cover the NEXT SENTENCE arm and the conditional-operand refusal only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchWhenClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchAllStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#searchAllWhenClause; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearchAll; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#Phrases; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckSearchEndSearchNextSentence; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateSearchIdentifier1",
+    "switches": "Constructs.SearchIdentifier1EnclosingSubscript2023: a subscripted identifier-1 is COBOL0900 below 2023 (1985 SR1 forbids it)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "COBOL0903 archaic warning on a NEXT SENTENCE WHEN arm at 2023 only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs#BindSearch",
+    "switches": "DialectBehavior.SearchIndexBelowTableUnsuccessful (VCR 7.56): the 2002 lower-bound start test; off at 85 (a general-rule arm, not this format)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Search in VersionConformancePass*.cs; grep Edition/DialectBehavior in SearchBinder.cs; the four grammar rules carry no edition predicate.",
+  "behaviour-differs-by-edition": "yes: a subscripted identifier-1 is refused at 85 and admitted at 2023; NEXT SENTENCE warns only at 2023; the format shapes are the same edition-free rules.",
+  "witnesses-cover": "part: the witnesses exercise a NEXT SENTENCE WHEN arm and a conditional operand refusal; VARYING forms, Format 2's AND/condition-name/arithmetic-expression arms and the shape refusals are not exercised by them",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_arms.cob",
+    "printed": "1-B 2 / 2-C 02 / 3-IY 3 / 4-JX 2 / 5-NEXT / 6-END / 7-END / 8-HIT 2 / 9-END / 10-NEXT",
+    "expected": "AT END + two WHENs; VARYING identifier-2, another table's index, the table's own second index; NEXT SENTENCE before the period; out-of-range start runs AT END; SEARCH ALL with IS EQUAL TO and AND with an arithmetic expression (no hit since W+2=4), condition-name WHEN, no-match AT END, NEXT SENTENCE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_nowhen.cob",
+    "printed": "error COBOL0001: unexpected 'END-SEARCH'",
+    "expected": "refused: WHEN is required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_notatend.cob",
+    "printed": "error COBOL2269: SEARCH NOT AT END ... there is no NOT AT END phrase",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_sizeerr.cob",
+    "printed": "error COBOL5506: unexpected 'ON' ... expected WHEN",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_atendafter.cob",
+    "printed": "error COBOL0001: unexpected 'AT'",
+    "expected": "refused: AT END precedes WHEN"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_emptywhen.cob",
+    "printed": "error COBOL2072: unexpected 'END-SEARCH' ... at least one statement shall be specified",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_condwhen.cob",
+    "printed": "error COBOL2796: SEARCH WHEN: this ADD statement is ... a conditional statement",
+    "expected": "refused: imperative-statement-2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_condatend.cob",
+    "printed": "error COBOL2796: SEARCH AT END: this ADD statement is ... a conditional statement",
+    "expected": "refused: imperative-statement-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_nsendsearch.cob",
+    "printed": "error COBOL2409: END-SEARCH ... NEXT SENTENCE",
+    "expected": "refused (SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_allnsend.cob",
+    "printed": "error COBOL2409",
+    "expected": "refused (SR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_all2when.cob",
+    "printed": "error COBOL2269: SEARCH ALL with a second WHEN phrase",
+    "expected": "refused: one WHEN in Format 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_allvarying.cob",
+    "printed": "error COBOL5506: unexpected 'VARYING'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_allor.cob",
+    "printed": "error COBOL1757: the Format-2 WHEN phrase is data-name-1 IS EQUAL TO ... repeated with AND",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_allgt.cob",
+    "printed": "error COBOL1757",
+    "expected": "refused: only EQUAL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_allrev.cob",
+    "printed": "error COBOL1965 / COBOL1966 (literal on the left, key on the right)",
+    "expected": "refused: data-name-1 precedes IS EQUAL TO"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_r_varlit.cob",
+    "printed": "error COBOL5506: no literal is expected at this position",
+    "expected": "refused: VARYING takes identifier-2 or index-name-1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/sr_c_subscripted.cob",
+    "printed": "85: error COBOL0900: a subscript on SEARCH identifier-1 requires COBOL-2023; 2023: HIT HIT2",
+    "expected": "85 refuses (SR1: identifier-1 must not be subscripted)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.22.2",
+    "check": "OK  §1985:VI.6.22.2  (║6.22.2 General Format║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.6.22.3 SR1",
+    "check": "OK  §1985:VI.6.22.3 SR1  (║6.22.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.22.3 SR5",
+    "check": "OK  §1985:VI.6.22.3 SR5  (║6.22.3 Syntax Rules║)  the text is in SR5"
+   }
+  ],
+  "notes": "Both 1985 SEARCH formats are spelled by edition-free grammar rules that already encode Format 2's single WHEN and AT-END-only phrase; the binder and ProcedureFormatPass refuse every off-format shape probed. The one edition arm on the format path (a subscripted identifier-1, a 2023 introduction) is refused at 85 as the 1985 SR1 requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.6.22.2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "Rendered the PDF page (render-spec-page.py 354 --edition 1985): Format 2 prints WHEN {data-name-1 {IS EQUAL TO | IS =} {identifier-3 | literal-1 | arithmetic-expression-1} | condition-name-1} [AND {...}]... with no parentheses; §1985:VI.6.22.3 SR3 gives 'any conditional expression' to Format 1's condition-1 only. Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/sr_paren.cob: SEARCH ALL ENT WHEN (K1(IX) = \"B\") DISPLAY \"HIT \" K2(IX) END-SEARCH compiles clean and prints 'HIT 2' at --std 85 (and at --std 2023); sr_paren2.cob WHEN (K1(IX) = \"B\") AND (K2(IX) = 2) also prints 'HIT 2'. Inconsistently, sr_paren3.cob WHEN ((K1-B(IX))) is refused COBOL1757 with the false reason 'this operand is not a condition-name'. Code: src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#TryPrimary unwraps `LPAREN condition RPAREN` silently; its own summary (TryConjuncts) says 'whether Format 2 admits parentheses at all is a question about its general format' and leaves it unanswered. Other forms probed behave: EQUAL without TO, IS EQUAL, condition-name AND, function identifier-3, Format 1 with a delimited conditional, IS NOT EQUAL refused, refmod key refused COBOL2024, K2 without K1 refused COBOL1965, EQUALS refused. cite.py: OK §1985:VI.6.22.2 'SEARCH ALL identifier-1 AT END imperative-statement-1'; OK §1985:VI.6.22.3 SR3 'In format 1, condition-1 may be any conditional expression'; OK §1985:VI.6.22.3 SR4. kb/Work: no note found (grep of SEARCH ALL notes for parenthes/unwrap).",
+  "edition-sites-missed": [],
+  "corrected": "NONCONFORMING (under-rejects; cause b, the same at --std 2023): the 1985 Format 2 WHEN admits only data-name-1 IS EQUAL TO/IS = operand or condition-name-1, AND-joined; a parenthesized WHEN operand is outside the format and must be refused, but SearchAllFormat2Rules.TryPrimary unwraps it and the program runs. Repro: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/sr_paren.cob prints HIT 2 with no diagnostic. The parenthesized condition-name form is refused with a misleading reason (misleads-diagnosis)."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "SEARCH ALL accepts a parenthesised WHEN condition, which Format 2 does not print (page 354 rendered). 2023 row `FMT-14.9.37.2`.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-1.md"
+ },
+ "work": "PB5773"
+}

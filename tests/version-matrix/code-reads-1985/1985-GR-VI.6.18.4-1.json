@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-1",
+ "rule-digest": "7ef5e2af3c60",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-109",
+  "sources": {
+   "reader": "209f5f461b30b1b93dd15bf984c2d9907e18176fc8b201d69d702f16a07dcc4d",
+   "refuter": "2227f3e15da145526ed2347e66efe6397aebd1fd2813553b5f4d24b430147f00"
+  },
+  "imported": {
+   "reader": "64d5379b62035d7f76d20f98ef7b2c9c98a73fbcb4110f2e9d46baabf8387e64",
+   "refuter": "3cf6d7d0f5638e8e1570c72a50255272e55c28d41f20ce1757b60f3550a0b564"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "In every format, identifier-1's length is the length it has as a SENDING item: a group with a subordinate OCCURS DEPENDING ON uses only the part the object specifies at the start of the operation (VI.5.8.4 GR3a/b), whether the object is inside or outside the group, and also in formats 2-4 where identifier-1 is modified; a format 3's REPLACING half, a second statement at 85 (GR17), takes the length anew.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsItemCharacters; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteGroupValue; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+    "switches": "DialectBehavior.InspectFormat3LengthIdentifiedOnce (active from 2002): at 85 a format 3 over an occurs-depending identifier-1 sets ReplacingTakesLengthAnew; from 2002 the DEPENDING ON object is frozen for the statement",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody",
+    "switches": "reads BoundInspect.ReplacingTakesLengthAnew (set only at 85): re-reads identifier-1's sending image before the REPLACING half",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (active from 2023): at 85 a BEFORE delimiter is searched from the leftmost position (beforeFromLeftmost=true), at 2023 from the AFTER-derived start",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior|DialectLevel over InspectBinder.cs, InspectEmitter.cs, CobolInspect.cs, the INSPECT checks of StatementValidation.cs and the INSPECT visitors of VersionConformancePass.cs; the sending-extent read and WriteGroupValue(AccessDir.Sending) are edition-invariant",
+  "behaviour-differs-by-edition": "yes: a format 3 over an ODO group whose TALLYING half stores the DEPENDING ON object: at 85 the REPLACING half uses the new length (A5=[ccccAA]), at 2023 the length identified once (A5=[ccAAAA])",
+  "witnesses-cover": "part: g85_bf16_01 covers an object inside the group in formats 1 and 2; not exercised there: an object outside the group, format 4, the format 3 length hand-over, a RECORD VARYING file record, reference modification",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/g85_bf16_01-001",
+    "printed": "G1=03 G2=[2BB] G3=01 (MATCH with .out)",
+    "expected": "GR1 with VI.5.8.4 GR3b: only the current-count part 2AA is inspected"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p1gr1-001",
+    "printed": "A1=03 A2=[bbbAAA] A3=[**AAAA] A4=[3zzz] A5 OC=4 A5=[ccccAA] R1=06 R2=01 R3=03 R4=[ABCdeF] S1 K=2",
+    "expected": "an object outside the group (GR3a) limits formats 1, 2 and 4 to the current count; format 3's REPLACING takes the length anew at 85 (GR17); refmod at its bounds; GR5 subscript evaluated once"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p1gr1-002",
+    "printed": "at --std 2023: A5=[ccAAAA], every other line identical",
+    "expected": "the 2023 arm pins the length; the 85 arm differs as the 1985 text requires"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p3arms-003",
+    "printed": "F0 FS=00 RC=3 F1=04 F2=[3rrr] F3 AT END FS=10 F4 FS2=35 F5=01",
+    "expected": "a variable-length FD record with ODO inspects 4 characters (the count digit plus 3); the INSPECT after a failed OPEN still runs over the record area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR1",
+    "check": "OK  §1985:VI.6.18.4 GR1  the text is in GR1 (quoted: \"identifier-1 is treated as if it were a sending data item\")"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3b",
+    "check": "OK  §1985:VI.5.8.4 GR3b  the text is in GR3b (quoted: \"If the data item referenced by data-name-1 is included in the same group and the group data item is referenced as a sending item\")"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3a",
+    "check": "OK  §1985:VI.5.8.4 GR3a  the text is in GR3a (quoted: \"at the start of the operation will be used\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR17",
+    "check": "OK  §1985:VI.6.18.4 GR17  the text is in GR17 (quoted: \"as though two successive INSPECT statements specifying the same identifier-1 had been written\")"
+   }
+  ],
+  "notes": "The image is read once through the sending extent (AsItemCharacters) and stored back through WriteGroupValue with AccessDir.Sending, so positions past the current count are untouched. The only edition switch on this path is the format 3 length hand-over (kb/Work PB5119), and it takes the 85 arm correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-1",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,d",
+  "evidence": "q5.cob (q5-001 at --std 85, q5-002 at --std 2023, identical): 01 G. 05 GC PIC 9. 05 GE PIC X OCCURS 1 TO 5 DEPENDING ON GC. MOVE \"3AAAAA\" TO G, MOVE 3 TO GC, INSPECT G (2:) REPLACING ALL \"A\" BY \"b\", MOVE 5 TO GC, DISPLAY G printed M1=[5bbb  ]; G (2:) CONVERTING printed M3=[5ccc  ]; G (1:) printed M4=[5ddd  ]; G (K:) printed M5=[5eee  ]. G (2:3) printed M2=[5bbbAA] and plain G printed M6=[5fffAA]. q4.cob: INSPECT G (2:) TALLYING N FOR CHARACTERS gave 03, so the read uses the sending length 4. The statement reads 3 characters and writes 5: GE (4) and GE (5) lie outside identifier-1 under any reading, and they become spaces. q6.cob: the same with the object OUTSIDE the group (H (2:), OC 3) is right (AbbAAA). With the object inside, REPLACING CHARACTERS gives [5zzz  ]. Under GR1 with VI.5.8.4 GR3b, the unique item G (2:) is 3 characters (sending length 4, IV.4.3.8.4.4 GR4b). Under a receiving reading it would be 5 characters and all five A's would be replaced. Neither reading leaves positions 5-6 as spaces. Cause: the first arm of InspectEmitter#EmitStore, `if (p is RefModPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }`, stores a reference-modified identifier-1 before the group arm that takes WriteGroupValue(..., AccessDir.Sending). A refmod with no length, over a group whose DEPENDING ON object is inside it, is therefore written at the group's maximum (receiving) extent, space-padded. The reader's own refmod probes (R1-R4) used an elementary X6, and its notes name the AccessDir.Sending store, which this arm skips. Other probes upheld: q1 G1 [5bbbAA], G2 [4ccAA], G3 OC=4; q4 Z1=01 (zero occurrences), S1=02 [5rrQQQ] (a subordinate group with the object outside). cite.py: OK §1985:VI.6.18.4 GR1 (\"identifier-1 is treated as if it were a sending data item\"); OK §1985:VI.5.8.4 GR3b (\"only that part of the table area that is specified by the value of the data item referenced by data-name-1 at the start of the operation will be used in the operation\"); OK §1985:IV.4.3.8.4.4 GR4b (\"If length is not specified, the unique data item extends from and includes the character identified by leftmost-character-position\"). kb/Work: PB5119 (landed) fixed the format 3 hand-over for G (2:), where the counter changes the object. It does not cover this format 2/4 store, where the object does not change. No note found for it.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore: not an edition site. Its RefModPlace arm is taken before the group (AccessDir.Sending) arm at every edition, and the reader did not read that arm"
+  ],
+  "corrected": "Non-conforming. Harm: wrong-answer, silent. Cause (b): the same at --std 2023. Repro: q5.cob M1. Expected under §1985:VI.6.18.4 GR1 with §1985:VI.5.8.4 GR3b: [5bbbAA]. Observed: [5bbb  ]. Known note: none (PB5119 is a neighbour)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "INSPECT handles the characters inside the current count correctly; what it blanks lies past the DEPENDING ON value, whose content is undefined, so no conforming program can see it.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ }
+}

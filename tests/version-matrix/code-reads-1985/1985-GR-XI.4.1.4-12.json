@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XI.4.1.4-12",
+ "rule-digest": "082f6b8537ae",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-142",
+  "sources": {
+   "reader": "1b405c8d2d8789ea1783a031373970254b47f543c63e6fc47bea7632162d687f",
+   "refuter": "4ecd83abe57f4fc70a790418c834f24f58dd9091a1c22c6fb1a932faa9d473ff"
+  },
+  "imported": {
+   "reader": "b3b3fb0a578c56a2904fd1986b7d88f6407153d1297b49208b2c60d0c2270312",
+   "refuter": "59f00ca4aaa9cf72aea89694d247b88829551aaca5ab186062051cf597779e00"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.1.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a GIVING file (file-name-4) has only fixed length records, each merged record shorter than that fixed length must be written to it space filled on the right from the position after its last character, for every organization of file-name-4 and for each of several GIVING files; a variable-length GIVING file instead receives the record at its own size (GR11b).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#FillTo; src/WiseOwl.Cobol.Runtime/IO/RecordFill.cs#Fit; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ShortRecordFillNational; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries",
+  "edition-consulted": [],
+  "edition-search": "grep for DialectLevel, CobolVersion, DialectBehavior, IsActive, Constructs in SortEmitter.cs (EmitInputFile, EmitGivingFile), CobolSort.cs (FillTo, Release), RecordFill.cs and FileModel.cs (ShortRecordFillNational, RecordSizeVaries, RecordWidth): none consults the edition; the fill is one code path for every edition. The only edition-dependent input is whether the file is fixed length, decided by the RECORD clause binding (format 3 is variable at every edition, docs/conformance DOC-A.1-148).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf33_02 covers a variable-length SD into one fixed sequential GIVING file; not exercised are a fixed SD shorter than the GIVING file, relative and indexed GIVING files, several GIVING files, and a variable GIVING file beside the fixed ones.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/m4a.cob",
+    "printed": "GS-[A1a   ] GS-[B2    ] GS-[C1c   ]; GR-[A1a   ] GR-[B2    ] GR-[C1c   ]; GI-[A1a   ] GI-[B2    ] GI-[C1c   ]",
+    "expected": "a fixed 3-character SD returned to fixed 6-character sequential, relative and indexed GIVING files: every record space filled on the right to 6"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/m4a.cob",
+    "printed": "GV-6[A1a     ] GV-6[B2      ] GV-6[C1c     ]",
+    "expected": "a variable GIVING file (FROM 1 TO 8) receives each record at its size in file-name-1 (GR11b): 6, the SD's RECORD CONTAINS 6 (§1985:VII.3.8.4 GR3); no fill to 8"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.1@1985-MERGE-STATEMENT/g85_bf33_02.cob",
+    "printed": "G-[A1    ] G-[B12   ] G-[C123  ] G-[D12345]; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.4 GR12",
+    "check": "OK  §1985:XI.4.1.4 GR12  (4.1.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:XI.4.1.4 GR11",
+    "check": "OK  §1985:XI.4.1.4 GR11  (4.1.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:XI.4.1.3 SR11",
+    "check": "OK  §1985:XI.4.1.3 SR11  (4.1.3 Syntax Rules)  the text is in SR11"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR3",
+    "check": "OK  §1985:VII.3.8.4 GR3  (3.8.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "EmitGivingFile fills each returned record to output.RecordWidth through CobolSort.FillTo / RecordFill.Fit whenever the GIVING file is not variable length (RecordSizeVaries), before the as-if WRITE, for every organization; 1985 has no national items, so ShortRecordFillNational answers the alphanumeric space. All probes at --std 85 matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.1.4-12",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "q3a at --std 85: a fixed 3-char SD MERGEd GIVING G1 (RECORD CONTAINS 8 over a 6-char 01; record area preset to X), G2 (no RECORD clause, 01s of 2 and 7) and G3 (format 3 RECORD CONTAINS 2 TO 8). Read back: G1-[A1a     ] (8, space filled to integer-1, §1985:VII.3.8.4 GR3, no leftover X), G2-[A1a    ] (7, the implementor's fixed largest-record length, DOC-A.1-147 under §1985:II.2.1.4.3), G3-3[A1a      ] (format 3 variable at 85 by DOC-A.1-148 under §1985:VII.3.8.4 GR13, so no fill: GR11b record at its size). All as the rule says. cite.py: OK §1985:XI.4.1.4 GR12; OK §1985:VII.3.8.4 GR3; OK §1985:II.2.1.4.3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.7.4-7",
+ "rule-digest": "b1da388e5145",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-137",
+  "sources": {
+   "reader": "b99b010f47ceb4440d62a5ab9fbf74465d78a21f303966be37d6f768c8a357d1",
+   "refuter": "9cb22ce9e05df163cfda1695ded91135c4aeed657fb215ed49ca529a7b2f3f3a"
+  },
+  "imported": {
+   "reader": "f7e1d4ce29f0b40511fe3a69a7af47a65a9cefec76a7fa23b4db118e653acd3a",
+   "refuter": "ad277d196bea1fb49da829304e6302860aa5f064c90faad5604e06fe6d4a0205"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.7.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 control after a relative START follows §1985:VIII.1.3.5: an invalid key runs the INVALID KEY imperative (no USE procedure) or, if the phrase is absent, the USE procedure, NOT INVALID KEY ignored; success runs the NOT INVALID KEY imperative; another exception (47) runs the USE procedure and neither phrase; a START with neither INVALID KEY nor an applicable USE procedure is refused (SR3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Year < 2002): refuses a START with no INVALID KEY and no applicable USE (COBOL6826); 2002+ prints no such rule",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitUseHook / EmitPhrasePair / EmitInvalid read in full: no edition test; their EC branch depends on ec.IoMaskFor and ecState, not on the edition directly.",
+  "behaviour-differs-by-edition": "yes: at 1985 a START without INVALID KEY and without an applicable USE procedure is refused (SR3); at 2002+ it compiles. The run-time transfer is the same code.",
+  "witnesses-cover": "part: g85_f20_06 covers both phrases with success and invalid key; the USE path, the 47 path, GO TO out of the phrase and the SR3 refusal are probed here.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p3ctl.cob",
+    "printed": "T1/T2 (47, both phrases written): USE-R ST=47, neither T1-INV nor T1-NOTINV; T3 (23, only NOT INVALID): USE-R ST=23, no T3-NOTINV; T4 (00, only NOT INVALID): T4-NOTINV, no USE; T5 INVALID KEY GO TO -> T5 JUMPED, T5-FELL-THROUGH not shown; T7: T7-INV only",
+    "expected": "§1985:VIII.1.3.5 (2), (3) and the non-invalid-key exception (1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-137/p2ref.cob",
+    "printed": "START with only END-START, and with only NOT INVALID KEY, no USE -> COBOL6826 §1985:VIII.4.7.3 SR3",
+    "expected": "refused at 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.7.4 GR7",
+    "check": "OK  §1985:VIII.4.7.4 GR7  (║4.7.4 General Rules║)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VIII.1.3.5",
+    "check": "OK  §1985:VIII.1.3.5  (1.3.5 The Invalid Key Condition)  the text is in the clause; it lies in GR3"
+   }
+  ],
+  "notes": "EmitStart builds the hook with invalidKeyHandled from the bound phrase, so a written INVALID KEY suppresses the declarative for 23 only; EmitPhrasePair runs INVALID KEY on the invalid-key class and NOT INVALID KEY on success. p3ctl.cob prints the same at --std 2023. The 1985-only part is the SR3 screen in ExceptionPhraseRequirement.Require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.7.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read ExceptionPhraseRequirement.Require/HasApplicableUse (1985-only SR3 screen: file-named USE, mode USE, containing program's GLOBAL USE) and VIII.1.3.5. Probes at --std 85: q1ext.cob mode-only declaratives (USE ON EXTEND/INPUT/OUTPUT), no INVALID KEY: compiles; START on file open EXTEND -> USE-EXTEND runs with 47, NOT INVALID not run; open INPUT failing START -> USE-INPUT runs with 23, NOT INVALID not run; success -> E4-NOTINV only. q5glob.cob USE GLOBAL ON a GLOBAL file in the container, START in the contained program without INVALID KEY: compiles, 23 -> USE-R-GLOBAL, 00 -> G2-NOTINV. q6loc.cob same without GLOBAL -> COBOL6826 (SR3). q4c.cob only a USE naming another file plus USE ON EXTEND on a dynamic-access file -> COBOL6826 for both phrase-less STARTs (a dynamic file cannot be opened EXTEND, §1985:VIII.4.4.3 SR1, so that USE is never applicable). cite.py: 'OK  §1985:VIII.4.7.4 GR7 ... the text is in GR7'; 'OK  §1985:VIII.4.7.3 SR3 ... the text is in SR3'; 'OK  §1985:VIII.1.3.5 ... it lies in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

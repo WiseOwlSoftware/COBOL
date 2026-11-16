@@ -1,0 +1,128 @@
+{
+ "rule-id": "1989-RV-A.2.14.4-2",
+ "rule-digest": "b0124800e224",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-082",
+  "sources": {
+   "reader": "dd9b44c1b742e02b12346e55ed10c4683e79aba4c27c07aac8eb4cad3b61c785",
+   "refuter": "b7da010220de6b5975b4fdabeebf3a7805728925846b7411bb08d39fac0b337b"
+  },
+  "imported": {
+   "reader": "c1aaa5b9a4b5ebc77dc41750b282f33cbe1216b906baba658871cedd40ce4177",
+   "refuter": "e4c5bcb609660d6c1c77cb032da844549c7e21a953fa0c066ca9d9e0deea62e4"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.14.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, FUNCTION FACTORIAL of a positive integer argument-1 must return n! exactly as an integer, without the 18-digit composite-of-operands limit (§1985:IV.4.3.4), within the implementor's documented technique for evaluating integer functions.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AsInt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#Factorial; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "the D8 edition window sig.IntroducedIn > ctx.Edition.DialectLevel / RemovedIn (COBOL1502/COBOL1503); the catalog row carries IntroducedIn 85, so --std 85 admits the function",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry numeric-function-identifier-operand-2002: at 85 a numeric/integer function written where an identifier stands (MOVE, DISPLAY, ADD operand, PERFORM n TIMES) is COBOL0900 per §1985:IV.4.3.8.3.3 SR4; inside an arithmetic expression it is not consulted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOptionsParagraph; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitArithmeticMethod",
+    "switches": "OPTIONS paragraph (2002) and ARITHMETIC IS STANDARD-DECIMAL (2014) are refused at 85, so the renderer's num.StandardDecimal arm is unreachable and only the native arm runs (the same arm 2023 takes without an OPTIONS paragraph)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error (e.g. FACTORIAL(34) past the documented Int128 intermediate) continues with the resultant undefined (§1985:VI.6.4.2); at 2023 it is fatal EC-SIZE-OVERFLOW",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for Edition|DialectLevel|CobolVersion|DialectBehavior|ConstructRegistry over IntrinsicRenderer.cs, NumericRenderer.cs, IntrinsicArgumentRules.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs and src/WiseOwl.Cobol.Runtime/Intrinsics/*: no hit; the only edition reads on the path are in IntrinsicBinder (window, placement) and the OPTIONS gates in VersionConformancePass",
+  "behaviour-differs-by-edition": "no for the returned value; yes for the size-error disposition when n! exceeds the native Int128 intermediate (n >= 34) and no ON SIZE ERROR is written: 85 continues with the resultant undefined, 2023 ends the run unit with EC-SIZE-OVERFLOW",
+  "witnesses-cover": "part: the witness checks 2! = 2, 5!/4! = 5 and 3!/2! = 3 relations; exact values past 18 digits, a P-scaled integer item, an ODO element, a self-modified argument and the carrier limit are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/p2fact.cob",
+    "printed": "F-0 = 1, F-L0(literal 0) = 1, F-ZERO(figurative) = 1, F-NEG0(S9(4) COMP -0) = 1, F-EXP0(N5 - 5) = 1, F-1 = 1, F-2 = 2, F-5 = 120, F-+3 = 6, F-PP10(9P value 10) = 3628800, F-18 = 6402373705728000, F-19 = 121645100408832000, F-20 into 9(18): SIZE ERROR, F-20/1000 = 2432902008176640, F-33/F-32 = 33, F-ODO(E(I)+E(CNT) with ODO) = 26, COMPUTE I = FACTORIAL(I + 1) -> 2, F-F3 = 720, IF FACTORIAL(0) = 1 true",
+    "expected": "0! = 1 (RV1); n! for positive n (RV2): 5!=120, 10!=3628800, 18!=6402373705728000, 19!=121645100408832000, 20!=2432902008176640000 (19 digits: size error into 9(18) by §1985:VI.6.4.2 (3)), 33!/32!=33"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/p2fact.cob",
+    "printed": "FACTORIAL(34) ON SIZE ERROR: SIZE ERROR; unphrased: program continues, R18=000000000000000000 (at --std 2023: fatal EC-SIZE-OVERFLOW)",
+    "expected": "34! exceeds the implementor's documented native intermediate (Int128, DOC-A.1-123; §1985:IV.4.3.4 'Each implementor will indicate the techniques'); unphrased size error leaves the resultant undefined and continues (§1985:VI.6.4.2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f6two.cob",
+    "printed": "COBOL1504: FUNCTION FACTORIAL takes 1 argument(s); 2 given",
+    "expected": "refused"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f2frac.cob",
+    "printed": "COBOL1627: argument-1 is the numeric literal 2.5, whose value is not an integer",
+    "expected": "refused (A.2.14.3 AR1, §1989:A.2.2 type 4)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f3scal.cob",
+    "printed": "COBOL1627: a numeric data item with digits to the right of the decimal point",
+    "expected": "refused: not an expression that always results in an integer"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f1sin.cob",
+    "printed": "COBOL1627: argument-1 is FUNCTION SIN, a numeric function, ... bars from an integer operand position",
+    "expected": "refused by §1989:A.2.3 (a numeric function may not be referenced where an integer operand is required)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f4int.cob",
+    "printed": "R=+000002.00 (FACTORIAL(FUNCTION INTEGER(2.5)))",
+    "expected": "an integer function is admitted where an integer is required; 2! = 2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-082/src/f5opt.cob",
+    "printed": "COBOL0804 / COBOL0900: OPTIONS and ARITHMETIC IS STANDARD-DECIMAL refused at 85",
+    "expected": "only native arithmetic exists at 85, so the FactorialDec standard arm is unreachable"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.14.4 RV2",
+    "check": "OK  §1989:A.2.14.4 RV2  (2.14.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.14.1",
+    "check": "OK  §1989:A.2.14.1  (2.14.1 Description)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.4",
+    "check": "OK  §1985:IV.4.3.4  (4.3.4 Selection of Character Representation and Radix)  the text is in the clause"
+   }
+  ],
+  "notes": "n! is exact up to 33! (20!/1000 and 33!/32! prove values past 18 digits are carried, as IV.4.3.4 requires); 34! and above raise the size error on the documented Int128 native intermediate (DOC-A.1-123), which §1985:IV.4.3.4 leaves to the implementor. The 85 arm of the unphrased size error (continue, resultant undefined) matches §1985:VI.6.4.2.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.14.4-2",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "f7zero.cob: FACTORIAL(25)/FACTORIAL(24)=25 (25! is 26 digits, carried exactly). FACTORIAL(34)/FACTORIAL(33) ON SIZE ERROR fires the handler (R unchanged) although the final 34 fits: CobolIntrinsics.Exact.cs#Factorial throws CobolSizeError for n>33 on the Int128 carrier. The CONFORMS reading holds on §1985:IV.4.3.4 'The implementor specifies the representation of integer and numeric functions' (a representation has a finite range; DOC-A.1-123 documents the Int128 native intermediate). Note (not this rule): §1985:VI.6.4.2 lists only three size-error circumstances, none an intermediate that cannot be formed, so ON SIZE ERROR firing for 34!/33! is an implementor-limit disposition, not text-directed. cite.py: OK §1989:A.2.14.4 RV2; OK §1985:IV.4.3.4; OK §1985:VI.6.4.2 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

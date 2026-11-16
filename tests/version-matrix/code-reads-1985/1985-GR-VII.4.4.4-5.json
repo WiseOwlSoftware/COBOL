@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-5",
+ "rule-digest": "753fa109852d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "733ce99827ffcd02f2956229581b736d284fd2163238611de7eaf62c9f4e04e0",
+   "refuter": "651f5b5949688e8f3497d2fafcdde49f50d9237052bf5202d867d9e8dffa7507"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the record a successful READ delivers (with its DEPENDING ON length and INTO move) is in the record area before imperative-statement-2 of NOT AT END executes and, without that phrase, before the statement following the READ.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordAreaStore; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+    "switches": "successArm emits nothing without an EC-I-O mask (>>TURN, not a 1985 facility), so at 85 no handler can preempt NOT AT END on a 0x status",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EnsureReaderCoherent",
+    "switches": "SharingFacilityInEffect off at 85: only a sibling connector's release generation re-anchors the reader",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior in SequentialIoEmitter.cs (one hit, SelectWhen, not on this path); EmitRead read end to end",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f22_01 covers a fixed file with and without NOT AT END; not exercised: a VARYING DEPENDING file, INTO, a 04 read with a USE procedure declared",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p3gr5.cob",
+    "printed": "R1 NAE 00 6 AB 3 [AB0012] / R2 NAE 04 6 CD0034 [CD0034] / R2 USE-COUNT 0 / R3 NEXT-STMT EF0056 00 / USE-INF 10 AREA=EF0056 / R4 10 USE-COUNT 1",
+    "expected": "record fields, DEPENDING length and INTO target are set when NOT AT END runs (R6-N+1 = 13 into PIC 9 = 3); next statement sees the record; USE runs only for the at end READ without AT END (GR10c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.4@1985-READ-STATEMENT/g85_f22_01.cob",
+    "printed": "MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR5",
+    "check": "OK  §1985:VII.4.4.4 GR5  (4.4.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The emitter stores the record area, the DEPENDING length, the FILE STATUS and the INTO move inside the success branch before it emits the NOT AT END statements, so the ordering is structural. The runtime READ is synchronous; there is no overlap to violate the rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-5",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "r3gr5.cob (refute-1985-124/r3gr5-002, --std 85): an EXTERNAL VARYING file whose record has OCCURS 1 TO 5 DEPENDING ON F-N (a field of the record), READ F INTO T(F-N): inside NOT AT END the INTO target T(3) is [3ABC  ] (the subscript taken from the record just read) and a called program describing the same EXTERNAL connector sees [3ABC]; with no NOT AT END the statement after the READ sees F-N 3 and the record, and the called program sees it; a SAME RECORD AREA peer P shows Q's record [QQQQQQ] inside NOT AT END and after the READ; a NOT AT END PERFORM sees the second record 5 [5VWXYZ]. The record is available before imperative-statement-2 and before the following statement on every path tried. cite.py: OK  §1985:VII.4.4.4 GR5 (4.4.4 General Rules) the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

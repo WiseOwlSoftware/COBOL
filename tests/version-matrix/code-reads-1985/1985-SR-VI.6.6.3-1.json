@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-SR-VI.6.6.3-1",
+ "rule-digest": "e54d1eaae33b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-061",
+  "sources": {
+   "reader": "19a1b68739c8a501f314c55dcb2bf4acfc3981c694766c8c8858499010645818",
+   "refuter": "c924c9b72f38a1cb5d858b2aa79df0b05d2e78c6c9da2886301456a06ac8265b"
+  },
+  "imported": {
+   "reader": "6076189eff27f3bbdefa5578831e067493af9101224259da043dd1593abc8ffb",
+   "refuter": "4b016a103a845405543ae22f8f46aaaa660b64f6cdae30e489d5f62d72876968"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in ADD formats 1 and 2 every identifier (sending and TO receiver) must be an elementary numeric item, a GIVING identifier may be elementary numeric or numeric edited, and in format 3 (CORRESPONDING) both identifiers must be group items; alphanumeric, group, numeric-edited (outside GIVING) and reference-modified operands are refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand",
+    "switches": "data.Edition.DialectLevel < 2002 adds the §1985:VI.6.4.3 GR3 refusal of a level-66 or USAGE INDEX CORRESPONDING operand (a 1985-only arm beside the shared group-item check)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ScreenResultant uses ctx.Edition.At(written) for position only; the sending-side COBOL0844 numeric-operand screen and ScreenResultant have no CobolVersion/DialectLevel test (grep). The only edition switch on the path is the 1985 GR3 arm in CheckCorrespondingGroupOperand, which serves a neighbouring rule; the group-item and numeric/numeric-edited checks of this rule are the same code at every edition.",
+  "behaviour-differs-by-edition": "no: for this rule's categories the 1985 and later arms are the same code (the 1985-only arm adds level-66/USAGE INDEX refusal under the CORRESPONDING phrase's GR3)",
+  "witnesses-cover": "part: the witnesses cover alphanumeric, group and refmod sending operands and the CORR elementary / level-66 cases; not exercised: numeric-edited TO receiver, numeric-edited sending operand, alphanumeric GIVING, refmod receiver",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r2ref.cob",
+    "printed": "15 diagnostics, one per statement: COBOL0844 for alphanumeric, group, numeric-edited and refmod sending operands (incl. format 2 before GIVING); COBOL1675 for alphanumeric, numeric-edited, group, refmod TO receivers and alphanumeric/group GIVING receivers; COBOL1757 for ADD CORR with an elementary operand on either side",
+    "expected": "every one refused by SR1"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r2ok.cob",
+    "printed": "0.5 / -  1.00 / -  0.50 / 005 / 5.5    5.50 / 011022 / SZ / 001",
+    "expected": "1+(-2)+1.5=0.5 into 9V9; GIVING numeric-edited -ZZ9.99 gets -1 and -0.5; subscripted receiver 4+1=5; multiple GIVING 5.5; ADD CORR GR TO GS gives 011 022; 999+1 into 9(3) raises SIZE ERROR and leaves 001"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.3 SR1",
+    "check": "OK  §1985:VI.6.6.3 SR1  (6.6.3 Syntax Rules)  the text is in SR1 [each identifier must refer to a group item]"
+   },
+   {
+    "cite": "§1985:VI.6.6.3 SR1",
+    "check": "OK  §1985:VI.6.6.3 SR1  the text is in SR1 [each identifier following the word GIVING must refer to either an elementary numeric item or an elementary numeric edited item]"
+   },
+   {
+    "cite": "§1985:VI.6.4.3 GR3",
+    "check": "OK  §1985:VI.6.4.3 GR3  (6.4.3 The CORRESPONDING Phrase)  the text is in GR3 [must not contain level-number 66, 77, or 88]"
+   }
+  ],
+  "notes": "Sending operands are screened by the COBOL0844 arithmetic-operand class check, TO and GIVING receivers by ScreenResultant (editedOk only at GIVING), and CORR operands by CheckCorrespondingGroupOperand (COBOL1757). Every violation probed draws one diagnostic and the admitted forms compute correctly at --std 85. DISPLAY of 9V9 as 0.5 is the documented --numeric-display decimal default (DOC-A.1-56).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "q2ref.cob (--compile-only, --std 85): ADD 1 TO alphabetic A(3) and to alphanumeric-edited XBX -> COBOL1675; ADD .. GIVING XBX -> COBOL1675 (GIVING admits only numeric or numeric edited); ADD 1 TO USAGE INDEX item -> COBOL1675, ADD index-data-item TO N -> COBOL0844; ADD 1 TO index-name -> COBOL1637; condition-name as sender and receiver -> COBOL1639; ADD FUNCTION LENGTH(AX) TO N1 -> COBOL0900 (an integer function where an identifier is written needs 2002, matching §1985:IV.4.3.8.3.3 SR4); level-66 RENAMES of a range (a group) as receiver -> COBOL1675; alphanumeric literal sender -> COBOL0844 (SR2); 2014 ROUNDED MODE phrase -> COBOL0803. q2ok.cob (run): level-66 RENAMES of a single elementary numeric item is an elementary numeric item and is admitted (10+5 = 015); SIGN SEPARATE and COMP signed senders with GIVING 9(3) -> 090; 9PP receiver 100+200 -> 300; GIVING $$$9.99- -> ' $10.00-'; literal-only format 2 ADD 1 2 GIVING -> 003. The reader's probes plus these cover every operand class 1985 has. cite.py: OK §1985:VI.6.6.3 SR1 [each identifier must refer to an elementary numeric item].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

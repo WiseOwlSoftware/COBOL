@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-SR-IX.4.3.3-1",
+ "rule-digest": "79e2e6fd29c4",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-047",
+  "sources": {
+   "reader": "9bbef6ebfe1a7236a25f655700364e0d5407afbaf1cf4a4fc918abbc819e04a6",
+   "refuter": "34b1b04dc4a276e66e53ec68437e4bd991457d344507da4065ac88c10feda43f"
+  },
+  "imported": {
+   "reader": "3bc3a40832c5d6f06ecb196c125c02210c996c2f5a8c5c28352541bc1517d124",
+   "refuter": "8c5d0e4d86abdbc22cf30f1180ab6423f0d315bb5d4fd127e9753a173e9c49fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a DELETE of an indexed file in sequential access mode that writes INVALID KEY or NOT INVALID KEY (alone or together) must be refused; the same phrases stay legal for random and dynamic access, and a sequential-access DELETE without them is legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "InForce (Edition.Year < 2002): the COBOL-85 mandatory INVALID KEY of SR2 for non-sequential access; it does not touch SR1's forbidden-phrase screen",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the SR1 screen (ScreenForbiddenPhrase -> EditionContext.Removed) reads only Permissive, not the edition; grep DialectLevel|Edition.Year in KeyedIoBinder.cs (no hits)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: delete-record-invalid-key-sequential-access covers INVALID KEY on sequential access; NOT INVALID KEY alone and the legal dynamic/random forms are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c2_seq_ik.cob",
+    "printed": "error COBOL1720: the INVALID KEY phrase shall not be specified for a DELETE RECORD statement that references a file that is in sequential access mode",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c2_seq_nik.cob",
+    "printed": "error COBOL1720: the NOT INVALID KEY phrase shall not be specified ...",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c2_seq_none.cob",
+    "printed": "FS=00 / BBBBDATA02",
+    "expected": "accepted; the record read is deleted, so the next READ returns BBBB"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c2_dyn_ik.cob",
+    "printed": "NIK / IK / FS=23 / BBBBDATA02",
+    "expected": "accepted; existing key deletes (NOT INVALID KEY), missing key is invalid key, status 23"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c2_rnd_ik.cob",
+    "printed": "NIK / FS=00 / IKR / AAAADATA02",
+    "expected": "accepted; record deleted, later random READ is invalid key, record area untouched (GR5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.3 SR1",
+    "check": "OK  §1985:IX.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IX.4.3.4 GR5",
+    "check": "OK  §1985:IX.4.3.4 GR5  (4.3.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The screen keys on access mode and catches either phrase of the INVALID KEY family. It is the same code at every edition (refused at 2023 too). The message cites §2023:14.9.10.3 SR2 and not the 1985 clause, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "refused, COBOL1720",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "--std 85. r2_default_ik.cob: no ACCESS clause (sequential by default), DELETE IXF RECORD INVALID KEY gives COBOL1720 (INVALID KEY not allowed in sequential access mode). r2_global_nik.cob: a nested program DELETEs a GLOBAL indexed file declared ACCESS SEQUENTIAL in the outer program with NOT INVALID KEY alone, and gets COBOL1720 for the NOT INVALID KEY phrase. So the access mode resolves through GLOBAL. cite.py: 'OK  §1985:IX.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1'. The diagnostic cites §2023:14.9.10.3 SR2 (cosmetic, as the reader noted).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

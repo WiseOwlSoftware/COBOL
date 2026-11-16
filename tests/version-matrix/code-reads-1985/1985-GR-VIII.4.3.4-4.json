@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-4",
+ "rule-digest": "461293e81777",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-131",
+  "sources": {
+   "reader": "077c4d26f8afe05187e521cf4e919cbb44d4d2cad5e3b47ea84b460842b78cf4",
+   "refuter": "3216838ec51aca23102145102d132f2612c28935f4fefd0091de2678d7670aa0"
+  },
+  "imported": {
+   "reader": "8c41e7a700d81ccc4428b0170f786af93778593996e4f64c6a37eaa4debba343",
+   "refuter": "25346ae772594438f8da1fbc274c07273a513af942de02b05aa38736ea1486f9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a successful DELETE on a relative file the record is gone on every access path: a random READ, REWRITE, DELETE or START KEY = of its number takes the invalid key (23), sequential READ NEXT and START NOT LESS skip it, and it stays gone after CLOSE and reopen.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/KeyedStore.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#AttachStore",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/DialectLevel/DialectBehavior in RelativeConnector.Delete/Rewrite/Start/AttachStore and KeyedStore.Delete (StoreTable only shares stores; its sharing flag is SharingFacilityInEffect, off at 85 and on at 2023, which does not change one connector's own view)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf31_01 covers random READ, second DELETE, a later record and a sequential pass after reopen; not REWRITE, START = and START >= of the deleted number, or READ NEXT in the same open",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/del3.cob",
+    "printed": "R4 IK 23 / RW7 IK 23 / ST4 IK 23 / STGE4 00 then READ NEXT D_05 / DEL7AGAIN IK 23 / after reopen: D_01 D_02 D_03 D_05 D_06 D_08 D_09 then 10; identical at --std 2023",
+    "expected": "a deleted record cannot be accessed: 23 for every keyed access, skipped by sequential access, persistent across CLOSE"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/del2.cob",
+    "printed": "sequential access: REC2, REC3, REC4 deleted; later pass shows REC1 REC5 REC6 REC7 REC8",
+    "expected": "deleted records are skipped by sequential READ"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR4",
+    "check": "OK  §1985:VIII.4.3.4 GR4  (4.3.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3b.1"
+   }
+  ],
+  "notes": "DELETE removes the slot's key from the store's B-tree (KeyedStore.Delete), so every later Get or Seek sees no record. Access by a second connector to the same physical file was not probed: at 85 the file sharing facility is off, and opening one file through two connectors is the implementor's matter.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-4",
+  "refutation": "UPHELD",
+  "classes": "e,f",
+  "evidence": "Probe refute-1985-131/d56.cob (runs/d56-001, --std 85), aimed at a file position indicator that names the deleted record (GR6 leaves it unchanged): START KEY = 7, DELETE 7 (00), READ NEXT -> 'SN 00 D_08' (READ GR4c selects the first EXISTING record >= the indicator); READ NEXT positioned on 8, DELETE 8 by key, READ NEXT -> 'SN2 00 D_09'; START KEY > 5 after 5 was deleted -> READ NEXT 'D_06'; sequential access READ Q_03, DELETE, READ -> Q_04. The deleted record is never made available on any path. cite.py: OK §1985:VIII.4.3.4 GR4 (the text is in GR4); OK §1985:VIII.4.3.4 GR6 (the text is in GR6); OK §1985:VIII.4.5.4 GR4 (the text is in GR4).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

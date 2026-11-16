@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-6",
+ "rule-digest": "c42bf2ae607f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-101",
+  "sources": {
+   "reader": "bff385565c37f0a818cb1c8a19311ac73a3ae4c2d373490a7ca0b1985f64655b",
+   "refuter": "ae1c822230daf412febd9cb7a37a16dfdc2e079efce11252fad8bddb681f464f"
+  },
+  "imported": {
+   "reader": "98e79f763d6016d74973a802de69ca5ca10700b52f143375a7c2bb75c16c76b3",
+   "refuter": "e77265aac59c21ca3c376a4f29e3a7c793a2565c7d2fa6b2366fab5baa22ead9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "With no PROGRAM COLLATING SEQUENCE clause in the program or (GR2) in a containing program, the native sequence (here UTF-16 code-unit order, DOC-A.1-8) decides nonnumeric relations, condition-name ranges, SORT/MERGE keys and the figurative HIGH/LOW-VALUE, whether OBJECT-COMPUTER is absent or written without the clause.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers; src/WiseOwl.Cobol.Runtime/Values/Text/StorageByte.cs#NativeCollatingSequence",
+  "edition-consulted": [],
+  "edition-search": "grep 'Collat' in src/WiseOwl.Cobol.Editions (only FileCollatingClause2002, ProgramCollatingNational2002 and SortCollatingNational2002, each for a clause that is PRESENT); grep 'Edition|DialectLevel|IsActive' in ConfigurationStep.cs and ObjectComputerEmit.cs: none. With no clause Configuration.Collating stays null (or is inherited) and every comparison takes the ordinal native path at every edition",
+  "behaviour-differs-by-edition": "no (g6nat prints the same 10 lines at --std 2023, run g6nat-003)",
+  "witnesses-cover": "part: g85_bf07_01 covers relations and SORT with an empty OBJECT-COMPUTER; not exercised: no OBJECT-COMPUTER at all, a contained program, condition-name THRU, HIGH/LOW-VALUE, a group operand, an ALL literal",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/g6nat.cob (no OBJECT-COMPUTER; run g6nat-002) and g6oc.cob (OBJECT-COMPUTER. X. only; run g6oc-002)",
+    "printed": "R1=T R2=T R3=T R4=T R5=T C1=T C2=F R6=T SORT=0BZaz IN1=T (both)",
+    "expected": "code-unit order: 'a'>'B', '0'<'B', group G1>'B', HIGH-VALUE>'a', LOW-VALUE<'0', 'b' in 'a' THRU 'z' and 'B' not, 'a'>ALL 'B', SORT 0BZaz, the contained program native too"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-101/g6pcs.cob (contrast; run g6pcs-002) and g6for.cob (compile-only; run g6for-002)",
+    "printed": "g6pcs: R1=F R2=F R3=F R4=T R5=T C1=F C2=F R6=F SORT=zaZB0 IN1=F; g6for: COBOL0900 the PROGRAM COLLATING SEQUENCE national surface (alphabet-name-2 / FOR forms) requires COBOL-2002",
+    "expected": "with the clause the declared sequence applies, also in the contained program (GR2/GR5); the 2002 FOR ALPHANUMERIC form is refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR6",
+    "check": "OK  §1985:VI.4.4.4 GR6  (4.4.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.4.4.4 GR7",
+    "check": "OK  §1985:VI.4.4.4 GR7  (4.4.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The contrast probe shows the default is a real choice: the same program with a literal alphabet flips every relation, the SORT order and the contained program's relation. Without the clause nothing is set and the native ordinal path is taken, and HIGH/LOW-VALUE are the native extremes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-6",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe r4sort.cob (r4sort-002, --std 85; OBJECT-COMPUTER with MEMORY SIZE, the 1985-only clause, and no PROGRAM COLLATING SEQUENCE): unequal-length relation pads with spaces ('PAD: A > A+LOW = T'); CHAR(257) > CHAR(256) and HIGH-VALUE > CHAR(9000) both true; SORT by an INPUT PROCEDURE with keys above U+00FF orders UB, LA, C256, C257, C900, HV (native code-unit order, HIGH-VALUE highest, no fold in the sort store); MERGE (GR8's other half, unprobed by the reader) USING two files gives 0001, B001, Z002, a001, b002. cite.py: 'OK  §1985:VI.4.4.4 GR6  (4.4.4 General Rules)  the text is in GR6'; 'OK  §1985:VI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

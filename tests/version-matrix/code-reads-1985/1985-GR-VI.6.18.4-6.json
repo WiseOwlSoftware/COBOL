@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-6",
+ "rule-digest": "160ba01ed0ec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-110",
+  "sources": {
+   "reader": "625c9371e87b3c1389c455dd0ce4d0fe904442b477ea8ac29eeaad5e8a96a2a6",
+   "refuter": "e04e97de1b8432b5ba295a3e282f626455f88c6a954316d0b82361efb3932bc3"
+  },
+  "imported": {
+   "reader": "8a62780b1a4ec977c18f32f3aca67ad03cacfb0b3f7f9e7a4a889b69f9f23be1",
+   "refuter": "538e110e6681e211cd317929ad070324628bb246c200e1679981c96218958080"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, formats 1 and 2 (and format 3's halves) must, over identifier-1's character image (any DISPLAY category, a group, a signed item de-signed, an occurs-depending group at its sending length), count each properly matched occurrence of literal-1 / identifier-3 (a figurative being a one-character item) into identifier-2, or overwrite it with literal-3 / identifier-5, matches being non-overlapping and found in the GR7 cycle.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#RunCycle; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Tally; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Replace; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (2023+): below 2023 beforeFromLeftmost=true, passed to CobolInspect.Region; it moves only where a BEFORE delimiter is searched (GR8b), not the GR6 matching",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+    "switches": "DialectBehavior.InspectFormat3LengthIdentifiedOnce: at 85 a format 3 over an occurs-depending identifier-1 sets ReplacingTakesLengthAnew, so InspectEmitter.EmitBody re-reads the image before the replacing half",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectStatement",
+    "switches": "BACKWARD is a reserved word only from a later edition (the edition's reserved-word set); at --std 85 it is a user word, so INSPECT X BACKWARD is refused at parse (COBOL5506)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of InspectEmitter.cs, CobolInspect.cs, InspectBinder.cs for DialectBehavior/Edition/DialectLevel; RunCycle itself (the GR6 match/tally/replace) takes no edition input",
+  "behaviour-differs-by-edition": "no: the match-and-tally/replace cycle (RunCycle) is one code path; only the BEFORE-region origin (GR8b) and the format 3 ODO length re-read differ at 85, neither of which is GR6",
+  "witnesses-cover": "part: g85_bf16_01 P1-P3 cover alphanumeric multi-character ALL tallying/replacing; not exercised: figurative literal-1, signed/edited/alphabetic identifier-1, subscripted identifier-1, overlapping candidates",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/ins6.cob",
+    "printed": "A1=01 A2=[xyA] F1=03 F2=[A0B0C0] F3=[\"A\"\"B\"] S1=03 S2=-7277 S3=03 S4=-1511 E1=[**1.50] E2=01 R1=[AB92] 92 O1=03 O2=[6ZZZAA ] U1=02 U2=[ABCAqqABB] Z1=00",
+    "expected": "AAA/ALL AA one match (GR7c resumes right of the match); figurative SPACE/ZERO one-character items; signed item de-signed, sign retained (GR3c); edited/alphabetic as alphanumeric (GR3a/b); ODO group only its 3 specified positions (GR1); subscripted identifier-1 element 2 only; pattern longer than item no match. All match."
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/ins6c.cob",
+    "printed": "error COBOL5506: cannot parse construct near 'BACKWARD'",
+    "expected": "BACKWARD is a later edition's phrase, absent from §1985 formats: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-110/ins6d.cob",
+    "printed": "COBOL1757 ALL figurative refused; COBOL0846 literal-1/literal-3 size differ (§1985:VI.6.18.3 SR7); COBOL1757 numeric literal refused",
+    "expected": "SR3 and SR7 refusals"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR6",
+    "check": "OK  §1985:VI.6.18.4 GR6  (6.18.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "GR6 is carried by the one shared RunCycle; the edition reaches it only through the GR8b BEFORE origin flag and the format 3 ODO re-read, neither of which changes what a proper match is tallied or replaced by. Every probe matched the 1985 text; diagnostics cite §2023 text for SR3 (a message-citation nit, not a behaviour defect).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "rins1.cob at --std 85 (refute-1985-110/rins1-001): successive literal-1s ALL \"B\" \"AB\" over ABB K1=02; two FOR phrases first operand wins K2=01 00; ALL then CHARACTERS K3=01 01; LEADING K4=02; REPLACING FIRST K5=[AxyAAB]; REPLACING LEADING K6=[zzBAAB]; signed identifier-3 S9 -1 matched as its unsigned image K7=03, signed identifier-5 K8=[2x2x2x], unsigned numeric identifier-5 K9=[232323]; reference-modified identifier-1 K10=03 K11=[AbbbAA]; identifier-3 TE (I) subscripted by the tally evaluated once K12=4; HIGH-VALUE/LOW-VALUE one-character figuratives K13=02 K14=[hmh]; tally accumulates K15=07; LEADING then ALL on one list K16=02 02: every value as GR3/GR6/GR7 give. rins2.cob --compile-only (rins2-001): N\"A\" refused COBOL0900 (requires 2002), COMP identifier-1 COBOL1626, group identifier-3 COBOL0847, TRAILING COBOL2269. InspectBinder.cs grep for Dialect/Edition: only the two sites the reader listed switch behaviour. cite.py: OK §1985:VI.6.18.4 GR6 'each properly matched occurrence of literal-1 is tallied'; OK §1985:VI.6.18.4 GR7 'the comparison is repeated with each successive literal-1'; OK §1985:VI.6.18.4 GR3 'inspected as though it had been moved to an unsigned numeric data item'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

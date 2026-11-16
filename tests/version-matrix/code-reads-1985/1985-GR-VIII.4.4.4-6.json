@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.4.4-6",
+ "rule-digest": "acc8b8a53928",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-134",
+  "sources": {
+   "reader": "554b5ad7de4a4b9808dbc5589d61a93fd36f522d449f40546eff8c076bdbb48a",
+   "refuter": "bea9901c1f37eb50ff99d557a23fbd9be3e5b3cdce94e7563a41be66b409ddcd"
+  },
+  "imported": {
+   "reader": "5a11414507b233001562a4ed50299df77962356373c505aa2d7e3e7ae8338a41",
+   "refuter": "182abd60921c07da83d8af0cff372a218f7a321f8ddddeaae7af590bacf62ad9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.4.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, OPEN of a relative file in any mode (INPUT, I-O, OUTPUT, EXTEND) and any access mode neither reads a record into the record area nor writes one: the first READ after OPEN INPUT/I-O delivers the first record, and an OPEN OUTPUT/EXTEND/I-O closed with no WRITE adds no record.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Opened; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 every OPEN takes the AllOther file lock and Table 19 is not consulted; no effect on open-mode or position rules",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/IsActive over KeyedConnector.OpenCore, RelativeConnector.Opened and FileConnector.Open: OpenCore only attaches or creates the store and Opened sets the indicator to 1; no record is read or released and no edition is consulted for that.",
+  "behaviour-differs-by-edition": "no: p3nofirst prints identically at --std 2023",
+  "witnesses-cover": "part: l1_open_no_first_record is a sequential-organization file; relative organization, dynamic access and OPEN I-O are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p3nofirst.cob",
+    "printed": "IN-FIRST=00 AAA1 (record area set to ZZZZ after OPEN, READ gives record 1); EXTEND and I-O opens closed with no WRITE leave 3 records; dynamic OPEN I-O and INPUT then READ NEXT give AAA1 key 0001; OPEN OUTPUT + CLOSE then READ 10 (MATCH)",
+    "expected": "1985 VIII.4.4.4 GR6: OPEN obtains and releases no record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-134/p3nofirst.cob",
+    "printed": "--std 2023 run: identical (MATCH)",
+    "expected": "same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.4.4 GR6",
+    "check": "OK  §1985:VIII.4.4.4 GR6  the text is in the rule (or the clause): \"does not obtain or release the first data record\""
+   },
+   {
+    "cite": "§1985:VIII.4.4.4 GR10",
+    "check": "OK  §1985:VIII.4.4.4 GR10  the text is in the rule (or the clause): \"the file position indicator is set to 1\""
+   }
+  ],
+  "notes": "The keyed OPEN body attaches the store and sets the position indicator only; the store is read page by page per statement, so nothing is fetched at OPEN or flushed as a record at CLOSE.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.4.4-6",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "r4open-001 at --std 85: OPEN EXTEND of an absent OPTIONAL sequential relative file 05 (created), record area set to ZZZZ, CLOSE, then OPEN INPUT 00 and READ at end 10: nothing released at CLOSE; random OPEN I-O of a file holding record 2, record area ZZZZ and RELATIVE KEY 1, CLOSE, then READ 1 is 23 and READ 2 is 00 RRR2: OPEN/CLOSE released nothing. OPEN EXTEND of a present file then WRITE gives key 0001 (file empty after the first test). cite.py: OK §1985:VIII.4.4.4 GR6 'does not obtain or release the first data record'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

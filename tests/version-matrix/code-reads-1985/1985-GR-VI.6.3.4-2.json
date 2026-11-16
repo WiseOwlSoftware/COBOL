@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VI.6.3.4-2",
+ "rule-digest": "bd0dd14a5e91",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-115",
+  "sources": {
+   "reader": "69c771359a168cf7d7cc8744a6c562d623513d60aa5edacc3cf3ab03cbabd784",
+   "refuter": "03f03007c1fc0a432010088b88914ea4e7c24ae81d905af2465248e3baa89d09"
+  },
+  "imported": {
+   "reader": "e557af5d9eb436513423860e0db32ff6d5518abe6f9ba9d55e6745851fe7406f",
+   "refuter": "2efaca68a79a15ae31b56b4abe6584f2b5bbb788986ecb30d4de0b5cf7c3243e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an arithmetic expression or function inside a condition, and a negated condition, is evaluated only if and when the condition containing it is evaluated, in the order of figures 1-4 (AND, OR, OR-over-AND, and the parenthesized NOT shape).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BindFlatSequence; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#SizeErrorFalse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: below 2002 a relation or sign condition whose operand performs arithmetic is wrapped in CobolSizeError.FalseWhenRaised(() => ...), a deferred lambda, so a size error makes the leaf false; at 2002+ it renders bare and a size error is fatal",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -i 'edition|DialectLevel|Version' over ConditionRenderer.cs and ConditionBinder.cs. The binder's ctx.Edition uses are boolean-expression diagnostics (a 2002 construct). The renderer's other DialectLevel reads (lines 463, 475, 1167) choose an operand's comparison image, not the evaluation order. BoundLogical renders as C# && / || in operand order and BoundNot as !(...), at every edition.",
+  "behaviour-differs-by-edition": "yes, outside this rule: an evaluated arithmetic leaf that raises a size error is false at 85 and fatal from 2002; WHEN it is evaluated is the same at both",
+  "witnesses-cover": "part: g85_bf15_02 covers functions and NOT in IF; an arithmetic expression that must not be evaluated, figure 4's (c1 OR NOT c2) AND c3 AND c4 with c3 false, and the other condition-taking statements are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/cnd1.cob",
+    "printed": "C1 F / C2 T / C4 K=0 SEQ=5 / C7 F SEQ=5 / C9 F SEQ=5 / C11 SEQ=X (MATCH at --std 85 and --std 2023)",
+    "expected": "GR2: N / D with D = 0 behind a false AND or a true OR is never evaluated; NOT RANDOM(9) > 2 is skipped when c1 decides the inner level, and RANDOM(7) after the false F = 2 is skipped (figure 4)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-115/cnd2.cob",
+    "printed": "--std 85: Z F; --std 2023: EC-SIZE-ZERO-DIVIDE (fatal)",
+    "expected": "the division is evaluated when the condition needs it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.4 GR2",
+    "check": "OK  §1985:VI.6.3.4 GR2  the text is in GR2 (quoted: \"Values are established for arithmetic expressions and functions if and when the conditions containing them are evaluated\")"
+   },
+   {
+    "cite": "§1985:VI.6.3.4 GR2",
+    "check": "OK  §1985:VI.6.3.4 GR2  the text is in GR2 (quoted: \"negated conditions are evaluated if and when it is necessary\")"
+   }
+  ],
+  "notes": "Arithmetic and intrinsic-function operands are rendered inline inside the && / || chain, and the 85 size-error wrapper is a Func<bool>, so nothing is evaluated ahead of its condition. The UDF and OO drains in the seed sites (UdfAttachPerEvaluation, OoDrainPropertyGets) serve 2002 constructs, which --std 85 cannot reach.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "cr1.cob A1/A2, aimed at the abbreviated combined relation, which §1985:VI.6.3.3 expands 'as if the last preceding stated subject were inserted': with seed 3 giving R1,R2,R3, 'IF FUNCTION RANDOM NOT < 0 AND < 1' consumes two RANDOM values (the next value is neither R2 nor R3, printed A1 OTHER: the subject is re-established for the second condition, not cached), and 'IF FUNCTION RANDOM > 1 AND < 2' consumes one (the next value is R3, printed under the label A2 TWICE, which I mislabeled: it means one call), so the implied second relation is not evaluated once the first is false. cr2.cob S1/S2: N / D with D=0 inside a sign condition is not evaluated behind a false AND or a true OR; S5 a function after a true OR leaf in PERFORM WITH TEST AFTER is never evaluated. cite.py: OK §1985:VI.6.3.4 GR2 (\"if and when the conditions containing them are evaluated\"); OK §1985:VI.6.3.3 (the quoted text lies in its SR2 paragraph).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

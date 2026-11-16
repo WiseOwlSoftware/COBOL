@@ -1,0 +1,123 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-5",
+ "rule-digest": "a9932aabb5ff",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-111",
+  "sources": {
+   "reader": "d6329820f4e6f8b9ed8689ebdf2b9be26857dffa18409931c8b9de4fda162935",
+   "refuter": "87323face041a10bfce2fb2ff126a2d889cf521be995c5781b68af935e07664d"
+  },
+  "imported": {
+   "reader": "34da3cfbb6e620eec8f64cd36f5857a469cfa76951ba5b18c9a0c436ebba03b2",
+   "refuter": "91243aa5a3875f608f77e15542f495bc07877bb0ba87b9088bb1bdd50e0e6e0a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the END-PERFORM phrase ends an in-line PERFORM (formats 1-4 with procedure-name-1 omitted): each END-PERFORM closes the most recent unterminated in-line PERFORM, the statements between are its specified set, an in-line PERFORM without END-PERFORM or with an empty body is refused, END-PERFORM after an out-of-line PERFORM is refused (SR1), and an unterminated conditional statement before END-PERFORM is refused because imperative-statement-1 must be imperative.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#ReportConditionalOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitInlinePerform",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performLocationPhrase",
+    "switches": "bare LOCATION as a Format-3 head only at 2023 (is2023 predicate); at 85 PERFORM LOCATION is an out-of-line PERFORM",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformStatement",
+    "switches": "the Format-3 exception-checking PERFORM (WHEN phrases before END-PERFORM) is refused below 2023 with COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+    "switches": "an AFTER phrase in an in-line PERFORM is refused below 2002 (1985 SR2)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of CobolControlFlow.g4 for is2023/edition predicates, VersionConformancePass for Perform visitors, ProcedureFormatPass and CobolErrorStrategy for Edition/Year: the scope delimitation itself (grammar alternative ending in END_PERFORM, statementBlock) is edition-blind",
+  "behaviour-differs-by-edition": "no: END-PERFORM delimits the in-line PERFORM identically; only which in-line heads are admitted (AFTER from 2002, WHEN/LOCATION in 2023) differs, and 85 refuses those",
+  "witnesses-cover": "part: the witnesses exercise IF/END-IF scope and a VARYING brace group; nested in-line PERFORMs, in-line PERFORM inside IF/ELSE, missing END-PERFORM, empty body, END-PERFORM after an out-of-line PERFORM and an unterminated conditional before END-PERFORM were not exercised",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5a.cob",
+    "printed": "OUTER 1 N=03 / OUTER 2 N=06 / AFTER N=06 / T / T / THEN-TAIL / IF-DONE / TA N=03 / IN-IF / IN-IF (MATCH)",
+    "expected": "each END-PERFORM ends the nearest unterminated in-line PERFORM; the ELSE belongs to the IF"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5b.cob",
+    "printed": "COBOL2269 unexpected '.' (refused)",
+    "expected": "refused: an in-line PERFORM needs END-PERFORM (SR1, GR5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5c.cob",
+    "printed": "COBOL0306 END-PERFORM appears without a matching PERFORM statement",
+    "expected": "refused: SR1, END-PERFORM must not follow an out-of-line PERFORM"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5e.cob",
+    "printed": "COBOL2072 unexpected 'END-PERFORM' (imperative-statement required)",
+    "expected": "refused: imperative-statement-1 is not optional"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5f.cob",
+    "printed": "COBOL2796 IF written without END-IF is a conditional statement where an imperative-statement is required",
+    "expected": "refused: imperative-statement-1 must be imperative"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5g.cob",
+    "printed": "COBOL2796 ADD ... ON SIZE ERROR without END-ADD is a conditional statement",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5d.cob",
+    "printed": "COBOL0878 EC-ALL introduced by 2002; COBOL0900 the Format-3 PERFORM requires COBOL-2023",
+    "expected": "refused: the 1985 PERFORM prints no WHEN phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p5h.cob",
+    "printed": "COBOL0900 an AFTER phrase in an inline PERFORM requires COBOL-2002",
+    "expected": "refused: §1985 SR2"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR5",
+    "check": "OK  §1985:VI.6.21.4 GR5  (6.21.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR1",
+    "check": "OK  §1985:VI.6.21.3 SR1  (6.21.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "The in-line PERFORM is one grammar alternative closed by END_PERFORM, so nesting pairs by the parse; refusals come from the grammar, the error strategy and ProcedureFormatPass, none edition-dependent. Diagnosis quality only: p5b (missing END-PERFORM) is reported as COBOL2269 'The ADD statement ends before this token' at the period, which does not name END-PERFORM; identical at --std 2023. The program is refused as the rule requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.6.21.4 GR5, VI.6.21.3 SR1 and IV.6.4.3 (same-verb nesting applies only between delimited scope statements, so an out-of-line PERFORM inside an in-line one must not take the END-PERFORM). Probes (refute-1985-111): q5a MATCH: out-of-line PERFORM P-X / P-X 2 TIMES / P-X THRU P-Y UNTIL / P-X VARYING inside an identifier-TIMES in-line PERFORM, END-PERFORM closes the in-line one (A N=65); in-line PERFORM inside a SEARCH WHEN; three-level nesting VARYING an index-name / TIMES / TEST AFTER (C N=28); comma and semicolon separators around END-PERFORM. q5d: a second END-PERFORM refused COBOL0306. q5b/q5c (class c, later-edition form): EXIT PERFORM and EXIT PERFORM CYCLE inside an in-line PERFORM refused COBOL0900 'requires COBOL-2002'. cite.py: 'OK  §1985:VI.6.21.4 GR5 ... the text is in GR5'; 'OK  §1985:VI.6.21.3 SR1 ... the text is in SR1'; 'OK  §1985:IV.6.4.3 ... the text is in the clause'. Grep of CobolControlFlow.g4 for edition predicates: only is2023 LOCATION, as the reader listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

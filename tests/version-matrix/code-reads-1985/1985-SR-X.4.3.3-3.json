@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-X.4.3.3-3",
+ "rule-digest": "08f4edc48984",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-068",
+  "sources": {
+   "reader": "e9614878ba96246d48d75121106d940b2f8b1fb0065e0ab6f5367233bd01bcce",
+   "refuter": "a70639c62e4b57bd4d67f8fc8c54f17a668fbe354e47e21f6cbb21e91d9b02c5"
+  },
+  "imported": {
+   "reader": "887b967637d9c6af49978f6725960b93840e42f8425f11c1248eafda9979b0f6",
+   "refuter": "008461b38a2429820ecdcade0205664a8d4a8bc600927a891d0bcb802402760d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-X.4.3.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an entry that writes both EXTERNAL and REDEFINES must be refused, while a separate entry that REDEFINES an external record (X.4.5.4 GR2) stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal",
+  "edition-consulted": [],
+  "edition-search": "ClausePlacementRules.Rules and DataBinder#ScreenClausePlacement / ClausePlacementRule#ResidenceFault consult no edition (grep CobolVersion|IsAtLeast|ConstructRegistry|DialectBehavior over DataBinder.ClausePlacement.cs: only Edition.Error). The one row term a later edition adds, TypeDeclarationInAnySection (EXTERNAL on a level 1 TYPEDEF anywhere), is unreachable at 85 because VersionConformancePass refuses TYPEDEF below 2002 (probe x2td.cob).",
+  "behaviour-differs-by-edition": "no (2023's row also names BASED, which does not exist at 85)",
+  "witnesses-cover": "part: the witness shows only legal placements; the EXTERNAL x REDEFINES refusal and the legal redefinition of an external record by another entry are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/x2bad.cob",
+    "printed": "COBOL2404 RED-R: the EXTERNAL clause is not admitted here, this entry also specifies REDEFINES (§2023:13.16.3 SR5)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-068/src/x2ok.cob",
+    "printed": "compiled and ran with '01 SHARED-ALT REDEFINES SHARED-REC PIC X(6)' beside the EXTERNAL record (exit 0)",
+    "expected": "a separate entry may redefine the complete external record (X.4.5.4 GR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.3.3 SR3",
+    "check": "OK  §1985:X.4.3.3 SR3  (4.3.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The NotWith row (EXTERNAL excluded with REDEFINES|BASED) refuses the combination and drops the EXTERNAL, so the redefines anchor is not re-based onto the external cell. Edition-independent; BASED cannot be written at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same COBOL2404 refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-X.4.3.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85: x1ord.cob '01 ALT-R IS EXTERNAL REDEFINES BASE-R' (EXTERNAL written before REDEFINES) refused COBOL2404 (SR3) and COBOL2739 (REDEFINES position), while '01 GLB-R REDEFINES BASE-R IS GLOBAL' in the same program drew nothing; x1lvl.cob a REDEFINES on a SUBORDINATE entry of an EXTERNAL record (not the same entry) compiled and ran correctly; x1as.cob 'IS EXTERNAL BASED' refused COBOL0900 (BASED is 2002) plus COBOL2404. cite.py: 'OK  §1985:X.4.3.3 SR3  (4.3.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

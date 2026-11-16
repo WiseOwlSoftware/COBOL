@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-X.1.3.7-1",
+ "rule-digest": "423247b91906",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-139",
+  "sources": {
+   "reader": "8b7eb4b4f4c233fc9bfb0a7a1fdbe7fe8a3325f9bd89535c63f50860cc39bd1f",
+   "refuter": "f4df25706caf73949493e1a6a03355d84423508379155471e02b2451d758c4dc"
+  },
+  "imported": {
+   "reader": "f1248b940add1f1ce710099e65062a9d40fbc2997e6c55821ee7f849951b9780",
+   "refuter": "8e6ba741b1985bb789d154cdcb90090e80175a712496fcaf88bfc7b46e5701e9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.1.3.7-1",
+  "verdict": "CONFORMS",
+  "requirement": "Every program of the run unit whose FD for a file-name carries EXTERNAL references the one external file connector (its open mode, file position, record area and status), for sequential, relative and indexed organizations in every access mode, and a CALL, EXIT PROGRAM or CANCEL of a describer leaves that connector open and positioned (X.5.2.4 GR8).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "DialectLevel >= 2023 requires FILE STATUS and LINAGE data items of an external file to be external and the FILE STATUS item to agree (refused at 2023, admitted at 85); the RELATIVE KEY / PADDING externality rule and the per-edition citation text apply at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect|Constructs over BinderDriver (the external FD rename to the ExternalFileBand key), LinkageBinder (FD record cells), ExternalFileConnectorRules, ProgramEmitter (CloseFiles skips external connectors) and Runtime/IO/FileRegistry; only ExternalFileConnectorRules.Check reads the edition, and only for which agreement rules apply",
+  "behaviour-differs-by-edition": "yes: at 85 an external file's FILE STATUS item may be internal to each describer (each program's own item is updated by its own statements); at 2023 that source is refused (COBOL1624/COBOL1573). The sharing of the connector itself is the same",
+  "witnesses-cover": "part: g85_bf24_04 shares one sequential connector among a program and two contained programs; not relative or indexed organizations, dynamic access, a sibling (separately compiled) describer, CANCEL of the describer that opened it, or positioning set by START in one program and used by READ NEXT in another",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x4ef2.cob",
+    "printed": "OPEN 00 00 / MAIN AFTER OPEN (blank) / MAIN R1 OP01 00 / NEXT IX BBMAI / NEXT RX MR02 002",
+    "expected": "sibling X4OPEN opens relative and indexed external files I-O; MAIN (never opened them) WRITEs and READs on them after CANCEL X4OPEN (files stay open); MAIN's START positions IX and sibling X4NEXT's READ NEXT continues from it; RX-KEY (external) receives the RRN; MAIN's own internal FILE STATUS item is not updated by X4OPEN's OPEN"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x4ef.cob",
+    "printed": "COBOL6847 external file 'IX' ... differ in the RECORD KEY clause (two describers with different RECORD KEY data-names)",
+    "expected": "§1985:IX.2.3.4 GR1: every entry for the connector has the same RECORD KEY data description entry"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-139/x4ef2.cob",
+    "printed": "at --std 2023: COBOL1624 FILE STATUS data item shall be an external data item; at --std 85 the program compiles and runs",
+    "expected": "1985 has no externality requirement on FILE STATUS; 2023 §14.8.4.2 does"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.1.3.7 GR1",
+    "check": "OK  §1985:X.1.3.7 GR1  (║1.3.7 Sharing Files║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:X.5.2.4 GR8",
+    "check": "OK  §1985:X.5.2.4 GR8  (5.2.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:IX.2.3.4 GR1",
+    "check": "OK  §1985:IX.2.3.4 GR1  (2.3.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "An external FD's registry key is renamed to its externalized name at bind (BinderDriver.Bind), so every describer's statements reach one runtime connector, and the emitted CloseFiles skips external files, so CANCEL leaves them open. The seed sites (OoDriver, CobolObject, RunUnit) are not on this path. COBOL6826 (VIII.4.9.3 SR3, a WRITE without INVALID KEY or USE) was also enforced at 85 while the probe was being written.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.1.3.7-1",
+  "refutation": "UPHELD",
+  "classes": "e,c",
+  "evidence": "Read §1985:X.1.3.7, X.4.2.4 GR1 (LINAGE-COUNTER of an EXTERNAL LINAGE file is external), X.4.5.4 GR4 and X.5.2.4 GR7/GR8. The reader probed only describers in one source; sep/p4sub.cob compiled alone at --std 85 (runs/p4sub-001) and its dll put beside sep/p4main.cob (runs/p4main-001): MAIN opens an EXTERNAL LINAGE file and writes two lines, the separately compiled P4SUB sees 'SUB LC 3', writes, 'SUB LC AFTER 4', MAIN then 'MAIN LC 4' (one connector, one external LINAGE-COUNTER); the file holds MAI1, MAI2, SUB1. An EXTERNAL sequential file opened INPUT by P4SUB and read alternately: 'MAIN READ SQ01', 'SUB READ SQ02', 'MAIN READ SQ03' (one file position across two compilation units). p4i.cob (runs/p4i-001): a contained program with an INTERNAL FD of the same file-name SQ beside the container's EXTERNAL SQ gets its own connector: its OPEN EXTEND on an absent file gives 'J OPEN 35' (not 41, the open external connector) and the external file holds only MAIN. cite.py: 'OK  §1985:X.1.3.7 GR1 ... the text is in GR1'; 'OK  §1985:X.4.2.4 GR1 ... the text is in GR1'; 'OK  §1985:X.5.2.4 GR8 ... the text is in GR8'. The leading blank line of the LINAGE file is a WRITE-advancing question, not this rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-XIII.3.15.4-2",
+ "rule-digest": "8f769448c259",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-036",
+  "sources": {
+   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
+   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+  },
+  "imported": {
+   "reader": "ddaf1b19ca9d936608f675dc7ed6151515ed54ee55bc5f9c66ecf8f47ddfd28a",
+   "refuter": "7f96c83aa672fe74f061a93cd51577dd29adf0a36418182792b57a70c80a5a0e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.15.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the RWCS completes the vertical positioning of each LINE NUMBER clause (absolute, relative, relative zero, NEXT PAGE) before presenting its print line, so the line lands on its computed line and LINE-COUNTER names that line when it is presented.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SubsequentTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody",
+  "edition-consulted": [],
+  "edition-search": "grep Edition/DialectBehavior/IsActive in ReportWriter.cs: the edition is consulted only for sum size error, group indicate, TERMINATE's saved NEXT GROUP and the control values page groups see; PresentLine, SubsequentTarget and FirstLineTarget have none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb484 and pb1247 cover absolute/relative placement; not LINE-COUNTER at presentation time nor NEXT PAGE",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p1_ph_lc.cob",
+    "printed": "LINE 05 [D 05], LINE 07 [E 07] (SOURCE LINE-COUNTER in each line)",
+    "expected": "each line shows its own line number: positioning precedes presentation (XIII.3.5.6 GR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p9_next_page_position.cob",
+    "printed": "page 1: PH01 on 1, D 04 on 4, E 06 Z on 6; page 2 (NEXT PAGE): PH01 on 1, D 04 on 4, E 06 Z on 6",
+    "expected": "LINE 4 ON NEXT PAGE advances the page before the line; LINE PLUS 0 prints on the previous line"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.4 GR2",
+    "check": "OK  §1985:XIII.3.15.4 GR2  (3.15.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.5.6 GR6",
+    "check": "OK  §1985:XIII.3.5.6 GR6  (3.5.6 LINE-COUNTER Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "PresentLine sets LINE-COUNTER to the target before composing the line and writes it with the advance that reaches the target; PresentBody takes the page advance of a NEXT PAGE line before presenting it. Probes at --std 85 show every line on its computed line with LINE-COUNTER equal to it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.15.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "i1_nextpage_first_generate (LINE 5 ON NEXT PAGE): first GENERATE prints D 05 on page 1 with no advance (1985 XIII.3.10.8 GR3c: no body group yet, no saved next group), second advances and prints D 05 on page 2; i2_abs_behind_lc (absolute 4 and 6, LC 6 at the second GENERATE): page advance, then D 04 and E 06; i3_rf_next_page (RF LINE 3 ON NEXT PAGE, PLUS 2): RF 03, RG 05 on a new page; i4_first_rel_zero (a detail whose first LINE clause is PLUS 0): Z 03 on the previous body group's line 3; i5_unpaged_rel (no PAGE clause): D 02, E 03, D 05, E 06; i6_cf_lc: CF 08. Every SOURCE LINE-COUNTER shows the line it is printed on, so positioning precedes presentation for absolute, relative, relative zero, NEXT PAGE, an RF and an unpaged report. Class c: c1 'LINE + 2', c2 'LINE NUMBERS ARE', c3 'LINE NEXT PAGE' with no integer, c4 'LINE PLUS 2 ON NEXT PAGE' all refused at --std 85 (COBOL0900/COBOL2199). cite.py: 'OK  §1985:XIII.3.15.4 GR2  (3.15.4 General Rules)  the text is in GR2'; 'OK  §1985:XIII.3.15.4 GR4 ... the text is in GR4'; 'OK  §1985:XIII.3.10.8 GR3c ... the text is in GR3c'; 'OK  §1985:XIII.3.15.3 SR7 ... the text is in SR7'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

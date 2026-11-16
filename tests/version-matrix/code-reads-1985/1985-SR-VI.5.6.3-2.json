@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-VI.5.6.3-2",
+ "rule-digest": "c93749e00004",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-053",
+  "sources": {
+   "reader": "3dda3f9c45a552503ddf958a1c713d25573016bf498999c6d589ba62f715a59d",
+   "refuter": "5406f19ea7d01bec10f9510f7137b2db96db53eb8dfc134552e9d5d219f94767"
+  },
+  "imported": {
+   "reader": "5a150fcd6b7dc839b735a6fb4e9d4ceab96533f298fd8cbd25eaef76a92abb35",
+   "refuter": "3139413e4ca02ad1b86bed39f880ad1ea19780aa95dcb10a40b188b37536eeab"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, JUST must be accepted wherever JUSTIFIED is, with or without RIGHT, and must mean the same clause. It gets the same right alignment and left truncation (§1985:VI.5.6.4 GR1) and the same refusals: on a group (SR1), on numeric or edited items (SR3), on an index item (SR4), and as a duplicate when both spellings are written.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#JUST; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#justifiedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#JustifiedViolation",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "word status of JUST / JUSTIFIED (both reserved at 85, the same as 2023)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "BindEntry sets the single flag justified = true for either token. grep DialectLevel in JustifiedViolation and CheckClauseSubjectsPass's JUSTIFIED arm: none",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers the four spellings' move semantics. The refusals and the duplicate identity are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/jus2.cob",
+    "printed": "[  AB][  12][XYZ] / [  AB  12QQQ]",
+    "expected": "PIC A(4) JUSTIFIED, PIC X9X(2) JUST RIGHT and PIC X(3) JUST right-align short senders with leading spaces and truncate a long sender on the left (§1985:VI.5.6.4 GR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/jus1.cob",
+    "printed": "COBOL2405 for JUST and JUSTIFIED alike on numeric, numeric-edited, alphanumeric-edited and index items; COBOL2403 for G1 JUST on a group",
+    "expected": "the abbreviation is held to SR1, SR3 and SR4 exactly as the full word is"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-053/dup1.cob",
+    "printed": "COBOL2423: the clause 'JUST' is written 2 times (PIC X(4) JUST JUSTIFIED)",
+    "expected": "one clause, so writing both is a duplicate"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.6.3 SR2",
+    "check": "OK  §1985:VI.5.6.3 SR2  (5.6.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.6.3 SR1",
+    "check": "OK  §1985:VI.5.6.3 SR1  (5.6.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.6.3 SR4",
+    "check": "OK  §1985:VI.5.6.3 SR4  (5.6.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "justifiedClause is (JUSTIFIED | JUST) RIGHT?, and BindEntry tests only that the node exists, so the two spellings cannot diverge after the parser. The refusal and duplicate probes confirm the spellings are treated as one clause.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "rju1 (run, --std 85): JUST VALUE \"AB\" -> [AB   ] and JUSTIFIED RIGHT VALUE \"CD\" -> [CD   ] (initialization not affected by JUSTIFIED, §1985:VI.5.15.4 GR1c); JUST VALUE ALL \"XY\" -> [XYXYX] and MOVE ALL \"PQ\" to X(5) JUST -> [PQPQP] (figurative repeated before justification, §1985:IV.4.2.2.2.3); JUST in OCCURS -> [   KNOPQ] (left truncation); 77 A(6) JUST -> [   XYZ]; MOVE 9(3) 007 to X(5) JUST -> [  007]; group MOVE over a JUST subordinate not justified -> [ABCD][EF], then [   REF]. rju2: JUST/JUSTIFIED spellings refused identically on every edited/numeric form. cite.py: OK §1985:VI.5.6.3 SR2; OK §1985:VI.5.6.4 GR1; OK §1985:VI.5.15.4 GR1c; OK §1985:IV.4.2.2.2.3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

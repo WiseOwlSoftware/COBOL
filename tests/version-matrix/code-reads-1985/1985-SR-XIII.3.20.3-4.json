@@ -1,0 +1,99 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-4",
+ "rule-digest": "4ae2e820150e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-076",
+  "sources": {
+   "reader": "44d586d8cbb609dc61eae27ec31793c5b4679cf8d37209f3730c08e0b61c9851",
+   "refuter": "307ebb4f8f6956d0aa6a0cfddbf9be187b3fea3168a1a1de989118716ae224c9"
+  },
+  "imported": {
+   "reader": "bbf796cb437e9f1dff9ac9fd4e8fae967141a078afcb894838588832ebe62452",
+   "refuter": "a69e736834ad8714c5b628eaad83884e85772b5e84287ce72249686083b142e8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.20.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a second REPORT HEADING, PAGE HEADING, PAGE FOOTING or REPORT FOOTING group in one RD, or a second control heading or second control footing for the same CONTROL data-name or FINAL, must be refused, while omitting the CH or the CF (or both) at any control level is accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupCensus; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ResolveReports",
+  "edition-consulted": [],
+  "edition-search": "Read ScreenReportGroupCensus whole (it uses Edition only for At/Error) and the ResolveReports loop that sets ControlLevel before it; grep of the two members for DialectLevel, CobolVersion, Constructs., IsCobol85 found nothing.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1299_report_group_census_legal is the legal half (one group of every type, CH/CF per level); the refusal of each duplicate is covered by these probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4a_two_rh.cob",
+    "printed": "EXIT 65; error COBOL2749: report group 'G2' is a second REPORT HEADING ('G1' is the first)",
+    "expected": "refused (RH then REPORT HEADING)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4b_two_ph.cob",
+    "printed": "EXIT 65; error COBOL2749: a second PAGE HEADING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4c_two_pf.cob",
+    "printed": "EXIT 65; error COBOL2749: a second PAGE FOOTING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4d_two_rf.cob",
+    "printed": "EXIT 65; error COBOL2749: a second REPORT FOOTING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4e_two_ch_k.cob",
+    "printed": "EXIT 65; error COBOL2749: a second CONTROL HEADING for control 'WS-K'",
+    "expected": "refused (CH WS-K then CONTROL HEADING WS-K)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4f_two_cf_final.cob",
+    "printed": "EXIT 65; error COBOL2749: a second CONTROL FOOTING for control 'FINAL'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4g_ch_and_cf_j.cob",
+    "printed": "EXIT 0; G1 D1 G2 G1 D1 G2",
+    "expected": "accepted: CH and CF only for WS-J, FINAL and WS-K omitted; break on WS-J presents CF then CH"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-076/p4h_cf_k_and_cf_j.cob",
+    "printed": "EXIT 0; D1 G2 D1 G2 G1",
+    "expected": "accepted: a CF at two levels with no CH; TERMINATE presents CF WS-J then CF WS-K"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.3 SR4",
+    "check": "OK  §1985:XIII.3.20.3 SR4  (3.20.3 Syntax Rules)  the text is in SR4 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   }
+  ],
+  "notes": "The census keys each non-detail group by (kind, resolved control level), so duplicates are found whether written in full or abbreviated, and omitted control groups are never required. The rule text comes from the reconstructed folio XIII-55 (PB4952).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.20.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read ReportSectionBinder.cs#ScreenReportGroupCensus (keyed by kind and resolved ControlLevel; no edition test). Probes at --std 85: E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4a_two_ch_same_item_diff_spelling.cob (CH WS-K OF WS-G then CONTROL HEADING WS-K IN WS-G) -> EXIT 65 COBOL2749 second CONTROL HEADING; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4c_dup_cf_qual_unqual.cob (CF WS-P then CONTROL FOOTING WS-P OF WS-Q) -> EXIT 65 COBOL2749 second CONTROL FOOTING; E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-076/r4b_two_rds_each_once.cob (two RDs on one file, each with one RH, PH, PF, RF, R1 also two detail groups) -> EXIT 0, so the census is per report description and DETAIL is not limited. cite.py: OK  §1985:XIII.3.20.3 SR4 ... [RECONSTRUCTED: kb/Work PB4952]. The rule text is the transcription's reconstruction of folio XIII-55; the verdict holds against that text, which the later editions keep unchanged.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,138 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-18",
+ "rule-digest": "829e15868b85",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-109",
+  "sources": {
+   "reader": "209f5f461b30b1b93dd15bf984c2d9907e18176fc8b201d69d702f16a07dcc4d",
+   "refuter": "2227f3e15da145526ed2347e66efe6397aebd1fd2813553b5f4d24b430147f00"
+  },
+  "imported": {
+   "reader": "6ef47ab26223538a7fb023a232d3342fd19beec405981c53c0e6f33f28ecb16d",
+   "refuter": "94c1a12552b8bddbe286b767639b3e5149a4aaa05ccc039246ced80401a51476"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-18",
+  "verdict": "CONFORMS",
+  "requirement": "A format 4 INSPECT executes as a format 2 with one ALL phrase per character of literal-4/identifier-6, each replaced by the character of literal-5/identifier-7 in the same ordinal position, all sharing the one BEFORE/AFTER phrase (so each position is replaced at most once), over every identifier-1 SR1 admits (group, alphanumeric, unsigned and signed numeric with the sign retained), with a figurative literal-5 sized to literal-4.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Region; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#WriteGroupValue",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (active from 2023): at 85 a BEFORE delimiter is searched from the leftmost position (beforeFromLeftmost=true), at 2023 from the AFTER-derived start",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInspectConvertingPhrase",
+    "switches": "ConstructRegistry inspect-converting-to-all-2002: an ALL figurative literal-5 is refused before 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectConvertingRepeatedCharacter",
+    "switches": "85 only (InspectSizeRulesCoverDataItems): a repeated character in literal-4 is refused (SR10); from 2002 it is legal and the first occurrence is used",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#InspectSizeRulesCoverDataItems",
+    "switches": "DialectLevel < 2002: at 85 the SR7/SR8/SR9 size rules ask identifier-3/5/6/7 static sizes at compile time; from 2002 only literals (identifier sizes become run-time EC-RANGE-INSPECT-SIZE)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: with both delimiters, 85 measures BEFORE from the leftmost position (AYAAXAA CONVERTING \"A\" TO \"b\" AFTER \"X\" BEFORE \"Y\" is left unchanged), 2023 from the AFTER-derived start (AYAAXbb); an ALL literal-5 and a repeated literal-4 character are refused at 85 only",
+  "witnesses-cover": "part: g85_bf16_01 V1/V2 cover literal operands over an alphanumeric item with no delimiters; not exercised there: delimiters, a figurative literal-5, numeric, signed and group identifier-1, an ODO identifier-1, the 85-only refusals",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/g85_bf16_01-001",
+    "printed": "V1=[xzy] V2=[BBAA] (MATCH)",
+    "expected": "ordinal correspondence; each position replaced once"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p2rules-002",
+    "printed": "V1=[ABXBA ] V2=[12XAB ] V3=[      ] V4=998877 V5=-3434 V6=[ba21] V7=[AXbYC ] V8=[CBA   ] I6=[zxyyxz]",
+    "expected": "the AFTER/BEFORE region shared by every ALL phrase; SPACES sized to literal-4; unsigned numeric; signed numeric with its sign retained (GR3c); a group; both delimiters; identifier-7; identifiers 6 and 7"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p3arms-003",
+    "printed": "E1=[AYAAXAA]",
+    "expected": "GR8b at 85: the BEFORE portion runs from the leftmost position, the intersection is empty, nothing is converted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p3arms-002",
+    "printed": "at --std 2023: E1=[AYAAXbb]",
+    "expected": "the 2023 rule differs, so the 85 arm is the one taken"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/p1gr1-001",
+    "printed": "A2=[bbbAAA] A4=[3zzz]",
+    "expected": "format 4 over ODO groups converts only the current-count part"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rff-002",
+    "printed": "COBOL0900 an INSPECT CONVERTING whose TO operand is a figurative constant beginning with ALL requires COBOL-2002",
+    "expected": "SR3 at 85: no literal may be an ALL figurative"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfi-002",
+    "printed": "COBOL6859 literal-4 'AA' holds the character 'A' more than once (§1985:VI.6.18.3 SR10)",
+    "expected": "SR10 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfk-002",
+    "printed": "COBOL0846 identifier-6 (3 characters) and identifier-7 (2 characters) differ in size (§1985:VI.6.18.3 SR9)",
+    "expected": "SR9 refusal"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-109/rfe-002",
+    "printed": "COBOL0847 INSPECT operand 'G2' shall reference an elementary item",
+    "expected": "SR2 refusal of a group identifier-6"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR18",
+    "check": "OK  §1985:VI.6.18.4 GR18  the text is in GR18 (quoted: \"had been written with a series of ALL phrases, one for each character of literal-4\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR8b",
+    "check": "OK  §1985:VI.6.18.4 GR8b  the text is in GR8b (quoted: \"from its leftmost character position up to, but not including, the\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR3c",
+    "check": "OK  §1985:VI.6.18.4 GR3c  the text is in GR3c (quoted: \"the original value of the sign is retained upon completion of the INSPECT statement\")"
+   },
+   {
+    "cite": "§1985:VI.6.18.3 SR3",
+    "check": "OK  §1985:VI.6.18.3 SR3  the text is in SR3 (quoted: \"must not be a figurative constant that begins with the word ALL\")"
+   }
+  ],
+  "notes": "Convert maps each position in the one Region by its first index in the from-set, which equals the series of one-character ALL phrases because each matched position moves the cycle past itself. Every edition switch on the path takes the arm the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-18",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "q1.cob (q1-002, --std 85): over a signed overpunch -12, CONVERTING \"12\" TO \"56\" gave V1=-56. Over S99 SIGN TRAILING SEPARATE, CONVERTING \"12-\" TO \"56+\" gave V2=[56-]: the sign position is not inspected and is retained (GR3c). Over SIGN LEADING SEPARATE +34, \"+34\" TO \"-78\" gave V3=[+78]. An ODO group with the object inside gave G2=[4ccAA]. q3.cob: a figurative literal-4, SPACE TO \"x\", gave V1=[AxBxCx] (SR3: a one-character item). A literal-5 ZERO sized to literal-4 gave V2=[0x0xCx]. QUOTES gave V3. A numeric-edited identifier-1 ZZ9.99 gave V4=[*12,70], and an alphanumeric-edited XXBXX gave V5=[Ab-CD]. q2: function-identifiers as identifier-6 and identifier-7 gave F3=[cbacba]. Refusals, all EXIT 65: rc two BEFORE phrases on CONVERTING (SR4); rm a second CONVERTING pair; ro and rn CONVERTING mixed with TALLYING or REPLACING; rl a size mismatch (SR9). The G (2:) CONVERTING space-fill (q5 M3=[5ccc  ]) matches the format 2 result on the same item (M1), so the GR18 equivalence holds. That defect belongs to GR1 and is recorded there. cite.py: OK §1985:VI.6.18.4 GR18 (\"had been written with a series of ALL phrases, one for each character of literal-4\"); OK §1985:VI.6.18.3 SR3; OK §1985:VI.6.18.3 SR4; OK §1985:VI.6.18.4 GR3c.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-XIII.3.11.4-1",
+ "rule-digest": "7aaeefeee596",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-145",
+  "sources": {
+   "reader": "16e919ad61b91578bb140064b907ea9ff6d5d12879721f44f2a8c615382a2e89",
+   "refuter": "153581c84afa9119e551cb7b435a919dd398b725151cddf496a9c8dfbb7013b9"
+  },
+  "imported": {
+   "reader": "2770df9170ce95230e080adac6bbf89b286aff77cb50c2ccdf9dd80808a9b6c8",
+   "refuter": "7b919706d20dcfd8e836ee27d4805de9860ea874e2abc0db61d4c529513b4e9b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.11.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an elementary report entry with a COLUMN NUMBER clause presents its SOURCE object, VALUE object or SUM counter on its print line, and an entry with no COLUMN NUMBER clause (a SOURCE or SUM entry, which §1985:XIII.3.9.3 SR11 Table 1 permits without COLUMN) is not presented.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitCompose; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#FieldImage; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SumPresentable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+    "switches": "at 85 the entry's clause combination is screened against Table 1 (ScreenReportEntryClauseTable: VALUE without COLUMN refused); at 2002+ SR10, SR13 and SR15 are asked instead",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitCompose and EmitFieldPlacements consult no edition: an entry with no COLUMN operand (Columns.Count == 0) emits no placement at any edition. The 2002 column forms are refused by the COBOL0900 construct gate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf09_05 covers SOURCE with and without COLUMN and a SUM counter without COLUMN; VALUE with figurative constants or ALL, edited and signed SOURCE items, and reference-modified SOURCE operands are not exercised",
+  "probes": [
+   {
+    "class": "a..f witness",
+    "file": "conformance-suite/cases/XIII.3.11@1985-COLUMN-NUMBER-CLAUSE/g85_bf09_05.cob",
+    "printed": "EXPECT: MATCH (g85_bf09_05.out)",
+    "expected": "ABC 3 / ABC 4 / TOT=07 07"
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p5_column.cob",
+    "printed": "[*** -  7 EF A   |   ] / [***   12 EF A   |   ] / [TOT=   5            ]",
+    "expected": "VALUE ALL \"*\" at 1, S99 SOURCE without COLUMN absent, -ZZ9 at 5 (-  7, then  12), X(2) SOURCE without COLUMN absent, WS-STR(5:2)=EF at 10, WS-STR(1:1)=A at 13, VALUE SPACES at 15, | at 17; the SUM counter TOT without COLUMN absent and its total 5 shown through SOURCE TOT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r6_value_nocol.cob",
+    "printed": "error COBOL2247: ... writes PICTURE, VALUE, a combination that no row of Table 1 permits (COLUMN required and missing) (ISO §1985:XIII.3.9.3 SR11)",
+    "expected": "refused (VALUE requires COLUMN)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r4_col_plus.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r5_col_multi.cob; E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r9_col_center.cob",
+    "printed": "error COBOL0900 ... requires COBOL-2002 for COLUMN PLUS, multiple COLUMN and CENTER",
+    "expected": "§1985:XIII.3.11.2 is COLUMN NUMBER IS integer-1 only"
+   },
+   {
+    "class": "c (latest)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p5_column.cob --std 2023",
+    "printed": "stdout identical to the --std 85 run",
+    "expected": "same presentation"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.11.4 GR1",
+    "check": "OK  §1985:XIII.3.11.4 GR1  (3.11.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "EmitCompose places each field of the line through EmitFieldPlacements, which loops over the entry's COLUMN operands, so an entry with none places nothing; a SUM counter without COLUMN still accumulates and is readable through SOURCE. The probe's TOT entry, which carries LINE PLUS 1 itself, produced an empty print line (line 4). That is LINE NUMBER behaviour, outside this rule, and was not judged.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.11.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probe q6_col.cob (runs/q6_col-001, --std 85; unpaged RD with CONTROL IS FINAL): a detail line with COLUMN NUMBER IS 1 PIC X(4) SOURCE of a group (GH42), a signed S9(3) SOURCE with no COLUMN (absent), COLUMN 6 ZZ9 BLANK WHEN ZERO (spaces, then ' 12'), COLUMN 10 PIC X(3) VALUE ZERO (000), COLUMN 14 X(3) JUSTIFIED RIGHT (' GH'), COLUMN 18 VALUE 7: printed '[GH42     000  GH 7  ]' and '[GH42  12 000  GH 7  ]'; a CF FINAL with a SUM counter at COLUMN 3, a second SUM counter TOT2 with no COLUMN (absent, still accumulates) shown through COLUMN 9 SOURCE TOT2: '[T=- 10  - 10        ]'. Class c: q4_col_abbrev.cob (the 2002 COL spelling) refused at 85, COBOL0900. cite.py: 'OK  §1985:XIII.3.11.4 GR1  (3.11.4 General Rules)  the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

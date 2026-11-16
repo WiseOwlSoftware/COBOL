@@ -1,0 +1,98 @@
+{
+ "rule-id": "1989-RV-A.2.26.4-1",
+ "rule-digest": "9ef52b0e7664",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-181",
+  "sources": {
+   "reader": "64adde408a710636ce1336a5767ddd82683bb562f3bbf807b14cc4f6884eaab9",
+   "refuter": "ca573e4b3eb6eea966e401713476fb0266a627947ce5f3c2404df2763568ed6f"
+  },
+  "imported": {
+   "reader": "ae6b265912df6cbe239d80b0dd0b2f2252cf8380bfca194757e4d42eec7314a9",
+   "refuter": "bde3edcfb42d5eb5f02b257edb29cb29e49ffda238bc73a8c0dc3559f7ff0fa9"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.26.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 MIDRANGE must return the arithmetic mean of the greatest and the least argument-1 values, chosen by algebraic (numeric simple-condition) comparison, over every class-numeric argument form: items of any usage and scale, literals, arithmetic expressions and ALL-subscripted tables bounded by the current ODO value.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AlignedArgs; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Align; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MidrangeScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MaxScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MinScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "IntrinsicFunctionNotYetIntroduced when sig.IntroducedIn (85) exceeds DialectLevel; MIDRANGE is available at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "NumericFunctionIdentifierOperand2002: at 85 a numeric function outside an arithmetic expression is refused; accepted at 2023",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "as for 1989-RV-A.2.25.4-3: no edition test in IntrinsicRenderer.cs, NumericRenderer.cs, IntrinsicCarrierRules.cs, IntrinsicArgumentRules.cs, IntrinsicCatalog.cs or the runtime bodies; the lane is chosen by the arithmetic mode, native at 85.",
+  "behaviour-differs-by-edition": "no for the value; yes at the reference site: 85 refuses MIDRANGE outside an arithmetic expression",
+  "witnesses-cover": "part: g85_f37_04 covers literals, signed items, a scaled item and a single argument; not covered: ODO-bounded ALL, packed/binary usages, P-scaled items, 17/18-digit extremes, arithmetic-expression arguments",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/medmid.cob",
+    "printed": "MATCH medmid.out: MIDODO5 -20.500 (4 2 9 1 -50 at ODO 5), MIDBIG2 99999999999999998.5, MIDBIGN 0 (+/-999999999999999999), MIDUSAG 0.125 (packed -1.25, binary 1.3, 1.5), MIDP3 149.998 (300, -.003, 7; 149.9985 truncated), MIDZERO 0",
+    "expected": "(greatest + least) / 2 per §1989:A.2.26.4 RV1"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/exprs.cob",
+    "printed": "MATCH exprs.out: MIDX 0.873773 for MIDRANGE (1 / 3 2 ** 0.5 1)",
+    "expected": "(1.41421356..+0.33333..)/2 truncated to 0.873773"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/ref3.cob",
+    "printed": "error COBOL1627: FUNCTION MIDRANGE argument-1 is of class alphanumeric",
+    "expected": "refused: argument-1 must be class numeric (§1989:A.2.26.3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-181/minpcs.cob",
+    "printed": "MIDPCS 02 for MIDRANGE (1 3) under PROGRAM COLLATING SEQUENCE IS REV",
+    "expected": "2: the alphanumeric collating sequence does not reach a numeric comparison"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.26.4 RV1",
+    "check": "OK  §1989:A.2.26.4 RV1  (2.26.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1985:VI.6.3.1.1.1",
+    "check": "OK  §1985:VI.6.3.1.1.1  (6.3.1.1.1 Comparison of Numeric Operands)  the text is in the clause"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "MidrangeScaled returns (MaxScaled + MinScaled) x 5 at scale+1 through checked ExactAdd/ExactMul, so the halving is exact and an overflow is a size error, never a wrap; the COBOL-85 18-digit maximum stays far inside Int128. Same output at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.26.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "scl.cob (runs/scl-002): MIDXX +499999999999999999 for MIDRANGE (X * X B), the scale-36 operand aligned against an 18-digit integer without overflow; MIDPS truncates 450000000000000000.0 into an S9(17)V9 receiver (receiver too small, my error; the high-order truncation is the receiving move, not the function). modx.cob (runs/modx-001): MR2 -00003.000 for MIDRANGE (TC (2 ALL)) over 1 0 -7; MR3 +00046.500 for MIDRANGE (TC (ALL ALL) 100) mixing a 2-D ALL with a literal. All are (greatest + least) / 2. OK  §1989:A.2.26.4 RV1  (2.26.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

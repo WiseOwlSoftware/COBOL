@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.21.4-9",
+ "rule-digest": "6d2361e6cefc",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-111",
+  "sources": {
+   "reader": "d6329820f4e6f8b9ed8689ebdf2b9be26857dffa18409931c8b9de4fda162935",
+   "refuter": "87323face041a10bfce2fb2ff126a2d889cf521be995c5781b68af935e07664d"
+  },
+  "imported": {
+   "reader": "96b5dd6da307b9dda4bdf151affaef8f3d7b6ed9df97b2c6cdf211f976138cad",
+   "refuter": "de88f8c9d3fb3f14e99293829e6ca3183194f227cf153aa6311b39dfed8ad903"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.21.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when control reaches a PERFORM's specified set (paragraph, section, THRU range, an independent segment) by fall-through or GO TO while no PERFORM of that set is executing, control passes through the end of the set to the next executable statement; a return point is armed only for an executing PERFORM.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitOutOfLinePerform; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitPerformedRange; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitProcedureRange; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#DispatchCall; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatcher",
+    "switches": "SegmentEntry (1985 Segmentation, independent segments) adds a last-used flag and __EnterSegment around the dispatch; DebugActive (1985 USE FOR DEBUGGING) adds debug-cause scaffolding; the bounded __Dispatch(start, exit) return test is unchanged",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ControlFlowEmitter, DispatchEmitter, EmitterState for Edition/Year/DialectBehavior: the return mechanism (a range's exit pc is a return point only for the __Dispatch call that a PERFORM made) consults no edition; the only 1985 arms are the segmentation and debugging scaffolding that exist only for 1985 source",
+  "behaviour-differs-by-edition": "no for the fall-through itself; at 85 a program with independent segments or USE FOR DEBUGGING carries extra scaffolding around the same return test",
+  "witnesses-cover": "part: g85_bf17_03 covers paragraph ranges entered by GO TO after the PERFORMs completed; a section, a range entered while an enclosing PERFORM of a larger range is executing, TIMES/VARYING ranges and an independent segment were not exercised",
+  "probes": [
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p9a.cob",
+    "printed": "A / B1 / B2 / C / M1 / S1-P1 / S1-P2 / M2 / S1-P1 / S1-P2 / S2 (MATCH)",
+    "expected": "after PERFORM P-B completes, falling into P-B passes its end to P-C; a GO TO into a performed section falls through into the next section"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p9b.cob",
+    "printed": "X0 / X0 / X1 / X2 / M3 / X3 / Y (MATCH)",
+    "expected": "after TIMES and VARYING PERFORMs of P-X complete, GO TO P-X falls through to P-Y"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-111/p9c.cob",
+    "printed": "I1 / M1 / I2 / END (MATCH)",
+    "expected": "1985-only form: an independent segment (SECTION 60) performed, then entered by GO TO, falls through into the next section"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.4 GR9",
+    "check": "OK  §1985:VI.6.21.4 GR9  (6.21.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "An out-of-line PERFORM is a recursive bounded __Dispatch(start, exit) call; the at-exit return fires only inside that call, so control reaching the same paragraph by GO TO or fall-through in the caller's dispatch loop runs on to pc+1. Behaviour is structural and the same at every edition; the 1985 segmentation arm was probed (p9c).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.21.4-9",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Read §1985:VI.6.21.4 GR9 with GR11 and GR14 (an inner PERFORM that passes control to an outer active PERFORM's exit or shares its exit is not a conforming program, so those are not attack cases). Probes: q9a (class c, the 1985-only USE FOR DEBUGGING arm the reader listed but did not probe): P-B under USE FOR DEBUGGING performed, then reached by a THRU range, by GO TO and by fall-through; printed 'DBG P-B PERFORM LOOP / B / M2 / A / DBG P-B FALL THROUGH / B / M3 / A / DBG P-B FALL THROUGH / B / C / DBG P-B / B / C / END': each non-PERFORM entry passes the end of P-B to P-C. q9b (class e): a declarative section first PERFORMed, then entered by the I-O error of OPEN INPUT on a missing sequential file and of a READ on the unopened file: 'D 00 / M2 / D 35 / M3 35 / D 47 / M4 47', control returns after each failing statement and never falls into the next declarative or the main section. cite.py: 'OK  §1985:VI.6.21.4 GR9 ... the text is in GR9'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

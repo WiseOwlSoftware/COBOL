@@ -1,0 +1,114 @@
+{
+ "rule-id": "1985-GR-XIII.3.8.4-2",
+ "rule-digest": "376ae6ddb89f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-039",
+  "sources": {
+   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
+   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+  },
+  "imported": {
+   "reader": "bd4d0847c92c4899183228d11f8d50d12b81489a61e4294300736c76b7ae5e41",
+   "refuter": "4a61a192d6af56669beb3d428afcf553956799e113a2cb22ed12881024cb2ad0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.8.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a PAGE clause is written, an omitted HEADING gives integer-2 = 1, an omitted FIRST DETAIL gives integer-3 = integer-2, LAST DETAIL and FOOTING both omitted give integer-4 = integer-5 = integer-1, FOOTING alone gives integer-4 = integer-5, LAST DETAIL alone gives integer-5 = integer-4; the 1985 clause has no LAST CONTROL HEADING phrase (control headings are bounded by integer-4), so that 2002 phrase must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "Constructs.ReportPageForms2002: refuses LAST CONTROL HEADING, the DE abbreviation and IS before a phrase integer below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportPageIntegers",
+    "switches": "ExceedsThreeSignificantDigits85 (DialectLevel < 2002): integer-1 > 999 refused at 85; 9999 at 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The defaults themselves (BindReportDescriptionClauses lines 259-265) have no edition arm; at 85 the LAST CONTROL HEADING default reduces to LAST DETAIL / FOOTING / integer-1, which is 1985's integer-4 per GR2c-e, and GroupLimits bounds CH by it.",
+  "behaviour-differs-by-edition": "yes: 1985 has no LAST CONTROL HEADING phrase (refused) and integer-1 is limited to three digits; the defaults for the five 1985 integers are the same code at every edition",
+  "witnesses-cover": "part: l1c20 covers a, b with HEADING = 1, c, d, e via body-group fit; b with HEADING written, and the page footing's region after a defaulted integer-5, were not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/13.18.39-PAGE/l1c20_page_clause_defaults.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's golden (arms a-e)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2pg.cob",
+    "printed": "MATCH: R1 1/003 1/004 1/005 2/003 2/004; R2 1/002 1/003 1/004; R3 1/001..1/004 2/001 2/002",
+    "expected": "R1 HEADING 3 FOOTING 5: FIRST DETAIL = 3, LAST DETAIL = 5; R2 PAGE LIMITS ARE 999: HEADING 1; R3 PAGE 4: all defaults (LD = FOOTING = 4)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2pf.cob",
+    "printed": "page 1: D on 1-4, PF on line 5; FF; page 2: D on 1, PF on 5",
+    "expected": "LAST DETAIL 4, FOOTING omitted -> integer-5 = 4: PF LINE 5 is legal and placed there"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2pf4.cob",
+    "printed": "error COBOL2199: the absolute line LINE 4 of page footing report group 'PF1' lies above the upper limit 5",
+    "expected": "PF region is integer-5 + 1 = 5 to integer-1 (§1985:XIII.3.8.3 SR8e), so LINE 4 refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2lch.cob",
+    "printed": "error COBOL0900: a 2002 form of the PAGE clause ... the LAST CONTROL HEADING phrase",
+    "expected": "refused: §1985:XIII.3.8.2 has no LAST CONTROL HEADING"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2big.cob",
+    "printed": "error COBOL2744: the page limit 1000 has more than three significant digits",
+    "expected": "refused (§1985:XIII.3.8.3 SR2); r2max.cob PAGE LIMIT 999 compiles and runs: R1 1/001 1/002 1/003"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2order.cob",
+    "printed": "error COBOL2744: the HEADING integer 5 is greater than the FIRST DETAIL integer 3",
+    "expected": "refused (§1985:XIII.3.8.3 SR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r2h0.cob",
+    "printed": "error COBOL2386: HEADING 0: the integer operand 0 shall be nonzero",
+    "expected": "refused (§1985:XIII.3.8.3 SR3)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.4 GR2",
+    "check": "OK  §1985:XIII.3.8.4 GR2  (3.8.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:XIII.3.8.4 GR2e",
+    "check": "OK  §1985:XIII.3.8.4 GR2e  (3.8.4 General Rules)  the text is in GR2e"
+   }
+  ],
+  "notes": "The defaults are computed once in BindReportDescriptionClauses and emitted into the runtime's constructor. The order and range diagnostics cite §2023 clause numbers and name LAST CONTROL HEADING even at 85, which is only a wording matter.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.8.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Attacked the consequences of each default at --std 85 (refute-1985-039): p2ph (PAGE 10 HEADING 2, FIRST DETAIL omitted -> integer-3 = integer-2 = 2, so the PH region 2..1 is empty, SR8b) -> PH LINE 2 refused COBOL2199; p2pf and p2rf (LAST DETAIL and FOOTING omitted -> integer-4 = integer-5 = integer-1 = 10, so the PF/RF region 11..10 is empty, SR8e/f) -> PF LINE 10 and a relative RF both refused COBOL2199; p2cf (LAST DETAIL 6 alone -> integer-5 = 6, GR2e) -> CF LINE 7 refused, p2cf6 CF LINE 6 compiles and prints on line 6 of the last page; p2de (FOOTING 8 alone -> integer-4 = 8, GR2d) -> DE LINE 8 legal, presented on line 8 of each page; p2run (PAGE 6 HEADING 2, nothing else) -> details on lines 2-6, five per page, form feed after each fifth. Reader already refused LAST CONTROL HEADING (r2lch) and integer-1 > 999. cite.py: OK §1985:XIII.3.8.4 GR2c 'the value of integer-1 is given to both integer-4 and integer-5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

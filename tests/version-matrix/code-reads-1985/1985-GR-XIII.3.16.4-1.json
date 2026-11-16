@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-XIII.3.16.4-1",
+ "rule-digest": "d56758e86d42",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-146",
+  "sources": {
+   "reader": "56366494aea5ec4e06ce1598d7ce21691365b3bac4e45db00a320a0e89505f44",
+   "refuter": "db4bfb5fe13af4f720492392954309b2223394c15d7a072b8045b8ef690e7e5b"
+  },
+  "imported": {
+   "reader": "fc58c742d7f515058638af3552a61a40f6ba5313865aa4425f53e4b7bd7fd9f4",
+   "refuter": "e8062d32161b48f5aaa306c2d7b96e03b8a9be6e16f05e9be13abf64a86034a0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.16.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the page positioning a NEXT GROUP clause specifies takes effect only after the last line of its own report group is presented: the group itself prints where its LINE clauses put it, and only the following group sees the moved LINE-COUNTER.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportNextGroupClause",
+    "switches": "WITH RESET on NEXT GROUP NEXT PAGE is a 2002 construct, refused at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (from 2002): at 85 a saved absolute next-group integer survives into TERMINATE's control footings",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ApplyNextGroup and its three call sites have no edition test (grep of ReportWriter.cs for Edition|Dialect); the only NEXT GROUP edition arm is TerminateCore's DialectBehavior.",
+  "behaviour-differs-by-edition": "no for when the positioning applies (after the group, at every edition); the TERMINATE save-location arm differs (see GR2).",
+  "witnesses-cover": "part: g85_bf36_03 covers relative NEXT GROUP on CFs, an RH absolute and a PF absolute; absolute, saved and NEXT PAGE forms on body groups are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/ng_paged.cob",
+    "printed": "D1 (NEXT GROUP 10) printed on line 4, then LC 10; D2 (NEXT GROUP PLUS 5) on 11, then LC 16; D3 (NEXT GROUP NEXT PAGE) on 17, then LC 20; PF (NEXT GROUP 22) on 21, then RF on 23",
+    "expected": "each group prints at its own LINE position; NEXT GROUP moves only LINE-COUNTER afterwards"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_ng_reset.cob",
+    "printed": "error COBOL0900: the WITH RESET phrase of NEXT GROUP NEXT PAGE ... requires COBOL-2002 (accepted at 2023)",
+    "expected": "refused at 85: §1985:XIII.3.16.2 has no WITH RESET"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-146/src/c_ng_plus_sign.cob",
+    "printed": "error COBOL0900: the '+' symbol for PLUS ... requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.4 GR1",
+    "check": "OK  §1985:XIII.3.16.4 GR1  (3.16.4 General Rules)  the text is in GR1 (\"takes place after the presentation of the report group in which the clause appears\")"
+   }
+  ],
+  "notes": "ApplyNextGroup is called only after PresentLines returns, in each of the three presentation methods that can carry the clause. Probes confirm each group prints at its LINE position before LINE-COUNTER moves. g85_bf36_03 matches its golden.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.16.4-1",
+  "refutation": "UPHELD",
+  "classes": "e,c",
+  "evidence": "ngcf (--std 85): CH-1 NEXT GROUP 8 printed on line 3 (its own LINE PLUS 1 from FIRST DETAIL), and the following DE printed on 9. CF-2 NEXT GROUP PLUS 3 printed on 11, and the next DE printed on 15. CH-1 NEXT GROUP 8 at line 18 printed there and then set LC to FOOTING with the save. PF NEXT GROUP PLUS 2 printed on 26, and RF followed on 29. Each group printed where its LINE clauses put it, and only the next group saw the moved LINE-COUNTER. cite.py: OK §1985:XIII.3.16.4 GR1 (\"takes place after the presentation of the report group\").",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

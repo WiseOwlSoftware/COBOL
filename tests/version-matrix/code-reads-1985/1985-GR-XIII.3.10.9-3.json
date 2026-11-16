@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-3",
+ "rule-digest": "aa6ecfacbded",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-036",
+  "sources": {
+   "reader": "a8cd36742693e897f4ab17c78d39d8e2b59bc1a271a69b1141dc57a86556cb87",
+   "refuter": "3eb1ee443fcc50694c7ce72e44016ac954866b635f8bd2cf935cc173b0b2cb78"
+  },
+  "imported": {
+   "reader": "76420edb36b96ab6ce87d2450661aeaf6edd68a3dcd7affe4f99cf3e3afccd04",
+   "refuter": "9ee609eda659c4739aa5d91120b822f3a0885aff141614b8d0e2d8ad909ffd9d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.9-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the first print line of a page footing is presented on the integer of its (absolute) LINE NUMBER clause (rule 3a), and a page footing with no LINE NUMBER clause is not presented (rule 3b).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLines; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses",
+    "switches": "Edition.DialectLevel < 2002 refuses a relative first LINE clause in a page footing (XIII.3.15.3 SR9), so 1985 only reaches the absolute arm of FirstLineTarget",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectBehavior in ReportWriter.cs: FirstLineTarget's absolute arm (integer-1) has no edition test",
+  "behaviour-differs-by-edition": "yes: 1985 has only Table 4 rows A R and blank (no relative-first PF); later editions add FOOTING + integer-2 for a relative first line",
+  "witnesses-cover": "part: pb484 covers line placement, pb1247 an unpaged report; neither a nonprintable page footing",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/p1_ph_lc.cob",
+    "printed": "PF LINE 11 printed on line 11, LINE PLUS 1 on 12",
+    "expected": "11 then 12 (3a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/l8_nonprintable_ph_pf.cob",
+    "printed": "no PF line in the file (only RA on 3 and the detail on 5)",
+    "expected": "PF not presented (3b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r7_pf_abs_on_footing.cob",
+    "printed": "COBOL2199 absolute LINE 9 of page footing lies above the upper limit 10",
+    "expected": "refused: PF begins after FOOTING integer-5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-036/r6_pf_rel_first.cob",
+    "printed": "COBOL2199 ... (ISO §1985:XIII.3.15.3 SR9)",
+    "expected": "refused at 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.9 GR3a",
+    "check": "OK  §1985:XIII.3.10.9 GR3a  (3.10.9 Page Footing Presentation Rules)  the text is in GR3a"
+   },
+   {
+    "cite": "§1985:XIII.3.10.9 GR3b",
+    "check": "OK  §1985:XIII.3.10.9 GR3b  (3.10.9 Page Footing Presentation Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:XIII.3.15.3 SR9",
+    "check": "OK  §1985:XIII.3.15.3 SR9  (3.15.3 Syntax Rules)  the text is in SR9"
+   }
+  ],
+  "notes": "FirstLineTarget returns integer-1 for an absolute first line of every group type; BeginGroup ends a page footing with no present line before any output. The 1985-only relative-first refusal keeps 1985 on the absolute arm.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.9-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "g1_pf_abs_two_pages (LINE 11 written on the 01 PF entry, SOURCE LINE-COUNTER; details overflow to page 2): 'FA 11' on line 11 on both pages, so rule 3a holds for an absolute LINE on the 01 entry and on every page advance; g2_pf_two_abs: first print line on 10 (its first absolute integer). Reader's l8 covers 3b (no LINE clause: not presented) and r6 the 1985 SR9 refusal of a relative first line. Read ReportSectionBinder.cs#ScreenReportGroupLines 1239-1304 and the NEXT GROUP screen at 915: no further edition arm on the PF placement. cite.py: 'OK  §1985:XIII.3.10.9 GR3a  (3.10.9 Page Footing Presentation Rules)  the text is in GR3a'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

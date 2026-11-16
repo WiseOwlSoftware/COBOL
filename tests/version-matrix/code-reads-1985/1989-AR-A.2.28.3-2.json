@@ -1,0 +1,79 @@
+{
+ "rule-id": "1989-AR-A.2.28.3-2",
+ "rule-digest": "58f959a57791",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-170",
+  "sources": {
+   "reader": "9068f7d16290245a182e477a81ec5b4ba4a7d80cd8d843c4ce024176ee06e05a",
+   "refuter": "5cb3ba6f29ecc81323b9250fcbe87686f3e18c53e6236dc04bdbd884007a5098"
+  },
+  "imported": {
+   "reader": "655eb9deeaf8f649555566b3f2a0cb4dd0029bc20175d8508aa6cfb3717076ca",
+   "refuter": "ea66a64d8f6e5feea2ab601be0376dbcada0d3f29048cfd477957596769cca68"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.28.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 argument-2 of MOD must not be zero; a reference whose argument-2 is zero at the time of reference has an undefined result (§1989:A.2.2), so the compiler must evaluate every nonzero divisor correctly (literal, item, computed, negative) and may do anything for a zero divisor.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ModScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#ModZeroDivisor; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#ModDec; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError",
+    "switches": "ArgumentFunctionChecking (set only by a >>TURN EC-ARGUMENT-FUNCTION statement guard); no TURN directive exists at 85, so the flag stays off and the default result 0 is returned",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|DialectBehavior over CobolIntrinsics.Exact.cs, CobolIntrinsics.Dec.cs and the MOD arms of IntrinsicRenderer.cs: none; the only switch is the runtime checking flag, which is the default (off) arm at every edition unless TURN is written",
+  "behaviour-differs-by-edition": "no: a zero divisor yields 0 at 85 and at 2023 (2023 adds EC-ARGUMENT-FUNCTION under checking, which 85 lacks)",
+  "witnesses-cover": "part: g85_bf41_01 keeps argument-2 nonzero (literal, negative literal, computed divisor); no witness runs a zero divisor, which the rule leaves undefined",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/mz_lit.cob",
+    "printed": "compiles; Z1= 00000",
+    "expected": "undefined result (§1989:A.2.2); no diagnostic required for literal 0"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/mz_run.cob",
+    "printed": "NO SIZE ERROR / Z2= 00000 / Z3= 00000 / Z4= 00000 / AFTER",
+    "expected": "undefined result for item 0, computed 0 (D3 - 3) and ZERO; execution may continue"
+   },
+   {
+    "class": "f,a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/mod_ok.cob",
+    "printed": "A1..A8 MATCH, incl. MOD (BIG NBIG) = 0 with 18-digit operands, MOD (T(1) T(N)) over an ODO table = 23, MOD (74, -4) = -2",
+    "expected": "§1989:A.2.28.4 RV1 floored modulus for nonzero divisors"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.28.3 AR2",
+    "check": "OK  §1989:A.2.28.3 AR2  (2.28.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2 AR4",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4 [do not have values within the permissible range, then the result of such a reference is undefined]"
+   }
+  ],
+  "notes": "The 1985 text makes a zero argument-2 an out-of-range value whose reference result is undefined, so the compiler's 0 with continued execution is a permitted result; nonzero divisors of every shape probed are exact. A literal zero divisor compiles without a diagnostic at both 85 and 2023; a warning would help but is not required.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "mz_lit.cob compiles and prints Z1= 00000; mz_run.cob prints NO SIZE ERROR and zeros",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.28.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,f",
+  "evidence": "Rule read whole (§1989:A.2.28.3 AR2 'The value of argument-2 must not be zero'); A.2.2 makes an out-of-range argument value a reference whose result is undefined, so no compile-time refusal and no particular runtime value is required. Runtime has four carriers (ModScaled, ModDec, ModExact, ModWide) and each returns ModZeroDivisor() on a zero divisor. Probe refute-1985-170/mod_ctx.cob at --std 85: the A.2.28.4 RV2 sign table (11,5)=1 (-11,5)=4 (11,-5)=-4 (-11,-5)=-1 on DISPLAY/COMP items, 18-digit MOD(-999999999999999999 100000000000000007)=71 and MOD(BIG -7)=0, MOD inside a division (1.3333) and as SQRT argument (2.0000), in an IF relation (Y) all match; zero divisor from a COMP-3 item and a literal 0 in COMPUTE, inside a division, inside SQRT, in an IF and with ON SIZE ERROR all yield 0 and execution continues (Z1..Z5, END). Undefined result admits that. cite.py: 'OK  §1989:A.2.28.3 AR2  (2.28.3 Arguments)  the text is in AR2'; 'OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4' [then the result of such a reference is undefined].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

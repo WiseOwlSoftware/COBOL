@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-VII.2.13.3-2",
+ "rule-digest": "2ab31be718ed",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-061",
+  "sources": {
+   "reader": "19a1b68739c8a501f314c55dcb2bf4acfc3981c694766c8c8858499010645818",
+   "refuter": "c924c9b72f38a1cb5d858b2aa79df0b05d2e78c6c9da2886301456a06ac8265b"
+  },
+  "imported": {
+   "reader": "18b0f05dd524a596fea8f91e93c3500defe96b4efeb21e86cfa4cc58a1acb87f",
+   "refuter": "02f81e024bb41a62b869b3546f7016721d5635de8e66301e5e5fa2625d9e792c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.13.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file-name in a SAME AREA or SAME RECORD AREA clause, in either the file-name-1 or a file-name-2 position, must not name a file whose FD carries IS EXTERNAL; such an operand must be refused, and non-external files in the same program are admitted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands",
+  "edition-consulted": [],
+  "edition-search": "Same search as SR1: ScreenSameOperands tests file.IsExternal with no edition switch; the only edition test in the file is SameOccurrenceRule's report-file row.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one external operand; not exercised: external in the file-name-1 position and in SAME RECORD AREA",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r6ref.cob",
+    "printed": "COBOL2738 SAME AREA: file 'FE' references an external file connector (file-name-1 position); COBOL2738 SAME RECORD AREA: file 'FF' references an external file connector (file-name-2 position)",
+    "expected": "both refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r56ok.cob",
+    "printed": "F2R=ABCD / ABCD (exit 0)",
+    "expected": "an EXTERNAL file outside every SAME clause is unaffected; the non-external SAME clauses are accepted and share the record area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.3 SR2",
+    "check": "OK  §1985:VII.2.13.3 SR2  (2.13.3 Syntax Rules)  the text is in SR2 [may not reference an external file connector]"
+   }
+  ],
+  "notes": "The external test runs on every resolved operand of every SAME format, so both positions and both the AREA and RECORD AREA forms are refused at --std 85 with COBOL2738.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.13.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "q6ref.cob (--compile-only): FD IS GLOBAL IS EXTERNAL in SAME RECORD AREA file-name-1 position and FD IS EXTERNAL IS GLOBAL in SAME AREA file-name-2 position both draw COBOL2738 'references an external file connector', so the clause order inside the FD and the GLOBAL combination do not hide the external flag. ScreenSameOperands tests file.IsExternal on every resolved operand with no edition test (read). cite.py: OK §1985:VII.2.13.3 SR2 [may not reference an external file connector].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

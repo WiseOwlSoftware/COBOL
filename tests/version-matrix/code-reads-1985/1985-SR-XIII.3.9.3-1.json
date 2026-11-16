@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-XIII.3.9.3-1",
+ "rule-digest": "25c9c757d76b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-079",
+  "sources": {
+   "reader": "84ee836935de360f1eecdc37b4694460b2d77bb584e189d7b954072ca0835ad1",
+   "refuter": "624b2ffc5ee40fd3c1abf6988b52e3c963e8fdda830171f94e1ea14e6f070f0a"
+  },
+  "imported": {
+   "reader": "527bc592fe54c986c42c7d90b27d2e42e88ee36fd8dea88bc82f5e6a892aac34",
+   "refuter": "b96406881361b6e80275f75223f3cc0bf8269cc7784d861b8cdfd31047f60212"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.9.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse any report group description entry (an entry carrying a TYPE, LINE NUMBER, NEXT GROUP, COLUMN NUMBER, SOURCE, SUM, VALUE-in-report-sense or GROUP INDICATE clause of the three §1985:XIII.3.9.2 formats) written in the FILE, WORKING-STORAGE or LINKAGE SECTION, while an ordinary data description entry there stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#VisitUnrecognizedDataClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#Refuse",
+  "edition-consulted": [
+   {
+    "site": "ReservedWords (the COBOL-85 reserved-word table, diagnostic COBOL0901)",
+    "switches": "LINE is reserved at 85, so a level entry named LINE in WORKING-STORAGE is refused as a reserved word; secondary refusal only",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The placement itself is structural: report group entries are reachable only through reportSection > reportDescriptionEntry > reportGroupEntry, and a report-only clause in a data description entry falls to the unrecognizedDataClause error production refused by ClosedFormatPass.Refuse at every edition; grepped ClosedFormatPass and the grammar rules for DialectLevel / EditionContext and found no switch on this path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c27 covers a whole TYPE DETAIL group in WORKING-STORAGE; single report clauses (LINE, COLUMN, SOURCE, SUM, GROUP INDICATE, NEXT GROUP) in a data entry and the FILE and LINKAGE SECTIONs are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q1.cob",
+    "printed": "COBOL5506 unexpected 'DE' (TYPE DE group in WORKING-STORAGE), then COBOL0901/COBOL1941",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q2.cob",
+    "printed": "COBOL1941 'LINE' is not a clause of the data description entry for 'WY1'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q3.cob",
+    "printed": "COBOL1941 'COLUMN' is not a clause of the data description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q4.cob",
+    "printed": "COBOL1941 'SOURCE' is not a clause of the data description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q5.cob",
+    "printed": "COBOL1941 'SUM' is not a clause of the data description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q6.cob",
+    "printed": "COBOL1941 'GROUP' is not a clause of the data description entry",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q7.cob",
+    "printed": "COBOL1941 cannot parse construct near 'NEXT' (NEXT GROUP in WORKING-STORAGE)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q8.cob",
+    "printed": "COBOL5506 unexpected 'PAGE' (TYPE PAGE HEADING as an FD record)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q9.cob",
+    "printed": "COBOL5506 unexpected 'RH' (TYPE RH LINE 1 in LINKAGE)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-079/q10.cob",
+    "printed": "DONE (plain group with VALUE in WORKING-STORAGE)",
+    "expected": "accepted: control"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.9.3 SR1",
+    "check": "OK  §1985:XIII.3.9.3 SR1  (3.9.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "Every report-only clause outside the Report Section is refused at 85 in all three other data sections; the refusal is a parse or closed-format diagnostic rather than one naming this rule, and COBOL5506's hint 'expected a user-defined word or TO' names the 2002 TYPE TO form, which does not exist at 85 (a wording blemish, the program is still refused).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.9.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Attack: the reader probed FILE, WORKING-STORAGE and LINKAGE only; 1985 also has the COMMUNICATION SECTION (§1985:XIV.2.1), whose CD record description entries are a data section the rule also excludes. Probes: r1 (CD record 01 CREC TYPE DE LINE 1) -> COBOL5506 unexpected 'DE', exit 65; r2 (CD record items with LINE 2 / COLUMN 5 / SOURCE WA) -> COBOL1941 for each clause; r8 (87-char CD record with LINE 1 COLUMN 1 SOURCE) -> COBOL1941 LINE + COBOL0901; r9 (TYPE DETAIL, GROUP INDICATE in a CD record) -> COBOL5506 + COBOL1941. All refused. Control r3 (CD record of 12 chars) is refused only by the CD SR5 87-character rule, not by a report-clause refusal. cite.py: OK §1985:XIII.3.9.3 SR1 'can appear only in the Report Section'; OK §1985:XIV.2.1 'The Communication Section is located in the Data Division'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

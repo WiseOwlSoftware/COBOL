@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-VI.6.6.3-2",
+ "rule-digest": "5bf79201b988",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-159",
+  "sources": {
+   "reader": "c2acb29deedbe786d1a7cfbf28014a4566b1f9d5fbab9b2095e2b9c1666dfbaf",
+   "refuter": "bf06085bd46da9670c40a16d8407146a1155863d6a0389247df09c0556e12861"
+  },
+  "imported": {
+   "reader": "2b5b5aafdcccf0393ad5ed69a4d512a98c4e6b362ff142cf795d3c907c877ff9",
+   "refuter": "aa2e41f2c8afbe33797d70f10b4926bf5f7d401bc227cb9da44ef0b04d26bb01"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every literal in ADD formats 1 and 2 (literal-1 before TO, literal-2 after TO or as the last addend when TO is omitted) must be a numeric literal or, by §1985:IV figurative-constant exception (1), the figurative constant ZERO (ALL being redundant there); nonnumeric literals and every other figurative constant, including ALL literal and a symbolic character, are refused, as are post-1985 literal forms (hexadecimal, floating-point, more than 18 digits).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NumLiteral; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericInNumericContext; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ZeroOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateAllZeroAsArithmeticOperand",
+    "switches": "ALL ZERO as an arithmetic operand: admitted at 1985 (ALL redundant), COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#ScreenDigitCapacity",
+    "switches": "numeric literal digit cap: 18 at 1985, 31 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+    "switches": "floating-point numeric literal refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen",
+    "switches": "hexadecimal alphanumeric literal refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "read NonNumericInNumericContext (the one nonnumeric-literal to numeric-context reading, no edition test except ZeroOperand's ALL gate); grep Constructs in LiteralScreen.cs for the literal-form gates",
+  "behaviour-differs-by-edition": "yes: ALL ZERO is admitted at 1985 and refused from 2002; literal forms added later (hexadecimal, floating-point, 19 to 31 digits) are refused at 1985; the refusal of nonnumeric literals and non-ZERO figuratives is the same at every edition",
+  "witnesses-cover": "part: the witness covers one nonnumeric literal in format 1; not exercised: figurative constants other than ZERO, ALL literal, a symbolic character, literal-2 of format 2, the admitted ZERO/ALL ZERO forms, signed and decimal literals, the 18-digit edge and later literal forms",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/add-lit-bad.cob",
+    "printed": "error COBOL0844 at each of the 11 statements: \"123\", SPACE, HIGH-VALUE, QUOTE, LOW-VALUES, ALL \"1\", symbolic SYMA, format 2 addend \"2\", format 2 literal-2 \"2\" after TO, SPACES, ALL \"3\" after TO",
+    "expected": "each is not a numeric literal and not ZERO: refused"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/add-lit-ok.cob",
+    "printed": "F1 +0003.25; F1Z +0003.25; F1AZ +0003.25; F2    10.00; F2N -   7.25; NSE; F18 +999999999999999999; SE2; F18B +999999999999999999",
+    "expected": "signed/decimal literals sum to 3.25; ZERO forms and ALL ZERO add 0; format 2 with literal-2 ZERO and .25 into an edited receiver; 18-digit literal accepted; overflow takes SIZE ERROR and leaves M unchanged"
+   },
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-159/add-lit-later.cob",
+    "printed": "COBOL0900 hexadecimal literal requires COBOL-2002 (plus COBOL0844); COBOL0900 floating-point literal requires COBOL-2002; COBOL0802 19-digit literal (and COBOL0805 composite > 18)",
+    "expected": "post-1985 literal forms refused at --std 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.3 SR2",
+    "check": "OK  §1985:VI.6.6.3 SR2  (6.6.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.26.3 SR2",
+    "check": "OK  §1985:VI.6.26.3 SR2  (6.26.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.2.3 SRL3.1",
+    "check": "OK  §1985:IV.4.2.2.2.3 SRL3.1  (4.2.2.2.3 Figurative Constant Values)  the text is in SRL3.1"
+   }
+  ],
+  "notes": "Every ADD literal position goes through ExpressionBinder's one numeric-context literal reading, which admits a numeric literal or ZERO and refuses every other nonnumeric or figurative form with COBOL0844 in both formats. ZERO's admission rests on §1985:IV.4.2.2.2.3 SRL3.1 (\"the only figurative constant permitted is ZERO\"). Diagnostics at --std 85 cite §2023 clauses, which is cosmetic.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "refute-1985-159/add1.cob at --std 85 under DECIMAL-POINT IS COMMA (runs/add1-001): 'ADD 1,5' 1,50; 'ADD 1, 2' (comma-space separator) 4,50; ',25 -0,75 +1' 5,00; format 2 with TO omitted 'ADD ZEROES ALL ZEROS 2 GIVING Y' 2,00; 18-digit fraction ',000000000000000001' added; leading-zero 18-digit literal 000000000000000003 plus 0002 = 5,00 -- all as the 1985 literal rules give. Refusals: a 19-digit literal written with leading zeros COBOL0802 (+COBOL0805) (add-bad1); 'ALL 0' (ALL with a numeric literal) COBOL5506 (add-bad2); '1.5' under DECIMAL-POINT IS COMMA COBOL0895 (add-bad3); ALL ZERO as a GIVING receiver COBOL5506 (add-bad4/5). cite.py: OK §1985:VI.6.6.3 SR2 'Each literal must be a numeric literal'; OK §1985:IV.4.2.2.2.3 SRL3.1 'the only figurative constant permitted is ZERO'; OK §1985:IV.4.2.2.2.3 GR6 'The literal must be a nonnumeric literal' (ALL literal). Format 2's TO is not underlined in the 1985 format, so TO-omitted is a 1985 form and correctly admitted.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-12",
+ "rule-digest": "a14555a8f3af",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-158",
+  "sources": {
+   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
+   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+  },
+  "imported": {
+   "reader": "a5d1cb3d33c371adf78e227e0c7f31f7930c85f0e81f02fd861ebc843f6cdcc9",
+   "refuter": "14470ec78b863699dd3f33600c7ff9ef43e5173cc2702971ca1e0ec2eeea592b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an out-of-line format 4 PERFORM must accept at least six AFTER phrases (identifiers or index-names, TEST BEFORE or TEST AFTER) and execute them by the 1985 general rules; more than six is implementor latitude, and the in-line form, which SR2 forbids an AFTER phrase, is not a host for them.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVarying; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVaryingAfter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVarying",
+    "switches": "DialectBehavior.PerformVaryingInitInnerBeforeAugmentOuter (from 2002): at 85 the outer variable is augmented before the inner one is set (§1985:VI.6.21.4 GR10), from 2002 the inner one is set first",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformVaryingAfter",
+    "switches": "inline-perform-after-2002 refuses an AFTER phrase under an inline PERFORM below 2002 (COBOL0900); perform-varying-by-omitted-2002 refuses an omitted BY",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read BindVarying (the AFTER list is an unbounded performVaryingAfter* loop with no count limit at any edition) and the VersionConformancePass PERFORM visitors; grep of DialectBehavior in the PERFORM binder.",
+  "behaviour-differs-by-edition": "yes: with an AFTER FROM that depends on an outer variable the 1985 arm augments the outer item first (pf6a2 at 85: 3 executions, 3333333) while 2023 sets the inner item first (pf6a at 2023: 29 executions, 3222222); the number of AFTER phrases admitted is the same",
+  "witnesses-cover": "part: the witness writes exactly six AFTER phrases over identifiers with literal FROM values under TEST BEFORE; it does not exercise more than six, index-names, TEST AFTER, an AFTER FROM that depends on an outer variable (the 1985 ordering), or the in-line refusal",
+  "probes": [
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/pf6a2.cob",
+    "printed": "A6=0003 3333333  A7=0256",
+    "expected": "six AFTERs each FROM the next-outer item: by §1985:VI.6.21.4 GR10 (outer augmented, inner set to the new FROM, an AFTER item re-cycled only when its preceding item is augmented) 3 executions ending all 3; seven AFTERs with TEST AFTER and two index-names: 2^8 = 256"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/pf6b2.cob",
+    "printed": "COBOL0900: an AFTER phrase in an inline PERFORM requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "§1985:VI.6.21.3 SR2: in format 4 with procedure-name-1 omitted, AFTER must not be specified"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR12",
+    "check": "OK  §1985:VI.6.21.3 SR12  (6.21.3 Syntax Rules)  the text is in SR12"
+   },
+   {
+    "cite": "§1985:VI.6.21.3 SR2",
+    "check": "OK  §1985:VI.6.21.3 SR2  (6.21.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "The grammar's performVaryingAfter* and BindVarying's level list have no upper bound, so six, seven or more AFTER phrases bind and run; the 1985 execution order comes from the PerformVaryingInitInnerBeforeAugmentOuter dialect behavior being off at 85. The expected 3 for the dependent-FROM case was traced by hand from the GR10 text and the closing sentence that an AFTER item cycles each time the preceding item is augmented; the GR10 ordering itself belongs to the GR rows (kb/Work PB5101 per the code comment).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-12",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "Read §1985:VI.6.21.3 SR2, SR7, SR8, SR12 and VI.6.21.4 GR10d. pa1.cob at --std 85: out-of-line VARYING plus six AFTER phrases mixing an index-name varied FROM an index-name (X2 FROM X0), a negative BY identifier (BY M1 = -1), an index-name FROM a literal, and an AFTER whose FROM and UNTIL depend on the outermost item (I6 FROM I1 UNTIL I6 > I1 + 1): N=130, which is the 1985 trace (64 for I1=1; for I1=2 the first I6 cycle starts at the value set while I1 was 1, giving 3+15*2 I6 values times 2 = 66); --std 2023 also 130, as expected since the dependent FROM is not on the immediately outer item. Index-name inside an arithmetic expression refused COBOL1637 (outside this rule). cite.py: OK §1985:VI.6.21.3 SR12; OK §1985:VI.6.21.4 GR10d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-XIII.3.19.3-5",
+ "rule-digest": "799b65514588",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-075",
+  "sources": {
+   "reader": "d8493c73637a810f148e57b0d0c2073d850ef6647a06562cd472bafed9cd873a",
+   "refuter": "e56e979c1687f077d2f941eb6359db2ba212f08c10c8f1680c425b4ecd12ce6b"
+  },
+  "imported": {
+   "reader": "7d0c21f58c95b66c85b8de9b69e890c3979fbd61116f522e310498872cbfa0f8",
+   "refuter": "5625aa83090e6e5a4fb1811336195d2842d5bd49e2a2d43fc7a3600a14674c58"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.19.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sum counter's qualifiers are the data-names of the report group entries above it, with the report-name as the outermost permissible qualifier, wherever the sum counter is referenced (the procedure division, a SOURCE or SUM clause, and the 1985 data-division clause operand). A qualifier written beyond the report-name, such as the report file's file-name, or one that is not an ancestor, must be refused, and qualification by report-name must resolve a homonym.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#SumCountersNamed; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#SumCounterFamilyFor; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#SumCounterOperand85",
+    "switches": "at 85 only (DialectLevel >= 2002 returns null) a sum counter may be the operand of a data-division clause, such as an OCCURS DEPENDING ON object; it resolves through the same SumCountersNamed/QualifierWalk lookup",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel / Edition in CounterResolver.cs#SumCounterFamilyFor, ReportScope.cs#SumCountersNamed and DataBinder.QualifierWalk: none. The qualifier walk is one code path for every edition",
+  "behaviour-differs-by-edition": "yes: at 85 a sum counter may also be named by a data-division clause (SumCounterOperand85), and that 85-only arm uses the same qualifier walk; the qualifier rule itself does not differ",
+  "witnesses-cover": "part: the witnesses cover general qualification and a report group qualified by report-name, not a sum counter qualified beyond its report-name or a homonym across two reports",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-ok.cob",
+    "printed": "'RPT 0010' 'CL1 CF1 RPT 0010' 'CF2 0005' 'RPT2 0005' (run q-ok-001)",
+    "expected": "TOT OF RPT, TOT OF CL1 OF CF1 OF RPT, TOT OF CF2 and TOT IN RPT2 all resolve, each to its own report's counter"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-file.cob",
+    "printed": "COBOL2145 'TOT OF RPT OF PRTF': none is subordinate to the qualifiers written",
+    "expected": "refused: a qualifier above the report-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-file2.cob",
+    "printed": "COBOL2145 'TOT OF PRTF'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-amb.cob",
+    "printed": "COBOL2145 'TOT': ambiguous, 2 entries establish a sum counter named 'TOT'",
+    "expected": "refused: unqualified homonym (qualification needed, report-name suffices)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-wrong.cob",
+    "printed": "COBOL2145 'TOT OF CF2 OF RPT'",
+    "expected": "refused: CF2 is in RPT2"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-sum.cob",
+    "printed": "SUM TOTK OF CFK OF RPT and SUM TOTK IN RPT roll 0010, SOURCE TOTK OF RPT 0000 after the CFK reset (run q-sum-001)",
+    "expected": "qualified rolled sums accepted: 10, 10; TOTK reset after its own group is presented"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-sumbad.cob",
+    "printed": "COBOL2730 SUM addend 'TOTK IN RPT OF PRTF' names no entry of the report section that carries a value",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-srcbad.cob",
+    "printed": "COBOL2145 'TOTK OF RPT OF PRTF'",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-odo.cob",
+    "printed": "85-only arm: OCCURS 1 TO 9 DEPENDING ON TOT OF RPT runs, '[ZZZZ]' with TOT = 4 (run q-odo-001)",
+    "expected": "accepted at 85 (the implementation's 85 reading, kb/Work PB5310)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-075/src/q-odobad.cob",
+    "printed": "COBOL0851 OCCURS DEPENDING ON 'TOT OF RPT OF PRTF': data-name-1 is not defined under the given qualifiers",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.3 SR5",
+    "check": "OK  §1985:XIII.3.19.3 SR5  (3.19.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "One qualifier walk (DataBinder.QualifierWalk, with the report-name accepted only as the last qualifier) serves the procedure division, the SOURCE and SUM clauses and the 85-only data-division operand. Every qualifier beyond the report-name is refused, and report-name qualification resolves the cross-report homonym. The SUM-clause refusal (COBOL2730) words the error as 'names no entry', which is accurate if less specific.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.19.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read DataBinder.QualifierWalk and ReportScope.SumCountersNamed path as the reader named; no edition test on the walk. Probes at --std 85 built from the reader q-ok.cob (two reports each with sum counter TOT): r-qorder.cob MOVE TOT OF RPT OF CF1 (report-name not outermost) -> COBOL2145 (r-qorder-001); r-qws.cob MOVE TOT OF WS-OUT (a storage item as qualifier) -> COBOL2145 (r-qws-001); r-qcross.cob MOVE TOT OF CF1 OF RPT2 (group of RPT under report-name RPT2) -> COBOL2145 (r-qcross-001). With the reader qualifier-above-report-name refusals and the accepted forms, nothing escapes. cite.py: OK  §1985:XIII.3.19.3 SR5  (3.19.3 Syntax Rules)  the text is in SR5",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

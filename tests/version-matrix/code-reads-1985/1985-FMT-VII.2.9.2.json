@@ -1,0 +1,171 @@
+{
+ "rule-id": "1985-FMT-VII.2.9.2",
+ "rule-digest": "82a6e29e6dfd",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-002",
+  "sources": {
+   "reader": "b0e6d8ba59e5e93a5a02cf4c1257b21348190cb94cafef1c08994c368f793594",
+   "refuter": "1b8643170d13b1e11aaae7e09151deeab16da3bcb67e4f2b7fcb310ee921d082"
+  },
+  "imported": {
+   "reader": "ad8a86070fa4b5a597438ec7c63ed6813c6a0df4fa4540d11f9eaf88c928bd84",
+   "refuter": "82e5769bf85fa0b74de3e4c970515da219760bb58b617376ee5d2acb4508f0b4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VII.2.9.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept RESERVE integer-1 [AREA | AREAS] in the file control entry, integer-1 being an unsigned nonzero integer LITERAL (§1985:III.2: no data item, no sign, no zero, and no constant-name exists in 1985), and refuse a missing integer, a zero, signed, decimal, nonnumeric or figurative operand, a data-name, and the 1974 NO/ALTERNATE forms; the witness covers the accepted forms only.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#fileReserveClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#integerOperand; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.Slots; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#IntegerOperandValue; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantIntegerOperand",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#ConstantNamesExist",
+    "switches": "ConstructRegistry.IsAvailable(Constructs.ConstantEntry2002): at 85 a word in the integer-1 position is refused as 'not an integer literal ... COBOL-85 has no constant-name'; from 2002 an integer constant-name is admitted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.Classify",
+    "switches": "the slot's zero permission at the dialect level (Nonzero at every edition for RESERVE)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules.ZeroMessage",
+    "switches": "the zero refusal cites §1985:III.2 below 2002, §2023:5.5 1) from 2002 (message only)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep RESERVE in VersionConformancePass*.cs and FileControlBinder*.cs; followed integerOperand into ConstantEntryBinder and IntegerOperandPass; fileReserveClause grammar has no predicate.",
+  "behaviour-differs-by-edition": "yes: at 85 a constant-name cannot stand for integer-1 (refused); from 2002 an integer constant-name can. The literal forms behave the same.",
+  "witnesses-cover": "part: the witness exercises RESERVE n, n AREA, n AREAS; the refusal half (zero, signed, decimal, word, nonnumeric, 1974 forms) and the relative/indexed organizations are not exercised by it",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_seq.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "RESERVE 2 AREAS accepted on a sequential file; the file runs (DECL is the declarative on the read past end)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_seq1.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "RESERVE 1 AREA accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_seqbare.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "RESERVE 3 (AREA/AREAS omitted) accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_rel.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "accepted on a relative file"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_idx.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "accepted on an indexed file"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_big.cob",
+    "printed": "R:ABCD DECL",
+    "expected": "RESERVE 99999 AREAS accepted (within the documented 524,287 implementor limit)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_zero.cob",
+    "printed": "error COBOL2386: RESERVE 0 AREAS: the integer operand 0 shall be nonzero — §1985:III.2",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_neg.cob",
+    "printed": "error COBOL0312/COBOL1970: unexpected '-'",
+    "expected": "refused: integer must not be signed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_plus.cob",
+    "printed": "error COBOL0312/COBOL1970: unexpected '+'",
+    "expected": "refused: integer must not be signed"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_dec.cob",
+    "printed": "error COBOL5506: only an integer literal is expected",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_word.cob",
+    "printed": "error COBOL1547: the integer operand 'N' is not an integer literal ... COBOL-85 has no constant-name",
+    "expected": "refused: integer must not be a data item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_lit.cob",
+    "printed": "error COBOL5506: only an integer literal is expected",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_fig.cob",
+    "printed": "error COBOL5506: unexpected 'ZERO'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_none.cob",
+    "printed": "error COBOL5506: expected an integer literal",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_noalt.cob",
+    "printed": "error COBOL5506: unexpected 'NO'",
+    "expected": "refused: the 1974 RESERVE NO ALTERNATE form is not in the 1985 format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-002/rs_r_alt.cob",
+    "printed": "error COBOL5506: unexpected 'AREAS' (after ALTERNATE)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.9.2",
+    "check": "OK  §1985:VII.2.9.2  (║2.9.2 General Format║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VII.2.9.3 GR1",
+    "check": "OK  §1985:VII.2.9.3 GR1  (║2.9.3 General Rules║)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. DEFINITIONS)  the text is in the clause"
+   }
+  ],
+  "notes": "The grammar spells the format with a superset integerOperand, and the integer-operand machinery narrows it at 85 to an unsigned nonzero integer literal, with an edition arm that refuses a word because 1985 has no constant-name. Every accepted and refused form probed matches the 1985 format and the §1985:III.2 integer definition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VII.2.9.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VII.2.9 (format and GR1 only). Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-002/: rs_lead0 (RESERVE 0002 AREAS) accepted; rs_allzero (000) refused COBOL2386 citing §1985:III.2; rs_twice refused COBOL2423; rs_both (AREA AREAS) refused COBOL1970; rs_hex (X\"02\") refused COBOL5506; rs_fn (function) refused; rs_paren ((2)) refused COBOL0312; rs_after (RESERVE between ORGANIZATION and ACCESS) accepted. (The probes' only other error is an unrelated COBOL6826 on a READ without AT END in my template.) cite.py: OK §1985:VII.2.9.3 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

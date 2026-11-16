@@ -1,0 +1,120 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.3-2",
+ "rule-digest": "59a47a60a62c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-077",
+  "sources": {
+   "reader": "3cb4542b61ada33c0173cefd725f25af623649e53faecddd82ffc6696695755c",
+   "refuter": "eab952bdb839d2f59ee994b3b51c0e6e5679aebd111e5f68b7579ced52a74a5a"
+  },
+  "imported": {
+   "reader": "cc05022a71d7a2ecb186416bc3a99a5e699149d88122835c64263627a6830cd4",
+   "refuter": "aa3d16377889dda3f58d61b229a07ed595690707624c6c5087400764ed7a5320"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "The RD's clauses (CODE, CONTROL, PAGE, and the IPC module's GLOBAL) must be accepted in any order with the same meaning; the licence is of order only, so each clause is still written at most once.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionEntry; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportDescriptionClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses; src/WiseOwl.Cobol.Compiler/Binding/UnrepeatedElements.cs#AtMostOnce",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+    "switches": "line 191: Edition.DialectLevel >= 2002 gates the CONTROL-operand uniqueness screen (another rule, not the clause order)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageSubclause",
+    "switches": "ConstructRegistry report-page-forms-2002: refuses the LAST CONTROL HEADING / DE / IS forms of the PAGE clause before 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grammar reportDescriptionClause* is order-free at every edition; AtMostOnce has no edition arm.",
+  "behaviour-differs-by-edition": "no: clause order is free at every edition; only the PAGE clause's 2002 phrases differ, which is the PAGE clause's rule",
+  "witnesses-cover": "part: pb483_control_final_first puts CONTROL after PAGE; CODE and GLOBAL placement and the other permutations are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_order_cpg.cob",
+    "printed": "PH LC=00 / CF-K LC=03 / CF-K LC=05 / CF-F LC=06 / END LC=07",
+    "expected": "same output for every order"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_order_gpc.cob",
+    "printed": "identical to sr2_order_cpg",
+    "expected": "same output"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_order_pcg.cob",
+    "printed": "identical to sr2_order_cpg",
+    "expected": "same output"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_code_first.cob",
+    "printed": "identical (CODE first)",
+    "expected": "same output"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_code_last.cob",
+    "printed": "identical (CODE last)",
+    "expected": "same output"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_dup_page.cob",
+    "printed": "COBOL2423 the PAGE clause is written 2 times",
+    "expected": "refused: the format prints each clause once"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_dup_control.cob",
+    "printed": "COBOL2423 the CONTROL clause is written 2 times",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_dup_global.cob",
+    "printed": "COBOL2423 the GLOBAL clause is written 2 times",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-077/src/sr2_lch_2002.cob (an earlier version of the file, kept in run directory sr2_lch_2002-002)",
+    "printed": "COBOL0900 a 2002 form of the PAGE clause ... the LAST CONTROL HEADING phrase requires COBOL-2002",
+    "expected": "refused at 85: §1985:XIII.3.5.2 has no LAST CONTROL HEADING"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.3 SR2",
+    "check": "OK  §1985:XIII.3.5.3 SR2  (3.5.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:X.4.4.4 GR1",
+    "check": "OK  §1985:X.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "The grammar admits the clauses in any order and the binder processes them order-independently (the PAGE defaults are applied after the loop); AtMostOnce refuses repeats. Five permutations including CODE and GLOBAL produced identical runtime output.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Three RD clause orders with all four 1985 clauses (IS GLOBAL, CODE \"AB\", CONTROL(S) FINAL WS-K, PAGE with HEADING, FIRST DETAIL, LAST DETAIL and FOOTING): sr2x_canon (GLOBAL CODE CONTROL PAGE), sr2x_pcgc (PAGE CODE GLOBAL CONTROL), sr2x_cgpc (CONTROL GLOBAL PAGE CODE). Each also GENERATEs from a contained program through the GLOBAL report. All three exit 0 and write byte-identical report files (md5 aeea8373097b3d35da4595eec6e895bd): the CODE prefix 'AB' is on every line, PH, CF and PF are placed on the right lines, and PAGE-COUNTER goes 01 then 02. So the meaning does not depend on the order, GLOBAL included (X.4.4.2 puts GLOBAL among the clauses after report-name-1). A later edition's form, the 2002 arithmetic-expression SOURCE (pc_rs_source_expr), is refused at 85 with COBOL0900. The reader's duplicate-clause refusals stand. cite.py: 'OK  §1985:XIII.3.5.3 SR2  (3.5.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:X.4.4.4 GR1 ...'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

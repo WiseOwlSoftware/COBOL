@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-XIII.3.5.6-5",
+ "rule-digest": "51a30e1ee0ff",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-038",
+  "sources": {
+   "reader": "f3b868e25767543825ae53dd3a4e4af7e83b7881dfd29be45762d6d448c0beb2",
+   "refuter": "e30ccc4e1b9ad9e6428a667465d43f8ee6c7eb14c985ef145f14d12cf4b5c867"
+  },
+  "imported": {
+   "reader": "c2ea2bb94925ea61ed38f442c11146ef6df463128aac5baa9aef6e9b82a07723",
+   "refuter": "0731d3e84d43e20799c3fabe57e5dac6109cf9af808d80d85eda769576427d16"
+  }
+ },
+ "reader": {
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-XIII.3.5.6-5",
+  "verdict": "CONFORMS",
+  "requirement": "LINE-COUNTER is left unchanged by the processing of a nonprintable report group (one with no print line, 1985 glossary 'Printable Group') of any type, and by a printable group whose printing a SUPPRESS statement in its USE BEFORE REPORTING procedure inhibits.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginPresentation; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading",
+  "edition-consulted": [],
+  "edition-search": "Grepped Edition|DialectBehavior in ReportWriter.cs: four DialectBehaviors sites (SUM size error, GROUP INDICATE, the TERMINATE save location, CF page groups); none in BeginGroup, BeginPresentation, RunBeforeReporting, SuppressPrinting, PresentBody, PresentLines, PresentLine or ApplyNextGroup.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness has a nonprintable DETAIL and a suppressed DETAIL; nonprintable RH/CH/CF FINAL and suppressed CF, PH and PF are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-038/p7sup.cob",
+    "printed": "BEFORE PH LC=00; BEFORE CH LC=01 (nonprintable RH left 0, PH set 1); LC=03; LC=04; BEFORE CF LC=04; BEFORE CH LC=05; LC=06; BEFORE CF LC=06 SUP=Y; BEFORE CH LC=06; LC=07; BEFORE PF LC=08 (suppressed); BEFORE PH LC=00 (PC 2, suppressed); LC=04 PC=02; LC=05; LC=06; BEFORE CF LC=06; BEFORE CF-F LC=07 (nonprintable FINAL); BEFORE PF LC=07 (suppressed); LC=07 PC=02",
+    "expected": "each nonprintable or suppressed group leaves LINE-COUNTER as the previous group left it"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/8.4.3.15-Report-counters/l1m8_counters_dummy_suppressed.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 GR5",
+    "check": "OK  §1985:XIII.3.5.6 GR5  (3.5.6 LINE-COUNTER Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "BeginGroup returns false before any line, fit test, page advance or NEXT GROUP when the group has no present line or its hook ran SUPPRESS, on every presentation path (body, PH, PF, RH/RF). Probed at 85 for nonprintable RH, CH, CF FINAL and suppressed CF, PH, PF."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.5.6-5",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Aimed at what the reader did not try: SUPPRESS of groups that carry NEXT GROUP, and nonprintable PH/PF/RF/DE. r4sup-001 (PAGE 12 HD 1 FD 3 LD 8 FT 10): suppressed RH with NEXT GROUP NEXT PAGE -> no page advance, PH 02 on page 1 (LC=05 PC=01 after the first DE); suppressed DE with NEXT GROUP PLUS 2 -> LC stays 05; suppressed CH (NEXT GROUP PLUS 3) and suppressed CF with NEXT GROUP NEXT PAGE at a break -> next DE on the same page at line 6 (LC=08 PC=01); suppressed DE whose fit test would fail (8+1>LD 8) -> no page advance (LC=08 PC=01); suppressed RF at TERMINATE -> LC=08 PC=01. r4np-001: nonprintable PH (LC=00 before, DE at FD 3), nonprintable DE (LC stays 03), nonprintable PF on the page advance (PH sees LC=00 PC=02), nonprintable PF and RF at TERMINATE (LC stays 03). All match XIII-74 SUPPRESS GR3 b-d and the tables' 'unaffected by the processing of a nonprintable report group' rows. cite.py: OK §1985:XIII.3.5.6 GR5; OK §1985:XIII.4.6.4 GR3. Side note, not this rule: PERFORM of a nondeclarative paragraph from a USE BEFORE REPORTING section is only a warning (COBOL2375).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

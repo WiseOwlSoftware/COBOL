@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-SR-VI.6.16.3-2",
+ "rule-digest": "69d388fc3695",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-158",
+  "sources": {
+   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
+   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+  },
+  "imported": {
+   "reader": "abc7476ee5ed336100823cb8de95ffef491f322da4eed5c490f9e95262b8b82f",
+   "refuter": "ddca46e952adbb4532347750502e65616985dfa7118fcc11769c040c71464486"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.16.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an IF statement whose ELSE NEXT SENTENCE phrase is omitted where it would immediately precede the sentence's terminal period (after statement-1 or after NEXT SENTENCE, nested or not) must be accepted and must mean the same as the written phrase: a false condition passes control to the next executable sentence.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindIf; src/WiseOwl.Cobol.Compiler/Binding/Bound/StatementBinder.cs#IsNextSentenceArm; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#ContainsNextSentence",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "COBOL0903 archaic warning for a written NEXT SENTENCE at 2023 only (next-sentence-archaic-2023, introduced 85, archaic 2023); silent at 85; binding and emission are the same at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of NextSentence across src (excluding Generated) and of IfStatementContext in the compiler: BindIf and IsNextSentenceArm consult no edition; the only edition site is the archaic-warning check.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers one flat IF with an imperative statement-1, true and false; it does not exercise NEXT SENTENCE as statement-1 with the phrase omitted, nested IFs, multiple imperatives in statement-1, or a paragraph executed under PERFORM",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/ifns1.cob",
+    "printed": "A1 A2 A3 B-NEXT C-OUT C-NEXT D-OUT D-NEXT E-NEXT F-ELSE F-NEXT C=13 (exit 0, no diagnostic)",
+    "expected": "§1985:VI.6.16.3 SR2 with GR2d/GR2e: omitted and written forms continue at the next sentence; mid-sentence omission re-pairs the ELSE with the inner IF (F-ELSE), per GR3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/ifns2.cob",
+    "printed": "--std 85: DONE, no diagnostic; --std 2023: DONE plus four COBOL0903 archaic warnings",
+    "expected": "NEXT SENTENCE forms compile at 85 without the 2023 archaic warning"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.3 SR2",
+    "check": "OK  §1985:VI.6.16.3 SR2  (6.16.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.6.16.4 GR2d",
+    "check": "OK  §1985:VI.6.16.4 GR2d  (6.16.4 General Rules)  the text is in GR2d"
+   },
+   {
+    "cite": "§1985:VI.6.16.4 GR2e",
+    "check": "OK  §1985:VI.6.16.4 GR2e  (6.16.4 General Rules)  the text is in GR2e"
+   }
+  ],
+  "notes": "The grammar makes (ELSE statementBlock)? optional and BindIf binds an empty else list, so the omitted phrase falls through to the IF's end, which before the terminal period is the next sentence: identical to ELSE NEXT SENTENCE. Outside this rule: ifns2 shows NEXT SENTENCE under END-IF accepted at 85, which §1985:VI.6.16.3 SR3 forbids; that is the recorded PB396 determination on ifStatement and belongs to the SR3 row, not this one.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.16.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read §1985:VI.6.16.2 (Amendment 2 corrected format), SR1-SR3, GR1-GR3. Probe if1.cob at --std 85: a paragraph run under PERFORM VARYING with IF A = 1 IF B = 1 DISPLAY ... ELSE NEXT SENTENCE. (outer ELSE NEXT SENTENCE omitted), IF A = 0 IF B = 0 NEXT SENTENCE. (both omitted, statement-1 NEXT SENTENCE), IF A = 1 NEXT SENTENCE.; a conditional statement-1 (ADD ... ON SIZE ERROR) with the phrase omitted, true and false; and IF as the last sentence of a performed paragraph (false falls to the paragraph end and returns, P3 not reached). Printed 00 END, 01 END, 02 END, 03 AB, 03 END, SE1, N1, N2, P2, BACK: every false path continues at the next sentence, as GR2 with the written ELSE NEXT SENTENCE would. cite.py: OK §1985:VI.6.16.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

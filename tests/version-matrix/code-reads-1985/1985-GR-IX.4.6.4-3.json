@@ -1,0 +1,71 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-3",
+ "rule-digest": "587d12b27161",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-009",
+  "sources": {
+   "reader": "1a012f0aed24ca5e6d66c0c04f49408b810c3ad3becebf4565cfd90cc3a5a923",
+   "refuter": "b778b93dd4ded60f559b61f58a28f4485780af94c155ead154f099e4b7ed3adf"
+  },
+  "imported": {
+   "reader": "6c3d2ecd1ff506a0ca3cad6f85a0e3164a3ea934e8685603c32623dd8960c661",
+   "refuter": "e33d82b3d152d1d043b869fcf2f67ba42fb519680640e40631776adb070603ff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At level 2 (this implementation's level), an indexed REWRITE accepts a record-name-1 whose length differs from the record it replaces, within the GR12 RECORD VARYING bounds (out of bounds is unsuccessful, 44).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "COBOL-85-only mandatory INVALID KEY phrase on REWRITE/START (Year < 2002); syntax only, not this rule's behaviour",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "refuses the 2002 RECORD word / FILE phrase forms at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO/*.cs: the only indexed-connector edition reads are IndexedConnector#SelectSequentialRecord (IndexedReadPreviousAfterOpenAtEnd, READ PREVIOUS only) and #ReadRandom (IndexedDuplicateKeyStatusSequentialOnly, random READ '02' only); neither is on this rule's path. KeyedIoEmitter has no edition read. Stored() and the indexed lenArg (VaryingLengthArg) read no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers RECORD VARYING DEPENDING with random access; not records of different 01 sizes with no RECORD clause, and not the GR12 bounds",
+  "probes": [
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p2_rw_len.cob",
+    "printed": "SHORTER=00 LONGER=00 UNDER-MIN=44 OVER-MAX=44 AT-MAX=00 AT-MIN=00; V001 LN=05 [V001R] (identical at --std 2023)",
+    "expected": "level 2: differing lengths succeed; GR12 bounds give 44"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR3",
+    "check": "OK  §1985:IX.4.6.4 GR3  (4.6.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR1",
+    "check": "OK  §1985:VII.3.8.4 GR1  (3.8.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "With no RECORD clause and 01s of 20 and 6 characters, the file registers as fixed (D-FRA implied Format 1), so REWRITE of the 6-character record stores the full 20-character area. A 1985 program cannot observe this, because the content past a shorter record is undefined and no DEPENDING item exists. Within RECORD VARYING, the replacing length is honoured.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,c",
+  "evidence": "Attacked the reader's 'registers as fixed' note. §1985:II.2.1.4.3 makes the choice implementor defined when the RECORD clause is omitted or names a range: OK §1985:II.2.1.4.3 'Where no RECORD clause is specified ... it is implementor defined whether fixed length or variable length records'. The choice is documented in docs/conformance/7/DOC-A.1-147.md (implied format 1, the largest 01) and DOC-A.1-148.md (format 3 is variable). Probes: q1_rw_vary.cob (RECORD IS VARYING 6 TO 20, no DEPENDING, 01s of 20 and 6) gave SHORTER=00 and READ INTO gave [K001TT + 14 spaces]: a 6-character replacing record is stored at 6, and the group move pads it (§1985:VII.3.8.4 GR10b/GR12b, OK). q3_rw_fmt3.cob (RECORD CONTAINS 6 TO 20) gave the same. q2_rw_norec.cob (no RECORD clause) gave [K001TTLLLL...]: the documented fixed choice. q7_rw_odo.cob (ODO, no DEPENDING) rewrote with N=1 -> 00 and READ INTO gave [K0011XX + 5 spaces]; N=0 at the minimum -> 00 (§1985:VII.3.8.4 GR10c, OK). Same results at --std 2023 for q1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

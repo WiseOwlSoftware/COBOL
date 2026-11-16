@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-IX.1.3.5-L2.2",
+ "rule-digest": "131f806a8414",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-090",
+  "sources": {
+   "reader": "6ab038ea6035d8f9ae4367c0d745ed9e52de3169af37c155f45817b22effaac4",
+   "refuter": "dc715fbd8dfc0a125afb51673dcf17c36c19afbfa88e462ab1fae41831d4fcd7"
+  },
+  "imported": {
+   "reader": "1971371ca716989dcb22872b3e65a56d938162565cdf757871d4c0faacf320f4",
+   "refuter": "4b5807f85c314d6ed06741a061b8f6885f65126a519ad7a927dd31ede7c4b7a9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.1.3.5-L2.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a DELETE, READ, REWRITE, START or WRITE on an indexed file completes with no exception condition (status 00 or 02), the INVALID KEY phrase is ignored, no USE procedure runs, and control goes to the NOT INVALID KEY imperative-statement if written (whose own statements, including GO TO and conditional statements, then govern control) and otherwise, or after it completes, to the end of the statement.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitPhrasePair; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitNotPhrase; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs (>>TURN directive row, COBOL0900)",
+    "switches": "no EC-I-O mask can exist at 85, so UseHookResult.NotPhraseGate is null and the NOT INVALID KEY arm is gated only on IoStatusClass.Successful",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom (DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly)",
+    "switches": "at 85 a random READ by an alternate key with a following duplicate answers 02 (from 2002 only a sequential READ does); both are successful, so the NOT INVALID KEY arm is taken either way",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: the successful status of a random READ by a duplicated alternate key is 02 at 85 and 00 from 2002; the transfer of control under this rule is the same",
+  "witnesses-cover": "part: l1_delete_invalid_key_transfer exercises the NOT INVALID KEY transfer on a RELATIVE file DELETE only; not covered: indexed files, WRITE/READ/REWRITE/START, a 02 completion, a GO TO or a conditional statement inside the NOT INVALID KEY phrase",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p2_nik.cob",
+    "printed": "NIK-W1 00 / NIK-W2 02 / W3 00 / NIK-RA 02 K001",
+    "expected": "00 and 02 are successful completions (§1985:IX.1.3.4 GRL2.1): NOT INVALID KEY runs, no USE; with no NOT phrase control goes to the end of the WRITE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p2_nik.cob",
+    "printed": "NIK-ST 00 / JUMPED 00 K001AAone (GO TO in NOT INVALID KEY; NOT-REACHED not printed) / NIK-RW-IF 00 / NIK-RW-AFTER-IF / END-RW / NIK-DL 00 / IK-R2 23",
+    "expected": "START, READ, REWRITE, DELETE: NOT INVALID KEY runs; an explicit transfer follows its statement's rules; after the imperative completes control goes to the end of the statement"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-090/p2_nik.cob",
+    "printed": "dynamic-access indexed file, OPEN OUTPUT then OPEN I-O, random and keyed operations: as above",
+    "expected": "as above"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.1.3.5 GRL2.2",
+    "check": "OK  §1985:IX.1.3.5 GRL2.2  (1.3.5 The Invalid Key Condition)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "EmitPhrasePair renders INVALID KEY on '2x' and NOT INVALID KEY on '0x' (IoStatusClass.Successful), with no EC gate at 85, and __IoCheck returns before any USE selection on a successful status. Probes over every indexed I-O verb, a 02 completion, GO TO and a nested IF in the phrase all follow the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.1.3.5-L2.2",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "r2_nik.cob at --std 85 (dynamic indexed file, ALTERNATE RECORD KEY WITH DUPLICATES, file-name USE present): WRITE success -> NIK-91 / W3 00 (no USE); REWRITE that creates a duplicate alternate key -> NIK-RW 02 (status 02 visible inside the phrase, no USE); a delimited READ ... INVALID KEY ... NOT INVALID KEY ... END-READ nested inside NOT INVALID KEY -> NIK-NESTED 00 K001AAAone, then AFTER-NESTED (control continues within the imperative-statement), then END-RW; nested DELETE inside the INVALID KEY phrase of an outer DELETE -> IK-DEL 23 / NIK-INNER 00 / END-DEL 00 (outer NOT INVALID KEY ignored). r1_global.cob earlier: plain successful WRITEs take no USE. cite.py: OK §1985:IX.1.3.5 GRL2.2 the text is in GRL2.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

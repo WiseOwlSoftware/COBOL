@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-L2.2",
+ "rule-digest": "7515fa974d45",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-044",
+  "sources": {
+   "reader": "9735a152d696acce46a8d78dcde413582093c750e9fd8371e69ca236057fce49",
+   "refuter": "9b073a18b4097e884b2394934b4f4cbf8063a47e6be7e3bca9a610af9bd16c35"
+  },
+  "imported": {
+   "reader": "04d597b28be32a6d7a71fc2641d251251ef8ee30fb8a8d9d5fe54da76eae0c7b",
+   "refuter": "389dabc321d0b140f4d8a5cb7da999ffba225ea9f2479ded191f9ebebf956d9e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a data-name, condition-name or procedure-name may carry qualifiers it does not need, and when several qualifier sets each make the reference unique any of them (full chain, a gapped subset, record-name, file-name or cd-name alone) must resolve to the same item.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#qualification; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifiedCandidates; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierChainMatchesFrom; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#QualifierWalk; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#EntryClauseCandidates; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveQualified",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ClauseOperandsTakeImplicitQualifiers",
+    "switches": "DialectLevel >= 2002: a data-description-clause operand (OCCURS DEPENDING ON, KEY, RENAMES) takes the groups above its subject as implicit qualifiers; below 2002 the whole scope's candidates are counted, so only explicit qualification makes the operand unique (read by EntryClauseCandidates / RegionClauseCandidates)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DataBinder.cs, NameResolution.cs, ReferenceResolver.cs, SymbolTable.cs, ConditionBinder.cs for CobolVersion|EditionContext|ConstructRegistry|DialectBehavior|Edition.(DialectLevel|Edition|Year|Removed): the procedure-division qualified lookup (QualifiedCandidates -> QualifierChainMatchesFrom -> QualifierWalk, ConditionQualifierChainMatches) has no edition test; only Edition.At (cursor) and Edition.Permissive (SR1's --permissive disposition). The per-edition reserved-word gate (Frontend/Parsing/ReservationGateRewriter) decides what is a user-defined word on every path; it is not specific to qualification and no gated word was used.",
+  "behaviour-differs-by-edition": "yes, beside this rule: in a data description clause operand 2002+ supplies implicit qualifiers, so an unqualified duplicated DEPENDING ON operand is accepted at 2023 and refused at 85 (q85odoneg); the optional-qualification half itself behaves the same",
+  "witnesses-cover": "part: witnesses use data-name chains in WORKING-STORAGE and condition-names; not exercised: superfluous qualification by record-name, file-name, cd-name, sort-file, and qualified operands of OCCURS DEPENDING ON",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85pos.cob",
+    "printed": "007 007 600 600 / C1 T C2 F C3 F C4 T C5 T / Q QQ / [007 Q ] [007 Q ] [600   ] / -012.5 -012.5 / 22",
+    "expected": "every qualifier set reaching the one X/E/X-BIG resolves to it (X OF R1 = X IN F1 = X OF G OF R1 IN F1); unique U, K accept superfluous OF/IN W"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85cd.cob",
+    "printed": "CDQ2 CDQ2 WSQ SSSS FFFF SSSS",
+    "expected": "QN OF CI = QN OF CIREC OF CI (cd-name qualifier); KEYF OF S1 = KEYF IN SR IN S1 (SD file-name); KEYF OF F9 = KEYF OF F9-REC"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85odo.cob",
+    "printed": "[ABC] [WXYZ] AC YZ ACXYZ [12345]5",
+    "expected": "DEPENDING ON N OF A1 / M IN A2 qualified; table and subscript N OF A1 resolve; refmod at bounds TB OF A1 (3:1)=C, TB IN A2 (2:3)=XYZ"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-044/src/q85odoneg.cob",
+    "printed": "85: COBOL1639 OCCURS DEPENDING ON data-name-1 of 'EL' 'N' does not uniquely identify a data item - 2 declarations; 2023: compiles, prints [ABC]",
+    "expected": "85 has no implicit qualification of clause operands (§1985:IV.4.3.8.1 only excepts redefinition), so the duplicated N needs qualification; 2023 rule 5 supplies it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.1 SRL2.2",
+    "check": "OK  §1985:IV.4.3.8.1 SRL2.2  (4.3.8.1 Qualification)  the text is in SRL2.2"
+   }
+  ],
+  "notes": "One qualifier walk serves every edition; the procedure-division lookup counts survivors of the walk, so any qualifier set (with gaps, record-name, file/cd-name outermost) that leaves one survivor resolves. The only edition arm on the path is the 2002 implicit qualification of clause operands, which at 85 correctly requires explicit qualification. Diagnostics cite §2023 text at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.1-L2.2",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Rule 2 governs every qualification format of §1985:IV.4.3.8.1, not only Format 1. I probed the formats the reader did not try, at --std 85 through run_case.py under refute-1985-044/. r10copy (Format 3: COPY T1 OF LIBA, COPY T2 IN LIBA, with one library available, --copy libroot) printed 'AAA BBB'. r2sup (Format 4: LINAGE-COUNTER IN F1 and OF F1 with one LINAGE file; Format 5: LINE-COUNTER IN R1 and PAGE-COUNTER OF R1 with one RD; Format 2: PX IN SA where PX is unique in SA) printed 'LG1 003 / LG2 003 / LG3 003 / LC 002 / PC 001 / U 4 4 / PX-A PX-B PY-B ...'. Each qualified form equals the unqualified one. r1rep (Format 6: TOT IN R1, TOT OF CFT IN R2, TOT IN CFT OF R1; GENERATE DT IN R1 / DT OF R2 with DT duplicated across reports) printed 'T1 010 / T2 007 / T3 010 / PC 001', which matches the SUMs. r11rec (record-name chains with implicit redefinition) printed 'AB CD ABCD / ABQQ QQ'. Class c: r3idx (a 2002+ qualified index-name, SET IX OF T1) was refused with COBOL0900 'a qualified index-name requires COBOL-2002', as §1985:X.1.3.8.3 requires. cite.py: 'OK  §1985:IV.4.3.8.1 SRL2.2 ... the text is in SRL2.2'; 'OK  §1985:X.1.3.8.3 (Conventions for Index-Names) the text is in the clause' (\"Index-names cannot be qualified\").",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName: ConstructRegistry.Check(Constructs.QualifiedIndexName2002), so at 85 a qualified index-name is refused with COBOL0900. This site is on the qualified-reference path, but the reader's edition-search says NameResolution.cs has no ConstructRegistry test. Its arm is correct at 85."
+  ],
+  "corrected": ""
+ }
+}

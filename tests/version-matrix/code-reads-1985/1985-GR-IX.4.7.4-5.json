@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-5",
+ "rule-digest": "fa0e42723e47",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-099",
+  "sources": {
+   "reader": "7fe496d433ccb535591a8ad63fc59e22218ac1415edd20e9c8d8cad3d19976b8",
+   "refuter": "dd885ab0c2cd3867572cc4e1d13f78dd8f826a31e58d05364df34ddcab60c43f"
+  },
+  "imported": {
+   "reader": "92a7b46674f183f9ff6e21aba14b8f2980fe571732851bbd181ab910a10ae6a0",
+   "refuter": "b2715d42f8aa1d16e998a5b8a095b3f3bceeac3d67ef10e0daa2979e4fc58a8c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every START execution on an indexed file must update the file's I-O status (and so its FILE STATUS item): 00 on success, 23 when no record satisfies the comparison or the optional file is absent, 47 when the file is not open INPUT or I-O.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartSucceeded",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement / #VisitStartKeyPhrase / #VisitStartWithLength",
+    "switches": "2002 START forms refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EmitStoreFileStatus is emitted unconditionally after every START; the status codes in IndexedConnector.Start (Unsuccessful/StartFail/StartPositioned) read no edition (grep Edition|DialectBehavior)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f20_08 presets 99 before the 00/23 cases; the 47 cases there are not preset, and EXTEND/closed 47 and the no-KEY-phrase failure are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-099/st1.cob",
+    "printed": "OUT-START=47 / CLOSED-START=47 / EXT-START=47 / S1=00 / S2=00 / S3=23 / S4=00 / S5=23 / S6=23 (status preset to 99 before each)",
+    "expected": "status updated on every START: 47 for OUTPUT, closed and EXTEND; 00 on success; 23 on no match and on the absent optional file (IX.1.3.4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR5",
+    "check": "OK  §1985:IX.4.7.4 GR5  (║4.7.4 General Rules║)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2"
+   }
+  ],
+  "notes": "Every outcome probed overwrote a preset 99 with the value IX.1.3.4 assigns.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe src/s1.cob (s1-001), status preset to 99 before each START: after a FAILED OPEN (35) the START overwrote 35 with 47 (N-START=47); OUTPUT 47; dynamic I-O success 00; alternate-key no-match 23; optional-absent after a READ AT END (10) -> 23 for both GREATER and EQUAL (M1=23, M2=23); after CLOSE WITH LOCK 47. Every outcome replaced the preset. cite.py: 'OK  §1985:IX.4.7.4 GR5  (║4.7.4 General Rules║)  the text is in GR5'; 'OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.3c.2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

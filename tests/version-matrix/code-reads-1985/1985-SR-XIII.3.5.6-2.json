@@ -1,0 +1,135 @@
+{
+ "rule-id": "1985-SR-XIII.3.5.6-2",
+ "rule-digest": "9576582eb836",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-165",
+  "sources": {
+   "reader": "33a634f8775865fadbb8ae9792708c139cef0d2f3d430b2edfebd14f738b511e",
+   "refuter": "55d291252e80be0bec81fc1e5090b7c44bebe67b285d7aa906d8c70e9de3df4c"
+  },
+  "imported": {
+   "reader": "b9bc8b2e8ceea7ca1054603a87a3e93adad84795bf359eb1d02f44062d22e5a5",
+   "refuter": "a6aeea0b7f7ad6127be4771334795be621ab148d2168bc3aa36df22e08973a70"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.5.6-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 LINE-COUNTER may appear in the Report Section only in a SOURCE clause, in the Procedure Division in any sending context where an integral data item may (condition, arithmetic, subscript, reference-modification position, PERFORM TIMES), and never as a receiving operand of any statement (only the RWCS changes it); the witnesses cover SOURCE and one MOVE refusal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingFormBar; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportSectionNameIn; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindCodeClause; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#MeetsByReferenceRules; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CounterExpr",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/Version/IsActive/Construct over ExpressionBinder.cs lines 1023-1075 (ReceivingFormBar) and ReportSectionBinder.cs lines 4488-4560 (ReportSectionNameIn): none; the LINE_COUNTER() arms are by token, the same at every edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f28_04 and 1985-SR-XIII_3_5_6-2 cover SOURCE LINE-COUNTER and MOVE TO LINE-COUNTER; the other receiving statements, the Report Section non-SOURCE positions and the sending contexts are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc1.cob",
+    "printed": "LC0=0000000000 / LC=2 / N=21 / E=B / RM=BC / N2=04 / T / T; report lines 01 01, 02 02 (SOURCE LINE-COUNTER and LINE-COUNTER OF RPT)",
+    "expected": "accepted: LINE-COUNTER as condition operand, COMPUTE operand, subscript, ref-mod start, MOVE/ADD sender, PERFORM TIMES; INITIATE sets it to zero"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc2.cob",
+    "printed": "COBOL2197 LINE-COUNTER shall not be referenced as a receiving operand (ADD 1 TO LINE-COUNTER)",
+    "expected": "refused: only the RWCS can change it"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc3.cob",
+    "printed": "COBOL2197 (COMPUTE LINE-COUNTER = 3)",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc4.cob",
+    "printed": "COBOL2197 (PERFORM VARYING LINE-COUNTER)",
+    "expected": "refused: the statement would change it"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc5.cob",
+    "printed": "COBOL2197 (UNSTRING ... INTO LINE-COUNTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc6.cob",
+    "printed": "COBOL2197 (ACCEPT LINE-COUNTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc7.cob",
+    "printed": "COBOL2197 (DIVIDE ... GIVING LINE-COUNTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc8.cob",
+    "printed": "COBOL2197 (INITIALIZE LINE-COUNTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc9.cob",
+    "printed": "COBOL2197 (SUBTRACT 1 FROM LINE-COUNTER OF RPT)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lc10.cob",
+    "printed": "COBOL2197 (CALL USING LINE-COUNTER, by reference); lc11.cob CALL USING BY CONTENT LINE-COUNTER compiles (exit 0)",
+    "expected": "by reference refused (callee could change it), by content a sending use, accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lr1.cob",
+    "printed": "COBOL0899 SUM addend 'LINE-COUNTER' does not resolve to a data item outside the report section",
+    "expected": "refused: Report Section reference outside SOURCE"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lr2.cob",
+    "printed": "COBOL0899 CONTROL operand 'LINE-COUNTER' does not resolve to a data item",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lr3.cob",
+    "printed": "COBOL0899 RESET ON 'LINE-COUNTER' is not an operand of the CONTROL clause",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-165/src/lr4.cob",
+    "printed": "COBOL2713 the CODE clause names LINE-COUNTER, a report counter",
+    "expected": "refused (and CODE takes only literal-1 at 85)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.5.6 SR2",
+    "check": "OK  §1985:XIII.3.5.6 SR2  (3.5.6 LINE-COUNTER Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Every receiving slot funnels through ExpressionBinder's receiving chokepoint, whose first form arm refuses LINE-COUNTER by token; CALL BY REFERENCE is routed through the same refusal by MeetsByReferenceRules. In the Report Section every non-SOURCE operand path (SUM addend, CONTROL, RESET ON, CODE) refuses it. DISPLAY LINE-COUNTER prints 10 digits (implementor size), not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.5.6-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "I probed the receiving slots the reader did not try, each at --std 85 with --compile-only, and every one was refused with COBOL2197: INSPECT TALLYING LINE-COUNTER (LX1); STRING ... WITH POINTER LINE-COUNTER (LX2); UNSTRING WITH POINTER (LX3), TALLYING IN (LX4) and COUNT IN (LX5); SET LINE-COUNTER TO 3 (LX6); MULTIPLY GIVING (LX7); PERFORM ... AFTER LINE-COUNTER (LX8; also COBOL0900 for the 2002 inline AFTER); INSPECT REPLACING (LX9) and CONVERTING (LXE); MOVE TO LINE-COUNTER IN RPT (LXA); SUBTRACT GIVING (LXB); DIVIDE REMAINDER (LXC); ACCEPT FROM DAY (LXD); SEARCH ... VARYING LINE-COUNTER (LY3). Sending uses are accepted with correct values in LY1: SOURCE LINE-COUNTER; MOVE to WS-E (LINE-COUNTER) after two GENERATEs puts Z at position 2; SET IX TO LINE-COUNTER followed by UP BY LINE-COUNTER gives 04; EVALUATE prints EV2; GO TO P2 P3 DEPENDING ON LINE-COUNTER goes to P3. Outside both licensed places, OCCURS DEPENDING ON LINE-COUNTER in Working-Storage is refused (LY2, COBOL2024). cite.py: 'OK  §1985:XIII.3.5.6 SR2  (3.5.6 LINE-COUNTER Rules)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

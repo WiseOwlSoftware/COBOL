@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VIII.2.3.3-2",
+ "rule-digest": "ba65e0a4ec52",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-065",
+  "sources": {
+   "reader": "66f332126c0c206103e030806e532fcfacdaf4b7490128589ff01dd02a46e1c6",
+   "refuter": "f825c12005b3e32f1ec902150273b86d6da02878634e3a8cde542efec0612be3"
+  },
+  "imported": {
+   "reader": "3ded25b9740af13309c38096a55d1e4bf822921d6579448bb3483e4c37edc9fe",
+   "refuter": "03ba4ce53d68917f98124d448e18e3cbf9b0a79e17604e251e6089f0eebbc6df"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.2.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "Within one program, a file-name may appear in only one SELECT clause, every SELECT file-name must have an FD in that same program's Data Division, and every FD file-name must be named by a SELECT (\"specified only once\" means exactly once); a contained program's FD does not satisfy the containing program's SELECT.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#ScreenSelectsHaveDescriptions; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#DescriptionRepeated",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion/Constructs/DialectBehavior in FileControlBinder.cs and FileControlBinder.FileSection.cs: hits only at PADDING (line 185), BLOCK/RECORD CONTAINS (289, 406, 428), none on the duplicate-SELECT check, ScreenSelectsHaveDescriptions or the FD-without-SELECT arm. The path consults the edition nowhere.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover per-program scope and FD/SD without SELECT; the duplicate SELECT on a relative file and the SELECT-in-outer, FD-in-contained split were not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p2a.cob (run p2a-001)",
+    "printed": "error COBOL2634: file-name 'RLF' is specified in a second SELECT clause",
+    "expected": "refused: file-name specified twice in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p2b.cob (run p2b-001)",
+    "printed": "error COBOL2635: file 'RLH' is specified in a SELECT clause but has no file description entry",
+    "expected": "refused: SELECT file-name without FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p2c.cob (run p2c-001)",
+    "printed": "error COBOL2636: file description entry 'RLX' names a file that no file control entry specifies",
+    "expected": "refused: FD file-name not specified in FILE-CONTROL"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p2d.cob (run p2d-001)",
+    "printed": "COBOL2635 on the outer SELECT and COBOL2636 on the contained program's FD",
+    "expected": "refused: FD must be in the same program as its SELECT"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-065/src/p2e.cob (run p2e-001)",
+    "printed": "INNER=OUTER",
+    "expected": "legal: outer and contained programs each SELECT and FD the same file-name (random write, sequential read)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.3.3 SR2",
+    "check": "OK  §1985:VIII.2.3.3 SR2  (2.3.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Both sentences are screened at bind with no edition arm, and the 2023 rules they cite (§2023:12.4.5.2 SR2/SR3, §2023:13.4.5.3 SR1) state the same obligations. SelectedFiles is per program, so the per-program scope holds in both directions. The diagnostics cite 2023 numbering at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.2.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "Probe r2a at --std 85: 'SELECT rlf' after 'SELECT RLF' refused COBOL2634 (names fold case); a second FD RLG refused COBOL4250. Together with the reader's p2a-p2e (duplicate SELECT, SELECT without FD, FD without SELECT, contained-program split, legal per-program reuse) both sentences of the rule hold. cite.py: OK §1985:VIII.2.3.3 SR2 (2.3.3 Syntax Rules) the text is in SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

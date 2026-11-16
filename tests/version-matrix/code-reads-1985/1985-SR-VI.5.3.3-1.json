@@ -1,0 +1,149 @@
+{
+ "rule-id": "1985-SR-VI.5.3.3-1",
+ "rule-digest": "9acd2978ecec",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-156",
+  "sources": {
+   "reader": "d3a192e5a182c984e33a437bb5370e7bcfa14ed5e1c29d8e97b6e85eeb749287",
+   "refuter": "2735327ab3b3e8268bd5a8aeeb8e43c4a1272a1c9ffca8b5f267655dd18cd4b8"
+  },
+  "imported": {
+   "reader": "20e89c21092324ae9b20a2abf723dce979355733c73da1f4af50848fa7568e7c",
+   "refuter": "e06eb6fad1ef7d0b6d5eeca03c17d808e6c57337aa629c8362549ccaed966871"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.3.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a format 1 data description entry takes a level-number of 01 through 49 (1 through 9 also written as one digit) or 77 (77 only outside a file record area); 00, 50 through 65, 78 through 99, any three-digit spelling, and 66 or 88 on a format 1 body must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#CheckEntryFormat",
+  "edition-consulted": [],
+  "edition-search": "Grepped LevelNumberPass.cs (which also holds LevelNumberRules) for Edition, DialectLevel, Year and Construct, and VersionConformancePass for LevelNumber: no edition test on the path; the pass documents that the level-number sets are the same at every edition, which holds for this rule (§1985:IV.7.4 gives the 1985 set 01-49, 66, 77, 88).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness accepts 01, 02, 05, 10, 49 and 77 in Working-Storage; single-digit spellings, the File Section and the whole refusal half (00, 50, 65, 78, 99, three digits, 66 or 88 on a format 1 body, 77 in an FD) are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/w_lvl.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "R1=[ABCD] H=[BC] S=[77] T=[XY] R2=[AYZD]"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_single.cob",
+    "printed": "G=ACDE",
+    "expected": "5, 9 and 09 accepted as single-digit and leading-zero spellings, 9 and 09 the same level"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_bound.cob",
+    "printed": "G=B",
+    "expected": "02/49, 77, 1 and 01/49 accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_file.cob",
+    "printed": "W=ABCD FB=AB FC=CD",
+    "expected": "1, 2, 49 and 02 in an FD record, written and read back"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_file77.cob",
+    "printed": "error COBOL1746: level-number 77 on 'FX': data description entries subordinate to a FD or SD entry shall have level-numbers ... 66, 88, or 1 through 49",
+    "expected": "refused: 77 is not a record-area level"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_00.cob",
+    "printed": "error COBOL1746: level-number 00 on 'A' ...",
+    "expected": "refused: 00 not in 01-49 or 77"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_50.cob",
+    "printed": "error COBOL1746: level-number 50 on 'A' ...",
+    "expected": "refused: above 49"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_65.cob",
+    "printed": "error COBOL1746: level-number 65 on 'A' ...",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_78.cob",
+    "printed": "error COBOL1746: level-number 78 on 'A' ...",
+    "expected": "refused: 78 is a vendor extension, not a 1985 level-number"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_99.cob",
+    "printed": "error COBOL1746: level-number 99 on 'A' ...",
+    "expected": "refused: the largest two-digit value"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_100.cob",
+    "printed": "error COBOL1746: level-number 100 on 'A': a level-number is expressed as a one-digit or two-digit number",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_005.cob",
+    "printed": "error COBOL1746: level-number 005 on 'A': ... one-digit or two-digit number",
+    "expected": "refused: only one leading zero form for 1-9"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_66pic.cob",
+    "printed": "error COBOL1747: level-number 66 on 'A': ... this entry has no RENAMES clause, so it is a format-1 entry, whose level-number may be 77 or 1 through 49",
+    "expected": "refused: 66 is not a format 1 level"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_88pic.cob",
+    "printed": "error COBOL1747: level-number 88 on 'A': ... a format-1 entry, whose level-number may be 77 or 1 through 49",
+    "expected": "refused: 88 is not a format 1 level"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-156/p6_49grp.cob",
+    "printed": "error COBOL2771: 'B': level-number 48 is not the level-number 49 of the other items immediately subordinate to the group 'G'",
+    "expected": "refused by §1985:IV.4.3.2.1 (identical level-numbers for immediate subordinates); 48 itself is in range"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.3.3 SR1",
+    "check": "OK  §1985:VI.5.3.3 SR1  (5.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.7.4",
+    "check": "OK  §1985:IV.7.4  (7.4 DATA DIVISION ENTRIES)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:IV.4.3.2.1",
+    "check": "OK  §1985:IV.4.3.2.1  (4.3.2.1 Level-Numbers)  the text is in the clause"
+   }
+  ],
+  "notes": "One pass screens every level-number token before binding: the section axis refuses values outside each section's set and the format axis refuses 66 and 88 on a format 1 body; spelling longer than two digits is refused. No edition is consulted, and the 1985 set is the same as the latest edition's for format 1. Messages cite §2023 clauses at --std 85 (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.3.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e,f",
+  "evidence": "Probes at --std 85: c6_link77 (77-level items in a contained program's Linkage Section, USING, ADD through one) printed 'LW=ABCD / N=008'; c6_77after (77 between two 01 records in Working-Storage) printed 'G=A K=K H=H'; c6_8 (single-digit 8) printed G=A; c6_0 (single-digit 0) refused COBOL1746; c6_077 and c6_049 (three-digit spellings) refused COBOL1746; c6_plus (+5) and c6_dec (5.0) refused COBOL0001; c6_sd77 (77 after an SD record) refused COBOL1746; class c: c6_const (2002 '01 K CONSTANT AS 5') refused COBOL0900 and c6_ls (2002 LOCAL-STORAGE with a 77) refused COBOL0900. Cite: OK §1985:VI.5.3.3 SR1 'Level-number in format 1 may be any number from 01 through 49 or 77'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

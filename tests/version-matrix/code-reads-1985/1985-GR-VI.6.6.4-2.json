@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-2",
+ "rule-digest": "801ea6f97b5d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-116",
+  "sources": {
+   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
+   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+  },
+  "imported": {
+   "reader": "de880a3f312fd5672c2b54ded29639b089a808e02f7727e76ea839aa02046aa2",
+   "refuter": "5aefb4ec3d5a77ee60e8a643cd4c26320c37467c9b264ccd3bd815c658365dba"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.6.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 ADD format 2 (with or without the optional word TO, at least two addends) must sum every operand before GIVING once and store that sum as the new content of each identifier-3, left to right with its own ROUNDED and size-error handling, into elementary numeric or numeric-edited receivers.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindAdd; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#GivingSendingOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "UnphrasedSizeErrorIsFatal: unphrased size error continues at 85; with the phrase same arm",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRoundedPhrase",
+    "switches": "ROUNDED MODE IS refused below 2014",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|IsActive in ArithmeticBinder.cs#BindAdd and ArithmeticEmitter.cs#EmitGiving: neither consults the edition; only EmitArith's size-error disposition does.",
+  "behaviour-differs-by-edition": "no for the sum-and-store semantics.",
+  "witnesses-cover": "part: g85_bf14_03 L3-L5, L9 cover TO-less and TO forms, two receivers, a numeric-edited receiver, a receiver that is also an operand, an 18-digit sum. Not exercised by it: per-receiver ROUNDED, a size error on one receiver of several, a subscript changed by an earlier GIVING receiver, P scaling, currency/CR editing, ODO elements, and the refusals.",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add2.cob",
+    "printed": "G1 I=3 T1=0 T3=3 (ADD 1 2 GIVING I T (I)) / G9 N=3 OT=000003000 (ADD N 1 GIVING O (N) N)",
+    "expected": "the sum is formed once; each receiver identified as it is reached (T(3) after I=3; O(2) before N changes)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add2.cob",
+    "printed": "G2 C=-2 D=-02.2 ED=- 2.25 / G3 EB=     $2.25CR / G6 PP=300 / G10 F=09",
+    "expected": "-2.25 stored ROUNDED into S9, truncated into S99V9, edited into -Z9.99 and $$$,$$9.99CR; 9PP truncates 399; F+E TO F GIVING F uses F's old value"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add2.cob",
+    "printed": "G4 SE E=6 F=10 / G5 NOSE E=3 F=03 / G7 R18=999999999999999999 / G8 SE 999999999999999999",
+    "expected": "the overflowing receiver keeps its value while the other is stored; an 18-digit sum is exact; past 18 digits a size error with the receiver unchanged"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/add2r.cob",
+    "printed": "COBOL1689 one operand before GIVING; COBOL1675 alphanumeric X, group G, ref-mod X(1:2); (first run) COBOL5506 literal after GIVING",
+    "expected": "format 2 needs identifier-1/literal-1 and identifier-2/literal-2; identifier-3 elementary numeric or numeric-edited"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.6@1985-ADD-STATEMENT/g85_bf14_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.4 GR2",
+    "check": "OK  §1985:VI.6.6.4 GR2  (6.6.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.6 GR2",
+    "check": "OK  §1985:VI.6.4.6 GR2  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in GR2"
+   }
+  ],
+  "notes": "BindAdd folds the TO operand in as an addend and needs two addends at least; EmitGiving computes once, snapshots it when there are several receivers, and stores each in its own guard. All probes matched the 1985 text. Class (c) is covered by the ROUNDED MODE refusal probed under GR1 (same RoundingOf/VersionConformancePass path).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.6.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "ra1.cob (ra1-001) at --std 85: ADD T (I) I GIVING I T (I) with I=1,T(1)=2 printed 'E3 I=3 T1=002 T3=003' (sum formed once, T re-identified with I=3); ADD S1 9 GIVING R1 ROUNDED R2 R3 (9.5) printed 'E4 SE 0 9.5 9' (R1 rounded to 10 overflows and is kept, R2 9.5, R3 truncated to 9 with no size error). ra2.cob (ra2-001), class b against the 1985 format 2 diagram (a single operand after TO): ADD A TO B C GIVING D refused COBOL1689 (same at --std 2023, ra2-002). ra3.cob: NOT ON SIZE ERROR before ON SIZE ERROR in format 2 refused COBOL0900 at 85. cite.py: 'OK  §1985:VI.6.4.6 GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

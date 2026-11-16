@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-12",
+ "rule-digest": "e43248ea6e43",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-049",
+  "sources": {
+   "reader": "10dca661834ae36992a491f98e1f7036352d6834b1823ead606ba66e666e3cd8",
+   "refuter": "c6c580ba56f1b3930b355fe8d0149fff62abb7811726ac73a12ff5d5031b511b"
+  },
+  "imported": {
+   "reader": "fa75e9f799635d5ecf6399e5e66fcfdb3f62de616d52086e0ad8543ef9cc7f73",
+   "refuter": "ec6e302184301a9ab0e85550aa8dd774394f93c0b28d89de7007a86824b02b4d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 CURRENCY SIGN IS literal-6 must be refused when literal-6 is any 1985 figurative constant (ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S), ALL literal, a symbolic-character), and a nonnumeric one-character literal must be accepted as the currency symbol.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencyOperandOf; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#LiteralCharsOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#CurrencyOperandOf",
+    "switches": "hexadecimal literal-8 refusal only from 2014 (Edition.DialectLevel >= 2014); the figurative-constant test itself is edition-blind",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Currency.cs#SwitchBindCurrency",
+    "switches": "hexadecimal bare literal-7 needs PICTURE SYMBOL from 2014; the WITH PICTURE SYMBOL phrase is gated as currency-picture-symbol-2002 (COBOL0893 at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the figurative-constant refusal; the 1985 format has no PICTURE SYMBOL phrase and no hexadecimal literal, both refused at 85 by their gates",
+  "witnesses-cover": "part: pb791 covers SPACE only; ZERO, QUOTE, HIGH-VALUE, LOW-VALUE, their plurals, ALL literal and a symbolic-character are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-fig-SPACE.cob",
+    "printed": "EXIT 65; COBOL0892 CURRENCY SIGN SPACE: literal-7 shall be ... not a figurative constant (same for SPACES, ZERO, ZEROS, ZEROES, QUOTE, QUOTES, HIGH-VALUE, HIGH-VALUES, LOW-VALUE, LOW-VALUES)",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-fig-ALL#.cob",
+    "printed": "EXIT 65; COBOL0892 CURRENCY SIGN ALL \"#\": ... this is a figurative constant",
+    "expected": "refused: ALL literal is a figurative constant"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-fig-HASHCH.cob",
+    "printed": "EXIT 65; COBOL0892 CURRENCY SIGN HASHCH: literal-7 is a literal, and 'HASHCH' names no constant entry",
+    "expected": "refused: a symbolic-character is a figurative constant"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-ok.cob",
+    "printed": "EXIT 0; [ #12.50] (PIC ###9.99, CURRENCY SIGN IS \"#\")",
+    "expected": "accepted, # is the currency symbol"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-picsym.cob",
+    "printed": "EXIT 65; COBOL0893 CURRENCY SIGN WITH PICTURE SYMBOL requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-049/c5-hex.cob",
+    "printed": "EXIT 65; COBOL0900 hexadecimal alphanumeric literal requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR12",
+    "check": "OK  §1985:VI.4.5.3 SR12  (4.5.3 Syntax Rules)  the text is in SR12"
+   }
+  ],
+  "notes": "CurrencyOperandOf classifies the written operand and refuses every figurative-constant form with COBOL0892 at every edition; a symbolic-character is refused through the constant-name path with a message that speaks of constant entries (a 2002 notion), which is a diagnosis-wording issue, not a conformance failure. Diagnostics cite §2023 SR18 at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "c5-fig-SPACE refused identically (COBOL0892) at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-12",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Probes at --std 85 (refute-1985-049/src/r5-*.cob) on forms the reader did not try: lowercase 'currency sign is space' -> COBOL0892; CURRENCY ZERO (SIGN and IS omitted) -> COBOL0892; ALL SPACE, ALL QUOTE (ALL with a figurative), ALL \"##\" (multi-character ALL literal) -> COBOL0892 'this is a figurative constant'; HIGH-VALUES -> COBOL0892; a symbolic-character declared in the same paragraph (SYMBOLIC CHARACTERS HASHCH IS 36 then CURRENCY SIGN IS HASHCH) -> COBOL0892 (refused through the constant-name path; correct outcome, the wording speaks of constant entries, a later-edition notion); the legal CURRENCY SIGN IS \"#\" -> EXIT 0 RAN. Every 1985 figurative constant form (VI-? figurative constants: ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S), ALL literal, symbolic-character) is refused between the reader's probes and these. The 1985 format has only 'CURRENCY SIGN IS literal-6'; the PICTURE SYMBOL phrase and hexadecimal literal are gated at 85 as the reader showed. cite.py: OK  §1985:VI.4.5.3 SR12  (4.5.3 Syntax Rules)  the text is in SR12.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
