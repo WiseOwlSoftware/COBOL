@@ -511,7 +511,7 @@ class Gate:
             # A RETRY needs the population first (what the carried passes leave is the listing less them), where a whole
             # run joins the listings after the hosts: ~2 s each, which the retry's saved minutes repay.
             try:
-                listings = self.legs.listings(listed, run)
+                listings = listings or self.legs.listings(listed, run)
             except PopulationError as e:
                 return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                     f"the population could not be listed: {e}", 2)
