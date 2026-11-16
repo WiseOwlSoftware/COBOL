@@ -82,5 +82,10 @@
   ],
   "corrected": "NONCONFORMING (wrong-answer, cause b: the same at --std 2023). Under §1985:VII.4.6.4 GR4 and GR5b with §1985:X.5.5.4 GR1, a file named explicitly in a containing program's USE GLOBAL ... ON file-name-1 is excluded from a contained program's open-mode USE; the compiler runs the contained program's INPUT declarative instead of the container's named GLOBAL one. The opposing reading (that 'another USE statement' means one in the same Procedure Division, as SR3 is scoped) is the only way to uphold, and GR4's text carries no such limit."
  },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "A contained program's own USE ON INPUT runs, not the container's USE GLOBAL ON the file (kb/Work PB5812). Decided by the 1985 text: §1985:VII.4.6.3 SR3 and SR6 scope the USE statements to one Procedure Division, so GR4 and GR5b speak of one Procedure Division's statements, and §1985:X.5.5.4 GR1 orders the programs (the contained program's own declarative first).",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5812"
 }

@@ -74,5 +74,10 @@
   ],
   "corrected": "DOUBTFUL: strict 1985 reading would make it NONCONFORMING (under-rejects +n and figurative ZERO as integer-1); permissive reading makes -0's refusal rejects-legal-source. Needs an adjudication of the 1985 reading."
  },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The refuter's side is upheld: a written sign on the integer of WRITE ADVANCING must be refused at 1985 (under_rejects, kb/Work PB5805). Decided by the 1985 text, §1985:III.2 (an integer is neither signed nor zero unless the rules explicitly allow it) and §1985:VII.4.7.3 SR5 (which allows zero and does not allow a sign); GnuCOBOL agrees.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-open-readings.md"
+ },
  "work": "PB5805"
 }
