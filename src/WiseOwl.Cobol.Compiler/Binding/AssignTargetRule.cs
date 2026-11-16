@@ -89,7 +89,14 @@ internal static class AssignTargetRule
                     $"ASSIGN TO {num.GetText()}: literal-1 shall be an alphanumeric literal (ISO §2023:12.4.5.2 SR4)"));
             return "";
         }
-        if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord());
+        if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord(), t.cobolWord().GetText());
+        // ⛔ NULL IS A RESERVED WORD ONLY WHERE THE EDITION RESERVES IT (kb/Work PB5802). The grammar parses the token as the
+        // predefined NULL at every edition, but where it is free (COBOL-85: §1985:IV.4.2.2.1, reserved words and system-names
+        // form disjoint sets, and NULL is not in the 1985 reserved-word list) it is implementor-name-1, a system-name whose
+        // allowable content the implementor defines (§1985:VII.2.3.3 SR3) — the word reads as any other, so NULL names the
+        // file as NULLS does.
+        if (nn.predefinedNull() is not null && UnreservedKeywordReference.IsFreeAt("NULL", edition))
+            return WordText(edition, env, nn, nn.GetText());
         void Refuse(string why) =>
             Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §2023:12.4.5.2 SR4)");
         string value;
@@ -144,9 +151,9 @@ internal static class AssignTargetRule
     /// (§2023:13.10.4 GR1), so it meets §2023:12.4.5.2 SR4 as a written literal does: alphanumeric, not zero-length (a constant
     /// never stands for a figurative constant: §2023:13.10.3 SR6 refuses that at the entry). A constant whose own entry was
     /// refused reported there, so the operand recovers silently.</para></summary>
-    private static string WordText(EditionContext edition, LiteralEnvironment env, Core.CobolWordContext word)
+    private static string WordText(EditionContext edition, LiteralEnvironment env, Antlr4.Runtime.ParserRuleContext word,
+        string spelling)
     {
-        string spelling = word.GetText();
         var reading = env.ReadConstant(spelling);
         switch (reading.Kind)
         {
