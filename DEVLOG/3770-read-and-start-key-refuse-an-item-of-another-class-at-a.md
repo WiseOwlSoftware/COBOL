@@ -1,4 +1,4 @@
-## READ and START KEY refuse an item of another class at a record key's positions (PB5794)
+## Entry 3770 — 2026-11-16 08:53 PST — READ and START KEY refuse an item of another class at a record key's positions (PB5794)
 
 kb/Work PB5794: `RecordLayout.KeyIndexOfKeyItem`, the one place READ's KEY (§2023:14.9.30.3 SR11) and START's
 operand (§2023:14.9.41.3 SR6 a) ask whether an item IS a record key, matched the implicit key of §2023:12.4.5.12.4 GR4
@@ -15,3 +15,4 @@ in PB5794 as a lead nobody has ruled.
 Goldens: `cases/14.9.30-READ/pb5794-read-key-numeric-twin` and `cases/14.9.41-START/pb5794-start-key-numeric-twin`,
 each refused at all four editions (`wiseowl/diagnostics/pb5794-*.json`). Rows `SR-14.9.30.3-11` and `SR-14.9.41.3-6`
 re-verdicted PARTIAL to CONFORMS (GAP 32 to 30). The two 1985 rows the note names are left to the registrar.
+
