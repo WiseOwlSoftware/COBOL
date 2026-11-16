@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb157_compute_multi_sizeerr
       *> rules: [GR-14.9.8.4-2]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

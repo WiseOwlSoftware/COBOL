@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.27.2-2",
+ "rule-digest": "753c357bc0ce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+ "test-ref": "conformance:cases/13.16.27@2002-GROUP-USAGE-CLAUSE/g2-gu-bit-group-ws-and-cd",
+ "notes": "USAGE BIT is implied for the subject of a GROUP-USAGE BIT entry, so its subordinates pack into BYTE-LENGTH 02 (§2002:13.16.27.2 SR2; §2002:15.12.3 RV4). A subordinate group written with no GROUP-USAGE clause is accepted as an implied bit group (§2002:13.14.3 GR1): its LENGTH is 05 and its parent's BYTE-LENGTH is 01. The forbidden forms are refused in WS and in CD: USAGE on the subject (COBOL1653), a PIC X subordinate (COBOL0881) and a NATIONAL subgroup (COBOL1653). Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

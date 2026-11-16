@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: g2-bwz-cd-record
-      *> rules: [2002-SR-13.16.8.2-1, 2002-GR-13.16.8.3-1, 2002-GR-13.16.8.3-2]
+      *> rules: [2002-SR-13.16.8.2-1, 2002-GR-13.16.8.3-1, 2002-GR-13.16.8.3-2,
+      *>    2002-FMT-13.16.8.1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
@@ -26,6 +27,9 @@
       *> legal (§2002:13.16.61.2 SR4); were U1 numeric, SR2 would
       *> demand numeric literals and refuse the entry.  The 88 is true
       *> when U1 holds spaces (line 5) and false when it holds "007".
+      *> §2002:13.16.8.1 - the format BLANK WHEN ZERO, spelled with the
+      *> keyword ZERO, is written on U1 and E1 in a CD record and is
+      *> accepted; lines 1, 3 and 4 show it takes effect there.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. G2BWZ01.
        DATA DIVISION.

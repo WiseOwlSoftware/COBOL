@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-6",
+ "rule-digest": "c7b306018869",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#ScreenClausePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-global-level-1; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-global-05; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-ws-global-77",
+ "notes": "§2002:13.14.2 SR6 admits GLOBAL only at level 1: a WS level 1 GLOBAL group is read by a contained program (R1=CD at --std 2002, equal to the derivation, §2002:13.16.25.3 GR2), and GLOBAL at level 5 in a CD record and at level 77 is refused with COBOL2404."
+}

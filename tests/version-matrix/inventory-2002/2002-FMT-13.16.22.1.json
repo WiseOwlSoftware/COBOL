@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.22.1",
+ "rule-digest": "e587880952e2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFormatClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRecordFormatRegistration; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordPlans.cs#Of",
+ "test-ref": "conformance:cases/13.16.22@2002-FORMAT-CLAUSE/g2-format-any-order-data-omitted; conformance:cases/13.16.22@2002-FORMAT-CLAUSE/format_roundtrip_character_numeric_2002; conformance:cases/13.16.22@2002-FORMAT-CLAUSE/format_roundtrip_bit_2002",
+ "notes": "§2002:13.16.22.1 with §2002:5.1.5.3 (choice indicators, any order) and §2002:5.1.2 (DATA optional): FORMAT NUMERIC CHARACTER and FORMAT CHARACTER without DATA accepted and round-trip at --std 2002 ('F1 HELLO -012 -0345 / F2 0042 ABC'); CHARACTER NUMERIC DATA and BIT DATA by the existing 2002 roundtrip cases."
+}

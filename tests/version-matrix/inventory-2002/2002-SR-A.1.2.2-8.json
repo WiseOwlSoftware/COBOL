@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-A.1.2.2-8",
+ "rule-digest": "9baa82edd18f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CommunicationSectionBinder.cs#BindEntry",
+ "test-ref": "conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-SR-A_1_2_2-8; conformance:cases/A.1.2@2002-COMMUNICATION-DESCRIPTION-ENTRY/2002-SR-A_1_2_2-9",
+ "notes": "§2002:A.1.2.2 SR8 requires a level 01 entry after an output CD with none of its optional clauses: a clause-less CD followed by the procedure division is refused COBOL6169 at --std 2002, and the clause-less CD followed by 01 OREC1 compiles and runs (2002-SR-A_1_2_2-9, MATCH at --std 2002)."
+}

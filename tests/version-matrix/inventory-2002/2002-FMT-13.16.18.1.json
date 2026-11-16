@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.18.1",
+ "rule-digest": "c18c9d868c2a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataName; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupEntry",
+ "test-ref": "conformance:cases/13.16.18@2002-ENTRY-NAME-CLAUSE/g2-entry-name-cd-record",
+ "notes": "§2002:13.16.18.1 Formats 1 and 3, and an omitted clause (FILLER assumed, §2002:13.16.18.2 SR1), each occupy their storage in a CD record: LEN=10, N1=AA N3=DD N2=EE. The --std 2002 run matched. Format 2 belongs to the screen section, a processor-dependent element that is not supported (§2002:B.3 item 1, §2002:3.1.5)."
+}

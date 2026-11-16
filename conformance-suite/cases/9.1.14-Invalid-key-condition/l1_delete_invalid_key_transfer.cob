@@ -2,7 +2,7 @@
       *> id: l1_delete_invalid_key_transfer
       *> rules: [GR-9.1.14-2, GR-9.1.14-3, GR-9.1.14-L2.1,
       *>    GR-9.1.14-L2.2, GR-14.9.10.4-11]
-      *> accept: [2023]
+      *> accept: [85, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

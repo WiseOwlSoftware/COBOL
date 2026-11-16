@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.3.4-6",
  "rule-digest": "c0cd4d7d8c6f",
+ "test-ref": "conformance:cases/X.5.3@1985-CANCEL-STATEMENT/g85_bf06_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.6.3-13",
+ "rule-digest": "8913d82121e8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#DeEdit; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CanonicalCurrencyMask",
+ "test-ref": "conformance:cases/12.2.6@2002-SPECIAL-NAMES-PARAGRAPH/g2002_currency_string_and_symbol",
+ "notes": "§2002:12.2.6.3 GR13: literal-7 is the currency string, literal-8 (or literal-7 without PICTURE SYMBOL) the symbol, a lowercase symbol equals its uppercase form, and the string is removed on de-editing: G/g pictures print EUR012.50, U/u print u012.50, de-edited value 12.50; the --std 2002 run matched."
+}
