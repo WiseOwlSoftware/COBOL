@@ -1,0 +1,100 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-5",
+ "rule-digest": "58adbc8b8da0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-051",
+  "sources": {
+   "reader": "4574bde3c52a27938a3e7d9cf239b9175d7e793a78a38be118b57a76aec077ca",
+   "refuter": "0a302e34a4ab2a82b27c5284564d89181c38ba77697deab20b08bcf532313a5d"
+  },
+  "imported": {
+   "reader": "2c4c20a37d48666c4fd96f3ad085aa70bf0825f9dbc3cb6d7c05c5bcd9a7a47c",
+   "refuter": "b2d21074c50432f821ab00f53f68e22b701489ecc47bee564255012d16771229"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must refuse a REDEFINES whose data-name-2 entry carries an OCCURS clause (elementary or group), accept a data-name-2 subordinate to an OCCURS item, refuse a subscripted data-name-2, and refuse any variable occurrence data item (an ODO table or an item subordinate to one) in the original definition or the redefinition.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#ScreenRedefinesClause; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run",
+  "edition-consulted": [],
+  "edition-search": "Grepped src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs, src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2/#ScreenDataNameShape and the grammar rule CobolData.g4 redefinesClause for CobolVersion, IsAtLeast, Std, Version., ConstructRegistry, DialectBehavior, ReservedWords and EditionContext edition properties: none. The only diagnostics sink is src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Error, which records the error with no edition test. REDEFINES is ungated in the grammar.",
+  "behaviour-differs-by-edition": "no: COBOL1701, COBOL2024 and COBOL0855 are raised by edition-blind code. ScreenDataNameShape consults edition.SubscriptedClauseOperands only when its caller passes admitsSubscript2002, which the REDEFINES caller does not",
+  "witnesses-cover": "part: the witness is the bare data-name-2; OCCURS on data-name-2, the legal subordinate-to-OCCURS form, the subscripted reference and the variable-occurrence half are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_occ.cob",
+    "printed": "COBOL1701 'U' REDEFINES 'T', whose data description entry contains an OCCURS clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_occ_grp.cob",
+    "printed": "COBOL1701 'H' REDEFINES 'G' ... OCCURS clause",
+    "expected": "refused (group table)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_subscr.cob",
+    "printed": "COBOL2024 'B' REDEFINES 'A (1)' is written with a subscript",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_odo_orig.cob",
+    "printed": "COBOL0855 occurs-depending table 'T' lies within a REDEFINES area",
+    "expected": "refused (ODO in the original)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_odo_redef.cob",
+    "printed": "COBOL0855 occurs-depending table 'T' lies within a REDEFINES area",
+    "expected": "refused (ODO in the redefinition)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_odo_target.cob",
+    "printed": "COBOL0855 (plus cascade COBOL2364 at the reference)",
+    "expected": "refused (data-name-2 is itself the ODO table)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_ok_sub.cob",
+    "printed": "EXIT 0; L1=ac / L2=abZd",
+    "expected": "accepted: B under OCCURS 2 overlays A of each occurrence"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-051/src/sr5_bad_occ_subject.cob",
+    "printed": "EXIT 0; L1=bd",
+    "expected": "accepted: the rule bars OCCURS on data-name-2 only; the subject may carry it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR5",
+    "check": "OK  §1985:VI.5.10.3 SR5  (5.10.3 Syntax Rules)  the text is in SR5 [quote: Neither the original definition nor the redefinition can include a variable occurrence data item]"
+   }
+  ],
+  "notes": "1985's 'variable occurrence data item' (glossary: an ODO entry or an item subordinate to one) is caught by the ODO subject's ancestor climb into a REDEFINES area. Sentence 1 (COBOL1701) and sentence 4 (COBOL0855) are disjoint screens.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-5",
+  "refutation": "OVERTURNED",
+  "classes": "a,b",
+  "evidence": "r5_in_odo.cob: 77 N PIC 9 VALUE 2. 01 R. 05 T OCCURS 1 TO 4 DEPENDING ON N. 10 A PIC XX. 10 B REDEFINES A PIC X. -> --std 85: EXIT 0, L1=a (accepted and run). Same at --std 2023 (EXIT 0, L1=a). A and B are each subordinate to the ODO entry T, so by the 1985 glossary each IS a variable occurrence data item: cite.py OK  §1985:III.2 (2. DEFINITIONS) the text is in the clause [Such an item must contain an OCCURS DEPENDING ON clause in its data description entry, or be subordinate to such an item]. SR5 sentence 4: OK  §1985:VI.5.10.3 SR5 (5.10.3 Syntax Rules) the text is in SR5 [Neither the original definition nor the redefinition can include a variable occurrence data item]. The reader's own requirement says 'refuse any variable occurrence data item (an ODO table or an item subordinate to one) in the original definition or the redefinition'; its probes put the ODO table INSIDE the REDEFINES area (orig, redef, target) but never put the REDEFINES pair INSIDE the ODO table. Code: src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#Run climbs from the ODO subject UPWARD (for a = item; a = a.Parent) testing InRedefinesArea, so a REDEFINES entry subordinate to the ODO table (a descendant) is never seen. Sentence 2 (data-name-2 may be subordinate to an OCCURS item) does not save it: sentence 4 bars the variable case outright. kb/Work search (REDEFINES with variable occurrence / subordinate to DEPENDING): no note for this shape (PB177, PB209, PB577 concern other shapes).",
+  "edition-sites-missed": [],
+  "corrected": "a non-conforming verdict (under-rejects; cause b: the same at every edition, the ODO-in-REDEFINES screen OdoResolvePass#Run climbs only the ODO subject's ancestors, so a REDEFINES entry subordinate to an occurs-depending table, itself a variable occurrence data item per §1985:III.2, is accepted). Repro r5_in_odo.cob above; expected a refusal per §1985:VI.5.10.3 SR5 sentence 4; observed EXIT 0 L1=a at --std 85 and --std 2023. The rest of the reader's probes (OCCURS on data-name-2, subscript, ODO inside the area) stand."
+ },
+ "work": "PB5799"
+}

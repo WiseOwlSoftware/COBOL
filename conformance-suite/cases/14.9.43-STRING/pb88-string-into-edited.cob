@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb88-string-into-edited
-*> rules: [SR-14.9.43.3-5]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb88-string-into-edited
+      *> rules: [SR-14.9.43.3-5]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 14.9.43.3 SR5: "Identifier-3 shall not reference an edited data item and shall not be described with
       *> the JUSTIFIED clause." Both halves: a numeric-edited receiver, and a JUSTIFIED one (the second was not
       *> checked at all). kb/Work PB88: COBOL1651 at bind (a run-time stage before).

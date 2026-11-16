@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-XIII.3.20.4-13",
+ "rule-digest": "41818d996adf",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-148",
+  "sources": {
+   "reader": "cd63eeb9ed9709933e7a904755c89e9c66dcc37e523cc5c55ebba2d2eec5793c",
+   "refuter": "81637a99046fc20383bc9651dbe773c4bc246f732873a7dcede1deb6bd379c64"
+  },
+  "imported": {
+   "reader": "526e476e0effe1d6f9fcff846ea866b683ebf860abdd9616ac4f5434035ad7de",
+   "refuter": "2cf22542255889dfd3e48659a07e8723dd3e78537b4bf529eb18db524cd9b9e8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.20.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the control data items hold the values that detected the break (prior values) while a control footing's SOURCE clauses and USE procedure are processed at a break, every control footing and the report footing see the prior values at TERMINATE as though the highest control broke, and every other reference (details, control headings, page groups, non-control items) sees the current values.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#GenerateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#DetectBreakLevel; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SaveCurrentRestorePriors; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataReferences",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues (2002+): at 85 a page group reached during a footing phase, and the TERMINATE page footing, see the current values (GR13c)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#CheckControlDataReferences",
+    "switches": "DialectLevel >= 2002 skips the §1985:XIII.3.20.3 SR5 refusal of control-data references in CF/PH/PF/RF USE statements",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction",
+    "switches": "bakes Edition into CobolReport, read by the DialectBehavior questions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep IsActive/DialectLevel in ReportWriter.cs and ReportWriterBinder.cs; SaveCurrentRestorePriors, DetectBreakLevel and the TERMINATE bracket consult nothing",
+  "behaviour-differs-by-edition": "yes: page heading/page footing processed while the priors are in place see the current values at 85 and the prior values at 2002+; CF, RF, CH and detail references are the same",
+  "witnesses-cover": "part: g85_bf35_04 covers a, b and c for CF, RF, CH and DE; page groups reached during a footing phase are not exercised there",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p8prior.cob",
+    "printed": "USE CFB +1 M1 1; USE CFB +1 M2 2; USE CFA +1 M2 2; at TERMINATE USE CFB/CFA -2 M3 3; AFTER +5 Z9; CH/DTL lines show current values",
+    "expected": "two-level break: both footings see prior MAJ and MIN, the non-control WS-OTH current (13c); TERMINATE gives the priors and restores +5 Z9"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/p7pagb.cob",
+    "printed": "USE CFK KEY A at the A->B break; CFF C and RF C at TERMINATE while WS-KEY holds Z; AFTER TERMINATE KEY Z",
+    "expected": "13a and 13b prior values, restored after"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/c2phuse.cob",
+    "printed": "85: PH USE during the TERMINATE footing's page advance sees Z; 2023: sees C",
+    "expected": "85: current value (13c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-148/src/c1pfkey.cob",
+    "printed": "85: error COBOL6825 ... page footing ... must not reference control data-names (ISO §1985:XIII.3.20.3 SR5); 2023: no such error",
+    "expected": "85 refuses a PF SOURCE of a control item"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.4 GR13a",
+    "check": "OK  §1985:XIII.3.20.4 GR13a  (3.20.4 General Rules)  the text is in GR13a"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR13b",
+    "check": "OK  §1985:XIII.3.20.4 GR13b  (3.20.4 General Rules)  the text is in GR13b"
+   }
+  ],
+  "notes": "On a break, GenerateCore saves the current values, stores the priors, processes the footings, then restores and takes the new values as priors. TerminateCore brackets the CFs and the RF the same way, while WithPageGroupControlValues gives the 85 page groups the current values. A conforming 85 program can only see the page-group arm through a PERFORM from a page group's USE procedure into another declarative, since SR5 refuses direct references (c1pfkey); c2phuse does that and gets the current value.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.20.4-13",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "r9prior-001 at --std 85: R1 CONTROLS FINAL WS-GRP (a GROUP control item) WS-NUM (signed numeric, -5/7/0), R2 CONTROLS WS-K2 WS-NUM on the same FD, so one control item is shared by two reports and WS-K2 is a control of R2 only. Output: CFN A1 -005 Q and its USE (NUM -005 GRP A1 K2 Q) at the minor break, CF2 P -005 A1 at R2's major break (R2's own priors; WS-GRP, not R2's control, current), CFN A1 007 Q and CFG A1 007 at R1's major break, then at TERMINATE R1 (program had moved 0 / C3 / R after the last GENERATE) CFN B2 007 R, CFG B2 007, CFF B2 007 and AFTER R1 C3 000 R, then TERMINATE R2 CF2 Q 007 C3 and AFTER R2 C3 000 R: 13a and 13b give each report its own prior values, a non-control item (of that report) is current (13c), and the values are restored. r10phb-003 (--std 85) and -004 (--std 2023), aimed at the arm the reader probed only at TERMINATE: a three-line CF that overflows at a GENERATE break, with the PH USE PERFORMing the CH paragraph that DISPLAYs WS-KEY: 85 prints 'USE CFK KEY A / USE PH / KEY SEEN B' (current, 13c), 2023 prints KEY SEEN A, so the 85 arm (DialectBehavior.ControlFootingPageGroupsSeePriorControlValues off) is the one 13c asks for at a GENERATE break too. cite.py: 'OK  §1985:XIII.3.20.4 GR13a  (3.20.4 General Rules)  the text is in GR13a'; 'OK  §1985:XIII.3.20.4 GR13c  (3.20.4 General Rules)  the text is in GR13c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

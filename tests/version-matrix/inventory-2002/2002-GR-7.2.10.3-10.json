@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.10.3-10",
+ "rule-digest": "713200be448b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+ "test-ref": "conformance:cases/7.2.10@2002-EVALUATE-DIRECTIVE/g2ev21_cce_formation_truth",
+ "notes": "§2002:7.2.10.3 GR10 (format 2) omits all text-1 when no WHEN is TRUE (H-AFTER; with WHEN OTHER, I-OTHER). A TRUE WHEN with no WHEN OTHER keeps its text-1 (J-TRUE) under §2002:7.2.10.3 GR8, which governs that branch. Matched at --std 2002."
+}

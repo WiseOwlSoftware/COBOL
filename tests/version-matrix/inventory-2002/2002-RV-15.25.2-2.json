@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.25.2-2",
+ "rule-digest": "e01d07478a7b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcLocation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#AddAnonymousParagraph; src/WiseOwl.Cobol.Compiler/Binding/Procedure/OoMethodScope.cs#MethodName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#SetPropagating",
+ "test-ref": "conformance:cases/15.30.3-Returned-value-rules/pb82_exception_location_source_line",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.30.3-2, witnessed at 2002 by the cases test-ref names. The read: Same structure and same three parts; 2023 adds the PERFORM enabling form and drops a NOTE sentence (non-normative). Pointer tests accept [2023] only; probes show every 2002 arm at 2002. Cited: §2002:15.25.2 RV2; §2002:7.2.17.3 GR2."
+}

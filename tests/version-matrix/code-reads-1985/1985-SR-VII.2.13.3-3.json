@@ -1,0 +1,123 @@
+{
+ "rule-id": "1985-SR-VII.2.13.3-3",
+ "rule-digest": "68b206bfad4e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-160",
+  "sources": {
+   "reader": "06e7f0c524cb2ee3f5bb1704ee3939a3b37bb5828fcf7f1964f8abd7e2f96744",
+   "refuter": "0a07f13600d8ff8d67ac2ca675b9c78a9f000660be3a12d7c5632ea1c2b5ddfe"
+  },
+  "imported": {
+   "reader": "8896f12edc3c0ed9923c7f78e6c19768bd8c6f25fd08784ca0fe90ca5acf8cf6",
+   "refuter": "659ffa660eb2570f9735566814a66a9fe3556184e96bb5d7de6ca07e2488aafa"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.13.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, a program may hold several SAME clauses, and the compiler must refuse (a) a file-name in two SAME AREA clauses, (b) a file-name in two SAME RECORD AREA clauses, and (c) a SAME RECORD AREA clause that shares a file with a SAME AREA clause but omits another file of it; it must accept extra file-names in the record clause and disjoint clauses in any order.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameMissingFrom; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#LinkSameRecordArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Year < 2002 selects the 1985 report-file row (SAME SORT AREA unlimited, per §1985:XIII.2.4.3 SR2); the sort-merge and other-file rows that carry SR3a and b are one arm at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition./Year/DialectLevel in FileControlBinder.IoControl.cs: only SameOccurrenceRule's report row switches",
+  "behaviour-differs-by-edition": "no for SR3a-c on ordinary files. Yes only for report files in SAME SORT AREA, which is outside this rule",
+  "witnesses-cover": "part: g85_bf07_05 covers the accepted forms (c's extra file, disjoint pairs) and GR2 at run time; 1985-SR-VII_2_13_3-3 covers refusal a. Neither covers refusal b, refusal c, a record clause written before the area clause, or the sort-file siblings",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3a.cob",
+    "printed": "COBOL2738: SAME AREA: file 'F1' is named in more than one file-area format clause",
+    "expected": "refused (SR3a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3b.cob",
+    "printed": "COBOL2738: SAME RECORD AREA: file 'F2' is named in more than one record-area format clause",
+    "expected": "refused (SR3b)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3c.cob",
+    "printed": "COBOL2738: SAME RECORD AREA shares files with SAME AREA but omits 'F2'",
+    "expected": "refused (SR3c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3d.cob",
+    "printed": "EXIT 0, OK",
+    "expected": "accepted: SAME RECORD AREA F4 F2 F1 written before SAME AREA F1 F2 contains all of it plus an extra file"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3e.cob",
+    "printed": "two COBOL2738 SR9 errors, one at each record clause",
+    "expected": "refused: each of two record clauses omits a file of the area clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3f.cob",
+    "printed": "EXIT 0, OK",
+    "expected": "accepted: disjoint area and record clauses, and an area clause equal to a record clause"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3g.cob",
+    "printed": "EXIT 0, OK",
+    "expected": "accepted: the 1985 Sort-Merge SAME SORT AREA and SAME RECORD AREA with SD S1 beside the SAME AREA (XI.2.5.3 SR5c satisfied)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3h.cob",
+    "printed": "COBOL2738: sort or merge file 'S1' is named in a file-area format clause",
+    "expected": "refused (§1985:XI.2.5.3 SR4)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-160/c3i.cob",
+    "printed": "COBOL2738: SAME SORT AREA names 'F1', which SAME AREA also names, but omits 'F2'",
+    "expected": "refused (§1985:XI.2.5.3 SR5c)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.3 SR3",
+    "check": "OK  §1985:VII.2.13.3 SR3  (2.13.3 Syntax Rules)  the text is in SR3"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3b",
+    "check": "OK  §1985:VII.2.13.3 SR3b  (2.13.3 Syntax Rules)  the text is in SR3b"
+   },
+   {
+    "cite": "§1985:VII.2.13.3 SR3c",
+    "check": "OK  §1985:VII.2.13.3 SR3c  (2.13.3 Syntax Rules)  the text is in SR3c"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR4",
+    "check": "OK  §1985:XI.2.5.3 SR4  (2.5.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "SR3a and b come from the occurrence table (the 'Other' row caps file-area and record-area at 1), and SR3c is the SR9 loop, which skips an area clause none of whose files are in the record clause, as 'one or more' requires. The diagnostics cite §2023:12.4.6.4.3 at --std 85, but every verdict matches the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.13.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "The 1985 format is SAME [RECORD] AREA FOR with AREA and FOR not underlined. r3a.cob (runs/r3a-001): SAME F1 F2 then SAME AREA FOR F3 F1 refused (COBOL2738, file F1 in more than one file-area clause), so the AREA-less spelling is counted as a SAME AREA clause (SR3a). r3b.cob (runs/r3b-001): SAME RECORD F1 F2 then SAME RECORD AREA F3 F2 refused (SR3b). r3d.cob (runs/r3d-001): SAME AREA F1 F2, SAME AREA F3 F4, SAME RECORD AREA F1 F2 F3 refused for omitting F4 (SR3c across two area clauses). r3c.cob (runs/r3c-001): a contained program (1985 nested programs) with its own F1 F2 F3 in SAME AREA F1 F2 and SAME RECORD AREA F3 F2 F1, inside an outer program with its own SAME AREA F1 F2 and SAME RECORD AREA F1 F2, compiles and runs: S3=INNER (shared record area) / INNER DONE / OUTER DONE, so the restrictions are scoped per program as SR1 'the same program' requires. cite: OK  §1985:VII.2.13.3 SR3a; OK  §1985:VII.2.13.3 SR3c; OK  §1985:VII.2.13.3 SR1  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

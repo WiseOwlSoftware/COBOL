@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.4.2-2",
+ "rule-digest": "ba0f711fdd17",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramNameLiteral",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call06_literal1_categories; conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call07_literal1_numeric_refused",
+ "notes": "§2002:14.8.4.2 SR2: alphanumeric and national literal-1 accepted in Formats 1, 2 and 3 and each reaches the program its value names (§2002:14.8.4.3 GR3), --std 2002 run matched 10 lines; numeric literal-1 in a Format 1 CALL refused COBOL1627 at the CALL line."
+}

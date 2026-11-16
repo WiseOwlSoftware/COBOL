@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1285-report-in-no-clause
-*> rules: [SR-13.14.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1285-report-in-no-clause
+      *> rules: [SR-13.14.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1285. ISO/IEC 1989:2023 13.14.3 SR1: "There shall be one and only one REPORT clause specifying
       *> report-name-1 in a given file description entry." (cite.py OK). R-B has a report description entry and
       *> no file description entry names it (COBOL2714, which replaced the not-implemented code this arm

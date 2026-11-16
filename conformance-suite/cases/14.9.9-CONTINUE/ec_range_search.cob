@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: ec_range_search
 *> rules: [SR-14.9.9.3-1, SR-14.9.9.3-2, GR-14.9.37.4-4, GR-14.9.37.4-9]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

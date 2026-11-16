@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1293-source-alphabetic-to-numeric
-*> rules: [SR-13.18.53.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1293-source-alphabetic-to-numeric
+      *> rules: [SR-13.18.53.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1293 - ISO 13.18.53.3 SR2: "If identifier-1 is specified without the ROUNDED phrase, identifier-1 shall be described such that a MOVE statement
       *> is valid with identifier-1 as the sending operand and the printable item as the receiving operand."   cite.py: OK  13.18.53.3 2)  (Syntax rules)
       *> 14.9.25.3 SR10, Table 16: an alphabetic operand does not move to a numeric item.  Here: SOURCE WA (PIC A(3)) into PIC 9(2).

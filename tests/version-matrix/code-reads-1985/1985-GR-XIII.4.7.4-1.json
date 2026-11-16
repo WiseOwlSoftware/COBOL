@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-XIII.4.7.4-1",
+ "rule-digest": "a3e86b88cd1a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-153",
+  "sources": {
+   "reader": "c43b35e0287ee98296382ce4f6cc13740e771d83a95de5b79fc0778c3c50c6a5",
+   "refuter": "2565a1de6da999ed777ecb2ab8accfcfeb5143e208fd90ab065788bd5240fc99"
+  },
+  "imported": {
+   "reader": "e4dbadeb8d9dc3ab49072842ff38e610dcf8ae914cf6855873d0b7d347b5d33a",
+   "refuter": "d279fb335476ec813ded42e15020e5e21092fe1825777a27d4fa4a8e13a3c2a2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.7.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 TERMINATE, after at least one GENERATE, must produce every control footing from minor to major (FINAL last), then the report footing. While it does, the prior control values must be available to the control-footing and report-footing SOURCE clauses and USE procedures, as for a break at the most major control. Other groups (the last page footing) see the current values, sum counters total as for a most-major break, and afterwards the control items hold their current values again.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SaveCurrentRestorePriors; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ProcessControlFootings; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup: from 2002 an absolute NEXT GROUP save location is discarded at TERMINATE; at 85 it stays for the first control footing's fit test",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "DialectBehavior.ControlFootingPageGroupsSeePriorControlValues: at 85 the page footing TERMINATE presents (and page groups a footing's page advance reaches) see the current values; from 2002 they see the priors",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped ReportWriter.cs for DialectBehaviors.IsActive: lines 734, 964, 1080 and 1490. Two of them (1080, 1490) are on the TERMINATE path; ReportWriter.Edition is set from --std by the generated construction.",
+  "behaviour-differs-by-edition": "yes: at 85 a page footing at TERMINATE sees the current control values (1985 SR5 forbids PH/PF from naming a control data-name anyway, and the compiler refuses that with COBOL6825), and a saved absolute NEXT GROUP survives into the control footings. The control-footing and report-footing order and prior values are the same at 85 and 2023.",
+  "witnesses-cover": "part: g85_bf35_03 covers an unpaged report with FINAL and two control levels, USE procedures and SOURCE. It does not cover sum counters (rolled forward through the levels) at TERMINATE, a paged report with a page heading and page footing at TERMINATE, or the control items restored afterwards",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/g85_bf35_03-001",
+    "printed": "identical to .out (CF2 C+5, CF1 C+5, CFF C+5, RF C+5 after T, file lines 19-22 in that order)",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p7term.cob",
+    "printed": "--std 85: PH 1 / DE A1 1 / DE A1 2 / CF2 A1 +03 / CF1 A1 +03 / DE B3 4 / T / CF2 B3 +04 / CF1 B3 +04 / CFF B3 +07 / PF 8 / RF B3 / AFTER D9; file: CF2 B3 04, CF1 B3 04, CFF B 07, PF at line 26, RF B3. --std 2023 prints the same",
+    "expected": "at TERMINATE: CF2 then CF1 then CFF with the priors B3 and sums 04, 04, 07, then the page footing, then RF with B3; K1 K2 are D9 again afterwards"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-153/p7term-003",
+    "printed": "first version, with PH/PF SOURCE K1 and USE referencing K1: COBOL6825 (ISO §1985:XIII.3.20.3 SR5) at both editions",
+    "expected": "page heading and page footing must not reference control data-names (§1985:XIII.3.20.3 SR5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.7.4 GR1",
+    "check": "OK  §1985:XIII.4.7.4 GR1  (4.7.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.3.20.3 SR5",
+    "check": "OK  §1985:XIII.3.20.3 SR5  (3.20.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "TerminateCore saves the current values and restores the priors, runs ProcessControlFootings(0) (minor to major), presents the page footing (current values at 85), then the report footing, and restores the current values last. The probes show the order, the priors, the rolled-forward sums and the restore. DISPLAY of a sum counter shows '+03', which concerns the SUM clause, not this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.7.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "r7term.cob (runs/r7term-001): a group control KG holding control K2 referenced by CF/RF SOURCE and USE is refused with COBOL6825 citing §1985:XIII.3.20.3 SR5a/b, which is what SR5 requires ('OK  §1985:XIII.3.20.3 SR5 ... the text is in SR5'). r7term2.cob (runs/r7term2-001, --std 85): CONTROLS FINAL KG K2 with KG a group control, CF only for KG (no CF K2, no CF FINAL), a SUM counter, RF SOURCE KG and K2, USE BEFORE REPORTING on CF and RF, the last GENERATE a summary GENERATE PA, controls moved to ZZ 9 before TERMINATE. Printed 'BR-CFG KG=AA K2=2 SUM=+030 / T / BR-CFG KG=BB K2=3 SUM=+030 / BR-RF KG=BB K2=3 / AFTER ZZ 9'; file 'CFKG BB 3 030' then 'RF BB 3'. Priors reach CF and RF SOURCE and USE, absent CF levels are skipped, the summary GENERATE's amount is summed, the current values return afterwards. cite.py: 'OK  §1985:XIII.4.7.4 GR1 ... the text is in GR1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

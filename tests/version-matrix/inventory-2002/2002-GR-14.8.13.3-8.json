@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-8",
+ "rule-digest": "b6d21f348dd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindGoback; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-function-result",
+ "notes": "Per §2002:14.8.13.3 GR8 EXIT FUNCTION ends the function and returns control to the activating statement with the RETURNING item as the result; the --std 2002 run of the pinned build printed R1=07 R2=08 R3=08 R4=00 DONE as derived (statements after EXIT FUNCTION never ran)."
+}

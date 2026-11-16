@@ -1,0 +1,125 @@
+{
+ "rule-id": "1989-RV-A.2.38.4-1",
+ "rule-digest": "63e72422136d",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-10",
+  "sources": {
+   "reader": "3d30a56ccbda16d118316e117b197172c15c128a6ba71ed78f12a663676b0d1d",
+   "refuter": "c9a32fd6314b887eaa2ab65ffdac7428d3df9534ddb6c7fdbbf6f9b26c20edab"
+  },
+  "imported": {
+   "reader": "e1dec4fc32d775e6ebe46a905a3b71bb4d3c4e08a170489aa50df2b6ebcdfec8",
+   "refuter": "7e6d88d63affb40294f04c3711ffc7c39af1a4287720ea09a7ed8af694b7d4bc"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.38.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, FUNCTION REVERSE of a class alphabetic or alphanumeric argument of length n >= 1 returns an n-character string whose position j holds argument-1's character at position n-j+1. The argument can be an alphabetic, alphanumeric, alphanumeric-edited or numeric-edited elementary item, a group item (an OCCURS DEPENDING ON group at its current length), a reference-modified item or a nonnumeric literal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Reverse",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: sig.IntroducedIn (85 on the catalog row) > ctx.Edition.DialectLevel raises COBOL1502, RemovedIn raises the removal error; at --std 85 neither fires",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "numeric-function-identifier-operand-2002 is checked, but its category test is false for an alphanumeric function, so REVERSE is accepted wherever an identifier stands, at 85 as at 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition/ConstructRegistry/DialectBehavior over IntrinsicRenderer.cs#RenderStringValue and CobolIntrinsics.Text.cs: no hits. The argument-class screen does not consult the edition.",
+  "behaviour-differs-by-edition": "no: rev1.cob prints the same output at --std 85 and 2023",
+  "witnesses-cover": "part: the witness covers argument shapes at 85. Only the probes exercise ODO groups at two current lengths, numeric-edited and alphanumeric-edited items, reference modification at its bounds and nested REVERSE.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/rev1.cob",
+    "printed": "[EDCBA] X(5); [ZYXW] A(4); [Q] X(1); [*54321] group with a numeric DISPLAY member; [05.21 ] numeric-edited ZZ9.99 holding ' 12.50'; [ DCBA] alphanumeric-edited; [olleh] literal; [ b a] literal with spaces",
+    "expected": "each character string reversed, at the same length"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/rev1.cob",
+    "printed": "ODO group N=3: [ZYX]; N=5: [  ZYX]; A(2:3)=[DCB]; A(5:1)=[E]; A(K:) with K=2 = [EDCB]; REVERSE(A)(2:2)=[DC]; LENGTH(REVERSE(G))=6",
+    "expected": "the length follows the current ODO extent or the reference-modified length"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/rev1.cob",
+    "printed": "MOVE REVERSE(A) TO X(10) = [EDCBA     ]; TO X(3) = [EDC]; REVERSE(REVERSE(A)) = [ABCDE]; IF REVERSE(A) = 'EDCBA' -> EQ",
+    "expected": "an n-character alphanumeric value that moves and compares as one"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/revnum.cob",
+    "printed": "COBOL1627: REVERSE argument-1 is of class numeric",
+    "expected": "refused (§1989:A.2.38.3 AR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/revnlit.cob",
+    "printed": "COBOL1627 for REVERSE(123)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/rev2.cob",
+    "printed": "COBOL1504: 2 given",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/revall.cob",
+    "printed": "COBOL1645: ALL subscript not permitted",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/revnat.cob",
+    "printed": "COBOL0900: national literal N\"...\" requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-10/revfig.cob",
+    "printed": "REVERSE(ALL \"AB\") -> 'BA'; REVERSE(SPACES) -> one space",
+    "expected": "the figurative argument is taken once. This lies outside RV1's range and is recorded only."
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.38.4 RV1",
+    "check": "OK  §1989:A.2.38.4 RV1  (2.38.4 Returned Values)  the text is in RV1 ['the returned value is a character string of length n']"
+   },
+   {
+    "cite": "§1989:A.2.38.3 AR1",
+    "check": "OK  §1989:A.2.38.3 AR1  (2.38.3 Arguments)  the text is in AR1 ['must be at least one character in length']"
+   }
+  ],
+  "notes": "The runtime body reverses the argument's character array. The emitter passes the argument's current image (the ODO extent or the reference-modified view), so n is the argument's length. 1985 puts numeric-edited items in class alphanumeric, and the 2023-worded class table accepts them, so 85 needs no arm of its own.",
+  "seeded": false,
+  "harm": "",
+  "cause": "",
+  "at-2023": "rev1.cob prints the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog": "REVERSE row: Alphanumeric, 's', SameAsArgument1, IntroducedIn 85",
+   "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified": "REVERSE Uniform 's' + MinWidth 1",
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue": "\"Reverse\" arm"
+  }
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.38.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "RVG.cob at 85 = 2023: REVERSE of a group holding X, S9(4) COMP, S9(3) COMP-3, S99 and X equals REVERSE of its MOVE-copy into X(8), round-trips back to the same bytes (G2=+0258 G3=-012 G4=-12), LENGTH(REVERSE(G))=8; JUSTIFIED RIGHT item -> [BA   ]; TE(I) and the whole table; literal \"A\"\"B\" -> B\"A; nested in UPPER-CASE; as INSPECT TALLYING, STRING and UNSTRING sending operand; comparison pads with spaces. Refusals at 85: X\"4142\" and B\"1\" literals COBOL0900, COMP-3 item / numeric expression / integer function argument COBOL1627, A(1:0) COBOL2670, receiving positions (MOVE TO, STRING INTO, INSPECT REPLACING, ACCEPT) refused. REVERSE(ZERO) -> [0], REVERSE(ALL \"XY\") -> [YX]: a figurative not associated with a data item is one character, ALL literal is the literal's length (§1985:IV.4.2.2.2.3). REVERSE(CURRENT-DATE)(1:4) = reversed UTC offset (correct). cite.py: OK §1989:A.2.38.4 RV1; OK §1989:A.2.38.3 AR1; OK §1985:IV.4.2.2.2.3 'the length of the string is one character'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

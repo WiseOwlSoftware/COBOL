@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1c37_write_same_record_area
       *> rules: [GR-14.9.51.4-4, GR-14.9.51.4-9]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

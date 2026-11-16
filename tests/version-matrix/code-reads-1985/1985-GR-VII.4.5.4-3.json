@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.4.5.4-3",
+ "rule-digest": "8833247041ee",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-125",
+  "sources": {
+   "reader": "bc455473fa2de6f1c4fc150fe11ea0c6256448ddaab13f91ff98d875bd743e30",
+   "refuter": "56a1c9193d22777bd10fa0ae78650e0f8a9a3b26f4ead5cf93fb85dbde45e5b5"
+  },
+  "imported": {
+   "reader": "23b14da793ccb238fd927be65c39ca6d087ef0b02635a2238a43161a4bbbc078",
+   "refuter": "0de51776df1d228dc8ee28bbee858f62c1bec011a7c75452198e962cd8a30d41"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after a successful REWRITE the released record need not remain in the record area (its content is then undefined), but when the file is named in a SAME RECORD AREA clause the released record stays available in the record area and as a record of every other file of that clause, whatever the record descriptions (fixed, group, elementary, OCCURS DEPENDING ON).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#BeginReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EndReleasedRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReleasedRecordAlsoAvailable; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ReleasedRecordNeedsAlsoAvailable; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#OutOfLineRecordsOfArea",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the OPEN's default sharing mode read by the REWRITE's lock step; inert for this rule at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Edition|DialectLevel|DialectBehavior in SequentialIoEmitter.cs (only SelectWhenOnlyForFilePhraseStatements, a FILE-phrase rule not reachable at 85) and FileModel.cs: the SAME RECORD AREA sharing and the also-available store consult no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf07_06 covers character-window records with REWRITE FROM; a mixed-usage record with COMP-3 and an OCCURS DEPENDING ON record in the area are not exercised by it",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p3sra.cob",
+    "printed": "ST=00; A-I=2 A-N=-12345 A-T=NEWT (record area keeps the released record); B-2=NEWT (the other file's record, positions 5-8); FIL=2 -12345 NEWT",
+    "expected": "the released record is available in FA's area and as FB's record"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-125/src/p8sraodo.cob",
+    "printed": "ODO records in both files of the area: ST=00 A=7NEWVALS B-N=7 B=7NEWVALS FIL=7NEWVALS",
+    "expected": "the released record is available as the other file's record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.5.4 GR3",
+    "check": "OK  §1985:VII.4.5.4 GR3  (4.5.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "Character-window records of a SAME RECORD AREA share one backing, so the released record is in every peer for free; an out-of-line record gets an emitted store after a successful REWRITE only. Without SAME RECORD AREA the area keeps its content, which the undefined 'no longer available' permits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "Read SequentialIoEmitter.EmitRewrite/BeginReleasedRecord/EndReleasedRecord/ReleasedRecordNeedsAlsoAvailable and FileModel.IsOutOfLineRecord. q4sra.cob at --std 85, SAME RECORD AREA FOR FA FB FC FD1 with an alphanumeric record, an elementary numeric DISPLAY record, an elementary COMP-3 record and a group with COMP-3: REWRITE FB-REC (5678) -> FA-REC=5678; REWRITE FC-NUM FROM WS-NUM -> FD-NUM=-7654321; REWRITE FA-REC NEW2 -> FB-REC=NEW2. Without SAME RECORD AREA the 'no longer available' content is undefined, so the kept content cannot overturn. cite.py: OK §1985:VII.4.5.4 GR3 'also available to the program as a record of other files referenced in the same SAME RECORD AREA clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

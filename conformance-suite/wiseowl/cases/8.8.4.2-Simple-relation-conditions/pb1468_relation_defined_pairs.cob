@@ -1,11 +1,11 @@
-*>--- conformance-case
-*> id: pb1468_relation_defined_pairs
-*> rules: [GR-8.8.4.2.1-6, GR-8.8.4.2.1-8, GR-8.8.4.2.13-2,
-*>    GR-8.8.4.2.13-3]
-*> accept: [85]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1468_relation_defined_pairs
+      *> rules: [GR-8.8.4.2.1-6, GR-8.8.4.2.1-8, GR-8.8.4.2.13-2,
+      *>    GR-8.8.4.2.13-3]
+      *> accept: [85]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1468 - the pairs ISO 8.8.4.2.1 "Comparisons are defined for the following:" DOES define, each
       *> evaluated by the rule it names. Item 6 with 8.8.4.2.5: "The numeric integer operand shall be an integer
       *> literal or an integer numeric data item of usage display or national" - the integer is moved to an item of
@@ -32,17 +32,29 @@
            SET I1 TO 3.
            SET I2 TO 3.
            SET IDA TO I1.
-           IF ND = XA DISPLAY "01 ND = XA   EQ" ELSE DISPLAY "01 ND = XA   NE".
-           IF NS = XA DISPLAY "02 NS = XA   EQ" ELSE DISPLAY "02 NS = XA   NE".
-           IF XE < ND DISPLAY "03 XE < ND   LT" ELSE DISPLAY "03 XE < ND   GE".
-           IF 12 = XA DISPLAY "04 12 = XA   EQ" ELSE DISPLAY "04 12 = XA   NE".
-           IF ND = SPACE DISPLAY "05 ND = SP   EQ" ELSE DISPLAY "05 ND = SP   NE".
-           IF NB = ND DISPLAY "06 NB = ND   EQ" ELSE DISPLAY "06 NB = ND   NE".
-           IF NS < NB DISPLAY "07 NS < NB   LT" ELSE DISPLAY "07 NS < NB   GE".
-           IF I1 = I2 DISPLAY "08 I1 = I2   EQ" ELSE DISPLAY "08 I1 = I2   NE".
-           IF I1 = 3 DISPLAY "09 I1 = 3    EQ" ELSE DISPLAY "09 I1 = 3    NE".
-           IF I1 < NB DISPLAY "10 I1 < NB   LT" ELSE DISPLAY "10 I1 < NB   GE".
-           IF IDA = I1 DISPLAY "11 IDA = I1  EQ" ELSE DISPLAY "11 IDA = I1  NE".
+           IF ND = XA DISPLAY "01 ND = XA   EQ" ELSE DISPLAY
+               "01 ND = XA   NE".
+           IF NS = XA DISPLAY "02 NS = XA   EQ" ELSE DISPLAY
+               "02 NS = XA   NE".
+           IF XE < ND DISPLAY "03 XE < ND   LT" ELSE DISPLAY
+               "03 XE < ND   GE".
+           IF 12 = XA DISPLAY "04 12 = XA   EQ" ELSE DISPLAY
+               "04 12 = XA   NE".
+           IF ND = SPACE DISPLAY "05 ND = SP   EQ" ELSE DISPLAY
+               "05 ND = SP   NE".
+           IF NB = ND DISPLAY "06 NB = ND   EQ" ELSE DISPLAY
+               "06 NB = ND   NE".
+           IF NS < NB DISPLAY "07 NS < NB   LT" ELSE DISPLAY
+               "07 NS < NB   GE".
+           IF I1 = I2 DISPLAY "08 I1 = I2   EQ" ELSE DISPLAY
+               "08 I1 = I2   NE".
+           IF I1 = 3 DISPLAY "09 I1 = 3    EQ" ELSE DISPLAY
+               "09 I1 = 3    NE".
+           IF I1 < NB DISPLAY "10 I1 < NB   LT" ELSE DISPLAY
+               "10 I1 < NB   GE".
+           IF IDA = I1 DISPLAY "11 IDA = I1  EQ" ELSE DISPLAY
+               "11 IDA = I1  NE".
            SET I2 UP BY 1.
-           IF IDA = I2 DISPLAY "12 IDA = I2  EQ" ELSE DISPLAY "12 IDA = I2  NE".
+           IF IDA = I2 DISPLAY "12 IDA = I2  EQ" ELSE DISPLAY
+               "12 IDA = I2  NE".
            STOP RUN.

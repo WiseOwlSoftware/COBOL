@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-IX.2.4.4-3",
+ "rule-digest": "7c8f873c17cb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "14d678df79e274b3703c29979be28bf15259756532f057367525a672f1c83faf",
+   "refuter": "d0aee4b7d1792496dcbe264dc95b36b92e29362b1aad94b8e774090586c03894"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.4.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985, under random access the value of the record key data item (prime, or the KEY phrase's alternate) selects the record for READ, REWRITE and DELETE; a value no record holds is the invalid key (23).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom (DialectBehaviors.IsActive(DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly, Edition))",
+    "switches": "whether a random READ of an alternate key whose next record has the same value answers 02 (1985) or 00 (2002 on)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration (ctx.Data.DialectLevel passed to FileRegistry.RegisterIndexed as the connector's Edition)",
+    "switches": "carries the edition into the connector for the DialectBehavior tests; access mode itself is passed edition-blind",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped Edition/DialectBehavior in IndexedConnector.ReadRandom and RelativeConnector: the only consult on the random path is the 02 duplicate-status behaviour.",
+  "behaviour-differs-by-edition": "yes: at 1985 a random READ by an alternate key whose next record shares the value answers 02 (§1985:IX.1.3.4); 2002 on answers 00",
+  "witnesses-cover": "part: the witness reads randomly by prime key; group keys with numeric parts, figurative values, alternate-key random reads, random REWRITE/DELETE are not exercised",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p4random.cob",
+    "printed": "R1=00 00A00-222 (key 0 + 'A' by elementary moves into a group key); R2=00 50M50-333; LOW-VALUE R3-INV 23; HIGH-VALUE R4-INV 23; alt R5=00 99Z99-111; alt 'XX' 23; RW=00; RW2 missing key 23; DELETE by key D=00 then READ 23; duplicate prime WRITE 22",
+    "expected": "the key value selects the record; absent value 23"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p7alt.cob",
+    "printed": "R2=02 01ZZB (random READ by duplicated alternate) at --std 85; R2=00 at --std 2023",
+    "expected": "02 at 1985 (§1985:IX.1.3.4), 00 at 2023"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/12.4.5-File-control/l1c12_access_mode_random_dynamic",
+    "printed": "MATCH",
+    "expected": "witness .out"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p5dynamic.cob",
+    "printed": "relative RK=0 RR0-INV 23; RK=3 RR=00 R03",
+    "expected": "relative key value selects the record; zero is invalid key"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.4.4 GR3",
+    "check": "OK  §1985:IX.2.4.4 GR3  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.5.4 GR17",
+    "check": "OK  §1985:IX.4.5.4 GR17  the text is in GR17"
+   }
+  ],
+  "notes": "Random READ, REWRITE and DELETE all slice the key from the record area through one KeyOf path. The single edition arm (02 on random alternate duplicates) takes the 1985 branch at --std 85, measured.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.4.4-3",
+  "refutation": "UPHELD",
+  "classes": "a,d,e",
+  "evidence": "Probe rc_multi.cob (run rc_multi-001): RANDOM access, two 01 records, RECORD VARYING 6 TO 12 DEPENDING ON. The prime key value was moved through REC-B's B-KEY (the key is declared in REC-A), and READ selected K02 with RL=06. REWRITE and DELETE through the other record's field hit the right records (DELETE K01 00, then READ K01 23). An absent alternate 'BBB' gave 23. OK §1985:IX.2.4.4 GR3 'the value of a record key data item for indexed files indicates the record to be accessed'. Together with the reader's p4/p7 (figurative values, group keys, alternate random reads), no form of 1985 is left that differs.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

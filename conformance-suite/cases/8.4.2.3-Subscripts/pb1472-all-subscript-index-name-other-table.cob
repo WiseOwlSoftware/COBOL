@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb1472-all-subscript-index-name-other-table
-*> rules: [SR-8.4.2.3.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1472-all-subscript-index-name-other-table
+      *> rules: [SR-8.4.2.3.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 8.4.2.3.3 SR4: "Index-name-1 shall correspond to a data description entry in the hierarchy of the
       *> table being referenced that contains an INDEXED BY phrase specifying that index-name." IXA is declared on
       *> T1, not in E2's hierarchy (T2 / R2 / E2), so E2(IXA, ALL) is refused exactly as E2(IXA, 1) is (COBOL1961).

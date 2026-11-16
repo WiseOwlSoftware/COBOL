@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-VI.6.13.3-1",
+ "rule-digest": "366353d14428",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-055",
+  "sources": {
+   "reader": "e17011329c83db2a64c309c533ec6164d114805fedbceecf89eb286f7b81ab8f",
+   "refuter": "03a7276e8e8d8c28b115d796f66fd6a7e6d6087cac7da7ec860eb12498b71df9"
+  },
+  "imported": {
+   "reader": "ec4b6a2174959470ede0f90f57f244d93af749d62ac9e82b0a7e37592750f62f",
+   "refuter": "dd336a8584ebdedb77333bcb84bdcde7638111cd80cc42558b0611869466b5fc"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.13.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must take every operand before the first WHEN (identifier, literal, arithmetic or conditional expression, TRUE, FALSE, joined by ALSO) as a selection subject, bind each one once for the statement, and refuse a subject form 1985 does not print (ANY, or a later edition's boolean expression).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#evaluateSubject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#SubjectKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BindSubjectTruth",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#Bind",
+    "switches": "DialectBehavior.EvaluateObjectsInWhenPhraseOrder (from 2002): at 85 a function-referencing object is evaluated at the start of the statement (§1985:VI.6.13.4 GR1)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EvaluateOperandCombinations.cs#IsPermitted",
+    "switches": "DialectBehavior.EvaluateRefusesLiteralSubjectLiteralObject (from 2002): at 85 a literal subject with a literal object is permitted",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "Constructs.BooleanLiteral2002: the B\"...\" literal is refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior|ConstructRegistry in EvaluateBinder.cs and EvaluateOperandCombinations.cs; the grammar evaluateSubject has no edition predicate",
+  "behaviour-differs-by-edition": "yes: at 85 a literal subject may pair with a literal object, and a function-referencing object is evaluated up front; boolean subjects do not exist at 85",
+  "witnesses-cover": "part: the witnesses cover an identifier subject and the required imperative; arithmetic-expression, conditional-expression, literal, FALSE subjects and multi-subject ALSO sets are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e1forms.cob",
+    "printed": "A1 OK..A8 OK, EXPECT: MATCH (subjects: identifier, N * 2, literal \"BAR\" ALSO 7, N > M condition, TRUE, FALSE, 4-subject ALSO set)",
+    "expected": "each subject evaluated and compared per GR1/GR2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2litlit.cob",
+    "printed": "EXIT 0, LL",
+    "expected": "accepted at 85: literal subject paired with literal object (SR6a only asks for valid comparison operands)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2anysubj.cob",
+    "printed": "error COBOL0001: unexpected 'ANY'",
+    "expected": "refused: ANY is not a selection subject"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e2boolean.cob",
+    "printed": "error COBOL0900: the boolean literal B\"...\" requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-055/src/e4misc.cob",
+    "printed": "M1 OK (negative subject) M4 OK (S9(18) subject at its maximum), EXPECT: MATCH",
+    "expected": "M1..M5 as written"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.13.3 SR1",
+    "check": "OK  §1985:VI.6.13.3 SR1  (║6.13.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "SR1 defines a term. Its requirement is that the grammar takes exactly the 1985 subject list and that the binder treats the operands as subjects, binding each once in one slot per subject. Every 1985 subject form parsed, bound and selected the right branch, and ANY and the boolean form were refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.13.3-1",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "v1subj.cob at --std 85 (run dir v1subj-001, EXPECT: MATCH, 18 checks): figurative subjects ZERO and SPACE (allowed where literal appears, §1985:IV.4.2.2.2.3), signed literal -5, compound condition AND with NOT condition-name ALSO, abbreviated combined relation N = 1 OR 7, parenthesized arithmetic (N + 1) * 2, unary minus - N, parenthesized condition (N > 1), subscripted and reference-modified identifiers, a condition-name subject with FALSE object, FUNCTION LENGTH subject, ALL \"A\" subject: each selected the right branch. v2nosubj (EVALUATE WHEN 7) refused COBOL0001. The reader's ANY and boolean refusals stand. cite.py: OK §1985:VI.6.13.3 SR1; OK §1985:IV.4.2.2.2.3 'A figurative constant may be used whenever 'literal' appears in a format'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-8",
+ "rule-digest": "7a7a925cd7a0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-135",
+  "sources": {
+   "reader": "a5c75b51ba1c9b5730d0695d9a0eb47b2704b6a6edb2a0e42a0fd598b8b016ad",
+   "refuter": "49ee6ba4163163c28fc1db122bb19804c00178ea3c0ff28eb983935628bc8f65"
+  },
+  "imported": {
+   "reader": "e45907f97edd20e4863a947aca4e73d7f6a705976fdc33e86005a598895273d5",
+   "refuter": "651f2360e91c166f80b76cf21a05e226b8a8c6eae16110b99fa55c4c9a2bf2a8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, READ ... INTO on a relative file performs the READ, then (only if it succeeded) MOVEs the current record to identifier-1 by the MOVE rules. The current record's size comes from the RECORD clause (VII.3.8.4 GR12: under RECORD VARYING it is the length just read, and the move is a group move). identifier-1's subscripts are evaluated after the read, and the record stays in the record area too.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ResolveReceivingAtStore; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindIntoPhrase",
+    "switches": "IntoPhraseRules.PhraseAt(DialectLevel) picks the MOVE rule's citation for diagnostics; CheckIntoReceiver uses the 1985 admissibility arm b (GR7) at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel in MoveBinder.cs and BoundTree.cs IntoPhraseRules; the move kind (BoundCurrentRecord for VARYING, else BoundFieldOperand of the area) has no edition test",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf25_08 covers an elementary alphanumeric JUSTIFIED receiver, no move on 23, VARYING DEPENDING ON, and a subscript from the record; not covered: numeric and numeric-edited receivers from a single numeric 01, VARYING without DEPENDING, a receiver subscripted by the RELATIVE KEY that the READ itself sets, no move on at end",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p8into.cob",
+    "printed": "N1 00 001234 / N2 00 [   567] / N3 00 [1234      ]",
+    "expected": "single 01 PIC 9(4): a numeric move to 9(6), an edited move to ZZ,ZZ9, and a group receiver padded with spaces"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p8into.cob",
+    "printed": "V1 00 [AB        ] / V2 00 [CDEFGHIJ  ] / V4 00 [CD]",
+    "expected": "VARYING with no DEPENDING ON: the sender is the length just read (2, then 8), as a group move"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p8into.cob",
+    "printed": "T 00 [-----TWO02-----FOR04-----]",
+    "expected": "W-E (TK), where TK is the RELATIVE KEY the READ sets (2, then 4): subscript evaluated after the read"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-135/p8into.cob",
+    "printed": "T3-END 10 / T3 [KEEP] / T4-IK 23 / T4 [KEEP]",
+    "expected": "no implied MOVE when the READ is unsuccessful"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VIII.4.5@1985-READ-STATEMENT/g85_bf25_08.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR8",
+    "check": "OK  §1985:VIII.4.5.4 GR8  (4.5.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR12",
+    "check": "OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "The INTO receiver is resolved at the store (ResolveReceivingAtStore), and the move is emitted inside the successful-status block after the RELATIVE KEY store. That is why a subscript naming the key sees the new RRN. p8into prints the same at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output for p8into",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "Attack: no RECORD clause, 01s of 8 and 3 chars; r8cur.cob at 85 and 2023 (runs/r8cur-001/002) gives READ INTO W10 = [ABCZZZZZ  ] for a record written through the 3-char 01: the sender is the 8-char area, not 3 chars. Not a refutation: the file is fixed-length 8 by the documented implementor choice docs/conformance/7/DOC-A.1-147.md citing §1985:II.2.1.4.3 (OK, 'it is implementor defined whether fixed length or variable length records are obtained'), so the current record IS 8 characters and WRITE sent the whole area. GR7 refusal holds: READ INTO numeric N6 with four 01s refused COBOL1994 (runs/r6area-002). READ INTO group SAVE-B moves the whole record (r6area-003 R4). cites: OK §1985:VIII.4.5.4 GR8; OK §1985:VIII.4.5.4 GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

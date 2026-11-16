@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-2",
+ "rule-digest": "f5119d655088",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-091",
+  "sources": {
+   "reader": "856ff51229cf03620fffb2e5ae042782b609a5cdee52de36cd6aee0c01373113",
+   "refuter": "300791588672753519fa07b454a5d57638913067e263f8aa7a5ef100bb60448e"
+  },
+  "imported": {
+   "reader": "3707405cda646f2023540490c7e02c5bbdd3d9ecffc66e671461425c401ba932",
+   "refuter": "fe8b379fc0b7eab869762a0f0c2a4dd2b3920d812a01cedc435d4fcb6bbc47ff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the alternate keys' descriptions, locations and count must match those at creation; the OPEN may detect a mismatch as a file attribute conflict (status 39), the attributes validated being implementor-defined (§1985:IX.4.4.4 GR8).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#DeclaredKeys; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#WriteKeyDescriptor; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Describes",
+  "edition-consulted": [],
+  "edition-search": "Grepped Edition/DialectBehavior in FixedFileAttributes, MetaPage, KeyedConnector.FixedAttributeConflict and IndexedConnector.DeclaredKeys: none; the comparison is edition-invariant (the only switch is the WISEOWL_COBOL_KEYCHECK runtime opt-out).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pins moved position and different counts; declaration order, width change, group-vs-elementary and a DUPLICATES-only change are not exercised",
+  "probes": [
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/src/p8altgr2.cob",
+    "printed": "RV (same keys declared in the other order) OPEN 00 and reads by each key correct; LN (ALT1 widened) 39; GP (ALT1 as a group of the same bytes) 00, read correct; DU (only DUPLICATES added) 39",
+    "expected": "matching keys open; differing description 39; the DUPLICATES check is within the documented implementor latitude (docs/conformance/7/DOC-A.1-129.md)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-091/conformance-suite/cases/IX.2.5@1985-ALTERNATE-RECORD-KEY-CLAUSE/g85_bf25_06",
+    "printed": "MATCH (S3 39, S4 39, S5 39)",
+    "expected": "witness .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.5.4 GR2",
+    "check": "OK  §1985:IX.2.5.4 GR2  the text is in GR2"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR8",
+    "check": "OK  §1985:IX.4.4.4 GR8  the text is in GR8"
+   }
+  ],
+  "notes": "The key table compares windows, DUPLICATES, SUPPRESS and collation fingerprint, sorted, so declaration order does not matter. Also validating DUPLICATES goes past GR2's list, but GR8 lets the implementor choose which attributes to validate, and DOC-A.1-129 records that choice.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe re_altgr2.cob (run re_altgr2-001): the file was created with prime 1-2 and alternate 3-4. A file control entry with no alternate key gave 39 on OPEN I-O and OPEN INPUT. One with the alternate moved to 4-5 gave 39 on OPEN EXTEND and OPEN I-O (the reader probed only INPUT). The matching entry opened I-O 00 and read by the alternate key. OPEN OUTPUT through the no-alternate entry recreated the file (00); it then opened INPUT 00 under that description and 39 under the old one. OK §1985:IX.2.5.4 GR2 'must be the same as that used when the file was created'. The reader's acceptance of a group of the same bytes and its 39 on a DUPLICATES-only change are within the implementor's choice of attributes that IX.4.4.4 GR8 gives; neither breaks GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

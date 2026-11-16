@@ -1,0 +1,87 @@
+{
+ "rule-id": "1989-AR-A.2.21.3-2",
+ "rule-digest": "88b5544434b8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-169",
+  "sources": {
+   "reader": "9fd75e16d10fc29e767e79a49edb29f1519e3110fb617740517d0b314c238e6b",
+   "refuter": "c5169ecc1732ffc0f21595e3e7ae4ca5b7d3348850cb56ff2acb8f54880fbd0e"
+  },
+  "imported": {
+   "reader": "11b2f061df6b4d0b9fac7498d5b67259d707dca4298c18a3abf2adf6b4bcc3e0",
+   "refuter": "2c2a0b487c8c82d4300f7ffd558b8da7f01c09621e33d3c813ba65bcad423e7a"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.21.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 (with Amendment 1), FUNCTION LOG10's argument-1 value must be greater than zero; a reference whose argument value violates it has an undefined result (§1989:A.2.2, §1989:A.1.2.2), so the compiler must accept a program that contains such a reference (a conforming program, §1985:I.1.6) and must return the approximation of log10 for every positive argument across the edition's range.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#LeadArg; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainViolation; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ArgumentError; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Log10; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#FatalAmbientGates",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window: sig.IntroducedIn (85 for LOG10) against ctx.Edition.DialectLevel; LOG10 is available at 85 and at 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicArgumentRules.cs, IntrinsicCatalog.cs, CobolIntrinsics.Float.cs, ExceptionState.ArgumentError and EcEmitter.FatalAmbientGates for CobolVersion|EditionContext|Edition|IsAtLeast|ConstructRegistry|DialectBehavior: the domain screen (catalog Domain=Positive) and the raise consult no edition; the raise is fatal only when ArgumentFunctionChecking is set, which only a >>TURN-enabled EC gate sets, and the CLI has no checking switch (cobol --help).",
+  "behaviour-differs-by-edition": "no: the same screen runs at 85 and 2023; with checking off (the only state at 85) a zero or negative argument returns 0 and execution continues at both editions",
+  "witnesses-cover": "part: g85_bf39_02 runs only legal positive arguments (1000, 0.01, an expression); it does not exercise zero, a negative value, a literal zero argument, 1, the 18-digit extremes or an ODO-subscripted argument",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/log10ok.cob",
+    "printed": "ONE=   0.00000000 / TINY=- 18.00000000 / BIG=  18.00000000 / ODO=   2.00000000 / NEGNEG=   1.00000000",
+    "expected": "log10 of 1 = 0, of 10^-18 = -18, of 999999999999999999 ~ 18 (implementor approximation), of T-EL(T-CNT)=100 = 2, of (-1 * -10) = 1"
+   },
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/log10bad.cob",
+    "printed": "BEFORE / ZERO=   0.00000000 / NEG=   0.00000000 / AFTER (exit 0; identical at --std 2023)",
+    "expected": "result undefined for argument 0 and -5 (§1989:A.2.2); any value is permitted and the program is conforming"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-169/src/log10lit.cob",
+    "printed": "compiles clean; START / DONE (literal LOG10 (0) and LOG10 (-3) not refused; identical at --std 2023)",
+    "expected": "a program containing a reference that may have an undefined result is conforming (§1985:I.1.6), so no compile-time refusal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.21.3 AR2",
+    "check": "OK  §1989:A.2.21.3 AR2  (2.21.3 Arguments)  the text is in AR2"
+   },
+   {
+    "cite": "§1989:A.2.2",
+    "check": "OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4 [quotation: then the result of such a reference is undefined]"
+   },
+   {
+    "cite": "§1989:A.1.2.2",
+    "check": "OK  §1989:A.1.2.2  (1.2.2 Value Returned by a Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:I.1.6",
+    "check": "OK  §1985:I.1.6  (1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM)  the text is in the clause"
+   }
+  ],
+  "notes": "The 1985 text (as amended by X3.23b-1993, C311/C312) leaves a non-positive argument's result undefined, so the screen's checking-off behaviour (EC-ARGUMENT-FUNCTION raised unarmed, default 0, execution continues) satisfies it, and a literal zero argument compiles. Separately noted, not this rule: LOG10 of 999999999999999999 printed 18.00000000 where truncation of 17.99999999999999999957 to 8 places gives 17.99999999; the value is an implementor approximation (binary64 narrowing of an 18-digit argument).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same output: 0 returned, execution continues, no compile-time refusal",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.21.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "Read §1989:A.2.21.3 AR2 and §1989:A.2.2 (undefined result for an out-of-range argument value). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-169/src/log10x.cob at --std 85 (runs/log10x-001): COMP item 1000 -> +3, (V9(18) 1E-18 squared) -> -36, 0.1 ** 40 -> -40, LOG10(LOG10(100)) -> 0.30102999, signed -0 -> 0 (undefined, execution continues), 1.0000001 -> 0.00000004. Every positive argument gets the approximation, including values past binary64-narrowing trouble; a non-positive value is undefined, so any result conforms. cite.py: 'OK  §1989:A.2.21.3 AR2  (2.21.3 Arguments)  the text is in AR2'; 'OK  §1989:A.2.2  (2.2 ARGUMENTS**)  the text is in the clause; it lies in AR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

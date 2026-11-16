@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-GR-IV.4.3.7-1",
+ "rule-digest": "4aacf34a7413",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-087",
+  "sources": {
+   "reader": "3a7372f623de84840730f25aaafe908e16fb6758ef274e8caa8bdd291c3ea2e4",
+   "refuter": "cb9bea7e3745bb11813da4e72dddd8f9d0adbb7f310aeaf95a0c9b612192d5d5"
+  },
+  "imported": {
+   "reader": "43be8a884f947d06ecca56b3fe63d016cf70ebbdd0f2d9a29e940c3aedb54a15",
+   "refuter": "9c13dfb9a18505bdce1f87901b6dabcc02987937f2a15a1987a028a30d715316"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.7-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the SYNCHRONIZED clause (SYNC/SYNCHRONIZED, optionally LEFT or RIGHT) is the means of synchronizing an elementary item, with its effect on alignment, implicit FILLER and external format specified by the implementor (VI.5.13.4 GR8), its PICTURE/USAGE/SIGN size governing truncation (GR5), and its syntax limits enforced (elementary only, not USAGE INDEX); the witness covers SYNC/SYNC LEFT/SYNCHRONIZED RIGHT on COMP items only.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#Synchronized; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#RecordLayout; docs/conformance/7/DOC-A.1-195.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "Edition.DialectLevel >= 2023 / ConstructRegistry.Check(SyncOnGroup2023): SYNC on a group item refused below 2023 (COBOL0900), admitted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation",
+    "switches": "dialectLevel < 2002 && Usage.Index: SYNC on a USAGE INDEX item refused at 85 (COBOL2405, §1985:VI.5.14.3 SR6), admitted 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: SYNC on a group item is refused at 85 and admitted at 2023; SYNC on a USAGE INDEX item is refused at 85 and admitted 2002+; the layout (no alignment, no implicit FILLER) is the same at every edition.",
+  "witnesses-cover": "part: g85_bf04_01 covers SYNC/SYNC LEFT/SYNCHRONIZED RIGHT on S9(4) COMP and FUNCTION LENGTH; not the group/INDEX refusals, OCCURS/ODO, SIGN SEPARATE, JUSTIFIED, edited items, REDEFINES or a file record.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/sync1.cob",
+    "printed": "T1B1=+02345 (S9(4) COMP SYNC RIGHT truncated by PICTURE); R2=[A-234 XY  3.] (SIGN LEADING SEPARATE SYNC, JUSTIFIED RIGHT SYNC LEFT, edited SYNCHRONIZED: no filler); LR1=0014",
+    "expected": "VI.5.13.4 GR5 PICTURE-size truncation; GR6 sign position from the SIGN clause; documented no alignment (DOC-A.1-195) so no implicit FILLER"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/sync1.cob",
+    "printed": "OCCURS 1 TO 5 DEPENDING ON N with a SYNC RIGHT subordinate: LT1=0010 at N=3, LT1N2=0007 at N=2",
+    "expected": "each occurrence synchronized (GR7a), no per-occurrence FILLER under the documented one-character boundary"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/syncgrp.cob",
+    "printed": "COBOL0900 SYNCHRONIZED on a group item requires COBOL-2023 (G1); COBOL2405 SYNC on USAGE INDEX (G2I); at --std 2023 the same file compiles clean",
+    "expected": "§1985:VI.5.13.3 SR1 elementary only; §1985:VI.5.14.3 SR6 not with usage INDEX"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/syncbad.cob",
+    "printed": "COBOL1941: unexpected 'RIGHT' (SYNC LEFT RIGHT)",
+    "expected": "refused: the format takes one of LEFT/RIGHT"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/syncfile.cob",
+    "printed": "sequential record 01 FR (X, 9(2) SYNC, X) written as the 4 bytes A42C, read back [A42C], LENGTH 4",
+    "expected": "external format as documented (GR8a): byte-identical to the unsynchronized layout"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.7 GR1",
+    "check": "OK  §1985:IV.4.3.7 GR1  (4.3.7 Item Alignment for Increased Object-Code Efficiency)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.5.13.3 SR1",
+    "check": "OK  §1985:VI.5.13.3 SR1  (5.13.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR5",
+    "check": "OK  §1985:VI.5.13.4 GR5  (5.13.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR8",
+    "check": "OK  §1985:VI.5.13.4 GR8  (5.13.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VI.5.14.3 SR6",
+    "check": "OK  §1985:VI.5.14.3 SR6  (5.14.3 Syntax Rules)  the text is in SR6"
+   }
+  ],
+  "notes": "The clause is parsed and recorded (DataBinder.BindEntry -> DataItem.Synchronized) and the layout never reads it (BitLayout/RecordLayout carry no Synchronized reference), which is the implementor determination DOC-A.1-195 publishes: a one-character natural boundary, no alignment, no implicit FILLER. The 1985 syntax limits are enforced on their own arms (group refused below 2023, USAGE INDEX refused below 2002). DOC-A.1-195 cites only §2023 clauses; the 1985 obligation it discharges is §1985:VI.5.13.4 GR8.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.7-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Read §1985:IV.4.3.7 and VI.5.13 whole (SR1-2, GR1-10) and VI.5.14.3 SR6. Probes at --std 85 under refute-1985-087: s1run-002 (77-level COMP SYNC, PACKED-DECIMAL SYNC LEFT, BINARY SYNCHRONIZED, SYNC RIGHT in OCCURS 3, SYNC on a REDEFINES subordinate, JUSTIFIED RIGHT SYNC) printed W77=-0011 P1=+234 B1=+23456 (GR5 PICTURE-size truncation) R3=[  AB] R2Y=[XYZ] T1N2=05 LR1=0016 (contiguous: 1+2+4+3*3, no implicit FILLER, as DOC-A.1-195 determines under GR8); s1idx-001: SYNC on an item inheriting USAGE INDEX from its group refused COBOL2405 (SR6 reached through group usage); s1val-001: SYNC under a group VALUE refused COBOL1702 (sibling rule §1985:VI.5.15.6 GR4, cite.py OK after correction from SR4); s1ren-001: SYNC on a 66 RENAMES refused COBOL0001; s1grp2-001: SYNC on a level-05 group refused COBOL0900 (SR1, the 2023 form this edition must refuse). cite.py: OK §1985:VI.5.13.3 SR1 'This clause may only appear with an elementary item'; OK §1985:VI.5.14.3 SR6 'SYNCHRONIZED, and VALUE clauses must not be specified for data items whose usage is INDEX'; OK §1985:VI.5.13.4 GR5 'the original size of the item, as shown in the PICTURE clause'; OK §1985:VI.5.13.4 GR8 'the implementor must specify how elementary items associated with this clause are handled'. No arm found that the reader missed: DataBinder.SynchronizedClause.cs#GateSynchronizedGroup and DataBinder.ClausePlacement.cs#SynchronizedViolation are the two edition consults, both listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

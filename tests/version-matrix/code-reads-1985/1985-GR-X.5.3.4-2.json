@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-2",
+ "rule-digest": "0fc5b1121d6a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-140",
+  "sources": {
+   "reader": "6b022913011a7954552e476d1ae0c92653e5f48c9f52fe81a4aeeede9db9996b",
+   "refuter": "935017612894b9e3812a77af1bb77f4690a6005610d5a6c20117a4126c77cf1d"
+  },
+  "imported": {
+   "reader": "55c559bc304cf7363cb81381545904441b53a71ba99b2bda7c5207b8cf688971",
+   "refuter": "1b0e6e72cfd83086598b834bffcfc1ce54732174274a365cbb7040c536dc0693"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after an explicit CANCEL (literal or identifier) or an implicit one (EXIT PROGRAM of an INITIAL program, which cancels its contained programs), the program must have no logical relationship to the run unit, and the next CALL of it must find it in its initial state; a CALL of another program must not re-establish it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "DialectBehavior.CancelRefusesEveryActiveProgram (false at 85): only the GR5 refusal of an active program; a successfully executed CANCEL runs the same reset",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained",
+    "switches": "asks the 2002 GR5 arm for an INITIAL container's implicit cancel; no contained program is active there, so the arms agree",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for this rule: the reset is one body; the edition switch selects only which active program a CANCEL refuses",
+  "witnesses-cover": "part: g85_bf06_03 covers literal and identifier CANCEL of a separately callable program and GR6; not exercised there: the implicit CANCEL of an INITIAL program, cascade to contained programs, CANCEL of a never-called or already-cancelled program",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p2_initial.cob",
+    "printed": "--- CANCEL PX NEVER CALLED / X1 / X2 / --- CANCEL PX TWICE / X1 / I1 J1 / I1 J1 / I1 J1",
+    "expected": "GR8 no action for never-called and already-cancelled; GR2 initial after the explicit CANCEL; implicit CANCEL (GR7) of the INITIAL PI's contained PJ"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p1_nested.cob",
+    "printed": "after CANCEL PA: A1 B+0 C1 N3 G=3  Z E=  1.50  C FIRST",
+    "expected": "GR2 with GR4: the cancelled program and its contained programs are initial (ODO object, edited VALUE, ALTER)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.5.3@1985-CANCEL-STATEMENT/g85_bf06_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "S1 S2 T S1 S2 S1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR2",
+    "check": "OK  §1985:X.5.3.4 GR2  (║5.3.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR4",
+    "check": "OK  §1985:X.5.3.4 GR4  (║5.3.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR7",
+    "check": "OK  §1985:X.5.3.4 GR7  (║5.3.4 General Rules║)  the text is in GR7"
+   }
+  ],
+  "notes": "CalledSinceCancel models 'at present cancelled'; CancelNode clears the instance and resets statics, and Activate creates a fresh instance on the next CALL. Every probe matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Aimed at the implicit CANCEL's file side and at state the reader did not reset. r1_cancelclose.cob at --std 85: an INITIAL program opens OUTPUT, writes and executes EXIT PROGRAM without CLOSE; main then reads its record 'AFTER INITIAL EXIT NF 00 INI-0001' (the implicit CANCEL ran the implicit CLOSE, X.5.3.4 GR7 and GR10) and the next call reopens 'INI OPEN 00'; the explicit CANCEL of a non-INITIAL sub flushes and allows the reopen the same way, and no USE procedure line appears. r7_commsect.cob: Communication Section VALUE restored after CANCEL. r9_performstate.cob: PERFORM control initial after CANCEL. r6c_cancelscope.cob: after CANCEL the cancelled program counts from 1 again ('COMMON X 1' after '--- K CANCEL X'; 'SEPARATE B 1' after '--- A CANCEL B'). cite.py: 'OK  §1985:X.5.3.4 GR2 ... the text is in GR2'; 'OK  §1985:X.5.3.4 GR10 ... the text is in GR10'. Side observation, outside this rule: without a CANCEL, a PERFORM range left pending by EXIT PROGRAM is not resumed on the next entry (r9: the second call printed 'FELL THROUGH P2'); X.5.2.4 GR5's 'remains unchanged' may reach that, so this is a lead for that rule, not evidence against this one.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

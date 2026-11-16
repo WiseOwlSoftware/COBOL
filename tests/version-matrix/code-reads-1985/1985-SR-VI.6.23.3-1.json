@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-VI.6.23.3-1",
+ "rule-digest": "b5131adf7c78",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-06",
+  "sources": {
+   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
+   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+  },
+  "imported": {
+   "reader": "d8f64626300a41f939b1c7a571798a00c502b00834cc738008461f7324ca3ac1",
+   "refuter": "0df02dbf332f88022c4e9e64e71327440e03938a1497531c7e8bdf295ef92a0b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.23.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every rule written for index-name-1, identifier-1 (SET format 1) and index-name-3 (format 2) must hold for each receiver of a SET receiver list, not just the first: each identifier-1 is screened by SR2 and by the format-1 operand table (GR3b/GR3c, GR5), each index-name-3 must be an index-name and is augmented (GR4), the sender value is the one at the start of the statement and each receiver's subscripts are evaluated just before its store (GR3d).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetTo; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#ScreenIndexAssignmentReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetUpDown; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Select; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSetTo; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#StoreSetTarget",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#GateCobol85IndexAmount",
+    "switches": "ConstructRegistry set-arithmetic-expression-2002: at 85 the format 1/2 sender must be a 1985 operand (positive integer-1, signed integer-2, integer item, index-name, index data item); asked once per statement for the shared sender, not per receiver",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetFormatSelection.cs#Is1985",
+    "switches": "diagnostic wording only (cites §1985:VI.6.23.2 and the 1985 brace/rule); format selection reads operand kinds, not the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -n -i 'DialectLevel|ConstructRegistry|DialectBehavior|Edition.Year|Edition.Edition' over SetBinder.cs, SetFormatSelection.cs, SetEmitter.cs, ReceiverBracketEmitter.cs and CobolIndex.cs (SetEmitter, ReceiverBracketEmitter and CobolIndex: none); the per-receiver loop in BindSetTo / BindSetUpDown has no edition term",
+  "behaviour-differs-by-edition": "no for the recursion rule itself (every receiver screened the same way at 85 and 2023); the shared sender differs: SET IX JX TO 0 is refused at 85 (1985 integer-1 positive) and accepted at 2023",
+  "witnesses-cover": "part: the witnesses cover receiver identification at store and index overflow on one receiver; refusal of a second/later receiver by SR2/GR3, format-2 recursion over two index-names, and the sender-as-at-beginning rule with a sender subscripted by an earlier receiver are not exercised by them",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4a.cob",
+    "printed": "COBOL2326 on the SECOND receiver of: SET IX N1 TO 2 (SR4/GR3c), SET IX NX TO JX (PIC XX, SR1/SR2), SET IX ID1 TO 2 (SR3/GR3b), SET JX NF TO IX (9V9 not integer); SET N1 ID1 TO ID1; COBOL2112 on SET IX N1 UP BY 1 (N1 not an index-name); COBOL0900 on SET IX JX TO 0 at 85 only",
+    "expected": "each refused for the offending recursion"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4b.cob",
+    "printed": "A 03 03 / B 05 05 / C 04 04 / D 05 / E 6 000006000 / F 07 07 / G 04 06 (same at 2023)",
+    "expected": "SET IX JX TO 3 sets both (different tables); UP BY 2 and DOWN BY 1 augment each index-name-3; SET N1 N2 TO JX sets both; SET K NN (K) TO JX stores K=6 then NN(6)=6 (GR3d subscripting just before store); SET KX JX TO IDT (KX) gives JX the value IDT(2)=7 as at the beginning, not IDT(7)=3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c4a.cob",
+    "printed": "line 21 SET IX JX TO 0: COBOL0900 at 85; no diagnostic at 2023",
+    "expected": "85 refuses a zero integer-1 (§1985:VI.6.23.3 SR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.23.3 SR1",
+    "check": "OK  §1985:VI.6.23.3 SR1  (6.23.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR3c",
+    "check": "OK  §1985:VI.6.23.4 GR3c  (6.23.4 General Rules)  the text is in GR3c"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR3d",
+    "check": "OK  §1985:VI.6.23.4 GR3d  (6.23.4 General Rules)  the text is in GR3d"
+   },
+   {
+    "cite": "§1985:VI.6.23.4 GR4",
+    "check": "OK  §1985:VI.6.23.4 GR4  (6.23.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "BindSetTo classifies the sender once and runs ScreenIndexAssignmentReceiver over every receiver in the list, and BindSetUpDown selects format 2 from the whole receiving list, so no receiver position escapes a rule. At run time the sender is evaluated once before the stores and each receiver is identified at its own store.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical per-receiver refusals and run output; only the 1985 zero integer-1 refusal is absent",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.23.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probe E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r4a.cob at --std 85 (receiver-list orders the reader did not try): SET ID1 N1 TO ID2 refused on the second receiver N1 (GR5 table No/3c); SET N1 ID1 TO IA and SET IA IB N1 TO IC admitted (Valid/3c,3a,3b); SET IA IB ID1 TO 4 refused on third receiver ID1 (No/3b); SET IA IB ID1 UP BY 1 COBOL2112 (index data item is no index-name-3); SET IA IB NG TO IC COBOL2326 (group); SET IA IB TO -2 COBOL0900 (SR4). Run E:/COBOL-coord/scratch/sample-shared/out/refute-1985-06/r4b.cob: SET IA IB ID1 TO IC over tables of element size 1/7/3 gives occurrence 05 for each; SET N2 N1 TO IB gives +005 05; SET IA IB IC UP BY N1 gives 07 07 07; DOWN BY 3 gives 04 04; SET N1 NN (N1) TO IA stores N1=3 then NN(3)=03 (GR3d). cite.py: OK  §1985:VI.6.23.3 SR1 ; OK  §1985:VI.6.23.4 GR3d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

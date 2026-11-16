@@ -120,8 +120,11 @@ CONTINUATION = "    "
 FIELDS = {
     "id": "scalar", "rules": "list", "accept": "list", "flag": "map", "control": "scalar", "requires": "list",
     "implementor-defined": "list", "files": "list", "source-format": "scalar", "portable": "scalar",
-    "constructs": "list", "build": "list", "servers": "map",
+    "constructs": "list", "build": "list", "servers": "map", "stdin": "scalar", "output-file": "map",
 }
+#: The two keys of an `output-file` map (§3.1): the file the program leaves in its run directory, and the file beside the
+#: test that holds what it must contain.
+OUTPUT_FILE_KEYS = ("name", "expected")
 FLAG_FIELDS = {"kind": "scalar", "at": "list", "why": "scalar"}
 #: §3.2: the kinds of standard-conformance diagnostic a flagged test requires.
 FLAG_KINDS = ("syntax", "obsolete", "archaic", "nonstandard", "processor-dependent")
@@ -198,6 +201,14 @@ class Case:
     #: in memory is checked exactly as one read from disk).
     observes_at: tuple[Path | str, int] | None = None
     format_line: int = 1
+    #: The file beside the test that is its standard input (§3.1 `stdin`), None for a test whose input is closed.
+    stdin: str | None = None
+    #: The test's declared output file (§3.1 `output-file`): `(name in the run directory, expected-content file beside the
+    #: test)`, None for a test that declares none.
+    output_file: tuple[str, str] | None = None
+    #: Where the program (or a library text it copies) executes an ACCEPT that reads standard input, `(path, line)`, None
+    #: when it executes none (`cobol_source.device_accepts`); read once so `check_cases` needs the Case alone.
+    device_accept_at: tuple[Path | str, int] | None = None
 
     @property
     def in_suite(self) -> bool:
@@ -233,6 +244,9 @@ class Inputs:
     #: The rules of each OLDER held edition (DESIGN-spec-conformance-review.md §10.2), by id: the edition whose own text
     #: states the rule. Their rows are in `rows` too (the ids cannot collide: an older id opens with its year).
     older: dict[str, inventory_schema.Edition] = field(default_factory=dict)
+    #: Is the rule one that states the transfer of data from the standard-input device (an ACCEPT statement's rule that
+    #: speaks of its device)? Read from the rule catalogs' text on first use, injectable so the self-test plants the answer.
+    device_accept_rule: Callable[[str], bool] = lambda rule_id: False
 
     @property
     def editions(self) -> list[str]:
@@ -459,14 +473,13 @@ class Reader:
         if not TEST_ID.match(test_id):
             self.refuse(rel, h.lines["id"], f"id {test_id!r} is letters, digits, '-' and '_' (an expected output "
                                             f"is named <id>.<...>.out, so an id holds no '.')")
-        fmt = self._shaped(rel, h, "source-format", "scalar")
-        if fmt is None:
+        declared = self._shaped(rel, h, "source-format", "scalar")
+        fmt = source_format_of(h)
+        if declared is None:
             self.refuse(rel, 1, "no source-format: every test states it, because compilers differ in their default "
                                 "(§3.1)")
-            fmt = h.source_format_seen
-        elif fmt not in SOURCE_FORMATS:
-            self.refuse(rel, h.lines["source-format"], f"source-format is fixed or free, not {fmt!r}")
-            fmt = h.source_format_seen
+        elif declared not in SOURCE_FORMATS:
+            self.refuse(rel, h.lines["source-format"], f"source-format is fixed or free, not {declared!r}")
         elif fmt != h.source_format_seen:
             self.refuse(rel, h.lines["source-format"], f"source-format is {fmt} but the metadata block is written in "
                                                        f"{h.source_format_seen} form")
@@ -490,6 +503,7 @@ class Reader:
             else:
                 items.append(int(v))
         build = self._build(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or ())
+        stdin, output_file = self._run_files(rel, h, test_id, accept, self._shaped(rel, h, "files", "list") or ())
         case = Case(
             tree=tree, folder=folder, path=rel, test_id=test_id, source_format=fmt, rules=rules, accept=accept,
             flag=flag, control=self._shaped(rel, h, "control", "scalar"),
@@ -497,11 +511,61 @@ class Reader:
             files=tuple(self._shaped(rel, h, "files", "list") or ()),
             constructs=tuple(self._shaped(rel, h, "constructs", "list") or ()),
             portable=portable_value is None, marked_line=None,
-            build=build,
+            build=build, stdin=stdin, output_file=output_file,
             servers=self._servers(rel, h, tree, test_id, self._shaped(rel, h, "files", "list") or (), build))
         self.sources[test_id] = text
         self._check_program(case, h, text)
         return case
+
+    def _run_files(self, rel: Path, h: Header, test_id: str, accept: tuple[str, ...],
+                   files: Iterable[str]) -> tuple[str | None, tuple[str, str] | None]:
+        """The two files a test declares about its run (§3.1): `stdin`, the file beside the test the program reads as its
+        standard input, and `output-file`, `{name: <file the program leaves in its run directory>, expected: <file beside
+        the test holding its content>}`. Each names a file of the test's own folder (never a path); the files a test
+        declares (`files`, `stdin`, `expected`) are distinct, since each plays one part in the run; and a test that no
+        edition accepts is never run, so it declares neither. Their existence and the form of the input are read where
+        the folder is (`_read_folder`)."""
+        declared = set(files)
+        stdin = self._shaped(rel, h, "stdin", "scalar")
+        raw = self._shaped(rel, h, "output-file", "map")
+        output_file = None
+        for key, value in (("stdin", stdin), ("output-file", raw)):
+            if value is not None and not accept:
+                self.refuse(rel, h.lines[key], f"{key} on a test no edition accepts: it is never run, so nothing "
+                                               f"feeds or reads it")
+        if stdin is not None and self._bare_name(rel, h.lines["stdin"], "stdin", stdin):
+            if stdin in declared or stdin == test_id + ".cob":
+                self.refuse(rel, h.lines["stdin"], f"stdin names {stdin!r}, which is also another file of the run "
+                                                   f"(`files` or the test's source): a file plays one part in the run")
+        if raw is not None:
+            line = h.lines["output-file"]
+            if sorted(raw) != sorted(OUTPUT_FILE_KEYS) or not all(isinstance(v, str) for v in raw.values()):
+                self.refuse(rel, line, f"output-file is `{{name: <file the program writes>, expected: <file beside the "
+                                       f"test>}}`, not {raw!r}")
+            else:
+                name, expected = raw["name"], raw["expected"]
+                ok = self._bare_name(rel, line, "output-file name", name)
+                ok &= self._bare_name(rel, line, "output-file expected", expected)
+                if ok:
+                    output_file = (name, expected)
+                    if expected.endswith(".out"):
+                        self.refuse(rel, line, f"output-file expected {expected!r} ends in `.out`, which names a test's "
+                                               f"expected standard output (§3.3)")
+                    for what, other in (("`files` declares it", name in declared or expected in declared),
+                                        ("`stdin` names it", stdin in (name, expected)),
+                                        ("it is the test's own source", name == test_id + ".cob")):
+                        if other:
+                            self.refuse(rel, line, f"output-file {name!r} / {expected!r}: {what}; a file plays one "
+                                                   f"part in the run")
+        return stdin, output_file
+
+    def _bare_name(self, rel: Path, line: int, what: str, name: str) -> bool:
+        """Is `name` a file name (no folder, no `..`), as a declared run file lies in the test's own folder? Refuses it
+        otherwise."""
+        if not name or name in (".", "..") or "/" in name or "\\" in name:
+            self.refuse(rel, line, f"{what} is a file beside the test, not a path: {name!r}")
+            return False
+        return True
 
     def _build(self, rel: Path, h: Header, tree: str, test_id: str,
                files: Iterable[str]) -> tuple[tuple[str | None, str | None], ...] | None:
@@ -658,6 +722,8 @@ class Reader:
         case.defined = frozenset(cobol.defined_names(expanded))
         observed = cobol.observes_exception(expanded)
         case.observes_at = (observed.source or rel, observed.line) if observed is not None else None
+        reading = cobol.device_accepts(expanded)
+        case.device_accept_at = (reading[0].source or rel, reading[0].line) if reading else None
         case.format_line = h.lines.get("source-format", 1)
         # The portability lint (§3.3), for a test the suites carry: on the program text the compiler reads, the
         # test's own and every library text it copies.
@@ -739,6 +805,7 @@ class Reader:
         for case in cases:
             claimed.add(case.path.name)
             claimed.update(case.files)
+            claimed.update(self._run_file_names(case))
             self._outputs(case, folder)
             claimed.update(p.name for p in case.outputs.values())
         # A WiseOwl test may declare library text in a LIBRARY folder beside it (`<library>/<file>`): where a
@@ -757,6 +824,7 @@ class Reader:
             elif f.name not in claimed and not f.name.endswith(".cob"):
                 self.refuse(rel, 1, "a file no test of this folder declares (`files`) or expects as its output")
         for case in cases:
+            self._check_run_files(case, folder)
             for name in case.files:
                 if not (folder / name).is_file():
                     self.refuse(case.path, 1, f"files names {name!r}, which is not beside the test")
@@ -764,6 +832,24 @@ class Reader:
                     self.refuse(case.path, 1, f"files names {name!r}: a declared file lies beside the test (a WiseOwl "
                                               f"test's library text may lie in a library folder, `<library>/<file>`)")
         self.cases.extend(cases)
+
+    @staticmethod
+    def _run_file_names(case: Case) -> list[str]:
+        """The files beside the test that its `stdin` and `output-file` declare: the folder's own, claimed by the test."""
+        return [*([case.stdin] if case.stdin else []), *([case.output_file[1]] if case.output_file else [])]
+
+    def _check_run_files(self, case: Case, folder: Path) -> None:
+        """The declared standard input is a file beside the test that holds LF line ends alone (a CR LF would reach the
+        program as characters of its input on one host and as a line end on another), and the expected content of the declared output file is a file beside the test."""
+        if case.stdin is not None:
+            path = folder / case.stdin
+            if not path.is_file():
+                self.refuse(case.path, 1, f"stdin names {case.stdin!r}, which is not beside the test")
+            elif b"\r" in path.read_bytes():
+                self.refuse(case.path, 1, f"the declared standard input {case.stdin} holds LF line ends alone (a CR is a "
+                                          f"character of the input on one host and a line end on another)")
+        if case.output_file is not None and not (folder / case.output_file[1]).is_file():
+            self.refuse(case.path, 1, f"output-file expected names {case.output_file[1]!r}, which is not beside the test")
 
     def _outputs(self, case: Case, folder: Path) -> None:
         """The expected-output files `<id>[.<edition>][.<item>=<value>...].out` (§3.1, §3.3)."""
@@ -810,6 +896,17 @@ def check_cases(reader: Reader) -> None:
         if case.flag is not None and set(case.flag.at) & set(case.accept):
             both = sorted(set(case.flag.at) & set(case.accept), key=inputs.editions.index)
             reader.refuse(rel, 1, f"accepted and flagged at {', '.join(both)}")
+        # A test that executes an ACCEPT reading standard input, runs with it closed (no `stdin`) and names a rule that
+        # states the transfer of data from that device would pin the end-of-input determination (DOC-A.1-5: spaces,
+        # which the standard does not state) and claim a transfer rule (kb/Work PB5755).
+        if case.accept and case.stdin is None and case.device_accept_at is not None:
+            for rule in case.rules:
+                if rule in inputs.rows and inputs.device_accept_rule(rule):
+                    path, line = case.device_accept_at
+                    reader.refuse(rel, 1, f"rules names {rule}, a rule of the transfer of data from the input device, "
+                                          f"and the program executes an ACCEPT reading standard input ({path}:{line}) "
+                                          f"with no `stdin` declared: it would read end of input, which no rule of the "
+                                          f"transfer states (§3.1 `stdin`)")
         # Rules: known, filed under this clause, present at each edition the test is judged at.
         for rule in case.rules:
             if rule not in inputs.rows:
@@ -910,6 +1007,22 @@ def check_cases(reader: Reader) -> None:
                                         "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
 
 
+def format_defined_at(source_format: str, edition: str, order: list[str]) -> bool:
+    """Does `edition` define the reference format `source_format`? Fixed form at every edition; free form from
+    FIRST_FREE_FORM on (§2023:6.4). THE one statement of the fact: `check_editions` refuses a `cases/` test placed where
+    its format is not defined, and the traceability inventory's evidence rule counts no case as a witness there
+    (scripts/spec/lineage_reads.py `format_problem`, kb/Work PB5754)."""
+    return source_format != "free" or order.index(edition) >= order.index(FIRST_FREE_FORM)
+
+
+def source_format_of(header: Header) -> str:
+    """A case's source format as its header states it (`source-format`, one of SOURCE_FORMATS), else the form its
+    metadata block is written in: the value `Reader.read_case` gives `Case.source_format` (it refuses the header that
+    needs the fallback), and the one a reader of a single case's header takes."""
+    declared = header.fields.get("source-format")
+    return declared if isinstance(declared, str) and declared in SOURCE_FORMATS else header.source_format_seen
+
+
 def check_editions(reader: Reader, case: Case) -> None:
     """The refusals that depend only on the editions a test is placed at and on what its text was read to hold
     (`Case.observes_at`, `Case.format_line`), so a band widened in memory (lineage_reads.Witnesses.entries) is refused
@@ -923,10 +1036,9 @@ def check_editions(reader: Reader, case: Case) -> None:
                           f"{', '.join(early)}: run-time violations are judged only from {FIRST_RUN_TIME} on (§3.2)")
     # Free form before it existed. A WiseOwl test may use it at 85: `--source-format free` at every edition is
     # WiseOwl's extension (docs/CONFORMANCE.md §7, DOC-A.1-158), and its own regression tests exercise it.
-    if case.source_format == "free" and case.tree != "wiseowl":
-        first = order.index(FIRST_FREE_FORM)
-        early = sorted({e for e in case.accept + (case.flag.at if case.flag else ()) if order.index(e) < first},
-                       key=order.index)
+    if case.tree != "wiseowl":
+        early = sorted({e for e in case.accept + (case.flag.at if case.flag else ())
+                        if not format_defined_at(case.source_format, e, order)}, key=order.index)
         if early:
             reader.refuse(case.path, case.format_line, f"free form at {', '.join(early)}: the free-form "
                                                        f"reference format is a {FIRST_FREE_FORM} feature")
@@ -1066,6 +1178,13 @@ def entry_for(case: Case, edition: str, inputs: Inputs) -> dict[str, Any]:
             expected[".".join(f"{i}={v}" for i, v in key)] = _posix(path)
         entry.update({"expect": "accept", "implementor-defined": list(case.implementor_defined),
                       "expected-output": expected})
+        # What a runner feeds and reads back beyond the standard output (§3.1): present only for a test that declares it,
+        # so every other entry keeps its shape.
+        folder = case.path.parent
+        if case.stdin is not None:
+            entry["stdin"] = _posix(folder / case.stdin)
+        if case.output_file is not None:
+            entry["output-file"] = {"name": case.output_file[0], "expected": _posix(folder / case.output_file[1])}
     else:
         assert case.flag is not None and case.marked_line is not None
         entry.update({"expect": "flag", "flag": case.flag.kind, "line": case.marked_line, "control": case.control})
@@ -1281,12 +1400,29 @@ def repository_inputs() -> tuple[Inputs, list[Problem]]:
             register = schema.register_items()
         return schema.anchor_for(row) is not None and row.get("rule-id") in register
 
+    catalog_text: dict[str, dict[str, str]] = {}
+
+    def device_accept_rule(rule_id: str) -> bool:
+        """An ACCEPT statement's general rule whose text speaks of its device and not of a screen: the rules of the
+        transfer of data from the input device (§1985:VI.6.5.4 GR1-GR5, §2023:14.9.1.4 GR1-GR5), read from the rule
+        catalog of the edition that states the rule (an input of the target, like the inventory view's), so a rule the
+        next edition adds is covered with no list to edit."""
+        row = rows[rule_id]
+        if row.get("kind") != "GR" or "ACCEPT STATEMENT" not in str(row.get("subject", "")).upper():
+            return False
+        catalog = (older[rule_id] if rule_id in older else schema.newest).catalog
+        if catalog not in catalog_text:
+            catalog_text[catalog] = {r["id"]: r["text"] for r in
+                                     json.loads((REPO / catalog).read_text(encoding="utf-8"))["rules"]}
+        text = catalog_text[catalog].get(rule_id, "").lower()
+        return bool(re.search(r"\bdevice\b", text)) and "screen" not in text
+
     spec = SPEC_PATH.read_text(encoding="utf-8")
     inputs = Inputs(
         schema=schema, rows=rows, constructs=constructs, requirable=annex_names(spec),
         implementor_defined=a1, diagnostics=diagnostics,
         determined=determined, derived=schema.derivation_stands, reserved=reserved_words(), keywords=standard_keywords(spec),
-        options=options, older=older)
+        options=options, older=older, device_accept_rule=device_accept_rule)
     return inputs, problems
 
 
@@ -1396,7 +1532,8 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         determined=lambda r: r["rule-id"] in ("DOC-A.1-9", "DOC-A.1-10"), derived=lambda r: bool(r.get("derivation")),
         reserved={"85": frozenset({"IDENTIFICATION", "DIVISION", "PROGRAM-ID", "DATA", "WORKING-STORAGE", "SECTION",
                                    "PIC", "VALUE", "PROCEDURE", "DISPLAY", "STOP", "RUN"})},
-        keywords=frozenset({"STOP", "W-E"}), older={older_rule: oldest})
+        keywords=frozenset({"STOP", "W-E"}), older={older_rule: oldest},
+        device_accept_rule=lambda rule_id: rule_id == "GR-1.1.1-4")
 
 
 def _fixed(header: list[str], body: list[str]) -> str:
@@ -1408,6 +1545,10 @@ _PROGRAM = ["       IDENTIFICATION DIVISION.", "       PROGRAM-ID. P.", "       
             "       WORKING-STORAGE SECTION.", "       01 W-A PIC X(3) VALUE \"ABC\".", "       01 W-N PIC 9(3).",
             "       01 W-E PIC ZZ9.", "       PROCEDURE DIVISION.", "       MAIN-PARA.",
             "           DISPLAY \"OK \" W-A W-E", "           STOP RUN."]
+
+
+#: `_PROGRAM` with an ACCEPT of its alphanumeric item, which reads standard input (ISO §2023:14.9.1.4 GR5).
+_ACCEPTING = _PROGRAM[:9] + ["           ACCEPT W-A"] + _PROGRAM[9:]
 
 
 def _plant(root: Path, files: dict[str, str]) -> None:
@@ -1428,6 +1569,10 @@ def self_test() -> int:
         rc |= 0 if ok else 1
 
     print("=== generate.py --self-test ===")
+    table = (REPO / "src" / "WiseOwl.Cobol.Editions" / "ImplementorNames.cs").read_text(encoding="utf-8")
+    table_inputs = set(re.findall(r'new\("([A-Z0-9-]+)",\s*SystemNameKind\.Device,\s*DeviceCapability\.Input', table))
+    check("arm: the device-names the ACCEPT check reads as standard input are the compiler's input devices "
+          "(ImplementorNames.cs)", cobol.STDIN_DEVICES == table_inputs, table_inputs)
     good = {
         "cases/1.1.1-Rule/accepted.cob": _fixed(["id: accepted", "rules: [GR-1.1.1-1]", "accept: [85, 2002, 2014, 2023]",
                                                  "source-format: fixed"], _PROGRAM),
@@ -1480,6 +1625,27 @@ def self_test() -> int:
         "wiseowl/cases/1.1.1-Rule/served.out": "x\n",
         "wiseowl/cases/1.1.1-Rule/U1.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U1.\n",
         "wiseowl/cases/1.1.1-Rule/U2.cbl": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. U2.\n",
+        # The standard input and the output file a test declares (§3.1, kb/Work PB5755, PB5765): each reaches its entry as
+        # a path relative to the suite; a test that declares neither has no key.
+        "wiseowl/cases/1.1.1-Rule/fed.cob": _fixed(
+            ["id: fed", "rules: [GR-1.1.1-4]", "accept: [2023]", "stdin: fed.in",
+             "output-file: {name: R.DAT, expected: fed.R.exp}", "source-format: fixed"], _ACCEPTING),
+        "wiseowl/cases/1.1.1-Rule/fed.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/fed.in": "L1\nL2\n",
+        "wiseowl/cases/1.1.1-Rule/fed.R.exp": "A\nB\n",
+        # A rule of the transfer is witnessed with no input declared only by a program that reads no standard input.
+        "wiseowl/cases/1.1.1-Rule/dated.cob": _fixed(
+            ["id: dated", "rules: [GR-1.1.1-4]", "accept: [2023]", "source-format: fixed"],
+            _PROGRAM[:9] + ["           ACCEPT W-N FROM DATE"] + _PROGRAM[9:]),
+        "wiseowl/cases/1.1.1-Rule/dated.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/screened.cob": _fixed(
+            ["id: screened", "rules: [GR-1.1.1-4]", "accept: [2023]", "source-format: fixed"],
+            _PROGRAM[:7] + ["       SCREEN SECTION.", "       01 SCR."] + _PROGRAM[7:9] + ["           ACCEPT SCR"]
+            + _PROGRAM[9:]),
+        "wiseowl/cases/1.1.1-Rule/screened.out": "x\n",
+        "wiseowl/cases/1.1.1-Rule/other-rule.cob": _fixed(
+            ["id: other-rule", "rules: [GR-1.1.1-5]", "accept: [2023]", "source-format: fixed"], _ACCEPTING),
+        "wiseowl/cases/1.1.1-Rule/other-rule.out": "x\n",
         "cases/2.2.2-Free/free-test.cob": "*>--- conformance-case\n*> id: free-test\n*> rules: [RV-2.2.2-1]\n"
                                           "*> accept: [2002]\n*> source-format: free\n*>---\n"
                                           + "\n".join(line.strip() for line in _PROGRAM) + "\n",
@@ -1555,6 +1721,14 @@ def self_test() -> int:
                       {"name": "BALANCE", "file": unit + "U2.cbl", "output": "U2", "options": {"repository-update": "off"}},
                       {"name": "audit ", "file": unit + "U1.cbl", "output": "U1", "options": {}}]
                   and "servers" not in w2023["multi"], w2023["served"])
+            check("arm: a test's declared standard input and output file reach its entry as suite-relative paths, and a test "
+                  "that declares neither has no key",
+                  w2023["fed"]["stdin"] == unit + "fed.in"
+                  and w2023["fed"]["output-file"] == {"name": "R.DAT", "expected": unit + "fed.R.exp"}
+                  and not {"stdin", "output-file"} & set(w2023["own"]), w2023["fed"])
+            check("arm: a rule of the transfer from the input device is witnessed with no `stdin` by a program that reads no "
+                  "standard input (FROM DATE, a screen item), and by one that reads it when the rule is another's: not refused",
+                  {"dated", "screened", "other-rule"} <= set(w2023), sorted(w2023))
             check("arm: ... and all three are in the wiseowl manifest",
                   {"loose", "own"} <= set(w2023) and "unverified" in {t["id"] for t in mw["editions"]["85"]}, w2023)
             check("arm: the wiseowl manifest carries wiseowl/diagnostics/'s refusals",
@@ -1857,6 +2031,50 @@ def self_test() -> int:
             _fixed(["id: srv-nonfile", "rules: [GR-1.1.1-1]", "accept: [2023]", "files: [U1.cbl]",
                     "servers: {SRV: [U1.cbl]}", "source-format: fixed"], _PROGRAM),
             "maps to a declared file"),
+        **{label: (f"wiseowl/cases/1.1.1-Rule/{test_id}.cob",
+                   _fixed([f"id: {test_id}", "rules: [GR-1.1.1-4]", "accept: [2023]", *header, "source-format: fixed"],
+                          program), want)
+           for label, (test_id, header, program, want) in {
+               "stdin names a missing file": ("rf-gone", ["stdin: gone.in"], _PROGRAM, "which is not beside the test"),
+               "stdin holding a CR LF": ("rf-crlf", ["stdin: crlf.in"], _PROGRAM, "holds LF line ends alone"),
+               "stdin that is a path": ("rf-path", ["stdin: sub/x.in"], _PROGRAM, "a file beside the test, not a path"),
+               "stdin that is also a declared file": ("rf-twice-file", ["files: [U1.cbl]", "stdin: U1.cbl"], _PROGRAM,
+                                                     "a file plays one part in the run"),
+               "stdin declared twice": ("rf-twice", ["stdin: fed.in", "stdin: fed.in"], _PROGRAM,
+                                        "the field 'stdin' twice"),
+               "an output file whose expected content is missing": (
+                   "rf-nox", ["output-file: {name: R.DAT, expected: gone.exp}"], _PROGRAM,
+                   "output-file expected names 'gone.exp', which is not beside the test"),
+               "an output file named by a path": (
+                   "rf-opath", ["output-file: {name: ../R.DAT, expected: fed.R.exp}"], _PROGRAM,
+                   "output-file name is a file beside the test, not a path"),
+               "an output file whose expected content ends in .out": (
+                   "rf-dotout", ["output-file: {name: R.DAT, expected: fed.out}"], _PROGRAM, "which names a test's expected"),
+               "an output file with a missing key": (
+                   "rf-key", ["output-file: {name: R.DAT}"], _PROGRAM, "output-file is `{name:"),
+               "an output file with a third key": (
+                   "rf-key3", ["output-file: {name: R.DAT, expected: fed.R.exp, extra: x}"], _PROGRAM,
+                   "output-file is `{name:"),
+               "an output file declared twice": (
+                   "rf-otwice", ["output-file: {name: R.DAT, expected: fed.R.exp}",
+                                 "output-file: {name: R.DAT, expected: fed.R.exp}"], _PROGRAM,
+                   "the field 'output-file' twice"),
+               "an output file that is also the standard input": (
+                   "rf-same", ["stdin: fed.in", "output-file: {name: fed.in, expected: fed.R.exp}"], _PROGRAM,
+                   "`stdin` names it"),
+               "an ACCEPT of the input device, a transfer rule and no declared input": (
+                   "rf-accept", [], _ACCEPTING, "with no `stdin` declared"),
+               "an ACCEPT FROM CONSOLE, a transfer rule and no declared input": (
+                   "rf-console", [], _PROGRAM[:9] + ["           ACCEPT W-A FROM CONSOLE"] + _PROGRAM[9:],
+                   "with no `stdin` declared"),
+               "an ACCEPT FROM a mnemonic-name of the input device, a transfer rule and no declared input": (
+                   "rf-mnemonic", [], _PROGRAM[:2] + ["       ENVIRONMENT DIVISION.", "       CONFIGURATION SECTION.",
+                                                      "       SPECIAL-NAMES.", "           SYSIN IS SIN."] + _PROGRAM[2:9]
+                   + ["           ACCEPT W-A FROM SIN"] + _PROGRAM[9:], "with no `stdin` declared"),
+           }.items()},
+        "stdin on a test no edition accepts": ("wiseowl/cases/1.1.1-Rule/rf-unrun.cob",
+                                               _fixed(["id: rf-unrun", "rules: [GR-1.1.1-4]", "stdin: fed.in",
+                                                       "source-format: fixed"], _PROGRAM), "no edition accepts"),
         "duplicate id": ("wiseowl/cases/1.1.1-Rule/ok.cob",
                          _fixed(["id: ok", "rules: [GR-1.1.1-1]", "accept: [85]", "source-format: fixed"], _PROGRAM),
                          "is also"),
@@ -1894,6 +2112,13 @@ def self_test() -> int:
     base["cases/1.1.1-Rule/bld-suite.out"] = "x\n"
     for name in ("bld-undeclared", "bld-twice", "bld-own", "bld-name", "bld-self"):
         base[f"wiseowl/cases/1.1.1-Rule/{name}.out"] = "x\n"
+    for name in ("rf-gone", "rf-crlf", "rf-path", "rf-twice-file", "rf-nox", "rf-opath", "rf-dotout", "rf-key", "rf-key3",
+                 "rf-same", "rf-accept", "rf-console", "rf-mnemonic"):
+        base[f"wiseowl/cases/1.1.1-Rule/{name}.out"] = "x\n"
+    base["wiseowl/cases/1.1.1-Rule/crlf.in"] = "a\r\nb\r\n"
+    base["wiseowl/cases/1.1.1-Rule/fed.in"] = "L1\n"
+    base["wiseowl/cases/1.1.1-Rule/fed.R.exp"] = "A\n"
+    base["wiseowl/cases/1.1.1-Rule/fed.out"] = "x\n"
     base["wiseowl/cases/1.1.1-Rule/U1.cbl"] = "       IDENTIFICATION DIVISION.\n"
     base["wiseowl/cases/1.1.1-Rule/U2.cbl"] = "       IDENTIFICATION DIVISION.\n"
     for name in ("ctl-unflagged", "gone", "ec-copy", "copy-margin", "copy-display"):

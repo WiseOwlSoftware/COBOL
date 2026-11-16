@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-16",
+ "rule-digest": "5d3400e1666c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyIndexOfKeyItem; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#GenericKeyIndex; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+ "test-ref": "conformance:cases/12.4.5.7-COLLATING-SEQUENCE/file_collating_seq; conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.41.4-16, witnessed at 2002 by the cases test-ref names. The read: Word-identical (general rule / General rule). The 2002 general format and SR6 are the same as 2023 (2023 SR4 adds an OCCURS restriction in place of qualification, a syntax change outside this rule). The 2002-program witnesses pass at 2002. Cited: §2002:14.8.37.3 GR16."
+}

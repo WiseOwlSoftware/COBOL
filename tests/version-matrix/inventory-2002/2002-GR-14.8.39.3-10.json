@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.39.3-10",
+ "rule-digest": "66d8a12c002b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#ReadsStorageOf; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageOverlap.cs#StorageOverlap",
+ "test-ref": "conformance:cases/14.9.43-STRING/pb1908_string_overlap_sender; conformance:cases/14.9.43-STRING/pb1908_string_overlap_delimiter; conformance:cases/14.9.43-STRING/pb1908_string_overlap_pointer; conformance:cases/14.9.43-STRING/pb1908_string_overlap_linkage; conformance:cases/14.9.43-STRING/pb1908_string_overlap_function; conformance:cases/14.9.43-STRING/pb1908_string_function_order",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.43.4-10, witnessed at 2002 by the cases test-ref names. The read: Same words; only the cross-reference differs (14.5.9 / 14.6.10). The 2002 and 2023 Overlapping operands clauses differ for operands of the same description entry, but this rule itself makes the result undefined \"even if they are defined by the same data description entry\", so the referenced difference does not reach it. Cited: §2002:14.8.39.3 GR10."
+}

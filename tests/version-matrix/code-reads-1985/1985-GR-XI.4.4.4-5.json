@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-5",
+ "rule-digest": "45769c69e0e5",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-143",
+  "sources": {
+   "reader": "d6f5754ea6b503f937777c5361bf6adaf6363a918b1fb3366588b677ebe2604f",
+   "refuter": "fa1600c9e0ab9c13be7e4cc4a4eb952e187c8956152dfb8fbf2c3150a943f909"
+  },
+  "imported": {
+   "reader": "1e87fcc0210901812e87f0534598dfafcead64cfd99189321e3392e2997dd724",
+   "refuter": "37f2fd2931d8127c30fd1f6638436d8543f202b4d9c9af5a291f4583084e353d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the nonnumeric SORT keys (alphanumeric, numeric-edited, group) must be compared under the alphabet named by the statement's COLLATING SEQUENCE phrase when written, else under the PROGRAM COLLATING SEQUENCE (else native), on every transfer path (procedures, USING, GIVING); numeric keys take no collating sequence; the 2002 FOR ALPHANUMERIC / FOR NATIONAL and alphabet-name-2 forms must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#Compare; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
+    "switches": "COBOL0872: alphabet-name-2 and the FOR ALPHANUMERIC / FOR NATIONAL forms of the phrase are refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "SortBindCollating passes ctx.Edition to ChoiceIndicators.AlphabetPair only as the diagnostic sink; the precedence (phrase over PCS over native) and SortKeyColumns.SequenceFor read no edition (grep 'Edition|CobolVersion|Dialect' over SortKeyColumns.cs: none).",
+  "behaviour-differs-by-edition": "no for the precedence on alphanumeric keys; yes for the phrase's surface: the national half and FOR forms exist only from 2002",
+  "witnesses-cover": "part: g85_bf07_03 covers a literal-list PCS, a phrase override and a numeric key, through procedures only; not exercised are THRU-range and STANDARD-1 alphabets, numeric-edited and group keys (nonnumeric), and the USING/GIVING paths",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/col1.cob",
+    "printed": "T1 2143 / T2 4312 / T3 2413 / T4 3142 / T5 2413 / T6 2143",
+    "expected": "T1 PCS REV (Z THRU A): B<A<space<1 = 2143; T2 COLLATING STANDARD-1 = 4312; T3 numeric-edited Z9 under DIG (9 THROUGH 0) collated '12',' 7',' 5',' 3' = 2413; T4 numeric 99 under DIG algebraic = 3142; T5 group key under DIG collated = 2413; T6 USING/GIVING with no phrase falls back to PCS REV = 2143"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/col2.cob",
+    "printed": "--std 85: error COBOL0872: COLLATING SEQUENCE alphabet-name-2 / FOR forms requires COBOL-2002 (targeting COBOL-85); --std 2023: compiles",
+    "expected": "§1985:XI.4.4.2 prints COLLATING SEQUENCE IS alphabet-name-1 only"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-143/src/col1.cob",
+    "printed": "T6 2143",
+    "expected": "the USING/GIVING path sorts under the PCS when no phrase is written"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR5",
+    "check": "OK  §1985:XI.4.4.4 GR5  (4.4.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:XI.4.4.4 GR5a",
+    "check": "OK  §1985:XI.4.4.4 GR5a  (4.4.4 General Rules)  the text is in GR5a"
+   },
+   {
+    "cite": "§1985:XI.4.4.4 GR5b",
+    "check": "OK  §1985:XI.4.4.4 GR5b  (4.4.4 General Rules)  the text is in GR5b"
+   }
+  ],
+  "notes": "SortBindCollating takes the PCS pair from the configuration and replaces the alphanumeric half with the phrase's alphabet when written; SequenceFor hands that sequence only to alphanumeric-class keys, so numeric keys compare algebraically. The sequence is a compile-time constant, which satisfies 'determined at the beginning of the execution'. Witness g85_bf07_03 MATCHes at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "sc1.cob (runs/sc1-001, --std 85), PCS REV ('Z' THRU 'A'). Phrase NAT (ALPHABET IS NATIVE) overrides the PCS back to native: N1 2143. No phrase: P1 3412 (PCS). A partial literal alphabet 'M' 'C' puts the unlisted characters after it in native order: Q1 4213. ALSO equivalence 'B' ALSO 'A' 'C' makes the minor key decide among A/B: E1 4321. Numeric-literal ordinals 68 67 66 (1-based native positions = C,B,A): O1 3214. STANDARD-2: S1 4231. These are the 1985 alphabet forms the reader did not try, and each phrase alphabet replaces the PCS as GR5a then GR5b order. cite.py 'OK  §1985:XI.4.4.4 GR5a  (4.4.4 General Rules)  the text is in GR5a'; 'OK  §1985:XI.4.4.4 GR5b  (4.4.4 General Rules)  the text is in GR5b'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

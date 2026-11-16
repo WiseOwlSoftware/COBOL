@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-10",
+ "rule-digest": "3f438fc696f1",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "87983d7c79140ef6e357372cdc899dd651a90c01565a1b537d05d55451fe6018",
+   "refuter": "ace378f20fbe7fc9eec8fae4dbe59832f852deca502b52fc24ec906f26eee43a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, when no GR9 overflow condition is encountered during the transfer, ON OVERFLOW is ignored and control goes to imperative-statement-2 when NOT ON OVERFLOW is written (every statement of it runs, an explicit transfer of control in it is honoured) and otherwise to the end of the STRING; the 1985 format admits ON OVERFLOW only before NOT ON OVERFLOW.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+    "switches": "conditional-phrases-any-order-2002: below 2002 a NOT ON OVERFLOW written before ON OVERFLOW is refused COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "the phrase-association predicate filters formats by ConstructRegistry.IsAvailable; STRING's Pair(Overflow) row carries no construct, so every edition takes one arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|ConstructRegistry|DialectBehavior over StringEmitter.cs, CobolStringOps.cs, FigurativeConstants.cs: no hits; EcEmitter.EmitOverflow is gated by >>TURN enablement only (no >>TURN at 85).",
+  "behaviour-differs-by-edition": "yes: only phrase order; at 85 NOT ON OVERFLOW before ON OVERFLOW is refused (COBOL0900), at 2023 it is accepted and runs; the run-time dispatch is the same code",
+  "witnesses-cover": "part: g85_bf02_04 covers both phrases, NOT alone, a multi-statement imperative-2 and GO TO in it; not exercised: zero characters moved with a pointer past the end, overflow on a later sender, a variable-length receiver, period-terminated form, phrase-order refusal",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr10.cob",
+    "printed": "6 OVF / 6 [ABC] (ODO group receiver of current size 3); 1 NOOVF [ABCD] exact fill; 2 NOOVF [****] 05 (zero characters moved, pointer 5 of 4); 3 IF-TRUE / 3 LAST / [AB**] 1 (PERFORM + nested IF in imperative-2); 4 [ABCD] (overflow on 2nd sender, NOT ignored); 5 NOOVF / 5 SECOND (period-terminated)",
+    "expected": "GR9 tests only before each character move, so with no move no overflow and imperative-2 runs; GR10 every statement of imperative-2 runs; overflow suppresses imperative-2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr11ref.cob",
+    "printed": "COBOL2796 conditional STRING (ON OVERFLOW, no END-STRING) as ADD's imperative-statement",
+    "expected": "refused: imperative-statement must not be a conditional statement (§1985:IV glossary Imperative Statement)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr10ord.cob",
+    "printed": "--std 85: COBOL0900 'writes ON OVERFLOW after NOT ON OVERFLOW ... COBOL-85 general format prints ON OVERFLOW first'; --std 2023: runs, prints N",
+    "expected": "85 general format prints [ON OVERFLOW] before [NOT ON OVERFLOW]: refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR10",
+    "check": "OK  §1985:VI.6.25.4 GR10  (║6.25.4 General Rules║)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:VI.6.25.4 GR9",
+    "check": "OK  §1985:VI.6.25.4 GR9  (║6.25.4 General Rules║)  the text is in GR9"
+   }
+  ],
+  "notes": "The kernel latches the overflow flag per character move and the emitter dispatches ON/NOT ON per the flag after the pointer store; ON OVERFLOW is ignored on the no-overflow path. Diagnostics cite 2023 clause numbers but the behaviour matches the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Read §1985:VI.6.25.4 GR9-GR10 whole (cite.py: 'OK §1985:VI.6.25.4 GR10 the text is in GR10'; 'OK §1985:VI.6.25.4 GR9 the text is in GR9'). Probes at --std 85 via run_case.py: sp1.cob (ON omitted: 'OVERFLOW'/'NOT OVERFLOW' spellings, DELIMITED without BY) printed '1 NOOVF / 1 [ABC*****]'; subp.cob NOT ON OVERFLOW sees the final pointer and receiver ('1 NOOVF 05 [ABAB****]'), ON OVERFLOW sees pointer 9 after a partial transfer ('3 OVF 09 [**ABCDEF]'); ifst.cob conditional STRING closed by ELSE and by END-IF dispatches correctly ('1 OVF','2 ELSE','3 NOOVF'); dup1/dup2.cob a second ON OVERFLOW / NOT ON OVERFLOW refused COBOL2269. Reader's zero-move NOOVF at pointer 5 of 4 follows GR9's 'Before each move of a character' literally. No counter-example found.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

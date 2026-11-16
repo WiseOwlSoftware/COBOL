@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-VI.6.18.4-19",
+ "rule-digest": "9918cd4ee71c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-016",
+  "sources": {
+   "reader": "6dc6b8eb09b28ec640187fcede7c10a546cd677794143e60c8224cf9a0afc72c",
+   "refuter": "9c887bf6a45081872b1e706650bd9db321b9bf6a8f99c94f692cbe63350fbcfe"
+  },
+  "imported": {
+   "reader": "f1859ae5c19878d35377334a838415a416a262d4f28de6a470442ebb4d6a5510",
+   "refuter": "4961537dc489c68f9dcea383e6b15f4678370ae7a8f2c4840a1f7802cf009d97"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.18.4-19",
+  "verdict": "CONFORMS",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "requirement": "For a format 4 INSPECT CONVERTING (level 2), when identifier-4 (BEFORE/AFTER), identifier-6 (from-set) or identifier-7 (to-set) shares storage with identifier-1, the result is undefined at 85: acceptance and a completed run are owed, not a particular result.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore; src/WiseOwl.Cobol.Runtime/Verbs/CobolInspect.cs#Convert; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhrases",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition (from 2023): at 85 a BEFORE delimiter is located from the leftmost position (BoundInspect.BeforeFromLeftmost = true), at 2023 from the first eligible position",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#Bind",
+    "switches": "DialectBehavior.InspectFormat3LengthIdentifiedOnce (from 2002): a format 3 over an occurs-depending identifier-1 at 85 sets ReplacingTakesLengthAnew (InspectEmitter#EmitBody re-reads identifier-1 for the REPLACING half); from 2002 the DEPENDING ON object is frozen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckInspectConvertingRepeatedCharacter",
+    "switches": "§1985 SR10 repeated character in literal-4, checked at --std 85 only (bind time, not on the overlap path)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The overlap mechanism itself (InspectEmitter#CounterMayChangeInputs, #CounterMayOverlapTarget, #MayReadStorageOf, StorageOverlap#MayShareStorage, CobolInspect Tally/Replace/Convert) has no edition reference: grep 'Edition|CobolVersion|Std|Dialect|IsAtLeast|Version' over InspectEmitter.cs, CobolInspect.cs and StorageOverlap.cs found only a doc-comment mention of DialectBehavior in CobolInspect.cs; the edition consults are the binder's, listed.",
+  "behaviour-differs-by-edition": "no for the overlap: at every edition the from-set, to-set and delimiter values are read at the start and the single write-back is the only store (D-INS4); Q1..Q4 print the same at 85 and 2023. The BEFORE location rule differs by edition (BeforeFromLeftmost), but Q4 gives the same result at both.",
+  "witnesses-cover": "part: pb1907_inspect_converting_overlap covers from-set, to-set and AFTER overlap. It does not exercise BEFORE and AFTER both overlapped, an ODO identifier-1, or a signed separate-sign identifier-1 whose digits are the from-set (probed below).",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr19.cob",
+    "printed": "Q2=[9129] (ODO group CONVERTING \"3\" TO \"9\": the DEPENDING ON digit is converted)",
+    "expected": "undefined; completes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr19.cob",
+    "printed": "Q1=[CDCD] (CONVERTING X(1:2) TO X(3:2) BEFORE X(4:1)); Q4=[ABAB] (AFTER Y(2:1) BEFORE Y(1:1)); same at 2023",
+    "expected": "undefined (GR19); completes deterministically"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/14.9.22-INSPECT/pb1907_inspect_converting_overlap.cob",
+    "printed": "--std 85: F1=[WXYW] F2=[BAAB] F3=[AABA] F4=[AXXA] (matches the .out)",
+    "expected": "undefined; the documented D-INS4 choice"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-016/gr19.cob",
+    "printed": "Q3=[-983] (SN S9(3) SIGN LEADING SEPARATE VALUE -123, CONVERTING SN(2:2) TO \"98\")",
+    "expected": "undefined; the sign position is untouched"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.4 GR19",
+    "check": "OK  §1985:VI.6.18.4 GR19  (6.18.4 General Rules)  the text is in GR19"
+   },
+   {
+    "cite": "§1985:VI.6.4.5",
+    "check": "OK  §1985:VI.6.4.5  (6.4.5 Overlapping Operands)  the text is in the clause"
+   }
+  ],
+  "notes": "An undefined-result rule. Every overlapped CONVERTING form probed compiles and runs at 85 with the D-INS4 snapshot result, the same as at 2023. No diagnostic is owed."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.18.4-19",
+  "refutation": "UPHELD",
+  "classes": "a,b,d",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/ri13.cob K8: INSPECT SG CONVERTING \"1\" TO PE(J2) with J2 inside SG -> [XAAAAX] at 85 and 2023 (to-set subscript evaluated once, GR5). E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-016/ri16.cob H3 INSPECT Y CONVERTING Y TO X (from-set is identifier-1 and holds repeated characters, SR10 at run time) -> [ABAB], completes; H5 CONVERTING over an ODO group whose DEPENDING ON digit is converted -> [2  ]. Level-2 format 4 compiles at 85. cite.py: 'OK  §1985:VI.6.18.4 GR19  (6.18.4 General Rules)  the text is in GR19'. Also read: §1985:VI.6.18.4 GR5 (subscripts evaluated once, first) and GR17 (format 2 subscripts once, before format 1) bound where GR13/16/19 end, so a re-read mechanism that re-evaluated a subscript would break a DEFINED case. cite.py: 'OK  §1985:VI.6.18.4 GR5  (6.18.4 General Rules)  the text is in GR5'; 'OK  §1985:VI.6.18.4 GR17  (6.18.4 General Rules)  the text is in GR17'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

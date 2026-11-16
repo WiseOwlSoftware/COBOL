@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.35.2-11",
+ "rule-digest": "05f1fb90a286",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindSetObjectRef; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ClassNameSenderRule; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs#ObjectRefAssignmentMismatch",
+ "test-ref": "conformance:cases/13.18.60-USAGE/pb451_set_format5_class_name_sender",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.39.3-11, witnessed at 2002 by the cases test-ref names. The read: Only the class-name / object-class-name rename differs. Cited: §2002:14.8.35.2 SR11."
+}

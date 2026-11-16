@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VII.4.3.4-6",
+ "rule-digest": "acc8b8a53928",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-123",
+  "sources": {
+   "reader": "2a038aa4eda79245e44f17a46396a0d07259a19a45f018cc546b0a2da6fe34e4",
+   "refuter": "682fc1281745e66c275b93fc2f52298f7014de67670a15739aebe068fe2e0f23"
+  },
+  "imported": {
+   "reader": "3ea0760f49637c196df050ed00fb9993a1b9ac8e0394e09335a4c8a990139b66",
+   "refuter": "ad067a7ebf23bdc54111ece856e5bb9efac1443dac5fadcbab74aadcb16b0b9c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "An OPEN in any mode (including the 85-only REVERSED phrase) neither reads a record into the record area nor writes the record area to the file, on every organization: the first READ after it gets the first (or, REVERSED, the last) record, an OUTPUT/EXTEND OPEN then CLOSE adds no record, and an I-O OPEN establishes no record for REWRITE.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ReversedPhraseEffect; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/Constructs.g.cs#OpenReversedRemoved2002",
+    "switches": "REVERSED phrase admitted at 85, refused COBOL0902 from 2002; the runtime effect FileRegistry#ReversedPhraseEffect runs only at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehavior in SequentialConnector#OpenCore and KeyedConnector#OpenCore: none; the only edition arm is the REVERSED phrase gate (ConstructRegistry open-reversed-removed-2002) whose effect runs only at 85",
+  "behaviour-differs-by-edition": "yes: only 85 has OPEN ... REVERSED, which positions at the end without reading",
+  "witnesses-cover": "part: the witness covers sequential INPUT, OUTPUT and EXTEND; not exercised: REVERSED, I-O (REWRITE after OPEN), relative and indexed files, OUTPUT with a filled record area",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p6_nofirst.cob",
+    "printed": "REV-OPEN=00 REV1=R003 REV2=R002",
+    "expected": "VII.4.3.4 GR11c/GR12: REVERSED positions at the end; the OPEN obtains nothing, so the first READ gives the last record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p6_nofirst.cob",
+    "printed": "IO-REWRITE-NO-READ=43 AFTER-IO1=R001",
+    "expected": "OPEN I-O obtains no record, so a REWRITE before any READ is 43 (VII.1.3.5 4c) and the file is unchanged"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-123/p6_nofirst.cob",
+    "printed": "RL-OUT=00 RL-EMPTY=10 RL1=Q001 IX-EMPTY=10 IX1=K001",
+    "expected": "relative/indexed: OPEN OUTPUT with a filled record area releases nothing (first READ at end, 10); OPEN INPUT/I-O obtains nothing (first READ gives the first record)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.3.4 GR6",
+    "check": "OK  §1985:VII.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The OPEN bodies only reset position state and open handles; no record transfer is emitted by EmitOpen. Probed on all three organizations and with the 85-only REVERSED phrase. Aside (not this rule): OPEN INPUT F SHARING WITH NO OTHER at --std 85 is refused, but with COBOL2073 naming a WHEN OTHER phrase, because SHARING is a user word at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VII.4.3.4 GR6 (cite.py OK). The reader left the sequential OUTPUT and EXTEND opens with a filled record area untested, as well as the optional-create path and a LINAGE file. r6_seq.cob printed OUT-EMPTY=10 (OPEN OUTPUT then CLOSE with the record area holding FULL/FUL2 released nothing). After OPEN EXTEND and CLOSE with the record area holding XTND, it printed REC=R001 and AFTER-EXTEND-COUNT=01, so nothing was appended. An optional absent file opened EXTEND gave OP-EXTEND-CREATE=05 and then OP-EMPTY=10. A LINAGE file's OPEN OUTPUT and CLOSE left a 0-byte file with LC=1, so the OPEN wrote no record and no page advance. Together with the reader's REVERSED, I-O and keyed probes, this leaves no form of OPEN that obtains or releases a record.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

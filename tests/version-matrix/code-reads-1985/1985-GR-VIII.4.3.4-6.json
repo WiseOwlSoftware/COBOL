@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-6",
+ "rule-digest": "f84fc3eada64",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-132",
+  "sources": {
+   "reader": "565ab41613f172f4f04dfc492196238647aeeac1cd25d6a2732d504114b4efb9",
+   "refuter": "55a4e5b140cda29191a8ef067d5cd10f9b392c843988601140796bc5057947e0"
+  },
+  "imported": {
+   "reader": "fd40f934b30a2c5383b1ebdf4a9bb633d625cbb4e1b6933c2e65727ef73a106b",
+   "refuter": "8ca7b780d059d10b135a5202c94daf1e1a46f7cf45dacaf6b95b9561803b7296"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relative-file DELETE, successful or unsuccessful, in any access mode, must leave the file position indicator where it was, so the next sequential READ selects relative to the indicator the last READ/OPEN/START established.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#SelectSequentialSlot; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadSequential",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "the implementor-default sharing mode read by DeleteSharedInStatement (ALL OTHER at 85)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectBehaviors over RelativeConnector.cs: the only hit is Write's RelativeWriteKeyOutOfRangeIsPermanentError; Delete assigns neither _fpi, _inclusive nor FpiValid at any edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf30_03 covers dynamic access delete behind/at the indicator and an invalid-key delete; not exercised: a 43 DELETE in sequential access followed by READ, a delete of the record right after the last read in sequential access across a gap",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/pdel.cob",
+    "printed": "QR1=00 0001 Q001; QD1=00; QD1B=43; QR2=00 0002 Q002; QR3=00 0003; QD3=00; QR4=00 0004 Q004; Q5-AE=10; reopened: QI1=0002 QI2=0004 QI3-AE=10",
+    "expected": "next READ after a successful or a 43 DELETE gets the record after the indicator (GR6)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-132/popen.cob",
+    "printed": "dynamic-access deletes of 1,2,4 then reopen: D1=00 0003",
+    "expected": "indicator unaffected; deleted records skipped"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR6",
+    "check": "OK  §1985:VIII.4.3.4 GR6  (4.3.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The relative connector's indicator (_fpi, _inclusive, FpiValid) is set only by OPEN (Opened), READ and START; Delete reads _lastSlot or the staged key and changes nothing of the position. Identical at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "refute-1985-132/rdyn.cob (rdyn-001), dynamic access: OPEN I-O then WRITE of new record 1 then READ NEXT gives N1=00 0001 NEW1; random DELETE ahead (5) then READ NEXT gives 3; random READ 6 (FPI=6 per §1985:VIII.4.5.4 GR15) then DELETE 3 and DELETE 6 (the FPI record) and an invalid-key DELETE 2, READ NEXT gives 7; START =4 then DELETE 4 then READ NEXT gives 7 (inclusive bound kept, §1985:VIII.4.5.4 GR4c); after AT END a successful DELETE 8 leaves READ NEXT at 46. rfpi.cob (rfpi-001): failed START then successful DELETE then READ NEXT N1=46; failed random READ then DELETE then READ NEXT N2=46; READ 8, DELETE 8, READ NEXT AT END 10. rseq.cob: sequential READ after a 43 DELETE continues from the last READ. cite.py: OK §1985:VIII.4.3.4 GR6; OK §1985:VIII.4.5.4 GR15; OK §1985:VIII.4.5.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb5188-sort-merge-key-index-data-item
-*> rules: [SR-13.18.60.3-10, SR-14.9.40.3-6, SR-14.9.24.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb5188-sort-merge-key-index-data-item
+      *> rules: [SR-13.18.60.3-10, SR-14.9.40.3-6, SR-14.9.24.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB5188. §2023:13.18.60.3 SR10: "An index data item may be referenced explicitly only in a SEARCH
       *> or SET statement, a relation condition, an intrinsic function argument, an inline method invocation
       *> argument, the USING phrase of a procedure division header, or the USING phrase of a CALL or INVOKE

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-19",
+ "rule-digest": "56cf8e7f0db0",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause; src/WiseOwl.Cobol.Compiler/Binding/EcNameResolution.cs#Advise",
+ "test-ref": "conformance:wiseowl/cases/13.18.14-COLUMN/a42-screen-column; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-turn; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-raise; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-perform-when; conformance:wiseowl/cases/13.18.14-COLUMN/a42-ec-screen-use",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.14.4-19, witnessed at 2002 by the cases test-ref names. The read: Only difference in words: 2002 'extend beyond the end of the terminal line', 2023 'extend outside the end': the same condition, no behaviour a program can tell apart. The rule lives in Format 2 (screen items) only; the screen section is processor-dependent in 2002 by its own text (B.3) and 3.1.5 lets an unclaimed one go unimplemented with a compile-time warning, which COBOL1560 gives. Nothing in 2002 reaches a CD or a debugging line here. Cited: §2002:13.16.14.3 GR19; §2002:3.1.5; §2002:B.3."
+}

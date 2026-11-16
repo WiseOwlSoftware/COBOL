@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-IX.3.2.3-3",
+ "rule-digest": "c6c7c72580e6",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-047",
+  "sources": {
+   "reader": "9bbef6ebfe1a7236a25f655700364e0d5407afbaf1cf4a4fc918abbc819e04a6",
+   "refuter": "34b1b04dc4a276e66e53ec68437e4bd991457d344507da4065ac88c10feda43f"
+  },
+  "imported": {
+   "reader": "809b3b936b4eb89d35bd666f185b13f023eb203c5db4f7866b89442689ba8a83",
+   "refuter": "39bc816a72ebe720d5c18f1c6b3863d56568606819a2c406de06d0182d47e76e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.3.2.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file's FD must be followed by one or more record description entries; an FD with none (with or without a RECORD clause) must be refused, with no 2002-style implied record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#MaterializeImpliedRecord",
+    "switches": "Edition.DialectLevel < 2002: COBOL1837 citing §1985:<module>.3.2.3 SR3 for every organization, ahead of the 2002+ implied-record arm; at 2023 an indexed FD takes the SR7 arm (also COBOL1837) and sequential/relative get an implied record",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Dialect|CobolVersion in FileDescriptionFormats.cs (no hits); read BindFileSection and MaterializeImpliedRecord",
+  "behaviour-differs-by-edition": "yes: 1985 refuses a record-less FD for every organization; 2002+ allows one for sequential/relative files with a RECORD clause. An indexed file is refused at both editions (different message).",
+  "witnesses-cover": "part: pb1238_fd_formats_admitted only exercises FDs that have records (the accept half); the indexed refusal half is not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c1_norec.cob",
+    "printed": "error COBOL1837: file description entry 'IXF': no record description entry follows it; §1985:IX.3.2.3 SR3 ...",
+    "expected": "refused: one or more record description entries must follow the FD (RECORD CONTAINS 10 does not stand in)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c1_rep.cob",
+    "printed": "COBOL2604 (REPORT clause not in the indexed format, not bound) + COBOL1837 §1985:IX.3.2.3 SR3",
+    "expected": "refused; a REPORT clause on an indexed FD does not exempt it"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-047/c1_ok.cob",
+    "printed": "AAAADATA01 (two 01 records; the second reads the shared area)",
+    "expected": "accepted; the records share one area"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.3.2.3 SR3",
+    "check": "OK  §1985:IX.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The 1985 arm (DialectLevel < 2002) refuses any record-less FD before the 2002 implied-record path runs. The report-file early return cannot be reached for an indexed FD because COBOL2604 leaves the REPORT clause unbound. At --std 2023 the same indexed program is refused through SR7.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "refused, COBOL1837 (§2023:13.4.5.3 SR7 arm)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.3.2.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "--std 85 compile-only probes. r1_datarec_nextfd.cob: an indexed FD with the 1985-only DATA RECORD IS IXR clause and no 01, followed at once by another FD that owns the 01 IXR. It gives COBOL6849 (DATA RECORDS names no 01 of IXF) plus 'COBOL1837: file description entry 'IXF': no record description entry follows it; §1985:IX.3.2.3 SR3'. So the next FD's record is not credited to IXF. r1_external.cob: FD IXF IS EXTERNAL ... RECORD CONTAINS 4 with no 01, last in FILE SECTION. It gives COBOL1837 SR3, with no 2002 implied record. cite.py: 'OK  §1985:IX.3.2.3 SR3  (3.2.3 Syntax Rules)  the text is in SR3'. The reader's members exist (FileControlBinder.FileSection.cs#BindFileSection line 145 calls MaterializeImpliedRecord when Records.Count == 0).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

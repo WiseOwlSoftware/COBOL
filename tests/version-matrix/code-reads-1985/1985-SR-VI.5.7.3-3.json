@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.5.7.3-3",
+ "rule-digest": "f1a91a31c713",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-054",
+  "sources": {
+   "reader": "0f0ae4c03aa58b621b5ba4321f4c1751bd86b6ba3c382a01f776663c6c243b74",
+   "refuter": "458332e030bfb7769667b22dd56a463858831b45feac7ce98112aee7bce55989"
+  },
+  "imported": {
+   "reader": "0a225f9a416d320a9c798c1adb179c9093e9f765db35c0a5b3717641f2f7730e",
+   "refuter": "f0ff49301cc3a0e5a5b6b3d8fa3a9537dc51bee671352ff0a1cfa3fe7cd947ce"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.7.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, data description entries in the Working-Storage and Linkage Sections must carry level-number 01 through 49 (1-9 may be written 01-09), 66, 77 or 88, and any other level-number (00, 50-65, 67-76, 78-87, 89-99) must be refused in both sections.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#VisitLevelNumber; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Classify; src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#Permits",
+  "edition-consulted": [],
+  "edition-search": "Read LevelNumberPass.cs whole: LevelNumberRules.Table, Classify (section ancestry: WorkingStorageSection/LocalStorageSection/LinkageSection -> NoncontiguousCapable, specials [66,77,88]) and VisitLevelNumber carry no EditionContext, CobolVersion, ConstructRegistry or DialectBehavior reference; the class remarks state the pass is deliberately not edition-gated because the sets are the same in every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb485_level_number_legal_forms covers the legal forms; the probes add the refusal half in both sections (00, 50, 55, 65, 67, 76, 78, 89, 99)",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvn1.cob",
+    "printed": "compiled and ran: IS-A / ABB7H (01, 02, 49, 66 RENAMES, 77, 88, single-digit 1, in WS and Linkage)",
+    "expected": "legal source compiles and runs"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvn2.cob",
+    "printed": "COBOL1746 level-number 50/00/65/67/76/78/89/99 in WS and 50/78/55 in Linkage: 'shall have level-numbers 66, 77, 88, or 1 through 49'",
+    "expected": "each refused by SR3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-054/lvn2.cob",
+    "printed": "78 V VALUE 5 (the non-ISO constant level) refused COBOL1746 in WS and Linkage",
+    "expected": "refused: 78 is not in the 1985 set"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.7.3 SR3",
+    "check": "OK  §1985:VI.5.7.3 SR3  (5.7.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "One table row (NoncontiguousCapable) serves WS and Linkage at every edition and matches the 1985 set exactly. The out-of-range entries draw cascade diagnostics (COBOL2771, COBOL2191) after the COBOL1746 refusal, but the rule's refusal is present and first for each.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.7.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rn1.cob (--std 85): COBOL1746 on three- and four-digit level-numbers 001, 005, 0077, 0001 in WS and Linkage ('expressed as a one-digit or two-digit number'), and on 00 ('shall have level-numbers 66, 77, 88, or 1 through 49'). rn2.cob: single-digit 1 and 5, 88 under WS and Linkage items, 66 RENAMES in both sections, 77 in Linkage, 49 in Linkage compiled and ran, printing 'AY YQ'. The definition of level-number in this edition: cite.py OK  §1985:III.2  (2. DEFINITIONS)  'expressed as a one or two digit number'. cite.py: OK  §1985:VI.5.7.3 SR3  (5.7.3 Syntax Rules)  the text is in SR3. LevelNumberPass.cs carries no edition switch (grep of Edition|Version|Dialect finds only usings and remarks).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

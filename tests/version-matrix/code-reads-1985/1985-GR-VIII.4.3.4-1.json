@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-1",
+ "rule-digest": "84983a86d5fb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-131",
+  "sources": {
+   "reader": "077c4d26f8afe05187e521cf4e919cbb44d4d2cad5e3b47ea84b460842b78cf4",
+   "refuter": "3216838ec51aca23102145102d132f2612c28935f4fefd0091de2678d7670aa0"
+  },
+  "imported": {
+   "reader": "de4eeb4744b062ea0bbc1447b66a4998216f74ce02b6945b85fe275b4d051d5a",
+   "refuter": "0c620739686bcc40d6fcf49c4c70728031b9e77ce1d7b3746f1c124cf358dfc9"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a DELETE on a relative file (every access mode) that is not open in the I-O mode (never opened, open INPUT, open OUTPUT, closed, or after a failed OPEN) is unsuccessful with I-O status 49 and is not an invalid key, and DELETE on a file that is not a mass storage file with Relative/Indexed organization is not admitted.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Delete; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitDelete",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#InForce",
+    "switches": "below 2002 an INVALID KEY phrase or applicable USE is required on a random/dynamic DELETE (§1985:VIII.4.3.3 SR2); not this rule's behaviour",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/DialectBehavior/CobolVersion in RelativeConnector.Delete, FileConnector.MutationOpenModeGuard and PermanentErrorReplay, KeyedIoEmitter.EmitDelete and KeyedIoBinder.BindDelete: the open-mode guard reads IsOpen and Mode only; the runtime Edition property is read only by SharingFacilityInEffect and the relative WRITE key-range behaviour",
+  "behaviour-differs-by-edition": "no: 49 for every non-I-O state at 85 and 2023 alike",
+  "witnesses-cover": "part: g85_bf30_03 covers only DELETE on a file open INPUT (dynamic access); not never-opened, OUTPUT, closed, after a failed OPEN, random access, sequential access",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/del1.cob",
+    "printed": "NOTOPEN 49 / OUTPUT 49 / INPUT 49 / IO 00 / CLOSED 49 / SEQ-INPUT 49 / OPEN-M 35 then MISSING 49; each 49 runs the USE procedure and no INVALID KEY line; identical at --std 2023",
+    "expected": "49 (VIII.1.3.4 GRL2.5h) whenever the file is not open in the I-O mode; 00 in I-O"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/delseq.cob",
+    "printed": "error COBOL0865: DELETE RECORD shall not be specified for sequential-organization file 'SQ' (ISO §2023:14.9.10.3 SR1)",
+    "expected": "refused: DELETE is not a Sequential I-O module statement at 1985"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR1",
+    "check": "OK  §1985:VIII.4.3.4 GR1  (4.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.1.3.4",
+    "check": "OK  §1985:VIII.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h"
+   }
+  ],
+  "notes": "The seed IndexedConnector#Delete is the indexed organization; the relative arm is RelativeConnector#Delete through the shared MutationOpenModeGuard. After OPEN I-O fails with 35, a DELETE answers 49, not a replayed 35: the connector is not open, and VIII.1.3.4 lets the implementor choose when several values apply. The sequential-organization refusal cites the 2023 clause at --std 85 (a citation detail, not this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probe refute-1985-131/d56.cob (runs/d56-001, --std 85): a relative file in sequential access opened EXTEND (the 1985 open mode only that access mode admits, §1985:VIII.4.4.3 SR1) answers DELETE with 'EXT-DEL 49' and runs the USE procedure; the reader covered never-opened, OUTPUT, INPUT, closed and failed-OPEN. dnr.cob (runs/dnr-001): the 1985 format's optional RECORD word omitted, 'DELETE FA INVALID KEY ... END-DELETE' compiles and deletes ('D1 00', then 'D2 IK 23'). RelativeConnector.Delete reaches MutationOpenModeGuard before anything else and consults no edition. cite.py: OK §1985:VIII.4.3.4 GR1 (the text is in GR1); OK §1985:VIII.4.4.3 SR1 (the text is in SR1). The sequential-organization refusal COBOL0865 citing §2023:14.9.10.3 SR1 at --std 85 is a citation-edition detail, not this rule's behaviour.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

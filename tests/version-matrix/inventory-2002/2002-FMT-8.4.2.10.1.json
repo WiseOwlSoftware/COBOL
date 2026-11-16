@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.10.1",
+ "rule-digest": "34fcb50207f2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#predefinedNull; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#NULL_",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.10.2, witnessed at 2002 by the cases test-ref names. The read: The slice gave no pointer (two one-word NULL formats in 2002). The same-subject 2023 rule is FMT-8.4.3.10.2 (8.4.3.10 NULL address pointer and message tag content), CONFORMS. The format is the one word NULL in both; 2023's clause adds function-pointer and message-tag cases, which 2002 lacks. Cited: §2002:8.4.2.10; §2002:8.4.2.10.2 SR1."
+}

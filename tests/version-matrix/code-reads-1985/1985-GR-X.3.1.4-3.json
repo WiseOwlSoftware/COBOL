@@ -1,0 +1,83 @@
+{
+ "rule-id": "1985-GR-X.3.1.4-3",
+ "rule-digest": "84b2bf61a47d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-032",
+  "sources": {
+   "reader": "0741a30d6c8dce394214e0128a80d0a2654d02fccc0ac1e76ea71c08aa785306",
+   "refuter": "fda5287409efc2a8402ec89359889f9a251930817caddc5e6d453480d939aa2e"
+  },
+  "imported": {
+   "reader": "516a1cc4e26491ee9d6f8dd7fc6bf150a3509b7cf3dd5254067282645bb1206e",
+   "refuter": "7c81b7d6b944e0debb1556a0b83aac41d5f03198a2ed5fc5ed180d4dd3651d6a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.3.1.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every CALL of a program whose PROGRAM-ID carries IS [COMMON] INITIAL PROGRAM must place it and every program it directly or indirectly contains in the initial state of §1985:X.2.4.1: Working-Storage re-initialized to its VALUEs, internal files not open, PERFORM control mechanisms reset and ALTERed GO TOs reset.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#MakeUnit; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelContained; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#__ResetStatics",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "construct program-id-recursive-2002: refuses PROGRAM-ID ... RECURSIVE below 2002 (COBOL0885); the INITIAL attribute is not gated and is read the same way at every edition (BinderDriver.MakeUnit)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of Initial/IsInitial/__ResetStatics over src; read ProgramTable.CallProgram/EndInitialActivation/CancelContained/CancelNode and BinderDriver.MakeUnit's PROGRAM-ID attribute reading. The INITIAL runtime path (fresh instance per activation + CancelContained) consults no edition: CancelContained passes refusesEveryActiveProgram: true at every edition (DialectBehavior.CancelRefusesEveryActiveProgram is folded only for an explicit CANCEL statement), and no containee can be active when its INITIAL container is entered or returns, so the arms would agree anyway.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover WS re-initialization and internal files not open for the program and its direct and indirect containees; not exercised: the ALTERed GO TO reset (X.2.4.1(4)), the PERFORM control mechanism reset (X.2.4.1(3)), CALL identifier, and COMMON INITIAL. All of these were probed here.",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/init1.cob",
+    "printed": "E CNT=1 G1=ABC G2=-005 / E ALTERED PATH / E PA / F FCNT=1 / E CNT=1 G1=ABC G2=-005 / E ORIGINAL PATH / E PA / E PB / F FCNT=1 / --- CONTROL / N CNT=1 / N ALTERED PATH / N CNT=2 / N ALTERED PATH",
+    "expected": "INITIAL E (first call by CALL identifier, ALTERs a GO TO, exits from inside an active PERFORM after changing a group and a signed COMP item): the second call finds CNT=1, G1=ABC, G2=-5, the GO TO unaltered (ORIGINAL PATH), the PERFORM control reset (falls through PA into PB), contained F reset (FCNT=1); the non-initial control N keeps last-used state (CNT=2, still ALTERED)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/init2.cob",
+    "printed": "C CNT=01 / C CNT=01",
+    "expected": "IS COMMON INITIAL PROGRAM (the 1985 combined form) called twice by a sibling: initial each time, 01 twice"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-032/init3.cob",
+    "printed": "error COBOL0885: PROGRAM-ID RECURSIVE requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "the 2002 RECURSIVE attribute is not in the 1985 PROGRAM-ID format: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.3.1.4 GR3",
+    "check": "OK  §1985:X.3.1.4 GR3  (║3.1.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.2.4.1",
+    "check": "OK  §1985:X.2.4.1  (2.4.1 Characteristics of a Program)  the text is in the clause; it lies in GR4"
+   },
+   {
+    "cite": "§1985:X.2.4.2",
+    "check": "OK  §1985:X.2.4.2  (2.4.2 Programs in the Initial State)  the text is in the clause; it lies in GR3"
+   }
+  ],
+  "notes": "An INITIAL program gets a fresh instance on every CALL (its WS, PERFORM and ALTER state are instance fields) and CancelContained cancels its containees on entry and on return. The path consults no edition. Probes show all four characteristics of X.2.4.1 that are observable are reset; the Communication Section half of X.2.4.1(1) was not probed.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.3.1.4-3",
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "ini1.cob (run ini1-001, --std 85): INITIAL I with an EXTERNAL WS item and an EXTERNAL FD, calling its containee F twice per activation, called twice by main: printed 'I ICNT=1 EXN=06 / I OPEN 00 / I WRITE 00 / F FCNT=1 / F FCNT=2 / I ICNT=1 EXN=07 / I WRITE 00 / F FCNT=1 / F FCNT=2 / M EXN=07 / M CLOSE 00 / M R1 REC06 / M R2 REC07'. That is right on every point: within one activation F is not re-initialized (X.2.4.2(4) says only the first call after the INITIAL CALL), F is reset on the next activation, EXTERNAL data keeps its value (X.2.4.1(1) covers internal data only), and the EXTERNAL file stays open across the INITIAL program's activations (X.2.4.1(2) covers internal file connectors only). ini2.cob (ini2-001): 'IS INITIAL COMMON PROGRAM' (the choice indicators in the reverse order) is accepted, and called twice from a sibling and once from the container it prints CNT=01 three times. cite.py: 'OK  §1985:X.3.1.4 GR3 ... the text is in GR3'; 'OK  §1985:X.2.4.1 ... it lies in GR2' (internal file connectors); 'OK  §1985:X.2.4.2 ... it lies in GR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

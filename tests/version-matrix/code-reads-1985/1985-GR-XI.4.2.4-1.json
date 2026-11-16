@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-XI.4.2.4-1",
+ "rule-digest": "c14b4dfa4dee",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-142",
+  "sources": {
+   "reader": "1b405c8d2d8789ea1783a031373970254b47f543c63e6fc47bea7632162d687f",
+   "refuter": "4ecd83abe57f4fc70a790418c834f24f58dd9091a1c22c6fb1a932faa9d473ff"
+  },
+  "imported": {
+   "reader": "e68c6d0532847f11dd2ab70299da3686e17c5b6b79955b186d6818b0eeaf0543",
+   "refuter": "27b03568fea1411514ab02fefe587cd4a9e7f7f5546b13d3346eef21383d9743"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each executed RELEASE must put the record named by record-name-1 (the record area's content at that moment, after the implicit MOVE of a FROM phrase) into the sort file's initial phase, once, so it is among the records the sort returns; for a variable-length SD the released size follows §1985:VII.3.8.4 GR10, and for an SD with no RECORD clause whether its records are fixed or variable is implementor defined (§1985:II.2.1.4.3).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReleaseRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "rangeFailsStatement = DialectLevel < 2002: at 85 a record outside the VARYING range is not released (GR10's Amendment 2 paragraph); from 2002 EC-SORT-MERGE-RELEASE, and with checking off the record is released",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "FROM literal-1 is refused below 2002 (COBOL0871, construct from-literal-2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for DialectLevel, DialectBehavior, Constructs, IsActive in SortBinder.cs, SortEmitter.cs, CobolSort.cs and VersionConformancePass.cs; the release itself (EmitRelease, ReleaseStatement) is one path with the edition passed in only as rangeFailsStatement.",
+  "behaviour-differs-by-edition": "yes: at 85 an out-of-range RELEASE of a VARYING SD releases nothing, and RELEASE FROM a literal is refused; a record within range is released by the same code at every edition.",
+  "witnesses-cover": "part: g85_f27_02 covers single-01 fixed SD releases without FROM; not exercised are a multi-01 SD (shorter record released), FROM with a group, a function-identifier and a numeric-edited sender, the FROM literal refusal, an FD record named, an ODO record and a varying SD.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/r5a.cob",
+    "printed": "AFTER FROM [Ddddd ] / GV-6[-012  ] GV-6[A12345] GV-6[B1ZZZZ] GV-6[Ddddd ] GV-6[EEddd ]",
+    "expected": "five RELEASEs, five records sorted: RS (2 of the 6-position area, past it undefined), RL, RL FROM a group, RS FROM FUNCTION UPPER-CASE (Amendment 1 function-identifier), RL FROM a numeric-edited -012; FROM's identifier still available (GR4); the implementor's fixed 6-position SD"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/r5b.cob",
+    "printed": "COBOL0871: FROM literal-1 requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: the 1985 format is FROM identifier-1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/r5c.cob",
+    "printed": "COBOL1757: RELEASE 'FR' ... 'FR' is a record of 'FF', which is described by an FD",
+    "expected": "refused, §1985:XI.4.2.3 SR1"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1a.cob",
+    "printed": "R A 6 / R Z 3 (C-LEN 7 and 1 releases absent)",
+    "expected": "varying SD: in-range records released at their DEPENDING size, out-of-range RELEASEs release nothing (§1985:VII.3.8.4 GR10)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-142/src/p1l.cob",
+    "printed": "G 4 [C2pq] / G 6 [B4wxyz] / G 3 [A1x]",
+    "expected": "an ODO record is released at its current size (§1985:VII.3.8.4 GR10c)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.4.2@1985-RELEASE-STATEMENT/g85_f27_02.cob",
+    "printed": "INPUT / AAAA / BBBB / CCCC / COUNT 3; EXPECT: MATCH",
+    "expected": "the witness's .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.2.4 GR1",
+    "check": "OK  §1985:XI.4.2.4 GR1  (4.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XI.4.2.3 SR1",
+    "check": "OK  §1985:XI.4.2.3 SR1  (4.2.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "BindRelease resolves record-name-1 to an SD record, binds FROM as the implicit MOVE, and EmitRelease hands the record area image to CobolSort.ReleaseStatement, which adds one frame to the sort store. A shorter record of a multi-01 SD with no RECORD clause releases the whole 6-position area, the implementor's fixed-length choice §1985:II.2.1.4.3 leaves open (docs/conformance DOC-A.1-147); the positions past record-name-1 are undefined after RETURN (§1985:XI.4.3.4 GR1). All probes matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,c,d,f",
+  "evidence": "q5a at --std 85: two SDs with the same 01 name REC, RELEASE REC OF SA FROM W-E (I) in a paragraph of another section PERFORMed VARYING I from the input procedure (subscript changing per execution), then a plain RELEASE REC OF SA with SAME RECORD AREA FOR SA FX: R A111 / R B222 / R C333 / R D444 / R Zzzz, CNT 05 (each executed RELEASE one record, from the right SD), SRA [Zzzz] (record still available through the SAME RECORD AREA, GR2). q1h: RELEASE FROM a group in a VARYING SD released at DEPENDING size. q1g: RELEASE FROM literal refused COBOL0871 at 85 (1985 format is FROM identifier-1). cite.py: OK §1985:XI.4.2.4 GR1; OK §1985:XI.4.2.4 GR2. The case-1 defect (a table element as RECORD DEPENDING ON, ignored) also affects the released size, but it belongs to the RECORD clause rule (1985-GR-XI.3.2.4-2), not to GR1's transfer of the record.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

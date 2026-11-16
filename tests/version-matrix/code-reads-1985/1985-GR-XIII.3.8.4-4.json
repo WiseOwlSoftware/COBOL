@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-XIII.3.8.4-4",
+ "rule-digest": "1c371d89db86",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-039",
+  "sources": {
+   "reader": "7a4457796b771bc74879f8bf7120fb8fc9c0556a64cdcccfa7b290aef2c357e3",
+   "refuter": "5b5e7dacf5d6d220560d67c9a706beed8e27c9d357e0559d6b013433940dd628"
+  },
+  "imported": {
+   "reader": "a68d56bc3b9ee14ae8331a4d0d384dfe0cc4e065a084780684b05a94f9b273f5",
+   "refuter": "fe736f1949de65827125026f8b9aa1203196f29222f6e05d96da5c0812fcfd59"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each report group type is presented by the 1985 presentation rules tables (§1985:XIII.3.10): upper and lower limits from the PAGE integers, the body-group fit tests 3a-3c with the saved next group integer, first print line positions 4a-4d, the next group rule 5 and final LINE-COUNTER settings 6a-6f, and none of the limit or fit rules when PAGE is omitted. This is a pointer rule: the witnesses cover region boundaries and unpaged placement, not the saved-next-group arm.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#RelativeFirstLineFloor; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#Cobol85FinalLineCounter; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#FirstLineTarget",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupLimits",
+    "switches": "year < 2002: a report footing's upper limit follows the page footing's 1985 final LINE-COUNTER (Cobol85FinalLineCounter, §1985:XIII.3.10.9 GR5) rather than its last line",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportGroupLines",
+    "switches": "Edition.DialectLevel < 2002: a page footing whose first LINE is relative is refused (§1985:XIII.3.15.3 SR9)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate",
+    "switches": "DialectBehavior.TerminateDiscardsSavedNextGroup (and the other ReportWriter DialectBehavior arms) per the emitted Edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ReportSectionBinder.cs for DialectLevel/year and ReportWriter.cs for DialectBehaviors.IsActive.",
+  "behaviour-differs-by-edition": "yes: the 1985 tables have their own arms (PF first LINE absolute, RF limit after a PF's NEXT GROUP, TERMINATE and the saved next group); the shared arms gave the 1985 answer in every probe",
+  "witnesses-cover": "part: pb1270 (every region boundary of a paged report) and pb484 (unpaged placement); fit test 3b with the saved next group integer, first-line rule 4b, and next group rule 5 were not exercised",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/13.18.35-LINE/pb1270_report_page_region_boundaries.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness's golden"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r4ng.cob",
+    "printed": "1/05 1/10 2/06 2/08; page 1: PH 1, D1 3, D1 6; page 2: PH 1, D2 6, D2 8",
+    "expected": "1985 body rules: D1 at FIRST DETAIL 3 (4b), 6a -> LC 5; second D1 at 6, 6a -> LC = FOOTING 10, saved 5; D2 fails fit 3b -> page advance, LC = saved 5, presented on LC + 1 = 6 (4b, first paragraph, not 5 + 2), then 6 + 2 = 8"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-039/r4ng2.cob",
+    "printed": "error COBOL2284: integer-1 2 shall lie between the FIRST DETAIL integer 3 and the FOOTING integer 10",
+    "expected": "refused by next group rule 5; r4ng11.cob (11) the same"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.8.4 GR4",
+    "check": "OK  §1985:XIII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The saved-next-group probe matches the 1985 text exactly, including rule 4b's 'line immediately following' LINE-COUNTER. GroupLimits bounds a report heading by the page heading's first absolute line - 1 instead of 1985's FIRST DETAIL - 1. For a legal program the two refuse the same set, because 1985's PH upper limit follows the RH. Only the diagnosis wording differs.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.8.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "Attacked the 1985 presentation-table arms the reader did not run (refute-1985-039, --std 85): p4a (PAGE 20 HEADING 3 FD 8 LD 12 FOOTING 14; RH LINE PLUS 1 NEXT GROUP PLUS 1, PH LINE PLUS 1, DE LINE PLUS 1, RF LINE PLUS 2, no PF) -> RH line 3 (RH 3b: 1 + integer-2 - 1), PH line 5 (PH 3b: RH final LC 4 + 1), DE 8/9/10 (body 4b), RF line 16 (RF 3b: integer-5 + 2), LC 16 after TERMINATE; p4pfrf (same + PF LINE 15 NEXT GROUP 17, RF LINE PLUS 1) -> PF 15, RF 18 (PF 5a then RF 3b first sentence); p4c (CONTROLS WS-A WS-B, CF WS-B NEXT GROUP PLUS 3) -> NEXT GROUP applied only when CF-B is the highest break level, ignored at an A break and at TERMINATE (body 6b first paragraph); p4d (RH NEXT GROUP NEXT PAGE, D1 NEXT GROUP NEXT PAGE, D2 NEXT GROUP PLUS 6, D3 LINE 4 ON NEXT PAGE, PF LINE 11, RF LINE 2 ON NEXT PAGE) -> page 1 RH alone (RH 4c, no PH/PF), D2 LC 9 (6b), D1 LC 10 = FOOTING (6c), D3 forced to a new page at line 4 (3c/4a), D2 PLUS 6 at line 5 -> LC 10 (6b sum >= FOOTING), RF alone on page 8 line 2 (RF 3c); refusals p4rfng/p4phng (NEXT GROUP in RF/PH, §1985:XIII.3.16.3 SR5) and p4pfnp (NEXT PAGE in PF, SR4) -> COBOL2284; p4pfng (PF NEXT GROUP PLUS 1 to integer-1) compiles. cite.py: OK §1985:XIII.3.8.4 GR4; OK §1985:XIII.3.10.10 (lies in GR3b); OK §1985:XIII.3.10.8 (lies in GR6a); OK §1985:XIII.3.10.6 (lies in GR4c); OK §1985:XIII.3.16.3 SR5. Diagnostics cite §2023 numbers (wording only).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

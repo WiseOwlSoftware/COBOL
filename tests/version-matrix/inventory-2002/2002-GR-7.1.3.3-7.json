@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.3.3-7",
+ "rule-digest": "b852ae2eee8b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReplaceStates",
+ "test-ref": "conformance:cases/7.2.4-REPLACE/pb1357_replace_also_last",
+ "notes": "§2002:7.1.3.3 GR7a-d: ALSO pushes with the current operands first ([CCBB]), LAST OFF pops, and a plain REPLACE and OFF cancel the queue ([X1-CC], [X1-X2-]). pb1357 (accepted at 2002) matched at --std 2002."
+}

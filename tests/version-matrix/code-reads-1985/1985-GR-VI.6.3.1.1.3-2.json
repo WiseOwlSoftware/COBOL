@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-GR-VI.6.3.1.1.3-2",
+ "rule-digest": "47357c649492",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-021",
+  "sources": {
+   "reader": "d8b04f25894c554c86c7c009c255e91a675061cd161721206e4d73509e56127f",
+   "refuter": "7ed834854b592c4129cae5be328aeb61a7b43d5647cc251a4a1fb77878085e52"
+  },
+  "imported": {
+   "reader": "64fe46d9de649a60a38829cc0176fb218e310640a78438d21cf315f736fbb807",
+   "refuter": "e7aeb07a91c4ab52acd4ae6cc6b7e7fc9bba7e6989abb3955ec395c771c7dd33"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a relation between an index-name and a numeric data item or numeric literal (as amended by X3.23b-1993) compares the occurrence number the index-name stands for with the algebraic value of the other operand, for every usage, scale and sign of that numeric operand, and (by the paragraph's 'Relation tests may be made only between') an index-name is not comparable with any other operand.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#Breach; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs#IndexNameAgainstNumeric; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckGeneralRelationComparability; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Visit; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelational",
+  "edition-consulted": [],
+  "edition-search": "grep for CobolVersion, DialectLevel, Edition.Is/Version, ConstructRegistry, DialectBehavior, IsAtLeast in RelationComparability.cs, IntrinsicArgumentRules.cs, NumericRenderer.cs and ConditionRenderer.cs: RelationComparability and NumericRenderer consult no edition; ConditionRenderer's DialectLevel<2002 sites (lines 463, 475) gate the numeric-vs-nonnumeric character comparison, a path an index operand never takes (it renders as its occurrence number, NumericRenderer.Visit(BoundIndexRef)); line 75 gates unphrased size error on an arithmetic-expression relation, not reached by an index-name pair. data.Edition.Error is a diagnostic sink, not an edition switch.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1468 exercises I1 = 3 and I1 < NB (COMP) only; not scaled, signed, packed, P-scaled, figurative ZERO, 18-digit, ODO-table index-names, operand order reversed, or the refusal of non-numeric partners",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/gr2idx.cob",
+    "printed": "MATCH gr2idx.out: 01 EQ (I1=3), 02 EQ (3.0), 03 EQ (PIC 9V9 3.0), 04 GT (2.5), 05 GT (-3), 06 EQ (COMP 3), 07 LT (COMP-3 4), 08 LT (9(18) max), 09 GT (ZERO), 10 LT (9P=30), 11 EQ (reversed order), 12 NLT, 13 NE (I1=21: occurrence number not displacement, element PIC X(7)), 14 EQ (ODO table J1=N), 15 K=04 / 16 EQ (PERFORM VARYING index), 17/18 EQ (bounds 1 and 9)",
+    "expected": "'The occurrence number that corresponds to the value of the index-name is compared to the data item or literal' with numeric comparison 'made with respect to the algebraic value' (VI.6.3.1.1.1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-021/gr2ref.cob",
+    "printed": "COBOL2533 at each of I1 = XA (PIC X), I1 = \"3\", I1 = XE (numeric-edited), I1 = N + 2, I1 = SPACE, I1 = G (group), I1 = ALL \"3\"; exit 65 (XE's VALUE 3 also drew COBOL0900, the probe's own error)",
+    "expected": "'Relation tests may be made only between' the three listed pairs: each partner is not a numeric data item or numeric literal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.3.1.1.3 GR2",
+    "check": "OK  §1985:VI.6.3.1.1.3 GR2  (6.3.1.1.3 Comparisons Involving Index-Names and/or Index Data Items)  the text is in GR2"
+   }
+  ],
+  "notes": "The screen admits exactly a numeric literal, figurative ZERO, a class-numeric data item, numeric function or counter register opposite an index-name; the run-time compare renders the index-name as its 1-based occurrence number in the ordinary algebraic numeric relation. Class c: the 1985 text as amended (C217) narrows the original 'data item (other than an index data item) or literal' to numeric partners, which the compiler enforces; no later-edition phrase applies to this pair. The COBOL2533 text cites §2023 at --std 85, a wording matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.3.1.1.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "refute-1985-021/idx2.cob --std 85 (idx2-002): abbreviated I1 = 3 OR 4 T; I1 > N AND < M T; N = 3 AND I1 (index-name as carried object) F with I1=4 (correct); N < I1 AND M > I1 T; I1 > -0 SIGN LEADING SEPARATE T (zero unique regardless of sign); I1 = +1 T; I1 < 18-digit literal T; I1 > S9(18) min T; I1 > -.5 T; I1 = TE(N) T; I1 = FUNCTION NUMVAL('004') F / < T (a numeric function is a data item per the Amendment 1 glossary 'Data Item ... defined ... by the rules for function evaluation', so admitting it is a reading the text supports); SET UP past the table I1 = 10 T; SET DOWN to 0 I1 = 0 T, = ZERO T, NOT = ZEROS F. idx2r.cob --compile-only: COBOL2533 at I1 = FUNCTION REVERSE(x) (alphanumeric function), FUNCTION NUMVAL(x) + 0, XNV(3:1), - N, (N), NN(3:1) (ref-modified numeric is alphanumeric), HIGH-VALUE, QUOTE; exit 65. cite: OK  §1985:VI.6.3.1.1.3 GR2 the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

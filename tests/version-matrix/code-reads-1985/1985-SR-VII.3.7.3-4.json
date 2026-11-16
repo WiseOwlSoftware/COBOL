@@ -1,0 +1,88 @@
+{
+ "rule-id": "1985-SR-VII.3.7.3-4",
+ "rule-digest": "6c88673842e9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-161",
+  "sources": {
+   "reader": "0ee01c589d82fd02e2245a993fb1d16b7696c13c6946f91dece28459ef98e1f4",
+   "refuter": "f69f057f460de758eb8ca3bd1c121864f38cd29b6dde5c291401af369111f7ee"
+  },
+  "imported": {
+   "reader": "3f20beeb5fab54afea7662b365254ec077319dd86ed5e55321ce3ce0b945fcde",
+   "refuter": "2cff0ee70fba99747a65b428032886c700a8cbc35582bf116d690d01bbd26153"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.7.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a LINAGE clause whose LINES AT TOP integer-3 or LINES AT BOTTOM integer-4 is zero must be accepted (an exception to the III.2 rule that an integer is neither signed nor zero), and a zero margin, written as a literal or held in data-name-3/4, must add no margin lines to the logical page; integer-1 and integer-2 keep the nonzero default.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#linageClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#VisitIntegerLiteral; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindLinageClause; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EmitTopMarginIfPending",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules",
+    "switches": "Classify(operand, DialectLevel) calls IntegerSlot.At(dialectLevel); the TOP and BOTTOM slots are IntegerSlot.Zero with Since 0, so zero is permitted at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#IntegerOperandRules",
+    "switches": "ZeroMessage cites §1985:III.2 below 2002 and §2023:5.5 1) from 2002 when integer-1 or integer-2 is zero (message text only)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|Edition in IntegerOperandPass.cs, LinageClauseRules.cs, FileControlBinder.FileSection.cs#BindLinageClause and SequentialConnector.cs linage members; the runtime page logic reads no edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_linage_zero_margins covers literal zeros with no page overflow; not exercised are data-name-3/4 holding zero, a page overflow with zero margins, and the refusal of zero integer-1/integer-2",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/lin1.cob",
+    "printed": "PZ (LINAGE 2 FOOTING 2 TOP 0 BOTTOM 0) and PD (TOP WT BOTTOM WB, both 0) step LC 2,1,2,1,2 identically over page overflow; bytes of both files: one CRLF then each record on its own line, no margin lines; PT (TOP 1 BOTTOM 1) carries extra blank lines per page",
+    "expected": "GR1: logical page = body + 0 + 0; GR4/GR5 the value may be zero, so a zero margin adds no lines and a literal zero equals a data-name holding zero"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/lin2.cob",
+    "printed": "COBOL2386 LINAGE IS 0 LINES and COBOL2386 WITH FOOTING AT 0, each citing §1985:III.2",
+    "expected": "§1985:III.2: integer is neither signed nor zero unless the format's rules allow it; SR4 allows only integer-3 and integer-4"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-161/lin1.cob",
+    "printed": "data-name operands PIC 9 VALUE 0 accepted and behave as the literal zero",
+    "expected": "GR4/GR5: the value may be zero"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.3 SR4",
+    "check": "OK  §1985:VII.3.7.3 SR4  (║3.7.3 Syntax Rules║)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR4",
+    "check": "OK  §1985:VII.3.7.4 GR4  (║3.7.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:III.2",
+    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "The one integer-operand screen classifies TOP and BOTTOM as zero-permitted at every edition and refuses zero for integer-1 and integer-2 with the 1985 citation. At run time a zero margin, literal or data-name, writes no margin lines while a margin of 1 does, so the zero is handled as a value, not dropped.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.7.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "l1.cob (runs/l1-001, exit 0): FD PZ LINAGE 3 TOP 000 BOTTOM 00, PT TOP 2 BOTTOM 1, PD TOP WT BOTTOM WB with WT 0 at OPEN, 2 before WRITE AFTER ADVANCING PAGE, 0 before WRITE BEFORE ADVANCING PAGE. od -c of the files: PZ newlines before A1/A2/A4 = 1/2/4, PT = 3/5/7 (exactly +top, +bottom+top), PD = 1/4/4, i.e. the zero margin adds no lines, the data-name margin changed to 2 at ADVANCING PAGE adds 2 lines to the next page only and back to 0 adds none (GR7b). l2.cob: TOP +0 and BOTTOM -0 refused COBOL0001/COBOL1970 (integer is unsigned). l3.cob: TOP ZERO refused COBOL5506 (figurative is not an integer), BOTTOM 0.0 refused COBOL5506. cite.py: OK §1985:VII.3.7.3 SR4 'Integer-3, integer-4 may be zero'; OK §1985:VII.3.7.4 GR5 'specifies the number of lines that comprise the bottom margin'; OK §1985:VII.3.7.4 GR7 'at the time a WRITE statement with the ADVANCING PAGE phrase is executed'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

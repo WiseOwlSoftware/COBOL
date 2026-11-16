@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-3",
+ "rule-digest": "c2f846dbdaf8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/l1c03_report_column_synonyms_printable_size",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.14.4-3, witnessed at 2002 by the cases test-ref names. The read: Normative sentences identical; only the NOTE differs ('not of a fixed size, such as in the character-set UTF-8' vs 'not of fixed size encoding, such as UTF-8'), which is informative. Format 1 general format identical in both editions (p-02 reader; re-read here). Report group entries live only in the report section: no CD reach. Cited: §2002:13.16.14.3 GR3."
+}

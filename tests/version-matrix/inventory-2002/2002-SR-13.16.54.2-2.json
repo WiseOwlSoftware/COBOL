@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.54.2-2",
+ "rule-digest": "289e1ee4dc41",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.56-TO/a42-screen-to",
+ "notes": "Own verdict from the read lineage-reads-2002/u-17.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.56.3-2, witnessed at 2002 by the cases test-ref names. The read: The 2023 twin is DOCUMENTED-NON-SUPPORT. 2002 licenses the same non-support under its own text (processor-dependent element), and the compiler declines it at 2002 with a named diagnostic. 2023's added sentence (variable-length group) is a 2014+ concept. Cited: §2002:13.16.54.2 SR2; §2002:3.1.5; §2002:B.3."
+}

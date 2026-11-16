@@ -1,10 +1,10 @@
 {
  "rule-id": "1989-AR-A.2.13.3-1",
  "rule-digest": "41e782a7e8df",
- "verdict": "CONFORMS",
+ "verdict": "PARTIAL",
  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearAndDayOf; src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IntegerDateFormBounded",
  "test-ref": "conformance:cases/A.2.13@1985-DAY-OF-INTEGER-FUNCTION/1989-AR-A_2_13_3-1; conformance:cases/A.2.16@1985-INTEGER-OF-DATE-FUNCTION/pb5130_integer_date_year_10000_85",
- "notes": "kb/Work PB5130 (landed). §1989:A.2.13.3 AR1: \"a positive integer that represents a number of days succeeding December 31, 1600\", no upper limit. At --std 85 CobolDate.DayOfInteger takes any positive day count: DAY-OF-INTEGER (3068037) is 10000366. Witnesses 1989-AR-A_2_13_3-1 and pb5130_integer_date_year_10000_85.",
+ "notes": "PARTIAL (2026-11-16, the 1985 code reads, ruling of batch 9, mechanism 1): at --std 85 an integer argument of an intrinsic function that is a product, an item quotient inside an argument list, or an expression holding a numeric function compiles and is silently truncated. Owner: kb/Work PB5832 (open). Ruled in kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md. The test-refs stay: those cases still pass, they do not try the shapes the ruling names. The prose that follows is the stored CONFORMS account, kept as the account of the part that holds. || kb/Work PB5130 (landed). §1989:A.2.13.3 AR1: \"a positive integer that represents a number of days succeeding December 31, 1600\", no upper limit. At --std 85 CobolDate.DayOfInteger takes any positive day count: DAY-OF-INTEGER (3068037) is 10000366. Witnesses 1989-AR-A_2_13_3-1 and pb5130_integer_date_year_10000_85.",
  "next": {
   "kind": "CHANGED",
   "edition": 2023,

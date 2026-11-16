@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.9-5",
+ "rule-digest": "efce2665b84e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-145",
+  "sources": {
+   "reader": "16e919ad61b91578bb140064b907ea9ff6d5d12879721f44f2a8c615382a2e89",
+   "refuter": "153581c84afa9119e551cb7b435a919dd398b725151cddf496a9c8dfbb7013b9"
+  },
+  "imported": {
+   "reader": "4d4cd091c21c8a1e9107299070f1964cc421343b549286f6d38fb58537190814",
+   "refuter": "3bdfd76a15150edd3d8f03fe09e883c415a1e067441175511db6690a44b66eea"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.9-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 after a page footing is presented the RWCS sets LINE-COUNTER to the absolute NEXT GROUP integer (a), the final print line plus a relative NEXT GROUP integer (b), or the final print line when NEXT GROUP is absent (c), and a nonprintable page footing leaves LINE-COUNTER unchanged (d); this setting is what a following report footing measures from.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#TerminateCore; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#AdvancePage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#WithPageGroupControlValues",
+    "switches": "control values the page footing sees at TERMINATE and in a footing's page advance (current at 85); not LINE-COUNTER",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "PresentPageFooting and ApplyNextGroup's PageFooting arm consult no edition (grep 'Edition|DialectBehavior' in ReportWriter.cs).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf36_04 covers a, b, c and d at TERMINATE; the setting after a mid-report page footing (followed by the page advance's zeroing) and a multi-line A R page footing with an absolute NEXT GROUP are not exercised",
+  "probes": [
+   {
+    "class": "a..f witness",
+    "file": "conformance-suite/cases/XIII.3.10@1985-PRESENTATION-RULES-TABLES/g85_bf36_04.cob",
+    "printed": "EXPECT: MATCH (g85_bf36_04.out)",
+    "expected": "BEFORE RF 25/25/22/03; RF at 27/28/24/22"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p4_pf.cob",
+    "printed": "PF LINE 22, LINE PLUS 1, NEXT GROUP 26: mid-report PF 22-23 then BEFORE PH LC 00 on page 2; at TERMINATE BEFORE RF LC 26, RF LINE PLUS 1 at page 2 line 27, AFTER TERMINATE LC 27",
+    "expected": "5a: 26, and the RF at 26+1 (§1985:XIII.3.10.10 GR3b); the page advance then zeroes LINE-COUNTER"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/r2_pf_ngnp.cob",
+    "printed": "error COBOL2284: the NEXT PAGE phrase shall not be specified in a page footing",
+    "expected": "Table 4 has no NEXT PAGE row"
+   },
+   {
+    "class": "c (latest)",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-145/p4_pf.cob --std 2023",
+    "printed": "stdout identical to the --std 85 run",
+    "expected": "same arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.9 GR5",
+    "check": "OK  §1985:XIII.3.10.9 GR5  (3.10.9 Page Footing Presentation Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "PresentPageFooting presents the lines (each PresentLine sets LINE-COUNTER, so c is the final line), then ApplyNextGroup's PageFooting arm sets LINE-COUNTER = integer (a) or += integer (b); a page footing with no line returns from BeginGroup before any change (d). FirstLineTarget's ReportFooting arm then reads that setting.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.9-5",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Read PresentPageFooting and ApplyNextGroup's PageFooting arm. Probe q5_pf.cob (runs/q5_pf-001, --std 85): R-F two-line PF (LINE 17, LINE PLUS 1) with NEXT GROUP PLUS 1: mid-report PF on page 1 lines 17, 18, then page 2; at TERMINATE PF at 17, 18 and 'BEFORE RF-F LC 19' (5b: 18 + 1), RF LINE PLUS 1 at line 20, 'AFTER TERMINATE LC 20'; R-G one-line PF LINE 17 with no NEXT GROUP: 'BEFORE RF-G LC 17' (5c), RF PLUS 2 at 19. The reader covers 5a and 5d, and the NEXT PAGE refusal. cite.py: 'OK  §1985:XIII.3.10.9 GR5  (3.10.9 Page Footing Presentation Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

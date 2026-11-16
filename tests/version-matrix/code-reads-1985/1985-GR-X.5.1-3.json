@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-X.5.1-3",
+ "rule-digest": "7d7eda754ed3",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-033",
+  "sources": {
+   "reader": "13cc6799f88b464f1d7f9af78e1b13de577101149a37847b7088ad9a74c77d45",
+   "refuter": "455f82c1e6756a1de7d09787d8625dccbb72271f5f57eeb9af65a282f18bd6ae"
+  },
+  "imported": {
+   "reader": "8df10c249aa087c3cea099857d3c82e31731039b58d4740958268f3fe6c7bf82",
+   "refuter": "4c6000d137eaa3884d2c714721706205b951fdbee5c635243a43a7436aba714c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.1-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every reference in a called program to a USING operand (and its subordinates and redefiners) is resolved by the called program's own Linkage Section description - category, scale, sign, editing, subordinate layout and OCCURS DEPENDING ON - over the argument's storage (BY REFERENCE) or a copy of it (BY CONTENT), whatever description the caller gave the argument.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#FormalAdopt; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#LandForFormal; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Num; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Text; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#TextValue",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' over ProgramEmitter.cs (only line 101, the module registrar record stamping comp.Edition), CodeGen/Verbs/CallEmitter.cs (only ExternalizedNameInEdition, the program-name spelling of GR1, not formal resolution) and Runtime/Control/CallAbi.cs (none). The formal adoption is one edition-free switch over CallCrossing; the formal carrier is typed from the callee's own DataItem.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb873 covers a signed numeric argument seen through a numeric and an alphanumeric formal; it does not exercise an alphanumeric argument seen as numeric, a group formal of another subordinate layout, an ODO formal, reference modification of a formal, or an edited formal.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/l1res.cob",
+    "printed": "LG [03ABC]; LG-E3 C LG(3:3) ABC; LG5 [05ABCDE]; CALLER-CG 05ABCDQXYZ",
+    "expected": "the formal's ODO (LG-N in the argument's storage) governs LG's length (3 then 5), LG(3:3) at its bound is ABC, and LG-E(5) is the caller's 7th character (GR2/GR3)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-033/src/l1res.cob",
+    "printed": "LN 0012.34; CALLER-CA 001384; LE [  13.84]; CALLER-CE [       ]",
+    "expected": "PIC X(6) '001234' read through PIC 9(4)V99 is 12.34, ADD 1.5 leaves 001384 in the caller's storage; the edited formal PIC ZZZ9.99 edits '  13.84'; a BY CONTENT formal's store never reaches the caller"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.1 GR3",
+    "check": "OK  §1985:X.5.1 GR3  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.5.1 GR2",
+    "check": "OK  §1985:X.5.1 GR2  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR2"
+   }
+  ],
+  "notes": "The formal's carrier is built from the callee's Linkage description and adopted over the argument's image, so numeric, edited, group and ODO formals all read the caller's storage through their own description. The probe's BY CONTENT pair is of different descriptions, which GR1 forbids the user, so only its BY REFERENCE halves and the caller-side invariance are evidence.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.1-3",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "r2res.cob at --std 85 (refute-1985-033/r2res-001): binary 77-level formal LB S9(4) COMP over caller's PIC XX (REDEFINES of COMP 300) printed 'LB +0300', ADD reached caller 'CALLER-CB +0301'; COMP-3 formal over PIC X(3) 'LP -12345' / 'CALLER-CP -12346'; signed DISPLAY formal over PIC X(3) 'LS -123'; a Linkage REDEFINES of the formal (GR4c) LY PIC 9(4) over LX resolved on each of two calls with different arguments ('RD1 LX 1111 LY 1111', 'RD2 LX 2222 LY 2222', 'W1 1112 W2 2224': 'at all times' re-resolves to the current argument); 66 RENAMES of a formal 'LR2 BC LRR BCD'. All resolve through the callee's description. cite.py: OK §1985:X.5.1 GR3 the text is in GR3; OK §1985:X.5.1 GR4c. SIDE FINDING (not GR3, the X.5.1 general format; under-rejects): 'PROCEDURE DIVISION USING BY REFERENCE LX.' and 'PROCEDURE DIVISION USING REFERENCE LX.' compile at --std 85 with exit 0 and no diagnostic (r2by-001, r2byr-001), though the 1985 header format is 'PROCEDURE DIVISION [ USING { data-name-1 } … ]' (cite.py: OK §1985:X.5.1 the text is in the clause; same in VI at line 5494). BY VALUE (COBOL0900 pd-header-by-value-2002) and RETURNING (COBOL0900) are refused. No kb/Work note found (grep 'DIVISION USING BY' over kb/Work: only 2002+ method notes).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUsingByValue: gates only the header BY VALUE phrase (pd-header-by-value-2002); no construct gates the header BY REFERENCE phrase, so it is admitted at 85 (format of X.5.1, not GR3)"
+  ],
+  "corrected": ""
+ }
+}

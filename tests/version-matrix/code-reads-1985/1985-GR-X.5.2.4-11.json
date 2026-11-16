@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-11",
+ "rule-digest": "7b430483b332",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-140",
+  "sources": {
+   "reader": "6b022913011a7954552e476d1ae0c92653e5f48c9f52fe81a4aeeede9db9996b",
+   "refuter": "935017612894b9e3812a77af1bb77f4690a6005610d5a6c20117a4126c77cf1d"
+  },
+  "imported": {
+   "reader": "8349cd3ebe1b4c8ef73c9e0a11171d088014ec2edb05c70eda61b17ec87e24fa",
+   "refuter": "277cb9dcdc53e2ac31bb365b582cb5e1d6754650a1e27ac68a81021cf80000e0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.2.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 each USING parameter (BY REFERENCE or BY CONTENT identifier, including subscripted, reference-modified and variable-length group operands) must be made available to the called program with the value it has when the CALL executes, the BY REFERENCE operand's location fixed at that point and the BY CONTENT copy taken at that point; the 2002 forms (literal or figurative arguments, BY VALUE, OMITTED) must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format1Narrowing; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Activate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#Format1Narrowing",
+    "switches": "ConstructRegistry availability of the 2002 argument spellings (literal or figurative argument, BY VALUE, OMITTED): refused at 85 with COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ScreenCallOperand",
+    "switches": "Edition.Year < 2002: the §1985:X.5.2.3 SR3 section screen (StorageSectionRule.Cobol85, no address-identifier) instead of the 2023 SR3/SR7 screen",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall",
+    "switches": "ConstructRegistry for program-prototype names and function-identifier arguments (2002 constructs)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "CallEmitter.cs: no DialectLevel / Edition.Year / IsActive / ConstructRegistry hit; the run-time delivery is edition-free",
+  "behaviour-differs-by-edition": "yes: only which argument forms are admitted (85 has no literal, figurative, BY VALUE or OMITTED argument); the delivery of admitted operands is the same code",
+  "witnesses-cover": "part: g85_bf31_08 covers elementary BY REFERENCE and BY CONTENT values changed between calls; not exercised there: a subscript the callee changes, BY CONTENT and BY REFERENCE of one item, reference modification at its bounds, an ODO group, the 18-digit COMP extreme, edited and zero items, the refusal of 2002 forms",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p7_callusing.cob",
+    "printed": "S1 IN LI=1 LA=11 LCX=OLD1 LRX=OLD1 / S1 OUT LA=99 LCX=OLD1 / MAIN A=992233 I=3 X=NEW1 / S2 L1=D L4=ABCD / S2 L4 AFTER=ABCD / MAIN X=ABCZ / S3 LN=2 LG=2PQ LAST=Q / S3 LN=4 LG=4PQRS LAST=S / S4 LB=-999999999999999999 LZ=000 LE= $12.50- / MAIN BIG=-999999999999999999",
+    "expected": "A(I) bound at CALL time (callee's change of I does not move it); BY CONTENT copy taken at CALL time (GR14); X(4:1) and X(1:4) at the bounds; ODO group passed at its current length; 18-digit COMP, zero and edited values delivered"
+   },
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-140/p8_call_refuse.cob",
+    "printed": "COBOL0900 x4: literal argument, BY VALUE, BY CONTENT ZERO, OMITTED each 'requires COBOL-2002 (targeting COBOL-85)'",
+    "expected": "1985 X.5.2.2 admits only identifiers after BY REFERENCE / BY CONTENT"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR11",
+    "check": "OK  §1985:X.5.2.4 GR11  (5.2.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:X.5.2.4 GR14",
+    "check": "OK  §1985:X.5.2.4 GR14  (5.2.4 General Rules)  the text is in GR14"
+   }
+  ],
+  "notes": "The emitted CALL evaluates each operand's place (subscripts, reference modification, ODO length) and takes BY CONTENT copies before Activate transfers control. All probes matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-11",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "Aimed at aliasing and at values changed after the CALL by another path. r4_callalias.cob at --std 85: CALL USING A A: 'TWO L2=042 / TWO L1=043 / MAIN A=043'; a group and its subordinate: 'GRP LG=ABZZ / GRP LY=ST / MAIN G=QRST'; a GLOBAL item passed BY REFERENCE and changed by a COMMON program during the call: 'GLB AFTER BUMP LW=015 W=015 / GLB AFTER MOVE W=500'; TE(IX) BY REFERENCE and BY CONTENT, forwarded from Linkage to a further program: 'FWD AFTER LEAF F1=12 F2=11 F3=24 / MAIN T=122433'. r8_bycontent.cob: the callee's COMMON program changes W, S and the ref-mod offset K: 'C LW=010 LC=BCD LR=QQQ W=015 / C LC=BCD S=QXYZQQ / MAIN ... K=4' (BY CONTENT values and the BY REFERENCE location taken when the CALL executed). r10b_commarg.cob: a Communication Section item (admitted by the 1985 SR3) delivered: 'SUB L=0007 ... MAIN OC=0008'. Refusals: r5_callrefuse.cob FUNCTION operands (COBOL0900 citing §1985:X.5.2.3 SR4), a condition-name (COBOL1639), an index-name (COBOL1637); r10_commarg.cob a level-05 group (COBOL0900, 1985 SR3 allows only 01, 77 or elementary). cite.py: 'OK  §1985:X.5.2.4 GR11 ... the text is in GR11'; 'OK  §1985:X.5.2.4 GR13 ... the text is in GR13'; 'OK  §1985:X.5.2.4 GR14 ... the text is in GR14'; 'OK  §1985:X.5.2.3 SR3 ... the text is in SR3'; 'OK  §1985:X.5.2.3 SR4 ... the text is in SR4'.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateStatement: the BoundCallProgram arm refuses at 85 a USING group operand whose level is not 01 or 77 (call-using-group-any-level-2002), the 1985 SR3 operand class; it is not part of the delivery path and agrees with the 1985 text"
+  ],
+  "corrected": ""
+ }
+}

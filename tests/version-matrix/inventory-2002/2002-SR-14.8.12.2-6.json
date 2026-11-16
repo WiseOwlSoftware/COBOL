@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.12.2-6",
+ "rule-digest": "7d142d330350",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#ClassifyPair; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#IsOneBooleanCharacter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#IsDataItemOfClassBooleanOrNumeric; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BareOperandKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#BoolResultLength; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#IsBooleanValueOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/BareOperandAnalysis.cs#BareOperandForm; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#AnalyzeObjectBare",
+ "test-ref": "conformance:cases/14.9.13-EVALUATE/pb400_evaluate_boolean_sr6_pair; conformance:cases/14.9.13-EVALUATE/pb398_evaluate_partial_expression; conformance:cases/8.8.2-Boolean-expressions/pb1412_evaluate_boolean_expression_operands",
+ "notes": "Own verdict from the read lineage-reads-2002/u-23.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.13.3-6, witnessed at 2002 by the cases test-ref names. The read: Only difference is the 2002 typo 'is a treated as'. General formats of 14.8.12.1 and 14.9.13.2 are identical (same subject/object alternatives, range-expression, IN alphabet-name); boolean data exists in both; no CD or debugging reach. Cited: §2002:14.8.12.2 SR6."
+}

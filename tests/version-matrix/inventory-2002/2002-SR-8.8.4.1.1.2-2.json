@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.8.4.1.1.2-2",
+ "rule-digest": "d19df0e281bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckRelationalOperands; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation; src/WiseOwl.Cobol.Compiler/Binding/RelationComparability.cs",
+ "test-ref": "conformance:cases/8.8.4.1.1@2002-RELATION-CONDITIONS/g2_relation_operand_classes; conformance:cases/8.8.4.1.1@2002-RELATION-CONDITIONS/g2-relation-boolean-identifier; conformance:cases/8.8.4.1.1@2002-RELATION-CONDITIONS/g2-relation-pointer-identifier",
+ "notes": "§2002:8.8.4.1.1.2 SR2 limits Format 1 identifiers to alphabetic, alphanumeric, national, numeric and strongly-typed groups; g2_relation_operand_classes compares each permitted class (C1-C7 matched at --std 2002), and the boolean and pointer operands are refused at 2002 (COBOL5995, COBOL0869). The compiler accepts index data items under the specific rule §2002:8.8.4.1.1.10 item 3."
+}

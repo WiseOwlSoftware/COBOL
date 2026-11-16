@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.68.2-1",
+ "rule-digest": "5e4a69b9f544",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified",
+ "test-ref": "conformance:cases/15.68@2002-SQRT-FUNCTION/g2sqr01-sqrt-class-and-domain",
+ "notes": "§2002:15.68.2 AR1 requires class numeric. Class-numeric arguments of eight shapes (literal 4, zero, display item 81, scaled 2.25, packed 6.25, expression W-I + 19, PIC 9(3) USAGE NATIONAL 16 - class numeric by PB5625 reading B - and CD MESSAGE COUNT 49) and sqrt(2) are accepted; no ARITHMETIC clause gives native arithmetic (§2002:11.8.4.2 GR3), so §2002:15.68.3 RV3 returns the approximation of the square root, COMPUTEd ROUNDED into +9(2).9(6): +02.000000, +00.000000, +09.000000, +01.500000, +02.500000, +10.000000, +04.000000, +07.000000, +01.414214. The refusal g2sqr02 passes a PIC X(3) item. Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

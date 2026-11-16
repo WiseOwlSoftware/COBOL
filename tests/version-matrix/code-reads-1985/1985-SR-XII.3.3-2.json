@@ -1,0 +1,117 @@
+{
+ "rule-id": "1985-SR-XII.3.3-2",
+ "rule-digest": "f5130cbbc6ac",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-072",
+  "sources": {
+   "reader": "8faa70c91ba153e9fc27714fcad9447dad30c11e0b562ea1fe2b33095d82bb38",
+   "refuter": "374d4dcf956d6db7060749dc5aef8f8b5af8b3397717b588079502f13202a76d"
+  },
+  "imported": {
+   "reader": "ce0602a6b902f0c112045f1f99830c21c24ccae691f3c98791baf67b053d3ed4",
+   "refuter": "83d06b918de9cc29a31ff5e86a251b06499e94ec88574d7d49cc4b52080b1208"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XII.3.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every REPLACE statement (format 1 and REPLACE OFF) must end with a separator period (a period followed by a space or line end, possibly on a later line), and one that does not must be refused, including at the end of the source text.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#StatementCursor.ExpectSeparatorPeriod; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#IsSeparatorPeriod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplaceStatements",
+    "switches": "Constructs.ReplaceAnywhere2002 (1985 SR1 preceding period), Constructs.ReplaceAlsoLast2002 (ALSO / LAST gate), EditionInfo.ReplaceScopeEndsWithSeparatelyCompiledProgram (scope end)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ExpectSeparatorPeriod and IsSeparatorPeriod consult no edition; the terminating-period check is the same code at every edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses compile legal period-terminated REPLACE statements; none omits the period",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP1.cob",
+    "printed": "error COBOL1641: a REPLACE statement operand is not pseudo-text (at the next line's DISPLAY)",
+    "expected": "refused: no terminating period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP4.cob",
+    "printed": "error COBOL1641 (semicolon is not a period)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP5.cob",
+    "printed": "error COBOL2449: REPLACE statement: 'DISPLAY' is out of place ... the statement ends with a separator period",
+    "expected": "refused: REPLACE OFF without period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP8.cob",
+    "printed": "error COBOL2449: REPLACE statement: the statement has no terminating separator period",
+    "expected": "refused at end of source"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP9.cob",
+    "printed": "error COBOL1641 at '.DISPLAY'",
+    "expected": "refused: period glued to the next word is no separator period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP10.cob",
+    "printed": "error COBOL2449: ... no terminating separator period",
+    "expected": "refused: a period inside pseudo-text-2 does not end the statement"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP2.cob",
+    "printed": "S / [BBB]",
+    "expected": "legal: period glued to the closing delimiter"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP3.cob",
+    "printed": "S / [BBB]",
+    "expected": "legal: period on the following line"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP6.cob",
+    "printed": "S / [BBB] / [AAA]",
+    "expected": "legal: REPLACE OFF. ends replacement (1985 format 2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/RP11.cob",
+    "printed": "error COBOL0900: REPLACE ALSO / REPLACE LAST OFF requires COBOL-2002",
+    "expected": "refused at 85: the 2002 ALSO phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XII.3.3 SR2",
+    "check": "OK  §1985:XII.3.3 SR2  (║3.3 Syntax Rules║)  the text is in SR2"
+   }
+  ],
+  "notes": "Both REPLACE formats end in ExpectSeparatorPeriod, and every missing-period form probed at --std 85 is refused. When the period is missing and more text follows, the ellipsis in format 1 reads the next word as another operand, so the diagnostic is COBOL1641 'operand is not pseudo-text' rather than a missing period; --std 2023 gives the same. The refusal is right; only the wording could point to the period.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XII.3.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "R1percomma-001 ('==W-B==.,' period not followed by a space) refused COBOL1641; R2cmtper-001 (the only period on a '*' comment line) refused; R5col73-001 (period only in column 73, the sequence area) refused; R7offsemi-001 ('REPLACE OFF.;') refused. Legal halves: R3eof-001 'REPLACE OFF.' as the last text with no line end compiled [BBB]; R4col72-001 period in column 72 with SEQ00001 in 73-80 compiled [BBB]; R6dbgper-001 the period on a debugging line without DEBUGGING MODE compiled [BBB], correct because §1985:VI.7.3 (cite.py OK) makes a debugging line a comment only 'After all COPY and REPLACE statements have been processed'. cite.py: OK §1985:XII.3.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

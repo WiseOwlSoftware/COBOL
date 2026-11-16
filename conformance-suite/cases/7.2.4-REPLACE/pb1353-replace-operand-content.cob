@@ -1,15 +1,15 @@
-*>--- conformance-case
-*> id: pb1353-replace-operand-content
-*> rules: [SR-7.2.4.3-3]
-*> source-format: free
-*> portable: unverified
-*>---
-*> ISO §2023:7.2.4.3 SR3 "Pseudo-text-1 shall contain one or more text-words,
-*> at least one of which shall be neither a separator comma nor a
-*> separator semicolon", SR5 "Partial-word-1 shall consist of one
-*> text-word" (cite.py --check: OK §2023:7.2.4.3 3) and 5)). ==,== names no
-*> text-word: COBOL2572 (kb/Work PB1353) - before, the operand was
-*> silently discarded. Fixed form.
+      *>--- conformance-case
+      *> id: pb1353-replace-operand-content
+      *> rules: [SR-7.2.4.3-3]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> ISO §2023:7.2.4.3 SR3 "Pseudo-text-1 shall contain one or more text-words,
+      *> at least one of which shall be neither a separator comma nor a
+      *> separator semicolon", SR5 "Partial-word-1 shall consist of one
+      *> text-word" (cite.py --check: OK §2023:7.2.4.3 3) and 5)). ==,== names no
+      *> text-word: COBOL2572 (kb/Work PB1353) - before, the operand was
+      *> silently discarded. Fixed form.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1353RC.
        DATA DIVISION.

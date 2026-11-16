@@ -1,0 +1,96 @@
+{
+ "rule-id": "1985-SR-VII.2.10.3-1",
+ "rule-digest": "b8938410fb8c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-061",
+  "sources": {
+   "reader": "19a1b68739c8a501f314c55dcb2bf4acfc3981c694766c8c8858499010645818",
+   "refuter": "c924c9b72f38a1cb5d858b2aa79df0b05d2e78c6c9da2886301456a06ac8265b"
+  },
+  "imported": {
+   "reader": "365f849ee180237f77d90a9f040b98832911371f41b0ee945b1daf779dac5bb9",
+   "refuter": "6014e7f4b982caa4a30c54a1c4c6ee22e2ec8e7c08da68b90916b74cf28037a1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.10.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the RERUN, SAME [RECORD] AREA and MULTIPLE FILE TAPE clauses of the I-O-CONTROL paragraph must be accepted in any order and interleaving (the paragraph closed by one separator period), with no order-based refusal.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenClauseRepetition; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods; src/WiseOwl.Cobol.Frontend/Cst/ClauseCardinality.cs#ClauseCardinalities",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRerunClause",
+    "switches": "Constructs.RerunRemoved2002: RERUN admitted at 85, COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMultipleFileClause",
+    "switches": "Constructs.MultipleFileTapeRemoved2002: MULTIPLE FILE TAPE admitted at 85, refused from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The order itself is edition-blind: the grammar is (ioControlClause DOT?)*, ClauseCardinalities has no I-O-CONTROL row (ClauseCardinality.cs says so), so ScreenClauseRepetition's per-edition ClauseList.At ranking never reaches it; ScreenParagraphPeriods is the same at every edition. The edition consults on the path are the 2002 removal gates of RERUN and MULTIPLE FILE, which admit those clauses at 85.",
+  "behaviour-differs-by-edition": "yes, not in order: RERUN and MULTIPLE FILE TAPE exist only at 85; the any-order acceptance is the same at every edition",
+  "witnesses-cover": "part: the witnesses test the period placement and an unrecognized clause; not exercised: the three 1985 clauses in permuted and interleaved orders",
+  "probes": [
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r4a.cob",
+    "printed": "ABCD / WXYZ (exit 0)",
+    "expected": "SAME, RERUN, MULTIPLE order accepted"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r4b.cob",
+    "printed": "ABCD / WXYZ (exit 0)",
+    "expected": "MULTIPLE, RERUN, SAME order accepted"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r4c.cob",
+    "printed": "ABCD / WXYZ (exit 0)",
+    "expected": "RERUN, SAME RECORD, MULTIPLE ... POSITION, SAME AREA, RERUN interleaved accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r4d.cob",
+    "printed": "ABCD / WXYZ (exit 0)",
+    "expected": "clauses separated by semicolon and comma accepted"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-061/src/r4e.cob",
+    "printed": "error COBOL3407: I-O-CONTROL paragraph: a separator period follows 'SAME AREA FOR F1 F2' and the paragraph goes on with 'RERUN ...'",
+    "expected": "refused: the 1985 format prints one period after all the clauses (a punctuation rule, not an order rule)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.10.3 SR1",
+    "check": "OK  §1985:VII.2.10.3 SR1  (2.10.3 Syntax Rules)  the text is in SR1 [The order of appearance of the clauses is immaterial]"
+   },
+   {
+    "cite": "§1985:VII.2.12.3 SR3",
+    "check": "OK  §1985:VII.2.12.3 SR3  (2.12.3 Syntax Rules)  the text is in SR3 [implementor-name-1 must be given in the RERUN clause] (why the first probe draft drew COBOL6530)"
+   }
+  ],
+  "notes": "Every permutation and interleaving probed compiled and ran at --std 85; no screen ranks I-O-CONTROL clauses. A first draft drew COBOL6530 (RERUN ON file-name with integer RECORDS needs implementor-name-1, §1985:VII.2.12.3 SR3) and COBOL6826 (READ without AT END), both correct 1985 refusals of my probe, not of the order.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.2.10.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "q4a.cob (run, --std 85, exit 0, prints ABCD through the shared record area): one I-O-CONTROL sentence interleaving the Sort-Merge module's SAME SORT AREA, RERUN ON implementor-name EVERY 100 RECORDS OF an INDEXED file, MULTIPLE FILE TAPE, SAME RECORD AREA (sequential plus indexed), RERUN ... CLOCK-UNITS, SAME AREA, RERUN ON file EVERY switch condition-name, SAME SORT-MERGE AREA: no order-based refusal. The first draft drew two COBOL2738s that are correct 1985 SAME rules, not order rules (§1985:XI.2.5.3 SR5b sort file in two SAME SORT clauses; SR5c). q4b.cob: the 2023 APPLY COMMIT clause in I-O-CONTROL is refused at 85 (COBOL0900). Grammar CobolIO.g4#ioControlParagraph is (ioControlClause DOT?)*, and FileControlBinder.IoControl.cs#ScreenRerunClauses has no order test (read). cite.py: OK §1985:VII.2.10.3 SR1 [The order of appearance of the clauses is immaterial]; OK §1985:XI.2.5.3 SR5b [must not appear in more than one SAME SORT AREA or SAME SORT-MERGE AREA clause].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

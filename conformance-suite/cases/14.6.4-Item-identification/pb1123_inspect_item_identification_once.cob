@@ -1,10 +1,10 @@
-*>--- conformance-case
-*> id: pb1123_inspect_item_identification_once
-*> rules: [GR-14.6.4-7, GR-14.9.22.4-6, GR-14.9.22.4-19]
-*> accept: [2023]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb1123_inspect_item_identification_once
+      *> rules: [GR-14.6.4-7, GR-14.9.22.4-6, GR-14.9.22.4-19]
+      *> accept: [85, 2023]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> PB1123 (INSPECT arm) - ISO 14.9.22.4 GR6: "Item identification for any identifier is done only once as the
       *>   first operation in the execution of the INSPECT statement."  (cite.py --check 14.9.22.4 -> OK 6)
       *> GR19: "Item identification of any identifier in the format 2 statement is done only once before
@@ -40,11 +40,13 @@
        PROCEDURE DIVISION.
        MAIN-PARA.
            MOVE "PQR" TO TT.
-           INSPECT YE(J) TALLYING J FOR ALL "A" REPLACING ALL "A" BY "Z".
+           INSPECT YE(J) TALLYING J FOR ALL "A" REPLACING ALL "A" BY
+               "Z".
            DISPLAY "A=" J " " Y.
            MOVE "AAB" TO S1.
            MOVE 1 TO ND.
-           INSPECT S1 TALLYING ND FOR ALL "A" REPLACING ALL "A" BY T(ND).
+           INSPECT S1 TALLYING ND FOR ALL "A" REPLACING ALL "A" BY
+               T(ND).
            DISPLAY "B=" S1 " " ND.
            MOVE "AAB" TO S1.
            MOVE 1 TO I.

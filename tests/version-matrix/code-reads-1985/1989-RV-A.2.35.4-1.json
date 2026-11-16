@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-RV-A.2.35.4-1",
+ "rule-digest": "6284cbd577f8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-183",
+  "sources": {
+   "reader": "4f0be211b120206b4c2a37f4a219d7959c5b7b1ec6118333aa2cc287c325cc8c",
+   "refuter": "2069fc40c4ba993e90b28e81950f109a26308d8479e1d47c5a5d50585c0c6ec7"
+  },
+  "imported": {
+   "reader": "122f182bb720d5cd0085fb22bf453412794d932ac95bdc8d6931992598a5c4be",
+   "refuter": "a7506573ec1583b68a1015ceb6500afde728b233a029776dc1e66d0975f60f3f"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.35.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every value FUNCTION RANDOM returns, whether from a seeded reference (seed zero or a positive integer of any size the edition allows, up to 18 digits, given as literal, identifier or arithmetic expression) or from an argument-less reference continuing the current or implementor-seeded sequence, is greater than or equal to 0 and less than 1. The witness covers seeds 0, 17 and 32767 and 100 follow-on references, read through a receiver PIC S9V9(9).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Next; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#FloatBody; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 window: RANDOM IntroducedIn 85, admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+    "switches": "RANDOM row IntroducedIn 85 (Float family, OptionalTrailing 0..1)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped CobolIntrinsics.Float.cs, RandomSequence.cs and IntrinsicRenderer.cs#FloatBody for Edition|Dialect|DialectLevel: none; the run-unit sequence (RunUnit.Random) takes no edition.",
+  "behaviour-differs-by-edition": "no: rnd2.cob prints identical values at --std 85 and --std 2023",
+  "witnesses-cover": "part: g85_bf38_03 covers seeds 0, 17, 32767 and 100 unseeded values through a 9-decimal receiver; not exercised: seeds above the int range (2147483648, 999999999999999999), seed 1 and 65536, an arithmetic-expression seed, values compared directly in a relation (no receiver truncation), a sequence continued in a called program",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/rnd2.cob",
+    "printed": "F1 LOW 0000 HIGH 0000 COUNT 0700 (seeds 0, 1, 32767, 2147483647, 2147483648, 999999999999999999, 65536, each seeded value and 100 unseeded values tested directly in IF FUNCTION RANDOM < 0 / NOT < 1); V5 0.00362682016735282 0.27960844304394370 (18-digit seed)",
+    "expected": "no value below 0 or at/above 1"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-183/rnd2.cob",
+    "printed": "V1 0.60747361118321940 0.80544185862198560 0.65081852751356480 into PIC 9V9(17)",
+    "expected": "values in [0, 1)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/A.2.35@1985-RANDOM-FUNCTION/g85_bf38_03.cob",
+    "printed": "EXPECT: MATCH (SEED 17 SEQUENCE REPEATS / OUT OF RANGE 000)",
+    "expected": "the .out file"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.4 RV1",
+    "check": "OK  §1989:A.2.35.4 RV1  (2.35.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.35.3 AR1",
+    "check": "OK  §1989:A.2.35.3 AR1  (2.35.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "The value is System.Random.NextDouble (range [0,1) by construction) from a run-unit RandomSequence; FromDouble lands it by its shortest round-trip decimal, whose largest case 0.9999999999999999 stays below 1, and a negative seed (outside AR1) takes the ArgumentError path that returns 0, still inside the range. Rounding to 1 under a receiver's ROUNDED phrase would be the statement's store, not the returned value.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.35.4-1",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "Read CobolIntrinsics.Float.cs#Random(Int128) and RandomSequence.cs: NextDouble is in [0,1) and the renderer lands it by FromDouble shortest round-trip (largest 0.9999999999999999, below 1); no edition input. rndseed2.cob at --std 85 printed values in [0,1) for every admitted seed form (5, 10 / 2, (11 / 2) * 2 - 6, SIGN LEADING SEPARATE +5, 2 ** 2 + 1, INTEGER(5.9), 0, ZERO, 5 - 5). cite.py: OK §1989:A.2.35.4 RV1 'greater than or equal to zero and less than one'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

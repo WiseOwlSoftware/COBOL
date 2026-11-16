@@ -1,0 +1,119 @@
+{
+ "rule-id": "1985-SR-VI.5.8.3-7",
+ "rule-digest": "8c3af1709311",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-05",
+  "sources": {
+   "reader": "4e026e4ca8e7d9587b19cd1db70afcd88f5ab39909bcba9e1a0ea09ace9a9597",
+   "refuter": "bf6bcbb4287d4b923e260ed10390cdba27847f0033f73632bad7bedf6ee70498"
+  },
+  "imported": {
+   "reader": "4750acad2d13f62739b3993f37b10764e539debe5126729d1a539bf91e9739f7",
+   "refuter": "f7e6588e7d4ecdc02ce5f50b14a2d9fdc1ff4f95feabd21d27cdf2af0383d992"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.8.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for a format 2 (OCCURS ... DEPENDING ON data-name-1) entry, the compiler must refuse a data-name-1 that occupies any character position from the first position of the ODO entry through the last (maximum) position of its record, whether data-name-1 is inside the table (at any depth), after it in the same record, or in another record that implicitly redefines the same area (multiple 01s of one FD, VI.5.3.4 GR3; SAME RECORD AREA, VII.2.13.4 GR2; an explicit REDEFINES), and accept a data-name-1 positioned before the table, outside its record, or past the record's maximum length in a sibling record.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingAdmission; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs#DependingInsideTableRange; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#FirstOccurrenceOffsetOf; src/WiseOwl.Cobol.Compiler/Binding/Passes/OdoResolvePass.cs#OdoResolvePass",
+  "edition-consulted": [],
+  "edition-search": "Read DependingAdmission.Of/DependingInsideTableRange (DataBinder.Odo.cs) and the OdoResolvePass report site; grep 'Edition|DialectLevel|IsActive' in DataBinder.Odo.cs and OdoResolvePass.cs: only Edition.Error/Edition.At for other OCCURS diagnostics (OccursFormatNotPrinted, DYNAMIC rules), nothing on the SR7 path. The same-record leaf-order test and the shared-area byte-window test run identically at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1261 witnesses cover the sibling-FD-record overlap and attribute/area cases; the exact boundaries (last maximum position, one past it), SAME RECORD AREA, explicit REDEFINES overlay, data-name-1 nested deeper inside the table and after the table are covered by probes",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/s1.cob",
+    "printed": "COBOL0853 (subscripted) and COBOL0857: data-name-1 shall not occupy a byte position within the range from the table's first byte position to the last byte position of its record",
+    "expected": "refused: N inside the table"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/s2.cob",
+    "printed": "COBOL0853 and COBOL0857 (N two levels inside the table)",
+    "expected": "refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/s3.cob",
+    "printed": "COBOL0856 (SR10 follower) and COBOL0857 for N after T; COBOL0855 and COBOL0857 for M under W3 REDEFINES W2 ('W2' and 'W3' are one storage area)",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/f1.cob",
+    "printed": "COBOL0857 ... 'R2' and 'R1' are one storage area (N at T's first position)",
+    "expected": "refused: sibling FD record implicitly redefines the area"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/f2.cob",
+    "printed": "COBOL0857 (N at position 6 = R1's last position at maximum)",
+    "expected": "refused: boundary inside the range"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/f3.cob",
+    "printed": "ST=00 (N at position 7, past R1's maximum 6)",
+    "expected": "accepted: outside the range"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/f4.cob",
+    "printed": "COMPILED (N at position 1, before T's first position 2)",
+    "expected": "accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/sa.cob",
+    "printed": "COBOL0857 ... 'G1' and 'R1' are one storage area",
+    "expected": "refused: SAME RECORD AREA is an implicit redefinition of the area"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/ok1.cob",
+    "printed": "W=3QQQ",
+    "expected": "accepted; N=3 before the table gives a 4-character record"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c6/s1.cob",
+    "printed": "--std 2023: s1 and f1 give the same COBOL0857; f3 ST=00",
+    "expected": "no edition arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.8.3 SR7",
+    "check": "OK  §1985:VI.5.8.3 SR7  (5.8.3 Syntax Rules)  the text is in SR7"
+   },
+   {
+    "cite": "§1985:VI.5.3.4 GR3",
+    "check": "OK  §1985:VI.5.3.4 GR3  (5.3.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.2.13.4 GR2",
+    "check": "OK  §1985:VII.2.13.4 GR2  (2.13.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "DependingInsideTableRange answers same-record placement by leaf order and shared-area placement by byte window against the record's maximum width, which matches 1985's character-position wording given its implicit-redefinition rules. No edition switch on the path. Diagnostics cite §2023:13.18.38.3 SR20 at --std 85 (presentation only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.8.3-7",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "cite.py: OK §1985:VI.5.8.3 SR7 ('the last character position defined by the record description entry containing that OCCURS clause'). Probes at --std 85 under refute-1985-05/c6: p1 sibling FD record with N PIC 99 partly overlapping T's first position -> COBOL0857 (partial overlap caught); p2/p4 01 REDEFINES record whose data-name-1 overlaps the table (group-wrapped ODO in p4) -> COBOL0857 (+COBOL0855, correct by VI.5.14 SR5 'Neither the original definition nor the redefinition can include a variable occurrence data item'); p5 data-name-1 past the record's maximum in a redefinition -> no 0857 (only 0855); p3 data-name-1 in a REDEFINES of an earlier sibling, before the table -> runs W=03ABC; p6 data-name-1 in the table's own group before the table -> runs W=2AB; p7 SD sibling record overlap -> COBOL0857. The sibling-record reading rests on VI.5.3.4 GR3 implicit redefinition (cite.py OK): the records share the character positions, so a data-name in one occupies a position within the range. No edition arm needed; none missed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1305,6 +1305,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// only moment a count carried in the record has a value.</para></summary>
     internal string? OdoRecordExceedsMaximum(FileModel file)
     {
+        // ⛔ EDITION (kb/Work PB5811): the rule is 2023's alone — the 1985, 2002 and 2014 permanent-error lists have no such
+        // condition (cite.py --find over each edition: the text is only in §2023:9.1.13.6 4) b)), and §1985:IX.4.5.4 GR18 makes a
+        // READ of a record longer than the file's maximum successful. An older edition's READ is plain success.
+        if (ctx.Data.DialectLevel < 2023) return null;
         if (file.Records.Count != 1) return null;
         var record = file.Records[0];
         if (OdoModel.TableUnder(record) is not { OccursSpec: { } spec } table || spec.Depending is not { } depItem

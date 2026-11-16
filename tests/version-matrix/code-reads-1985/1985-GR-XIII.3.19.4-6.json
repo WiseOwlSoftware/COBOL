@@ -1,0 +1,60 @@
+{
+ "rule-id": "1985-GR-XIII.3.19.4-6",
+ "rule-digest": "2f5a259c3f22",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-037",
+  "sources": {
+   "reader": "b62b5a29f334b4cc7737cb6d24ba106b59ab3c44c67679e762a0c676560b5a88",
+   "refuter": "272dd08d3af3f39cc0aad5dc2dba225ff9d01969a506827e1881cb8e459e276d"
+  },
+  "imported": {
+   "reader": "08892311f2612cf48dcaba9214105d25e76c1b43519548d0ad4eb6e4589d1a54",
+   "refuter": "1db8f0952551c1f46d152095ac04eec66d76aafab21ad55bd4949811a96f4d9c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.19.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 Procedure Division statements (MOVE, ADD, SUBTRACT, COMPUTE, ...) may store into a sum counter, and the stored value is what the RWCS then accumulates into and presents.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#ReportSumCounterPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SetSumImage",
+  "edition-consulted": [],
+  "edition-search": "grep DialectLevel/CobolVersion/DialectBehavior in Place.cs ReportSumCounterPlace, RuntimeApi.cs SetSumImage, ReportWriter.SetSumImage, CounterResolver.cs: none on the store path; CobolReport.Edition (ReportWriterEmitter.cs:593) feeds DialectBehaviors for sum size-error printing, group indicate, NEXT GROUP save and CF page groups, none of which is the store",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb882 alters by MOVE only; ADD/SUBTRACT/COMPUTE, a negative value and an alteration after accumulation are not exercised (probed here)",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-037/src/sum_name.cob",
+    "printed": "AFTER-ADD CF-E=+010.00; CF-X=+01235 after COMPUTE CF-X = CF-X + 1234 and GENERATE; CF-N=-00003 after SUBTRACT 7; MOVE -99.99 TO CF-E after GENERATE, footing printed ' 99.99-'",
+    "expected": "each alteration is stored in the counter and is what is accumulated into (+1.5 per GENERATE) and printed at the control footing; negative values kept"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.19.4 GR6",
+    "check": "OK  §1985:XIII.3.19.4 GR6  (3.19.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "MOVE, ADD, SUBTRACT and COMPUTE all write the counter through SetSumImage and the RWCS reads the altered value; the path is edition-independent.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs": "SetSumImage spelling, line 2534"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.19.4-6",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "gr6_decl-001 (--std 85): ADD 100 TO CF-K inside USE BEFORE REPORTING CFK printed +112 and +110 (the alteration made at §1985:XIII.3.20.4 GR10c is what step e presents), while the FINAL counter rolled forward at step b before it got +0022 (12+10, not 222), i.e. the 1985 step order is kept. gr6_verbs-001: MULTIPLY 4 BY CF-A -> 12, DIVIDE 5 INTO CF-A -> 2 (truncated), ADD 997 -> 999 with NOT ON SIZE ERROR, SUBTRACT 1000 -> -1, ADD 1 to an 18-digit counter at 999999999999999999 -> ON SIZE ERROR and value kept, INITIALIZE CF-A -> 0, DIVIDE ... GIVING CF-E REMAINDER, COMPUTE CF-E ROUNDED = 10/3 -> 3.33; the TERMINATE footing printed '+000', the 18 nines and '  3.33 '. cite.py: 'OK  §1985:XIII.3.19.4 GR6  (3.19.4 General Rules)  the text is in GR6'; 'OK  §1985:XIII.3.20.4 GR10c  (3.20.4 General Rules)  the text is in GR10c'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

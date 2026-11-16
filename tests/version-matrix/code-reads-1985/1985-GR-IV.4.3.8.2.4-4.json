@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.2.4-4",
+ "rule-digest": "bb9c984476ba",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-006",
+  "sources": {
+   "reader": "c57a74a79da0c970db70b554914ff1ef6745cfd09743215e5e8ed2d6bd789656",
+   "refuter": "2736100c82b3bb50b0d7353a1e35a29ad639d5471a8043d50d0460a9dda1de2e"
+  },
+  "imported": {
+   "reader": "57cf07432a26e00f8439d961fdeab7074eba8625728a502f694fe6e0340bee7c",
+   "refuter": "19012f387ab8620bce5ee9f1ccb0be67138a7e113bf6e3178bca743a3f8e8b18"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a subscript written data-name-2 {+|-} integer-2 or index-name-1 {+|-} integer-3 must select the occurrence whose number is the data item's value (or the index's occurrence number) incremented or decremented by the integer, in every dimension, for qualified data-names, signed/COMP data-names, condition-name subscripts and variable-occurrence tables; the forms outside the 1985 format (integer zero or signed, compound expressions) are another rule's refusal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#BindPosition; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#PositionRead; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#IndexCellOf; src/WiseOwl.Cobol.Frontend/Parsing/Cobol85OperandForms.cs#IsSubscript",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSubscriptPart",
+    "switches": "ConstructRegistry check of subscript-arithmetic-expression-2002 for any subscript not a 1985 form (Cobol85OperandForms.IsSubscript); only refuses, the relative forms pass",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+    "switches": "ConstructRegistry.IsAvailable(subscript-arithmetic-expression-2002): at 85 refuses a data-name-2 with a scale (not an integer); no effect on evaluation",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/ConstructRegistry/CobolVersion in SubscriptBinder.cs and VersionConformancePass.cs; the evaluation (BindPosition -> PositionBinary Add/Subtract over PositionItemRead/PositionIndexCell) consults no edition",
+  "behaviour-differs-by-edition": "no: the evaluation is one arm; only the admission of non-1985 forms differs (85 refuses arithmetic-expression subscripts, 2023 admits them)",
+  "witnesses-cover": "part: the witness exercises only index-name + integer in one dimension; data-name +/- integer, index-name - integer, multi-dimension, condition-name, qualified data-name-2 and ODO tables are not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c1a.cob",
+    "printed": "07 01 09 04 / 02 04 01 / 09 01 05 04 / 01 08 / 01 02 03 / 09 07 / 08 / 77 / 66",
+    "expected": "T(N+2)=7,T(N-4)=1,T(N+4)=9,T(N-1)=4 (N=5); SN=-1: T(SN+3)=2; COMP CN=3: 4,1; IX=4: 9,1,5,4; IX=9: 1,8; ODO DN=3: DT(1..3)=1 2 3; C(3,1)=9 C(2,3)=7 C(2,4)=8; receiving T(K+1)=77, T(IX+3)=66"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c1b.cob",
+    "printed": "COBOL0900 (requires COBOL-2002) for N + 0, IX - 0, N + 1 + 1, IX + 1.5, N * 1, 2 + N, F + 1 (F PIC 9V9), N + -1; at --std 2023 all compile and run",
+    "expected": "integer-2/3 is neither signed nor zero (§1985:III.2) and only data-name/index-name {+|-} integer is a 1985 relative form, so each is outside the 1985 format"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-006/c1c.cob",
+    "printed": "CN-OK / CN-IX-OK / 03; with T(UX + 1) (UX of another table) COBOL1961",
+    "expected": "condition-name T-SEVEN(N OF G1 + 2) true (T(7)=7), T-SEVEN(IX - 2) with IX=9 true, T(N IN G2 + 1)=T(2)=03; foreign index refused by SR3"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.2.4 GR4",
+    "check": "OK  §1985:IV.4.3.8.2.4 GR4  (4.3.8.2.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The relative subscript is lowered as a PositionBinary over the data item's occurrence read or the index cell, the same code at every edition; 1985 only adds the shape gate (VisitSubscriptPart) and the integer screen of data-name-2. Every probed form selected the right occurrence, as sender, receiver and condition-name subscript.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "r1a.cob at --std 85: data-name-2 PACKED-DECIMAL, BINARY, SIGN LEADING/TRAILING SEPARATE +/- integer -> 55 11 33 99 (T(5),T(1),T(3),T(9)); index of the inner dimension written in the outer position C(CX + 1, RX + 1) / C(CX, RX - 1) -> 07 01 (C(2,3), C(1,1)); 3-dimension relative indexing C3(AX + 1, BX - 2, CCX + 2)=214, C3(AX, BX - 1, CCX - 1)=121; MOVE 3 TO N T(N + 1) -> T(4)=03, T(2) untouched (§1985:VI.6.19.4 GR2 subscript evaluated before each receiver); SEARCH WHEN T(IX + 2) = 66 stops at IX=4; PERFORM VARYING IX with T(IX + 1). r1b.cob: PIC 9(18) and S9(18) data-name-2 with 18-digit integer-2 -> 55 99; DIVIDE 7 BY 2 GIVING N REMAINDER T(N + 1) -> T(4)=01 (new N); ADD 1 TO N T(N + 1) -> T(3)=34 (§1985:VI.6.4.6 left-to-right). r1c.cob: data-name-2 PIC 9P VALUE 10 (an integer, SR5) admitted, T(P1 + 2)=12, T(P1 - 9)=01. r1d.cob (class c): S(1) + 1, S(1), FUNCTION INTEGER(2) [+ 1], ZERO + 1 each COBOL0900 at 85; N + 1 OF G COBOL0001. cite.py: OK §1985:IV.4.3.8.2.4 GR4; OK §1985:IV.4.3.8.2.3 SR5; OK §1985:VI.6.19.4 GR2; OK §1985:VI.6.4.6 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

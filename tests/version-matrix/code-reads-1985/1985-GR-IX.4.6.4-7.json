@@ -1,0 +1,62 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-7",
+ "rule-digest": "b12994dc235e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-009",
+  "sources": {
+   "reader": "1a012f0aed24ca5e6d66c0c04f49408b810c3ad3becebf4565cfd90cc3a5a923",
+   "refuter": "b778b93dd4ded60f559b61f58a28f4485780af94c155ead154f099e4b7ed3adf"
+  },
+  "imported": {
+   "reader": "4933870ea5192b9700bf560bb1b5a03ba4f8b72e78973ded932bdde36cdb8d70",
+   "refuter": "a9db0cd358ae1a88c3cb182bf7f3322c0c15a405f375981ce6f81806ca9ba4ef"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "An indexed REWRITE, successful or not, in sequential or dynamic access, and including one that changes the key-of-reference alternate key, leaves the file position indicator as the prior READ/START set it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#SelectSequentialRecord; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "COBOL-85-only mandatory INVALID KEY phrase on REWRITE/START (Year < 2002); syntax only, not this rule's behaviour",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO/*.cs: the only indexed-connector edition reads are IndexedConnector#SelectSequentialRecord (IndexedReadPreviousAfterOpenAtEnd, READ PREVIOUS only) and #ReadRandom (IndexedDuplicateKeyStatusSequentialOnly, random READ '02' only); neither is on this rule's path. KeyedIoEmitter has no edition read. Rewrite never assigns _fpiKey/_readOrdinal/_positioner.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness exercises sequential and relative files only; the indexed organization this IX rule governs is not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p3_rw_fpi.cob",
+    "printed": "SEQ ST=00 NEXT=03; SEQ-FAIL ST=21 NEXT=04; DYN (READ 01, REWRITE 03) NEXT=02; DYN-FAIL ST=23 NEXT=03; alt KoR M2 then REWRITE to M9 -> NEXT 03 M3, 04 M4, 02 M9 (identical at --std 2023)",
+    "expected": "the next READ continues from the position before the REWRITE"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR7",
+    "check": "OK  §1985:IX.4.6.4 GR7  (4.6.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "The position is held as values (key, ordinal) that Rewrite never touches, so the next sequential READ seeks from the prior READ's key. The witness is not indexed; probe p3 covers the indexed case.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-7",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "In q5_alt2nd01.cob, sequential access: READ 03, then REWRITE through the second 01 moved the record's alternate value, and the next READ returned 04 (the position was unchanged). In the same probe, START on the prime key, READ, REWRITE, then READ returned 04. Rewrite (IndexedConnector.cs) never assigns _fpiKey, _readOrdinal or _positioner; the reader covered the dynamic and failing cases. cite.py: OK §1985:IX.4.6.4 GR7 the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

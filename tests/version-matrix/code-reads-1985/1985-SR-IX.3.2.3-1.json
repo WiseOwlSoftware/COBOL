@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-SR-IX.3.2.3-1",
+ "rule-digest": "7c13660df623",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-046",
+  "sources": {
+   "reader": "6a7549fbd4d57f686dea1cc5be349852eadfd6130b5348654b454c5ee83af605",
+   "refuter": "a01d34c378e6889baef00ddf26ad4565679549337ef74068668c568978c99cac"
+  },
+  "imported": {
+   "reader": "b5c26d883688897351c88c9b25c3a242ab7e3c9acd5d929c66ba3a7dd4c5ec51",
+   "refuter": "a9c2a4ecebf3993b6915a550fa8de4a351058d57aa38bf9c8c086c88a1386baf"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.3.2.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an indexed file's file description entry must begin with the level indicator FD, written before file-name-1; an entry with no FD, with file-name-1 before FD, or with FD and no file-name is refused, and an indexed file described by SD instead is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileSection; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "whether FD is a reserved word at each edition: true at 85, 2002, 2014 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "The grammar rule `FD fileName fileDescriptionClauses? DOT dataDescriptionEntry*` has no semantic predicate; grepped src for FileDescriptionEntryContext/VisitFileDescriptionEntry (only the generated parser, ClosedFormats, AreaPlacementPass, LevelNumberPass, OoDefinitionRules: none switches on edition for the FD-before-file-name order).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb1238 exercises admitted FD formats (legal side); the refusal forms (no FD, reversed order, FD without file-name, SD for an indexed file) are probed here.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6nofd.cob",
+    "printed": "error COBOL0001: unexpected 'IX'",
+    "expected": "refused: no level indicator"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6rev.cob",
+    "printed": "error COBOL0001: unexpected 'IX'",
+    "expected": "refused: file-name before FD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6noname.cob",
+    "printed": "error COBOL0001: unexpected '.'",
+    "expected": "refused: FD with no file-name-1"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6sd.cob",
+    "printed": "COBOL1900 x3 (§1985:XI.2.3.3 SR2: only ASSIGN may follow a sort file's file-name) and COBOL1692 on OPEN/CLOSE",
+    "expected": "refused: an indexed file is described by FD, not SD"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6ok.cob",
+    "printed": "READ=AAAA111111 (exit 0)",
+    "expected": "FD on its own line, file-name on the next, with the 1985 BLOCK/LABEL/RECORD/VALUE OF/DATA RECORDS clauses, compiles and runs"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-046/src/c6plain.cob",
+    "printed": "READ=AAAA111111 (exit 0)",
+    "expected": "plain FD IX. legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.3.2.3 SR1",
+    "check": "OK  §1985:IX.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The order is fixed by the grammar production itself, the same at every edition; FD is reserved in all four editions. The parse refusal COBOL0001 is terse but names the offending token at its position.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.3.2.3-1",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "r6comment: FD, a comment line, then IX on its own line with LABEL RECORDS -> compiles and runs (RAN, exit 0), the order FD then file-name-1 kept across lines; r6ws: an FD entry written in WORKING-STORAGE -> COBOL0001 unexpected 'FD' (the level indicator is recognized only where a file description entry may begin). The grammar production fixes the order at every edition, so there is no edition arm to miss. cite.py: OK  §1985:IX.3.2.3 SR1  (3.2.3 Syntax Rules)  the text is in SR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-XIII.4.6.4-3",
+ "rule-digest": "3a08ac8dae77",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-041",
+  "sources": {
+   "reader": "8f8ff6373000b0f36ea3f91bbcab7f8744420ff46c192f3a47cd073357236deb",
+   "refuter": "1d45fcf28d956af3fb69e1847bec77be3990ac14d93a294a27e2bfcd9a225549"
+  },
+  "imported": {
+   "reader": "2ab492209f3064cd1af4131ec25ee43173d87a5f190eddc01b0546216ffb7a09",
+   "refuter": "b56413b109f5e0d1642bc10e02a461c5b3aab589e687dcf80ee7bbfec9f96953"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.6.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an executed SUPPRESS inhibits, for that instance of its group, (a) the print lines, (b) all LINE clause processing (no page-fit test, no page advance, including LINE integer ON NEXT PAGE), (c) the NEXT GROUP clause (including NEXT GROUP NEXT PAGE) and (d) any change to LINE-COUNTER, for every group type; sum processing (crossfoot, roll-forward, reset) is not among the inhibited functions (§1985:XIII.3.20.4 GR10 d/f).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#SuppressPrinting",
+  "edition-consulted": [],
+  "edition-search": "Same greps as GR2: BeginGroup returns false on a suppressed group before any page-fit, line placement or ApplyNextGroup, with no edition read; the engine Edition DialectBehaviors (SumSizeErrorBlanksPrintableItem, GroupIndicateConsumedByIssuedGenerate, TerminateDiscardsSavedNextGroup, ControlFootingPageGroupsSeePriorControlValues) are not on the suppressed-group branch.",
+  "behaviour-differs-by-edition": "no (2023 adds item e, control-break sensing unaffected, which the 1985 GR10/GR11 order gives too)",
+  "witnesses-cover": "part: l1c31 covers a suppressed DE (LC, NEXT GROUP PLUS, fit-test advance) and l1m8 a suppressed group's counters; RH NEXT GROUP NEXT PAGE, CH LINE n ON NEXT PAGE and CF NEXT GROUP NEXT PAGE suppressed are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/supb.cob",
+    "printed": "AFTER 1 LC=03 PC=01 / AFTER 2 LC=06 PC=01 / AFTER 3 LC=06 PC=01 (suppressed DE whose fit 6+3>8 would advance) / AFTER 4 LC=06 PC=02; page 1 has no RH and no RH NEXT PAGE, no advance for suppressed CH LINE 3 ON NEXT PAGE, no NEXT GROUP NEXT PAGE for suppressed CF(1); page 2 PH 02, CH 2, DE 4, CF 2, PF 02",
+    "expected": "GR3 a-d: no print lines, no LINE processing (no page advance), no NEXT GROUP, LINE-COUNTER unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-041/supa.cob",
+    "printed": "suppressed DE with NEXT GROUP PLUS 2 leaves LC 05 and 08 unchanged; printed DE moves LC +3",
+    "expected": "LINE-COUNTER not adjusted, NEXT GROUP not processed"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.6.4 GR3",
+    "check": "OK  §1985:XIII.4.6.4 GR3  (4.6.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:XIII.4.6.4 GR3b",
+    "check": "OK  §1985:XIII.4.6.4 GR3b  (4.6.4 General Rules)  the text is in GR3b"
+   },
+   {
+    "cite": "§1985:XIII.4.6.4 GR3d",
+    "check": "OK  §1985:XIII.4.6.4 GR3d  (4.6.4 General Rules)  the text is in GR3d"
+   },
+   {
+    "cite": "§1985:XIII.3.20.4 GR9b",
+    "check": "OK  §1985:XIII.3.20.4 GR9b  (3.20.4 General Rules)  the text is in GR9b"
+   }
+  ],
+  "notes": "BeginGroup runs the sum additions, the declarative, then returns false for a suppressed group after only the end-of-group sum reset, matching the 1985 GR10 a-f order (reset step f still runs). Every presentation path (body, PH, PF, RH/RF) funnels through BeginGroup.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.6.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Read ReportWriter.cs#BeginGroup (returns false for a suppressed group after the end-of-group sum reset, before any page fit, line or ApplyNextGroup), #PresentBody (the saved absolute NEXT GROUP location is consulted only after BeginGroup returns true), #PlaceAfterSavedNextGroup. Probe s3_save_suppress.cob (--std 85): DE-A NEXT GROUP 5 at LC 6 fills the save location (LC=18); a suppressed DE-B then leaves LC=18 PC=01 and the save location intact (no LINE processing, no page advance, no LINE-COUNTER change); the next unsuppressed DE-B advances and prints at line 6 of page 2 (LC=06 PC=02), i.e. the suppressed group did not consume the saved NEXT GROUP. Probe u1_dummy_use.cob shows suppressed/nonprintable groups still run their USE (GR9a/GR10c/GR11b). cite.py: OK §1985:XIII.4.6.4 GR3d; OK §1985:XIII.3.20.4 GR10f (reset still runs).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

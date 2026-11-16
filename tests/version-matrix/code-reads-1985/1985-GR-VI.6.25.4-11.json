@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-11",
+ "rule-digest": "b4cdcebfc410",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-113",
+  "sources": {
+   "reader": "9e16c1aa971425a4b8a397cba94309dde729a8b6a0436fab764dd51d99307d99",
+   "refuter": "8cba34c317369f509ca7b93c39d2ca658455da6c1854a7605b3d5c2f7ae4b531"
+  },
+  "imported": {
+   "reader": "937dfceb78eb0182bd736d0725bc2741ff67ae85e2bee4d4fd35b21991d9e780",
+   "refuter": "de79e3af8f0929f4065a9819f0060b0aee7a618ec66c0b0f82dc53ac3453924b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 END-STRING terminates the STRING statement's scope: a STRING with END-STRING is a delimited scope (imperative) statement that may nest in another statement's imperative-statement, each END-STRING closes the most recent unterminated STRING, optional conditional phrases associate with the nearest unterminated statement that may take them (§1985:IV.6.4.3), and a conditional STRING without END-STRING inside an imperative-statement is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#stringStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "format filter by ConstructRegistry.IsAvailable; STRING's row has no construct, so the 85 arm is the 2023 arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitConditionalPhrases",
+    "switches": "phrase order below 2002 (not END-STRING itself)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ProcedureFormatPass.VisitStatementBlock and ConditionalStatements.IsConditional carry no edition test (grep Edition|Version in ProcedureFormatPass.cs: only using lines and EditionDiagnostic).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf02_04 covers END-STRING after phrases and inside IF; not exercised: nested STRING within STRING, END-STRING with no phrases, phrase association to an inner STRING, refusal of an unterminated conditional STRING in an imperative-statement",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr11.cob",
+    "printed": "1 INNER-OVF / 1 OUTER-OVF-TAIL / 1 [AB][XYZW] / 2 [Q***]; case 3 prints nothing",
+    "expected": "case 1: inner END-STRING closes the inner STRING, DISPLAY belongs to outer ON OVERFLOW; case 2 END-STRING alone legal; case 3: NOT ON OVERFLOW associates with the inner STRING (IV.6.4.3), END-STRING closes the inner, so the following DISPLAY is in the outer's ON OVERFLOW, which does not run (AB fits R2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr11ref.cob",
+    "printed": "error COBOL2796: ADD ON SIZE ERROR: this STRING statement is written without its explicit scope terminator END-STRING, so it is a conditional statement",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-113/gr10ord.cob",
+    "printed": "--std 85 COBOL0900 (phrase order), --std 2023 runs",
+    "expected": "85 phrase order binds"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR11",
+    "check": "OK  §1985:VI.6.25.4 GR11  (║6.25.4 General Rules║)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "Grammar stringStatement ends with END_STRING?; the shared conditionalPhrases predicate implements the nearest-unterminated-statement association, and ProcedureFormatPass refuses a conditional statement as an imperative operand. All edition-blind except the 85 phrase-order check.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "cite.py 'OK §1985:VI.6.25.4 GR11 the text is in GR11'. Probes at 85: nest1.cob conditional STRING (no END-STRING) inside STRING ON OVERFLOW refused COBOL2796; nest2.cob conditional STRING inside inline PERFORM (1985 inline PERFORM takes imperative-statement) refused COBOL2796; ifst.cob STRING terminated by ELSE and by END-IF of an enclosing IF, and STRING END-STRING nested in IF inside another STRING's NOT ON OVERFLOW, all ran as scope rules require ('4 INNER-OVF / 4 IN-IF / 4 OUTER-NOOVF-TAIL'); dup1/dup2 repeated phrase refused COBOL2269. VersionConformancePass grep for STRING: only VisitStringStatement (DELIMITED omitted) and the phrase-order check the reader named.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

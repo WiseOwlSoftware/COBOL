@@ -1,0 +1,98 @@
+{
+ "rule-id": "1989-RV-A.2.37.4-1",
+ "rule-digest": "f0f1aee85b3d",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-184",
+  "sources": {
+   "reader": "9ad5c76e82afaef6d8a4318c9d4047db7db4ba11414c994318df67ff9cc21079",
+   "refuter": "b2e091ffd24ce7eded4da62b06193a0d73d22d9c66d2d8e95bb5041e26bbecb1"
+  },
+  "imported": {
+   "reader": "0330ce8e920781bf2e0762d275f0de9a2d1401f9530fbb2b548aef1b63cf1c6d",
+   "refuter": "93620a81ad48e14bb07bdedbd8f071a099ec4e95839a834fa7a91e81a6759b3e"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.37.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 FUNCTION REM returns argument-1 - (argument-2 * FUNCTION INTEGER-PART (argument-1 / argument-2)): a truncated remainder whose sign follows argument-1, for numeric literal, item (any usage, sign, scale), subscripted item or arithmetic expression arguments.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#AnyRealArgument; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#RemScaled; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.RealArgs.cs#RemReal",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "D8 edition window: sig.IntroducedIn (85) > DialectLevel refuses COBOL1502; the 1989 module rows are admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "construct numeric-function-identifier-operand-2002: at 85 a numeric/integer function written where an identifier stands (MOVE, DISPLAY) is refused COBOL0900; at 2002+ admitted. The arithmetic-expression path the returned value takes is not screened",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "greps for Edition|DialectLevel|CobolVersion|DialectBehavior|ConstructRegistry in IntrinsicRenderer.cs, IntrinsicResultType.cs, IntrinsicArgumentRules.cs, IntrinsicCarrierRules.cs, FunctionValueLane.cs and Runtime/Intrinsics/CobolIntrinsics.*.cs: no hit on the value path of this function; the binder hits are listed",
+  "behaviour-differs-by-edition": "no for the returned value (rem1/rem2 identical at 85 and 2023); MOVE FUNCTION REM (9 4) TO N is refused at 85 only (placement screen)",
+  "witnesses-cover": "part: g85_f37_07 does not exercise COMP-3/SIGN SEPARATE items, expression or subscripted arguments, 18-digit values, a fractional divisor, or nested REM",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/rem1.cob",
+    "printed": "PP 1, NP -1, PN 1, NN -1, ZE 0, BIG 6 (999999999999999998 rem 7), BIG2 999999998 (rem 10^9)",
+    "expected": "11-5*2=1; -11-5*(-2)=-1; 11-(-5)(-2)=1; -11-(-5)(2)=-1; 0; (10^18-2) mod 7 = 6; 999999998"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/rem1.cob",
+    "printed": "FR 1.5; SC -1.25 (COMP-3 -7.25, SIGN TRAILING SEPARATE 2); D1 0.1 (5.5 0.3); D2 0.1 (10 3.3); D3 -0.1 (-0.5 0.2); EX -2.5 (A*2, B+1); SUB 2 (E1(I) 3)",
+    "expected": "11.5-2*5=1.5; -7.25-2*(-3)=-1.25; 5.5-0.3*18=0.1; 10-3.3*3=0.1; -0.5-0.2*(-2)=-0.1; -14.5-3*(-4)=-2.5; 5-3=2"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/rem2.cob",
+    "printed": "TINY 1 (REM(0.0001 0.00003)*100000); WIDE 0.000678 (S9(12)V9(6) 123456789012.345678 rem 0.001); D4 0.1; D5 -999; NEST 3",
+    "expected": "0.00001*10^5=1; 0.000678; 1-0.3*3=0.1; -999-1000*0=-999; REM(REM(17 10) 4)=REM(7 4)=3"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/edarm1.cob",
+    "printed": "at 85 COBOL0900 for MOVE FUNCTION REM (9 4) TO N; at 2002 compiles",
+    "expected": "85 refuses a numeric function outside an arithmetic expression"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-184/rem1.cob",
+    "printed": "SUB 2 (subscripted argument E1(I))",
+    "expected": "2; REM repeats no argument, so no ALL form"
+   },
+   {
+    "class": "b",
+    "file": "-",
+    "printed": "not probed: the zero-divisor constraint is §1989:A.2.37.3 AR2 (undefined result), not this rule",
+    "expected": "-"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.37.4 RV1",
+    "check": "python scripts/spec/cite.py --check \"§1989:A.2.37.4 RV1\" \"argument-1 - (argument-2 * FUNCTION INTEGER-PART (argument-1 / argument-2))\" -> OK"
+   }
+  ],
+  "notes": "RemScaled computes a % b on scale-aligned Int128; C# % truncates toward zero, which is INTEGER-PART of the quotient, so the result equals the defining expression at the common scale. The value path consults no edition. Witness g85_f37_07 MATCHes at 85.",
+  "at-2023": "rem1 and rem2 output identical",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.37.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "rf1: REM(NP 7) NP PIC 9PP=100 -> 2; REM(1 NF) NF PIC PP9=.009 -> .001 (1-.009*111); REM(SQRT(16) 3) -> 1, REM(10 SQRT(9)) -> 1 (real-argument arm RemReal). rf11: REM(A .000000000000000017) with A=18 nines -> .000000000000000006 and REM(A -17) -> 14, both equal to the defining expression computed exactly with Python Fractions. rf3 (rf3-001): CHAR(FUNCTION REM(70 100)) refused COBOL1627 (REM is numeric even with integer arguments, §1989:A.2.37.1 + A.2.3). rf8: REM with 3 arguments refused COBOL1504. cite.py: OK §1989:A.2.37.4 RV1 'argument-1 - (argument-2 * FUNCTION INTEGER-PART (argument-1 / argument-2))'; OK §1989:A.2.37.1 'The type of this function is numeric'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

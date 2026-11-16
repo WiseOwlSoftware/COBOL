@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb215-perform-varying-target-alphanumeric
-*> rules: [SR-14.9.28.3-2]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb215-perform-varying-target-alphanumeric
+      *> rules: [SR-14.9.28.3-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB215 (sibling sweep). 14.9.28.3 SR2: "Each identifier shall
       *> reference a numeric elementary item" - the induction variable too. The
       *> SET-receiver resolution applied no class screen, so a PIC X induction

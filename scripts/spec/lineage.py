@@ -19,11 +19,13 @@ The design is DESIGN-spec-conformance-review.md §10.2 (owner, 2026-11-08). In s
   from its text into its catalog (`element_standing.py`), never stored. Deprecation is KEPT into an obsolete rule, then
   REMOVED.
 - A verdict is held once per chain, on the chain's newest row: a row whose record is of the chained kind (KEPT) carries
-  none of the schema's `next.verdict-fields` (`next_errors` refuses them), and its state is its chain's at its own edition
-  (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the older edition; AND it carries a
-  witness of its own, a conformance-suite `test-ref` that runs at its edition (kb/Work PB5675: one rule for every older
-  edition, the LINEAGE READS audit checking each such case). A CHANGED or REMOVED row, and a row not yet classified, is
-  judged on its own fields by `Schema.state_for`.
+  none of the schema's `next.verdict-fields`, a verdict and its code read (`next_errors` refuses them), and its state is
+  its chain's at its own edition (`state_of`): every `to` row is OK, and every `to` row's `editions` band includes the
+  older edition; AND it carries own-edition evidence (`own_evidence`): a witness of its own, a conformance-suite
+  `test-ref` that runs at its edition (kb/Work PB5675: one rule for every older edition, the LINEAGE READS audit checking
+  each such case), or, for a rule no program can witness, a derivation of its own that stands (`derivation_refusals`,
+  kb/Work PB5822: checked against its own edition's catalog, never inherited from a `to` rule). A CHANGED or REMOVED
+  row, and a row not yet classified, is judged on its own fields by `Schema.state_for`.
 
 Each edition (its catalog, the catalog key that locates a rule, its store and the adjudicated fields the store holds)
 is the schema's `editions.of`, read as `inventory_schema.Edition`; this module is the one reader of the change record's
@@ -124,7 +126,8 @@ def next_errors(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[
     elif "reason" in nxt and not (nxt["reason"] or "").strip():
         errs.append("next.reason is empty: a record that states no reason omits the key (one stored form)")
     if kind.chained and (own := [f for f in shape.verdict_fields if row.get(f)]):
-        errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}")
+        errs.append(f"a {kind.name} rule holds no verdict of its own (its chain's newest rule does), but it carries {own}; "
+                    f"its own-edition evidence is a `test-ref` or a `derivation` of its own (kb/Work PB5675, PB5822)")
     if kind.chained and (other := [r for r in own_witness_refs(row, schema) if r.partition(":")[0] != SUITE_FORM]):
         errs.append(f"a {kind.name} rule's own witness is a conformance-suite case that runs at its edition "
                     f"(`{SUITE_FORM}:<key>`); {other} run at no older edition (kb/Work PB5675)")
@@ -177,26 +180,65 @@ def chain_closed(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict
     return bool(to)
 
 
+def chain_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool | None:
+    """The verdict `row` is judged under, as `Derivation.refusals` and `statement_losses` take it (kb/Work PB5822): for a
+    chained (KEPT) row of an older edition, whether its chain is closed (`chain_closed`); None for every other row, which
+    is judged under a verdict of its own."""
+    return chain_closed(row, ed, schema, targets) if not ed.newest and chained(row, schema) else None
+
+
+def derivation_refusals(row: dict[str, Any], ed: Edition, schema: Schema,
+                        targets: dict[str, dict[str, Any]]) -> list[inventory_schema.Refusal]:
+    """⛔ THE ONE PREDICATE of a derivation on a row of edition `ed` (kb/Work PB5822): why the row's OWN derivation does not
+    stand, empty when it does or when it claims none. `Derivation.refusals` with the verdict the row is judged under
+    (`chain_of`): a row with a verdict of its own is judged on it, a chained row on its chain, so refusal 2 reads "its
+    chain is not closed" there. Every other bound is the row's own: the anchor computed from ITS rule-id, no spec-derived
+    test-ref of its own, its register row, a known signature and arm, an argued arm's UPHELD refuter record, and the arm's
+    check against its OWN edition's catalog. A derivation on a rule the row carries into is never read: it closes that
+    rule at its own edition, and an arm can be true at one edition only (Annex A.2 lists the 2023 text; what this
+    implementation reaches differs by `--std`). Asked by the state rule (`state_of`, `unwitnessed`), the writer
+    (`record_verdicts.validate`) and the audits (`audit_derivations.py`), so none of them reads the bounds twice
+    (kb/Work PB315). `targets` are the next held edition's rows by id, each with its state."""
+    d = schema.derivation
+    return [] if d is None else d.refusals(row, schema, chain_of(row, ed, schema, targets))
+
+
+def own_derivation_stands(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool:
+    """Does `row` claim a derivation of its own that stands (`derivation_refusals` empty)?"""
+    d = schema.derivation
+    return d is not None and bool((row.get(d.field) or "").strip()) and not derivation_refusals(row, ed, schema, targets)
+
+
+def own_evidence(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool:
+    """Does the chained `row` carry own-edition evidence: a spec-derived test-ref of its OWN (kb/Work PB5675) or, for a
+    rule no program can witness, a derivation of its OWN that stands (kb/Work PB5822)? The one question `state_of`,
+    `unwitnessed` and the planners' population (`lineage_reads.bare_kept`, through the state) ask."""
+    return schema.has_spec_derived_test(row) or own_derivation_stands(row, ed, schema, targets)
+
+
 def state_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> str:
-    """`row`'s state at its own edition: a chained (KEPT) row's is its chain's (`chain_closed`) AND its own witness, every
-    other row's is its own (`Schema.state_for`). `targets` are the next held edition's rows by id, each with its own state.
+    """`row`'s state at its own edition: a chained (KEPT) row's is its chain's (`chain_closed`) AND its own-edition
+    evidence (`own_evidence`), every other row's is its own (`Schema.state_for`). `targets` are the next held edition's
+    rows by id, each with its own state.
 
     ⛔ ONE RULE FOR EVERY OLDER EDITION (kb/Work PB5675; owner 2026-11-14: "2002 spec covers 2002 rules", 2026-11-15: "the
     same argument for the 2002 rules applies equally to the 1985 rules"). The chain says the requirement is the same; it
     does not show the compiler meets it at the older `--std`. So a chained row closes only when it carries a spec-derived
     test-ref of its OWN (`Schema.has_spec_derived_test`, the predicate a newest row closes on), which the LINEAGE READS
     audit holds to a conformance-suite case that runs at this edition and is of the kind the row's rule needs
-    (`lineage_reads.stored_errors`). Nothing here reads the direction or the target of the pointer for the evidence:
-    `to` decides only whether the chain's verdict stands."""
+    (`lineage_reads.stored_errors`), or, where no program can witness its rule, a derivation of its OWN that stands
+    (`derivation_refusals`, kb/Work PB5822). Nothing here reads the direction or the target of the pointer for the
+    evidence: `to` decides only whether the chain's verdict stands."""
     if not chained(row, schema):
         return schema.state_for(row)
-    return "OK" if chain_closed(row, ed, schema, targets) and schema.has_spec_derived_test(row) else "GAP"
+    return "OK" if chain_closed(row, ed, schema, targets) and own_evidence(row, ed, schema, targets) else "GAP"
 
 
 def unwitnessed(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool:
-    """Is `row` a GAP only for want of its own-edition witness: chained, its chain closed, no own spec-derived test-ref?
-    The views count these apart from the rows nobody adjudicated (kb/Work PB5675)."""
-    return chained(row, schema) and chain_closed(row, ed, schema, targets) and not schema.has_spec_derived_test(row)
+    """Is `row` a GAP only for want of its own-edition evidence: chained, its chain closed, no own spec-derived test-ref
+    and no own derivation that stands (`own_evidence`)? The views count these apart from the rows nobody adjudicated
+    (kb/Work PB5675)."""
+    return chained(row, schema) and chain_closed(row, ed, schema, targets) and not own_evidence(row, ed, schema, targets)
 
 
 def new_rules(ed: Edition, rows: Iterable[dict[str, Any]], targets: dict[str, dict[str, Any]]) -> list[str]:
@@ -368,6 +410,98 @@ def self_test() -> int:
     ok(state_of(own(row(to=["SR-13.18.38.3-1", "GR-14.9.21.4-2"])), ed, schema, targets) == "GAP",
        "a KEPT row into two rules is a GAP while either is")
     ok(state_of({"rule-id": "x", "verdict": ""}, ed, schema, targets) == "GAP", "an unclassified row with no verdict is a GAP")
+
+    # kb/Work PB5822: a chained row closes on a derivation OF ITS OWN, which stands in for its own-edition witness and
+    # nothing else. Planted: a schema whose derivation reads a fabricated register and catalog (no real row is used).
+    rid = row()["rule-id"]
+    target_rule = "SR-13.18.38.3-1"
+    ds = Schema(raw)
+    d = ds.derivation
+    assert d is not None
+    own_text = "The effect of the statement on the receiving item is undefined when the operands overlap."
+    target_text = "The content of the receiving item after the transfer is undefined for overlapping operands."
+    ds._catalog = {rid: (1985, own_text), target_rule: (2023, target_text), "SR-13.18.38.3-2": (2023, "Other text."),
+                   "1985-SR-VI.5.8.3-2": (1985, "Another 1985 rule.")}
+    ds._register_items = set()
+    signed = "claude: 2026-11-12"
+
+    def register(names: str, arm: str = "undefined-in-rule", signature: str = signed) -> None:
+        d._register = {f"DRV-{rid}": inventory_schema.DerivationRow(f"DRV-{rid}", arm, names, "", signature, "—"),
+                       f"DRV-{target_rule}": inventory_schema.DerivationRow(f"DRV-{target_rule}", "undefined-in-rule",
+                                                                            '"after the transfer is undefined for overlapping"',
+                                                                            "", signed, "—")}
+    d._undefined, d._refuters = {}, {}
+    register('"on the receiving item is undefined"')
+    drv = d.anchor_template.replace("{rule-id}", rid)
+
+    def derived(r: dict[str, Any]) -> dict[str, Any]:
+        return dict(r, derivation=drv)
+
+    def codes(r: dict[str, Any], t: dict[str, dict[str, Any]] = targets) -> list[str]:
+        return sorted(x.code for x in derivation_refusals(r, ed, ds, t))
+
+    ok(state_of(derived(row()), ed, ds, targets) == "OK" and codes(derived(row())) == []
+       and not unwitnessed(derived(row()), ed, ds, targets) and errs(derived(row()), ds) == [],
+       "PB5822: a KEPT row with a closed chain and a standing derivation of its own is OK, and next_errors accepts it")
+    register('"the transfer is undefined for overlapping"')
+    ok(state_of(derived(row()), ed, ds, targets) == "GAP" and codes(derived(row())) == ["quote-not-in-rule"]
+       and unwitnessed(derived(row()), ed, ds, targets),
+       "PB5822: the own-edition check: a quotation true only of the 2023 rule it carries into is refused, and the "
+       "row stays a GAP for want of own-edition evidence")
+    # an ARGUED arm under the owner's signature, which needs no refuter record: the catalog check is the one that fires
+    register(target_rule, "indistinguishable-consequent", "owner: 2026-09-03")
+    ok(codes(derived(row())) == ["unknown-rule"],
+       "PB5822: an indistinguishable-consequent arm naming a rule of ANOTHER edition's catalog is refused")
+    register("1985-SR-VI.5.8.3-2", "indistinguishable-consequent", "owner: 2026-09-03")
+    ok(codes(derived(row())) == [], "... and one naming a rule of its own edition's catalog stands (the check is the arm's)")
+    register('"on the receiving item is undefined"')
+    ok(codes(own(derived(row()))) == ["has-spec-derived-test"],
+       "PB5822: a KEPT row that carries a spec-derived test-ref of its own takes no derivation (refusal 1, unchanged)")
+    unclosed = derived(row(to=["SR-13.18.38.3-1", "GR-14.9.21.4-2"]))
+    why = derivation_refusals(unclosed, ed, ds, targets)
+    ok(state_of(unclosed, ed, ds, targets) == "GAP" and [x.code for x in why] == ["verdict-does-not-resolve"]
+       and "its chain is not closed" in why[0].message and not unwitnessed(unclosed, ed, ds, targets),
+       "PB5822: a derivation whose chain is not closed is GAP and refused with the stable code verdict-does-not-resolve, "
+       "read as 'its chain is not closed'")
+    ok(any("holds no verdict" in e for e in errs(dict(derived(row()), verdict="CONFORMS"), ds))
+       and any("holds no verdict" in e for e in errs(dict(derived(row()), **{"code-location": "src/X.cs#Y"}), ds)),
+       "PB5822: a KEPT row carrying a verdict or a code-location of its own is still refused by next_errors")
+    inherited = {**targets, target_rule: dict(targets[target_rule],
+                                              derivation=d.anchor_template.replace("{rule-id}", target_rule))}
+    ok(state_of(row(), ed, ds, inherited) == "GAP" and unwitnessed(row(), ed, ds, inherited),
+       "PB5822: never inherited: a target closed on a derivation of its own does not close the KEPT row that carries "
+       "into it")
+    ok([x.field for x in inventory_schema.statement_losses(derived(row()), row(), ds, chain_of(row(), ed, ds, targets))]
+       == ["derivation"] and inventory_schema.statement_losses(derived(row()), row(to=["GR-14.9.21.4-2"]), ds,
+                                                   chain_of(row(to=["GR-14.9.21.4-2"]), ed, ds, targets)) == [],
+       "PB5822: dropping a KEPT row's derivation while its chain is closed is a loss; once its chain opens, it is not")
+    ok(chain_of(row(), edition(2023), ds, targets) is None and chain_of({"rule-id": "x"}, ed, ds, targets) is None,
+       "PB5822: a row of the newest edition, or one not chained, is judged under a verdict of its own")
+
+    # kb/Work PB5831: the sixth arm, `unfalsifiable-under-determination`, names a register key; argued, so a `claude:`
+    # signature stands only on an UPHELD refuter record. Planted register keys and refuter record.
+    ds._register_items, ds._determination_keys = {"DOC-A.1-197"}, {"D-NATURAL-BOUNDARY"}
+    d._refuters = {"refute.jsonl": {rid: "UPHELD"}}
+
+    def under(names: str, refuter: str = "refute.jsonl") -> None:
+        d._register = {f"DRV-{rid}": inventory_schema.DerivationRow(f"DRV-{rid}", "unfalsifiable-under-determination",
+                                                                    names, "", signed, refuter)}
+    own_verdict = {"rule-id": rid, "verdict": "CONFORMS", "code-location": "src/X.cs#Y", "derivation": drv}
+    for names in ("DOC-A.1-197", "D-NATURAL-BOUNDARY"):
+        under(names)
+        ok(codes(derived(row())) == [] and state_of(derived(row()), ed, ds, targets) == "OK"
+           and codes(own_verdict) == [] and state_of(own_verdict, ed, ds, targets) == "OK",
+           f"PB5831: the arm stands on the register key {names} with an UPHELD refuter record under a claude: "
+           "signature, on a KEPT row and on an own-verdict row")
+    under("D-NOWHERE")
+    ok(codes(derived(row())) == ["determination-not-in-register"] and codes(own_verdict) == ["determination-not-in-register"]
+       and state_of(own_verdict, ed, ds, targets) == "GAP",
+       "PB5831: a key the conformance register does not carry is refused, on either row")
+    under("DOC-A.1-197", "—")
+    ok(codes(derived(row())) == ["no-refuter-record"] and codes(own_verdict) == ["no-refuter-record"],
+       "PB5831: the argued arm under a claude: signature with no refuter record is refused, on either row")
+    under("DOC-A.1-197 and the rest")
+    ok(codes(own_verdict) == ["names-shape"], "PB5831: a Names cell that is more than one register key is refused")
     ok(new_rules(ed, [row()], targets) == ["SR-13.18.38.3-2", "GR-14.9.21.4-2"],
        "a rule of the next edition no record reaches is NEW")
     ok(spanned(ed, schema) == ["85", "2002", "2014"], "a bridged 1985 chain proves 85 and every edition the bridge spans")

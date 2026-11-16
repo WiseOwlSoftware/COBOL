@@ -1,0 +1,87 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.2.4-2",
+ "rule-digest": "01f25a13b485",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-005",
+  "sources": {
+   "reader": "2b33b3fd84e577d1e3956cfca3f3e1b4ba342aef6633d8fb66faf257e9af3243",
+   "refuter": "e8a51ee43a12a13170182cd213d5e1e2346f8af4c32efc338396ac4b652905f8"
+  },
+  "imported": {
+   "reader": "213d32bce37e8233cdcaad588db7305a7e91acd02054e8e2d6df0f676db3605b",
+   "refuter": "15d5e763b63cc0ff1fa8f9105885805f05c1ff903c17086edad8a80cc43b925a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the value held by an index-name used as a subscript (bare or index-name +/- integer) corresponds to an occurrence number of its table by a correspondence the implementor defines (here the identity, docs/conformance/7/DOC-A.1-194.md), consistently across SET, SET UP/DOWN, index data items, PERFORM VARYING, SEARCH, relation conditions and multi-dimensional references, including between tables of different element sizes.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ResolveSubscriptName; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#PositionRead; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#MaterializePosition; src/WiseOwl.Cobol.Runtime/Values/Tables/CobolTable.cs#OccScaled",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+    "switches": "ConstructRegistry Constructs.SubscriptArithmeticExpression2002: the subscript FORM (a noninteger data-name, an arithmetic-expression subscript such as IA + K) is refused at 85 and admitted from 2002; the index value-to-occurrence mapping is not switched",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped edition/DialectLevel in SubscriptBinder.cs (the one construct gate above, plus the VersionConformancePass parse arm for subscript shape it defers to); the index cell is a long occurrence number at every edition (DOC-A.1-194 / DOC-A.1-128), with no edition input on the read or SET paths probed.",
+  "behaviour-differs-by-edition": "no for the correspondence; the admitted subscript forms differ (IA + K is refused at 85, prints a3 at 2023)",
+  "witnesses-cover": "part: the witness covers index +1, SET UP, a relation and PERFORM VARYING FROM index; not exercised: SET across tables of different element sizes, index data items, SET numeric TO index, SET DOWN, index-name - integer, two-dimensional indexing, SEARCH, index-to-index relation, out-of-range index values, and the 85 refusals",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/i1.cob",
+    "printed": "1 N=03 EA=a3 / 2 N=03 EB=b3 / 3 N=03 EA=a3 / 4 a5  a1 / 5 N=04 / 6 N=01 / 7 REL=Y / 8 IDXIDX=Y / 9 234534564567 / 10 5 4 / 11 FOUND N=04 / 12 02 03",
+    "expected": "SET IB TO IA (3-char vs 7-char elements) names occurrence 3 of both; via a USAGE INDEX item likewise; IA+2 / IA-2 occurrences 5 / 1; UP/DOWN move by occurrences; index = 1 and IA = IB compare occurrence numbers; nested PERFORM VARYING fills CL(r,c)=r+c; CL(IR,IC) and CL(IR+1,IC-2); SEARCH leaves IA at occurrence 4"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/i2.cob",
+    "printed": "1 N=+06 2 N=+00",
+    "expected": "an index set one past either end holds the identity value (6, 0); 1985 leaves the use of such a value undefined (SET GR2), and the implementor's range is the 64-bit occurrence interval (DOC-A.1-128)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/i3.cob",
+    "printed": "COBOL1961: 'EA' subscripted by the index-name 'IB', which is not in the INDEXED BY phrase of any OCCURS clause in this item's hierarchy",
+    "expected": "refused (§1985:IV.4.3.8.2.3 SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/i4.cob",
+    "printed": "COBOL1637: 'IA' is an index-name, which is not an identifier (MOVE 3 TO IA; COMPUTE IA = 2)",
+    "expected": "an index is modified only by PERFORM, SEARCH and SET (§1985:IV.4.3.8.2.4 GR3): refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-005/i5.cob",
+    "printed": "85: COBOL0900 the arithmetic-expression subscript requires COBOL-2002; 2023: a3",
+    "expected": "the 2002 arithmetic-expression subscript IA + K refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.2.4 GR2",
+    "check": "OK  §1985:IV.4.3.8.2.4 GR2  (4.3.8.2.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The implementor's correspondence is the identity (an index holds its 1-based occurrence number in a long; docs/conformance/7/DOC-A.1-194.md), and every index use probed at 85 agrees with it, including cross-table SET between different element sizes, where a displacement model would differ. The only edition switch on the subscript path gates subscript forms, which 85 refuses correctly.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "cite.py: OK §1985:IV.4.3.8.2.4 GR2 'This correspondence is defined by the implementor'. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-005/ia.cob at 85: SET index data item from IA then SET IB (9-char elements after a 1-char FILLER) from it, occurrence 4 at offset 29 [XYZ ]; IA = 4, IA > N, IA = index data item both orders Y; SET K TO IA +04; SEARCH ALL on an ODO table with ASCENDING KEY finds ccc, ID=+03; nested PERFORM VARYING two indexes, IR after the loop +04, CL(IR - 1, IC)/(IR + 1, IC - 3) -> 41; a GLOBAL table's index-name used and SET UP in a contained program (a2, a4). The identity correspondence holds in every context, consistent with the implementor statement the reader names. No edition site on the value path beyond the subscript-form gate the reader listed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

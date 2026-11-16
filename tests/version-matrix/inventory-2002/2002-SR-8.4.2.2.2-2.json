@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.2.2-2",
+ "rule-digest": "78aa67f2acad",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/8.4.3.2-Function-identifier/pb969_empty_argument_list",
+ "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.2.3-2, witnessed at 2002 by the cases test-ref names. The read: 2023 only adds function-pointer-name-1, which 2002 lacks; the 2002 cases are witnessed by tests that run at --std 2002. Cited: §2002:8.4.2.2.2 SR2."
+}

@@ -1,0 +1,121 @@
+{
+ "rule-id": "1985-SR-VI.2.3.2-1",
+ "rule-digest": "c6f61375a219",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-048",
+  "sources": {
+   "reader": "ffda7751b6ffff529d4fbbd967332ed572be084dfa5bf14a6c918b2dab1daeee",
+   "refuter": "799a6246823527f7181c6232e4f09cca0c2db56f4e32c7b7c50886ff80f17f76"
+  },
+  "imported": {
+   "reader": "a0f0c67d62064ad0ec518929738de34cab19fd3d41268e05028ccfb787fe1fd4",
+   "refuter": "000b044975fa09298924f3739351be1f1bac4ef9df0a4259acfa9d1d79b539d4"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "edition-search": "",
+  "rule-id": "1985-SR-VI.2.3.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a source program is the Identification Division (header required), then optional Environment, Data and Procedure Divisions in that order and an optional END PROGRAM header (plus 1985 IPC contained programs), and the compiler accepts exactly those shapes: wrong division order, a missing Identification Division, the header-less form and 2002 end markers (END FUNCTION, FUNCTION-ID) are refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#endProgramHeader; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitIdentificationDivision",
+    "switches": "identification-header-optional-2002: a header-less unit is refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionIdParagraph",
+    "switches": "FUNCTION-ID (the unit END FUNCTION ends) gated to 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "Year >= 2002 requires a procedure division before contained programs; 85 allows contained programs without one (§1985:X.2.3.1)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "yes: a header-less identification division and FUNCTION-ID/END FUNCTION are legal from 2002; a 1985 program without a procedure division may contain programs (accepted at 85, COBOL2274 at 2023)",
+  "witnesses-cover": "part: witnesses cover END FUNCTION / FUNCTION-ID refusal; not division order, an identification-only program, a missing header, or END PROGRAM sequences",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/sorder.cob",
+    "printed": "COBOL0001 unexpected 'ENVIRONMENT'",
+    "expected": "refused (Data before Environment)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/sprocfirst.cob",
+    "printed": "COBOL0001 unexpected 'DATA'",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/snoid.cob",
+    "printed": "COBOL0001 unexpected 'ENVIRONMENT'",
+    "expected": "refused (the Identification Division is required)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/sidonly.cob",
+    "printed": "EXIT 0 (compiles and runs, no output)",
+    "expected": "accepted: every division but the first is optional"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/sfull.cob",
+    "printed": "OUTER / SEPARATE / NESTED",
+    "expected": "all four divisions, a contained program, END PROGRAM headers, then a separately compiled program"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/snoend.cob",
+    "printed": "COBOL2793 PROGRAM-ID 'SNOENDA' precedes another source unit, so its end marker ... shall be present",
+    "expected": "refused (VI.2.3.3 GR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/snohdr.cob",
+    "printed": "COBOL0900 a source unit without the IDENTIFICATION DIVISION header requires COBOL-2002",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/sendfn.cob",
+    "printed": "COBOL2274 END FUNCTION cannot close a program definition",
+    "expected": "refused at 85"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-048/src/snoproc.cob",
+    "printed": "85: EXIT 0; 2023: COBOL2274 contained programs follow its procedure division",
+    "expected": "accepted at 85 (a 1985-only form)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.2.3.2 SR1",
+    "check": "OK  §1985:VI.2.3.2 SR1  (2.3.2 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "A definitional rule, checked against the VI.2.3.1 format it names. The grammar fixes the division order, and each edition arm (header, FUNCTION-ID, contained-program slot) is gated in one place."
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.2.3.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "At --std 85: siddiv.cob ('ID DIVISION.' abbreviation, not a 1985 form) COBOL0001 refused; stwoproc.cob (a second PROCEDURE DIVISION) COBOL0001 refused; sclassid.cob (2002 CLASS-ID unit) COBOL5506 refused; safterend.cob (a statement after END PROGRAM that is not an Identification Division header, VI.2.4.4 GR2) COBOL0001 refused; snodata.cob (Identification, Environment, Procedure, END PROGRAM, no Data Division) EXIT 0 'RAN ENV+PROC'. cite.py: 'OK  §1985:VI.2.3.2 SR1  (2.3.2 Syntax Rules)  the text is in SR1'; 'OK  §1985:VI.2.4.4 GR2  (║2.4.4 General Rules║)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

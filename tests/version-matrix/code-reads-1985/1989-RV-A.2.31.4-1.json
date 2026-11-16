@@ -1,0 +1,92 @@
+{
+ "rule-id": "1989-RV-A.2.31.4-1",
+ "rule-digest": "1f6eb42aea64",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-182",
+  "sources": {
+   "reader": "773c070de287ebd159d3f15ec902758163d0fe8397e7c19041c094fffbadff16",
+   "refuter": "406e8c77483c8e6ae995c907e73a7f3bd2c7588b96deccdf1a9ec955eb164813"
+  },
+  "imported": {
+   "reader": "e965d10bf2e2e712e949d84d45b5140974b36086936ae4c9fd8b26fb9e7ad395",
+   "refuter": "8a7d5a44fe8f7213d8fbff13312ae50b8600f4133b07b4458f4ca9b0e1916e54"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.31.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION ORD must return the ordinal position (lowest 1) of its one-character class alphabetic or alphanumeric argument in the program collating sequence: the native sequence when no PROGRAM COLLATING SEQUENCE is named, else the named alphabet's order, including THRU ranges, ALSO equivalences and the unlisted characters following in native order.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#Collate; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Ord",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "sig.IntroducedIn (85) against ctx.Edition.DialectLevel: introduction gate",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt: ORD's CharacterCategory predicate is Since 2002, so at 85 a one-position numeric-edited item (class alphanumeric in 1985) is admitted; at 2023 it is refused",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for the returned value: p6ord prints the same 13 lines at 85 and 2023. The argument screen differs (numeric-edited admitted only at 85), which is AR1, not this rule.",
+  "witnesses-cover": "part: g85_bf03_08 covers a literal-list alphabet; THRU ranges, ALSO equivalences, LOW-VALUE/HIGH-VALUE, space and characters after the listed block, the native sequence and reference-modified arguments are covered by these probes.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p6ord.cob",
+    "printed": "ALPHABET AL IS \"Z\" THRU \"X\" \"a\" ALSO \"A\" ALSO \"b\" \"0\": Z=1 Y=2 X=3 a=4 A=4 b=4 0=5 SP=38 B=70 LOW=1 HIGH=65534",
+    "expected": "Z..X at 1-3, the ALSO group shares 4, 0 is 5; unlisted characters follow in native order from 6, so space (32 native predecessors) is 38 and B (66 predecessors less 0 and A) is 70; LOW-VALUE is position 1 and HIGH-VALUE the last position of the 65,536-character native set less the 7 listed characters, 65534"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p7ordnat.cob",
+    "printed": "native: LOW=1 HIGH=65536 A=66 SP=33",
+    "expected": "code unit + 1 over the documented 65,536-unit native set (docs/conformance/7/DOC-A.1-8.md)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p6ord.cob",
+    "printed": "W2=3 (W(2:1) = \"X\") W5=70 (W(5:1) = \"B\")",
+    "expected": "3, 70"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/r4.cob",
+    "printed": "COBOL1627: FUNCTION ORD argument-1 is 2 character position(s) in length",
+    "expected": "refused: §1989:A.2.31.3 AR1 one character"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-182/p6ord.cob",
+    "printed": "--std 2023: identical output",
+    "expected": "the same ordinal at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.31.4 RV1",
+    "check": "OK  §1989:A.2.31.4 RV1  (2.31.4 Returned Values)  the text is in RV1"
+   }
+  ],
+  "notes": "Without a program collating sequence ORD is code unit + 1. With one, the binder flags the call and the renderer passes the __COLLATE weights, whose Weight reader places ALSO members on one position and unlisted characters after the listed block in native order. Every probed position matches the 1985 alphabet rules.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.31.4-1",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "q2ord.cob at --std 85 (runs/q2ord-001), the 1985 numeric-literal alphabet form ALPHABET AL IS 67 THRU 69 \"A\" ALSO 91 \"z\" (native ordinals): B=1 D=3 A=4 Z=4 (ALSO 91 = 'Z') z=5, group G1 'D'=3, ORD(CHAR(1))=1, ORD(CHAR(5))=5, ORD(CHAR(100))=100, space=38 and '0'=54 (unlisted characters after the 5 listed positions in native order). q3ordstd.cob ALPHABET AL IS STANDARD-1: A=66 SP=33 LOW-VALUE=1 ORD(CHAR(66))=66. Every value is the ordinal in the program collating sequence. cite.py: 'OK  §1989:A.2.31.4 RV1  (2.31.4 Returned Values)  the text is in RV1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

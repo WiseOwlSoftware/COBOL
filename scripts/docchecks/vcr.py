@@ -111,8 +111,8 @@ def line_number_findings(vcr_lines: list[str]) -> list[str]:
     for i, ln in enumerate(vcr_lines, 1):
         for m in LINE_REF.finditer(ln):
             digits = m.group(0).lstrip("@")
-            # `@2023` / `@2014` name an EDITION, not a line.
-            if len(digits) == 4 and digits[0] == "2" and 1985 <= int(digits) <= 2100:
+            # `@1985` / `@2002` / `@2014` / `@2023` name an EDITION (a conformance-suite clause directory), not a line.
+            if len(digits) == 4 and 1985 <= int(digits) <= 2100:
                 continue
             bad.append(f"line {i}: {m.group(0)}")
     return [f"VERSION_CHANGE_REFERENCE.md cites a spec LINE number, which does not survive a spec edit: cite the clause and "

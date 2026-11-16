@@ -1,0 +1,76 @@
+{
+ "rule-id": "1985-GR-VII.4.7.4-4",
+ "rule-digest": "8f3a0a9b0dd7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-026",
+  "sources": {
+   "reader": "a5dafe8cbf6657655f0147d0fac639f370dc4e2a76f6d0aaf2d89580888b6086",
+   "refuter": "c530e3e3d49cbc1fad9c047f19614425ee8fc3e797bca7ec429af4e4c7e9c7cc"
+  },
+  "imported": {
+   "reader": "fd338cd2cc712ae86717ef5db16e92d5e121dfb840df125d19ff87d878ac8fea",
+   "refuter": "627388201b76de79967e9ba237db5f43281728b6112af9fe924614683968a179"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.7.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "After a WRITE ... FROM identifier-1, the content of identifier-1 must be unchanged and available for every operand class 1985 allows there (an identifier only: group, elementary, numeric, edited, another file's record), while record-name-1 follows GR2 (available only through SAME RECORD AREA).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordFromPhrase",
+    "switches": "ConstructRegistry from-literal-2002 (COBOL0871): FROM literal-1 refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#NamedRecordEntry",
+    "switches": "SELECT WHEN record selection; not reached for a 1985 file",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: 2002 and later also admit FROM literal-1; 1985 admits only an identifier, and the compiler refuses the literal at --std 85",
+  "witnesses-cover": "part: the witness covers an elementary working-storage FROM operand with SAME RECORD AREA; a group, numeric, edited, or another file's record area as identifier-1, and the refusal of FROM literal-1 at 1985, are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/sra1-001 (sra1.cob)",
+    "printed": "A2 WRITE R2 FROM WS-G (group with signed S9(3)): 00, WS-G=PQR01K unchanged; A3 WRITE R4 FROM WS-ED (edited) and FROM WS-NUM (9(3)V99): 00, both unchanged; A4 WRITE R4 FROM R2 (another file's record area): 00, R2=PQR01K unchanged",
+    "expected": "GR4: identifier-1 is available after the WRITE"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-026/fromlit-001 (fromlit.cob)",
+    "printed": "error COBOL0871: FROM literal-1 requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "§1985:VII.4.7.2 prints FROM identifier-1 only, so a literal is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.7.4 GR4",
+    "check": "OK  §1985:VII.4.7.4 GR4  (4.7.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The FROM phrase is lowered as a bound MOVE into the record area and nothing writes back to the sending operand, so identifier-1 is untouched for every class probed. The 1985 operand restriction is enforced by the construct gate.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.7.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "rfrom1-002 (--std 85): WRITE R1 FROM WS-E(I) (subscripted), FROM WS-L(3:8) (reference-modified), FROM FUNCTION UPPER-CASE(WS-L) (the Amendment 1 alphanumeric function-identifier SR1 admits) -> 00 each, sending items unchanged, file holds TWO22222 / cdefghij / ABCDEFGH; indexed WRITE R2 FROM WS-K success 00 and duplicate 22 -> WS-K unchanged both times (KeyedIoEmitter path). rfrom2-001 --compile-only: FROM FUNCTION LENGTH -> COBOL1914 (SR1, numeric function) and COBOL0900; WRITE R1 FROM R1 -> COBOL6827 (SR1 same storage). cite.py: OK §1985:VII.4.7.4 GR4 'the information in the area referenced by identifier-1 is available'; OK §1985:VII.4.7.3 SR1 'If identifier-1 is a function-identifier, it must reference an alphanumeric function'.",
+  "edition-sites-missed": [
+   "VersionConformancePass (COBOL0900): a numeric/integer function-identifier as an identifier operand is gated to 2002+; reached for WRITE FROM FUNCTION LENGTH at 85 alongside the edition-invariant SR1 check COBOL1914 - a refusal arm, not GR4's availability"
+  ],
+  "corrected": ""
+ }
+}

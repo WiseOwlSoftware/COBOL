@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.20.3-1",
+ "rule-digest": "c8a80b9c2c50",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Cell; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal",
+ "test-ref": "conformance:cases/13.18.22-EXTERNAL/l1_cancel_external_unchanged",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.22.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical words (NOTE renumbered). External records exist only in WS in 2002 (SR1), so no CD reach. Cited: §2002:13.16.20.3 GR1; §2002:8.6.6."
+}

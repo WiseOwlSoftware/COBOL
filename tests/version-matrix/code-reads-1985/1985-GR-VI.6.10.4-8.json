@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.10.4-8",
+ "rule-digest": "6a4709694bdb",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-106",
+  "sources": {
+   "reader": "03e88e7bff35ac76e8e68c99dc85a880522de7d1334116fc4471a93059560858",
+   "refuter": "3317c8d04e9c6809595b476721c27213369c7446bd459c4bb93645d1801fb202"
+  },
+  "imported": {
+   "reader": "5710366a924cd612b7409b2a215011b584fe23af6b8d4eb95fb374282f14fe85",
+   "refuter": "fc36bb3d3d6de9d5f2ebb3dc12c909d1bf05d115955b66babd73bbf3393945f1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.10.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "With WITH NO ADVANCING the device position is left immediately after the last character of the last operand displayed, with no line reset.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsDeviceString; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitDisplayStatement",
+    "switches": "refuses END-DISPLAY and a numeric DISPLAY literal that is not an unsigned integer below 2002 (SR2 and a later form, not the transfer)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#ConstructRegistry",
+    "switches": "the national and boolean literal rows that refuse N\"..\" and B\"..\" operands at 85 (operand class, not the transfer)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of AcceptDisplayEmitter.cs, AcceptDisplayBinder.cs and OperandText.cs for Edition, DialectLevel, DialectBehavior, CobolVersion: the transfer (BoundDisplay to Console.Write or WriteLine of the concatenated device strings) consults no edition; the numeric device form is the --numeric-display option (EditionContext.NumericDisplay, default Decimal), not an edition switch. The only edition sites on the DISPLAY path are compile-time refusals of later forms.",
+  "behaviour-differs-by-edition": "no: the transfer is the same code at every edition; only the admitted operand forms (signed numeric literal, national and boolean literals, END-DISPLAY) differ",
+  "witnesses-cover": "part: the witness covers the default device; UPON a mnemonic-name, multiple operands and a last DISPLAY of the run are not exercised",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/dsp1.cob",
+    "printed": "G=[AB00701K] / GS=[-012] GN=[007] / T=[XYZ] (ODO at 3) / T13=[XYZ] T33=[Z] / SC=[1.25] SP=[300] SPL=[.003] / ED=[  4.50-] CMP=[-0321] / BIG=[-999999999999999999] ZR=[000] SEP=[-005] / SPACE=[ ] ZERO=[0] QUOTE=[\"] ALL=[AB] HV=[*] / 200 L on one line / U1U2 / ABAB| / LAST (no trailing newline); stdout byte-identical at --std 2023",
+    "expected": "each operand transferred whole in order (GR1, GR4, GR6), a figurative constant once (GR3), NO ADVANCING leaves the position after the last character (GR8), a new line otherwise (GR9); numeric conversion implementor-defined (DOC-A.1-56)"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/dsp2.cob",
+    "printed": "COBOL0900 for DISPLAY -1 (SR2), N\"AB\" and B\"1\" (2002 literal classes); DISPLAY W NO ADVANCING (WITH omitted) accepted",
+    "expected": "SR2 and the 1985 literal classes refuse them; WITH is optional"
+   },
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-106/dsp3.cob",
+    "printed": "[ABC][][Q][RQP] / [Qbc]] ; FUNCTION LENGTH as a DISPLAY operand refused COBOL0900 per the 1985 numeric-function rule (IV.4.3.8.3.3 SR4)",
+    "expected": "alphanumeric function operands and subscripted / ref-modified operands transferred in order; after NO ADVANCING the next DISPLAY continues the line"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.10.4 GR8",
+    "check": "OK  §1985:VI.6.10.4 GR8  (6.10.4 General Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "BoundDisplay.NoAdvancing selects Console.Write instead of WriteLine, for the default device and for UPON (U1U2 on one line); the run's last DISPLAY WITH NO ADVANCING leaves no trailing newline (od shows LAST at end of file).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.10.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "s1.cob: DISPLAY UPON CRT WITH NO ADVANCING, then NO ADVANCING without WITH, then a plain DISPLAY print UVW and one CR LF. s3.cob (od): NO ADVANCING on a SYSERR mnemonic and on a SYSOUT mnemonic each leave that device after the last character (stdout O1O2AB.. CR LF; stderr E1E2AB.. CR LF then E3 with no line end at run end). s2_2: WITH NO ADVANCING written before UPON refused COBOL2269 (the 1985 format orders UPON first). cite.py: OK  §1985:VI.6.10.4 GR8  (6.10.4 General Rules)  the text is in GR8",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

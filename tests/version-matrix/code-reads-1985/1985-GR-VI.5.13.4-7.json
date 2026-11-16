@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-VI.5.13.4-7",
+ "rule-digest": "efcb9b5d41c2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-104",
+  "sources": {
+   "reader": "38386c3b3a5afa062d572540c91c70d6783456cf167724d067ed6ba2b5cf36b4",
+   "refuter": "542afc9d803bd3729493fa432f509edf47182342e2d842e9e573eab2d9152cec"
+  },
+  "imported": {
+   "reader": "759a1687dd3b620c4003b3cec1c0c2933af92159c85f9742db5b1db0082a3f6f",
+   "refuter": "be3085d9e8b1db802ef3bbdffe53c263792ed38101af8f4013d4ff9245249762"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.13.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, SYNC written on an entry that has an OCCURS clause, or on an item under one, must synchronize every occurrence (GR7a). Any implicit FILLER must be generated for every occurrence (GR7b), so each occurrence has the same size and keeps its own value. This holds for nested tables and OCCURS DEPENDING ON. The FILLER size is the implementor's (GR8b): WiseOwl documents zero bytes in DOC-A.1-195.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ByteWidth; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryByteWidth; docs/conformance/7/DOC-A.1-195.md",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "SYNCHRONIZED written on a group entry: refused COBOL0900 below 2023 (Constructs.SyncOnGroup2023), accepted at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ClausePlacement.cs#SynchronizedViolation (read by Passes/CheckClauseSubjectsPass.cs#Run)",
+    "switches": "SYNCHRONIZED on a USAGE INDEX item refused below 2002 (§1985:VI.5.14.3 SR6), admitted at 2002+",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of every read of DataItem.Synchronized ('.Synchronized', 'Synchronized is', 'Synchronized ==') across src/: only binder screens, StrongTypeModel type-equivalence, RepositoryCodec/Reader and RepositoryAttributeRenderer read it; no layout, emitter or runtime member does. grep of DialectLevel|Edition.|CobolVersion|ConstructRegistry|DialectBehavior in Model/PicInfo.cs and Model/DataItem.cs: none on SignKindFor, ByteForm, StorageWidth, Truncation, ElementaryByteWidth or ByteWidth.",
+  "behaviour-differs-by-edition": "no: layout and per-occurrence values are identical at 85 and 2023 (gr7a stdout identical); only the group-SYNC and INDEX-SYNC screens differ",
+  "witnesses-cover": "part: g85_bf04_02 covers a fixed OCCURS with SYNC on the OCCURS entry and on a subordinate; it does not cover OCCURS DEPENDING ON, nested OCCURS or packed-decimal SYNC items",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr7a.cob",
+    "printed": "T1B(1,1)=101 (1,2)=102 (2,1)=201 (2,2)=202; T1LEN=0015 OCCLEN=0007 T1LEN3=0022; T2E=-1,123456789,-999999999 T2LEN=0012; T3P1=-5 T3P2=7 T3LEN=0006",
+    "expected": "Each occurrence is its own synchronized item with its own value. Each occurrence has one size (1+2*(2+1)=7), so the ODO group is 1+7N (15 at N=2, 22 at N=3), matching the documented zero-FILLER layout."
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-104/gr6c.cob",
+    "printed": "error COBOL0900: SYNCHRONIZED on a group item requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "SYNC on a group entry is refused at 85 (§1985:VI.5.13.3 SR1)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.4 GR7a",
+    "check": "OK  §1985:VI.5.13.4 GR7a  (5.13.4 General Rules)  the text is in GR7a"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR7b",
+    "check": "OK  §1985:VI.5.13.4 GR7b  (5.13.4 General Rules)  the text is in GR7b"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR8b",
+    "check": "OK  §1985:VI.5.13.4 GR8b  (5.13.4 General Rules)  the text is in GR8b"
+   }
+  ],
+  "notes": "The implementor's documented choice (DOC-A.1-195) is no alignment and no implicit FILLER. GR7b's per-occurrence FILLER is therefore zero bytes in every occurrence, and the occurrence size is the same uniform sum that DataItem.ByteWidth computes. An ODO table, a nested table and packed and binary SYNC occurrences all keep distinct values and give consistent lengths at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "gr7a prints identical output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.13.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d",
+  "evidence": "Probe r6.cob (r6-002): a 3-occurrence table with S9(3) BINARY SYNC and S9(3) SYNC subordinates is byte-identical (REDEFINES X(18) compare TBL=SAME) to the same table without SYNC, T1LEN=0018, OCC=0006, per-occurrence values kept (T1B(3)=-00033). With the documented zero-byte implicit FILLER (DOC-A.1-195, GR8b), GR7b's per-occurrence FILLER is uniformly zero; the reader's gr7a covers ODO and nested OCCURS. Group SYNC refused at 85. cite.py: OK  §1985:VI.5.13.4 GR7a  (5.13.4 General Rules)  the text is in GR7a.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-XI.4.4.3-5",
+ "rule-digest": "65711954e693",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-072",
+  "sources": {
+   "reader": "8faa70c91ba153e9fc27714fcad9447dad30c11e0b562ea1fe2b33095d82bb38",
+   "refuter": "374d4dcf956d6db7060749dc5aef8f8b5af8b3397717b588079502f13202a76d"
+  },
+  "imported": {
+   "reader": "e0fda8d6f9bcbbb8135ff39e999b7af43c9fa8d46d7c8de3206e320787f09296",
+   "refuter": "6b5236cdcedac71adaff350ff2bf3dd5054df3f0818daeb13bd9f754e4ba1073"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.4.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the SORT statement's INPUT PROCEDURE and OUTPUT PROCEDURE phrases must accept THROUGH and THRU interchangeably between procedure-name-1/-2 and procedure-name-3/-4, each spelling giving the same inclusive procedure range (paragraphs or sections).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortInputProcedurePhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sortOutputProcedurePhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSortStatement",
+    "switches": "the Format-2 table SORT introduction gate (Constructs.TableSort2002), only when no USING/GIVING/procedure phrase is written; a Format-1 SORT with procedures is not gated",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#THROUGH/THRU rows",
+    "switches": "reserved-word status per edition: both THRU and THROUGH reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition.Year|CobolVersion|ConstructRegistry|DialectBehavior in SortBinder.cs (one hit, ScreenSameClauses, not on this rule); grep THRU/THROUGH across src (grammar alternatives, ReservedWords table, directive words only)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness covers paragraph ranges in both phrases; not section ranges or the degenerate form with procedure-name-2 omitted after THRU",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/l1c29_sort_through_thru_equivalent-001",
+    "printed": "S1 FIRST AIPB1 / S1 MID / ... / S2 NEXT AIPB1 / END; EXPECT: MATCH",
+    "expected": "both spellings bind the three-paragraph range (SR5)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/t1sections.cob",
+    "printed": "R A, R B, R C, R C, R B, R A (exit 0)",
+    "expected": "section ranges IN-1 THROUGH IN-2 and IN-1 THRU IN-2 identical; ascending then descending"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-072/src/t2missing.cob",
+    "printed": "error COBOL5506: unexpected 'GIVING' ... expected a user-defined word",
+    "expected": "THRU must be followed by procedure-name-2 (general format)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.3 SR5",
+    "check": "OK  §1985:XI.4.4.3 SR5  (4.4.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The grammar admits (THRU | THROUGH) as one alternative and SortRange never asks which word was written, so equivalence holds by construction and is the same code at every edition. Probes at --std 85 show paragraph and section ranges behave identically under either spelling.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.4.3-5",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "S1lowq-001 (--std 85): lowercase 'sort ... thru' and mixed-case 'ThRu'/'Through' with qualified procedure-names (P1 OF IN-S thru P2 OF IN-S; O1 IN OUT-S through O2 IN OUT-S) and a one-paragraph range P1 THRU P1 printed R A/R B/R C then -- then R B, the excluded P3/O3 never ran. S2nop1-001: 'INPUT PROCEDURE IS THROUGH P1' refused COBOL5506. Grammar takes (THRU|THROUGH) as one alternative; no edition arm on the path. cite.py: OK §1985:XI.4.4.3 SR5 the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-XI.4.4.4-8",
+ "rule-digest": "dcfc9d7dc689",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-034",
+  "sources": {
+   "reader": "55ae482fcbf67505d3260e5fbf4749320bc5ece0f8f8fa7cd6fd93be84c07f69",
+   "refuter": "957a2a6d8a425cad511eea6e561c872dc2460431a2616651179853f12c607cad"
+  },
+  "imported": {
+   "reader": "5be236497222abb73a293c3eed05c72ff551529c9ec053abeccc9461fb8cabbb",
+   "refuter": "077c6e25bb9c8a8efc209b9f837a8dfed2522780cf2e53b052d86e32e01aa84e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.4.4.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a SORT with an INPUT PROCEDURE must run the procedure before the sort file is sequenced, the return mechanism after its last statement (paragraph, section or THRU range, RELEASEs possibly in PERFORMed paragraphs) must end it, and then exactly the records RELEASEd must be sorted - including zero records - before the output procedure or GIVING phase.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#EmitProcedureRange; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#ReleaseStatement; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#Sort",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#WalkProgram",
+    "switches": "Year < 2002 runs GateReleaseReturnRange: a RELEASE outside every input procedure's execution range for its SD is COBOL7081 (§1985:XI.4.2.3 SR2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindRelease",
+    "switches": "DialectLevel < 2002 sets rangeFailsStatement: a released record outside the SD's size range is not released (§1985:VII.3.8.4 GR10)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no for control transfer and sequencing; 85 differs only in the compile-time RELEASE placement screen and the out-of-range RELEASE outcome",
+  "witnesses-cover": "part: pb3511 covers a THRU input procedure ended by GO TO to the program's last paragraph; not exercised: a SECTION input procedure with RELEASE in a PERFORMed paragraph, an input procedure releasing nothing, input procedure followed by GIVING",
+  "probes": [
+   {
+    "class": "b,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s3proc.cob",
+    "printed": "IN-1 / IN-3 LAST printed before OUT-1 in S1, S3, S4; S2 EMPTY-IN then OUT-1 / OUT-3 LAST / CNT=0; S5 IN-1 / IN-3 LAST / AFTER-S5 / G AAA G BBB G CCC (EXPECT: MATCH)",
+    "expected": "input procedure completes (to IN-3, its last paragraph) before sequencing; RELEASEs from the PERFORMed REL-ONE are in the range and are sorted; zero releases sort to nothing; GIVING written after the input procedure"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-034/src/s2spill.cob",
+    "printed": "COUNT=03000 BAD=00000 GROUPS=ABC (64K memory, spilled)",
+    "expected": "every RELEASEd variable-length record is sorted once the input procedure returns"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.4.4 GR8",
+    "check": "OK  §1985:XI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:XI.4.4.4 GR7",
+    "check": "OK  §1985:XI.4.4.4 GR7  (4.4.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "EmitSort emits SortEnterProcedure(input) and the bounded dispatch of the input range, then SortSort, which ends the input phase and sequences; the bounded dispatch's return at the range end is the inserted return mechanism. The 85-only placement screen accepted RELEASE in a paragraph PERFORMed from the range, as GR7's range definition requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.4.4.4-8",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "p1last.cob (refute-1985-034/p1last-001), SORT-1: in the input procedure IN-1 THRU IN-3, IN-1 RELEASEs BBB, does PERFORM IN-3 (the last paragraph), comes back ('IN-1 BACK FROM PERFORM IN-3'), RELEASEs AAA, and then IN-2 RELEASEs CCC and does GO TO IN-3, skipping IN-2X. The input procedure ended only when IN-3 ran as its last statement. Exactly the three released records were sorted (R AAA, R BBB, R CCC; WRONG IN-2X never printed). A PERFORM of the last paragraph did not end the input procedure early. cite.py: 'OK  §1985:XI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8'. The edition sites (GateReleaseReturnRange, BindRelease DialectLevel<2002) match the reader's list; the SortBinder.cs grep shows no other arm.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

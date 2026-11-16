@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-15",
+ "rule-digest": "5f57bd75306d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#InvokeByValueOperandClass",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.2 SR15: BY VALUE CD items of class numeric (BV), object (CO) and pointer (CP) are accepted and passed as copies (BV stays 0005, SELF=Y, P=WXYZ). --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

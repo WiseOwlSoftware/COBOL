@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-IV.4.3.6-1",
  "rule-digest": "27430188698e",
+ "test-ref": "conformance:cases/IV.4.3@1985-CONCEPT-OF-COMPUTER-INDEPENDENT-DATA-DESCRIPTION/g85_f04_01",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

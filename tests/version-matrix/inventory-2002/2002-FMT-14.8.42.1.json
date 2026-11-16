@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.42.1",
+ "rule-digest": "65b27eda1505",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#terminateStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate",
+ "test-ref": "conformance:cases/14.9.46-TERMINATE/l1c33_terminate_multi_order_no_close",
+ "notes": "Own verdict from the read lineage-reads-2002/u-50.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-14.9.46.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; the row's witness runs at 2002. Cited: §2002:14.8.42.2 SR1."
+}

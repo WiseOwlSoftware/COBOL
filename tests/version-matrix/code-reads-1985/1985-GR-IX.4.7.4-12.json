@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-12",
+ "rule-digest": "a5d5fafe1265",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-009",
+  "sources": {
+   "reader": "1a012f0aed24ca5e6d66c0c04f49408b810c3ad3becebf4565cfd90cc3a5a923",
+   "refuter": "b778b93dd4ded60f559b61f58a28f4485780af94c155ead154f099e4b7ed3adf"
+  },
+  "imported": {
+   "reader": "39413737cc904bc2472e55d815f9fc48013fc9edab8da0a4f2f752e33ca12ece",
+   "refuter": "116039dd3492085040e55cc71ca88b05cbaee041bb2c733b4a9c51ba2f6e09be"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "A START without the KEY phrase compares the stored keys with the current content of the RECORD KEY data item in the record area (not an alternate key, and not the previous key of reference), in any access mode and record length.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AreaKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "COBOL-85-only mandatory INVALID KEY on START (COBOL6826); not the rule's behaviour",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStartStatement",
+    "switches": "refuses START FIRST/LAST at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep 'Edition|CobolVersion|DialectBehavior' over src/WiseOwl.Cobol.Runtime/IO/*.cs: the only indexed-connector edition reads are IndexedConnector#SelectSequentialRecord (IndexedReadPreviousAfterOpenAtEnd, READ PREVIOUS only) and #ReadRandom (IndexedDuplicateKeyStatusSequentialOnly, random READ '02' only); neither is on this rule's path. KeyedIoEmitter has no edition read.",
+  "behaviour-differs-by-edition": "no: the 2023 record-key-name (SOURCE) arm is refused at 85 (COBOL0900), leaving only the data-name arm",
+  "witnesses-cover": "part: the witness covers dynamic access with a fixed record; not sequential access, a varying record, or a START without KEY after an alternate key became the key of reference",
+  "probes": [
+   {
+    "class": "a,b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/p5_start_nokey.cob",
+    "printed": "after START on alt XX: NOKEY(prime AB02, alt ZZ) 00, N1 AB02 LN=06, N2 CD03, N3 EF04; AB99 -> 23, READ 46; LOW-VALUES -> 23; EF04 -> 00 then at end 10 (identical at --std 2023)",
+    "expected": "the prime key item is the comparand; prime order follows"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-009/r13_source.cob",
+    "printed": "COBOL0900 the SOURCE phrase of the RECORD KEY ... requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "85 has no record-key-name"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR12",
+    "check": "OK  §1985:IX.4.7.4 GR12  (║4.7.4 General Rules║)  the text is in GR12"
+   }
+  ],
+  "notes": "With KEY omitted, BindStart substitutes the prime key item (primeKeyImplied, keyIndex -1), and Start slices that key from the record area image. The probe's alternate value ZZ is ignored, and prime order follows.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-12",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "The reader's p5 already showed the alternate key's content is ignored after an alternate became the key of reference. In my q5_alt2nd01.cob, START KEY IS EQUAL TO R-KEY ('03') in sequential access, then READ, returned 03. In q4_pcs.cob the prime ordering stayed native under PROGRAM COLLATING SEQUENCE. BindStart (KeyedIoBinder.cs) substitutes the prime key item with no edition read; its only edition reads are the access-mode, operator and LENGTH screens and SubscriptedClauseOperands. cite.py: OK §1985:IX.4.7.4 GR12 the text is in GR12.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

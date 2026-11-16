@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-10",
+ "rule-digest": "e7ba9458b341",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#MatchesForReplacing; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-text-word-literal; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-debugging-pseudo-text-no-mode; conformance:cases/7.1.2.3@2002-COPY-STATEMENT-GENERAL-RULES/g2-copy-replacing-match-items",
+ "notes": "§2002:7.1.2.3 GR10: whole-text-word, case-folded (literal content excepted), space-collapsed matching ([cba|ywx2|R1l1|h]); item c)6, debugging-line words participating (S1T1Z1 in both modes; A4S4T4Z4 / A4Z4); and a) leading separator comma, b) LEADING/TRAILING positions, c)1 separator comma, c)2 concatenation text-words, c)4a/c)4b quotation symbols and c)5 directive line as a space ([k|m|ab|Dc|r2|qr|p|q|kk]), all at --std 2002 as derived."
+}

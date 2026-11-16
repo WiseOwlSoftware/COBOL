@@ -1,6 +1,7 @@
       *>--- conformance-case
       *> id: g2con01_every_2002_position
-      *> rules: [2002-SR-14.8.8.2-1]
+      *> rules: [2002-SR-14.8.8.2-1, 2002-FMT-14.8.8.1,
+      *>     2002-GR-14.8.8.3-1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

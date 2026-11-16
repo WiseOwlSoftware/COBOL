@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-12",
+ "rule-digest": "011ec0248510",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-008",
+  "sources": {
+   "reader": "7d984fa77d3938f96da55d818a1513326d938e008383fed059cfa43e4963c849",
+   "refuter": "a17135ef97d0d1c1ce3bc11aae9b5d592cb7d8874820b569c8d2b127911dce29"
+  },
+  "imported": {
+   "reader": "f7c3bfe805fbb8e1823e9e54f89997e9f4ef7ae855a3a3f9a05fdcda976358bf",
+   "refuter": "a482623e006db793b29822d97abc58524319814d7d6c849a20a5018d34e7bb33"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-12",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a REWRITE of an indexed file with RECORD IS VARYING whose record size (the DEPENDING ON value, or the ODO-determined size, VII.3.8.4 GR10) is below the minimum or above the maximum must be unsuccessful with I-O status 44 (IX.1.3.4 item 5d 1), leave the stored record unchanged and the record area unaffected; sizes at the bounds succeed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Stored",
+  "edition-consulted": [],
+  "edition-search": "grep 'Edition|DialectBehavior|CobolVersion' over IndexedConnector.cs (only the two READ behaviours, not on Rewrite), KeyedConnector.cs and FileConnector.cs (only SharingFacilityInEffect), and over KeyedIoEmitter.cs/SequentialIoEmitter.cs (only SelectWhenOnlyForFilePhraseStatements): the size check on the REWRITE path reads no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the three witnesses are RELATIVE (l1c26_rewrite_relative_invalid_key) and RECORD SEQUENTIAL (pb1168, pb1190) files; the indexed REWRITE, which this rule's module governs, is not witnessed at 85.",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p5/rwsz85.cob",
+    "printed": "LEN9=44 AREA=[0010SHORTER-THAN-MIN ...] LN=0009; LEN31=44; STORED=[0010ORIGINAL-ONE-TWE] LN=0020; LEN10=00 STORED LN=0010; LEN30=00 STORED LN=0030; SEQ-LEN40=44; SEQ-AFTER-FAILED=43",
+    "expected": "DEPENDING ON 9 and 31 (and 40 in sequential access) outside FROM 10 TO 30 give 44, the stored record keeps its length 20 and content, the record area is unchanged; 10 and 30 succeed; a REWRITE after the failed one in sequential access gives 43 (IX.1.3.4 5c)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p5/rwsz85.cob",
+    "printed": "LEN0=44; LEN5-NOKEY=44",
+    "expected": "zero size is below the minimum: 44; size and missing key both apply, and IX.1.3.4 leaves the choice to the implementor (44 chosen)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-008/p5/rwodo85.cob",
+    "printed": "ODO3-LEN10=00; ODO13-LEN30=00; READ=00 [0010ABCDEFGHIJKLMNOPQRSTUVWXYZ]",
+    "expected": "without DEPENDING ON the size is the ODO fixed portion plus the current occurrences (VII.3.8.4 GR10c): 10 and 30, both inside the bounds, succeed and the 30-character record is stored"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR12",
+    "check": "OK  §1985:IX.4.6.4 GR12  (4.6.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5d.1"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR10",
+    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
+   }
+  ],
+  "notes": "IndexedConnector.Rewrite asks RecordRulesFailure (Stored against the FD's varying bounds) after the 49/43 open-mode and read-sequence checks and before any key rule, returning 44 without touching the store; the emitter passes the DEPENDING ON value or the ODO length as lenArg and stores nothing back into the record area. Every probed size matched the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-12",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-008/e/mr.cob at --std 85: RECORD VARYING FROM 10 TO 30 with no DEPENDING ON and two record descriptions: REWRITE of the 10-character REC-B stores a 10-character record (read back LN=0010 under a DEPENDING ON FD), REWRITE REC-B FROM a working-storage group stores 10; with DEPENDING ON, REWRITE FROM identifier with LN=35 and LN=9 gives 44 and the stored record keeps LN=0030 and its content. Records below integer-2 cannot be described (VII.3.8.3 SR2), so the ODO path cannot leave the bounds legally. FROM FUNCTION UPPER-CASE admitted at 85 (Amendment 1, SR1), a numeric function refused. cite.py: 'OK  §1985:IX.4.6.4 GR12  (4.6.4 General Rules)  the text is in GR12'; 'OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10'; 'OK  §1985:IX.4.6.4 GR5  (4.6.4 General Rules)  the text is in GR5'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

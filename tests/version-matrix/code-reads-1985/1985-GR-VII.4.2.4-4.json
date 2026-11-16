@@ -1,0 +1,111 @@
+{
+ "rule-id": "1985-GR-VII.4.2.4-4",
+ "rule-digest": "cc69075e0c78",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-03",
+  "sources": {
+   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
+   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+  },
+  "imported": {
+   "reader": "9d7346b015b8eb4071d1e0c8065d3ca8d161f241f40f4909dfc1705998880957",
+   "refuter": "22af64de9b9695cffb888df1c661a0cd70d54eedc462e7d477d2357b9ad55732"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.2.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, every execution of CLOSE (each form: plain, WITH LOCK, WITH NO REWIND, REEL/UNIT, REEL/UNIT FOR REMOVAL; each file-name of a multi-file CLOSE) updates file-name-1's I-O status to the VII.1.3.5 value: '00' for a successful close, '07' for a NO REWIND / REEL / UNIT / FOR REMOVAL phrase on a non-reel medium, '42' for a file not in the open mode, '30' for a permanent error, with any applicable USE procedure taking the unsuccessful ones.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitClose; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseCell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseNoRewind; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseReelUnit; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Close; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MappedCloseCore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#CloseWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector (from 2002): at 85 the PHYSICAL file is locked (every later OPEN through any file-name is '38'), from 2002 the connector; the CLOSE's own status comes from Close() before the switch and is the same at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "the same behaviour, read at the later OPEN",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCloseOption",
+    "switches": "CLOSE WITH LOCK refused only at 2023 (removed); accepted at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|IsActive|DialectLevel in FileRegistry.cs, FileConnector.cs, CloseTable14.cs, SequentialIoEmitter.cs and VersionConformancePass.cs CLOSE visitors; CloseCell (Table 14 lookup and the '07'/'42' arms) and FileConnector.Close carry no edition test, and the 1985 Table 1 non-reel column (C / C,E / C,H / F / F) gives the same cells.",
+  "behaviour-differs-by-edition": "yes: not the status update itself; at 85 CLOSE WITH LOCK locks the physical file (a second SELECT of it then OPENs '38', at 2014 '00'), and CLOSE WITH LOCK is legal at 85 but removed at 2023",
+  "witnesses-cover": "part: the witnesses cover the close forms and the '42' status; not exercised here: multi-file CLOSE per-file status, the absent-OPTIONAL close, CLOSE after a failed OPEN, relative/indexed files listed in the CLOSE, the 85 physical-file lock",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r4/p4a.cob",
+    "printed": "NEVER-OPENED 42 (USE ran) / PLAIN 00 / TWICE 42 (USE ran) / REEL 07 / UNIT REMOVAL 07 / NO REWIND 07 / LOCK 00 / OPEN AFTER LOCK 38 / CLOSE AFTER FAILED OPEN 42 / OPTIONAL ABSENT 00 / REL NEVER-OPENED 42, REL 00 / IDX NEVER-OPENED 42, IDX 00",
+    "expected": "VII.1.3.5: 00 success, 07 phrase on non-reel medium (REEL keeps the file open per Table 1 F, so the later CLOSEs still find it open), 42 not open, 38 after LOCK; GR4 updates the status every time"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r4/p4b.cob",
+    "printed": "CLOSE SQ SQ2 RL (SQ2 not open): USE FS=00 F2=42 FR=00 / MULTI 00 42 00",
+    "expected": "GR8: as separate CLOSEs, each file's status updated"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r4/p4c.cob",
+    "printed": "error COBOL1693 CLOSE 'RL' with the REEL/UNIT phrase ... only with a sequential-organization file; same for NO REWIND",
+    "expected": "the relative CLOSE format of 1985 has no REEL/UNIT or NO REWIND"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r4/p4d.cob",
+    "printed": "--std 85: LOCK 00 / LOCK AGAIN 42 / OTHER NAME 38; --std 2014: LOCK 00 / LOCK AGAIN 42 / OTHER NAME 00",
+    "expected": "85: Table 1 E, 'The file is locked and cannot be opened again during this execution of this run unit'"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.2.4 GR4",
+    "check": "OK  §1985:VII.4.2.4 GR4  (4.2.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR3",
+    "check": "OK  §1985:VII.4.2.4 GR3  (4.2.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VII.4.2.4 GR8",
+    "check": "OK  §1985:VII.4.2.4 GR8  (4.2.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.1",
+    "check": "OK  §1985:VII.1.3.5 GRL2.1  (1.3.5 I-O Status)  the text is in GRL2.1"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.3",
+    "check": "OK  §1985:VII.1.3.5 GRL2.3  (1.3.5 I-O Status)  the text is in GRL2.3"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.4",
+    "check": "OK  §1985:VII.1.3.5 GRL2.4  (1.3.5 I-O Status)  the text is in GRL2.4"
+   }
+  ],
+  "notes": "CLOSE sets the status through one dispatch (CloseCell over Table 14) whose non-reel cells match the 1985 Table 1; every form and the multi-file case printed the VII.1.3.5 value at --std 85. The '30' arm (MappedCloseCore) was read, not provoked: no host failure could be induced from a probe.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.2.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r4/q1.cob at --std 85: OUTPUT CLOSE REEL 07 then WRITE 00 (file stays open, Table 1 F); CLOSE WITH NO REWIND 07 then CLOSE 42 (H: closed as if no phrase); INPUT CLOSE UNIT 07 then READ continues 00; CLOSE WITH LOCK 00 then again 42; absent OPTIONAL EXTEND 05/close 00. r4/q2.cob: absent OPTIONAL INPUT CLOSE REEL 00 (file stays open), NO REWIND 00, LOCK 00 then OPEN 38; I-O CLOSE REEL FOR REMOVAL 07, REWRITE then 43, CLOSE 00. The absent-OPTIONAL REEL giving 00 rather than 07 is a reading: GR5 says no reel/unit processing, and VII.1.3.5 lets the implementor pick when more than one value applies. cite.py: 'OK §1985:VII.4.2.4 GR3', 'OK §1985:VII.4.2.4 GR5', 'OK §1985:VII.1.3.5 GRL2.1'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

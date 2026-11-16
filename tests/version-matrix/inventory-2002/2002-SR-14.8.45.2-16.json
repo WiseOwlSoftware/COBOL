@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.45.2-16",
+ "rule-digest": "48247b24383f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoNameResolution.cs#Resolve; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#RepositoryScopeFor; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse",
+ "test-ref": "conformance:cases/14.9.49-USE/pb365_use_eo_interface_two_pass",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.49.3-16, witnessed at 2002 by the cases test-ref names. The read: Only the operand's spelling differs: 2023 renamed the format 4 operand object-class-name-1 to keep it apart from the SPECIAL-NAMES class-name; the 2002 format 4 operand is the same OO class. Same requirement. Cited: §2002:14.8.45.2 SR16."
+}

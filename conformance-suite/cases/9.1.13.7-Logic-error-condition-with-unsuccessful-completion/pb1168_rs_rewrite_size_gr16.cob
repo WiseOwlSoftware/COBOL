@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb1168_rs_rewrite_size_gr16
       *> rules: [GR-9.1.13.7-4, GR-14.9.35.4-14, GR-14.9.35.4-16]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

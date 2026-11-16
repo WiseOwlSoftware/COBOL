@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.24.1",
+ "rule-digest": "a18dc3af09e7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#IntrinsicCatalog; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindExceptionFileArg",
+ "test-ref": "conformance:cases/15.31.3-Returned-value-rules/exception_file_n",
+ "notes": "Own verdict from the read lineage-reads-2002/u-53.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.29.2, witnessed at 2002 by the cases test-ref names. The read: 2002 is the no-argument subset of 2023's format, and the row witness uses exactly that form at 2002. Cited: §2002:15.24."
+}

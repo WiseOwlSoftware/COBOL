@@ -1,0 +1,79 @@
+{
+ "rule-id": "1985-GR-XIII.3.3.4-3",
+ "rule-digest": "b9ea9b732ea9",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-150",
+  "sources": {
+   "reader": "7697c568dbb2a3c85cecd17e51af211a6f653d5e6cb0624595d46d53a5bde9a3",
+   "refuter": "1cf85c8f5c2ce69b9820c2199aa1ac9137fc69e3e23d294d2de8dae79b62d502"
+  },
+  "imported": {
+   "reader": "056eccea8af172cacb822ba07589eea50d0bb1f7e9bbae98c871515800f8e2c1",
+   "refuter": "eba436c7de811198c5f667a22ffa17df23e76864abb500d698f408cb5738e2ae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.3.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the rule binds the run unit: every FD associated with an external report file connector describes it as a report file; the implementation must translate and run a run unit that obeys it (several separately bound programs each with its own REPORT clause on one EXTERNAL connector, opened OUTPUT or EXTEND), and a run unit that breaks it has undefined results (§1985:I.1.6), so no refusal is required.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionIdentity.cs#Of; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Initiate",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "edition.DialectLevel: below 2002 the 1985 FD agreement rows (CheckFileDescriptions), 2002+ the FORMAT rule, 2023 the FILE STATUS/LINAGE external-item rules; none of them concerns the REPORT clause",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for 'report file', IsReport, XIII.3.3.4 across src: no code reads report-file-ness of an external connector; FileEntryIdentity and FileDescriptionIdentity carry no REPORT segment or row.",
+  "behaviour-differs-by-edition": "no: the conforming run unit runs and the violating one is accepted silently at 85 and at 2023",
+  "witnesses-cover": "part: g85_bf22_06 covers two programs each describing the EXTERNAL file with a REPORT clause, OPEN OUTPUT in the main; EXTEND mode and the violating form are covered only by the probes",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/rce.cob",
+    "printed": "M-PC=01 S-PC=01 SUB-DONE E-DONE",
+    "expected": "the obeying run unit runs with the connector opened EXTEND (OPTIONAL)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/rcv.cob",
+    "printed": "exit 0: M-PC=01 SUB-DONE E-DONE (sub describes REP-F EXTERNAL as a plain FD and WRITEs to it; no diagnostic)",
+    "expected": "undefined (§1985:I.1.6): no detection required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-150/rcm.cob",
+    "printed": "error COBOL6847: external file 'REP-F' ... differ in the ASSIGN clause",
+    "expected": "control: the group-level agreement pass is live for the sibling rules at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.3.4 GR3",
+    "check": "OK  §1985:XIII.3.3.4 GR3  (3.3.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:I.1.6",
+    "check": "OK  §1985:I.1.6  (1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM)  the text is in the clause"
+   }
+  ],
+  "notes": "Witness g85_bf22_06 MATCHes at 85. The violating run unit compiles and runs silently while the sibling agreement rules of the same connector are refused at compile time by COBOL6847 in ExternalFileConnectorRules.Check; that missing screen is a consistency gap, not a non-conformance, because 1985 leaves the violation's result undefined. No kb/Work note names this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.3.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "I read the reader's run of rce.cob: runs/rce-001/RCEXT.TXT holds MAINLINE then SUB-LINE, so both programs' reports reach the one external connector in order. My probe refute-1985-150/rcw.cob at --std 85 (runs/rcw-001, exit 0) adds report lines of different widths (8 against 20 characters) and OPEN OUTPUT. It also has a main GENERATE after the sub returns, so the sub's INITIATE/TERMINATE runs while RM is active. The file holds MAINLINE / SUB-LINE  WIDER-TEXT / MAINLINE: nothing is truncated, and FileDescriptionIdentity.RecordOf compares nothing for a report FD (it has no record descriptions). This fits §1985:II.3.1. cite.py: OK  §1985:II.3.1  (3.1 REPORT SECTION)  the text is in the clause ('separately compiled programs may specify different reports for the same file-name'). A violating run unit is accepted silently, and the text allows that. cite.py: OK  §1985:I.1.6  (1.6 DEFINITION OF A CONFORMING SOURCE PROGRAM)  the text is in the clause ('The results of violating the formats or rules of Standard COBOL are undefined'). §1985:I.1.5 asks a conforming implementation to flag only syntactically distinguishable extensions. It sets no detection duty for a run-unit general rule. cite.py: OK  §1985:XIII.3.3.4 GR3  (3.3.4 General Rules)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

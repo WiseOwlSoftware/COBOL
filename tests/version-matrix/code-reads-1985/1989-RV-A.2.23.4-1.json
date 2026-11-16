@@ -1,0 +1,84 @@
+{
+ "rule-id": "1989-RV-A.2.23.4-1",
+ "rule-digest": "7f5654fa56c0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-179",
+  "sources": {
+   "reader": "752918f740d4701b243063a8a209b3ca969e7b471059a84e46d1ca15127b7cc4",
+   "refuter": "b120f52bcc190465b82233b0e0a336aa1189a5c292619628f87a891951c462ce"
+  },
+  "imported": {
+   "reader": "afa633a3cd613ff999ef62be1a3c85ff39b7030ff749551d878f0635724fc86e",
+   "refuter": "96c637469aeeedbc8938e0be145215e30496f0cff9cb165d3ea985465c4ae732"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.23.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION MAX returns the content of the argument-1 with the greatest value, comparing as simple conditions do: numeric arguments by algebraic value regardless of scale and length, alphabetic/alphanumeric arguments (groups and edited items included) character by character in the program collating sequence with the shorter extended by spaces; arguments may be a table with ALL subscripts over an ODO table.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderStringValue; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Select.cs#MaxAt; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#MaxString; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#MaxDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the D8 window sig.IntroducedIn (85): MAX admitted at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+    "switches": "ArgPredicate.AppliesAt(year): per-edition argument predicates (class mixing); the selection itself is unaffected",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicCarrierRules.cs, FunctionValueLane.cs, IntrinsicRenderer.cs, CobolIntrinsics.Select.cs/Exact.cs/Dec.cs for Edition, DialectLevel, DialectBehavior, ConstructRegistry: no hit on the selection path; the collating sequence reaches MaxString through the program's PROGRAM COLLATING SEQUENCE, not an edition switch.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf40_01 covers mixed-scale and signed numerics and two alphanumeric shapes in native order; it does not cover a program collating sequence, a group or edited argument, ALL over an ODO table, 18-digit values, negative fractions, or an argument that is also the receiver.",
+  "probes": [
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/mx2.cob",
+    "printed": "ALLODO 000000000000004.500 (T(ALL), CNT 3) ALLODO4 000000000000009.000 (CNT 4) BIG 999999999999999.000 NEG -000000000000000.010 ZERO 000000000000000.000 SELF +014",
+    "expected": "ALL over the current 3 occurrences -> 4.5, over 4 -> 9; S9(18) 999999999999999999 beats ...998 (shown low-order-truncated in a 9(15).9(3) receiver); MAX(-0.1 -0.01 -1) = -0.01; MAX(0 -0) = 0; COMPUTE K = MAX(K 3) + K with K 7 = 14"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/mx2.cob",
+    "printed": "PCS1 [A] PCS2 [AB] EDIT [100.00] GRP [AB]",
+    "expected": "under PROGRAM COLLATING SEQUENCE REV (\"Z\" \"Y\" \"B\" \"A\") 'A' is greatest: MAX(\"A\" \"Z\") = A, MAX(\"AB\" \"BA\" \"YA\") = AB, MAX(group \"AB\", \"B\") = AB; edited \" 12.50\" vs \"100.00\" -> 100.00"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-179/mx1.cob",
+    "printed": "COBOL0900 numeric-literal VALUE for a numeric-edited item requires COBOL-2023; COBOL0802 19 digit positions, COBOL-85 limits to 18",
+    "expected": "both later-edition forms refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.23.4 RV1",
+    "check": "OK  §1989:A.2.23.4 RV1  (2.23.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.23.4 RV2",
+    "check": "OK  §1989:A.2.23.4 RV2  (2.23.4 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "Numeric MAX selects on exact scaled values (MaxAt/MaxDec) and returns the selected argument's value; alphanumeric MAX selects through CobolString.Compare or the program's collation (MaxString with the collation overload), space-extending the shorter operand. The probes under a reversed alphabet confirm the program collating sequence decides the comparison, as the simple-condition rules require.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.23.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "Attack on the space-extension half of the simple-condition comparison under a PROGRAM COLLATING SEQUENCE (ALPHABET REV IS \"Z\" \"Y\" \"B\" \"A\": space, unlisted, follows every listed letter). Probe rmx1.cob at --std 85 (runs/rmx1-001): MAX(\"A\" \"AB\") -> 'A', MAX(\"AB\" \"A\") -> 'A', MAX(X2 'AB', A1 'A') -> 'A' (\"A \" compares greater than \"AB\" because space ranks above B), LENGTH of the result 1; numeric-edited ZZ9.99CR ' 12.50CR' against '  12.50' -> ' 12.50CR' (space below '1' in native order of unlisted characters); two-dimension table C(ALL, ALL) -> 7, C(1, ALL) -> 5, C(ALL, 3) -> 6. MAX(\"A\" SPACE \"B\") -> 'B' (rc2-001). Class c: X\"41\" argument refused COBOL0900 (rc1-001). cite.py: OK  §1989:A.2.23.4 RV1  (2.23.4 Returned Values)  the text is in RV1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

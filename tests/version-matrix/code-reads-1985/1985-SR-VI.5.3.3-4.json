@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-SR-VI.5.3.3-4",
+ "rule-digest": "65711954e693",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-157",
+  "sources": {
+   "reader": "2ff8d2f1138eea94abb9b7f7beac3f5bc21b839f2d17c35019ce6ee477bfb139",
+   "refuter": "6b4c1b03b601b4d5c358f550aa78c8f30a0a2f7ab20786771312ab94572497c0"
+  },
+  "imported": {
+   "reader": "2d789edf36077eb6b113122bd8ac8273cd3893e9f40421b4781e83eb765d27d8",
+   "refuter": "8bfd10fbeb9efe30eae1e2fd7985159cbe7d95872e0ecaafa73ae1226c21e879"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.3.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, THRU and THROUGH are interchangeable spellings wherever the data description entry's formats use them: the format-2 RENAMES ... THROUGH/THRU data-name-3 and the format-3 condition-name VALUE literal-1 THROUGH/THRU literal-2 ranges, with identical meaning.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#THROUGH; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#THRU; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#renamesClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#valueClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindRenames",
+  "edition-consulted": [],
+  "edition-search": "BindRenames (DataBinder.cs:3070) sets thru = rc.THRU() is not null || rc.THROUGH() is not null and never asks the edition; the renamesClause rule is (THRU | THROUGH) with no predicate; THRU and THROUGH are plain lexer tokens reserved at every edition. Grepped BindRenames and the two grammar rules for Edition/DialectLevel/ConstructRegistry: none.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_renames_through_thru covers the RENAMES spelling pair; the level-88 VALUE THRU/THROUGH range half of format 3 is not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c2thru.cob",
+    "printed": "R1=[ABCD] R2=[ABCD] R3=[CD] / R1=[WXYZ] C=[EF] / LOW1 / LOW2 / HI1 / NOT LOW2 / HI1 AT 10",
+    "expected": "THRU and THROUGH RENAMES name the same area; 88 VALUE ranges with either word behave alike, including a mixed VALUES ARE 10 THRU 20, 50 THROUGH 60 list"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c2bad.cob",
+    "printed": "error COBOL0001: unexpected 'THRUOUT'",
+    "expected": "refused: no other spelling is equivalent"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-157/src/c2bad2.cob",
+    "printed": "error COBOL2740: 'R1' RENAMES WB THRU WA: the beginning of data-name-3 precedes the beginning of data-name-2",
+    "expected": "THROUGH carries the same range rules as THRU (refused)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.3.3 SR4",
+    "check": "OK  §1985:VI.5.3.3 SR4  (5.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Both words are distinct tokens and every consumer tests the pair together, so the spelling cannot change meaning. A cosmetic point: COBOL2740 echoes THRU when the source wrote THROUGH.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.3.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Probe r2thru --std 85: 66 RG1 RENAMES A THROUGH B (group end) and RG2 RENAMES B1 THRU C print [ABCD][CDE]; 88 alphanumeric ranges VALUE \"A\" THROUGH \"F\" vs VALUES \"A\" THRU \"F\" \"K\" THROUGH \"N\" with L='M' give NOT L1 / L2; LOW-VALUE THROUGH \"B\" gives NOT L3; negative ranges -10 THROUGH -1 and -10 THRU -1 both true for -5; SET L2 TO TRUE stores 'A'. Both spellings behave identically in formats 2 and 3. cite.py: 'OK  §1985:VI.5.3.3 SR4  (5.3.3 Syntax Rules)  the text is in SR4'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

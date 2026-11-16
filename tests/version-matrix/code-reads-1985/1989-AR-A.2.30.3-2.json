@@ -1,0 +1,81 @@
+{
+ "rule-id": "1989-AR-A.2.30.3-2",
+ "rule-digest": "65ffa697591e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-170",
+  "sources": {
+   "reader": "9068f7d16290245a182e477a81ec5b4ba4a7d80cd8d843c4ce024176ee06e05a",
+   "refuter": "5cb3ba6f29ecc81323b9250fcbe87686f3e18c53e6236dc04bdbd884007a5098"
+  },
+  "imported": {
+   "reader": "d1fc648c51157a84270b5381818c79295b1df0a78330b604d63e78f7ac78947e",
+   "refuter": "3d906ccd603ef9d70cc66483eeb39900c1753e80607aeb0b6720b0ffb0567cf8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-AR-A.2.30.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, when SPECIAL-NAMES has DECIMAL-POINT IS COMMA, NUMVAL-C must read argument-1 with the comma as the decimal separator and the period as the grouping separator, in both argument formats (leading or trailing sign, CR/DB), with or without a currency string, for literal, item, reference-modified and group arguments; without the clause the roles stay as written.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#CommaFlag; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NumvalCDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs#NvScan",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindNumvalCFamily",
+    "switches": "DialectBehavior.NumvalCCurrencyContentRules (inactive at 85: argument-2 content unscreened, CurrencyContentUnrestricted) and the 2002 ANYCASE/LOCALE construct gates; neither touches the comma/period roles",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "the comma mode is CommaFlag = ctx.Data.Configuration.DecimalPointIsComma with no edition test; grep Edition|DialectBehavior in NvScan/NumvalCDec: only the contentUnrestricted parameter (argument-2 content), not the separator swap",
+  "behaviour-differs-by-edition": "no for this rule: the separator swap is the same code at 85 and 2023; the 85 arm differs only in skipping the 2002 currency-content screen",
+  "witnesses-cover": "part: g85_bf41_04 covers literals, a leading cs, a trailing minus and a bare ,5; not CR/DB, an explicit argument-2, a reference-modified or group argument, a period-grouped value without a comma, or the clause-absent arm",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/nc_dpc.cob",
+    "printed": "N1=-123456789 N2= 000001250 N3= 000001500 N4= 000000005 N5= 000987650 N6=-000100000 N7= 000001200 (EXPECT: MATCH)",
+    "expected": "with DECIMAL-POINT IS COMMA: '1.234.567,89 CR' = -1234567.89, ('EUR 12,5','EUR') = 12.5, '1.5' = 15, ' + $ ,05' = .05, ARG(2:7) '9.876,5' = 9876.5, group ' 1.000DB' = -1000, '12,' = 12 (each x100)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/nc_nodpc.cob",
+    "printed": "P1= 000123456 P2= 000001500 P3=-000000050 (EXPECT: MATCH)",
+    "expected": "without the clause: '1,234.56' = 1234.56, '1,5' = 15, '$.5DB' = -.5"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/cur_dpc.cob",
+    "printed": "D1= 000123450 D2=-000000001 (EXPECT: MATCH)",
+    "expected": "CURRENCY SIGN '#' with DECIMAL-POINT IS COMMA: '#1.234,5' = 1234.5, '# 0,01-' = -.01"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-170/nc_kw.cob",
+    "printed": "COBOL0900 the ANYCASE keyword ... requires COBOL-2002; COBOL0900 the LOCALE keyword ... requires COBOL-2002",
+    "expected": "2002 phrases refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.30.3 AR2",
+    "check": "OK  §1989:A.2.30.3 AR2  (2.30.3 Arguments)  the text is in AR2"
+   }
+  ],
+  "notes": "One scan (NvScan) swaps the decimal and grouping characters from the program's DECIMAL-POINT IS COMMA flag; every probed form under the clause and the clause-absent arm return the represented value. The edition is consulted on this path only for 2002 additions (ANYCASE, LOCALE, argument-2 content), none of which changes the separator roles.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-AR-A.2.30.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "Attacked the one path CommaFlag (ctx.Data.Configuration.DecimalPointIsComma) for programs whose comma mode is not written in their own SPECIAL-NAMES. §1985:VI.4.2: a contained program has no Configuration Section and the containing program's entries apply to it. Probe nest_nc.cob (outer DECIMAL-POINT IS COMMA + CURRENCY SIGN '#', contained program with no ENVIRONMENT DIVISION): O1 1234.50, I1 '#1.234,5'=1234.50, I2 item '# 9.876,5'=9876.50, I3 '1,5'=1.50: MATCH. Probe sep_nc.cob (separately compiled SEPA with the clause, SEPB without, in one source): A1 1234.50, B1 '$1,234.5'=1234.50, B2 '1.5'=1.50: MATCH, so the clause does not leak to a sibling program. cite.py: 'OK  §1989:A.2.30.3 AR2  (2.30.3 Arguments)  the text is in AR2'; 'OK  §1985:VI.4.2  (4.2 CONFIGURATION SECTION)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

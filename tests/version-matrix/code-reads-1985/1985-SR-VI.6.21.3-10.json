@@ -1,0 +1,74 @@
+{
+ "rule-id": "1985-SR-VI.6.21.3-10",
+ "rule-digest": "09909de3091b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-158",
+  "sources": {
+   "reader": "e524ade77929a094b6df368b7c91463a453eb8a7e9b869f3c7a6a5f7f2a04e17",
+   "refuter": "b4e5b5f6a92461ee143f3d37b758a7c315051cd071178f5173ad872aec149ed4"
+  },
+  "imported": {
+   "reader": "3ce15519bd43195551545472e69f94a88005eb47483c8e92a4687b2bb1c3128c",
+   "refuter": "63384e2c3099dbe7ef4f7d1642d4b32aa42c73698eb20d687f66236250dc8703"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.21.3-10",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 condition-1 of formats 3 and 4 and every condition-2 of format 4's AFTER phrases, inline or out-of-line, TEST BEFORE or TEST AFTER, must accept any 1985 conditional expression (relation including arithmetic expressions and function-identifiers, class including ALPHABETIC-UPPER/LOWER and a class-name, condition-name including THRU ranges, switch-status, sign, negated, combined and abbreviated combined) and evaluate it as a condition; a non-condition and the 2023 UNTIL EXIT must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performUntil; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performUntilTarget; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#performVaryingAfter; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindPerformControl; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.PerformVarying.cs#BindVaryingLevel; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformUntilTarget",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitPerformUntilTarget",
+    "switches": "UNTIL EXIT (perform-until-exit-2023) refused with COBOL0900 below 2023; a plain UNTIL condition is not gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitComparisonExpression",
+    "switches": "the 2002 omitted-argument condition is gated below 2002; no 1985 condition form is touched",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of UntilExit/performUntilTarget in src/WiseOwl.Cobol.Compiler; read BindPerformControl and BindVaryingLevel: the condition binds through the one ConditionBinder.BindCondition with no edition read on the PERFORM side.",
+  "behaviour-differs-by-edition": "yes: UNTIL EXIT is refused at 85 and accepted at 2023; every 1985 conditional expression takes the same binder at both",
+  "witnesses-cover": "part: the witness covers combined, abbreviated, condition-name, sign, negated class, arithmetic relation and nested parentheses in an inline TEST BEFORE format 3, plus one condition-2; it does not exercise TEST AFTER, an out-of-line format 3, a class-name or ALPHABETIC-UPPER/LOWER test, a switch-status condition, a function-identifier, a condition over the varying items, a second AFTER, or the refusals",
+  "probes": [
+   {
+    "class": "c,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/pfc1.cob",
+    "printed": "Q1=002 G1  Q2=002  Q3=000  Q4=003  Q5=004 I=+002 J=-001 K=+001 LV=4  Q6=005 I=+002",
+    "expected": "class-name under TEST AFTER stops at G1 after 2; ALPHABETIC-UPPER after 2; SW1-OFF true at entry (switch off by default, implementor-defined) gives 0; MOD(C,4)=3 at 3; format 4 with two AFTERs and an 88 THRU condition terminates at I=2 after 4 executions with AFTER items at their FROM values; TEST AFTER varying I from -2 executes 5 times"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-158/pfc2.cob",
+    "printed": "COBOL2318 for UNTIL C (data item) and UNTIL I + 1 (arithmetic expression); COBOL0900 PERFORM UNTIL EXIT requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "§1985:VI.6.21.3 SR10 admits only a conditional expression; UNTIL EXIT is not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.21.3 SR10",
+    "check": "OK  §1985:VI.6.21.3 SR10  (6.21.3 Syntax Rules)  the text is in SR10"
+   }
+  ],
+  "notes": "Every UNTIL of a PERFORM is the one performUntilTarget rule, whose condition alternative is the general condition rule bound by the one ConditionBinder, so the range of 1985 conditional expressions is the same as in IF. The only edition arm on the path is the 2023 UNTIL EXIT gate, correct at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.21.3-10",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.6.21.3 SR10 and the 1985 conditional-expression forms (6.3). pu1.cob at --std 85: sign condition over an arithmetic expression (UNTIL I - 4 IS POSITIVE) N=4; IS GREATER THAN OR EQUAL TO under TEST AFTER N=3; abbreviated combined with >= and NOT < (UNTIL I >= 6 OR NOT < 0 AND J = 0) N=0; abbreviated OR list N=3; subscript by an index-name in the condition with VARYING index N=3; qualified condition-name with 88 THRU N=3; NOT NUMERIC class test on a group under TEST AFTER N=1; condition-2 with NOT (... AND (I * J) NOT > 4) in an out-of-line AFTER N=4: all match hand traces. Later-edition forms at 85: IS BOOLEAN refused COBOL1639, USAGE POINTER / NULL refused COBOL0900/COBOL1639; UNTIL I and a truncated relation refused. cite.py: OK §1985:VI.6.21.3 SR10.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,95 @@
+{
+ "rule-id": "1985-GR-IX.2.6.3-1",
+ "rule-digest": "f5322a7e3e71",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-007",
+  "sources": {
+   "reader": "1290c16924a69b66758bfada8555bbb4fea7f9d51b7f458e54c7ce5b78fd4a05",
+   "refuter": "613c822c869be30f20ba72b6ba07bce073a9faceeb08eb1d86231c89e7f04a4f"
+  },
+  "imported": {
+   "reader": "2e7bb34b01f64a43413edc8a21b56319b2d25ce9f96d4a9c3048f8f114b1e96c",
+   "refuter": "4a473e586cbfa902e162efbad7183cdff468ec5c2e962569afe971ba8b806133"
+  }
+ },
+ "reader": {
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.2.6.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 an indexed file's organization is fixed when the file is created (OPEN OUTPUT, or OPEN I-O of an absent optional file); a later OPEN INPUT/I-O/EXTEND through a description of another organization, or an indexed description whose validated fixed attributes differ, must not reinterpret the file: the OPEN is unsuccessful with '39' (§1985:IX.1.3.4), while OPEN OUTPUT creates the file anew.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#FixedAttributeConflict; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#Describes; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Edition",
+    "switches": "the edition the connector was registered with (--std); read only by DialectBehaviors consumers, none of them on the fixed-attribute ('39') comparison",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (inactive at 85): sharing arbitration of OPEN, after and apart from the organization check in FileConnector#Open",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
+    "switches": "the LINE SEQUENTIAL gate (2023 only); INDEXED passes at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectBehaviors./Edition in FileConnector.cs, FileRegistry.cs, KeyedConnector.cs, IndexedConnector.cs, KeyedStore.cs, Store/MetaPage.cs, FixedFileAttributes.cs: the path FileConnector#Open (line 1245) -> KeyedConnector#FixedAttributeConflict -> MetaPage#Describes -> FixedFileAttributes#Conflicts consults no edition; FileControlBinder#MapOrganization is edition-agnostic.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses cover indexed-over-relative, relative-over-indexed and sequential I-O over indexed; not exercised: indexed over a sequential file, OPEN EXTEND over another organization, a file created by OPEN I-O of an absent optional file, the alternate-key count and RECORD VARYING differences, OPEN OUTPUT recreation",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/org1.cob",
+    "printed": "RL-OVER-IX-IO=39 RL-OVER-IX-IN=39 SQ-OVER-IX-IO=39 SQ-OVER-IX-EXT=39 IX-NOALT=39 IX-SAME=00 IX-OVER-RL=39 IX-OVER-SQ-IO=39 IX-OVER-SQ-IN=39",
+    "expected": "'39' for every other organization or differing key set; '00' for the matching description"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/org2.cob",
+    "printed": "EXT-IX-OVER-RL=39 OUT-IX-OVER-RL=00 OUT-W=00 RL-AFTER-RECREATE=39 IX-READ=00 K001DDDD OPT-IO=05 OPT-IO-CLOSE=00 RL-OVER-CREATED-IX=39",
+    "expected": "EXTEND over relative '39'; OPEN OUTPUT creates a new indexed file, which the relative description then cannot open; OPEN I-O of an absent optional file creates an indexed file ('05') a relative description cannot open"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/var1.cob",
+    "printed": "FIXED-OVER-VAR=39 VAR-REOPEN=00",
+    "expected": "a fixed-length description over a RECORD VARYING indexed file conflicts; the creating description reopens"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-007/ref.cob",
+    "printed": "CLOSE IX WITH LOCK at 85: ST=00; at 2023: COBOL0902",
+    "expected": "85 keeps WITH LOCK, the 85 indexed CLOSE format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.6.3 GR1",
+    "check": "OK  §1985:IX.2.6.3 GR1  (2.6.3 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.4e (I-O Status = 39, fixed file attribute conflict)"
+   }
+  ],
+  "notes": "The organization is recorded in the keyed store's header and compared on every non-OUTPUT OPEN of an existing file; OPEN OUTPUT establishes it anew. No edition is consulted on this path, and 85's status set has '39', so the shared arm is the 85 answer."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.6.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.2.6.3 GR1 (OK  §1985:IX.2.6.3 GR1  (2.6.3 General Rules)  the text is in GR1) and §1985:IX.4.4.4 GR8 (OK  §1985:IX.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/srt2.cob --std 85: an indexed file written then OPEN INPUT through a SEQUENTIAL description of the same physical file prints SQ-IN-OVER-IX=00 and READ returns store bytes (with the RecordLayoutNotice on stderr); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-007/srt1.cob: SORT ... USING that sequential description GIVING OU reads 2389 raw 12-byte records of the store, SORT-DONE FS=00; IX-AFTER=00 (the indexed file opens intact afterwards); an indexed description with the prime key at another offset: KEYPOS-DIFF=39. The reader's requirement ('a later OPEN INPUT ... through a description of another organization ... is unsuccessful with 39') overclaims: sequential INPUT over an indexed store is NOT validated (SequentialConnector.cs#FixedAttributeConflict validates only I-O/EXTEND). This does not overturn: GR1 forbids CHANGING the organization, which INPUT never does (the store reopens 00 under its own description), I-O/EXTEND that could change it are 39, OUTPUT recreates, and GR8 makes the validated set implementor-defined; the choice is recorded in docs/conformance/7/DOC-A.1-129.md arm (4) (owner decision, kb/Work PB802/PB1098).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

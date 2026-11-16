@@ -1,0 +1,10 @@
+R1 2two
+R2 INVALID 23
+R3 3thr
+P1 3thr
+P2 2two
+P3 1one
+P4 END 10
+S1 AAAA
+S2 BBBB
+S3 END 10

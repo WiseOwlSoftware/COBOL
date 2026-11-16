@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.2.4.3-1",
+ "rule-digest": "fc7509ec6703",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-118",
+  "sources": {
+   "reader": "96bb92ba553385b02467dab1079c63a5975ffea93eea5ee50d70035c3f8ebae6",
+   "refuter": "939bffc94d17ed56ddb17501859558d5490eb1520bfe2a92f7bf91d6e56ea706"
+  },
+  "imported": {
+   "reader": "e506b598d3d7767abc690155165932360faca16eb50ff448d3fb847bd0d01035",
+   "refuter": "abf78e28519eca7ed071358685b0336ed436fca23a86650ded3dc940bf7f4c70"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.4.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a file control entry with no ACCESS MODE clause has sequential access: its READ is the sequential READ, its WRITE follows sequential-access rules, and statement forms that need random or dynamic access are refused; for the sequential organization this module governs, and equally for the relative and indexed entries whose own rules say the same.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#AccessMode; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapAccessMode; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#KeyedAccess",
+  "edition-consulted": [],
+  "edition-search": "grep -n AccessMode in Binding/Model/FileModel.cs (default FileAccessMode.Sequential) and Binding/FileControlBinder*.cs (set only from a written clause by MapAccessMode), then grep for DialectLevel, DialectBehavior and Edition there: the only edition site in FileControlBinder.cs is the PADDING CHARACTER arm; the default consults no edition and is the code every edition takes",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf19_05 shows the default on a sequential file equal to an explicit ACCESS MODE IS SEQUENTIAL; relative and indexed defaults and the refusal of a random-only form are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/g85_bf19_05.cob",
+    "printed": "SQ:S2 SQ:S1 SQ:S0 SQ:END SQX:S2 SQX:S1 SQX:S0 SQX:END; EXPECT: MATCH",
+    "expected": "the clause-less file reads exactly as the ACCESS MODE IS SEQUENTIAL one"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/accdef.cob",
+    "printed": "USE 00 00 21; IX DESCENDING WRITE 21; RL C03 A01 B02; IX A0a B0b",
+    "expected": "no ACCESS MODE on an indexed file: sequential access, so a WRITE with a key below the previous one is 21 (under random access it would succeed); a relative file with no clause reads sequentially in write order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-118/accref.cob",
+    "printed": "error COBOL0864: READ KEY on 'IX': the file's access mode is SEQUENTIAL (the ACCESS MODE clause is not specified, so sequential access is assumed, ISO §2023:12.4.5.5.3 GR1) ...",
+    "expected": "a random READ (KEY phrase) on a file whose access is sequential by default is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.4.3 GR1",
+    "check": "OK  §1985:VII.2.4.3 GR1  (2.4.3 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "FileModel.AccessMode defaults to Sequential and only a written clause changes it; every statement screen and the keyed connectors read that one value. At --std 85 the COBOL0864 message cites ISO 2023 clauses rather than the 1985 ones; the refusal itself is right, and the citation in the message is a diagnostic-text matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.4.3-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Refusal half: acc1.cob (relative, no ACCESS MODE, READ ... INVALID KEY = Format 2) and acc2.cob (indexed, the same) are refused at --std 85 with COBOL1720 (§1985:VIII.4.5.3 SR2 'Format 1 must be used for all files in sequential access mode'; the message cites §2023 text). Class c: acc3.cob, a relative SELECT with RELATIVE KEY and no ACCESS MODE, is refused COBOL0900 at 85, matching the 1985 format where RELATIVE KEY is a phrase of ACCESS MODE. Runtime acc3b.cob (acc3b-001): relative with no clause reads sequentially (AAA then BBB after DELETE), DELETE without a prior READ 43, WRITE on the I-O sequential-access file 48, indexed REWRITE with a changed prime key 21 (sequential-access rule), sequential READ NEXT RECORD accepted. cite.py: OK §1985:VII.2.4.3 GR1; OK §1985:VIII.4.5.3 SR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

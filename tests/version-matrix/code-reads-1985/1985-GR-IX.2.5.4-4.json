@@ -1,0 +1,110 @@
+{
+ "rule-id": "1985-GR-IX.2.5.4-4",
+ "rule-digest": "142c9c985c3a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-092",
+  "sources": {
+   "reader": "802346bf7c4f3075dd9e8af4a425b7a7f938f3455695110c87108b360860151f",
+   "refuter": "1db6eb72e0544f501bce746da16bb23083a2a78ea1f776434ccf6be424af4050"
+  },
+  "imported": {
+   "reader": "b96dd38fe3907a49d527094df8083ea0e739ffcbd7ba93dfddbe14162e1f6cc7",
+   "refuter": "71a6e8a95d9821b11dc5b7e95ed77ce2816d57fc39d9833f84aab38ce7c139d3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.2.5.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, an ALTERNATE RECORD KEY data-name-1 described in only one record description of the FD must key every record of the file by the same character positions, whichever record description (group, elementary, ODO or variable-length) a WRITE, REWRITE, READ KEY or START names, with GR3's DUPLICATES rule applied to that key.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#AlternateRegistrations; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#KeyWindow; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RecordAreaSendImage; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes ctx.Data.DialectLevel into FileRegisterIndexed (the connector's Edition); the key byte windows are computed with no edition test",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom",
+    "switches": "DialectBehavior.IndexedDuplicateKeyStatusSequentialOnly: at 85 a random READ of a duplicated alternate key answers 02 (§1985:IX.1.3.4); not the key-position semantics of GR4",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "the syntax-rule screen table (Rules85 below 2002); syntax rules only",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlternateKeySuppressWhen",
+    "switches": "refuses the 2023 SUPPRESS WHEN phrase below 2023 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel|CobolVersion|EditionContext|DialectBehaviors over KeyedIoEmitter.cs, FileControlKeyRules.cs, RecordLayout.cs, IndexedConnector.cs, FileRegistry.cs",
+  "behaviour-differs-by-edition": "no: the key-window path is edition-independent; only the 2023 SUPPRESS WHEN and 2002 SOURCE phrases are refused at 85, and the 02 status on a random duplicate read is the 1985 arm of a different rule",
+  "witnesses-cover": "part: g85_f17_07 covers a fixed group record written through a second fixed record and read by random READ KEY; not covered: an elementary, ODO or numeric-redescribed second record, RECORD VARYING, DUPLICATES and the 22 refusal through another record, START through another record's item, REWRITE through another record",
+  "probes": [
+   {
+    "class": "witness",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/g85_f17_07-001",
+    "printed": "MATCH",
+    "expected": "g85_f17_07.out"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/alt4a-001",
+    "printed": "W1 00, W2 02, W3 IK 22, W4 IK 22, W5 00; R1 00 K002123411BTAIL2; R2 02 K001AAAA11; R3 00 K002...; S1 00 (START KEY = C-ALT of REC-C); R4 00 K005ZZZZCREST5; RW 00; R6 00 K002567811BTAIL2; R7 IK 23",
+    "expected": "REC-B's PIC 9(4) and REC-C's X(4) at positions 5-8 are the alternate key (GR4); a repeat without DUPLICATES is 22, with DUPLICATES 02 (§1985:IX.2.5.4 GR3, §1985:IX.1.3.4); REWRITE through REC-B rekeys"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/alt4v-001",
+    "printed": "W1 00, W2 00, W3 IK 22; R1 00 K002BBBBLONGTAIL 16; R2 00 K001AAAA 08; NOPEN 35; NR 47",
+    "expected": "RECORD VARYING 8 TO 16: a 16-character REC-B is keyed by positions 5-8; READ by alternate key after a failed OPEN is 47"
+   },
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/key3o-001",
+    "printed": "W1 00 (ODO record), W2 00 (elementary 01), W3 IK 22, W4 00 (group with 99 and SIGN LEADING SEPARATE); R2 00 K002BBBBEEEEEEEE; R4 00 12GG-005REST",
+    "expected": "out-of-line (ODO, elementary) and numeric records are keyed by the same positions"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-092/alt4c-001",
+    "printed": "COBOL0900: the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "§1985:IX.2.5.2 prints no SUPPRESS phrase: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.5.4 GR4",
+    "check": "OK  §1985:IX.2.5.4 GR4  (║2.5.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:IX.2.5.4 GR3",
+    "check": "OK  §1985:IX.2.5.4 GR3  (║2.5.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:IX.4.7.3 SR4",
+    "check": "OK  §1985:IX.4.7.3 SR4  (║4.7.3 Syntax Rules║)  the text is in SR4"
+   }
+  ],
+  "notes": "The connector registers the alternate key as a byte window of the record area and every keyed verb sends the whole shared area image, so the key description's record is irrelevant to which record carries it. Out-of-line records (ODO, elementary 01) are spliced into the same area; all probes agree with the 1985 text.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.2.5.4-4",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "Attacked what the reader's probes did not try: non-DISPLAY usages overlaying the alternate key window in another record (implicit redefinition of the FD's records in the typed-native model). Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-092/kov-003 (src/kov.cob): REC-A carries ALT-A X(4) at 5-8 and ALT-D X(2) WITH DUPLICATES at 9-10; REC-B puts PIC S9(7) PACKED-DECIMAL (length 4) at 5-8, REC-E puts PIC S9(8) BINARY (length 4) at 5-8. Printed: W1 00, W2 00, W3 IK 22 (same packed +1234567 through REC-B, no DUPLICATES), W3B 02 (packed -1234567 is a distinct key; ALT-D 'RR' a duplicate), W6 00, W7 IK 22 (same binary 1 through REC-E), W8 02; R1 00 K001 +1234567 TAIL01 (READ KEY ALT-A with the bytes saved from ALT-A after writing REC-B), R3 00 K000 +00000001 EREST001; START ALT-D = 'QQ' then N1 02 K001, N2 02 <packed prime key>, N3 00 K00Y, N4 02 K002 RR: duplicates retrieved in release order across three record descriptions, 02 while the next record has the same key, 00 at the last. All as §1985:IX.2.5.4 GR4 and GR3 and §1985:IX.4.9.4 GR16 require. cite.py: 'OK  §1985:IX.2.5.4 GR4  (║2.5.4 General Rules║)  the text is in GR4'; 'OK  §1985:IX.2.5.4 GR3  (║2.5.4 General Rules║)  the text is in GR3'; 'OK  §1985:IX.4.9.4 GR16  (4.9.4 General Rules)  the text is in GR16'. Reader's edition sites (EmitRegistration, ReadRandom's 02 arm, FileControlKeyRules, SUPPRESS refusal) cover the path; I found no further edition switch on the key-window path.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

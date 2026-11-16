@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.4.2.6.1",
+ "rule-digest": "6b805ef5f318",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#IsExceptionObjectRegister; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#Read",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb922_exception_object_reference",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.4.3.6.2, witnessed at 2002 by the cases test-ref names. The read: Identical one-word format; the clause's SRs and GRs are word-identical. Cited: §2002:8.4.2.6."
+}

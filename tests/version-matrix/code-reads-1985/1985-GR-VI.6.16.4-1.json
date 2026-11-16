@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-GR-VI.6.16.4-1",
+ "rule-digest": "f8abb3d1997e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-107",
+  "sources": {
+   "reader": "01efcfaedc4602347e09b5d2941080b0d15f321cf255864b79af999a90dcbd6d",
+   "refuter": "5205f815a52d506844bf53e67f65136e496de0bcae35f2be9b612921d684782c"
+  },
+  "imported": {
+   "reader": "833eca2b902dfe6926f05240a2c363354524f6ca0e8a17800ebe7cf85cf7adcd",
+   "refuter": "a71178dd97687d30f9eb7fb56160a5c3f97f9a160bcad1f22d9eee1e4d902483"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.16.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "The scope of an IF ends at the END-IF at its own nesting level, at a separator period, or, when nested, at an ELSE belonging to an enclosing IF, with ELSE and END-IF each matched to the nearest preceding unmatched, unterminated IF (GR3 as amended), and statement-1/statement-2 may be imperative or conditional statements whose own scope the ELSE also ends; the witnesses cover END-IF matching, nested ELSE/END-IF and phrase association.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#ifStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sentence; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#Associates; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindIf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/ConditionalPhrases.cs#MayAssociate",
+    "switches": "ConstructRegistry.IsAvailable(edition, format) decides which statement a [NOT] conditional phrase inside statement-1 belongs to; it does not touch ELSE, END-IF or the period",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitNextSentenceStatement",
+    "switches": "NEXT SENTENCE archaic warning COBOL0903 at 2023 only; silent at 1985",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ifStatement carries no semantic predicate; grep Edition|DialectLevel in ConditionalPhrases.cs (Associates/MayAssociate only), CobolErrorStrategy.cs (keyword printing and reserved words, not IF scope) and ControlFlowBinder.BindIf (none).",
+  "behaviour-differs-by-edition": "no: IF scope termination is the same greedy parse at every edition",
+  "witnesses-cover": "part: the four witnesses cover END-IF and ELSE matching and phrase association; a three-level IF ended by one ELSE, ELSE ending a conditional ADD inside statement-1, and NEXT SENTENCE inside a nested IF ended by ELSE are probed here",
+  "probes": [
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/if1.cob",
+    "printed": "W1 W2 Y3 Z3B Q4 W5 V5 X6 W6 SE7 N 9 Y8 W9 T10; EXPECT: MATCH (if1.out)",
+    "expected": "a: END-IF ends the IF and the next statement runs; b: one period ends two nested IFs; c: an outer ELSE ends inner IFs of one and two levels; an ELSE ends ADD ... ON SIZE ERROR inside statement-1; NEXT SENTENCE in a nested IF goes past the period"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/ifr1.cob; ifr2.cob; ifr4.cob; ifr5.cob",
+    "printed": "COBOL2269 second ELSE; COBOL0306 END-IF after a period, and a second END-IF, without a matching IF; COBOL2072 ELSE with no statement-1",
+    "expected": "refused: an END-IF or ELSE with no unterminated IF to match"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-107/ifr3.cob",
+    "printed": "IF A = 1 NEXT SENTENCE ELSE DISPLAY \"Y\" END-IF. compiles with no diagnostic at --std 85 (exit 0); --std 2023 gives only the COBOL0903 archaic warning",
+    "expected": "§1985:VI.6.16.3 SR3 forbids NEXT SENTENCE with END-IF: a lead for that syntax rule, not for GR1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.16.4 GR1a",
+    "check": "OK  §1985:VI.6.16.4 GR1a  (6.16.4 General Rules)  the text is in GR1a"
+   },
+   {
+    "cite": "§1985:VI.6.16.4 GR1c",
+    "check": "OK  §1985:VI.6.16.4 GR1c  (6.16.4 General Rules)  the text is in GR1c"
+   }
+  ],
+  "notes": "Scope termination is the parse: statementBlock is statement+ and ANTLR binds ELSE and END-IF greedily to the innermost open IF, which is the amended GR3 matching; a period ends every open IF through sentence. LEAD outside this rule: §1985:VI.6.16.3 SR3 (no NEXT SENTENCE with END-IF) is not enforced at --std 85 (ifr3.cob, exit 0); the grammar comment at CobolControlFlow.g4 lines 202-206 records accepting it as a 2023 determination under kb/Work PB396, which does not weigh 1985's explicit SR3.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.16.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-107/rif-001 at --std 85, EXPECT: MATCH (rif.out): END-IF ends a conditional ADD ... ON SIZE ERROR in statement-2 and the IF (S1 AFTER1); ELSE ends a SEARCH ... AT END ... WHEN inside statement-1 (F2, and E2B on the false branch); an inner END-IF followed by the outer ELSE and END-IF (Y3, Z3B); inner IF/ELSE/END-IF then outer END-IF and a following statement (Y4 Z4 W4); ELSE matched to the outer IF after NOT ON SIZE ERROR holding a delimited IF (N5 AFTER5 6); three nested IFs, END-IF closing only the innermost, two ELSEs matched to the next unmatched IFs, period ending the rest (Y6 AFTER6). Each is the amended GR3 matching and GR1a/b/c. No later-edition IF phrase exists for 1985 to refuse; the 1985-only reading is the NEXT SENTENCE surrogate, covered by the reader's if1. cite.py: OK §1985:VI.6.16.4 GR1c the text is in GR1c; OK §1985:VI.6.16.4 GR3 the text is in GR3. The reader's lead stands outside this rule: §1985:VI.6.16.3 SR3 (no NEXT SENTENCE with END-IF) is not enforced at --std 85 (ifr3.cob), an under-rejection of SR3, not of GR1's scope termination.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.11.3-2",
+ "rule-digest": "8c2114532940",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-12.4.5.11.4-2, witnessed at 2002 by the cases test-ref names. The read: 'magnetic tape file' vs 'tape drive': both require a reel/tape device, which the processor does not have. The 2023 row is DOCUMENTED-NON-SUPPORT (COBOL1778 names the clause at every edition). 2002 gives the same licence: 3.1.5 (processor-dependent elements need not be implemented; the warning mechanism need not diagnose syntax errors within unsupported syntax), B.3 item 10 (STANDARD-1 depends on a reel device) and B.1 item 118 (feature-names are optional). pb292_record_delimiter_witness passes at --std 2002 with COBOL1778. Cited: §2002:12.3.4.11.3 GR2; §2002:3.1.5; §2002:B.3."
+}

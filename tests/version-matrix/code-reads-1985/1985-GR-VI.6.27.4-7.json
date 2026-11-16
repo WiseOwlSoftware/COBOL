@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-7",
+ "rule-digest": "6ad3698d3ce0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-020",
+  "sources": {
+   "reader": "9a63b3fed277446385de8898a222e76481e6475c682b8f44ca24e660af255f78",
+   "refuter": "c9e91ec66f474767e53e2d5c32c2ba438ea62c77a460782be14987ec817b4cc5"
+  },
+  "imported": {
+   "reader": "b4f8b9605cda1d431913cd0e9bab5f0f77d6a7255fe8da6feeb4e3bbbc150865",
+   "refuter": "79c4268652af67fd5fbf41cfae9d82e298c160ea0018473dfed4f055668a3ff8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the TALLYING item identifier-8 is increased by exactly the number of identifier-4 receiving areas acted upon during the statement (GR16), whether the statement ends by exhaustion, by the GR17b overflow, or before any transfer (GR17a: none accessed), the user having initialized it (GR14).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+  "edition-consulted": [],
+  "edition-search": "grep 'Edition|CobolVersion|Std|Dialect|Construct' over StringUnstringBinder.cs (only ctx.Edition as the diagnostic sink for BoundRejected/BoundOperandError reports, no switch); 'Edition|Version|Dialect' over StringEmitter.cs and CobolStringOps.cs (no hit); 'DialectLevel' over MoveEmitter/MoveBinder (only AllLiteralNumber, for an ALL-literal source, not the UNSTRING conceptual item, and file-record phrases); VersionConformancePass.VisitUnstringStatement gates only SR7 (reference-modified sender, Constructs.UnstringSenderReferenceModified2002). The general-rule path consults the edition nowhere; the probes print the same at --std 85 and --std 2023.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c35_unstring_tallying_accessed covers a plain count; the overflow arms, a signed packed start value, receivers not reached after exhaustion, a starting POINTER and a subscript naming the tally are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/gr7.cob",
+    "printed": "A: T=5, 'A,B' INTO X Y Z -> T=07 (Z not accessed); B: 'A,B,C' INTO X Y -> OVF-B T=07; C: POINTER 0 -> OVF-C T=05",
+    "expected": "GR16 initial + receivers accessed; GR17a/GR18 no receiver accessed, tally unchanged"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/gr7.cob",
+    "printed": "E: S999 COMP-3 TS=-2, three receivers -> TS=+001; F: PIC 9 T1=8 + 3 -> T1=1",
+    "expected": "-2+3 = 1; 8+3 = 11 stored in a 1-digit item (high-order truncation of the elementary store)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-020/gr7.cob",
+    "printed": "G: INTO R(T) R(T) R(T) TALLYING T, T=1 -> T=04 [C     ] (subscripts identified once); H: POINTER 4 -> T=02 P=06; I: POINTER 5 -> T=01 P=06; D: no DELIMITED -> T=02",
+    "expected": "GR16 counts only the receivers accessed; §1985:IV.4.3.8 subscripts evaluated once as the first operation"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR7",
+    "check": "OK  §1985:VI.6.27.4 GR7  (║6.27.4 General Rules║)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VI.6.27.4 GR16",
+    "check": "OK  §1985:VI.6.27.4 GR16  (║6.27.4 General Rules║)  the text is in GR16"
+   }
+  ],
+  "notes": "The emitter counts each receiving area acted upon (UnstringExtract returns -1 for one not reached) in an exact Int128 local and adds it to the tally item's content at the end, before the pointer store and the overflow dispatch. All probes match the text and print the same at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output (gr7.85.txt = gr7.23.txt)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,b,f",
+  "evidence": "refute-1985-020/u1.cob at --std 85: 'A,' DELIMITED ',' INTO X Y TALLYING T -> T=01, Y untouched (ZZZ), NOV (the sender exhausted after the delimiter: Y not accessed); 'A,,' INTO X Y Z -> T=02, Y spaces, Z untouched; 'AB*' DELIMITED '**' (partial delimiter at the end) -> T=01; no DELIMITED with separate-sign receiver -> T=02; 'A,,B' INTO X N Y -> T=03. The reader's overflow, signed packed and subscripted-tally probes stand. EcBinder raises EC-OVERFLOW-UNSTRING only as an exception name, no tally effect. cite.py: OK §1985:VI.6.27.4 GR16 (the text is in GR16).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

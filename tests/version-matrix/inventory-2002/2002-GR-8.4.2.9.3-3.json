@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.9.3-3",
+ "rule-digest": "9cd51bb8e8a1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoWrapPropertyOps; src/WiseOwl.Cobol.Compiler/Binding/ObjectPropertyResolver.cs#ResolveObjectProperty",
+ "test-ref": "conformance:cases/8.4.3.9-Object-property/pb1448_group_valued_property",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.9.4-3, witnessed at 2002 by the cases test-ref names. The read: Identical after case ('general rule 1' vs 'General rule 1'); the referenced GR1/GR2 are identical in both editions. Witness passes at 2002. Cited: §2002:8.4.2.9.3 GR3."
+}

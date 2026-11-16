@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-6",
+ "rule-digest": "c0cd4d7d8c6f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "88ced82bbacf59c453ca7156338530d057a15ba5b2ce0a75ef2ddbd23e73fbca",
+   "refuter": "2fdd181e4355e09ef5a3e64e957ad8a0842a81a21d0859b81b277ef1bb6f3ff2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "After an explicit or implicit CANCEL of a program, the only event that re-establishes a logical relationship between the run unit and that program is a later CALL statement naming it: a CALL of another program, a repeated CANCEL, or a re-call of the program's container must not re-establish it, and the next CALL naming it finds it in its initial state and then in last-used state on later calls.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "DialectBehavior.CancelRefusesEveryActiveProgram (from 2002), passed to ProgramTable.Cancel: GR5's active-program refusal; at 85 the never-called main program is a no-action target. It does not touch GR6's re-establishment (CalledSinceCancel and Instance), which is one path at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of CobolVersion|Edition|DialectBehavior over ProgramTable.cs and the CANCEL arm of CallBinder.cs; the only edition input on the CANCEL path is the GR5 flag",
+  "behaviour-differs-by-edition": "no for GR6 itself; the GR5 flag that rides the same call differs (CANCEL of the active main program is no action at 85, EC-PROGRAM-CANCEL-ACTIVE at 2023)",
+  "witnesses-cover": "part: g85_bf06_03 covers CANCEL then a sibling CALL then CALL naming the program; not covered: a repeated CANCEL of a cancelled program, re-establishment by a CALL from another program, a cascade-cancelled contained program re-established only by its own CALL, file connectors after the cancel",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.5.3@1985-CANCEL-STATEMENT/g85_bf06_03.cob",
+    "printed": "S1 S2 T S1 S2 S1, EXPECT MATCH",
+    "expected": "S1 S2 T S1 S2 S1 per GR2, GR5 (X.5.2.4), GR6"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p6a.cob",
+    "printed": "A1 A2 B C A1 A2 X1 Y1 X2 Y2 X1 Y1, EXPECT MATCH",
+    "expected": "CANCEL of a never-called program is no action; a CALL of SUBB does not re-establish SUBA; a second CANCEL is no action; SUBC's CALL naming SUBA re-establishes it (A1 then A2); CANCEL of the container cascades to SUBY (Y1 again)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p6b.cob",
+    "printed": "OPEN 00 WRITE 00 STILL OPEN 00 WRITE 00 OPEN 00 WRITE 00 AFTER CANCEL MAIN",
+    "expected": "after CANCEL the file is closed (GR10) and the re-call starts in its initial state, so OPEN succeeds again"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p6b.cob",
+    "printed": "--std 85: CANCEL \"P6B\" of the main program is no action, AFTER CANCEL MAIN printed; --std 2023: abnormal termination EC-PROGRAM-CANCEL-ACTIVE",
+    "expected": "85 GR5 forbids only a called program that has not executed EXIT PROGRAM; the never-called main falls to GR8 no action"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR6",
+    "check": "OK  §1985:X.5.3.4 GR6  (║5.3.4 General Rules║)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR2",
+    "check": "OK  §1985:X.5.3.4 GR2  (║5.3.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "CallProgram is the only member that sets CalledSinceCancel and creates a cached instance; CancelNode clears both and resets statics, and cascades to contained programs in reverse order. No other runtime path re-instantiates a cancelled program, so only a CALL naming it re-establishes it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r6x.cob at --std 85: X1 Y1 Y2 / X2 Z Y1 Y2 / X3 Y1 / I1 IY1 OPEN 00 / I1 IY1 OPEN 00 / SA1 / SA1 / SA2. That covers what the reader did not try. (1) An explicit CANCEL of a COMMON contained program Y by its container X, on a later activation of X that was not cancelled: the sibling Z's CALL naming Y re-establishes Y in its initial state. (2) A double CANCEL Y is no action, and the next CALL finds Y initial. (3) The implicit cancel of an INITIAL program cascades to its contained IY: IY is initial again and its internal file was closed (GR4, GR10), so a second OPEN OUTPUT gives 00. (4) CANCEL and CALL by an identifier holding a space-padded name, with the re-establishing CALL in the 85 ON OVERFLOW form: OVERFLOW is not taken, SA restarts at 1, then last-used (SA2). Grep of Edition|CobolVersion|Dialect over ProgramTable.cs: only the GR5 flag the reader named. cite.py: OK §1985:X.5.3.4 GR6; OK §1985:X.5.3.4 GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

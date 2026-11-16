@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: g2exo01_exception_object_after_exit_method_and_function_raising
-      *> rules: [2002-GR-8.4.2.6.3-1]
+      *> rules: [2002-GR-8.4.2.6.3-1, 2002-FMT-14.8.13.1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified

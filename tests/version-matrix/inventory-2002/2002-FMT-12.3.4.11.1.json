@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-12.3.4.11.1",
+ "rule-digest": "9f043c47825d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl",
+ "test-ref": "conformance:cases/12.4.5.11-RECORD-DELIMITER/pb292_record_delimiter_witness",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-12.4.5.11.2, witnessed at 2002 by the cases test-ref names. The read: Identical format; STANDARD-1 is processor-dependent in 2002 (B.3 item 10) as in 2023, so the row's accept-inert-with-warning determination has the same licence at 2002. Cited: §2002:12.3.4.11; §2002:B.3."
+}

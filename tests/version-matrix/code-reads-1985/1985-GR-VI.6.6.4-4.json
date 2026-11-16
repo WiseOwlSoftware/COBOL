@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-VI.6.6.4-4",
+ "rule-digest": "2ae62b54341b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-117",
+  "sources": {
+   "reader": "7de40780b8cb6a72515b8717be3d8385b3fadba56275c753953c42e157e51f13",
+   "refuter": "2be25b7c9253341d4e7b43074ba07e54000ba81b034f970d74c6f38fbaf1e711"
+  },
+  "imported": {
+   "reader": "917a129fda67ea7898563df5dafbc5d9ab7efc233a1325cd45350caa46dd3e1a",
+   "refuter": "353433c88274b4ff2a819a2691f50ce73348910f77bfd8ed4bc5f5447e35005d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.6.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every ADD (formats 1, 2 and 3) must carry enough intermediate places that no significant digit of the sum is lost before the store: a carry out of the operands' widest integer part, every fraction digit of the most precise operand (for truncation, ROUNDED and the size-error test), signed and P-scaled operands aligned exactly, within the 18-digit composite of operands of §1985:VI.6.6.3 SR3.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#Fold; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineNative; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#CombineAdditive; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/NumericRenderer.cs#LiteralNum; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitInPlace; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitGiving; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 an unphrased size error is caught and control continues (no fatal EC); it changes the size-error disposition only, not the places carried",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/OptionsBinder.cs#BindParagraph",
+    "switches": "below 2002 the OPTIONS paragraph is inert, so ARITHMETIC stays the default NATIVE mode that NumericRenderer#StandardDecimal reads; the Int128/exact additive lane is the one the latest edition takes with no OPTIONS paragraph",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|CobolVersion|DialectBehavior|ConstructRegistry|DialectLevel in NumericRenderer.cs and ArithmeticEmitter.cs: the only hit is EmitArith's UnphrasedSizeErrorIsFatal; the arithmetic mode is the only other input (OptionsBinder).",
+  "behaviour-differs-by-edition": "no: the places carried are the same; only an unphrased size error's disposition differs (non-fatal at 85, fatal EC from 2002), which is §1985:VI.6.4.2's rule, not this one",
+  "witnesses-cover": "part: g85_bf14_03 covers fraction carry (.75+.75, .004+.006) and an 18th digit of a 17-digit sum; not exercised: the carry detected by ON SIZE ERROR at the 18-digit maximum, an intermediate operand sum larger than the receiver that cancels against a negative receiver, ROUNDED fed by a digit beyond the receiver, P-scaled, signed, COMP and COMP-3 operands, subscripted operands",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/add4.cob",
+    "printed": "F1 SIZE (ADD 999999999999999999 1 GIVING PIC 9(18) ON SIZE ERROR); F2 +099999999999999999 (ADD 9(17) 9(17) TO S9(18) of -99999999999999999); F3 000000000000000000 (ADD ZERO)",
+    "expected": "the 19th carry digit is kept so the size error is detected; the 18-digit intermediate 199999999999999998 plus the negative receiver gives 99999999999999999; zero stays zero"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/add4.cob",
+    "printed": "D1 [2000000000.00000000] (9(9)V9(9)+9(9)V9(9) GIVING 9(10)V9(8) ROUNDED); D2 1000.0001 (9PPP + VPPP9); D3 [ -1000.00] (signed -1.25 + -998.75); D4 +198 (COMP + COMP-3)",
+    "expected": "the excess ninth fraction digit reaches ROUNDED (1999999999.999999998 rounds up); P-scaled operands align exactly; signed sum -1000.00; mixed usages 198"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-117/add4.cob",
+    "printed": "A1 02.7 (ADD TE(1) TE(2) TE(3) GIVING PIC 99V9, each 0.9)",
+    "expected": "2.7: subscripted operands carry their fraction digits"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.6@1985-ADD-STATEMENT/g85_bf14_03.cob",
+    "printed": "witness at 85 uses the 1985 ADD ... TO ... GIVING form; its .out is the reference the probe set extends (L6 1.50, L8 0.01, L9 199999999999999998)",
+    "expected": "as the .out"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.6.4 GR4",
+    "check": "OK  §1985:VI.6.6.4 GR4  (6.6.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.6.6.3 SR3",
+    "check": "OK  §1985:VI.6.6.3 SR3  (6.6.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The additive kernel aligns both operands to the larger scale and adds on Int128 with one carry digit (CombineAdditive), moving to the exact wide form when alignment would leave the 38-digit carrier, so an 18-digit composite can never lose a digit before the single store. Every probe printed the value the text requires. The edition is not consulted on this path except for the unphrased size-error disposition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.6.4-4",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "radd.cob at --std 85 (refute-1985-117/radd-003) aimed at what the reader did not try: an intermediate sum beyond 18 digits that cancels (ADD N18 N18 N18 M18 M18 GIVING S9(18) -> +999999999999999999, no size error); ten 18-digit addends overflowing (A2 SIZE, receiver unchanged 000000000000000000); 5 and 11 copies of V9(18) (A3 4.99999999999999999 truncated; A4 ROUNDED 11.0000000000000000, the 19th/20th fraction digits reaching ROUNDED); mixed COMP-3 and BINARY 18-digit operands into BINARY (A5 +999999999999999999); format 1 TO a negative receiver (A6 +999999999999999999); format 3 ADD CORRESPONDING, which the reader never probed (A7 SIZE 100000000000000000 +0.99999999999999998 60: the pairs without size error stored, the 110 pair left unchanged; A8 likewise with ROUNDED); ADD 1 -1 TO 9(18) at its maximum (A9 unchanged). Every value is the one the text requires. Class c: rcflt.cob (a 2002 floating-point literal) refused COBOL0900 at 85. cite.py: OK §1985:VI.6.6.4 GR4 the text is in GR4; OK §1985:VI.6.6.3 SR3 the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

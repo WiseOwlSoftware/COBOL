@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-13",
+ "rule-digest": "3430a06f1eb2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-124",
+  "sources": {
+   "reader": "1b2c7e83b49f8f430d6815a52c16da392fe89f68c56feb8dac7f732c3645b0b0",
+   "refuter": "061b37d3747cc55b61dd205c30467c93ca1ae687341aad6c80f84af078151f1f"
+  },
+  "imported": {
+   "reader": "6981c3d544a3e46aa4b2d02716b4f42e0faa26d0f35a6e69c82887d55fccb79c",
+   "refuter": "0d6edf79c1a6df6f50c4c0555ceeca2d26f60d1f6537dd1aa968ef43f5d85ab8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-13",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a READ that delivers a record shorter than the minimum or longer than the maximum size of file-name-1's record descriptions is successful with I-O status 04 (§1985:VII.1.3.5), a long record truncated on the right to the maximum, a short one leaving the area to its right undefined; NOT AT END runs, AT END does not, the DEPENDING ON item and any INTO sender see the delivered length.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#NoteRecordRead; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReadLengthStore",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EnsureReaderCoherent",
+    "switches": "SharingFacilityInEffect (DialectBehavior.FileSharingFacility) decides cross-run-unit re-anchoring per frame; off at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts",
+    "switches": "nothing: the min/max test and 04 are edition-free",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep CobolVersion|DialectBehavior|Edition in src/WiseOwl.Cobol.Runtime/IO; RecordLengthConflicts, NoteRecordRead, ReadRecord read",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf18_03 covers Format 3 (RECORD CONTAINS 5 TO 10) short/in/long records; not exercised: Format 2 RECORD IS VARYING with DEPENDING ON, the DEPENDING value and INTO size after a long or short record, a fixed-length file's short final record",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p2gr13.cob",
+    "printed": "R1 NAE 04 03 [AAA         ] / R2 NAE 00 08 / R3 NAE 04 10 [CCCCCCCCCC  ] [CCCCCCCCCC] / R4 END 10 / X1 00 [1111111122] / X2 04 [222222] / X3 END 10",
+    "expected": "VARYING 5 TO 10 DEPENDING: 3-char record 04 (DEPENDING 3, INTO sends 3 per §1985:VII.3.8.4 GR12a), 8-char 00, 15-char 04 truncated to 10 (DEPENDING 10); fixed 10-char description over 16 bytes: a 6-char final record is 04"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.4@1985-READ-STATEMENT/g85_bf18_03.cob",
+    "printed": "MATCH",
+    "expected": "the witness's .out"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-124/p3gr5.cob",
+    "printed": "R2 NAE 04 6 CD0034 [CD0034] / R2 USE-COUNT 0",
+    "expected": "04 is a Successful Completion value, so no USE procedure runs (§1985:VII.1.3.5) and NOT AT END runs"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR13",
+    "check": "OK  §1985:VII.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:VII.1.3.5",
+    "check": "OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.1b"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR12",
+    "check": "OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12"
+   }
+  ],
+  "notes": "One edition-free min/max test (RecordLengthConflicts) for every organization; NoteRecordRead caps the delivered length at the VARYING maximum so the DEPENDING item and INTO sender see the truncated record. A fixed-length record-sequential file carries no length on the medium, so only its partial final record can be a short record (DOC-A.1-146, implementor latitude).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "identical output",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-13",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,e",
+  "evidence": "r2gr13.cob (refute-1985-124/r2gr13-001, --std 85): FW (RECORD IS VARYING 1 TO 20 DEPENDING DW, 01 X(20)) writes records of 3, 15 and 8 characters to r2.dat (each 00); FR on the same file (RECORD IS VARYING FROM 2 TO 20 DEPENDING DR, record descriptions 01 R6 X(6) and 01 R10 X(10), legal by §1985:VII.3.8.3 SR2) reads them INTO T20. Printed: R1 00 03 [ABC...]; R2 00 15 [ABCDEFGHIJ          ] [ABCDEFGHIJ]; R3 00 08. The 15-character record exceeds the maximum size specified by the record description entries (10): the runtime DID truncate it to 10 (characters KLMNO are gone from the record area and from the INTO move) but set I-O status 00, not the record length conflict 04, and left DR = 15 though only 10 characters are in the area. The 3-character record is shorter than the smallest record description (6) and also reads 00. Cause: FileConnector#RecordLengthConflicts tests VaryMin/VaryMax, which FileModel#VaryMin/VaryMax take from the stated integer-2/integer-3, not the record description entries GR13 names. Same output at --std 2023 (r2gr13-002), so cause b. No kb/Work note found (grep of kb/Work for the GR13 wording, VaryMax, integer-3: PB5480 is the keyed zero-byte case, PB2519 report files). cite.py: OK  §1985:VII.4.4.4 GR13 (4.4.4 General Rules) the text is in GR13 ('the record is truncated on the right to the maximum size'); OK  §1985:VII.3.8.4 GR12; OK  §1985:VII.1.3.5 ... GRL2.1b.",
+  "edition-sites-missed": [],
+  "corrected": "PARTIAL (wrong-answer, silent; cause b): a READ of a record longer than the largest record description of file-name-1 but within integer-3 is truncated to that maximum with status 00 instead of 04, and the DEPENDING item reports the untruncated length; a record shorter than the smallest record description but at least integer-2 reads 00. GR13 bounds the conflict by 'the record description entries for file-name-1'. The short leg alone rests on a reading (§1985:VII.1.3.5 words 04 against the fixed file attributes, which integer-2 sets), but the long leg is wrong on either reading: the record was truncated, which GR13 pairs with the 04, or it should not have been truncated at all."
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "The mechanism of kb/Work PB5785 in its `RECORD IS VARYING ... DEPENDING ON` form: status 00, the DEPENDING item says 15, and READ INTO moves 10 characters. By the ruling beside PB5785 the RECORD clause sizes the move, here through the item it names: 15 characters.",
+  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-6.md"
+ },
+ "work": "PB5785"
+}

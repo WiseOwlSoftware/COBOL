@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: pb485-level-66-report-group
-*> rules: [SR-13.15.3-3, SR-13.18.33.3-4]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: pb485-level-66-report-group
+      *> rules: [SR-13.15.3-3, SR-13.18.33.3-4]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> ISO 13.18.33.3 SR4: "Report group description entries that are
       *> subordinate to an RD entry shall have level-numbers with the
       *> values 1 through 49." The report arm admits NO special level at

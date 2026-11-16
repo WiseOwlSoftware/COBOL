@@ -1,0 +1,161 @@
+{
+ "rule-id": "1985-SR-VI.4.5.3-4",
+ "rule-digest": "36ec2ce6aa18",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-050",
+  "sources": {
+   "reader": "8e01fa6550172ba1facd2fe4fb98c158da138cb22996003aea9facaa68b1c334",
+   "refuter": "4bf51d44593d59f61dffc405634107d030ebe087e126c032e9cc19b97e1e25dd"
+  },
+  "imported": {
+   "reader": "47fdbc105261fd647bb5ac6f7dbb461e02fc464ea0f7f2326e368e15f88a7afc",
+   "refuter": "e94d7200a45d970696d5acc292b863e6a5f896b21797dcf43d9448300777297c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.4.5.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "In an ALPHABET literal phrase at --std 85, a numeric literal must be an unsigned integer from 1 through the native character set size (implementor: 65,536), and a nonnumeric literal written with THROUGH or ALSO (either side) must be one character; a multi-character nonnumeric literal without THRU/ALSO stays legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetLiteralPhrase; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#OneCharacterOperands; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#LiteralPhraseOperand; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Literals.cs#IntegerLiteralDigits; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#Build",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFormat",
+    "switches": "hexadecimal X\"..\" and national N\"..\" literal operands are refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAlphabetClause",
+    "switches": "the FOR ALPHANUMERIC/NATIONAL phrase is refused below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.Alphabets.cs#AlphabetBind",
+    "switches": "DialectLevel < 2002 returns early for the LOCALE phrase (not this rule's literal phrase)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition./ConstructRegistry in SpecialNamesBinder*.cs and CollatingModel.cs: the literal-phrase decoder and the ordinal/length checks never consult the edition; only operand-form gates (hex/national literal, FOR phrase) do.",
+  "behaviour-differs-by-edition": "no: the ordinal range and one-character checks are one arm; only later-edition operand forms (X/N literals, FOR NATIONAL, constant-names) are refused at 85",
+  "witnesses-cover": "part: witnesses cover the at-bound count and the ordinal repertoire; they do not exercise signed, zero, over-bound or non-integer numerics, nor the multi-character THRU/ALSO refusal",
+  "probes": [
+   {
+    "class": "b",
+    "file": "src/sr4_zero.cob",
+    "printed": "COBOL1906 the ordinal 0 does not exist in the native alphanumeric character set (65536 characters)",
+    "expected": "refused: value within one through the maximum"
+   },
+   {
+    "class": "f",
+    "file": "src/sr4_over.cob",
+    "printed": "COBOL1906 the ordinal 65537 does not exist",
+    "expected": "refused"
+   },
+   {
+    "class": "f",
+    "file": "src/sr4_huge.cob",
+    "printed": "COBOL1906 the ordinal 123456789012345678 does not exist",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_signed.cob",
+    "printed": "COBOL1906 +5 each numeric literal shall be an UNSIGNED integer",
+    "expected": "refused: must be unsigned"
+   },
+   {
+    "class": "f",
+    "file": "src/sr4_signedneg.cob",
+    "printed": "COBOL1906 -5 UNSIGNED integer",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_decimal.cob",
+    "printed": "COBOL1906 1.5 each noninteger literal shall be an alphanumeric literal",
+    "expected": "refused: numeric must be an integer"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_thrulong.cob",
+    "printed": "COBOL1906 the operand 'AB' is 2 characters",
+    "expected": "refused (SR4b)"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_thru2long.cob",
+    "printed": "COBOL1906 the operand 'CD' is 2 characters",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_alsolong.cob",
+    "printed": "COBOL1906 the operand 'BC' is 2 characters",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "src/sr4_allthru.cob",
+    "printed": "COBOL1906 the operand 'AB' is 2 characters (ALL \"AB\" THRU \"C\")",
+    "expected": "refused: a figurative ALL literal of two characters under THRU"
+   },
+   {
+    "class": "d",
+    "file": "src/sr4_figthru.cob",
+    "printed": "B-EQ-SP=Y B-LT-A=Y",
+    "expected": "legal: \"B\" ALSO SPACE share a position, QUOTE THRU \"#\" one-character figuratives"
+   },
+   {
+    "class": "b",
+    "file": "src/sr4_multi_ok.cob",
+    "printed": "OK",
+    "expected": "legal: \"ABC\" without THRU/ALSO, 65536 at the bound"
+   },
+   {
+    "class": "a",
+    "file": "src/sr4_ordinal_run.cob",
+    "printed": "B-LT-A=Y A-LT-Z=Y Z-LT-Y=Y Y-LT-0=Y 0-EQ-1=Y 1-LT-C=Y",
+    "expected": "67 THROUGH 66 = B,A; \"ZY\" successive; 49 ALSO 50 = '0','1' one position; C unspecified after (GR4d 1-6)"
+   },
+   {
+    "class": "c",
+    "file": "src/sr4_hex85.cob",
+    "printed": "COBOL0900 the hexadecimal alphanumeric literal X\"...\" requires COBOL-2002",
+    "expected": "refused: no hex literal in 1985"
+   },
+   {
+    "class": "c",
+    "file": "src/sr4_national85.cob",
+    "printed": "COBOL0900 the national literal N\"...\" requires COBOL-2002 (plus COBOL1906 class)",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.5.3 SR4a",
+    "check": "OK  §1985:VI.4.5.3 SR4a  (4.5.3 Syntax Rules)  the text is in SR4a"
+   },
+   {
+    "cite": "§1985:VI.4.5.3 SR4b",
+    "check": "OK  §1985:VI.4.5.3 SR4b  (4.5.3 Syntax Rules)  the text is in SR4b"
+   }
+  ],
+  "notes": "Both items are enforced on one edition-blind path; the run-time collating order built from numeric ordinals and multi-character literals matches GR4d. The diagnostics cite §2023:12.3.7.3 SR14 at --std 85 (wording only, not a conformance fault).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same COBOL1906 refusals (sr4_thrulong at 2023 printed the same line)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.4.5.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Read §1985:VI.4.5.3 SR4a/SR4b and GR4d 1-6. Probes under refute-1985-050 at --std 85 aimed at literal-2/literal-3 (the reader tested mostly literal-1): r4_also_zero (\"A\" ALSO 0) COBOL1906 ordinal 0; r4_also_over (ALSO 70000) and r4_thru_over (THRU 70000) COBOL1906 out of range; r4_thru_signed (THRU +70) COBOL1906 UNSIGNED; r4_also3 (\"A\" ALSO \"B\" ALSO \"CD\") COBOL1906 'CD' 2 characters; r4_also_lit1 (\"AB\" ALSO \"C\") COBOL1906 'AB'; r4_empty_thru (\"\" THRU \"C\") COBOL1906 zero-length plus COBOL0900 zero-length literal requires 2014 (class c); r4_float (1.0E2) COBOL1906 plus COBOL0900 floating literal requires 2002 (class c); r4_quote_thru (\"#\" THRU \"\"\"\", a one-character literal written with a doubled quote) accepted and ran H-LT-Q=Y Q-LT-A=Y (descending range honored); r4_lead0 (00068 THROUGH 0067 \"Z\" ALSO 0090) ran C-LT-B=Y B-LT-Z=Y Z-EQ-Y=Y Y-LT-A=Y (leading-zero unsigned integers legal, ordinals right). cite.py: OK §1985:VI.4.5.3 SR4a; OK §1985:VI.4.5.3 SR4b; OK §1985:VI.4.5.4 GR4d.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

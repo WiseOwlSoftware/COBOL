@@ -1,9 +1,9 @@
-*>--- conformance-case
-*> id: w73b-pb1237-fd-sd-without-select
-*> rules: [SR-13.4.5.3-1, SR-13.4.6.3-1]
-*> source-format: free
-*> portable: unverified
-*>---
+      *>--- conformance-case
+      *> id: w73b-pb1237-fd-sd-without-select
+      *> rules: [SR-13.4.5.3-1, SR-13.4.6.3-1]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
       *> kb/Work PB1237 / PB1290 - ISO 13.4.5.3 SR1 (FD) and 13.4.6.3 SR1
       *> (SD): "File-name-1 shall be specified in a file control entry."
       *> F9 and S9 have no SELECT. Before the fix both compiled clean and

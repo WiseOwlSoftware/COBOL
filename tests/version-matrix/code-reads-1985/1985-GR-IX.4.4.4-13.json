@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-IX.4.4.4-13",
+ "rule-digest": "035b8c1415f0",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-095",
+  "sources": {
+   "reader": "9a2ce2b731564d79fdb18fed5634bd5b41a2329f4f9a6f0d1eaeafa5176eaa61",
+   "refuter": "c1b6810ed6330f619b4728026e7f448015f803896c57f72d4a002cb599b888ab"
+  },
+  "imported": {
+   "reader": "d38e95f7dd6286dc8d6de9426643b1d1738dd42bfbae13c219ee918fcf1b2e5f",
+   "refuter": "efc5edae061a2b164620c6dd4b407dffb7f4f1f0a5f09324058a32a45d5ba2d4"
+  }
+ },
+ "reader": {
+  "verdict": "CONFORMS",
+  "edition-search": "grep -rn 'Edition|CobolVersion|DialectBehavior|IsActive' over src/WiseOwl.Cobol.Runtime/IO/{FileConnector,FileRegistry,KeyedConnector,IndexedConnector,FixedFileAttributes}.cs and SequentialIoBinder/SequentialIoEmitter/StatementValidation: the keyed OPEN body (KeyedConnector.OpenCore), the presence/authority/attribute/write-capability steps of FileConnector.OpenOnceEntered and the emitter take no edition; only the sharing and lock sites listed do",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "rule-id": "1985-GR-IX.4.4.4-13",
+  "requirement": "At --std 85 OPEN I-O of an indexed file succeeds only on a file that supports the I-O-mode operations of Table 2 (READ, REWRITE, DELETE, START in sequential/dynamic access, WRITE in random/dynamic access) and then places it in the open mode for both input and output; a file that cannot support them is unsuccessful with '37' (IX.1.3.4 (4)c.2), the file unaffected.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Open; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenArbitrated; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileSupport.cs#PermitsWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 a host share-mode refusal of the OPEN answers '30' instead of '61' (catch in FileConnector.OpenOnceEntered)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "Table 19 arbitration runs only where the sharing facility is in effect; at 85 every same-run-unit OPEN is a normal open",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
+    "switches": "default sharing mode: AllOther at 85 (no facility), mode-dependent from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ClosedWithLock",
+    "switches": "DialectBehavior.CloseWithLockLocksFileConnector: at 85 CLOSE WITH LOCK locks the physical file ('38' through any file-name), from 2002 the file connector",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "carries --std into CobolFile.RegisterIndexed so FileConnector.Edition is 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "behaviour-differs-by-edition": "no for this rule: the I-O mode, the write-capability '37' and the keyed OPEN body are edition-free; only the 2002+ sharing facility (Table 19, '61') differs, and that is not this rule",
+  "witnesses-cover": "part: g85_f19_04 exercises dynamic access I-O only; the sequential and random access columns of Table 2 and the '37' refusal of a file that cannot be written are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p13io.cob",
+    "printed": "R-OPEN 00 R-WRITE 00 R-READ 00 02BBBB R-REWRITE 00 R-DELETE 00 / S-OPEN 00 S-START 00 S-READ 00 02XXXX S-REWRITE 00 S-READ 00 04DDDD S-DELETE 00 S-WRITE 48 (USE entered) / X-OPEN 35, then READ 47",
+    "expected": "the I-O column of Table 2 is permitted in random and sequential access; WRITE in sequential access I-O is not; an absent non-optional file is 35 (IX.1.3.4 (4)b) and a READ after the failed OPEN is 47"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-095/src/p13ro.cob",
+    "printed": "I-O 37, READ-AFTER-FAILED 47, EXTEND 37, INPUT 00, READ 00 01AAAA, OUTPUT 37, INPUT2 00, READ2 00 01AAAA (host file made read-only after src/p13mk.cob created it)",
+    "expected": "'37' for I-O (IX.1.3.4 (4)c.2) and for EXTEND/OUTPUT (c.1) on a file that will not support write; INPUT a normal open; the file not affected (GR19)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.4.4 GR13",
+    "check": "OK  §1985:IX.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.4c.2"
+   },
+   {
+    "cite": "§1985:IX.4.4.4 GR19",
+    "check": "OK  §1985:IX.4.4.4 GR19  (4.4.4 General Rules)  the text is in GR19"
+   }
+  ],
+  "notes": "FileConnector.OpenOnceEntered asks the write capability once for every non-INPUT mode on a present file (HostFile.PermitsWrite gives '37') before KeyedConnector.OpenCore attaches the store; the 85 arm is the same code as 2023 for this rule. A read-only host file answered 37 for I-O, EXTEND and OUTPUT and stayed intact."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.4.4-13",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.4.4.4 GR13 whole, Table 2 and IX.1.3.4 (4)c.2; read FileConnector.OpenOnceEntered (lines 1192-1311): the write-capability probe for every non-INPUT mode on a present file (HostFile.PermitsWrite -> '37') and TakeRunUnitFileLock, which returns null at 85 (SharingFacilityInEffect false), so no '61' path. Probe r13c.cob (class c, the 2002+ OPEN I-O ... WITH LOCK): refused at 85, COBOL5506 'The word LOCK is not expected here'. Probe r17.cob: OPEN INPUT F I-O F G gave G (random access) I-O 00, F's WRITE in input mode 48. Reader's read-only-file probe (37 for I-O, file intact) stands. cite.py: OK §1985:IX.4.4.4 GR13 'supports the input and output operations that are permitted for an indexed file'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

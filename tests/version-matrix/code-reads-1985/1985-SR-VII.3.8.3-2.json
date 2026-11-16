@@ -1,0 +1,84 @@
+{
+ "rule-id": "1985-SR-VII.3.8.3-2",
+ "rule-digest": "28be4b2b52e8",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-063",
+  "sources": {
+   "reader": "744802b4a1638c5c431fb1f76c34b64e12b58abc808032548c8227e0f0587f59",
+   "refuter": "d5e9c43dcd3ea7e29f71d48982b13f6c75fb4801c66b52167ec1743c03a77248"
+  },
+  "imported": {
+   "reader": "801bf120b526fdf740a417efabe7fda0c2d94244bbc319f31f0e3f3ee9fc5017",
+   "refuter": "fdbcb7382e86ede7715350b72fb1d9a0f88c28afa61da19b1ff749b49b8cd157"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.3.8.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for a Format 2 RECORD IS VARYING clause, every record description of the file whose minimum character-position count (GR5: elementary items, redefinitions and renamings excluded, ODO tables at minimum occurrences) is below integer-2, or whose maximum (ODO at maximum) is above integer-3, must be refused; with FROM or TO alone only the stated bound applies; descriptions exactly at the bounds are legal.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MinRecordSize; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#MaxRecordSize",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRule.AppliesAt",
+    "switches": "edition.DialectLevel >= Since; both SR4 rows (lower and upper) carry Since 85, so they apply at 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#RecordClauseRule.CitationAt",
+    "switches": "citation text only: Of1985 VII.3.8.3 SR2 below 2002",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read Screen and the Rules table whole; the predicates (MinBytes < Lower, MaxBytes > Upper) are edition-free.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb721 below-minimum / above-maximum witness two plain records; ODO minimum/maximum, REDEFINES exclusion, a second record description, and FROM-only / TO-only clauses are covered by the probes",
+  "probes": [
+   {
+    "class": "a,b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr2_bad.cob",
+    "printed": "COBOL2010 x5 citing ANSI §1985:VII.3.8.3 SR2: F1 'R1 describes 5 to 20 bytes, fewer than integer-2 = 6'; F2 'R2 5 to 20 bytes, more than integer-3 = 19'; F3 'R3B describes 11 bytes' (REDEFINES not counted) > 10; F4 (TO only) R4 12 > 10; F5 (FROM only) second record R5B 3 < 4",
+    "expected": "each refused"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/rec_sr2_ok.cob",
+    "printed": "LEN 08 AAABBB (ODO record 5..20 and a 30-position-with-REDEFINES record under FROM 5 TO 20 accepted; write 8 positions, read back 8)",
+    "expected": "accepted at the bounds; GR11 sets data-name-1 to the record length read"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-063/so_redef.cob",
+    "printed": "Stack overflow in StorageFormPass.Classify at --std 85 and --std 2023, also with the RECORD clause removed (so_redef_norec.cob); a single-record FD with the same REDEFINES compiles (so_redef_one.cob)",
+    "expected": "a legal FD whose SECOND record contains a REDEFINES compiles; this is kb/Work PB5729, independent of the RECORD clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.3 SR2",
+    "check": "OK  §1985:VII.3.8.3 SR2  (3.8.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR5",
+    "check": "OK  §1985:VII.3.8.4 GR5  (3.8.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The screen implements both obligations as two rows at every edition, cites the 1985 rule at 85, and its message body keeps 2023 wording ('bytes'). A REDEFINES in the second or later FD record crashes the compiler before the screen runs (PB5729, already filed; not this rule's defect, it crashes without any RECORD clause).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB5729 (the REDEFINES-in-later-record crash met while probing)"
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VII.3.8.3-2",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "refute-1985-063/rec2_r.cob --std 85: SD S1 VARYING FROM 6 TO 20 with a 5-position record refused COBOL2010 'fewer than integer-2 = 6'; SD S2 FROM 1 TO 4 with 5 refused 'more than integer-3 = 4' (the rule reaches sort-merge files and the screen does too); FD F1 FROM 9 TO 10 with a 10-position record plus 66 RN1 RENAMES R1A THRU R1B accepted (renamings excluded per GR5). rec2_sync.cob (01 R1: X + 9(9) COMP SYNC under TO 5) accepted and the record file holds a 5-byte record (od: 05 00 00 00 41 00 00 00 07), so the screen and the storage agree on no implicit synchronization FILLER. cite.py: OK §1985:VII.3.8.3 SR2; OK §1985:VII.3.8.4 GR5 'plus any implicit FILLER due to synchronization'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

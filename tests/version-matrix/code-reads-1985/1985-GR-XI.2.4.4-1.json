@@ -1,0 +1,123 @@
+{
+ "rule-id": "1985-GR-XI.2.4.4-1",
+ "rule-digest": "3d85068bc636",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "ce9cc5d44f1ae6753151c9bd73826a39973f91e0d30fa8685cc80854f17ab155",
+   "refuter": "9a8340f67caf93e237e0d6479ef5322da36aaf6ea48ce317d24270f31e15ecae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XI.2.4.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "A pointer rule: the I-O-CONTROL paragraph of the Sort-Merge module takes the SAME RECORD/SORT/SORT-MERGE AREA clause exactly as XI.2.5 specifies it (all three spellings, repeated, beside the Sequential I-O SAME AREA, RERUN and MULTIPLE FILE TAPE clauses in any order per VII.2.10.3 SR1, the paragraph closed by one period), with XI.2.5's syntax and general rules applied to it.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#ioControlClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#sameClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods; src/WiseOwl.Cobol.Frontend/Cst/ClosedFormats.cs#ByContext",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "below 2002 a report file may appear in any number of SAME SORT/SORT-MERGE AREA clauses (XIII.2.4.3 SR2); from 2002 it is barred from them; sort-merge and plain-file rows are the same at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitApplyCommitClause",
+    "switches": "APPLY COMMIT (a 2023 clause) refused below 2023 with COBOL0900",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/ClosedFormatPass.cs#ScreenParagraphPeriods",
+    "switches": "nothing by edition: the single closing period is asked at every edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: 85 also admits RERUN and MULTIPLE FILE TAPE beside the SAME clauses (COBOL0902 from 2002) and refuses APPLY COMMIT; a report file's limit in SAME SORT AREA clauses differs below 2002; the SAME RECORD/SORT/SORT-MERGE forms themselves are handled the same",
+  "witnesses-cover": "part: g85_bf07_10 covers the three spellings in one paragraph with legal membership; not covered: the clauses in another order beside SAME AREA, RERUN and MULTIPLE FILE TAPE, a MERGE file in SAME SORT-MERGE AREA, the refusal half of XI.2.5.3 (SR4, SR5b) and the paragraph's period, a later edition's APPLY COMMIT",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XI.2.4@1985-I-O-CONTROL-PARAGRAPH/g85_bf07_10.cob",
+    "printed": "O1=ABC / T1=XYZ / U1=123, EXPECT MATCH",
+    "expected": "as the witness derives"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5a.cob",
+    "printed": "MERGE=ABC / SORT=CBA, EXPECT MATCH",
+    "expected": "SAME SORT AREA, SAME RECORD AREA (sort file with a plain file, comma separator), SAME AREA and SAME SORT-MERGE AREA (merge file) in mixed order; MERGE USING two files GIVING OF1 then SORT USING OF1 with an output procedure both work"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5g.cob",
+    "printed": "MERGE=ABC / SORT=CBA, EXPECT MATCH at 85 (MULTIPLE FILE TAPE first, RERUN ON file EVERY END OF REEL between SAME clauses)",
+    "expected": "VII.2.10.3 SR1: the order of the clauses is immaterial; the 85-only clauses are accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5f.cob",
+    "printed": "85: COBOL6530 RERUN integer-1 RECORDS needs implementor-name-1 (VII.2.12.3 SR3); COBOL6815 MERGE files on one MULTIPLE FILE reel (XI.4.1.3 SR6); 2023 adds COBOL0902 for both removed clauses",
+    "expected": "the probe's first draft broke both 85 rules, so both refusals are correct"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5d.cob",
+    "printed": "error COBOL0900 APPLY COMMIT clause requires COBOL-2023",
+    "expected": "the 85 I-O-CONTROL format has no APPLY clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5b.cob",
+    "printed": "error COBOL3407 a separator period follows 'SAME SORT AREA FOR SF W1 W2' and the paragraph goes on",
+    "expected": "the format prints one period after the run of clauses"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5c.cob",
+    "printed": "error COBOL2738 sort file 'SF' named in a file-area format clause; error COBOL2738 SAME RECORD AREA shares files with SAME AREA but omits W1, W2",
+    "expected": "XI.2.5.3 SR4 bars a sort file from SAME AREA; VII SAME clause SR3c gives the second"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p5e.cob",
+    "printed": "error COBOL2738 sort file 'SF' named in more than one sort-merge-area format clause",
+    "expected": "XI.2.5.3 SR5b"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.2.4.4 GR1",
+    "check": "OK  §1985:XI.2.4.4 GR1  (2.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VII.2.10.3 SR1",
+    "check": "OK  §1985:VII.2.10.3 SR1  (2.10.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR5",
+    "check": "OK  §1985:XI.2.5.3 SR5  (2.5.3 Syntax Rules)  the text is in SR5"
+   }
+  ],
+  "notes": "The grammar's ioControlParagraph takes any sequence of SAME, RERUN, MULTIPLE FILE and APPLY COMMIT clauses; BindIoControl records each SAME format's membership and ScreenSameOperands/ScreenSameClauses ask XI.2.5.3's rules. The refusals cite the 2023 clause numbers (12.4.6.4.3) at --std 85, which names the right rule in another edition's numbering; that is a diagnostic-text matter, not a behaviour difference.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XI.2.4.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read XI.2.4.2 (the bracketed paragraph body: clauses and their period optional; AREA and FOR not underlined, so optional words) and XI.2.5.3 SR1-SR6. Probes under refute-1985-141/src at --std 85: r5a SAME SORT AREA FOR SF alone -> COBOL2738 names only one file (format needs file-name-2); r5b SAME SORT AREA FOR SF EF with FD EF IS EXTERNAL -> COBOL2738 external file connector (SR2); r5e contained program's SAME naming the container's GLOBAL file -> COBOL2738 not in this FILE-CONTROL (SR1); r5d empty I-O-CONTROL. paragraph runs RAN; r5f SAME SORT SF W1 / SAME RECORD AREA SF F1 / SAME SORT-MERGE FOR MF W1 (optional words omitted) runs and the SAME RECORD AREA aliases (F1REC=WXYZ after MOVE to SREC); r5c aliasing both directions (F1REC=WXYZ, SREC=ABCD). cite.py: OK §1985:XI.2.4.4 GR1; OK §1985:XI.2.5.3 SR2; OK §1985:XI.2.5.3 SR1. Diagnostics cite 2023 numbering at --std 85 (text only, as the reader noted).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

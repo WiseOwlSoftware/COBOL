@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb317_open_no_rewind
       *> rules: [GR-9.1.13.2-6, GR-14.9.27.4-11, DOC-A.1-104]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,93 @@
+{
+ "rule-id": "1985-GR-VI.6.17.4-6",
+ "rule-digest": "66d978b7163c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-108",
+  "sources": {
+   "reader": "c4d8ea3f55533cfd9c7fc21d4a5f675ed97b33f34413b57b8c9128bcff9d8b8c",
+   "refuter": "7a42d0b149501cc49f783fe50cd656d1bdc95f450fc95f3cd24d2ca0b6437430"
+  },
+  "imported": {
+   "reader": "894e85e90d706df94f16a9559e4ac9c712898e4bd6dce8b6fa8caa3516b3c5e5",
+   "refuter": "c3b15819da56462560d95b46e5e5db48cc76fb24eb273a7f6af5d91501494a1d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.17.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At 1985 the identifier-1 operands are initialized one after another left to right (the later operand wins on shared storage, and a subscript in a later operand sees what an earlier operand stored), and within a group the affected elementary items are initialized in definition order, every occurrence included.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#Bind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#BindInitializeTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ExpandInitialize; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundTree.cs#BoundImplicitSeries; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf13_04 runs a multi-operand INITIALIZE without overlap; overlapping operands in both orders, a subscript the statement changes and multi-level tables were added by the probes",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini6.cob",
+    "printed": "T1[0000] T2[    ] T3[3][0030] T4[7z7z7z7z7z7z] T5[0 0 0 0 0 0 ] T6[zz0 zz0 0 0 ] T7[    ] T8[  00]",
+    "expected": "identifier-1s set left to right so the last one on shared storage wins (GR6); INITIALIZE I TE(I) sets I first and TE(3) after it, as GR2's series of MOVEs; every occurrence of a two-level table in definition order"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-108/ini4.cob",
+    "printed": "T1[abcd05ef05] T2[    00  00] T3[0000] T4[00  ] T5[00cd] T6[000   ] T7[09cd000900]",
+    "expected": "subordinate REDEFINES items R2, R3 (and R3A/R3B under it) and K3 excluded; an identifier-1 that has REDEFINES (R2, R3, K3) or sits under one (R3A, 01 WB REDEFINES WA) is initialized (GR4)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.17.4 GR6",
+    "check": "OK  §1985:VI.6.17.4 GR6  (║6.17.4 General Rules║)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.6.17.4 GR2",
+    "check": "OK  §1985:VI.6.17.4 GR2  (║6.17.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "Bind builds one BoundInitialize per identifier-1 in source order and ExpandInitialize walks Children in declaration order, so the order is structural. INITIALIZE I TE(I) storing into TE(3) follows GR2's series of MOVE statements; 1985 states no earlier subscript evaluation for INITIALIZE.",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeStatement",
+    "switches": "refuses WITH FILLER (COBOL0830), TO VALUE (COBOL0831), TO DEFAULT (COBOL0832) and THEN REPLACING (COBOL0833) below 2002; the plain REPLACING form passes untouched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeCategoryName",
+    "switches": "refuses the eight post-85 category words (NATIONAL, BOOLEAN, the pointer words...) below their edition; the five 1985 words are ungated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitInitializeReplacingItem",
+    "switches": "refuses a REPLACING item naming more than one category below 2002 (PB5180)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateCobol85VariableOccurrence",
+    "switches": "refuses identifier-1 described with or containing OCCURS DEPENDING ON below 2002 (1985 SR4)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateInitialize",
+    "switches": "the figurative-to-numeric MOVE edition rows per REPLACING NUMERIC/NUMERIC-EDITED sender",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|ConstructRegistry|CobolVersion|Constructs. in InitializeBinder.cs, BoundInitialize.cs and InitializeEmitter.cs: ctx.Edition there is only the diagnostic sink; the expansion, qualification, sender choice and emitter are edition-blind, and the edition is consulted only by VersionConformancePass's post-85 surface gates.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "ini1, ini4, ini5 and ini6 print the same output at --std 2023",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.17.4-6",
+  "refutation": "UPHELD",
+  "classes": "a,f",
+  "evidence": "Re-read the reader's ini6 output against GR6 and the receiver-subscript timing of a series of MOVEs: T1/T2 last operand wins, T3 INITIALIZE I TE (I) REPLACING NUMERIC BY 3 stores into TE(3) after I is set. My rini2 D-series and rini1 E-series confirm definition order across occurrences and groups (D1[  0  0], E2/E3/E4 positions). No reading of GR6 found under which the output is wrong. cite.py: OK  §1985:VI.6.17.4 GR6 (reader's line).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

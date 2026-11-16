@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.25.4-8",
+ "rule-digest": "44ddc6a71b19",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-114",
+  "sources": {
+   "reader": "32db31cf70df4d7ef171121d99fc690dc0e1d97df0cddda97380269810bbef58",
+   "refuter": "aa64710d97213766196ce98602e344723f873c20e8a0d1c2c55173f6ebd4c986"
+  },
+  "imported": {
+   "reader": "8af4ccf34974b7fc64741d9547a09804d752758bfd257bea3422b05ab916fd4c",
+   "refuter": "de5888a422703c614b4e63400a6b23ca5cfcba4b2d113281cdf400cefbeab8f5"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.25.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a STRING statement changes only the character positions of identifier-3 into which a character was transferred (positions at and after the initial pointer and before the final pointer); every other position of identifier-3 (an elementary alphanumeric or numeric DISPLAY item, or a group, fixed or variable length) keeps the content it had before the statement, including when overflow stops the transfer at once or part way through.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#ReadImage; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "edition-consulted": [],
+  "edition-search": "grep of DialectLevel|CobolVersion|DialectBehaviors|ConstructDialectStatus|EditionContext|Edition.Year over StringEmitter.cs, CobolStringOps.cs, ReceivingStore.cs, PlaceRenderer.cs, OperandText.cs: no hit. StringUnstringBinder.cs uses ctx.Edition only as the diagnostic sink (Report/Error), never to switch. EcEmitter#EmitOverflow is gated by >>TURN enablement, which does not exist at 85, so it emits nothing there and at 2023 without >>TURN alike.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf02_03 S7 exercises an alphanumeric receiver with POINTER; not exercised are a group receiver with COMP-3/signed subordinates, a numeric DISPLAY receiver, a variable-length (ODO) receiver, and overflow before or during the transfer.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/strgr8.cob",
+    "printed": "D1 QRCD -12345 -678 XYZ / D2 QR++ -12345 -678 XYZ +05 / D3 773456 / D4 -5234",
+    "expected": "group with COMP-3 and signed subordinates: only positions 1-2 (then 3-4) change, the COMP-3 and signed items keep their values; PIC 9(6) 123456 -> 773456; S9(4) -1234 with '5' at position 1 -> -5234"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/strgr8.cob",
+    "printed": "A1 OVF / A1 [ZZxyz!] +07 / A1b [ZZxyz!  ]",
+    "expected": "ODO receiver of current size 6, pointer 6: position 6 written, overflow, positions 1-5 and the positions beyond the current size untouched"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/strgr8.cob",
+    "printed": "F1 OVF [12345678] +00; F2 OVF [12345678] -03; F3 OVF [123456AB] +09; F4 OVF [123456AB] +09; B1 [12345678]",
+    "expected": "pointer 0 or negative: nothing changes; pointer 7 with 4 characters: positions 7-8 only; pointer 9: nothing; a sending item delimited at its first character: nothing changes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-114/strrm.cob",
+    "printed": "error COBOL1651: STRING INTO 'WS-R(3:2)': identifier-3 shall not be reference-modified",
+    "expected": "refused (§1985:VI.6.25.3 SR3), so no partial-receiver form reaches GR8"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.25.4 GR8",
+    "check": "OK  §1985:VI.6.25.4 GR8  (║6.25.4 General Rules║)  the text is in GR8"
+   }
+  ],
+  "notes": "The emitter reads identifier-3's whole current image into one local, StringTransfer writes only the positions the pointer designates, and the image is stored back through the receiver's own writer, so untouched positions round-trip. Probed groups with COMP-3 and overpunched subordinates, numeric DISPLAY receivers, an ODO receiver and every overflow start: all keep the untouched positions. Edition-invariant path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.25.4-8",
+  "refutation": "UPHELD",
+  "classes": "d,c",
+  "evidence": "Read StringEmitter#EmitString/WriteImage: the whole receiver image is read, StringTransfer writes the pointer-designated positions, stored back via WriteGroupValue (group) or the character-image writer (numeric DISPLAY promoted to image storage, PB4089); no edition switch (grep of DialectLevel|DialectBehavior|Edition.|CobolVersion over StringEmitter.cs: none). Probes at --std 85 (refute-1985-114/rstr8-001, rstr8b-001): PIC 9(4) 'A' at pos 1 -> image [A234]; S9(4) trailing overpunch -1234, '7' at pos 4 -> [1237], '9' at pos 2 -> [193M] -1934; SIGN LEADING SEPARATE -123, 'X' at pos 1 -> [X123], 'Z' at pos 4 -> [-12Z]; group with COMP-3 subordinate partly overwritten (pos 3, pos 4) and group with BINARY subordinate (pos 3): untouched bytes compare equal to the saved image; group with JUSTIFIED RIGHT and numeric-edited subordinates: [x  AB 12.50Q] then [x  AB 17.50Q] (no re-justify, no re-edit); group with SYNC COMP slack bytes: bytes 2-8 kept, Y-N +0077. cite.py: OK  §1985:VI.6.25.4 GR8  the text is in GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

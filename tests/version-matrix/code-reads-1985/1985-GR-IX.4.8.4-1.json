@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-1",
+ "rule-digest": "0af3d17d273e",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-100",
+  "sources": {
+   "reader": "9e5378ca97e05fd5bba8e43b47606534d2137f69cec1c0ac4622461e31655677",
+   "refuter": "d533c8ba750d4760f54937eb28a6e16e363a8fe9911fbefaff634446f6c2abe6"
+  },
+  "imported": {
+   "reader": "7745891b1ee4ccc7fdf8cfbdca8630cd1d1ef2753526aadb43b5d9fe3f798a66",
+   "refuter": "e154878ccb22a512b358f0262a2b46633af439af307fb6ee7313b4682a30949c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.8.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a declarative may appear in any program (containing, contained or separately compiled); it runs when its USE condition occurs during that program's execution; only declaratives of the program containing the failing statement qualify (plus, by X.5.5.4 GR1, a containing program's USE GLOBAL ones, nearest first); if none qualifies none runs.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#ContainerUsesOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUseStatement",
+    "switches": "refuses USE Format 3/4 (EC model, COBOL0877) and Format 1 without AFTER/PROCEDURE below 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
+    "switches": "DialectLevel >= 2002 adds the SORT GR17 exit filter to an EC-free __RunUse; 1985 takes the bare try/finally invoker (same dispatch, same return to the caller)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#InForce",
+    "switches": "Year < 2002: the 1985 mandatory INVALID KEY/AT END phrase (COBOL6826) when no applicable USE exists; its HasApplicableUse test (BinderDriver.ContainerUsesOf = GLOBAL container USEs only) mirrors the GR1 scope",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "UseTierEmitter.EmitScopeTiers (file-name tier then open-mode tier), DispatchEmitter.EmitUseMachinery (__IoCheck), ProgramEmitter.EmitRunGlobalUse/ChainHasGlobalUse consult no edition: grep of Edition|CobolVersion|DialectLevel|DialectBehavior|IsAtLeast over DispatchEmitter.cs, UseTierEmitter.cs, EcEmitter.cs, ProgramEmitter.cs, SequentialIoEmitter.cs, KeyedIoEmitter.cs, IoStatusClass.cs, ProcedureTableBuilder.cs; UseTierEmitter's remarks record the tiers as edition-invariant by determination (kb/Work PB344).",
+  "behaviour-differs-by-edition": "no (for the selection; 1985 refuses the 2002 EC-model USE formats, which this rule does not cover)",
+  "witnesses-cover": "part: g85_bf10_12 gives each program its own declarative; it does not exercise a contained program with no declarative under a non-GLOBAL container USE, a GLOBAL container USE, or a separately compiled callee with none",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr1_scope_open.cob",
+    "printed": "NOD RESUMED 35 / SEP RESUMED 35 / OUT END (no OUTER-NONGLOBAL-DECL line)",
+    "expected": "the container's non-GLOBAL USE ON INPUT does not run for the contained or the separately compiled program's failed OPEN; none is executed"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr1_global_open.cob",
+    "printed": "OUTER-GLOBAL-DECL / A RESUMED 35 / B-OWN-DECL / B RESUMED 23 / SEP RESUMED 35 / OUT END",
+    "expected": "the container's USE GLOBAL serves a contained program without one; the contained program's own USE takes precedence; the separately compiled program gets none (X.5.5.4 GR1 a-c)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr1_scope.cob",
+    "printed": "COBOL6826 at both READs of the programs with no applicable USE (the non-GLOBAL container USE is not counted)",
+    "expected": "§1985:IX.4.5.3 SR7 refusal: no applicable USE exists for those files"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr1_ec_refuse.cob",
+    "printed": "COBOL0878 exception-name EC-I-O requires --std 2002; COBOL0877 USE AFTER EXCEPTION CONDITION requires COBOL-2002",
+    "expected": "the 2002 Format 3 USE is not 1985 source"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.4.8@1985-USE-STATEMENT/g85_bf10_12.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.4 GR1",
+    "check": "OK  §1985:IX.4.8.4 GR1  (4.8.4 General Rules)  the text is in GR1",
+    "quoted": "Only a declarative within the separately compiled program that contains the statement which caused the qualifying condition is invoked"
+   },
+   {
+    "cite": "§1985:X.5.5.4 GR1",
+    "check": "OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1",
+    "quoted": "If no qualifying declarative is found, none is executed"
+   }
+  ],
+  "notes": "Selection is the file-name tier, the open-mode tier, then the outward GLOBAL walk (__RunGlobalUse); it never crosses a CALL into a separately compiled program. Every probe printed what the 1985 text requires.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.8.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "r1_prec.cob (--std 85, run dir refute-1985-100/r1_prec-001): a GLOBAL file and four contained programs with layered declaratives. Printed OUTER-GF-NAMED 23 for a contained program whose own declarative (ON OUTPUT) does not qualify (X.5.5.4 GR1a then b), OUTER-GLOBAL-IO for D's failed OPEN I-O when D's own USE GLOBAL ON OUTPUT does not qualify, D-GLOBAL-OUTPUT for the 22 in E (contained in D) and OUTER-GLOBAL-IO for E's failed OPEN I-O (rule c, two levels out). r1_ext.cob (r1_ext-001): an EXTERNAL indexed file in a separately compiled callee with no declaratives while the caller holds USE ON XF and USE ON INPUT: CALLEE RESUMED 35 / CALLEE IO RESUMED 35 with no caller declarative, then the caller's own OPEN gives CALLER-XF-NAMED 35. cite.py: 'OK  §1985:IX.4.8.4 GR1  (4.8.4 General Rules)  the text is in GR1' for 'If no qualifying declarative exists in the separately compiled program, no declarative is executed'; 'OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1' for 'only the first qualifying declarative will be selected for execution'. Grep of DialectLevel|EditionContext|CobolVersion|DialectBehavior|IsAtLeast over DispatchEmitter.cs, UseTierEmitter.cs, ProgramEmitter.cs, EcEmitter.cs finds only DispatchEmitter.cs:523 (the reader's EmitRunUseBody site). The contained-program precedence question for a file named by a container's GLOBAL USE is recorded under GR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

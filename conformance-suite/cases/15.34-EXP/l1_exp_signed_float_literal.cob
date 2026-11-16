@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_exp_signed_float_literal
 *> rules: [FMT-15.34.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

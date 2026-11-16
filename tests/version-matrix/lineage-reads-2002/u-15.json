@@ -1,0 +1,1600 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-15 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-15",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-13.16.27.2-2",
+   "2002-SR-13.16.27.2-3",
+   "2002-GR-13.16.27.3-1",
+   "2002-GR-13.16.27.3-3",
+   "2002-SR-13.16.29.2-1",
+   "2002-GR-13.16.30.3-3",
+   "2002-SR-13.16.31.2-2",
+   "2002-GR-13.16.31.3-1",
+   "2002-GR-13.16.31.3-3",
+   "2002-SR-13.16.32.2-1",
+   "2002-GR-13.16.32.3-6",
+   "2002-SR-13.16.33.2-11",
+   "2002-SR-13.16.33.2-3",
+   "2002-SR-13.16.33.2-6",
+   "2002-GR-13.16.33.3-4",
+   "2002-GR-13.16.33.3-5",
+   "2002-GR-13.16.33.3-8",
+   "2002-SR-13.16.35.2-1",
+   "2002-SR-13.16.36.2-1",
+   "2002-SR-13.16.36.2-2",
+   "2002-SR-13.16.36.2-8",
+   "2002-GR-13.16.36.3-11",
+   "2002-GR-13.16.36.3-12",
+   "2002-GR-13.16.36.3-13",
+   "2002-GR-13.16.36.3-2"
+  ],
+  "pointers": {
+   "2002-SR-13.16.27.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.29.3-2",
+    "similarity": 0.936
+   },
+   "2002-SR-13.16.27.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.29.3-3",
+    "similarity": 0.941
+   },
+   "2002-GR-13.16.27.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.29.4-1",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.27.3-3": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-13.18.29.4-3",
+    "similarity": 0.89
+   },
+   "2002-SR-13.16.29.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.31.3-1",
+    "similarity": 0.921
+   },
+   "2002-GR-13.16.30.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.32.4-3",
+    "similarity": 0.938
+   },
+   "2002-SR-13.16.31.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.33.3-2",
+    "similarity": 0.988
+   },
+   "2002-GR-13.16.31.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.33.4-1",
+    "similarity": 0.912
+   },
+   "2002-GR-13.16.31.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.33.4-3",
+    "similarity": 0.994
+   },
+   "2002-SR-13.16.32.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.34.3-2",
+    "similarity": 0.898
+   },
+   "2002-GR-13.16.32.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.34.4-6",
+    "similarity": 0.994
+   },
+   "2002-SR-13.16.33.2-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.35.3-11",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.33.2-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.35.3-3",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.33.2-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.35.3-6",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.33.3-4": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.35.4-4",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.33.3-5": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.35.4-5",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.33.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.35.4-8",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.35.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-13.18.37.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-13.16.36.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.38.3-1",
+    "similarity": 0.911
+   },
+   "2002-SR-13.16.36.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-13.18.38.3-2",
+    "similarity": 0.771
+   },
+   "2002-SR-13.16.36.2-8": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-13.18.38.3-8",
+    "similarity": 0.936
+   },
+   "2002-GR-13.16.36.3-11": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.38.4-11",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.36.3-12": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.38.4-12",
+    "similarity": 0.999
+   },
+   "2002-GR-13.16.36.3-13": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-13.18.38.4-13",
+    "similarity": 1.0
+   },
+   "2002-GR-13.16.36.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-13.18.38.4-2",
+    "similarity": 0.95
+   }
+  }
+ },
+ "read": {
+  "slice": "u-15",
+  "seed": null,
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/",
+  "runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/runcase.py (twin conformance cases at --std 2002; log run2002.txt) and probe.sh (probe programs; outputs under out/<name>-<std>.out)",
+  "cases": [
+   {
+    "rule-id": "2002-SR-13.16.27.2-2",
+    "to": [
+     "SR-13.18.29.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.27 GROUP-USAGE clause, SR2 (BIT phrase)",
+    "clause-2023": "13.18.29 GROUP-USAGE clause, SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GROUP-USAGE BIT groups (not strongly typed) in file, working-storage, local-storage and linkage records: USAGE BIT implied; no USAGE clause written on the subject; every subordinate elementary item usage bit, boolean; every subordinate group GROUP-USAGE BIT",
+     "the same entries in a record description under a CD (communication section)",
+     "a group-level USAGE BIT on an enclosing group is not a USAGE clause of the subject (2002 USAGE GR1: it applies only to elementary items)"
+    ],
+    "evidence-2002": {
+     "subordinate group conflict (WS)": "covered by cases/13.18.29-GROUP-USAGE/pb79-group-usage-subordinate-conflict and pb3682-typedef-group-usage-bit-over-national: refused COBOL1653 at --std 2002 (run2002.txt)",
+     "explicit USAGE on a BIT subject (WS)": "not shown by the twin (pb79-group-usage-explicit-usage has only the NATIONAL leg); probe ws_gu_bit_usage.cob refused COBOL1653 at 2002",
+     "non-boolean elementary subordinate (WS)": "not shown by the twin; probe ws_gu_bit_sub.cob refused COBOL0881 at 2002",
+     "USAGE BIT implied, positive program": "not shown at 2002: the twin's pb79_group_usage_bit does not translate at --std 2002 (FUNCTION CONVERT, COBOL1502); probes ws_gu_beh.cob and ws_gu_implicit.cob run correctly at 2002",
+     "CD record": "not shown by the twin; probes cd_gu_bit_usage.cob (COBOL1653), cd_gu_bit_sub.cob (COBOL0881), cd_gu_bit_subgrp.cob (COBOL1653) refused at 2002; cd_gu_beh.cob runs"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.27.2 SR2",
+      "quote": "A USAGE clause shall not be specified for the subject of the entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.29.3 SR2",
+      "quote": "A USAGE clause shall not be explicitly specified for the subject of the entry, but USAGE BIT may be implicitly specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR1",
+      "quote": "it applies only to each elementary item in the group and not to the group itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format (GROUP-USAGE IS BIT|NATIONAL) identical. The words differ: 2002 'A USAGE clause shall not be specified', 2023 'shall not be explicitly specified ... but USAGE BIT may be implicitly specified'. In 2002 a group-level USAGE applies only to elementary items (USAGE GR1), so the subject never has an implicit USAGE clause and the two sentences forbid the same program (probe ws_gu_implicit.cob: an enclosing USAGE BIT group over a GROUP-USAGE BIT subgroup is accepted at 2002 and 2023). The difference is evidence and reach: in 2002 the rule also governs a record under a CD, and two of the twin's legs have no witness at 2002 (the BIT explicit-USAGE and non-boolean-subordinate legs; the positive witness does not translate at 2002). Every probe shows the compiler correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_gu_bit_usage.cob; cd_gu_bit_sub.cob; cd_gu_bit_subgrp.cob; ws_gu_bit_usage.cob; ws_gu_bit_sub.cob; ws_gu_implicit.cob; ws_gu_beh.cob; cd_gu_beh.cob",
+    "widening": "2023 SR1 adds 'not a variable-length group' (a 2023-only construct); no 2002 program is affected",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the CD record and for the BIT explicit-USAGE and non-boolean-subordinate legs (the probes named are candidates)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/out/cd_gu_bit_usage-2002.out, cd_gu_bit_sub-2002.out, ws_gu_bit_usage-2002.out, ws_gu_implicit-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.27.2-3",
+    "to": [
+     "SR-13.18.29.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.27 GROUP-USAGE clause, SR3 (NATIONAL phrase)",
+    "clause-2023": "13.18.29 GROUP-USAGE clause, SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "GROUP-USAGE NATIONAL groups in file, working-storage, local-storage, linkage records: USAGE NATIONAL implied; no USAGE clause on the subject; subordinate elementary items usage national",
+     "any signed numeric subordinate described with SIGN IS SEPARATE (a program violating it is to be diagnosed)",
+     "subordinate groups GROUP-USAGE NATIONAL",
+     "the same in a record under a CD"
+    ],
+    "evidence-2002": {
+     "explicit USAGE, subordinate group conflicts, TYPE/SAME AS legs (WS)": "covered by pb79-group-usage-explicit-usage, pb3682-typedef-group-usage-national-over-bit, pb3682-type-subject-..., pb3682-same-as-subject-...: refused COBOL1653 at --std 2002 (run2002.txt)",
+     "positive national group": "covered by cases/13.16-Data-description/pb79_group_usage_national: MATCH at --std 2002",
+     "non-national elementary subordinate": "probe ws_gu_nat_sub.cob / cd_gu_nat_sub.cob: refused COBOL0881 at 2002",
+     "SIGN IS SEPARATE leg": "NOT shown and WRONG: probe ws_gu_nat_sign.cob (01 G GROUP-USAGE NATIONAL. 10 N PIC S9(3) USAGE NATIONAL.) compiles clean, rc=0, at --std 2002 and --std 2023; cd_gu_nat_sign.cob the same at 2002",
+     "CD record": "probes cd_gu_nat_usage.cob (COBOL1653), cd_gu_nat_sub.cob (COBOL0881) refused at 2002; cd_gu_nat_sign.cob wrongly accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.27.2 SR3",
+      "quote": "Any signed numeric data items shall be described with the SIGN IS SEPARATE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.29.3 SR3",
+      "quote": "Any signed numeric data items shall be described with the SIGN IS SEPARATE clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.50.3 GR4",
+      "quote": "and to which no SIGN clause applies, has an operational sign",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same format; the explicit/implicit wording differs as in SR2 and means the same in 2002 (USAGE GR1). But the SIGN IS SEPARATE sentence, identical in both editions, is not enforced: a signed national numeric with no SIGN clause under a GROUP-USAGE NATIONAL group is accepted at 2002 and 2023. The twin's own note says the SIGN half 'rides the numeric-national leg (staged with it)' and none of its five witnesses has a signed numeric. Site: src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup checks only subordinate GROUP-USAGE agreement; no screen of SignKind for national-group numerics exists. Also reaches CD records.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_gu_nat_sign.cob; cd_gu_nat_sign.cob; cd_gu_nat_usage.cob; cd_gu_nat_sub.cob; ws_gu_nat_sub.cob",
+    "widening": "2023 SR1 excludes variable-length groups (2023-only)",
+    "class": "other",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a signed national numeric without SIGN IS SEPARATE under GROUP-USAGE NATIONAL is acceptance (should be a diagnostic); a fix, then a 2002 witness (also a CD-record witness)",
+    "compiler-at-2002": "wrong: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_gu_nat_sign.cob ('01 G GROUP-USAGE NATIONAL.' / '10 N PIC S9(3) USAGE NATIONAL.' / 'STOP RUN.') at --std 2002: no diagnostic, rc=0 (out/ws_gu_nat_sign-2002.out); expected a refusal per §2002:13.16.27.2 SR3 'Any signed numeric data items shall be described with the SIGN IS SEPARATE clause'. Same at --std 2023 (the 2023 row SR-13.18.29.3-3 CONFORMS is short)."
+   },
+   {
+    "rule-id": "2002-GR-13.16.27.3-1",
+    "to": [
+     "GR-13.18.29.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.27 GROUP-USAGE clause, GR1 (BIT)",
+    "clause-2023": "13.18.29 GROUP-USAGE clause, GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) the bit group is a bit data item, class and category boolean",
+     "b) treated as an elementary PICTURE 1(m) item (MOVE pad/truncate in boolean positions, comparison)",
+     "c) subordinates allocated per §2002:8.5.1.5.3 (same text as §2023:8.5.1.6.3)",
+     "in WS/LS/linkage/file records and in records under a CD"
+    ],
+    "evidence-2002": {
+     "all legs, WS": "not shown by the twin at 2002: its only witness pb79_group_usage_bit does not translate at --std 2002 (FUNCTION CONVERT COBOL1502, run2002.txt); probe ws_gu_beh.cob at 2002: G1=[101000000000] (zero fill right), A=111 B=10000 C=1111 from B\"11110000111101\" (truncated to 12), EQ against B\"100000000000\", LENGTH 12, BYTE-LENGTH 2 (bits packed), identical at 2023",
+     "CD record": "probe cd_gu_beh.cob at 2002: identical output"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.27.3 GR1",
+      "quote": "a bit group is treated as though it were an elementary data item of usage bit and class and category boolean described with PICTURE 1(m)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.29.4 GR1",
+      "quote": "a bit group is treated as though it were an elementary data item of usage bit and class and category boolean described with PICTURE 1(m)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.1.5.3",
+      "quote": "is at the next bit position in storage when that item is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.6.3",
+      "quote": "is at the next bit position in storage when that item is",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical but for the cross-reference number; the referenced alignment clauses (2002 8.5.1.5.3, 2023 8.5.1.6.3) are word-for-word the same. The requirement is the same, but the twin's evidence does not hold at 2002 (its witness uses FUNCTION CONVERT, a 2023 function) and the 2002 scope includes CD records. Probes show the compiler correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_gu_beh.cob; cd_gu_beh.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the bit group behaviour (the twin's witness does not translate at 2002) and for a bit group in a CD record (ws_gu_beh.cob, cd_gu_beh.cob are candidates)",
+    "compiler-at-2002": "correct (out/ws_gu_beh-2002.out, out/cd_gu_beh-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.27.3-3",
+    "to": [
+     "GR-13.18.29.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.27 GROUP-USAGE clause, GR3",
+    "clause-2023": "13.18.29 GROUP-USAGE clause, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "every group item that is not strongly typed and has no GROUP-USAGE specified or implied is an alphanumeric group: WS/LS/linkage/file/report records",
+     "groups in records under a CD"
+    ],
+    "evidence-2002": {
+     "WS": "not shown by the twin at 2002: pb79_group_usage_bit (FUNCTION CONVERT) and pb61_length_byte_length_rule_branches (DYNAMIC LENGTH, PHYSICAL) both fail to translate at --std 2002 (run2002.txt); probe ws_gu_beh.cob at 2002: group of N(2) without GROUP-USAGE LENGTH 4 (alphanumeric positions) vs 2 with GROUP-USAGE NATIONAL; USAGE BIT group without GROUP-USAGE LENGTH 1 (alphanumeric)",
+     "CD record": "probe cd_gu_beh.cob at 2002: identical"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.27.3 GR3",
+      "quote": "If a GROUP-USAGE clause is not specified or implied for a group item that is not strongly typed, that group item is an alphanumeric group item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.29.4 GR3",
+      "quote": "that is not strongly typed and is not a variable-length group, that group item is an alphanumeric group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'and is not a variable-length group', a 2023-only construct, so the 2002 requirement is the 2023 one for every 2002 program. But neither twin witness translates at 2002, and the 2002 scope includes CD records. Probes show the compiler correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_gu_beh.cob; cd_gu_beh.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for the default alphanumeric group (WS and CD record); ws_gu_beh.cob / cd_gu_beh.cob are candidates",
+    "compiler-at-2002": "correct (out/ws_gu_beh-2002.out, out/cd_gu_beh-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.29.2-1",
+    "to": [
+     "SR-13.18.31.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.29 INVALID clause, SR1",
+    "clause-2023": "13.18.31 INVALID clause, SR1 (2023 marks the clause obsolete)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "an INVALID WHEN clause on a data description entry whose subject is not of class index, object or pointer is legal (WS/LS/linkage/file, CD records)",
+     "one whose subject is of class index, object or pointer is a violation"
+    ],
+    "evidence-2002": {
+     "legal INVALID WHEN": "NOT shown and WRONG: probe ws_invalid_ok.cob (05 X PIC X INVALID WHEN X = \"Z\".) refused at --std 2002 with COBOL1708 (VALIDATE facility declined)",
+     "violation": "refused, but by the facility decline, not by this rule (ws_invalid_ptr.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.29.2 SR1",
+      "quote": "The subject of the entry shall not be of class index, object, or pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.31.3 SR1",
+      "quote": "The subject of the entry shall not be of class index, message-tag, object, or pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "The twin row is DOCUMENTED-NON-SUPPORT under 2023's Annex A.4.14 optional-module licence. 2002 makes only Annex A (communications) optional (3.1) and the processor-dependent B.3 list does not name VALIDATE or its data clauses, so 2002 requires the INVALID clause; the compiler declines it at --std 2002. The same VALIDATE defect the q-15 reader recorded for 2002-GR-13.16.29.3-1..3; this rule is one more row it reaches.",
+    "licence-2002": "none",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_invalid_ok.cob; ws_invalid_ptr.cob",
+    "widening": "2023 adds message-tag (2023-only class)",
+    "class": "other",
+    "needs": "2002 requires the INVALID clause (VALIDATE facility); the compiler declines it",
+    "compiler-at-2002": "wrong: ws_invalid_ok.cob ('01 R.' / '05 X PIC X INVALID WHEN X = \"Z\".' / MOVE, DISPLAY, STOP RUN) at --std 2002 exits 65 with error COBOL1708 'the INVALID WHEN clause of the §2023:13.16.2 validation-clauses group ...' (out/ws_invalid_ok-2002.out); expected acceptance per §2002:3.1.1. Known VALIDATE defect (q-15)."
+   },
+   {
+    "rule-id": "2002-GR-13.16.30.3-3",
+    "to": [
+     "GR-13.18.32.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.30 JUSTIFIED clause, GR3 (refers to 14.5.8)",
+    "clause-2023": "13.18.32 JUSTIFIED clause, GR3 (refers to 14.6.8)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "non-JUSTIFIED receiving elementary items aligned per §2002:14.5.8 (numeric by decimal point, numeric-edited, alphabetic/alphanumeric/national left with space fill, boolean left with zero fill) in WS/LS/linkage/file/report records",
+     "the same for items in records under a CD",
+     "screen items (declined under §2002:B.3 item 1)"
+    ],
+    "evidence-2002": {
+     "non-CD alphanumeric/national/boolean": "covered by cases/13.18.32-JUSTIFIED/l1c16_justified_spellings and l1c16_justified_omitted_national_boolean: MATCH at --std 2002 (run2002.txt)",
+     "numeric / numeric-edited / alphabetic": "probe ws_just_omit.cob at 2002: NUM 012.3 and 765.4, NE '  1.50', AB 'QR '",
+     "CD record": "probe cd_just_omit.cob at 2002: identical to ws_just_omit (AX 'ABC'/'A  ', NX 'AB ', BX 1100/1011)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.30.3 GR3",
+      "quote": "When the JUSTIFIED clause is omitted, the standard rules for aligning data within an elementary item apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.32.4 GR3",
+      "quote": "When the JUSTIFIED clause is omitted, the standard rules for aligning data within an elementary item apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "The standard rules for positioning data within an elementary item depend on the category of the receiving item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.8.1",
+      "quote": "information is aligned and transferred into receiving data items in a manner dependent on the category",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence; the referenced clause was rewritten (2002 14.5.8 'Alignment of data within data items', six rules; 2023 14.6.8 'Alignment and transfer', subclauses adding standard floating-point usages), but every 2002 case has the same alignment in 2023. The difference is reach: a non-JUSTIFIED receiving item in a CD record (same finding as q-15 for GR1/GR2 of this clause). Probes correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_just_omit.cob; ws_just_omit.cob",
+    "widening": "2023 14.6.8 also covers standard floating-point receivers (2014/2023 usages)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for default alignment into items of a CD record (cd_just_omit.cob is a candidate)",
+    "compiler-at-2002": "correct (out/cd_just_omit-2002.out vs out/ws_just_omit-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.31.2-2",
+    "to": [
+     "SR-13.18.33.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.31 Level-number, SR2",
+    "clause-2023": "13.18.33 Level-number, SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "entries subordinate to an FD or SD: 66, 88, 1-49",
+     "entries subordinate to a CD: 66, 88, 1-49 (the 2002 text names the CD)"
+    ],
+    "evidence-2002": {
+     "FD/SD": "covered by cases/8.5.1.3.2-Level-numbers/pb485-level-77-file-section: refused COBOL1746 at --std 2002",
+     "CD": "not shown by the twin; probe cd_lev77.cob refused at 2002 with COBOL1746 'data description entries subordinate to a CD entry shall have level-numbers with the values 66, 88, or 1 through 49 (ISO/IEC 1989:2002 13.16.31 SR2)'"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.2 SR2",
+      "quote": "Data description entries subordinate to a CD, FD, or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.3 SR2",
+      "quote": "Data description entries subordinate to a FD or SD entry shall have level-numbers with the values 66, 88, or 1 through 49.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a) named in the rule's own words: 2002 says 'CD, FD, or SD', 2023 'FD or SD'. Probe correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_lev77.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a level-77 entry under a CD (cd_lev77.cob)",
+    "compiler-at-2002": "correct (out/cd_lev77-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.31.3-1",
+    "to": [
+     "GR-13.18.33.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.31 Level-number, GR1",
+    "clause-2023": "13.18.33 Level-number, GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "first entry of each record description (file, WS, LS, linkage) and of each report group is level 1",
+     "first entry of each record description under a CD"
+    ],
+    "evidence-2002": {
+     "file/WS/report": "covered by pb1246-section-first-entry-not-level-1, pb1246-fd-first-entry-not-level-1, l1m8-report-first-entry-not-level-1, pb2516-constant-ends-record (refused at 2002), pb1246_level_hierarchy_legal, pb2516_constant_between_records (MATCH at 2002)",
+     "CD": "not shown by the twin; probe cd_lev05.cob refused COBOL2771 at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.3 GR1",
+      "quote": "The level-number 1 identifies the first entry in each record description or report group.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.4 GR1",
+      "quote": "The level-number 1 identifies the first entry in each record description, type declaration, or report group.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'type declaration' (a level-1 TYPEDEF entry is already a record-level entry in 2002, so no 2002 program differs). The 2002 scope includes records under a CD (A.1.1.2), which the twin cannot show. Probe correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_lev05.cob",
+    "widening": "2023 names type declarations explicitly",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a CD record whose first entry is not level 1 (cd_lev05.cob)",
+    "compiler-at-2002": "correct (out/cd_lev05-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.31.3-3",
+    "to": [
+     "GR-13.18.33.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.31 Level-number, GR3",
+    "clause-2023": "13.18.33 Level-number, GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "multiple 01s under an FD or SD implicitly redefine one area",
+     "multiple 01s under a CD implicitly redefine one area",
+     "multiple 01s under an RD do not"
+    ],
+    "evidence-2002": {
+     "FD/SD": "covered by pb836_implicit_record_redefinition and pb981_fd_pointer_record: MATCH at --std 2002 (pb981_fd_variable_length_records does not translate at 2002: DYNAMIC LENGTH)",
+     "CD": "not shown by the twin; probe cd_lev01_redef.cob at 2002: after MOVE \"ABCDEFGHIJ\" TO R1, R2=[ABC] F1=[ABCDE] G3=[ABCD]; after MOVE \"XY\" TO R2, R1=[XY DEFGHIJ...]"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.31.3 GR3",
+      "quote": "Multiple level 1 entries subordinate to a CD, FD, or SD entry represent implicit redefinitions of the same area.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.33.4 GR3",
+      "quote": "Multiple level 1 entries subordinate to a FD or SD entry represent implicit redefinitions of the same area.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "reason": "Cause (a) in the rule's own words ('CD, FD, or SD' vs 'FD or SD'). Probe correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_lev01_redef.cob",
+    "widening": null,
+    "class": "communication-reach",
+    "needs": "a 2002 witness for multiple 01 records under a CD sharing the area (cd_lev01_redef.cob)",
+    "compiler-at-2002": "correct (out/cd_lev01_redef-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.32.2-1",
+    "to": [
+     "SR-13.18.34.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.32 LINAGE clause, SR1",
+    "clause-2023": "13.18.34 LINAGE clause, SR2 (2023 SR1 is a new no-OCCURS rule)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-1..4 may be qualified (a permission)",
+     "data-name-1..4 reference elementary unsigned numeric integer items (violations diagnosed)"
+    ],
+    "evidence-2002": {
+     "elementary unsigned integer": "covered by pb524-linage-operand-not-unsigned-integer (refused COBOL2025 at 2002) and pb524_linage_operand_shapes (MATCH at 2002)",
+     "qualification": "not shown by the twin (none of its operands is qualified); probe linage_qual.cob at 2002 uses PS/FS/TP/BT OF L1 with same-named items in L2: page size 5 from L1 is honoured (EOP at line 4, overflow after 5), identical at 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR1",
+      "quote": "Data-name-1, data-name-2, data-name-3, data-name-4 may be qualified and shall reference elementary unsigned numeric integer data items.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR2",
+      "quote": "Data-name-1, data-name-2, data-name-3, and data-name-4 shall reference elementary unsigned numeric integer data items.",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule's own text adds a permission ('may be qualified') the pointer's words and witnesses lack. The compiler honours it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/linage_qual.cob",
+    "widening": "2023 adds SR1 (no OCCURS-subject operand), which no 2002 program can violate without subscripts the format does not allow",
+    "class": "own-text",
+    "needs": "a 2002 witness for qualified LINAGE data-names (linage_qual.cob)",
+    "compiler-at-2002": "correct (out/linage_qual-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.32.3-6",
+    "to": [
+     "GR-13.18.34.4-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.32 LINAGE clause, GR6",
+    "clause-2023": "13.18.34 LINAGE clause, GR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) literal values",
+     "b1) data-names read at OPEN OUTPUT",
+     "b2) re-read at WRITE ADVANCING PAGE",
+     "b3) re-read at page overflow",
+     "page size > 0, footing in range, else EC-I-O-LINAGE (Fatal in both editions' tables), LINAGE-COUNTER 0 and latched until CLOSE"
+    ],
+    "evidence-2002": {
+     "a, b1, b3, the violation and latch": "covered by pb526_linage_ec_condition [2002,2023], pb526_linage_ec_condition_85 [85,2002], pb526_linage_ec_checking: all MATCH at --std 2002 (run2002.txt)",
+     "b2": "the twin's Gr6b2_AdvancingPageReEvaluation runs at another edition; confirmed at 2002 by probe linage_b2.cob (W2 LC=3 unchanged mid-page; ADVANCING PAGE with size 0 -> status 90, LC 0, latched after the size is restored; identical at 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.3 GR6",
+      "quote": "If the value does not conform to these two rules, the EC-I-O-LINAGE exception condition is set to exist.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR6",
+      "quote": "If the value does not conform to these two rules, the EC-I-O-LINAGE exception condition is set to exist.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'the LINAGE -COUNTER special register' vs 'the LINAGE-COUNTER'; same format; EC-I-O-LINAGE is Fatal in both exception tables. LINAGE is FD-only, so no CD reach. The twin's conformance cases run green at 2002 and the probe confirms the one leg they do not exercise.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/linage_b2.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-11",
+    "to": [
+     "SR-13.18.35.3-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, SR11 (format 2, screen)",
+    "clause-2023": "13.18.35 LINE clause, SR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "MINUS and the minus symbol as synonyms in a screen-item LINE clause (screen section only)"
+    ],
+    "evidence-2002": {
+     "screen LINE clause": "declined with a diagnostic at --std 2002: wiseowl/cases/13.18.35-LINE/a42-screen-line refused COBOL1560 at 2002 (run2002.txt); probe screen_minus.cob (LINE MINUS 1, LINE - 1) refused COBOL1560 for the screen section at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR11",
+      "quote": "MINUS and – are synonyms.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words (the en dash is the transcription of the minus symbol). The twin is DOCUMENTED-NON-SUPPORT under 2023's A.4.2; 2002 licenses the same decline through B.3 item 1 (the screen section is processor-dependent) and 3.1.5, which also requires a compile-time warning for unsupported processor-dependent elements: the compiler refuses with COBOL1560 at 2002.",
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/screen_minus.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-3",
+    "to": [
+     "SR-13.18.35.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, SR3 (format 1)",
+    "clause-2023": "13.18.35 LINE clause, SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "integer-1/integer-2 not beyond the PAGE LIMIT",
+     "not beyond 9999 when unpaged",
+     "integer-2 may be zero",
+     "unsigned"
+    ],
+    "evidence-2002": {
+     "page limit": "covered by pb1002-line-beyond-page-limit: refused COBOL2199 at 2002",
+     "9999 / zero": "confirmed by probes ln_unpaged_9999.cob (LINE PLUS 10000 refused COBOL2199) and ln_unpaged_ok.cob (LINE PLUS 9999 and LINE PLUS 0 run) at 2002",
+     "unsigned": "grammar (integerLiteral has no sign), same at both editions"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR3",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.3 SR3",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the PAGE clause's number (2002 13.16.37, 2023 13.18.39); the two PAGE clauses' rules match word for word (only the format figure's transcription differs). Format 1 is the same in both. Report-writer only, no CD reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ln_unpaged_9999.cob; ln_unpaged_ok.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-6",
+    "to": [
+     "SR-13.18.35.3-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, SR6 a-e",
+    "clause-2023": "13.18.35 LINE clause, SR6 a-e",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) absolute lines out of order",
+     "b) overlap",
+     "c) absolute lines within the TYPE limits",
+     "d) relative tail past the lower limit",
+     "e) absolute after relative; each unless under different PRESENT WHEN clauses"
+    ],
+    "evidence-2002": {
+     "a-e refusals": "pb1222-line-out-of-order, -line-overlap, -absolute-line-after-relative, -relative-tail-past-lower-limit, -relative-lines-largest-past-lower-limit, pb1270-detail-above-first-detail, -detail-below-last-detail, -page-heading-below-first-detail: all refused COBOL2199 at 2002",
+     "PRESENT WHEN exemptions and legal layouts": "pb1222_report_arrangement_present_when and pb1270_report_page_region_boundaries: MATCH at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR6",
+      "quote": "If any two or more absolute lines are defined using line numbers that are not in increasing numerical order",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.3 SR6",
+      "quote": "If any two or more absolute lines are defined using line numbers that are not in increasing numerical order",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the TYPE clause number (13.16.55 vs 13.18.57); the TYPE clauses' limit rules match after number erasure. Every leg's twin witness runs at 2002 with the expected result.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-4",
+    "to": [
+     "GR-13.18.35.4-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, GR4 (page fit test)",
+    "clause-2023": "13.18.35 LINE clause, GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "page fit test for a non-first body group: a) NEXT PAGE, b) absolute, c) relative trial sum (OCCURS, PRESENT WHEN, DEPENDING); NEXT GROUP modification"
+    ],
+    "evidence-2002": {
+     "all legs": "pb1001_line_next_page [2002] and pb957_next_group_forms [2002,2014,2023]: MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR4",
+      "quote": "a page fit test is performed before any line of the report group is printed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR4",
+      "quote": "a page fit test is performed before any line of the report group is printed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text but for the numbers of NEXT GROUP, PRESENT WHEN, OCCURS, TYPE and GENERATE; those clauses' referenced rules match (earlier readers found 13.16.35 GR1-6 SAME). The twin's witnesses run at 2002. Report writer only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-5",
+    "to": [
+     "GR-13.18.35.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, GR5",
+    "clause-2023": "13.18.35 LINE clause, GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "first line of a report group: absolute; relative per group type when paged (b1-b5); relative when unpaged (c)"
+    ],
+    "evidence-2002": {
+     "all legs": "pb484_report_line_placement [85,2002] and pb1247_line_placement_unpaged_85 [85,2002]: MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR5",
+      "quote": "the report group's first line number is given by integer-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR5",
+      "quote": "the report group's first line number is given by integer-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text but for the PRESENT WHEN clause number. Witnesses accept 2002 and pass there.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-8",
+    "to": [
+     "GR-13.18.35.4-8"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.33 LINE clause, GR8",
+    "clause-2023": "13.18.35 LINE clause, GR8",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "LINE-COUNTER after the last line of a group, then the NEXT GROUP adjustment"
+    ],
+    "evidence-2002": {
+     "all": "pb484_report_line_placement [85,2002]: MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR8",
+      "quote": "The final line number for the report group is given by the value contained in the report's LINE-COUNTER",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR8",
+      "quote": "The final line number for the report group is given by the value contained in the report's LINE-COUNTER",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical text but for the NEXT GROUP clause number; witness runs at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-1",
+    "to": [
+     "SR-13.18.37.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.35 NEXT GROUP clause, SR1",
+    "clause-2023": "13.18.37 NEXT GROUP clause, SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "integer-1/integer-2 not beyond the page limit, or 9999 unpaged; unsigned"
+    ],
+    "evidence-2002": {
+     "integer-2 over page limit": "pb957-next-group-exceeds-page-limit: refused COBOL2284 at 2002",
+     "integer-1 over page limit, 9999 unpaged": "confirmed by probes ng_abs_over.cob and ng_unpaged_9999.cob: COBOL2284 at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR1",
+      "quote": "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.37.3 SR1",
+      "quote": "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the PAGE clause number; same general format in both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ng_abs_over.cob; ng_unpaged_9999.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-1",
+    "to": [
+     "SR-13.18.38.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause, SR1 (ALL FORMATS)",
+    "clause-2023": "13.18.38 OCCURS clause, SR1 (ALL FORMATS)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "no OCCURS at level 01/66/77/88 (WS/LS/linkage/file/report)",
+     "no OCCURS on an entry with a variable-occurrence data item subordinate (format 2 tables and report format 3 DEPENDING entries)",
+     "the same in records under a CD"
+    ],
+    "evidence-2002": {
+     "level 01/77, WS": "pb1260-occurs-at-level-01 / -77: refused COBOL2404 at 2002; index_name_r7_windows MATCH",
+     "nested ODO, WS": "the twin's pb1260-odo-under-occurs-dynamic uses OCCURS DYNAMIC (refuse-at excludes 2002); probe cd_occ_odo_nested.cob refused COBOL0854 at 2002",
+     "report entry with a DEPENDING entry subordinate": "probe rpt_occ_nest_odo.cob refused COBOL2021 at 2002 and 2023",
+     "CD": "probes cd_occ01.cob (COBOL2404) and cd_occ_odo_nested.cob (COBOL0854) refused at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR1b",
+      "quote": "Has a variable-occurrence data item subordinate to it.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR1b",
+      "quote": "Has an occurs-depending table subordinate to it.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "variable-occurrence data item: A table element that is repeated a variable number of times.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "b) is worded with the 2002 term 'variable-occurrence data item' (any table element repeated a variable number of times, so also a report item with OCCURS ... DEPENDING) where 2023 says 'occurs-depending table'; the compiler refuses both the data and the report shapes at 2002. The 2002 scope also includes CD records. The twin's nested-ODO witness does not run at 2002. Probes correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_occ01.cob; cd_occ_odo_nested.cob; rpt_occ_nest_odo.cob",
+    "widening": "2023 adds format 4 (OCCURS DYNAMIC)",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for OCCURS at level 01 and nested DEPENDING in a CD record, and for nested DEPENDING at 2002 (the probes named)",
+    "compiler-at-2002": "correct (out/cd_occ01-2002.out, out/cd_occ_odo_nested-2002.out, out/rpt_occ_nest_odo-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-2",
+    "to": [
+     "SR-13.18.38.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause, SR2",
+    "clause-2023": "13.18.38 OCCURS clause, SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-1 (DEPENDING) and data-name-2 (KEY) may be qualified, in formats 1-3, in WS/LS/linkage/file/report/CD records"
+    ],
+    "evidence-2002": {
+     "twin": "the twin's witnesses test 2023's different rule (no subscript): pb885-* refused COBOL2024 at 2002; none uses qualification",
+     "qualification": "probes ws_occ_qual.cob (DEPENDING ON M OF C1, KEY IS K OF E; LENGTH 3, SEARCH ALL finds K=2) and cd_occ_qual.cob at 2002, rpt_occ_qual.cob (report DEPENDING ON WS-N OF C1 prints 2 repetitions, not 4) at 2002 and 2023"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR2",
+      "quote": "Data-name-1 and data-name-2 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall not be subscripted.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR5",
+      "quote": "Data-name-2 shall be specified without the subscripting normally required.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Different words: 2002 grants a permission (qualification), 2023 states a prohibition (subscripting). The pointer's evidence shows only the prohibition; the 2002 permission needs its own witness. Compiler correct at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/ws_occ_qual.cob; cd_occ_qual.cob; rpt_occ_qual.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "a 2002 witness for qualified DEPENDING and KEY data-names (ws_occ_qual.cob, rpt_occ_qual.cob; cd_occ_qual.cob for a CD record)",
+    "compiler-at-2002": "correct (out/ws_occ_qual-2002.out, out/cd_occ_qual-2002.out, out/rpt_occ_qual-2002.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.36.2-8",
+    "to": [
+     "SR-13.18.38.3-8"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause, SR8 (formats 1 and 2)",
+    "clause-2023": "13.18.38 OCCURS clause, SR8 (formats 1, 2 and 4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "KEY data-name-2 not of class boolean, object or pointer, in WS/LS/linkage/file and CD records"
+    ],
+    "evidence-2002": {
+     "boolean (WS)": "pb1263-occurs-key-boolean: refused COBOL2787 at 2002",
+     "object, pointer": "not in the twin's witnesses; probes ws_occ_key_obj.cob and ws_occ_key_ptr.cob refused COBOL2787 at 2002 and 2023",
+     "CD": "probe cd_occ_key_bool.cob refused COBOL2787 at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.2 SR8",
+      "quote": "The KEY phrase shall not be specified for a data item of class boolean, object, or pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR8",
+      "quote": "The KEY phrase shall not be specified for a data item of class boolean, message-tag, object, or pointer.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds message-tag (2023-only). The 2002 scope includes CD records, and the object and pointer legs have no twin witness. Probes correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_occ_key_bool.cob; ws_occ_key_obj.cob; ws_occ_key_ptr.cob",
+    "widening": "message-tag added in 2023",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a boolean KEY in a CD record and for object/pointer keys (the probes named)",
+    "compiler-at-2002": "correct (out/cd_occ_key_bool-2002.out, out/ws_occ_key_obj-2002.out, out/ws_occ_key_ptr-2002.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-11",
+    "to": [
+     "GR-13.18.38.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause, GR11 (format 3)",
+    "clause-2023": "13.18.38 OCCURS clause, GR11 (format 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "report items repeated by a format 3 OCCURS: each listed clause has the same effect per repetition; SOURCE/SUM/PRESENT WHEN too unless VARYING"
+    ],
+    "evidence-2002": {
+     "all": "pb565_report_vertical_repetition and pb565_report_repeating_entry (accept [2002]): MATCH at --std 2002; the mechanism replays the whole clause binder per repetition"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR11",
+      "quote": "have the same effect on each repetition as they would on a single data item without the OCCURS clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR11",
+      "quote": "have the same effect on each repetition as they would on a single data item without the OCCURS clause",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the VARYING clause number; the VARYING difference (2023 GR5 adds INITIATE/TERMINATE to where EC-REPORT-VARYING arises) does not touch this rule. Format 3 identical. Report writer only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-12",
+    "to": [
+     "GR-13.18.38.4-12"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause, GR12 (STEP)",
+    "clause-2023": "13.18.38 OCCURS clause, GR12",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a) COLUMN entry steps integer-3 columns",
+     "b) group of COLUMN entries under a LINE steps by the STEP value",
+     "c) LINE entry steps integer-3 lines",
+     "d) group of LINE entries",
+     "no STEP: relative LINE/COLUMN interval"
+    ],
+    "evidence-2002": {
+     "a, b, no STEP, d via vertical": "pb565_report_repeating_entry (line 3 is case b: OCCURS 2 TIMES STEP 10 over COLUMN 1/5) and pb565_report_vertical_repetition: MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR12b",
+      "quote": "printable items in each successive occurrence are positioned integer-5 columns to the right",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR12b",
+      "quote": "printable items in each successive occurrence are positioned integer-3 columns to the right",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.1",
+      "quote": "OCCURS [ integer-1 TO ] integer-2 TIMES [ DEPENDING ON data-name-1 ] [ STEP integer-3 ]",
+      "check": "OK"
+     }
+    ],
+    "reason": "The one difference is b): the printed 2002 page (PDF p.332, rendered and read) says 'integer-5', but format 3 has no integer-5; STEP's only operand is integer-3, so 'integer-5' is an erratum with one possible reading, which 2023 corrected. No 2002 program can name another operand, so the behaviour required is the same. Witness for b) runs at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-13",
+    "to": [
+     "GR-13.18.38.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.36 OCCURS clause, GR13",
+    "clause-2023": "13.18.38 OCCURS clause, GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "report OCCURS ... DEPENDING: data-name-1 read before the first LINE; out of range -> integer-2 occurrences; in range -> that many; same in the page fit trial sum"
+    ],
+    "evidence-2002": {
+     "all": "pb565_report_repeating_entry and pb565_report_vertical_repetition: MATCH at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR13",
+      "quote": "the value of data-name-1 is evaluated just before the processing for the first LINE clause of the report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR13",
+      "quote": "the value of data-name-1 is evaluated just before the processing for the first LINE clause of the report group",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical but for the LINE clause number and the case of 'general rule'. Report writer only.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-2",
+    "to": [
+     "GR-13.18.38.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "13.16.36 OCCURS clause, GR2 (formats 1 and 2)",
+    "clause-2023": "13.18.38 OCCURS clause, GR2 (formats 1, 2 and 4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "indexes of format 1/2 tables: implementor range covering (1 - integer-2) .. (2 * integer-2); modified only by PERFORM VARYING, SEARCH, SET; out of range -> EC-RANGE-INDEX (Fatal in both tables), value undefined",
+     "tables in WS/LS/linkage/file and in CD records"
+    ],
+    "evidence-2002": {
+     "WS": "pb459_set_index_range_ec [2002]: MATCH at --std 2002",
+     "CD": "not shown by the twin; probe cd_occ_ixrange.cob at 2002: RANGE=EC-RANGE-INDEX, AFTER=+9223372036854775801 (the twin's output)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR2",
+      "quote": "the EC-RANGE-INDEX exception condition is set to exist and the value of the index is undefined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR2",
+      "quote": "the value of the index is undefined unless the value of the index is specified by the rules of that statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "A record description consists of a set of data description entries that describe the characteristics of a particular record.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 narrows 'undefined' with 'unless ... specified by the rules of that statement'; 2002 leaves the value undefined in every case, so anything the 2023 rule requires also conforms to 2002. The 2002 scope reaches tables in CD records, which the twin cannot show. Probe correct.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-15/cd_occ_ixrange.cob",
+    "widening": "2023 adds format 4 and a statement-specified index value",
+    "class": "communication-reach",
+    "needs": "a 2002 witness for EC-RANGE-INDEX on an index of a table in a CD record (cd_occ_ixrange.cob)",
+    "compiler-at-2002": "correct (out/cd_occ_ixrange-2002.out)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-15",
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-15/",
+  "compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe",
+  "cases": [
+   {
+    "rule-id": "2002-GR-13.16.32.3-6",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "GR6 b) takes each LINAGE value from 'the content of the data item referenced by the associated data-name', at OPEN OUTPUT, at WRITE ADVANCING PAGE and at page overflow. In 2002 that data-name may be subscripted. 2002 LINAGE SR1 only says the data-names 'may be qualified' and sets no OCCURS bar. 2002 5.1.3 row a) defines a user-defined-word operand as 'including qualification and subscription if needed'. 2014 E.2 item 25 confirms that the earlier standard let data-name-n be subscripted by default. 2023 LINAGE SR1 added 'shall not be subject to any OCCURS clauses'. So in 2002, GR6 also governs a subscripted page-size, footing, top or bottom operand such as LINAGE IS PS (2) LINES: which occurrence it reads, and when the subscript is evaluated at each of the three times. The 2023 row cannot show this form, and nothing shows it at 2002. Second reach (communication): SR1 sets no section limit, so in 2002 data-name-1 may also be an unsigned integer item of a CD record, or an implicit CD data-name such as MESSAGE COUNT. Probe at --std 2002 (WRONG): LINAGE IS PS (2) LINES is refused with COBOL2024, and the diagnostic cites the 2023 OCCURS bar; 2023 refuses it the same way. needs: its own verdict. The compiler at --std 2002 refuses a subscripted LINAGE data-name that 2002 permits. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.32.2 SR1",
+      "quote": "Data-name-1, data-name-2, data-name-3, data-name-4 may be qualified and shall reference elementary unsigned numeric integer data items.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.3 SR1",
+      "quote": "Data-name-1, data-name-2, data-name-3, and data-name-4 shall not be subject to any OCCURS clauses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.32.3 GR6",
+      "quote": "If a data-name is specified, the value is the content of the data item referenced by the associated data-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.34.4 GR6",
+      "quote": "If a data-name is specified, the value is the content of the data item referenced by the associated data-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-15/linage_subscr.cob (outputs linage_subscr-2002.out, linage_subscr-2023.out)"
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-11",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format 2 (screen) is the same in both editions, and the rule is only the MINUS/minus-symbol synonym. It cannot reach a CD or a debugging line. The reader's decline licence (2002 B.3 item 1 with 3.1.5) and the COBOL1560 refusal at 2002 stand. No form or operand was lost.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR11",
+      "quote": "MINUS and – are synonyms.",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-3",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The integer operands are literals: no subscripting and no CD reach. Format 1 is identical. The PAGE clause, which sets the page limit, is word-identical after number erasure (diffed 2002 13.16.37 against 2023 13.18.39). The reader's probes cover the 9999 bound and zero at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR3",
+      "quote": "Neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.33.2-6",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The rule rests on the TYPE clause's upper and lower limits and on PRESENT WHEN. TYPE was diffed after number erasure: the report-group limit rules are identical, and the only changes are in the data TYPE (type-name) rules. The PRESENT WHEN format 1 and general rules 1 and 2 are identical. The rule has no data-name operand, so the subscripting cause does not reach it.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.2 SR6",
+      "quote": "If any two or more absolute lines are defined using line numbers that are not in increasing numerical order",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-4",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "Page fit test c) explicitly takes into the trial sum 'an OCCURS clause with the DEPENDING phrase'. 2002 OCCURS GR13 adds: 'This same principle is used in the computing of the trial sum'. In 2002, the format 3 DEPENDING ON data-name-1 may be subscripted. 2002 OCCURS SR2 only says it 'may be qualified', and 5.1.3 grants subscription by default. 2023 OCCURS SR2 says data-name-1 'shall not be subscripted'. So in 2002, GR4 c) also governs a trial sum whose repetition count comes from a subscripted DEPENDING item, a form 2023 lacks. The 2023 row's witnesses (pb1001_line_next_page, pb957_next_group_forms) never use it, and the compiler refuses it at 2002 (probe rpt_odo_subscr.cob: COBOL2024 at --std 2002, citing the 2023 rule). This derives from the OCCURS GR13 overturn. needs: its own verdict. The compiler at --std 2002 refuses the subscripted report OCCURS DEPENDING that 2002 permits. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR4",
+      "quote": "If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause or to an OCCURS clause with the DEPENDING phrase, these clauses are taken into account in computing the trial sum.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.35.4 GR4",
+      "quote": "If any of the LINE clauses used in computing the trial sum are subject to a PRESENT WHEN clause or to an OCCURS clause with the DEPENDING phrase, these clauses are taken into account in computing the trial sum.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR2",
+      "quote": "Data-name-1 and data-name-2 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall not be subscripted.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     }
+    ],
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-15/rpt_odo_subscr.cob (outputs rpt_odo_subscr-2002.out, rpt_odo_subscr-2023.out)"
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-5",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The first-line placement uses only integer-1, integer-2 and the PAGE integers (HEADING, FIRST DETAIL, FOOTING), plus PRESENT WHEN to choose the first LINE clause. All of these are identical in both editions (PAGE and PRESENT WHEN diffed). There is no data-name operand, no CD reach and no lost form.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR5",
+      "quote": "the report group's first line number is given by integer-1",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.33.3-8",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The rule covers LINE-COUNTER after the last line, then the NEXT GROUP adjustment. The NEXT GROUP general format is identical in 2002 13.16.35.1 and 2023 13.18.37.2, NEXT PAGE WITH RESET included, and its operands are integers only. No reach was found.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.33.3 GR8",
+      "quote": "The final line number for the report group is given by the value contained in the report's LINE-COUNTER",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-SR-13.16.35.2-1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The general format is identical (compared both). The operands are unsigned integer literals, and the PAGE limit is identical. Nothing in this rule is subscriptable and it has no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.35.2 SR1",
+      "quote": "Integer-1 and integer-2 shall not exceed the page limit, or 9999 if the report is not divided into pages.",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-11",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "Format 3 is identical. The list of clauses (PICTURE, USAGE, SIGN, VALUE, JUSTIFIED, BLANK WHEN ZERO, GROUP INDICATE; SOURCE, SUM, PRESENT WHEN unless VARYING) is the same in both editions. The rule asks only for the same effect on each repetition. A 2002/2023 difference inside one of those clauses belongs to that clause's own row, not to this uniformity requirement.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR11",
+      "quote": "have the same effect on each repetition as they would on a single data item without the OCCURS clause",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-12",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "STEP integer-3 is a literal, and format 3 is identical. The 2002 'integer-5' in b) names no operand of any OCCURS format, so integer-3 is its only reading (the reader rendered the page). DEPENDING plays no part in this rule.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR12b",
+      "quote": "printable items in each successive occurrence are positioned integer-5 columns to the right",
+      "check": "OK (reader)"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-13.16.36.3-13",
+    "verdict": "OVERTURNED",
+    "class": "removed-form",
+    "reason": "GR13 governs when and how 'the value of data-name-1' (format 3 DEPENDING ON) is evaluated. In 2002, data-name-1 may be subscripted. 2002 OCCURS SR2 says only 'may be qualified', and 2002 5.1.3 row a) makes subscription part of every user-defined-word operand 'if needed' (2014 E.2 item 25 confirms this default). 2023 SR2 adds 'shall not be subscripted'. So the 2002 rule also governs OCCURS ... DEPENDING ON WS-N (2): its subscript is evaluated just before the first LINE clause, and it sets the occurrence count and the page-fit trial sum. The 2023 row's witnesses (pb565_*) use only unsubscripted names. Probe at --std 2002 (WRONG): DEPENDING ON WS-N (2) in a report group is refused with COBOL2024, which cites the 2023 rule. The reader's own SR2 row probed qualification only, never subscription. needs: its own verdict. The compiler at --std 2002 refuses a subscripted report OCCURS DEPENDING data-name that 2002 permits. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.36.3 GR13",
+      "quote": "the value of data-name-1 is evaluated just before the processing for the first LINE clause of the report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.4 GR13",
+      "quote": "the value of data-name-1 is evaluated just before the processing for the first LINE clause of the report group",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.36.2 SR2",
+      "quote": "Data-name-1 and data-name-2 may be qualified.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.38.3 SR2",
+      "quote": "Data-name-1 and data-name-2 shall not be subscripted.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1.3",
+      "quote": "User-defined word, including qualification and subscription if needed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "wherever data-name-n appears in a general format, it may be subscripted, qualified, or both",
+      "check": "OK"
+     }
+    ],
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-15/rpt_odo_subscr.cob (outputs rpt_odo_subscr-2002.out, rpt_odo_subscr-2023.out)"
+   }
+  ],
+  "disputed-different": [],
+  "note-on-different-rows": "Not disputed: 2002-SR-13.16.36.2-2 (DIFFERENT) is right, but for more than the reader said. The 2002 permission covers subscription as well as qualification (5.1.3), and the compiler refuses subscription at 2002 (rpt_odo_subscr). The same applies to 2002-SR-13.16.32.2-1 (LINAGE SR1), whose reader probe tested only qualification. Its 'compiler-at-2002: correct' misses the refused subscripted form (linage_subscr)."
+ },
+ "imported": {
+  "asked": "38a9c42955df900a54a51105d3d9668022485fe4195eb6100b2c691bbcf9bd39",
+  "read": "05662463c991571bc02afe7b4781f07fdc7c1f257d76ff174818bbf855f128ba",
+  "refute": "db5b1a7b297d95f69b3d074547422d20a93fcb429c1da127d48bb5975ddada2a"
+ }
+}

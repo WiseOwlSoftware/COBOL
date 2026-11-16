@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-IX.4.9.4-11",
+ "rule-digest": "cd8ecc0e1df7",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-100",
+  "sources": {
+   "reader": "9e5378ca97e05fd5bba8e43b47606534d2137f69cec1c0ac4622461e31655677",
+   "refuter": "d533c8ba750d4760f54937eb28a6e16e363a8fe9911fbefaff634446f6c2abe6"
+  },
+  "imported": {
+   "reader": "ecf03af4b8efa8e1f0409e3bbb09c8796cfd4c1b1f3efc0a601b06a4c8284237",
+   "refuter": "7797ccb08cdf10d16b35aae22344c72f2e8242ed28045d60da57d16890275295"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.9.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a successful indexed WRITE releases the record area's content and stores it so that it can later be reached by the prime key and by every ALTERNATE RECORD KEY (with or without DUPLICATES), for fixed and variable-length records, through the same or another file connector of the file.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Write; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#KeyOf; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AlternateValue; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReleaseOrdinals; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OtherConnectorsMayShare",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration",
+    "switches": "passes DialectLevel to FileRegisterIndexed, which sets FileConnector.Edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility is off at 85: no file lock or 61, the store attached unshared, and OtherConnectorsMayShare releases buffered records to a sibling connector only when one is open",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of ialect|Edition|Year in IndexedConnector.cs, KeyedConnector.cs and FileConnector.cs: Write() consults none; READ's '02' (IndexedDuplicateKeyStatusSequentialOnly) differs at 85 but belongs to the READ rule.",
+  "behaviour-differs-by-edition": "no (for the release and key access; the sharing-facility arm differs only in whether a second open of the same file is admitted)",
+  "witnesses-cover": "part: g85_f22_07 has one alternate key and fixed records; not DUPLICATES, two alternate keys, a variable-length (RECORD VARYING + ODO) record, WRITE FROM, a refused duplicate alternate, or a second connector",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr11_keys.cob",
+    "printed": "INV AK1-DUP 22 / PK K09 AAA DUP N=2 T=XY LEN=16 / AK1 K05 N=6 LEN=20 / AK2 K05 02 / NO K01 23 / SEQ-AK2 DUP K05 02, DUP K09 00, ONE K02 00 / SEQ-AK1 AAA K09, BBB K02, QQQ K05",
+    "expected": "each released record reachable by the prime key and both alternate keys at its own length; the duplicate set in release order; the refused WRITE stores nothing"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-100/gr11_sibling.cob",
+    "printed": "OPEN2 00 / AK2 K01 ONE 00 / PK2 BBB TWO 00",
+    "expected": "records released through F1 (still open OUTPUT) reachable by key through F2"
+   },
+   {
+    "class": "e",
+    "file": "conformance-suite/cases/IX.4.9@1985-WRITE-STATEMENT/g85_f22_07.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.9.4 GR11",
+    "check": "OK  §1985:IX.4.9.4 GR11  (4.9.4 General Rules)  the text is in GR11",
+    "quoted": "subsequent access of the record may be made based upon any of these specified record keys"
+   }
+  ],
+  "notes": "Write() takes the prime and every alternate key from the record image (KeyOf over the extents) and releases one ordinal under every key; the probes reached every record by every key. At --std 2023 the sibling probe's second OPEN gets 61 (sharing facility), an edition difference outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.9.4-11",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e",
+  "evidence": "r11_redef.cob (r11_redef-001): a prime key that is a group (X(2) + 9(2)) not at the record start, one alternate WITH DUPLICATES and one without, written through a second 01 record (implicit redefinition) and with WRITE FROM: after CLOSE and OPEN INPUT the record was reached by the prime key (PK AB02 ..AB02XXXP02DAT2 00), by the unique alternate (AK2 P03 ..AA09YYYP03DAT3 00) and by START/READ NEXT on the duplicate alternate in release order (SEQ1..SEQ3, E4 10); a duplicate prime (22) and a duplicate unique alternate (22) stored nothing (ZZZ-INV 23, AC01-INV 23); the FROM source was unchanged. cite.py: 'OK  §1985:IX.4.9.4 GR11  (4.9.4 General Rules)  the text is in GR11' for 'subsequent access of the record may be made based upon any of these specified record keys'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

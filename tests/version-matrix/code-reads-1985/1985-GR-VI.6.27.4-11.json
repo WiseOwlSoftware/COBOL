@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-GR-VI.6.27.4-11",
+ "rule-digest": "8598c82ef83b",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-018",
+  "sources": {
+   "reader": "fb33f080892f9b0330999556cb236abc088c04afd25aacf24a6ceb4e70e4079b",
+   "refuter": "cc99f6375fac48dc88063ba7d578b3199aa2f6d4d9b44f5b4283f3334ebbd2e6"
+  },
+  "imported": {
+   "reader": "042a7b4e45590cacbf13ba73b774a041cc0e89621e21aa917df14cb7d0ad29d8",
+   "refuter": "c7cb670abdab2b2841161bc72db0348a7e6aec8182317da938d050bba3d45471"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.27.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each literal or identifier in DELIMITED BY must be one delimiter (an identifier's whole content, trailing spaces included), and a multi-character delimiter is recognized only when all its characters lie contiguous and in order in the sending item from the examination point; a partial occurrence (at the end of the sender, or begun before the POINTER start) is no delimiter, and recognized occurrences do not overlap.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringSkipRun",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
+    "switches": "refuses a reference-modified identifier-1 at --std 85 (Constructs.UnstringSenderReferenceModified2002, §1985:VI.6.27.3 SR7); a sender syntax arm, it does not touch delimiter matching",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+    "switches": "nothing behavioural: BoundRejected.Report(ctx.Edition, ...) only carries the edition context for SR diagnostics",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of Edition|CobolVersion|Dialect|Construct in StringEmitter.cs, StringUnstringBinder.cs, CobolStringOps.cs; grep of Unstring in Validation/VersionConformancePass.cs (only VisitUnstringStatement, the refmod-sender gate). The delimiter loop of BindUnstring and the UnstringExtract kernel take no edition input. Edition-gated lexemes (N\"..\", the zero-length literal) are refused at 85 by their own literal gates.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c35_unstring_multichar_delimiter covers a literal and an identifier two-character delimiter; not exercised: a partial delimiter at the sender's end, overlapping candidates (AAAAA by AA), an identifier with a trailing space, POINTER starting inside a delimiter, an ODO-group sender",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "A AB-C|-+5 EF  |  2",
+    "expected": "'-' alone (pos 3) is not '-+'; split at pos 6; COUNT 5 excludes the delimiter"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "C XYZ-5|****",
+    "expected": "'Z-+-' only partly present at the end: no delimiter, the whole sender examined"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "D     0|    0|A   |  1",
+    "expected": "AAAAA by AA: two non-overlapping occurrences, empty fields, the last 'A' with the end-of-data delimiter"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "E AB-C|  |****",
+    "expected": "identifier delimiter 'D- ' (3 chars incl. the space) absent from 'AB-CD-+EF': no match"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "F -CD |-+3 P=08 ; G +EF 3 P=10",
+    "expected": "POINTER 3: field -CD, P=3+3+2; POINTER 7 starts on '+', the second half of '-+': not recognized"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un2.cob",
+    "printed": "H XY  |-+|****|##9",
+    "expected": "delimiter at the very end: field XY, the sender then exhausted, the second receiver not acted upon"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-018/un3.cob",
+    "printed": "[5A  ][B   ][****]",
+    "expected": "ODO group sender of current length 6: '-+' then '-' found within it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.4 GR11",
+    "check": "OK  §1985:VI.6.27.4 GR11  (║6.27.4 General Rules║)  the text is in GR11"
+   }
+  ],
+  "notes": "UnstringExtract searches each delimiter with an ordinal IndexOf from the current pointer, so only a complete contiguous in-order occurrence matches, and it consumes the whole occurrence before the next search. DelimiterText renders an identifier delimiter's full content (no TrimEnd).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same results (un3 printed identically at --std 2023)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.27.4-11",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "UnstringExtract does an ordinal IndexOf of each whole delimiter from the current position, so only a complete, contiguous, in-order occurrence matches. Probes (run_case.py, --std 85), u1-001: 1: 'B' OR 'AB' on 'XAB' gives X|AB|COUNT 01, so the two-character delimiter is recognized whole. 7: 'AB' OR ALL 'A' on 'AAAB' gives an empty field, DELIMITER 'A', then 'B'; the 'A' that could begin 'AB' is consumed by the ALL run and is not reused. 3: one-character identifier delimiters TD (3) and TD (K). The reader's un2/un3 cover the partial occurrence at the end, the overlap of AAAAA by AA, a trailing space in an identifier delimiter, and a POINTER that starts inside a delimiter. cite: OK  §1985:VI.6.27.4 GR11  (║6.27.4 General Rules║)  the text is in GR11",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

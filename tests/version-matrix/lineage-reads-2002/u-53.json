@@ -1,0 +1,1564 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-53 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-53",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-13.16.50.1",
+   "2002-FMT-13.16.51.1",
+   "2002-FMT-13.16.52.1",
+   "2002-FMT-13.16.53.1",
+   "2002-FMT-13.16.54.1",
+   "2002-FMT-13.16.55.1",
+   "2002-FMT-13.16.56.1",
+   "2002-FMT-13.16.57.1",
+   "2002-FMT-13.16.58.1",
+   "2002-FMT-13.16.59.1",
+   "2002-FMT-13.16.60.1",
+   "2002-FMT-13.16.61.1",
+   "2002-FMT-13.16.62.1",
+   "2002-FMT-15.17.1",
+   "2002-FMT-15.18.1",
+   "2002-FMT-15.19.1",
+   "2002-FMT-15.20.1",
+   "2002-FMT-15.21.1",
+   "2002-FMT-15.22.1",
+   "2002-FMT-15.23.1",
+   "2002-FMT-15.24.1",
+   "2002-FMT-15.25.1",
+   "2002-FMT-15.26.1",
+   "2002-FMT-15.27.1",
+   "2002-FMT-15.28.1"
+  ],
+  "pointers": {
+   "2002-FMT-13.16.50.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.52.2",
+    "similarity": 0.377
+   },
+   "2002-FMT-13.16.51.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.53.2",
+    "similarity": 0.35
+   },
+   "2002-FMT-13.16.52.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.54.2",
+    "similarity": 0.345
+   },
+   "2002-FMT-13.16.53.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.55.2",
+    "similarity": 0.291
+   },
+   "2002-FMT-13.16.54.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.18.56.2",
+    "similarity": 0.783
+   },
+   "2002-FMT-13.16.55.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.57.2",
+    "similarity": 0.548
+   },
+   "2002-FMT-13.16.56.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.18.58.2",
+    "similarity": 0.803
+   },
+   "2002-FMT-13.16.57.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.18.59.2",
+    "similarity": 0.759
+   },
+   "2002-FMT-13.16.58.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.60.2",
+    "similarity": 0.381
+   },
+   "2002-FMT-13.16.59.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.18.61.2",
+    "similarity": 0.794
+   },
+   "2002-FMT-13.16.60.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.62.2",
+    "similarity": 0.288
+   },
+   "2002-FMT-13.16.61.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.18.63.2",
+    "similarity": 0.434
+   },
+   "2002-FMT-13.16.62.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-13.18.64.2",
+    "similarity": 0.898
+   },
+   "2002-FMT-15.17.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.22.2",
+    "similarity": 0.861
+   },
+   "2002-FMT-15.18.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.23.2",
+    "similarity": 0.891
+   },
+   "2002-FMT-15.19.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.24.2",
+    "similarity": 0.859
+   },
+   "2002-FMT-15.20.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.25.2",
+    "similarity": 0.889
+   },
+   "2002-FMT-15.21.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.26.2",
+    "similarity": 0.87
+   },
+   "2002-FMT-15.22.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.27.2",
+    "similarity": 0.8
+   },
+   "2002-FMT-15.23.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.28.2",
+    "similarity": 0.776
+   },
+   "2002-FMT-15.24.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.29.2",
+    "similarity": 0.782
+   },
+   "2002-FMT-15.25.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.30.2",
+    "similarity": 0.846
+   },
+   "2002-FMT-15.26.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.31.2",
+    "similarity": 0.85
+   },
+   "2002-FMT-15.27.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.32.2",
+    "similarity": 0.848
+   },
+   "2002-FMT-15.28.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.33.2",
+    "similarity": 0.841
+   }
+  }
+ },
+ "read": {
+  "slice": "u-53",
+  "seed": null,
+  "method": "Every pointer row's conformance witnesses were run at --std 2002 (probes-u-53/twins-2002.txt; MISMATCHes there are trailing-space only, which the harness normalizes). SAME = every row witness that covers a 2002 form holds at 2002 and the differing words (mostly 2023 figure notes) change nothing; DIFFERENT = a 2002 form whose only row witness does not run at 2002, or that the row never shows, or that the compiler declines. Data-clause formats were also probed in a CD record (cd_clauses.cob, accepted at 2002, COBOL0903 obsolete warning) so communication reach adds no gap. Probe folder: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-53/ (each <name>.cob with <name>-2002.out and <name>-2023.out).",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-13.16.50.1",
+    "to": [
+     "FMT-13.18.52.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.50 SIGN clause",
+    "clause-2023": "13.18.52 SIGN clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "[SIGN IS] {LEADING|TRAILING} [SEPARATE CHARACTER] in data description entries (incl. records under a CD), report group entries, and screen entries (screen section processor-dependent)"
+    ],
+    "evidence-2002": [
+     "covered by the row's pb486-sign-written-twice, pb917-data-usage-twice, pb917-report-group-picture-twice: refuse at 2002 with COBOL2423 exactly as at 2023 (refuse-at lists 2002)",
+     "every optional-word form also runs at 2002: probe sign_sync.cob ([-012][012-][+007][007+]); CD record: cd_clauses.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.50",
+      "quote": "The SIGN clause specifies the position and the mode of representation of the operational sign.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.52.1",
+      "quote": "The SIGN clause specifies the position and the mode of representation of the operational sign.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.50.2 SR1",
+      "quote": "a numeric data or screen description entry whose picture character-string contains the symbol",
+      "check": "OK"
+     }
+    ],
+    "reason": "The printed formats are identical; the 2023 catalog text differs only by its figure notes. No form exists in 2002 that 2023 lacks. Row witnesses behave identically at 2002.",
+    "probe": "probes-u-53/sign_sync.cob; probes-u-53/cd_clauses.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.51.1",
+    "to": [
+     "FMT-13.18.53.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.51 SOURCE clause",
+    "clause-2023": "13.18.53 SOURCE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "SOURCE IS / SOURCES ARE",
+     "identifier-1 operand",
+     "arithmetic-expression-1 operand",
+     "more than one operand (parenthesized when an expression is among them)",
+     "[ ROUNDED ] (the bare word; no MODE phrase in 2002)"
+    ],
+    "evidence-2002": [
+     "SOURCE IS / SOURCES ARE, identifier: covered by row tests pb1221_report_keyword_prefixes, pb1292_source_forms_85, pb1292_source_operand_forms (MATCH at 2002)",
+     "operand list: the row's only witness pb506_report_value_operand_list REFUSES at 2002 (COBOL0900, a 2023-only numeric VALUE on a numeric-edited item, unrelated to SOURCE): not shown by the row; shown by cases/13.18.53-SOURCE/pb852_report_source_operand_parens (MATCH at 2002)",
+     "arithmetic-expression: not in the row; shown by pb852_report_source_expression (MATCH at 2002)",
+     "ROUNDED: not in the row; shown by pb3990_report_source_rounded_edited (MATCH at 2002); ROUNDED MODE IS correctly refused at 2002 with COBOL0803 (probe src_mode.cob)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.51.3 GR2",
+      "quote": "If the ROUNDED phrase is specified, the implicit COMPUTE statement has a ROUNDED phrase.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.51.2 SR7",
+      "quote": "If the SOURCE clause has more than one operand of which at least one is an arithmetic-expression, each operand shall be enclosed in parentheses.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.2",
+      "quote": "where rounded-phrase is described in 14.7.4, ROUNDED phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ at [ ROUNDED ] (2002) vs [ rounded-phrase ] (2023): the 2002 form is the 2023 phrase without MODE, a subset. But the row loses its operand-list witness at 2002 and never showed ROUNDED or an expression operand, so three 2002 forms have no evidence through the row; existing suite tests (not in the row) show all three at 2002.",
+    "needs": "a 2002 witness for the operand list, the expression operand and ROUNDED: add pb852_report_source_operand_parens, pb852_report_source_expression, pb3990_report_source_rounded_edited (all MATCH at --std 2002), then KEPT",
+    "compiler-at-2002": "correct (twins-2002.txt; src_mode.cob shows ROUNDED MODE refused at 2002)",
+    "probe": "probes-u-53/src_mode.cob; probes-u-53/twins-2002.txt",
+    "widening": "2023 adds MODE IS to the ROUNDED phrase"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.52.1",
+    "to": [
+     "FMT-13.18.54.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.52 SUM clause",
+    "clause-2023": "13.18.54 SUM clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "repeated SUM OF {data-name-1|identifier-1|arithmetic-expression-1}... [UPON data-name-2...]",
+     "[RESET ON {data-name-3|FINAL}]",
+     "[ROUNDED] once after the whole clause"
+    ],
+    "evidence-2002": [
+     "covered by pb1295_report_sum_groups_then_reset_rounded (SUM WS-A SUM WS-B RESET ON FINAL ROUNDED; MATCH at 2002)",
+     "pb1295-sum-reset-between-groups and pb1295-sum-rounded-between-groups refuse at 2002 with COBOL1559 (refuse-at lists 2002)",
+     "ROUNDED MODE correctly refused at 2002 (src_mode.cob, COBOL0803)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR1",
+      "quote": "The whole clause is referred to as a SUM clause even though the SUM keyword may appear more than once.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.53.2",
+      "quote": "where rounded-phrase is described in 14.7.4, ROUNDED phrase",
+      "check": "OK"
+     }
+    ],
+    "reason": "The only word difference is ROUNDED vs rounded-phrase (2002 is the subset without MODE), and the row's positive witness exercises exactly the 2002 bare ROUNDED at 2002. All row witnesses hold at 2002.",
+    "probe": "probes-u-53/twins-2002.txt; probes-u-53/src_mode.cob",
+    "widening": "2023 adds MODE IS to the ROUNDED phrase"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.53.1",
+    "to": [
+     "FMT-13.18.55.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.53 SYNCHRONIZED clause",
+    "clause-2023": "13.18.55 SYNCHRONIZED clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "{SYNCHRONIZED|SYNC} [LEFT|RIGHT] on elementary items, incl. records under a CD"
+    ],
+    "evidence-2002": [
+     "covered by l1_byte_length_implicit_filler (MATCH at 2002)",
+     "every spelling runs at 2002: sign_sync.cob (SUM=+0006); CD record: cd_clauses.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.2 SR2",
+      "quote": "SYNC is an abbreviation for SYNCHRONIZED.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.2 SR1",
+      "quote": "The SYNCHRONIZED clause may be specified only for an elementary item.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical printed formats; 2023 text differs only by figure notes. Row witness holds at 2002.",
+    "probe": "probes-u-53/sign_sync.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.54.1",
+    "to": [
+     "FMT-13.18.56.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.54 TO clause",
+    "clause-2023": "13.18.56 TO clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "TO identifier-1 in screen description entries only (screen section processor-dependent in 2002)"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/13.18.56-TO/a42-screen-to: refused at 2002 with COBOL1560 naming the SCREEN SECTION and the TO clause (refuse-at lists 2002); non-support documented in docs/CONFORMANCE.md"
+    ],
+    "licence-2002": "§2002:B.3 (the screen section is processor-dependent) with §2002:3.1.5 (unclaimed processor-dependent elements need not be implemented; a compile-time warning mechanism is required)",
+    "citations": [
+     {
+      "cite": "§2002:13.16.54",
+      "quote": "The TO clause identifies the destination of the data in an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; screen-only clause with no CD or debugging reach. 2002 licenses the non-support itself and the compiler diagnoses it at 2002.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK (row DOCUMENTED-NON-SUPPORT): 2002 licence B.3 with 3.1.5; declined with COBOL1560 at --std 2002"
+    ],
+    "probe": "probes-u-53/twins-2002.txt (a42-screen-to)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.55.1",
+    "to": [
+     "FMT-13.18.57.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.55 TYPE clause",
+    "clause-2023": "13.18.57 TYPE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 TYPE [TO] type-name-1 in data description entries (incl. CD records)",
+     "Format 2 report-group types RH/PH/CH [ON|FOR] {data-name-1|FINAL} [OR PAGE]/DE/CF .../PF/RF"
+    ],
+    "evidence-2002": [
+     "covered by pb1298_control_heading_or_page (MATCH at 2002) and pb1298-control-footing-or-page-not-in-format (COBOL0001 at 2002, refuse-at lists 2002)",
+     "Format 1 also runs at 2002 in l1c34_typedef_format_spellings (MATCH) and in a CD record (cd_clauses.cob, TYPE TO TD)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.55.2 SR9",
+      "quote": "RH is an abbreviation for REPORT HEADING.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55.3 GR1",
+      "quote": "The TYPE clause specifies that the data description of the subject of the entry is specified by type-name-1.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Both formats identical in the two editions (2023 differs only by figure notes); row witnesses hold at 2002.",
+    "probe": "probes-u-53/cd_clauses.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.56.1",
+    "to": [
+     "FMT-13.18.58.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.56 TYPEDEF clause",
+    "clause-2023": "13.18.58 TYPEDEF clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "IS TYPEDEF [STRONG]: the four spellings"
+    ],
+    "evidence-2002": [
+     "covered by l1c34_typedef_format_spellings (all four spellings; MATCH at 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.56.2 SR1",
+      "quote": "If the subject of the entry is an elementary item, the STRONG phrase shall not be specified.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format and wording; the row witness holds at 2002.",
+    "probe": "probes-u-53/twins-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.57.1",
+    "to": [
+     "FMT-13.18.59.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.57 UNDERLINE clause",
+    "clause-2023": "13.18.59 UNDERLINE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "UNDERLINE in screen description entries only (processor-dependent in 2002)"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/13.18.59-UNDERLINE/a42-screen-underline: COBOL1560 at 2002 (refuse-at lists 2002)"
+    ],
+    "licence-2002": "§2002:B.3 (screen section processor-dependent) with §2002:3.1.5",
+    "citations": [
+     {
+      "cite": "§2002:13.16.57.2 GR2",
+      "quote": "the characters that constitute the screen item are underlined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; screen-only; licensed out by the 2002 text and diagnosed at 2002.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2002 licence B.3 with 3.1.5; COBOL1560 at --std 2002"
+    ],
+    "probe": "probes-u-53/twins-2002.txt (a42-screen-underline)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.58.1",
+    "to": [
+     "FMT-13.18.60.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.58 USAGE clause",
+    "clause-2023": "13.18.60 USAGE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "[USAGE IS] BINARY, BINARY-CHAR/-SHORT/-LONG/-DOUBLE [SIGNED|UNSIGNED], BIT, COMPUTATIONAL, COMP, DISPLAY, FLOAT-SHORT/-LONG/-EXTENDED, INDEX, NATIONAL, PACKED-DECIMAL",
+     "OBJECT REFERENCE [interface-name-1 | [FACTORY OF] ACTIVE-CLASS | [FACTORY OF] class-name-1 [ONLY]]",
+     "POINTER [TO type-name-1]",
+     "PROGRAM-POINTER [TO program-prototype-name-1]"
+    ],
+    "evidence-2002": [
+     "bare keywords: covered by pb95_bare_usage_keywords (MATCH at 2002); SIGNED/UNSIGNED: pb3517_binary_sign_phrase (MATCH); POINTER operand screen: pb4235 (MATCH); refusals pb3517-* hold at 2002",
+     "POINTER TO / PROGRAM-POINTER TO: the row's witness pb848_pointer_usage_to_optional REFUSES at 2002 (COBOL0900, its SET TO function-pointer is 2014): not shown by the row; shown by probes usage_all.cob and usage_pp.cob (accepted, run at 2002)",
+     "OBJECT REFERENCE interface / FACTORY OF / ONLY / ACTIVE-CLASS with USAGE IS: not shown at 2002 by the row (OptionalWordSubsetDriftTests runs at 2023); shown by usage_all.cob (all accepted; ACTIVE-CLASS OK, HELLO)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.16.58.2 SR5",
+      "quote": "COMP is an abbreviation for COMPUTATIONAL.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR18",
+      "quote": "If program-prototype-name-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.2 SR15",
+      "quote": "The ACTIVE-CLASS phrase may be specified only in a factory definition, an instance definition",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's list is a subset of 2023's (2023 adds FLOAT-BINARY-*, FLOAT-DECIMAL-*, MESSAGE-TAG, FUNCTION-POINTER, PACKED-DECIMAL WITH NO SIGN; class-name-1 is renamed object-class-name-1 with the same meaning), and nothing 2002 has is missing from 2023. But the row's POINTER TO witness does not run at 2002 and the OO forms are shown only at 2023, so those 2002 forms need a 2002 witness. The compiler accepts every 2002 form at 2002 and refuses the later words (usage_new.cob: COBOL0900 for FLOAT-BINARY-32 and NO SIGN; COBOL1564 for FLOAT-DECIMAL-16).",
+    "needs": "a 2002 witness for POINTER TO type-name-1, PROGRAM-POINTER TO program-prototype-name-1 and the OBJECT REFERENCE forms (usage_all.cob, usage_pp.cob are the candidates), then KEPT",
+    "compiler-at-2002": "correct (usage_all-2002.out, usage_pp-2002.out, usage_new-2002.out)",
+    "probe": "probes-u-53/usage_all.cob; probes-u-53/usage_pp.cob; probes-u-53/usage_new.cob",
+    "widening": "2023 adds FLOAT-BINARY-32/64/128, FLOAT-DECIMAL-16/34, MESSAGE-TAG, FUNCTION-POINTER, PACKED-DECIMAL WITH NO SIGN, endianness/encoding phrases"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.59.1",
+    "to": [
+     "FMT-13.18.61.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.16.59 USING clause",
+    "clause-2023": "13.18.61 USING clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "USING identifier-1 in screen description entries only (processor-dependent in 2002)"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/13.18.61-USING/a42-screen-using: COBOL1560 at 2002 (refuse-at lists 2002)"
+    ],
+    "licence-2002": "§2002:B.3 (screen section processor-dependent) with §2002:3.1.5",
+    "citations": [
+     {
+      "cite": "§2002:13.16.59",
+      "quote": "The USING clause identifies data to be used both as the destination in an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; screen-only; licensed out by the 2002 text and diagnosed at 2002.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: 2002 licence B.3 with 3.1.5; COBOL1560 at --std 2002"
+    ],
+    "probe": "probes-u-53/twins-2002.txt (a42-screen-using)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.60.1",
+    "to": [
+     "FMT-13.18.62.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.60 VALIDATE-STATUS clause",
+    "clause-2023": "13.18.62 VALIDATE-STATUS clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "{VALIDATE-STATUS|VAL-STATUS} IS {identifier-1|literal-1} WHEN [NO] ERROR [ON FORMAT|CONTENT|RELATION...] FOR identifier-2... in data description entries"
+    ],
+    "evidence-2002": [
+     "not shown: every VALIDATE-STATUS / VAL-STATUS clause is refused at 2002 with COBOL1708 (vstatus.cob; row test declined-validate-status refuses at 2002)"
+    ],
+    "licence-2002": "none",
+    "citations": [
+     {
+      "cite": "§2002:13.16.60.2 SR1",
+      "quote": "Literal-1 or the data item referenced by identifier-1 shall be valid as a sending operand for a MOVE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.62.1",
+      "quote": "The VALIDATE-STATUS clause feature of the VALIDATE facility is an obsolete feature.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format. The 2023 row is DOCUMENTED-NON-SUPPORT under 2023's optional VALIDATE facility; 2002 makes only Annex A (communications) optional and VALIDATE is not processor-dependent in B.3, so 2002 requires the clause; the compiler declines it at 2002.",
+    "flags-answered": [
+     "target-not-CONFORMS-OK: no 2002 licence; the decline at --std 2002 is a defect (kb/Work PB5577)"
+    ],
+    "needs": "2002 requires the VALIDATE-STATUS clause (VALIDATE facility); the compiler declines it (kb/Work PB5577)",
+    "compiler-at-2002": "wrong: vstatus.cob (VALIDATE-STATUS IS ERRTXT WHEN ERROR FOR WS-A; VAL-STATUS IS \"GOOD\" WHEN NO ERROR FOR WS-A; ... WHEN ERROR ON FORMAT FOR WS-A) exits 65 at --std 2002 with COBOL1708 on each clause and COBOL1580 on each VALIDATE; expected under §2002:3.1.1 to compile and run. Known as PB5577.",
+    "probe": "probes-u-53/vstatus.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.61.1",
+    "to": [
+     "FMT-13.18.63.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.61 VALUE clause",
+    "clause-2023": "13.18.63 VALUE clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 data item (WS, LS, linkage, communication section, screen)",
+     "Format 2 table FROM/TO",
+     "Format 3 condition-name with THROUGH, IN alphabet-name, WHEN SET TO FALSE",
+     "Format 4 report section literal list",
+     "Format 5 content-validation entry {VALUE|VALUES} ... IS {VALID|INVALID} [WHEN condition-1]"
+    ],
+    "evidence-2002": [
+     "Formats 1-4: covered by pb502, pb695, pb455, pb983 (MATCH at 2002) and refusals pb559-*, pb890 (hold at 2002); Format 1 in a CD record runs (cd_clauses.cob)",
+     "Format 5: not shown: refused at 2002 with COBOL1708 (value_fmt5.cob)"
+    ],
+    "licence-2002": "none for Format 5",
+    "citations": [
+     {
+      "cite": "§2002:13.16.61",
+      "quote": "the values associated with condition-names, the value of report section printable items and screen section displayable items, and the values used by the VALIDATE statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.61.2 SR22",
+      "quote": "Condition-name and content-validation formats shall not be specified in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "All five formats are printed identically in both editions. The 2023 row is CONFORMS because Format 5 belongs to 2023's optional VALIDATE facility, which the compiler declines; 2002 makes no such allowance, so Format 5 is required in 2002 and the compiler refuses it.",
+    "needs": "2002 requires the content-validation entry (Format 5); the compiler declines it (kb/Work PB5577); Formats 1-4 KEPT to the row",
+    "compiler-at-2002": "wrong: value_fmt5.cob (01 WS-A PIC 9(4) VALUE 5. 88 VALUE 1 THRU 9 IS VALID. 88 VALUES 20 30 VALID. 01 WS-B ... 88 VALUE 7 IS INVALID. VALIDATE WS-A, VALIDATE WS-B) exits 65 at --std 2002 with COBOL1708 on each Format 5 entry; expected under §2002:3.1.1 to compile. Known as PB5577.",
+    "probe": "probes-u-53/value_fmt5.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.62.1",
+    "to": [
+     "FMT-13.18.64.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "13.16.62 VARYING clause",
+    "clause-2023": "13.18.64 VARYING clause",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VARYING data-name-1 [FROM expr] [BY expr]... in a report group entry with multiple LINE/COLUMN or OCCURS",
+     "the same clause in a data description entry with OCCURS (counters for VALIDATE)"
+    ],
+    "evidence-2002": [
+     "report-writer use: covered by pb1305_report_varying_expression (MATCH at 2002); pb1305_report_varying_standard_decimal refuses at 2002 only for ARITHMETIC IS STANDARD-DECIMAL (a 2014 construct outside the 2002 scope)",
+     "data description use: not shown: refused at 2002 with COBOL1708 (varying_dd.cob)"
+    ],
+    "licence-2002": "none for the data-division use",
+    "citations": [
+     {
+      "cite": "§2002:13.16.62",
+      "quote": "The VARYING clause also establishes counters to enable a VALIDATE statement to store different occurrences of a data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.62.2 SR1",
+      "quote": "The entry containing the VARYING clause shall also contain an OCCURS clause or, if the VARYING clause appears in a report group description entry, a multiple LINE or multiple COLUMN clause.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format. The clause has two homes in 2002: report writer (supported, shown at 2002) and data description entries for VALIDATE (required in 2002, declined by the compiler as part of the VALIDATE facility).",
+    "needs": "2002 requires VARYING in a data description entry (VALIDATE facility); the compiler declines it (kb/Work PB5577); report-writer use KEPT to the row",
+    "compiler-at-2002": "wrong: varying_dd.cob (05 WS-A PIC X(4) OCCURS 3 TIMES VARYING WS-I FROM 1 BY 1.) exits 65 at --std 2002 with COBOL1708; expected under §2002:13.16.62.2 SR1 and §2002:3.1.1 to compile (GR2: ignored outside VALIDATE) and print ABCD. Known as PB5577.",
+    "probe": "probes-u-53/varying_dd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.17.1",
+    "to": [
+     "FMT-15.22.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.17 DATE-OF-INTEGER function",
+    "clause-2023": "15.22 DATE-OF-INTEGER function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION DATE-OF-INTEGER ( argument-1 )"
+    ],
+    "evidence-2002": [
+     "not shown by the row: its only witness IntrinsicFunctionDifferentialTests.IntegerDateForm_Epoch_PinnedToSpec compiles at the default --std 2023",
+     "probe intr.cob at 2002: DOI=16010101, DOI2=20001231"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.17",
+      "quote": "The DATE-OF-INTEGER function converts a date in the Gregorian calendar from integer date form to standard date form",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row's evidence runs only at 2023.",
+    "needs": "a 2002 witness for FUNCTION DATE-OF-INTEGER (intr.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.18.1",
+    "to": [
+     "FMT-15.23.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.18 DATE-TO-YYYYMMDD function",
+    "clause-2023": "15.23 DATE-TO-YYYYMMDD function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION DATE-TO-YYYYMMDD ( argument-1 [ argument-2 [ argument-3 ] ] )"
+    ],
+    "evidence-2002": [
+     "covered by intrinsics_date_window (MATCH at 2002); also intr.cob D2Y=19991231"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.18",
+      "quote": "The DATE-TO-YYYYMMDD function converts argument-1 from the form YYmmdd to the form YYYYmmdd.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row witness holds at 2002.",
+    "probe": "probes-u-53/twins-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.19.1",
+    "to": [
+     "FMT-15.24.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.19 DAY-OF-INTEGER function",
+    "clause-2023": "15.24 DAY-OF-INTEGER function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION DAY-OF-INTEGER ( argument-1 )"
+    ],
+    "evidence-2002": [
+     "not shown by the row: general_format_intrinsics_batch1 refuses at 2002 (COBOL1502 on FUNCTION CONCAT, a 2023 function in the same program)",
+     "probe intr.cob at 2002: DAYOI=1601001, DAYOI2=1602001"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.19",
+      "quote": "The DAY-OF-INTEGER function converts a date in the Gregorian calendar from integer date form to Julian date form",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row's only witness cannot compile at 2002 because it also uses a 2023 function.",
+    "needs": "a 2002 witness for FUNCTION DAY-OF-INTEGER (intr.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.20.1",
+    "to": [
+     "FMT-15.25.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.20 DAY-TO-YYYYDDD function",
+    "clause-2023": "15.25 DAY-TO-YYYYDDD function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION DAY-TO-YYYYDDD ( argument-1 [ argument-2 [ argument-3 ] ] )"
+    ],
+    "evidence-2002": [
+     "covered by l1_day_to_yyyyddd_format and intrinsics_date_window (MATCH at 2002); l1-day-to-yyyyddd-arity4 (COBOL1504) and -no-function-word (COBOL1543) refuse at 2002 (refuse-at lists 2002)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.20",
+      "quote": "The DAY-TO-YYYYDDD function converts argument-1 from the form YYnnn to the form YYYYnnn.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; all row witnesses hold at 2002.",
+    "probe": "probes-u-53/twins-2002.txt",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.21.1",
+    "to": [
+     "FMT-15.26.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.21 DISPLAY-OF function",
+    "clause-2023": "15.26 DISPLAY-OF function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION DISPLAY-OF ( argument-1 [ argument-2 ] )"
+    ],
+    "evidence-2002": [
+     "covered by national_intrinsics (MATCH at 2002 after trailing-space normalization); argument-2 form also in intr.cob (DOF2=[ABC])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.21",
+      "quote": "The DISPLAY-OF function returns a character string containing the alphanumeric coded character set representation",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row witness holds at 2002.",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.22.1",
+    "to": [
+     "FMT-15.27.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.22 E function",
+    "clause-2023": "15.27 E function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION E (no argument list)"
+    ],
+    "evidence-2002": [
+     "not shown by the row: exp_standard_decimal_eae refuses at 2002 (COBOL0900, ARITHMETIC IS STANDARD-DECIMAL is 2014)",
+     "probe intr.cob at 2002: E=2.71828182"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.22",
+      "quote": "The E function returns an approximation of e, the base of natural logarithms.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the row's only witness depends on a 2014 construct and does not compile at 2002.",
+    "needs": "a 2002 witness for FUNCTION E (intr.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.23.1",
+    "to": [
+     "FMT-15.28.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.23 EXCEPTION-FILE function",
+    "clause-2023": "15.28 EXCEPTION-FILE function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-FILE with no argument (2002 has no argument form)"
+    ],
+    "evidence-2002": [
+     "not shown by the row: exception_file_arg uses the 2023 argument form and is refused at 2002 (COBOL0900, correct)",
+     "probe intr.cob at 2002: FILE=[10F1] after READ AT END"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.23",
+      "quote": "The EXCEPTION-FILE function returns an alphanumeric character string that is the I-O status value and file-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.28.2",
+      "quote": "FUNCTION EXCEPTION-FILE [ ( argument-1 ) ]",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 prints FUNCTION EXCEPTION-FILE with no argument; 2023 adds [ ( argument-1 ) ]. The 2002 form is a subset, but the row's witness exercises only the 2023 argument form, so the 2002 form has no row evidence at 2002.",
+    "needs": "a 2002 witness for FUNCTION EXCEPTION-FILE without an argument (intr.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out; argument form refused at 2002 per twins-2002.txt)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": "2023 adds the optional argument-1 (file-connector-name)"
+   },
+   {
+    "rule-id": "2002-FMT-15.24.1",
+    "to": [
+     "FMT-15.29.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.24 EXCEPTION-FILE-N function",
+    "clause-2023": "15.29 EXCEPTION-FILE-N function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-FILE-N with no argument"
+    ],
+    "evidence-2002": [
+     "covered by exception_file_n (no-argument form; MATCH at 2002 after trailing-space normalization)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.24",
+      "quote": "The EXCEPTION-FILE-N function returns a national character string that is the I-O status value and file-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 is the no-argument subset of 2023's format, and the row witness uses exactly that form at 2002.",
+    "probe": "probes-u-53/twins-2002.txt",
+    "widening": "2023 adds the optional argument-1"
+   },
+   {
+    "rule-id": "2002-FMT-15.25.1",
+    "to": [
+     "FMT-15.30.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.25 EXCEPTION-LOCATION function",
+    "clause-2023": "15.30 EXCEPTION-LOCATION function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-LOCATION"
+    ],
+    "evidence-2002": [
+     "not shown by the row: pb63_exception_location_procedure_field refuses at 2002 (COBOL1502, FUNCTION TRIM is 2014); ExceptionConditionConformanceTests compile at --std 2023",
+     "probe intr.cob at 2002: LOC=[INTR; MAIN OF MAIN-S; 48]"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.25",
+      "quote": "The EXCEPTION-LOCATION function returns an alphanumeric character string that is the implementor-defined location",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; none of the row's witnesses runs at 2002.",
+    "needs": "a 2002 witness for FUNCTION EXCEPTION-LOCATION (intr.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.26.1",
+    "to": [
+     "FMT-15.31.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.26 EXCEPTION-LOCATION-N function",
+    "clause-2023": "15.31 EXCEPTION-LOCATION-N function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-LOCATION-N"
+    ],
+    "evidence-2002": [
+     "covered by exception_file_n (LENGTH(FUNCTION EXCEPTION-LOCATION-N); MATCH at 2002); pb63 does not run at 2002 but is not needed for the format; exception_file_n_below_2002 refuses only at 85"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.26",
+      "quote": "The EXCEPTION-LOCATION-N function returns a national character string that is the implementor-defined location",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; a row witness that uses the function runs at 2002.",
+    "probe": "probes-u-53/twins-2002.txt; probes-u-53/intr.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.27.1",
+    "to": [
+     "FMT-15.32.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.27 EXCEPTION-STATEMENT function",
+    "clause-2023": "15.32 EXCEPTION-STATEMENT function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-STATEMENT"
+    ],
+    "evidence-2002": [
+     "not shown by the row: pb63 refuses at 2002 (TRIM), ExceptionConditionConformanceTests run at 2023",
+     "probe intr.cob at 2002: the format is accepted and returns READ"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.27",
+      "quote": "The EXCEPTION-STATEMENT function returns an alphanumeric value that is the name of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.27.2 RV1",
+      "quote": "the returned value is 31 spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.27.2 RV2",
+      "quote": "the returned value is a 31-character alphanumeric character-string that is the name of the statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.32.3 RV2",
+      "quote": "the returned value is a 63-character alphanumeric character-string",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; no row witness runs at 2002. While probing, the RETURNED VALUE was found wrong at 2002: the compiler returns 63 characters (the 2023 width) where 2002 (and 2014) says 31.",
+    "needs": "a 2002 witness for the format (intr.cob), then KEPT; separately the width defect below for 2002-RV-15.27.2-1/-2",
+    "compiler-at-2002": "correct for the format; DEFECT in the returned value: intr.cob (>>TURN EC-ALL CHECKING ON WITH LOCATION; SELECT OPTIONAL F1 ...; OPEN INPUT F1; READ F1 AT END ...; DISPLAY FUNCTION LENGTH (FUNCTION EXCEPTION-STATEMENT)) prints STMT-LEN=000000063 at --std 2002 (and 2023); expected 31 per §2002:15.27.2 RV2 (and RV1 for the no-location case: 31 spaces). Code site: src/WiseOwl.Cobol.Runtime/Exceptions/EcFunctions.cs Statement() hard-codes 63 with no edition switch. Not in kb/Work.",
+    "probe": "probes-u-53/intr.cob (intr-2002.out)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.28.1",
+    "to": [
+     "FMT-15.33.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.28 EXCEPTION-STATUS function",
+    "clause-2023": "15.33 EXCEPTION-STATUS function",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION EXCEPTION-STATUS"
+    ],
+    "evidence-2002": [
+     "not shown by the row: pb63 refuses at 2002 (TRIM), ExceptionConditionConformanceTests run at 2023",
+     "shown at 2002 by exception_file_n (not in this row; S: EC-I-O-AT-END) and probe intr.cob (STATUS=[EC-I-O-AT-END], 31 wide)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.28",
+      "quote": "The EXCEPTION-STATUS function returns an alphanumeric value that is the exception-name associated with the last exception status.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.28.2 RV1",
+      "quote": "A 31-character, left-justified, alphanumeric character string that is the exception-name",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; none of the row's witnesses runs at 2002.",
+    "needs": "a 2002 witness for FUNCTION EXCEPTION-STATUS (add exception_file_n to the row, or intr.cob), then KEPT",
+    "compiler-at-2002": "correct (intr-2002.out)",
+    "probe": "probes-u-53/intr.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-53",
+  "method": "Each SAME re-read against the 2002 text, the 2023 pointer row (tests/version-matrix/inventory/<id>.json test-ref) and the row witnesses' source. The test the brief sets for SAME: every part of the 2002 scope is covered by evidence the POINTER ROW already has, and that evidence holds at --std 2002. A part shown only by the reader's own probe, or by a suite test outside the row, is not row evidence. The reader applied that test itself to its DIFFERENT for 2002-FMT-13.16.51.1 (SOURCE). Probes: E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/ (<name>.cob, <name>-2002.out, <name>-2023.out; r.py runs the pinned compiler).",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-13.16.50.1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The SIGN row (FMT-13.18.52.2) has three witnesses, and all three refuse a clause written twice: pb486-sign-written-twice (SIGN twice in a data description entry), pb917-data-usage-twice (USAGE twice, no SIGN at all) and pb917-report-group-picture-twice (PICTURE twice; grep finds no SIGN, LEADING, TRAILING or SEPARATE in the file, and at 2002 it fails with COBOL1657 and COBOL2423 about VALUE and PIC). So no row witness accepts any form of the format at 2002: not LEADING or TRAILING, not the optional SIGN IS, not SEPARATE CHARACTER, not SIGN in a report group entry (2002 SR1 names that entry), and not SIGN in a record under a CD (2002 A.1.1). The reader's 'covered' rests on its own probes (sign_sync.cob, cd_clauses.cob), which are not row evidence. The compiler is correct at 2002: the reader's sign_sync.cob and cd_clauses.cob, and my sign_rg.cob, where a report group with SIGN IS LEADING SEPARATE CHARACTER and TRAILING SEPARATE prints [-07 07-] at 2002 and at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.50.2 SR1",
+      "quote": "a numeric report group description entry whose picture character-string contains the symbol",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for the accepted forms in a data description entry, in a report group entry and in a CD record (candidates: probes-u-53/sign_sync.cob, refute-u-53/sign_rg.cob, probes-u-53/cd_clauses.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/sign_rg.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.52.1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "In 2002 the identifier-1 addend and the identifiers inside arithmetic-expression-1 may be any non-report-section item, so they include items of a record under a CD. The suite already has a 2002-only case for exactly this, cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing (SUM CD-N, SUM (CD-N + 1) CD-N WS-B, UPON). It matches its golden at --std 2002 and is refused at 2023 (COBOL0902), but it is not in the row. The row's one positive witness, pb1295_report_sum_groups_then_reset_rounded, writes only `SUM WS-A SUM WS-B RESET ON FINAL ROUNDED`. So the row also never shows a data-name-1 addend (a report-section item, rolling forward), an arithmetic-expression-1 addend, the UPON phrase, or RESET ON data-name-3. The reader used this same gap to rule SOURCE DIFFERENT. At 2002 the compiler is correct for every candidate: g2sum01, pb1294_report_rolled_cross_report (SUM X1 OF RA; SUM WS-A UPON DA OF RA) and pb1297_sum_reset_level_upon_85 (RESET ON WS-C; UPON DE-A DE-A) all match their goldens.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.52.2 SR4",
+      "quote": "If the addend is identifier-1, it shall specify a numeric data item not defined in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.2 SR5",
+      "quote": "any identifiers it contains may reference entries in any section of the data division other than the report section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.2 SR3",
+      "quote": "Data-name-1 shall be the name of a numeric data item in the report section.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.52.2 SR6",
+      "quote": "Data-name-2 shall be the name of a detail.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     }
+    ],
+    "needs": "add g2sum01_sum_cd_addends_timing (CD addends, expression, UPON), pb1294_report_rolled_cross_report (data-name-1) and pb1297_sum_reset_level_upon_85 (RESET ON data-name-3) as 2002 witnesses, then KEPT",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/r.py (case runs; output in this session)"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.53.1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The row's only witness, l1_byte_length_implicit_filler, writes bare `SYNCHRONIZED` (lines 136 and 139) and nothing else. The SYNC abbreviation (2002 SR2), LEFT (GR3), RIGHT (GR4) and a SYNC entry in a record under a CD (2002 A.1.1) have no row evidence at 2002. They are shown only by the reader's probes sign_sync.cob and cd_clauses.cob, where every spelling runs at 2002. A related observation, not this FMT row: 2002 SR1 allows SYNCHRONIZED only on an elementary item, while 2023 SR1 allows it on groups too. The 2002 refusal of a group SYNC therefore belongs to SR-13.16.53.2-1 and needs its own 2002 witness.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.53.2 SR2",
+      "quote": "SYNC is an abbreviation for SYNCHRONIZED.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR3",
+      "quote": "SYNCHRONIZED LEFT specifies that the elementary item is to be positioned",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR4",
+      "quote": "SYNCHRONIZED RIGHT specifies that the elementary item is to be positioned",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.2 SR1",
+      "quote": "The SYNCHRONIZED clause may be specified only for an elementary item.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.55.3 SR1",
+      "quote": "The SYNCHRONIZED clause may be specified for group and elementary items.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for SYNC, LEFT, RIGHT and a SYNC entry in a CD record (probes-u-53/sign_sync.cob and cd_clauses.cob are the candidates), then KEPT",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-53/sign_sync.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.54.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The TO clause is screen-only in 2002. The 2002 text licenses not supporting the screen section: B.3 lists it as processor-dependent, and 3.1.5 says unclaimed processor-dependent elements need not be implemented. The row witness a42-screen-to refuses it at 2002 with COBOL1560. I found no non-screen TO clause in 2002; the TO in TYPE TO is a different clause.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.54",
+      "quote": "The TO clause identifies the destination of the data in an ACCEPT screen statement.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.55.1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "The row's code-location and both witnesses (pb1298_control_heading_or_page, pb1298-control-footing-or-page-not-in-format) cover only Format 2, and only these spellings: PAGE HEADING, CONTROL HEADING ON x OR PAGE, DE, and CF FOR x. Format 1 (TYPE TO type-name-1), which in 2002 also reaches records under a CD, has no row evidence. Neither do REPORT HEADING/RH, PH, CH, DETAIL, CONTROL FOOTING, PAGE FOOTING/PF, REPORT FOOTING/RF, or the FINAL operand. The reader's Format 1 evidence is l1c34_typedef_format_spellings, which belongs to the TYPEDEF row, plus its own cd_clauses.cob probe. Neither is evidence from this row.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.55.3 GR1",
+      "quote": "The TYPE clause specifies that the data description of the subject of the entry is specified by type-name-1.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.55.2 SR9",
+      "quote": "RH is an abbreviation for REPORT HEADING.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for Format 1, including a CD record (l1c34_typedef_format_spellings and probes-u-53/cd_clauses.cob are the candidates), and for the Format 2 spellings and FINAL that the row lacks, then KEPT",
+    "compiler-at-2002": "correct for Format 1 (cd_clauses.cob, l1c34 match at 2002); the missing Format 2 spellings are not probed",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-53/cd_clauses.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.56.1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "In 2002, every level-1 item is a record. 2023 added 'and whose declaration does not include the TYPEDEF clause', so a 2023 type declaration is not a record description entry. In 2002 a CD entry may be followed by record description entries (A.1.1), so a level-1 TYPEDEF entry under a CD falls within 2002's scope. 2023 has no such context. The row witness l1c34_typedef_format_spellings declares its types only in working storage, and the reader's cd_clauses.cob puts its TYPEDEF in working storage, not under the CD. My probe typedef_cd.cob declares `01 CDT IS TYPEDEF PIC X(3)` and `01 CDS TYPEDEF STRONG` under an output CD and uses them in working storage. At 2002 it compiles (COBOL0903 obsolete warning only) and prints V1=ABC V2=42Z. The compiler is correct, but no row witness covers the case.",
+    "citations": [
+     {
+      "cite": "§2002:13.10",
+      "quote": "Any data item that has been described with level-number 1 is a record.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.11.1",
+      "quote": "whose declaration does not include the TYPEDEF clause is a record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication description entry is followed by none, one, or more record description entries.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.56.3 GR1",
+      "quote": "If the TYPEDEF clause is specified, the data description entry is a type declaration.",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for a TYPEDEF entry under a CD (refute-u-53/typedef_cd.cob is the candidate), then KEPT; the four spellings stay KEPT to the row",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/typedef_cd.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.16.57.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "UNDERLINE is a screen-only clause. B.3 and 3.1.5 license not supporting it in 2002, and the row witness a42-screen-underline refuses it at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.57.2 GR2",
+      "quote": "the characters that constitute the screen item are underlined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.16.59.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The USING clause is screen-only. The class and interface USING phrases are different constructs. B.3 and 3.1.5 license not supporting it in 2002, and a42-screen-using refuses it at 2002 with COBOL1560.",
+    "citations": [
+     {
+      "cite": "§2002:13.16.59",
+      "quote": "The USING clause identifies data to be used both as the destination in an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.18.1",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "The format admits 1, 2 or 3 arguments, and 2002 gives the omitted ones defaults: argument-2 defaults to 50 (AR3), argument-3 to the current year (AR5). The row's only witness, intrinsics_date_window, calls DATE-TO-YYYYMMDD four times (lines 44, 47, 50, 52), each with three arguments. The reader's extra evidence, intr.cob line 38 `(991231 50 2000)`, also has three arguments. So the 1-argument and 2-argument forms have no evidence at 2002, from the row or from the reader. The compiler is correct: my d2y_arity.cob prints A1=19851003, A2=19851003, A3=19851003 at 2002 and at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:15.18.2 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.18.2 AR5",
+      "quote": "If argument-3 is omitted, the function shall be evaluated as though the following were specified",
+      "check": "OK"
+     }
+    ],
+    "needs": "a 2002 witness for the 1-argument and 2-argument forms (refute-u-53/d2y_arity.cob is the candidate), then KEPT",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/d2y_arity.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.20.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The format is identical in both editions. The row witness l1_day_to_yyyyddd_format writes the 1-, 2- and 3-argument forms and the comma spelling, and matches at 2002. Its arity-4 and no-FUNCTION-word refusals also hold at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.20.2 AR1",
+      "quote": "Argument-1 shall be a positive integer less than 100000.",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.21.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The format is identical. The row witness national_intrinsics writes DISPLAY-OF with one argument and with two, `(N-WIDE, \"#\")`, so both 2002 forms are covered. Run here at 2002, its output equals the golden once trailing spaces are stripped, the same as at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:15.21.2 AR2",
+      "quote": "Argument-2 specifies an alphanumeric substitution character",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.24.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "2002's format has no argument, a subset of 2023's [ ( argument-1 ) ]. The row witness exception_file_n uses the no-argument form and matches at 2002 once trailing spaces are stripped. My efn_arg.cob shows the 2023-only argument form refused at 2002 (COBOL0900), so the compiler offers no unflagged extension there.",
+    "citations": [
+     {
+      "cite": "§2002:15.24",
+      "quote": "returns a national character string that is the I-O status value and file-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.29.3 AR1",
+      "quote": "Argument-1 is optional and when specified shall be the name of a file connector",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-53/efn_arg.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.26.1",
+    "verdict": "UPHELD",
+    "class": null,
+    "reason": "The format is identical, with no arguments in either edition. The row witness exception_file_n writes FUNCTION LENGTH(FUNCTION EXCEPTION-LOCATION-N) and runs at 2002, matching once trailing spaces are stripped.",
+    "citations": [
+     {
+      "cite": "§2002:15.26",
+      "quote": "returns a national character string that is the implementor-defined location",
+      "check": "OK"
+     }
+    ],
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "09082c041e0c9c12b046d77054b94cccc43a8bd91acdfbb36f022bf288faec9a",
+  "read": "d3f53b5f4895edda3ff724a6bdb7b17d7a44d92ca9f01056fc7c2bf96baa23f6",
+  "refute": "50be21894b08212d8c33797bf59e40eb41bf1a9bf8d9694117d9c8f7324c06a7"
+ }
+}

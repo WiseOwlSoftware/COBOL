@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-X.5.5.4-1",
+ "rule-digest": "6f01a9000727",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-141",
+  "sources": {
+   "reader": "b3a70455ab72b9cd9ad09033b97f0699d7892ffe22da370e5ce307b0a6400e7f",
+   "refuter": "2ed23be80230dee69edd5468629de243b17111a84f51fa39061c9cd233fb6ee3"
+  },
+  "imported": {
+   "reader": "7bd2295d2cb207c6c7bd323bb89757744afa1b99e033d520456ee470abec4a1d",
+   "refuter": "6538d1569534d8dc5671db49a92f368f11c9ef317e8c3587e792f9e1993b1641"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "When an I-O condition qualifies for a USE AFTER STANDARD EXCEPTION/ERROR declarative in a nest of contained programs, exactly one declarative runs: the one in the program containing the statement (file-name or open-mode form) if it qualifies, otherwise the first GLOBAL declarative found walking outward one directly containing program at a time to the outermost, which must itself satisfy its own execution rules (the same file connector, or the open mode INPUT/OUTPUT/I-O/EXTEND); a non-GLOBAL declarative of a containing program is never selected and, with none found, none runs; a separately compiled program is never reached.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitRunGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ChainHasGlobalUse; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
+  "edition-consulted": [],
+  "edition-search": "grep of Edition|CobolVersion|DialectBehavior over UseTierEmitter.cs (whose header records the selection tiers as an edition-invariant determination, kb/Work PB344), DispatchEmitter.cs#EmitUseMachinery and ProgramEmitter.cs#EmitRunGlobalUse; no ConstructRegistry row for USE GLOBAL or USE ON EXTEND. The only switch nearby is EcState.Active (whether any exception-condition feature is in use, not the edition), which picks the int or bool form of the same tiers and the same outward walk",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf10_13 covers file-name declaratives: rule a in a middle program, rule b skipping a non-GLOBAL middle declarative to the outer GLOBAL one, rule b stopping at the first GLOBAL; not covered: open-mode GLOBAL declaratives, a contained program's own file whose name shadows a GLOBAL file of the outer program, the no-qualifying-declarative end of rule c, a separately compiled program called from the nest",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/X.5.5@1985-USE-STATEMENT/g85_bf10_13.cob",
+    "printed": "MID-L-GF 10 / OUTER-G-GF 10 / MID-G-GG 10 / OUTER-G-GG 10 / OUTER END, EXPECT MATCH",
+    "expected": "as the witness derives"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p4a.cob",
+    "printed": "OUTER-INPUT / N 35 / K-L-GF / K 35 / Q 35 / END, EXPECT MATCH",
+    "expected": "N's own local file GF (shadowing the outer GLOBAL GF) fails OPEN INPUT: the middle program's non-GLOBAL INPUT declarative is skipped and the outer GLOBAL INPUT declarative runs, not the outer USE GLOBAL ON GF (a different file); K's own USE ON GF runs by rule a; the separately compiled P4Q gets no declarative (X.5.5.4 GR1 with VII.4.6.4 GR1)"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-141/src/p4b.cob",
+    "printed": "O-EXT / N-EXT 35 / O-IO / N-IO 35 / N-IN 35 / END",
+    "expected": "OPEN EXTEND and OPEN I-O failures select the outer GLOBAL EXTEND and I-O declaratives; the OPEN INPUT failure has no qualifying declarative (only OUTPUT, EXTEND, I-O are declared), so none runs and execution continues"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.5.4 GR1",
+    "check": "OK  §1985:X.5.5.4 GR1  (║5.5.4 General Rules║)  the text is in GR1"
+   }
+  ],
+  "notes": "Each program's __IoCheck runs its own file-name tier then open-mode tier (UseTierEmitter), then, when a container in the chain has a GLOBAL declarative, calls __outer.__RunGlobalUse, which runs the same tiers over GLOBAL declaratives only and continues outward. The file key is the connector's own key, so a shadowing local file does not match the outer GLOBAL file's declarative. USE BEFORE REPORTING precedence (X.5.6.4) is a separate rule on ReportWriterEmitter and was not judged here.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "r4a.cob at --std 85 has a GLOBAL file and a GLOBAL FILE STATUS. N1 (no declaratives) fails OPEN INPUT and only the outer non-GLOBAL USE ON GF exists: none runs (N1 35). N2's own non-GLOBAL open-mode INPUT declarative wins by rule a (N2-INPUT 35). N4's failure skips N3's GLOBAL OUTPUT declarative, which does not satisfy its own execution rules, and selects N3's GLOBAL INPUT one (N3-G-INPUT 35). The outer's own OPEN runs its non-GLOBAL USE ON GF (OUTER-L 35). r4c.cob covers RELATIVE random and INDEXED dynamic files, with INVALID KEY conditions (23, 22) in an inner program: the middle program's GLOBAL I-O declarative is selected first and the outer GLOBAL file-name declarative on the same file is never reached. A READ with an INVALID KEY phrase runs no declarative. Only the first qualifying declarative runs. (r4b failed to compile only because RF is a reserved word at 85; renamed RLF in r4c.) cite.py: OK §1985:X.5.5.4 GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

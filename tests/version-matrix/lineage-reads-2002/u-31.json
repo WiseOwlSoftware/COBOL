@@ -1,0 +1,1650 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-31 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-31",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-RV-15.12.3-2",
+   "2002-RV-15.15.3-1",
+   "2002-RV-15.16.2-1",
+   "2002-AR-15.17.2-1",
+   "2002-AR-15.19.2-1",
+   "2002-RV-15.22.2-1",
+   "2002-RV-15.23.2-1",
+   "2002-RV-15.24.2-1",
+   "2002-RV-15.25.2-1",
+   "2002-RV-15.25.2-2",
+   "2002-RV-15.26.2-1",
+   "2002-RV-15.26.2-2",
+   "2002-RV-15.27.2-1",
+   "2002-RV-15.27.2-2",
+   "2002-RV-15.27.2-3",
+   "2002-AR-15.33.2-1",
+   "2002-RV-15.33.3-1",
+   "2002-RV-15.34.3-1",
+   "2002-RV-15.34.3-2",
+   "2002-RV-15.36.3-1",
+   "2002-RV-15.37.3-1",
+   "2002-RV-15.39.3-4",
+   "2002-RV-15.43.3-1",
+   "2002-RV-15.45.3-2",
+   "2002-RV-15.45.3-3"
+  ],
+  "pointers": {
+   "2002-RV-15.12.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.14.4-2",
+    "similarity": 0.996
+   },
+   "2002-RV-15.15.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "RV-15.20.4-1",
+    "similarity": 1.0
+   },
+   "2002-RV-15.16.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.21.3-1",
+    "similarity": 0.991
+   },
+   "2002-AR-15.17.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "AR-15.22.3-1",
+    "similarity": 0.324
+   },
+   "2002-AR-15.19.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "AR-15.24.3-1",
+    "similarity": 0.324
+   },
+   "2002-RV-15.22.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.27.3-3",
+    "similarity": 0.421
+   },
+   "2002-RV-15.23.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "RV-15.28.4-2",
+    "similarity": 0.867
+   },
+   "2002-RV-15.24.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "RV-15.29.4-2",
+    "similarity": 0.864
+   },
+   "2002-RV-15.25.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.30.3-1",
+    "similarity": 0.962
+   },
+   "2002-RV-15.25.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.30.3-2",
+    "similarity": 0.978
+   },
+   "2002-RV-15.26.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.31.3-1",
+    "similarity": 0.962
+   },
+   "2002-RV-15.26.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.31.3-2",
+    "similarity": 0.977
+   },
+   "2002-RV-15.27.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.32.3-1",
+    "similarity": 0.955
+   },
+   "2002-RV-15.27.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.32.3-2",
+    "similarity": 0.961
+   },
+   "2002-RV-15.27.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.32.3-3",
+    "similarity": 0.991
+   },
+   "2002-AR-15.33.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.43.3-1",
+    "similarity": 0.963
+   },
+   "2002-RV-15.33.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.43.4-2",
+    "similarity": 0.976
+   },
+   "2002-RV-15.34.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.44.4-1",
+    "similarity": 0.131
+   },
+   "2002-RV-15.34.3-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "RV-15.44.4-1",
+    "similarity": 0.763
+   },
+   "2002-RV-15.36.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.46.4-1",
+    "similarity": 0.415
+   },
+   "2002-RV-15.37.3-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.47.4-1",
+    "similarity": 0.415
+   },
+   "2002-RV-15.39.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.50.4-4",
+    "similarity": 0.996
+   },
+   "2002-RV-15.43.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "RV-15.55.4-1",
+    "similarity": 1.0
+   },
+   "2002-RV-15.45.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.57.4-3",
+    "similarity": 0.918
+   },
+   "2002-RV-15.45.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.57.4-5",
+    "similarity": 0.942
+   }
+  }
+ },
+ "read": {
+  "slice": "u-31",
+  "seed": null,
+  "probe-runner": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/run.sh (compiles <name>.cob at each --std with the pinned cobol.exe, runs it, writes <name>-<std>.out)",
+  "cases": [
+   {
+    "rule-id": "2002-RV-15.12.3-2",
+    "to": [
+     "RV-15.14.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "15.12.3 (BYTE-LENGTH, Returned values) RV2",
+    "clause-2023": "15.14.4 RV2",
+    "scope-2002": [
+     "argument-1 a based entry unassociated with data, with a subordinate OCCURS DEPENDING: receiving (maximum) length",
+     "argument-1 a type declaration (TYPEDEF) with a subordinate OCCURS DEPENDING: receiving length",
+     "any other argument-1 (working-storage group, associated based entry): sending (current) length",
+     "argument-1 a record description entry under a CD (2002 A.1.1.2) with a subordinate OCCURS DEPENDING: sending length"
+    ],
+    "evidence-2002": {
+     "based unassociated / associated, alphanumeric and national": "covered by probe probes-u-31/ln1.cob (2002: BL-B-UNASSOC=17, BL-N-UNASSOC=34, BL-B-ASSOC=8, BL-N-ASSOC=16)",
+     "type declaration": "covered by probe probes-u-31/ln1.cob (BL-TYPE=17 at NN=2)",
+     "working-storage group": "covered by probe probes-u-31/ln1.cob (BL-W=8, BL-W4=14)",
+     "CD record": "covered by probe probes-u-31/ln2.cob (2002: BL-CR=8, BL-CR4=14); not by the pointer row",
+     "pointer witnesses": "pb61_length_byte_length_rule_branches and pb80_based_odo_group are accept [2023] only (S1-lists A: refused by the generator at 2002), so none of the pointer's evidence runs at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.12.3 RV2",
+      "quote": "if argument-1 is a based entry unassociated with actual data or is a type declaration",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.14.4 RV2",
+      "quote": "if argument-1 is a based entry not associated with actual data or is a type declaration",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ only in 'unassociated' vs 'not associated' (no behaviour change). The 2002 rule also reaches a record description entry under a CD (communication facility, 2002 Annex A), which the pointer's evidence cannot show; and the pointer's tests run only at 2023. Every scope item is shown correct at --std 2002 by ln1/ln2.",
+    "needs": "a 2002 witness for the CD-record case (probes-u-31/ln2.cob) and for the based/type/working-storage cases (probes-u-31/ln1.cob), since the pointer's tests do not run at 2002",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ln2-2002.out, ln1-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ln2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.15.3-1",
+    "to": [
+     "RV-15.20.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.15.3 (COS, Returned values) RV1",
+    "clause-2023": "15.20.4 RV1",
+    "scope-2002": [
+     "FUNCTION COS(argument-1), argument of class numeric, native arithmetic",
+     "the same under ARITHMETIC IS STANDARD (2002 8.8.1.3; a 2002-only mode)"
+    ],
+    "evidence-2002": {
+     "native": "covered by pointer witness pb999_log_trig_decimal_range (accept [2002]; re-run here at 2002: output matches its .out) and probe probes-u-31/dt1.cob (COS0=+1, COSPI=-1)",
+     "standard arithmetic": "covered by probe probes-u-31/fe4.cob (ARITHMETIC IS STANDARD: COS0=+1, COSPI=-1, COS-IN-RANGE)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.15.3 RV1",
+      "quote": "The returned value is the approximation of the cosine of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.20.4 RV1",
+      "quote": "The returned value is the approximation of the cosine of argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words (only the minus sign glyph differs). Same format, argument class numeric in both. The 2002-only standard-arithmetic mode is shown by fe4. No communication or debugging reach that changes anything (a CD numeric item is just a numeric argument).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/fe4.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.16.2-1",
+    "to": [
+     "RV-15.21.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.16.2 (CURRENT-DATE, Returned values) RV1",
+    "clause-2023": "15.21.3 RV1",
+    "scope-2002": [
+     "the 21-character layout, positions 1-16 (date, time, hundredths)",
+     "positions 13-14 under LEAP-SECOND OFF / ON (2002 LEAP-SECOND directive)",
+     "positions 17-21: local time differential, hours 00-12 behind, 00-13 ahead"
+    ],
+    "evidence-2002": {
+     "layout": "covered by probe probes-u-31/dt1.cob (2002: 21 characters, e.g. 2026111511142727-0800; pinned clock -05:30 gives 2026111510203045-0530)",
+     "LEAP-SECOND": "covered by probe probes-u-31/fe4.cob (>>LEAP-SECOND ON accepted at 2002; .NET seconds never exceed 59, conforming on both branches as the pointer row records)",
+     "positions 17-21 for a +14:00 host": "not conforming: probe dt1 with WISEOWL_COBOL_CLOCK=2026-11-15T10:20:30.45+14:00 prints 2026111510203045+1400 (dt1-2002-plus14.out); 2002 allows 00 through 13"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.16.2 RV1",
+      "quote": "two numeric digits are returned in the range 00 through 13 indicating the number of hours that the local time is ahead of Coordinated Universal Time",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.21.3 RV1",
+      "quote": "The character positions returned, numbered from left to right",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words identical to the pointer (glyph and nn/nm differences only). The pointer row is DOCUMENTED-NON-SUPPORT, not CONFORMS: on a +14:00 host the compiler reports the true offset (owner determination 2026-08-30 recorded on RV-15.21.3-1). The 2002 text gives no licence for that value either (licence-2002: none), and the same runtime formatter serves --std 2002, so the departure holds at 2002 too.",
+    "licence-2002": "none",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a +14:00 host is '+1400' in positions 17-21 (probes-u-31/dt1-2002-plus14.out), the same documented departure as RV-15.21.3-1; KEPT is not possible because the pointer is not CONFORMS",
+    "compiler-at-2002": "wrong (known, documented, owner-determined departure; not a new defect) - program probes-u-31/dt1.cob run with WISEOWL_COBOL_CLOCK=2026-11-15T10:20:30.45+14:00; expected an hour field in 00..13 per §2002:15.16.2 RV1; observed CD=2026111510203045+1400",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/dt1-2002-plus14.out",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.17.2-1",
+    "to": [
+     "AR-15.22.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.17.2 (DATE-OF-INTEGER, Arguments) AR1",
+    "clause-2023": "15.22.3 AR1 (via 15.5.2 integer date form)",
+    "scope-2002": [
+     "argument-1 an integer (2002 15.2 type 5: integer data item or always-integral expression)",
+     "value 1 .. 3,067,671; a violation sets EC-ARGUMENT-FUNCTION (2002 15.2)"
+    ],
+    "evidence-2002": {
+     "integer type": "covered by probe probes-u-31/ar1.cob first run (a PIC 9(3)V9 argument refused, COBOL1627)",
+     "range": "covered by probe probes-u-31/ar1.cob (0, 3067672, -5 each raise EC-ARGUMENT-FUNCTION at 2002) and dt1.cob (1 -> 16010101, 3067671 -> 99991231)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.17.2 AR1",
+      "quote": "It shall not exceed the value of FUNCTION INTEGER-OF-DATE(99991231), which is 3,067,671",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.22.3 AR1",
+      "quote": "Argument-1 shall be a value in integer date form",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.5.2",
+      "quote": "A value in integer date form is a positive integer that represents a number of days succeeding December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 moved the 2002 sentence into the definition of integer date form (15.5.2) with the same words and bound; the 2023 rule points at it. No program can tell the two apart. The pointer test pb58 is accept [2023] only, so the 2002 evidence is the probes.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ar1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.19.2-1",
+    "to": [
+     "AR-15.24.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.19.2 (DAY-OF-INTEGER, Arguments) AR1",
+    "clause-2023": "15.24.3 AR1 (via 15.5.2 integer date form)",
+    "scope-2002": [
+     "argument-1 an integer (2002 15.2 type 5)",
+     "value 1 .. 3,067,671; a violation sets EC-ARGUMENT-FUNCTION"
+    ],
+    "evidence-2002": {
+     "integer type": "covered by probe probes-u-31/ar1.cob first run (PIC 9(3)V9 refused, COBOL1627)",
+     "range": "covered by probe probes-u-31/ar1.cob (0, 3067672, -5 raise EC-ARGUMENT-FUNCTION) and dt1.cob (1 -> 1601001, 3067671 -> 9999365)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.19.2 AR1",
+      "quote": "Argument-1 is a positive integer that represents a number of days succeeding December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.24.3 AR1",
+      "quote": "Argument-1 shall be a value in integer date form",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.5.2",
+      "quote": "A value in integer date form is a positive integer that represents a number of days succeeding December 31, 1600",
+      "check": "OK"
+     }
+    ],
+    "reason": "As for DATE-OF-INTEGER: the 2002 words are the 2023 definition of integer date form that the 2023 rule references; same bound, same exception.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ar1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.22.2-1",
+    "to": [
+     "RV-15.27.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.22.2 (E, Returned values) RV1",
+    "clause-2023": "15.27.3 RV1-RV3",
+    "scope-2002": [
+     "native arithmetic: an implementor-defined approximation of (2 + .7182818284590452353602874713526) (2002 15.3.1)",
+     "ARITHMETIC IS STANDARD: the returned value shall EQUAL that expression, 2.7182818284590452353602874713526 (32 digits), so FUNCTION E = (2 + .7182818284590452353602874713526) is true"
+    ],
+    "evidence-2002": {
+     "native": "covered by probe probes-u-31/fe3.cob (E=2.718281828459045..., an implementor-defined approximation, allowed by §2002:15.3.1)",
+     "standard": "WRONG: probe probes-u-31/fe2.cob at 2002 prints RESID=+0.66200 (expected +0.60000), E-NE and E-NE-EXPR (expected E-EQ and E-EQ-EXPR)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.22.2 RV1",
+      "quote": "The equivalent arithmetic expression is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the value returned is an implementor-defined approximation of the value of that expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.27.3 RV3",
+      "quote": "If standard-decimal arithmetic is in effect",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.27.3 RV1",
+      "quote": "the returned value is an implementor-defined approximation of the arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer is the 2023 standard-decimal rule, whose constant 2.718281828459045235360287471352662 (34 digits) is not the 2002 expression; 2002 has a 32-digit standard arithmetic mode 2023 lacks. At --std 2002 under ARITHMETIC IS STANDARD the compiler returns the 2023 34-digit constant (residual .662E-30) and compares at 34 digits. This is reached by PB5575 (34-digit standard arithmetic at 2002). Fix note for PB5575: rounding the 34-digit constant into 32 digits would give ...3527, still wrong; the 2002 value must come from the 2002 expression (...3526).",
+    "needs": "its own verdict: at --std 2002 with ARITHMETIC IS STANDARD the compiler returns the 34-digit 2023 constant (fe2: RESID=+0.66200, E-NE-EXPR); native is a valid implementor approximation (fe3)",
+    "compiler-at-2002": "wrong (reached by known defect PB5575) - program probes-u-31/fe2.cob; expected E-EQ-EXPR and RESID=+0.60000 per §2002:15.3.1 and §2002:15.22.2 RV1; observed RESID=+0.66200, E-NE, E-NE-EXPR",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/fe2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.23.2-1",
+    "to": [
+     "RV-15.28.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.23.2 (EXCEPTION-FILE, Returned values) RV1",
+    "clause-2023": "15.28.4 RV2 (pointer; the no-argument twin is RV1)",
+    "scope-2002": [
+     "FUNCTION EXCEPTION-FILE (2002 has no argument form)",
+     "a) last exception status not an EC-I-O condition: '00'",
+     "b) EC-I-O condition: I-O status value + file-name as written in SELECT",
+     "b) reached by RAISE / EXIT ... RAISING / GOBACK RAISING of an EC-I-O name, with no file connector (2002 text gives no value)"
+    ],
+    "evidence-2002": {
+     "a)": "covered by probes probes-u-31/ex1.cob (F0=[00], A-F=[00] after EC-OVERFLOW-STRING) and xf1.cob (F2=[00] after EC-SIZE-TRUNCATION)",
+     "b)": "covered by probe probes-u-31/xf1.cob (after READ AT END: F1=[10My-File], length 9)",
+     "b) RAISE": "probe probes-u-31/rs1.cob prints F1=[  ] (two spaces, 2023's RV1b arm); the 2002 text names no value for a RAISE-originated EC-I-O with no file connector, so this is not judged a defect"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.23.2 RV1",
+      "quote": "If the last exception status is not an EC-I-O exception condition, the returned value is two alphanumeric zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.23.2 RV1",
+      "quote": "The succeeding characters contain the file-name exactly as specified in the SELECT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.28.4 RV2",
+      "quote": "When argument-1 is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.28.4 RV1",
+      "quote": "When argument-1 is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ: the 2002 rule is the no-argument function ('two alphanumeric zeros' when not EC-I-O); the pointer RV-15.28.4-2 is the 2023 argument form ('never been opened ... two alphanumeric spaces'), a form 2002 does not have. The pointer's evidence (pb63_exception_file_select_names, exception_file_arg, accept [2023]) shows nothing of the 2002 rule. The right pointer is RV-15.28.4-1, which 2023 widened with the RAISE/EXIT/GOBACK spaces arm.",
+    "needs": "a 2002 witness for the no-argument function (probes-u-31/xf1.cob and ex1.cob); repoint to RV-15.28.4-1",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/xf1-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/xf1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.24.2-1",
+    "to": [
+     "RV-15.29.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.24.2 (EXCEPTION-FILE-N, Returned values) RV1",
+    "clause-2023": "15.29.4 RV2 (pointer; the no-argument twin is RV1)",
+    "scope-2002": [
+     "FUNCTION EXCEPTION-FILE-N (no argument form in 2002)",
+     "a) not EC-I-O: two national zeros",
+     "b) EC-I-O: I-O status + SELECT file-name in national characters"
+    ],
+    "evidence-2002": {
+     "a)": "covered by probes probes-u-31/ex1.cob (FN0=[00], A-FN=[00]) and xf1.cob (FN2=[00])",
+     "b)": "covered by probe probes-u-31/xf1.cob (FN1=[10My-File], FNL1=9 national positions); also exception_file_n (accept [2002], re-run here: matches its .out apart from trailing spaces)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.24.2 RV1",
+      "quote": "If the last exception status is not an EC-I-O exception condition, the returned value is two national zeros",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.29.4 RV1",
+      "quote": "When argument-1 is not specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as EXCEPTION-FILE: the pointer is the 2023 argument form, which 2002 lacks; the 2002 rule is the no-argument function with 'two national zeros'. Shown correct at 2002 by probes.",
+    "needs": "a 2002 witness for the no-argument function (probes-u-31/xf1.cob); repoint to RV-15.29.4-1",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/xf1-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/xf1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.25.2-1",
+    "to": [
+     "RV-15.30.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.25.2 (EXCEPTION-LOCATION, Returned values) RV1",
+    "clause-2023": "15.30.3 RV1",
+    "scope-2002": [
+     "checking enabled by a TURN directive without LOCATION, implementor saving no location (2002 7.2.19.3 GR5): one alphanumeric space"
+    ],
+    "evidence-2002": {
+     "TURN without LOCATION": "covered by probe probes-u-31/ex1.cob at 2002 (A-L=[ ] after EC-OVERFLOW-STRING)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.25.2 RV1",
+      "quote": "the returned value is one alphanumeric space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.30.3 RV1",
+      "quote": "If the LOCATION option of the TURN directive or PERFORM statement that enabled checking",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.19.3 GR5",
+      "quote": "If the LOCATION phrase is not specified, the implementor shall specify whether this information is made available or not",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'or PERFORM statement' (the 2023 exception-checking PERFORM); the 2002 rule is the TURN-directive subset. Pointer tests are accept [2023] only; the probe shows the 2002 subset at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 also covers checking enabled by an exception-checking PERFORM statement"
+   },
+   {
+    "rule-id": "2002-RV-15.25.2-2",
+    "to": [
+     "RV-15.30.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.25.2 (EXCEPTION-LOCATION, Returned values) RV2",
+    "clause-2023": "15.30.3 RV2",
+    "scope-2002": [
+     "TURN ... WITH LOCATION, no exception raised: one space",
+     "program-name; paragraph; line, paragraph OF section; paragraph outside any section",
+     "a propagated exception condition (2002 PROPAGATE ON): the name of the element where it occurred"
+    ],
+    "evidence-2002": {
+     "no exception": "covered by probe probes-u-31/ex2.cob (Z-L=[ ], length 1)",
+     "paragraph outside a section": "covered by probe probes-u-31/ex1.cob (B-L=[EX1; SEC-PARA; 34])",
+     "paragraph OF section": "covered by probe probes-u-31/cs1.cob (L=[CS1; MAIN-P OF MAIN-S; 29])",
+     "propagated": "covered by probe probes-u-31/ex2.cob (P-L=[EXCALLEE; CALLEE-P OF CALLEE-S; 38] in the caller's declarative)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.25.2 RV2",
+      "quote": "If the LOCATION option of the associated TURN directive was specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.30.3 RV2",
+      "quote": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.17.3 GR2",
+      "quote": "shall be propagated as though a GOBACK RAISING LAST statement were executed",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same structure and same three parts; 2023 adds the PERFORM enabling form and drops a NOTE sentence (non-normative). Pointer tests accept [2023] only; probes show every 2002 arm at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 also covers LOCATION given on an exception-checking PERFORM statement"
+   },
+   {
+    "rule-id": "2002-RV-15.26.2-1",
+    "to": [
+     "RV-15.31.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.26.2 (EXCEPTION-LOCATION-N, Returned values) RV1",
+    "clause-2023": "15.31.3 RV1",
+    "scope-2002": [
+     "TURN without LOCATION, implementor saves none: one national space"
+    ],
+    "evidence-2002": {
+     "TURN without LOCATION": "covered by probe probes-u-31/ex1.cob (A-N=[ ], A-NL=1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.26.2 RV1",
+      "quote": "the returned value is one national space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.31.3 RV1",
+      "quote": "If the LOCATION option of the TURN directive or PERFORM statement that enabled checking",
+      "check": "OK"
+     }
+    ],
+    "reason": "As 15.25.2 RV1, national. 2002 is the TURN-only subset.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 also covers checking enabled by an exception-checking PERFORM statement"
+   },
+   {
+    "rule-id": "2002-RV-15.26.2-2",
+    "to": [
+     "RV-15.31.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.26.2 (EXCEPTION-LOCATION-N, Returned values) RV2",
+    "clause-2023": "15.31.3 RV2",
+    "scope-2002": [
+     "TURN WITH LOCATION: one national space when no exception; else the three-part location in national characters, including a propagated condition"
+    ],
+    "evidence-2002": {
+     "no exception": "covered by probe probes-u-31/ex2.cob (Z-NL=1)",
+     "located / propagated": "covered by probes probes-u-31/ex1.cob (B-N=[EX1; SEC-PARA; 34]) and ex2.cob (P-N=[EXCALLEE; CALLEE-P OF CALLEE-S; 38])"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.26.2 RV2",
+      "quote": "The name is immediately followed by a semicolon and a national space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.31.3 RV2",
+      "quote": "If the LOCATION option of the associated TURN directive or PERFORM statement was specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "As 15.25.2 RV2, national.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 also covers LOCATION given on an exception-checking PERFORM statement"
+   },
+   {
+    "rule-id": "2002-RV-15.27.2-1",
+    "to": [
+     "RV-15.32.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.27.2 (EXCEPTION-STATEMENT, Returned values) RV1",
+    "clause-2023": "15.32.3 RV1",
+    "scope-2002": [
+     "TURN without LOCATION, implementor saves none: 31 spaces"
+    ],
+    "evidence-2002": {
+     "TURN without LOCATION": "WRONG: probe probes-u-31/ex1.cob at 2002 prints A-T as 63 spaces, A-TL=000000063"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.27.2 RV1",
+      "quote": "the returned value is 31 spaces",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.32.3 RV1",
+      "quote": "the returned value is 63 spaces",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 says 31 spaces; 2023 says 63. The compiler returns 63 at every edition (ex1-2002.out and ex1-2023.out identical).",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for TURN without LOCATION is 63 spaces (expected 31) - a defect to file",
+    "compiler-at-2002": "wrong (NEW defect) - program probes-u-31/ex1.cob (>>TURN EC-OVERFLOW-STRING CHECKING ON; STRING overflow; DISPLAY FUNCTION LENGTH(FUNCTION EXCEPTION-STATEMENT)); expected 31 per §2002:15.27.2 RV1; observed A-TL=000000063",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.27.2-2",
+    "to": [
+     "RV-15.32.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.27.2 (EXCEPTION-STATEMENT, Returned values) RV2",
+    "clause-2023": "15.32.3 RV2",
+    "scope-2002": [
+     "TURN WITH LOCATION: a 31-character uppercase statement name, left-justified, space-filled"
+    ],
+    "evidence-2002": {
+     "TURN WITH LOCATION": "WRONG: probe probes-u-31/ex1.cob at 2002 prints B-T=[COMPUTE + 56 spaces], B-TL=000000063; cs1.cob likewise 63 for SEND"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.27.2 RV2",
+      "quote": "the returned value is a 31-character alphanumeric character-string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.32.3 RV2",
+      "quote": "the returned value is a 63-character alphanumeric character-string",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 fixes the length at 31, 2023 at 63; the compiler emits 63 at --std 2002. The name itself is right.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is a 63-character value (expected 31) - same defect as 2002-RV-15.27.2-1",
+    "compiler-at-2002": "wrong (NEW defect, same as 2002-RV-15.27.2-1) - program probes-u-31/ex1.cob (>>TURN EC-SIZE CHECKING ON WITH LOCATION; COMPUTE SMALL-X = 12345 ON SIZE ERROR CONTINUE); expected a 31-character 'COMPUTE' per §2002:15.27.2 RV2; observed B-TL=000000063",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ex1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.27.2-3",
+    "to": [
+     "RV-15.32.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "15.27.2 (EXCEPTION-STATEMENT, Returned values) RV3",
+    "clause-2023": "15.32.3 RV3",
+    "scope-2002": [
+     "names from 2002 table 13 'Statement name' column",
+     "including the communication statements DISABLE, ENABLE, PURGE, RECEIVE, SEND (2002 Annex A), which 2023 table 12 lacks (2023 SEND/RECEIVE are different statements)"
+    ],
+    "evidence-2002": {
+     "ordinary statements": "covered by probe probes-u-31/ex1.cob (COMPUTE); pointer test l1_exception_statement_table12 is accept [2023] only",
+     "communication statements": "covered for SEND by probe probes-u-31/cs1.cob (EC-BOUND-SUBSCRIPT in SEND's FROM operand: T=[SEND ...]); DISABLE/ENABLE/PURGE/RECEIVE not shown"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.27.2 RV3",
+      "quote": "The names of the statements are given in table 13, Procedural statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.32.3 RV3",
+      "quote": "The names of the statements are given in Table 12, Procedural statements",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.4",
+      "quote": "Statement names are identified in table 13, Procedural statements",
+      "check": "OK"
+     }
+    ],
+    "reason": "The rule is one item over an enumeration (the procedural-statements table). Diffing 2002 table 13 against 2023 table 12: 2002 has DISABLE, ENABLE, PURGE (and the communication SEND/RECEIVE) that 2023 lacks; 2023 adds COMMIT and ROLLBACK. The 2002 rule therefore reaches communication statements the pointer cannot show. SEND is named correctly at 2002 (the width defect is RV2's).",
+    "needs": "a 2002 witness for the communication statement names (probes-u-31/cs1.cob for SEND; DISABLE, ENABLE, PURGE, RECEIVE still unshown)",
+    "compiler-at-2002": "correct for the name (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/cs1-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/cs1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.33.2-1",
+    "to": [
+     "AR-15.43.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.33.2 (HIGHEST-ALGEBRAIC, Arguments) AR1",
+    "clause-2023": "15.43.3 AR1",
+    "scope-2002": [
+     "argument-1 a data item of category numeric or numeric-edited; not a literal, alphanumeric item or integer/numeric function"
+    ],
+    "evidence-2002": {
+     "refusals": "covered by probe probes-u-31/ha2.cob (2002: COBOL1516 on FUNCTION INTEGER(1), FUNCTION E, literal 123, PIC X item)",
+     "admitted": "covered by probe probes-u-31/ha1.cob (numeric, numeric-edited, BINARY-CHAR, FLOAT-LONG, and a numeric item of a CD record) and highest_lowest_algebraic (accept [2002]; re-run here: matches its .out)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.33.2 AR1",
+      "quote": "shall not be an integer or numeric function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.3 AR1",
+      "quote": "shall not be an integer function or numeric function",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only 'integer or numeric function' vs 'integer function or numeric function': same meaning. Same categories.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ha2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.33.3-1",
+    "to": [
+     "RV-15.43.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.33.3 (HIGHEST-ALGEBRAIC, Returned values) RV1",
+    "clause-2023": "15.43.4 RV2",
+    "scope-2002": [
+     "numeric and numeric-edited items (the NOTE table), BINARY-CHAR, FLOAT-SHORT/LONG/EXTENDED, items in any section including a CD record"
+    ],
+    "evidence-2002": {
+     "NOTE table": "covered by probe probes-u-31/ha1.cob (+999, +9999, +99.999, +99999.99 twice, +127, +255) and highest_lowest_algebraic (accept [2002], matches .out)",
+     "FLOAT-LONG": "covered by probe probes-u-31/ha1.cob (1.7976931348623157E+308, the greatest representable value)",
+     "CD record item": "covered by probe probes-u-31/ha1.cob (S99V9 under a CD: +99.9)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.33.3 RV1",
+      "quote": "The value returned is equal to the positive algebraic value of greatest magnitude that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.4 RV2",
+      "quote": "The value returned is equal to the positive algebraic value of greatest finite magnitude",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'finite' because its IEEE float usages can represent infinity; 2002 floats are implementor-defined and 'algebraic value' already excludes infinity, so the probe's max-finite FLOAT-LONG value meets both texts.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ha1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.34.3-1",
+    "to": [
+     "RV-15.44.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.34.3 (INTEGER, Returned values) RV1",
+    "clause-2023": "none (2023 has no ARITHMETIC IS STANDARD); pointer 15.44.4 RV1",
+    "scope-2002": [
+     "under ARITHMETIC IS STANDARD the 32-digit argument is not rounded to 31 digits before INTEGER is taken (exception to 8.8.1.3.1.3 GR2)"
+    ],
+    "evidence-2002": {
+     "standard arithmetic": "covered by probe probes-u-31/fe2.cob (INTEGER(1 - 1 / 10 ** 32) = 0: thirty-two 9s not rounded up)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.34.3 RV1",
+      "quote": "When standard arithmetic is specified, argument-1 is not rounded",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3",
+      "quote": "When a standard intermediate data item is the argument of a function and there is no equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.4 RV1",
+      "quote": "The returned value is the greatest integer less than or equal to the value of argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The pointer is the floor rule, not this one; the 2002 rule governs a 2002-only arithmetic mode. Nothing in the pointer row shows it. fe2 shows it holds at 2002 (rounding to 31 digits would give 1).",
+    "needs": "a 2002 witness for INTEGER of an unrounded 32-digit standard intermediate (probes-u-31/fe2.cob INT32=+0000)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/fe2-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/fe2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.34.3-2",
+    "to": [
+     "RV-15.44.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.34.3 (INTEGER, Returned values) RV2",
+    "clause-2023": "15.44.4 RV1",
+    "scope-2002": [
+     "greatest integer <= argument-1, native and standard arithmetic"
+    ],
+    "evidence-2002": {
+     "native": "covered by l1_integer_floor_85 (accept [85, 2002]; re-run here at 2002: matches its .out) and probe probes-u-31/dt1.cob (-1.5 -> -2, 1.5 -> 1, 0 -> 0)",
+     "standard": "covered by probe probes-u-31/fe2.cob (-1.5 -> -2, 1.5 -> 1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.34.3 RV2",
+      "quote": "The returned value is the greatest integer less than or equal to the value of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.4 RV1",
+      "quote": "The returned value is the greatest integer less than or equal to the value of argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Normative sentence identical; 2023 only adds a COMPUTE ROUNDED MODE example to the NOTE.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/dt1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.36.3-1",
+    "to": [
+     "RV-15.46.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.36.3 (INTEGER-OF-DATE, Returned values) RV1",
+    "clause-2023": "15.46.4 RV1 (via 15.5.2)",
+    "scope-2002": [
+     "days succeeding 1600-12-31 for a valid YYYYMMDD"
+    ],
+    "evidence-2002": {
+     "values": "covered by probe probes-u-31/dt1.cob (16010101 -> 1, 20000301 -> 145792, 99991231 -> 3067671; checked against Python date arithmetic)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.36.3 RV1",
+      "quote": "the number of days the date represented by argument-1 succeeds December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.46.4 RV1",
+      "quote": "The returned value is in integer date form",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.5.2",
+      "quote": "A value in integer date form is a positive integer that represents a number of days succeeding December 31, 1600",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 states the same thing through the integer date form definition. Pointer test l1_integer_date_form_returned is accept [2023] only; the probe shows it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/dt1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.37.3-1",
+    "to": [
+     "RV-15.47.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.37.3 (INTEGER-OF-DAY, Returned values) RV1",
+    "clause-2023": "15.47.4 RV1 (via 15.5.2)",
+    "scope-2002": [
+     "days succeeding 1600-12-31 for a valid YYYYDDD"
+    ],
+    "evidence-2002": {
+     "values": "covered by probe probes-u-31/dt1.cob (1601001 -> 1, 2000061 -> 145792, 9999365 -> 3067671)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.37.3 RV1",
+      "quote": "the number of days the date represented by argument-1 succeeds December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.47.4 RV1",
+      "quote": "The returned value is in integer date form",
+      "check": "OK"
+     }
+    ],
+    "reason": "As INTEGER-OF-DATE.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/dt1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.39.3-4",
+    "to": [
+     "RV-15.50.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "15.39.3 (LENGTH, Returned values) RV4",
+    "clause-2023": "15.50.4 RV4",
+    "scope-2002": [
+     "based item unassociated / type declaration with a subordinate OCCURS DEPENDING: receiving length",
+     "other argument-1: sending length",
+     "a record description entry under a CD with a subordinate OCCURS DEPENDING: sending length"
+    ],
+    "evidence-2002": {
+     "based / type / working-storage, alphanumeric and national": "covered by probe probes-u-31/ln1.cob (L-B-UNASSOC=17, L-N-UNASSOC=34, L-TYPE=17, L-W=8, L-B-ASSOC=8, L-B-ASSOC4=14, L-TYPE4=17)",
+     "CD record": "covered by probe probes-u-31/ln2.cob (L-CR=8, L-CR4=14); not by the pointer row",
+     "pointer witnesses": "pb61 / pb80 are accept [2023] only"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.39.3 RV4",
+      "quote": "If argument-1 is a based item unassociated with actual data or is a type declaration",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.50.4 RV4",
+      "quote": "If argument-1 is a based item not associated with actual data or is a type declaration",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as BYTE-LENGTH RV2: identical requirement apart from 'unassociated', but the 2002 rule also reaches a CD record, and the pointer's tests do not run at 2002.",
+    "needs": "a 2002 witness for the CD-record case (probes-u-31/ln2.cob) and the based/type cases (probes-u-31/ln1.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ln2-2002.out, ln1-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/ln2.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.43.3-1",
+    "to": [
+     "RV-15.55.4-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.43.3 (LOG, Returned values) RV1",
+    "clause-2023": "15.55.4 RV1",
+    "scope-2002": [
+     "natural log approximation, native and standard arithmetic"
+    ],
+    "evidence-2002": {
+     "native": "covered by pb999_log_trig_decimal_range (accept [2002], re-run here: matches .out) and probe probes-u-31/dt1.cob (LOG(1)=0, LOG(E)=1, LOG(10)=2.30258509)",
+     "standard": "covered by probe probes-u-31/fe4.cob (LOG1=0, LOG10=2.30258509)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.43.3 RV1",
+      "quote": "The returned value is the approximation of the logarithm to the base e of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.55.4 RV1",
+      "quote": "The returned value is the approximation of the logarithm to the base",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical words (italic e only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/fe4.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.45.3-2",
+    "to": [
+     "RV-15.57.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.45.3 (LOWER-CASE, Returned values) RV2",
+    "clause-2023": "15.57.4 RV3",
+    "scope-2002": [
+     "FUNCTION LOWER-CASE(argument-1) (2002 has no LOCALE phrase)",
+     "alphanumeric argument under CHARACTER CLASSIFICATION (FOR ALPHANUMERIC) IS locale (2002 12.2.5)",
+     "national argument under CHARACTER CLASSIFICATION FOR NATIONAL IS locale"
+    ],
+    "evidence-2002": {
+     "alphanumeric": "covered by pointer witness pb64t5_character_classification (accept [2002]; re-run here at 2002: matches .out, LO-I=306)",
+     "national": "covered by probe probes-u-31/lc1.cob (FOR NATIONAL IS TR: LOWER-CASE(N\"I\") = U+0131; the alphanumeric leg stays invariant, ORD 106)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.45.3 RV2",
+      "quote": "When a locale is in effect for character classification, as described in 12.2.5, OBJECT-COMPUTER paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.4 RV3",
+      "quote": "When locale-name-1 is not specified and a locale is in effect for character classification",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds 'When locale-name-1 is not specified' for its new LOCALE phrase; with no phrase in 2002 the condition is always true. The OBJECT-COMPUTER reference is renumbered (12.2.5 to 12.3.6) with the same CHARACTER CLASSIFICATION format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/lc1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 adds the LOCALE locale-name-1 phrase, governed by another rule"
+   },
+   {
+    "rule-id": "2002-RV-15.45.3-3",
+    "to": [
+     "RV-15.57.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.45.3 (LOWER-CASE, Returned values) RV3",
+    "clause-2023": "15.57.4 RV5",
+    "scope-2002": [
+     "result length equal to argument-1 for a one-to-one mapping; may differ otherwise, depending on content and locale"
+    ],
+    "evidence-2002": {
+     "one-to-one": "covered by pb64t5_character_classification at 2002 (LEN-LO=1) and probe probes-u-31/lc1.cob (NAT-LEN=1)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.45.3 RV3",
+      "quote": "depends on the content of argument-1 and the locale specification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.4 RV5",
+      "quote": "depends on the content of argument-1 and the correspondence rules that are in effect",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 says 'correspondence rules in effect' because it adds the LOCALE phrase; in 2002 the only source is the classification locale (or the implementor's map), which is what 2023's words also cover. The non-one-to-one sentence is permissive ('may').",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-31/lc1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": "2023 also covers the correspondence named by a LOCALE phrase"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-31",
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/ (run.sh <name> <std...> writes <name>-<std>.out)",
+  "cases": [
+   {
+    "rule-id": "2002-RV-15.15.3-1",
+    "verdict": "UPHELD",
+    "reason": "Format FUNCTION COS (argument-1) identical; AR1 class numeric in both. COS has no equivalent arithmetic expression, so under 2002 ARITHMETIC IS STANDARD its value stays implementor-defined (2002 15.3.1) and the 31-digit argument rounding is a different rule (8.8.1.3.1.3 GR2); the range bound -1..+1 is the same words. No CD or removed-form reach that changes the requirement.",
+    "citations": [
+     {
+      "cite": "§2002:15.15.3 RV1",
+      "quote": "is greater than or equal to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.20.4 RV1",
+      "quote": "The returned value is the approximation of the cosine of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "a numeric or integer function does not have an equivalent arithmetic expression, its returned value is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR2",
+      "quote": "When a standard intermediate data item is the argument of a function and there is no equivalent arithmetic expression",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-AR-15.17.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 words are 2023 15.5.2's definition of integer date form, same bound and positivity. Attacked the 2002 integer argument type (15.2 type 5) with forms the reader did not probe: an always-integral expression (X + 1, X * 1 + 1), an integer function argument, a BINARY-LONG item and an integer item of a CD record are all accepted and give 20000301 at 2002; X / 2 (not always integral) is refused at 2002 and 2023 (COBOL1627).",
+    "citations": [
+     {
+      "cite": "§2002:15.17.2 AR1",
+      "quote": "Argument-1 is a positive integer that represents a number of days succeeding December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.5.2",
+      "quote": "It shall be greater than zero and shall be less than or equal to the value of FUNCTION INTEGER-OF-DATE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "An arithmetic expression that will always result in an integer value or an integer data item shall be specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/ri1.cob (ri1-2002.out), ri2.cob (ri2-2002.out, ri2-2023.out)"
+   },
+   {
+    "rule-id": "2002-AR-15.19.2-1",
+    "verdict": "UPHELD",
+    "reason": "As DATE-OF-INTEGER AR1: same definition and bound as 2023 15.5.2 through 15.24.3 AR1. ri1 at 2002: expression, BINARY-LONG and CD-record integer arguments give 2000061; ri2: X / 2 refused.",
+    "citations": [
+     {
+      "cite": "§2002:15.19.2 AR1",
+      "quote": "It shall not exceed the value of FUNCTION INTEGER-OF-DATE",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.24.3 AR1",
+      "quote": "Argument-1 shall be a value in integer date form",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/ri1.cob, ri2.cob"
+   },
+   {
+    "rule-id": "2002-RV-15.25.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 is the TURN-only subset of 2023's TURN-or-PERFORM text; same implementor choice (location not saved without LOCATION), shown by the reader's ex1 at 2002. No 2002-only enabling mechanism found.",
+    "citations": [
+     {
+      "cite": "§2002:15.25.2 RV1",
+      "quote": "the returned value is one alphanumeric space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.30.3 RV1",
+      "quote": "the implementor does not save the location information, the returned value is one alphanumeric space character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.25.2-2",
+    "verdict": "UPHELD",
+    "reason": "Same three-part structure. The reader left arms 2.a (no paragraph or section), 2.c (section, no paragraph) and the FUNCTION-ID and METHOD-ID element names unprobed; all shown correct at 2002 here: [RLNOPAR; ; 10], [RLSECT; ONLY-S; 25], [RLFUN; FUN-P; 13], [RLMETH; METH-P; 21], identical at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:15.25.2 RV2",
+      "quote": "as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.30.3 RV2",
+      "quote": "as specified in the FUNCTION-ID, METHOD-ID, or PROGRAM-ID paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/rl1.cob, rl2.cob, rl3.cob (each -2002.out and -2023.out)"
+   },
+   {
+    "rule-id": "2002-RV-15.26.2-1",
+    "verdict": "UPHELD",
+    "reason": "National twin of 15.25.2 RV1; TURN-only subset of the 2023 text; ex1 shows one national space at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.26.2 RV1",
+      "quote": "the returned value is one national space character",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.31.3 RV1",
+      "quote": "the returned value is one national space character",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.26.2-2",
+    "verdict": "UPHELD",
+    "reason": "National twin of 15.25.2 RV2; arms 2.a and 2.c shown in national form by rl1 at 2002 (A-N, C-N).",
+    "citations": [
+     {
+      "cite": "§2002:15.26.2 RV2",
+      "quote": "If there is a section-name and no paragraph-name",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.31.3 RV2",
+      "quote": "If there is a section-name and no paragraph-name",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/rl1.cob"
+   },
+   {
+    "rule-id": "2002-AR-15.33.2-1",
+    "verdict": "UPHELD",
+    "reason": "Same category restriction. 2023 adds AR2/AR3 for its standard-decimal/standard-binary modes (absent from 2002); FLOAT-LONG, FLOAT-SHORT and BINARY-CHAR arguments are still accepted at 2002 under ARITHMETIC IS STANDARD (rh5). Further refusals checked at 2002: arithmetic expression, national item, index item, pointer, alphanumeric-edited item (all COBOL1516).",
+    "citations": [
+     {
+      "cite": "§2002:15.33.2 AR1",
+      "quote": "Argument-1 shall be a data item of category numeric or numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.3 AR1",
+      "quote": "Argument-1 shall be a data item of category numeric or numeric-edited",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/rh2.cob, rh5.cob"
+   },
+   {
+    "rule-id": "2002-RV-15.33.3-1",
+    "verdict": "OVERTURNED",
+    "reason": "2023's clause adds a constraint the 2002 clause lacks: 15.43.4 RV1 requires a floating-point numeric-edited argument's greatest value to pass an IN-ARITHMETIC-RANGE test (a condition 2002 does not have at all: zero occurrences in the 2002 text). 2002 permits exponent '+999', so PIC +9.9E+999 is a conforming 2002 argument and 2002 RV1 requires the returned value 9.9E+999 (representable in a 2002 standard intermediate, range to 10**1000 - 10**968). The 2023 row's verdict says nothing about that argument (2023 makes it non-conforming). Probe rh3: at --std 2002 under native arithmetic the compiler REFUSES the program with COBOL1660 citing §2023:15.43.4 r1 (also at 2023); rh4: under ARITHMETIC IS STANDARD at 2002 it returns +9.9E+999 correctly. Whether the native refusal is licensed by 2002 ('characteristics and representation of the returned value are defined by the implementor', 15.3.1) needs adjudication; it is not licensed by any 2002 rule the diagnostic names. Sibling not in this slice: LOWEST-ALGEBRAIC (2023 15.58.4 r1, same COBOL1660).",
+    "citations": [
+     {
+      "cite": "§2002:15.33.3 RV1",
+      "quote": "positive algebraic value of greatest magnitude that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.4 RV2",
+      "quote": "positive algebraic value of greatest finite magnitude that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.43.4 RV1",
+      "quote": "an IN-ARITHMETIC-RANGE test of argument-1 would return a true value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR12",
+      "quote": "The exponent shall be '+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "A standard intermediate data item has the unique value of zero or a value whose magnitude is in the range of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When native arithmetic is in effect, the characteristics and representation of the returned value are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "class": "other (2023 added a restricting rule, 15.43.4 RV1, to the same clause; the 2002 rule governs arguments that rule excludes)",
+    "needs": "its own verdict: at --std 2002 native arithmetic, HIGHEST-ALGEBRAIC of PIC +9.9E+999 is refused (COBOL1660, cites §2023:15.43.4 r1); under ARITHMETIC IS STANDARD it returns +9.9E+999 (rh4). Settle whether 2002 15.3.1 licenses the native refusal; if not, a defect (the diagnostic applies a 2023-only rule at 2002)",
+    "compiler-at-2002": "native: refuses a 2002-conforming program citing a 2023-only rule (wrong unless 2002 15.3.1 licenses it); standard: correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/rh3.cob (rh3-2002.out, rh3-2023.out), rh4.cob (rh4-2002.out)"
+   },
+   {
+    "rule-id": "2002-RV-15.34.3-2",
+    "verdict": "UPHELD",
+    "reason": "Identical normative sentence; 2023 clause adds no rule. Standard-arithmetic interaction is RV1's (reader's fe2). No CD or removed-form reach.",
+    "citations": [
+     {
+      "cite": "§2002:15.34.3 RV2",
+      "quote": "The returned value is the greatest integer less than or equal to the value of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.44.4 RV1",
+      "quote": "The returned value is the greatest integer less than or equal to the value of argument-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.36.3-1",
+    "verdict": "UPHELD",
+    "reason": "2023 states the same value through integer date form (15.5.2), which adds only the bound already implied by 15.36.2 AR1 (identical argument rule in both). Reader's dt1 shows the values at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.36.3 RV1",
+      "quote": "the number of days the date represented by argument-1 succeeds December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.46.4 RV1",
+      "quote": "The returned value is in integer date form",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.37.3-1",
+    "verdict": "UPHELD",
+    "reason": "As INTEGER-OF-DATE; 15.37.2 AR1 identical in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:15.37.3 RV1",
+      "quote": "the number of days the date represented by argument-1 succeeds December 31, 1600",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.47.4 RV1",
+      "quote": "The returned value is in integer date form",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.43.3-1",
+    "verdict": "UPHELD",
+    "reason": "Identical words; argument rules identical (class numeric, > 0). No equivalent expression, so standard arithmetic leaves it implementor-defined as for COS.",
+    "citations": [
+     {
+      "cite": "§2002:15.43.3 RV1",
+      "quote": "The returned value is the approximation of the logarithm to the base e of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.55.4 RV1",
+      "quote": "The returned value is the approximation of the logarithm to the base",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.45.3-2",
+    "verdict": "UPHELD",
+    "reason": "2002 format has no LOCALE phrase, so 2023's 'locale-name-1 is not specified' is always true for a 2002 program. The referenced OBJECT-COMPUTER clause (2002 12.2.5 / 2023 12.3.6) has the same format (FOR ALPHANUMERIC / FOR NATIONAL, locale-name, LOCALE, SYSTEM-DEFAULT, USER-DEFAULT) and the same GR7 case-mapping rule.",
+    "citations": [
+     {
+      "cite": "§2002:15.45.3 RV2",
+      "quote": "When a locale is in effect for character classification, as described in 12.2.5, OBJECT-COMPUTER paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.4 RV3",
+      "quote": "When locale-name-1 is not specified and a locale is in effect for character classification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.5.3 GR7",
+      "quote": "the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.3.6.4 GR7",
+      "quote": "the uppercase and lowercase mappings of characters for the UPPER-CASE and LOWER-CASE intrinsic functions",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-RV-15.45.3-3",
+    "verdict": "UPHELD",
+    "reason": "With no LOCALE phrase in 2002, 2023's 'correspondence rules that are in effect' reduce to the classification locale or the implementor's map, which is 2002's 'locale specification'. The length sentence is identical; the non-one-to-one sentence is permissive in both.",
+    "citations": [
+     {
+      "cite": "§2002:15.45.3 RV3",
+      "quote": "depends on the content of argument-1 and the locale specification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.57.4 RV5",
+      "quote": "depends on the content of argument-1 and the correspondence rules that are in effect",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": [],
+  "side-observations": [
+   "rh6 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-31/rh6.cob): at --std 2002 under ARITHMETIC IS STANDARD, MOVE FUNCTION HIGHEST-ALGEBRAIC(FLOAT-LONG) TO a FLOAT-LONG gives 1.7976931348623157E+308 but COMPUTE of the same gives 1.7976931348623155E+308 (one ulp low). 2002 8.8.1.3 sends float-long operands to native techniques; this is the uncatalogued standard-arithmetic area (PB5575 family), not the HIGHEST-ALGEBRAIC rule, and is recorded here only as a lead."
+  ]
+ },
+ "imported": {
+  "asked": "5321748a74afd4e20e5d597d9bf3d335ee7c1b9b1eff7e908f9b096356d4ea5c",
+  "read": "66ebd30c952e520144b0a58100267f563a1a1ff44295a44ed528c58e08cef6db",
+  "refute": "8bea262ec3072a7dbad29e98d782820e3b50765ede5d81ea5cee93f2e0eed691"
+ }
+}

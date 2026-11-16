@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.21.3-4",
+ "rule-digest": "7244603d9a3a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf",
+ "test-ref": "conformance:cases/14.8.21@2002-INSPECT-STATEMENT/g2-inspect-cd-operands",
+ "notes": "GR4 makes identifier-3/4/5/6/7 stand for literal-1/2/3/4/5 in GR6-GR21: T1 uses CD items IA/IB/IC/IZ as identifier-3 (LEADING, ALL) and identifier-4 (AFTER/BEFORE); T2 IB as identifier-3 and ISTAR as identifier-5 in format 3 (01 AA*AACAADA); R1/R2 IA/IZ/ISTAR as identifier-3/5 under FIRST, CHARACTERS, LEADING, ALL and IB/IC/ID as identifier-4; R1 S4 I6 'ABC'/I7 'xyz' as identifier-6/7 (AFTER INITIAL ID turns only the last A into x: AABAACAADx). Every value equals the result the same statement gives with the literals in place. Run at --std 2002 on the pinned dc1f2dcce8 build matched."
+}

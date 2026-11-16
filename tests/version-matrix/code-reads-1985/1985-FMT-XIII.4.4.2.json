@@ -1,0 +1,98 @@
+{
+ "rule-id": "1985-FMT-XIII.4.4.2",
+ "rule-digest": "937e93b43d9c",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-085",
+  "sources": {
+   "reader": "d6faec901a0e42d0285c5733f6c3325d07dc9b56ab624d969490ddf57ba4b60c",
+   "refuter": "46be159cb679c9933a706b4e4f544fa242dac6073e36e359341e5cc8ab2e1d4a"
+  },
+  "imported": {
+   "reader": "425df2b2544a1fc4e45b4430e9cf60c629bc10a03248cbf1278723c02c2ca9dd",
+   "refuter": "0169fb43f1ba5facca08893653e719c3a0a5f4a486f9babe4dd72ebd7d59ae28"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-XIII.4.4.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept INITIATE followed by one or more report-names, each an RD entry (XIII.4.4.3 SR1), refuse a missing operand or a non-report name, and for each named report in written order set sum counters to zero, LINE-COUNTER to zero and PAGE-COUNTER to one (GR1, GR4), with no 2002 rule that a contained program's report file be GLOBAL.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#initiateStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindInitiate; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#RejectContainedReportFile",
+    "switches": "ctx.Edition.Edition.Has(2002): from 2002 a report defined in a containing program needs a GLOBAL FD; at 85 nothing is asked (X.4.6.4 GR2)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs (INITIATE row)",
+    "switches": "INITIATE reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: INITIATE of a containing program's GLOBAL report whose FD lacks GLOBAL compiles at 85 and is COBOL2392 at 2023",
+  "witnesses-cover": "part: g85_bf36_05 covers INITIATE; the multi-name form's per-report initialization, the re-INITIATE after TERMINATE, the non-report refusals and the contained-program form are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/in1.cob",
+    "printed": "PC-A 0000000001 LC-A 0000000000 SA +000 / PC-B 0000000001 LC-B 0000000000 / AFTER GEN LC-A 0000000003 SA +010 / RE-INIT PC-A 0000000001 LC-A 0000000000 SA +000; report B holds 05 (exit 0)",
+    "expected": "INITIATE RA RB initializes both reports; after TERMINATE a second INITIATE resets the sum counter to zero, LINE-COUNTER to 0 and PAGE-COUNTER to 1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/in2bad.cob",
+    "printed": "COBOL1757 INITIATE 'V' / 'PFA' / 'DA': report-name-1 shall be defined by a report description entry",
+    "expected": "refused: a data item, a file-name and a report group are not report-names (SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/in3bad.cob",
+    "printed": "COBOL0001 unexpected '.'",
+    "expected": "refused: at least one report-name is required"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-085/gl1.cob",
+    "printed": "at 85: compiles and runs, INITIATE RP in the contained program writes WORLD; at 2023: COBOL2392 report 'RP' ... file description entry 'PFILE' does not contain a GLOBAL clause",
+    "expected": "legal at 85 (only SR1 applies; X.4.6.4 GR2), refused from 2002"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.4.1",
+    "check": "OK  §1985:XIII.4.4.1  (4.4.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:XIII.4.4.3 SR1",
+    "check": "OK  §1985:XIII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:XIII.4.4.4 GR1",
+    "check": "OK  §1985:XIII.4.4.4 GR1  (4.4.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.4.4.4 GR4",
+    "check": "OK  §1985:XIII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4"
+   }
+  ],
+  "notes": "The grammar prints INITIATE reportName+, and BindInitiate binds one BoundInitiate per name in written order, the GR4 decomposition. The only edition arm is the 2002 contained-report-file rule, correctly skipped at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "in1 not run at 2023; gl1's contained INITIATE is refused at 2023 by COBOL2392",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-XIII.4.4.2",
+  "refutation": "UPHELD",
+  "classes": "b,f",
+  "evidence": "ix_in1.cob (f): the reader's re-INITIATE probe did not discriminate (TERMINATE's CF FINAL resets the sum counter anyway), so this one sets SA=77, SK=66 and PAGE-COUNTER=9 after INITIATE, TERMINATEs with no GENERATE (no footing, values persist: AFTER TERM SA +077 SK +066 PC 9), sets PAGE-COUNTER=8, re-INITIATEs: SA +000 SK +000 PC 1 LC 0 (GR1 a-c for both a minor and a FINAL sum counter). in2bad.cob (b): INITIATE in a contained program of a non-GLOBAL RD of the container refused COBOL1757. in3bad.cob (b): a qualified report-name 'RA OF PFA' refused COBOL0307. cite.py: OK §1985:XIII.4.4.4 GR1 (the text is in GR1); OK §1985:XIII.4.4.3 SR1 (the text is in SR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VII.3.2.4-1",
+ "rule-digest": "f5573691ab4a",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-119",
+  "sources": {
+   "reader": "668292f5bea64a2ebda04368ea0c5b5116c23839c6b9a80a88be48d56cd05427",
+   "refuter": "263df7f3a8f35d39c4043566d15ccb2692c107760306ba31f7effb07a6212713"
+  },
+  "imported": {
+   "reader": "0b9c05d773aba2b2dbf7de6fca21c320927bb9a806020c858139271ee14733a0",
+   "refuter": "e9dbb101f2fbe248b74ad90970c4ce1ec16dfeeef314a003a6667f9c91bc7e22"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each FD associates its file-name with its own file connector (an EXTERNAL FD in two programs with the same connector, a non-external FD a separate connector per program), and an FD whose file-name no SELECT names, or a SELECT with no FD, is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+    "switches": "passes DialectLevel as the connector's Edition; the connector-per-FD association is the same code",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep DialectLevel|EditionContext|DialectBehavior in FileControlBinder.FileSection.cs#BindFileSection: the FD-to-FileModel association consults none (other edition tests there concern clause screening)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f17_02 covers two local FDs with separate connectors; not EXTERNAL connectors shared across programs, a contained program's same-named local FD, or the refusal of an FD/SELECT mismatch",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p5fdext.cob",
+    "printed": "INNER-WRITE-EF 00 (EXTERNAL EF opened by outer, written by inner); INNER-WRITE-LF 48 (inner local LF is its own unopened connector); EF read back OUT1, OUT2, OUT3, END 10",
+    "expected": "EXTERNAL FD shares the connector; local FD has its own"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-119/p5fdref.cob",
+    "printed": "COBOL2636 file description entry 'F9' names a file that no file control entry specifies; COBOL2635 file 'F2' ... has no file description entry",
+    "expected": "an FD needs a file control entry and vice versa"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.2.4 GR1",
+    "check": "OK  §1985:VII.3.2.4 GR1  (3.2.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Correct behaviour. The refusals at --std 85 cite §2023 clauses (COBOL2636 cites §2023:13.4.5.3 SR1, COBOL2635 §2023:12.4.5.2 SR3) rather than the 1985 text; that is a diagnostic-wording matter outside this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "not run; path edition-blind",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Attacked the connector association across nested scopes the reader did not try. src/r5glob.cob --std 85: an FD IS GLOBAL in the outer program; a contained program with no FD writes through it (IN1-GLOBAL-WRITE 00, record IG2 lands between OG1 and OG3 on read-back: G OG1, G IG2, G OG3, G END 10), so the inherited name reaches the outer connector; a second contained program declaring its own local FD of the same file-name gets its own connector (IN2-LOCAL-WRITE 48 into its own FS-L before its OPEN, FS-G untouched; then OPEN/WRITE/CLOSE 00 on r5local.dat, the global file's records unaffected). src/r5nonglob.cob: a non-GLOBAL outer FD referenced from a contained program is refused (COBOL1639 'FN' is not defined as a file; 'RN' is not defined), and a second FD of one file-name in one program is refused (COBOL4250). With the reader's EXTERNAL probe (shared connector) and FD/SELECT mismatch refusals, every way 1985 lets an FD name a connector is covered. cite.py: OK §1985:VII.3.2.4 GR1 the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

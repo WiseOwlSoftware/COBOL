@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.5.1",
+ "rule-digest": "c1e17069b17d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#cancelTarget; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+ "test-ref": "conformance:cases/14.8.5@2002-CANCEL-STATEMENT/g2can06_three_operand_forms",
+ "notes": "§2002:14.8.5.1: one CANCEL names identifier-1, literal-1 and program-prototype-name-1, another repeats identifier-1; §2002:14.8.5.3 GR1/GR3 restart each canceled program's counter and leave the uncanceled one. --std 2002 run matched all 12 derived lines."
+}

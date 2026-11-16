@@ -1,0 +1,66 @@
+{
+ "rule-id": "1985-GR-IX.4.8.4-3",
+ "rule-digest": "bd301715e55f",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-010",
+  "sources": {
+   "reader": "d178026b84d5ea74b760e5b13501f0ed5145d2b39f65bfac7a7de503522add24",
+   "refuter": "194f01631a91d0f25693c5c5386c1f6308b0d4c49996d11fea72623679125d2d"
+  },
+  "imported": {
+   "reader": "a4ca5f14307f47466fdb78aacafe46cfab0513af60241c5f046fe5ac7c32fbf4",
+   "refuter": "502c1458716a87ed6a077526c8df4d4841ae42fe2056ffc04576b69aa7d77023"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.8.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a procedure-name of a declarative (USE) section, section-name or paragraph-name, may be referenced from a different declarative section or from the nondeclarative portion only by PERFORM: every other referencing statement there (GO TO, GO TO DEPENDING ON, ALTER in either operand position, SORT/MERGE INPUT or OUTPUT PROCEDURE) must be refused, while any reference within the same declarative section, and PERFORM from anywhere, is accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#ResolveProcedureOperand; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckDeclarativesBoundary; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs",
+  "edition-consulted": [],
+  "edition-search": "Read ResolveProcedureOperand and CheckDeclarativesBoundary: no EditionContext / Year / ConstructRegistry test on the boundary (the method's own doc: 'Every edition'); grep of ProcedureReferenceKind shows only PERFORM (ControlFlowBinder) and RESUME (EcBinder, a 2002+ verb) pass a non-default kind. The only 85-specific neighbour is the §1985:XV.3.2.3 SR3 debugging-section arm in the same method, a different rule.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb362 covers the GO TO into a declarative and the PERFORM exemption; not exercised there: GO TO DEPENDING ON, ALTER (both operands), SORT INPUT PROCEDURE naming a declarative section, a section-name target, and the cross-declarative-section reference.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/us2.cob",
+    "printed": "--std 85: COBOL2376 for GO TO DA-1 and GO TO DA from section DB; GO TO DA-1 from MAIN; GO TO M3 DA-1 DEPENDING ON N; ALTER DA-2 TO PROCEED TO DA-1 (procedure-name-1); ALTER X1 TO PROCEED TO DA-1 (procedure-name-2); SORT ... INPUT PROCEDURE IS DA. --std 2023: the same seven, plus the 2023 removals of ALTER and GO TO-alone",
+    "expected": "§1985:IX.4.8.4 GR3: reference only with a PERFORM statement"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-010/us1.cob",
+    "printed": "compiles and runs: PERFORM DA-3, PERFORM DA, PERFORM DA-2 THRU DA-3 from MAIN; PERFORM DA-3 and PERFORM DA-2 THRU DA-3 from section DB; GO TO DA-3 inside DA; output DA-3 / DA-1 / DA-3 / DA-2 SKIPPED / DA-3 / DA-1 35 / DA-3 / DB-1 35 / DA-3 / DA-2 SKIPPED / DA-3 / END",
+    "expected": "PERFORM from anywhere and any reference inside the same section are legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.8.4 GR3",
+    "check": "OK  §1985:IX.4.8.4 GR3  (4.8.4 General Rules)  the text is in GR3 [\"may be referenced in a different declarative section or in a nondeclarative procedure only with a PERFORM statement\"]"
+   }
+  ],
+  "notes": "One funnel (ResolveProcedureOperand) carries every statement's procedure-name reference into CheckDeclarativesBoundary, which compares section identity and exempts PERFORM only; all seven non-PERFORM forms probed are refused at 85. The diagnostic text cites §2023:14.9.49.3 SR4 rather than the 1985 GR it enforces at --std 85, which is cosmetic, not a conformance failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "location-remarks": {
+   "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs": "PERFORM passes ProcedureReferenceKind.Perform"
+  }
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.8.4-3",
+  "refutation": "UPHELD",
+  "classes": "b",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-010/us3.cob at --std 85, forms the reader did not try: SORT ... OUTPUT PROCEDURE IS DA (declarative section) -> COBOL2376; MERGE ... OUTPUT PROCEDURE IS DA-1 (declarative paragraph) -> COBOL2376; PERFORM MN2 THRU DA-1 (a PERFORM straddling nondeclarative into declarative) -> COBOL2186 under §1985:VI PERFORM SR11's equivalent ('both must be procedure-names in the same declarative section', spec line 14174), which is that rule's refusal, not a GR3 admission error. With the reader's seven refused GO TO/GO TO DEPENDING/ALTER(both operands)/SORT INPUT forms and the accepted PERFORMs, every procedure-name-referencing statement is screened. Diagnostic text cites §2023:14.9.49.3 SR4 at --std 85 (cosmetic). cite.py: 'OK §1985:IX.4.8.4 GR3 (4.8.4 General Rules) the text is in GR3' [only with a PERFORM statement].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-6",
+ "rule-digest": "45e427f46a92",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+ "test-ref": "conformance:cases/14.9.51-WRITE/l1c37_write_same_record_area",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-9, witnessed at 2002 by the cases test-ref names. The read: 2023's proviso excludes identifier-1 inside the file's records. In 2002 that case is either forbidden (SR4, with record-name-1) or undefined (FILE phrase: the implicit MOVE shares storage, 14.5.9), so the requirement on every defined 2002 program is the 2023 one. Cited: §2002:14.8.47.3 GR6; §2002:14.8.47.2 SR4; §2002:14.5.9."
+}

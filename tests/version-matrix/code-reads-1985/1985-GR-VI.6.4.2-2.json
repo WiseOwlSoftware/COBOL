@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-GR-VI.6.4.2-2",
+ "rule-digest": "9770456771a2",
+ "read": {
+  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
+  "slice": "1985-116",
+  "sources": {
+   "reader": "801d4846124ac220b1bb6d8fe84b092470ef8cb2a20ab9c98f819dc3fc238061",
+   "refuter": "dfd9f2514c7aac4fd17adc5db6898145f3a8d752b7c419d5c6c57cb550382fda"
+  },
+  "imported": {
+   "reader": "74f2671daf5b3d9b08c56f9771a25ee6a66d7b96367f3b8a4a37d23cfe7a5c2a",
+   "refuter": "9948090bf62cdc4b4fce391582518c5c570985ebb08699ab3d8252840be9ec5e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.4.2-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a zero divisor in any divide operation of an arithmetic statement (every DIVIDE format, a COMPUTE expression at any depth, with or without ROUNDED/REMAINDER, any divisor usage, sign or scaling) must end the arithmetic operation and raise the size error condition: with ON SIZE ERROR the resultants keep their values and the phrase runs; without it the resultants are undefined and control passes to the end of the statement (the program continues, there is no fatal condition in 1985).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#ZeroDivide; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Divide; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolFloat.cs#Div; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolSizeError.cs#FalseWhenRaised",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal (2002): with no ON SIZE ERROR phrase and no EC-SIZE checking, 85 wraps the statement in the two-phase try and catches every raise (resultant kept, next statement runs); 2002+ lets the zero-divide escape as fatal EC-SIZE-ZERO-DIVIDE. With the phrase both editions take the same arm.",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#SizeErrorGuarded",
+    "switches": "DialectBehavior.UnphrasedSizeErrorIsFatal: at 85 a condition whose operand reaches an arithmetic operation is wrapped in CobolSizeError.FalseWhenRaised (zero divide makes the relation FALSE); 2002+ unwrapped (fatal).",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#DialectBehaviors",
+    "switches": "registers unphrased-size-error-is-fatal from 2002 (VCR row 7.71)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep UnphrasedSizeErrorIsFatal|FalseWhenRaised|ZeroDivide|DialectLevel across src; the raise in every quotient kernel (CobolNum.Divide, CobolFloat.Div, CobolDec, CobolExact, CobolWide, CobolBig) is edition-independent.",
+  "behaviour-differs-by-edition": "yes: without ON SIZE ERROR, 85 continues with the resultant unchanged (zd1 N1-N3 printed and END reached); at --std 2023 the same program terminates 'abnormal run-unit termination: EC-SIZE-ZERO-DIVIDE (fatal)'. With the phrase, identical.",
+  "witnesses-cover": "part: g85_bf14_02 covers DIVIDE formats INTO/BY/GIVING/REMAINDER and a COMPUTE expression under ON SIZE ERROR; not exercised: the no-phrase continue path, negative-zero/P-scaled/COMP/COMP-3 divisors, literal 0 divisor, 0/0, a zero divide nested under multiplication by 0 or inside an exponent, ROUNDED, numeric-edited GIVING, multiple INTO receivers' values, a condition operand.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/zd1.cob",
+    "printed": "N1 reached +0012 / N2 reached +0077 / N3 reached +0011 +0022 (no phrase: statement ends, resultants unchanged, program continues)",
+    "expected": "GR3: resultants undefined, control to end of statement; program continues"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/zd1.cob",
+    "printed": "D1 SE (S9 VALUE -0) / D2 SE (PIC P9) / D3 SE (COMP) / D4 SE +0077 (COMP-3 S9(18) divisor, ROUNDED, receiver kept) / D11 SE (numeric-edited GIVING kept) / D12 SE +0012 +0030",
+    "expected": "size error for every zero divisor form; affected resultants unchanged under ON SIZE ERROR"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/zd1.cob",
+    "printed": "D5 SE +0012 (literal 0) / D6 SE +0 (Z INTO Z) / D7 SE +0077 (0 * (A / Z)) / D8 SE / D9 SE (2 ** (1 / Z)) / D10 SE +0.00 (B / (A - A) ROUNDED) / D13 NOSE +0012 (divisor 1 control) / C1 FALSE (IF A / Z > 1)",
+    "expected": "division by zero always terminates the operation and raises size error, even when the outer expression would discard the quotient"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-116/zd1.cob",
+    "printed": "--std 2023: abnormal run-unit termination: EC-SIZE-ZERO-DIVIDE (fatal) at the first unphrased DIVIDE",
+    "expected": "85 must not terminate (no exception conditions in 1985); 2023 arm differs as designed"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VI.6.4@1985-COMMON-OPTIONS-AND-RULES-FOR-STATEMENTS/g85_bf14_02.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "witness golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.4.2 GR2",
+    "check": "OK  §1985:VI.6.4.2 GR2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.2 GR3",
+    "check": "OK  §1985:VI.6.4.2 GR3  (6.4.2 The ON SIZE ERROR Phrase)  the text is in GR3"
+   }
+  ],
+  "notes": "Every quotient kernel throws CobolSizeError.ZeroDivide unconditionally; at 85 EmitArith catches it for an unphrased statement (resultant unchanged, program continues) and with the phrase runs it. Variable-length class (a) does not apply to a divisor beyond the witness run; all probed forms raise the condition. The condition-operand case (C1 FALSE) is an implementor choice outside an arithmetic statement (DOC-A.1-70 / PB5501).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.4.2-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probes at --std 85 under refute-1985-116: rz1.cob (rz1-002) printed 'Z1 reached' and 'Z2 reached' for DIVIDE/COMPUTE by zero carrying ONLY a NOT ON SIZE ERROR phrase (the phrase ignored, program continues, as the unphrased paragraph of 6.4.2 says); 'Z3 SE +0077' / 'Z4 SE +0077' for a zero divide inside FUNCTION INTEGER (B / Z) and FUNCTION MAX (1, B / Z) arguments of COMPUTE (Amendment 1 functions); 'Z5 SE +0011 +0022' REMAINDER form, quotient and remainder kept; 'Z6 SE 1 +0005 +0005' multiple GIVING receivers, one subscripted by the earlier one, all kept; 'Z7 SE +0012' / 'Z7 after' inside IF; 'Z8 SE' A / (Z * 5), 'Z9 SE' A / (Z / 1). rz2.cob (rz2-001), class c: NOT ON SIZE ERROR written before ON SIZE ERROR (the 2002+ any-order form) is refused COBOL0900 for DIVIDE and COMPUTE at 85. cite.py: 'OK  §1985:VI.6.4.2  (6.4.2 The ON SIZE ERROR Phrase)  the text is in the clause; it lies in GR2' for 'Division by zero always terminates the arithmetic operation and always causes a size error condition'. No form found that escapes the size error.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

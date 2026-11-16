@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.33.3-4",
+ "rule-digest": "73707dc2ae98",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#PrevOpWasSuccessfulRead; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadSucceeded; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite",
+ "test-ref": "conformance:cases/14.9.6-CLOSE/file_sharing_seq",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.35.4-5, witnessed at 2002 by the cases test-ref names. The read: The normative sentences are word-identical; only the NOTE differs ('may'/'shall always' vs 'can'/'will always'), and a NOTE is not normative. The 2023 row's witness covers the sequential organization only; the relative and indexed sequential-access legs are shown at 2002 by this reader's probe. Cited: §2002:14.8.33.3 GR4."
+}

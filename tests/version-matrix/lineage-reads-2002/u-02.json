@@ -1,0 +1,1558 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-02 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-02",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-SR-7.2.5.1-1",
+   "2002-GR-7.2.5.2-1",
+   "2002-GR-7.2.5.2-2",
+   "2002-SR-7.2.7.1-1",
+   "2002-SR-7.2.7.1-2",
+   "2002-SR-7.2.7.1-3",
+   "2002-GR-7.2.7.2-1",
+   "2002-SR-7.2.7.3.2-1",
+   "2002-GR-7.2.8.2-2",
+   "2002-SR-7.2.9.2-1",
+   "2002-SR-7.2.9.2-3",
+   "2002-GR-7.2.9.3-6",
+   "2002-SR-7.2.10.2-14",
+   "2002-SR-7.2.10.2-15",
+   "2002-SR-7.2.10.2-16",
+   "2002-SR-7.2.10.2-9",
+   "2002-GR-7.2.10.3-10",
+   "2002-GR-7.2.10.3-3",
+   "2002-GR-7.2.10.3-6",
+   "2002-GR-7.2.10.3-8",
+   "2002-SR-7.2.11.2-1",
+   "2002-GR-7.2.11.3-1",
+   "2002-GR-7.2.11.3-2",
+   "2002-GR-7.2.11.3-3",
+   "2002-GR-7.2.11.3-4"
+  ],
+  "pointers": {
+   "2002-SR-7.2.5.1-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-7.3.6.2-1",
+    "similarity": 0.84
+   },
+   "2002-GR-7.2.5.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "GR-7.3.6.3-1",
+    "similarity": 0.801
+   },
+   "2002-GR-7.2.5.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.6.3-3",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.7.1-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.3.8.2-1",
+    "similarity": 0.981
+   },
+   "2002-SR-7.2.7.1-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.8.2-2",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.7.1-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.8.2-3",
+    "similarity": 1.0
+   },
+   "2002-GR-7.2.7.2-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.8.3-1",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.7.3.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.3.8.4.3-1",
+    "similarity": 0.945
+   },
+   "2002-GR-7.2.8.2-2": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.9.3-2",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.9.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-7.3.11.3-1",
+    "similarity": 0.945
+   },
+   "2002-SR-7.2.9.2-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.11.3-3",
+    "similarity": 1.0
+   },
+   "2002-GR-7.2.9.3-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.11.4-6",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.10.2-14": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.13.3-14",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.10.2-15": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.13.3-15",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.10.2-16": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "SR-7.3.13.3-16",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.10.2-9": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "SR-7.3.13.3-9",
+    "similarity": 0.757
+   },
+   "2002-GR-7.2.10.3-10": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.13.4-6",
+    "similarity": 0.988
+   },
+   "2002-GR-7.2.10.3-3": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.13.4-3",
+    "similarity": 1.0
+   },
+   "2002-GR-7.2.10.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-7.3.13.4-6",
+    "similarity": 0.988
+   },
+   "2002-GR-7.2.10.3-8": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "GR-7.3.13.4-8",
+    "similarity": 1.0
+   },
+   "2002-SR-7.2.11.2-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.11.3-1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.11.3-2": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.11.3-3": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-7.2.11.3-4": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-02",
+  "seed": null,
+  "pinned-compiler": "E:/COBOL-wt/coderead85-tree-d (24372b7b17)",
+  "cases": [
+   {
+    "rule-id": "2002-SR-7.2.5.1-1",
+    "to": [
+     "SR-7.3.6.2-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.5.1",
+    "clause-2023": "7.3.6.2",
+    "scope-2002": [
+     "a) no exponentiation, in DEFINE, EVALUATE, constant conditional expression and constant entry",
+     "b) operands only fixed-point numeric literals",
+     "c1) no division by zero",
+     "c2) each intermediate within the 2002 standard intermediate data item range (10^-999 .. 10^1000-10^968, 8.8.1.3.1.1)"
+    ],
+    "evidence-2002": {
+     "a": "covered by probes ct_arith_exp.cob, ct_arith_exp_def.cob, cce_arith_exp.cob, ev_arith_exp.cob (2002: COBOL1547/COBOL1619)",
+     "b": "covered by probes ct_arith_float.cob (COBOL1547), ct_arith_alnum.cob (refused)",
+     "c1": "covered by probes ct_arith_div0.cob, cce_div0.cob (COBOL1619)",
+     "c2": "covered by probes ct_arith_over.cob, ct_arith_under.cob (2002: COBOL1547 standard-arithmetic range) and ct_arith_inrange.cob (10^960 intermediate accepted, prints 1); not by the 2023 row, whose SR1c has no range term (2023 SR2 makes the limits implementor-defined)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.5.1 SR1c",
+      "quote": "the value of the standard intermediate data item after each operation is within the range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.2 SR1c",
+      "quote": "a division by zero cannot occur",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.2 SR2",
+      "quote": "The implementor shall define and document any rules restricting the precision",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ in c): 2002 adds 'and the value of the standard intermediate data item after each operation is within the range specified in 8.8.1.3.1.1'. That is a fixed magnitude limit the 2023 row cannot show (2023 leaves limits to the implementor and the compiler's 2023 mode is System.Decimal, which refuses even a 31-digit operand). 'does not occur' vs 'cannot occur' changes nothing. In directives (one line, at most 255 positions, §2002:6) the range cannot be left, so c2 is reachable only through a multi-line constant entry; the probes use that.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ct_arith_over.cob",
+    "needs": "a 2002 witness for the c) range of the standard intermediate data item (probes ct_arith_over/ct_arith_under/ct_arith_inrange); a) b) c1) the pointer's witnesses plus the probes at 2002",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.5.2-1",
+    "to": [
+     "GR-7.3.6.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.5.2",
+    "clause-2023": "7.3.6.3",
+    "scope-2002": [
+     "precedence/evaluation per 8.8.1",
+     "standard arithmetic (32-digit truncating standard intermediate) for every compile-time operation: constant entry, DEFINE, IF/EVALUATE operands"
+    ],
+    "evidence-2002": {
+     "precedence": "covered by probe ct_arith_std.cob (C5 = 1 + 2 * 3 = 7) and def_arith.cob (10 * 3 + 4 / 2 = 32)",
+     "standard arithmetic": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation.cob (runs at --std 2002, output matches .out) (lists this row) and probe ct_arith_std.cob (2/3*3 = 1, 100/7*7 = 99, 10^32+9-10^32 = 0 at 2002; refused / 2 at 2023); not by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR2",
+      "quote": "The implementor shall define and document which mode of arithmetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 adds the sentence 'Standard arithmetic shall be used for all arithmetic operations'; 2023 makes the mode implementor-defined (GR2). Observable: 2/3*3 is 1 at 2002 and 2 at 2023. The compiler switches mode by edition (docs/conformance DOC-A.1-29) and the 2002 case pb5575 already witnesses it.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ct_arith_std.cob",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is standard arithmetic, witnessed by pb5575-ct-arith-32-digit-truncation (already tagged with this row)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.5.2-2",
+    "to": [
+     "GR-7.3.6.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.5.2",
+    "clause-2023": "7.3.6.3",
+    "scope-2002": [
+     "final result truncated to integer part (INTEGER-PART, 15.38)",
+     "result is an integer numeric literal (31-digit capacity)"
+    ],
+    "evidence-2002": {
+     "truncation": "covered by probe ct_arith_std.cob at 2002 (2/3*3 -> 1, -7/2 -> -3) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation.cob (runs at --std 2002, output matches .out)",
+     "integer numeric literal": "covered by conformance case _unassigned/pb1592-ct-result-over-literal-capacity.cob run at --std 2002 (COBOL1547, 62-digit result refused)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "truncated to the integer part of the value as specified in 15.38, INTEGER-PART function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR3",
+      "quote": "truncated to the integer part of the value as specified in 15.49, INTEGER-PART function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.38",
+      "quote": "The INTEGER-PART function returns",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the function's clause number differs (15.38 in 2002, 15.49 in 2023); both are INTEGER-PART with the same integer-portion definition. The truncation applies to whatever the mode produced; the mode difference belongs to GR1 (separate row).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ct_arith_std.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.7.1-1",
+    "to": [
+     "SR-7.3.8.2-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.7.1",
+    "clause-2023": "7.3.8.2",
+    "scope-2002": [
+     "relation of literals/arith/boolean (8.8.4.1.1 forms; no <> exists in 2002)",
+     "same-category operands",
+     "non-numeric: only IS [NOT] EQUAL TO / IS [NOT] =",
+     "boolean condition of boolean literals (8.8.4.1.2)",
+     "defined condition",
+     "complex condition with AND/OR/NOT only (8.8.4.2, no XOR)",
+     "no abbreviated combined relation"
+    ],
+    "evidence-2002": {
+     "accepted forms": "covered by probe cce_ok.cob at 2002 (R1-R9) and l1c05_cce_arith_expression / l1c05_cce_boolean_expression (run at 2002)",
+     "category": "covered by probe cce_category.cob (COBOL1619)",
+     "alnum operator": "covered by probe cce_alnum_lt.cob (COBOL1619)",
+     "<> refused": "covered by probes cce_ne.cob, cce_alnum_ne.cob (2002: COBOL0900; 2023 accepts); not by the 2023 row, whose text admits 'IS <>'",
+     "XOR refused": "covered by pb1371-cce-xor-below-2023 (runs at 2002) and probe cce_xor.cob",
+     "boolean condition length": "covered by probe cce_bool_long.cob",
+     "abbreviated": "covered by probe cce_abbrev.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.1 SR1a",
+      "quote": "If literals are specified and they are not numeric literals, the relational operator shall be",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.2 SR1a",
+      "quote": "'IS NOT =', or 'IS <>'",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2",
+      "quote": "logical connectors (logical operators 'AND' and 'OR')",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1d",
+      "quote": "Abbreviated combined relation conditions shall not be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ: 2002 a)2 allows only 'IS [NOT] EQUAL TO' or 'IS [NOT] =' and refers to 8.8.4.1.1 (which has no <>); 2023 adds 'IS <>' and refers to 8.8.4.9 complex conditions, which add XOR. The 2002 rule forbids programs the 2023 rule permits; the compiler refuses both at 2002 (edition gate COBOL0900), but only XOR has a witness in the 2023 row.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/cce_alnum_ne.cob",
+    "needs": "a 2002 witness for refusing <> in a constant conditional expression (probes cce_ne.cob, cce_alnum_ne.cob); the rest is covered at 2002",
+    "widening": "2023 also admits IS <> and XOR",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.7.1-2",
+    "to": [
+     "SR-7.3.8.2-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.7.1",
+    "clause-2023": "7.3.8.2",
+    "scope-2002": [
+     "an arithmetic expression in >>IF and >>WHEN constant conditional expressions formed per 2002 7.2.5: no exponentiation, fixed-point literals, no division by zero, standard-intermediate range (31-digit operands and 32-digit intermediates admitted)"
+    ],
+    "evidence-2002": {
+     "exponentiation/div0": "covered by probes cce_arith_exp.cob, cce_div0.cob and l1c05-cce-arith-* (2002: refused)",
+     "31-digit operands, 32-digit intermediates admitted": "covered by probe cce_32digit.cob (2002: IF-ZERO; 2023: COBOL1619 refused) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation.cob (runs at --std 2002, output matches .out) IF legs; not by the 2023 row, whose 7.3.6 formation is the implementor-defined System.Decimal range",
+     "range": "covered by probe range_if_over.cob (2002: COBOL1619 range diagnostic, beside the 255-position line error: the range is unreachable on one legal line)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.1 SR2",
+      "quote": "An arithmetic expression in a constant conditional expression shall be formed in accordance with 7.2.5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.1 SR1c",
+      "quote": "the value of the standard intermediate data item after each operation is within the range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.2 SR2",
+      "quote": "The implementor shall define and document any rules restricting the precision",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same words except the clause number, but the referenced clause changed: 2002 7.2.5 fixes the formation limits at the standard intermediate data item, 2023 7.3.6 leaves them to the implementor (the compiler's 2023 limit is 28-29 digits). A 2002 program with 10^30*100 in an >>IF is legal and runs at 2002; the 2023 row's evidence refuses it.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/cce_32digit.cob",
+    "needs": "a 2002 witness for 2002-range formation in a constant conditional expression (probe cce_32digit.cob, pb5575 IF legs)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.7.1-3",
+    "to": [
+     "SR-7.3.8.2-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.1",
+    "clause-2023": "7.3.8.2",
+    "scope-2002": [
+     "boolean expression in a CCE formed per 7.2.6: 8.8.2 operators B-NOT/B-AND/B-XOR/B-OR, all operands boolean literals"
+    ],
+    "evidence-2002": {
+     "accepted": "covered by l1c05_cce_boolean_expression (runs at 2002, B1-B4) and probe cce_ok.cob R7",
+     "non-boolean operand refused": "covered by probe cce_bool_nonbool.cob (2002: COBOL1619) and the row's l1c05-cce-boolean-*-operand cases",
+     "shift operators": "probe bshift.cob (2002: COBOL0900 refused)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.7.2 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause number differs; 7.2.6 SR1 and 7.3.7.2 SR1 are word-identical. 2023 8.8.2 adds the shift operators, but a shift's second operand is an integer, which the 'all operands shall be boolean literals' clause excludes in both editions, so the requirement is equal; at 2002 the compiler refuses a shift anyway (bshift.cob). Lead outside this row: at --std 2023 the compiler ACCEPTS >>IF B\"10\" B-SHIFT-L 1 = B\"00\" (bshift.2023.log), which §2023:7.3.7.2 SR1 appears to forbid.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/bshift.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.2-1",
+    "to": [
+     "GR-7.3.8.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.7.2",
+    "clause-2023": "7.3.8.3",
+    "scope-2002": [
+     "evaluation of AND/OR/NOT complex constant conditions per 8.8.4.2 (precedence NOT, AND, OR; parentheses)"
+    ],
+    "evidence-2002": {
+     "precedence": "covered by probe cce_ok.cob at 2002 (R2: 1 = 1 OR 1 = 2 AND 1 = 2 true; R3 NOT)",
+     "NOT NOT refused": "pb1371-cce-not-not runs at 2002 (COBOL1619)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.2 GR1",
+      "quote": "Complex conditions are evaluated according to the rules in 8.8.4.2, Complex conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.3 GR1",
+      "quote": "Complex conditions are evaluated according to the rules in 8.8.4.9, Complex conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.3",
+      "quote": "The order of precedence of logical operators is 'NOT', 'AND'",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the referenced clause number differs; 2023 8.8.4.9 adds XOR, which does not change the evaluation of AND/OR/NOT conditions (the XOR form's refusal at 2002 is a syntax matter, SR-7.2.7.1-1).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/cce_ok.cob",
+    "widening": "2023 also evaluates XOR",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ]
+   },
+   {
+    "rule-id": "2002-SR-7.2.7.3.2-1",
+    "to": [
+     "SR-7.3.8.4.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.7.3.2",
+    "clause-2023": "7.3.8.4.3",
+    "scope-2002": [
+     "defined condition (>>IF / >>WHEN): compilation-variable-name-1 not a 2002 compiler-directive word (2002 8.12 list, which has FLAG-85 and FLAG-NATIVE-ARITHMETIC and lacks PUSH, POP, EQUATE, ...; plus exception-names)"
+    ],
+    "evidence-2002": {
+     "words in both lists": "covered by probe dc_ecsize.cob (refused), pb1366-defined-condition-directive-word at 2002 (LISTING refused)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC": "probes dc_flag85.cob, dc_fna.cob: ACCEPTED at 2002 (prints UNDEF) -> wrong",
+     "PUSH / EQUATE": "probes dc_push.cob, dc_equate.cob: REFUSED at 2002 COBOL2650 citing §2023:8.12 -> wrong"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.3.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.4.3 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     }
+    ],
+    "reason": "'reserved' adds nothing (2002 8.12 lists the reserved words), but the list is each edition's own 8.12. The compiler checks the 2023 list at --std 2002 (known defect: CompilerDirectiveWords.Table is edition-blind; defects-2002.json 'compiler-directive word table is the 2023 one').",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/dc_flag85.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/dc_flag85.cob (>>IF FLAG-85 IS DEFINED) and dc_push.cob (>>IF PUSH IS DEFINED)",
+     "expected": "dc_flag85 refused (FLAG-85 is a 2002 compiler-directive word); dc_push accepted, prints UNDEF",
+     "observed": "dc_flag85 at 2002: UNDEF rc=0; dc_push at 2002: error COBOL2650 'PUSH' is a compiler-directive word (ISO §2023:8.12), rc=65",
+     "known": "same mechanism as defects-2002.json entry 'at --std 2002 the compiler-directive word table is the 2023 one'; add this row to it"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for the 2002-only and 2023-only directive words is wrong (fix the edition-blind table, then witness with dc_flag85/dc_push)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-2",
+    "to": [
+     "GR-7.3.9.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.8.2",
+    "clause-2023": "7.3.9.3",
+    "scope-2002": [
+     "program-names/method-names in INVOKE, inline method invocation, CALL, CANCEL, program-address-identifier: COBOL -> implementor mapping as with no AS phrase; call-convention-name-1 -> implementor-defined"
+    ],
+    "evidence-2002": {
+     "COBOL": "covered by conformance case 7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol (accept [2002]; run at 2002: IN SUB / BACK)",
+     "call-convention-name-1": "covered by pb1383-call-convention-undefined-name run at 2002 (COBOL1911: the compiler defines no other convention)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR2a",
+      "quote": "applying the same implementor defined mapping rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.9.3 GR2a",
+      "quote": "applying the same implementor-defined mapping rules",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.8.2 GR2",
+      "quote": "This directive applies when a program-name or method-name is referenced in those language constructs",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the hyphen in 'implementor-defined' differs. The five constructs listed are the same in both editions and the 2002 general format (COBOL | call-convention-name-1) is the 2023 one.",
+    "probe": null,
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.9.2-1",
+    "to": [
+     "SR-7.3.11.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.9.2",
+    "clause-2023": "7.3.11.3",
+    "scope-2002": [
+     "DEFINE compilation-variable-name-1 not a 2002 compiler-directive word (2002 8.12)"
+    ],
+    "evidence-2002": {
+     "words in both lists": "covered by probe def_evaluate.cob (refused) and pb1366-define-name-is-directive-word-exception-name at 2002 (EC-SIZE refused)",
+     "FLAG-85 / FLAG-NATIVE-ARITHMETIC": "probes def_flag85.cob, def_fna.cob: ACCEPTED at 2002 -> wrong",
+     "PUSH / EQUATE": "probes def_push.cob, def_equate.cob: REFUSED at 2002 COBOL2650 -> wrong"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.2 SR1",
+      "quote": "Compilation-variable-name-1 shall not be the same as a compiler-directive reserved word",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.12",
+      "quote": "The following words are reserved in compiler directives",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as 2002-SR-7.2.7.3.2-1: the rule governs the 2002 8.12 list; the compiler applies the 2023 list at --std 2002 (known defect).",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/def_flag85.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/def_flag85.cob (>>DEFINE FLAG-85 AS 1) and def_push.cob (>>DEFINE PUSH AS 1)",
+     "expected": "def_flag85 refused; def_push accepted",
+     "observed": "def_flag85 at 2002: RAN rc=0; def_push at 2002: COBOL2650 citing §2023:8.12, rc=65",
+     "known": "defects-2002.json 'compiler-directive word table is the 2023 one' (already lists §2002:7.2.9.2 SR1 in its citations)"
+    },
+    "needs": "its own verdict: wrong at --std 2002 until the directive-word table is edition-keyed",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.9.2-3",
+    "to": [
+     "SR-7.3.11.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.9.2",
+    "clause-2023": "7.3.11.3",
+    "scope-2002": [
+     "DEFINE arithmetic-expression-1 formed per 2002 7.2.5 (31-digit operands, standard-intermediate range)"
+    ],
+    "evidence-2002": {
+     "exponentiation/div0": "covered by probes def_arith_exp.cob, ct_arith_div0.cob (2002: COBOL1619)",
+     "31-digit operands admitted": "covered by probe def_32digit.cob (2002: X1-ZERO; 2023: COBOL1619 refused) and E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation.cob (runs at --std 2002, output matches .out) (V2); not by the 2023 row",
+     "range": "probe range_def_over.cob (2002: range diagnostic; unreachable on a legal line)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.2 SR3",
+      "quote": "Arithmetic-expression-1 shall be formed in accordance with 7.2.5",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.1 SR1c",
+      "quote": "the value of the standard intermediate data item after each operation is within the range",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical but the referenced 7.2.5 differs from 2023 7.3.6 (fixed standard-intermediate limits vs implementor-defined); the 2023 row's mode refuses DEFINE operands 2002 admits.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/def_32digit.cob",
+    "needs": "a 2002 witness for 2002-range formation in DEFINE (def_32digit.cob, pb5575 V2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.9.3-6",
+    "to": [
+     "GR-7.3.11.4-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.9.3",
+    "clause-2023": "7.3.11.4",
+    "scope-2002": [
+     "DEFINE value of arithmetic-expression-1 evaluated by 2002 7.2.5 (standard arithmetic, then integer part)"
+    ],
+    "evidence-2002": {
+     "value": "covered by E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/pb5575-ct-arith-32-digit-truncation.cob (runs at --std 2002, output matches .out) (V1 = 2/3*3 = 1, V2 same-value redefinition, V3 OVERRIDE) and probes ct_arith_std.cob (D1 = 1, D2 = 7), def_arith.cob (32); not by the 2023 row (2023 mode gives 2 for 2/3*3)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.9.3 GR6",
+      "quote": "arithmetic-expression-1 is evaluated according to 7.2.5, Compile-time arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical but 'evaluated according to 7.2.5' reaches 2002 GR1 standard arithmetic, which 2023 replaced with an implementor-defined mode; >>DEFINE X AS 2 / 3 * 3 is 1 at 2002 and 2 at 2023.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ct_arith_std.cob",
+    "needs": "its own verdict: correct at --std 2002, witnessed by pb5575-ct-arith-32-digit-truncation (DEFINE legs)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-14",
+    "to": [
+     "SR-7.3.13.3-14"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "scope-2002": [
+     "EVALUATE format 1 subject/object/THRU arithmetic expressions formed per 2002 7.2.5"
+    ],
+    "evidence-2002": {
+     "exponentiation": "covered by probes ev_arith_exp.cob, ev_arith_obj_exp.cob, ev_thru_exp.cob and pb1364-when-after-match-arithmetic-formation at 2002 (COBOL1619)",
+     "31-digit operands admitted": "covered by probe ev_32digit.cob (2002: EV-ZERO; 2023: COBOL1619 refused); not by the 2023 row",
+     "range": "probe range_ev_over.cob (2002: range diagnostic; unreachable on a legal line)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR14",
+      "quote": "shall be formed in accordance with 7.2.5, Compile-time arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical but the referenced 7.2.5 differs (see 2002-SR-7.2.7.1-2).",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_32digit.cob",
+    "needs": "a 2002 witness for 2002-range formation in EVALUATE operands (ev_32digit.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-15",
+    "to": [
+     "SR-7.3.13.3-15"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "scope-2002": [
+     "EVALUATE format 1 boolean-expression-1/-2 formed per 7.2.6"
+    ],
+    "evidence-2002": {
+     "accepted": "covered by l1c07_evaldir_boolean_operands (run at 2002, matches .out) and probe ev_fmt1_bool.cob",
+     "refused": "covered by pb1364-when-after-match-boolean-formation at 2002 and probe ev_bool_nonbool.cob (COBOL1619)",
+     "shift": "probe ev_bshift.cob (2002: COBOL0900)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR15",
+      "quote": "shall be formed in accordance with 7.2.6, Compile-time boolean expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause number differs; 7.2.6 SR1 is word-identical to 7.3.7.2 SR1 (shift operators are excluded by the all-boolean-literal operand rule in both; refused at 2002).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_fmt1_bool.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-16",
+    "to": [
+     "SR-7.3.13.3-16"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "scope-2002": [
+     "EVALUATE TRUE >>WHEN constant-conditional-expression-1 formed per 2002 7.2.7 (no <>, no XOR, 2002 7.2.5 arithmetic)"
+    ],
+    "evidence-2002": {
+     "malformed refused": "covered by pb1364-when-format2-after-match-malformed at 2002 and probes ev_cce_bad.cob, ev_cce_abbrev.cob",
+     "<> refused": "probe ev_cce_ne.cob (2002: COBOL0900; 2023 accepted); not by the 2023 row",
+     "XOR refused": "probe ev_cce_xor.cob (2002: COBOL0900)",
+     "2002 arithmetic range": "probe ev_true_std.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR16",
+      "quote": "Constant-conditional-expression-1 shall be formed in accordance with 7.2.7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.7.1 SR1a",
+      "quote": "If literals are specified and they are not numeric literals, the relational operator shall be",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical but the referenced 7.2.7 is narrower than 2023 7.3.8 (see 2002-SR-7.2.7.1-1 and -2).",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_cce_ne.cob",
+    "needs": "a 2002 witness for refusing <> and XOR in >>WHEN (ev_cce_ne.cob, ev_cce_xor.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-9",
+    "to": [
+     "SR-7.3.13.3-9"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.2",
+    "clause-2023": "7.3.13.3",
+    "scope-2002": [
+     "EVALUATE, WHEN, WHEN OTHER, END-EVALUATE lines all in one library text or all in source text; text-1/text-2 exempt; nested EVALUATE is new"
+    ],
+    "evidence-2002": {
+     "split refused": "covered by pb1363-evaluate-closed-in-library-text run at 2002 (COBOL2649)",
+     "text-1 from COPY allowed": "covered by probe ev_lib_text1.cob (2002: TEXT-1-FROM-COPY)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR9",
+      "quote": "For purposes of this rule, text-1 and text-2 are not considered phrases of the EVALUATE directive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR9",
+      "quote": "Excluding text-1 and text-2, the phrases of a given EVALUATE directive shall all be specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rewording only: 'For purposes of this rule, text-1 and text-2 are not considered phrases' and 'Excluding text-1 and text-2' state the same exemption; the nested-EVALUATE sentence is identical; 2002's EVALUATE general format is 2023's.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_lib_text1.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-10",
+    "to": [
+     "GR-7.3.13.4-10"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "scope-2002": [
+     "format 2: END-EVALUATE reached with no TRUE WHEN and no WHEN OTHER -> all text-1 omitted",
+     "format 2: (literal 2002 'or') a TRUE WHEN but no WHEN OTHER -> all text-1 omitted?"
+    ],
+    "evidence-2002": {
+     "no TRUE, no OTHER": "covered by l1c07_evaldir_fmt2_truth run at --std 2002 (matches .out) and probe ev_true_nootherwhentrue.cob",
+     "TRUE WHEN, no OTHER": "probe ev_true_nootherwhentrue.cob at 2002: text-1 of the TRUE WHEN is INCLUDED (W2-TRUE, F1-W2-TRUE), i.e. the 2023 reading"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR10",
+      "quote": "or without encountering a WHEN OTHER phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR10",
+      "quote": "and without encountering a WHEN OTHER phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.3 GR4",
+      "quote": "If a WHEN phrase evaluates to TRUE, all lines of text-1 associated with that WHEN phrase are included",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "This corrects an error in the previous standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ: 2002 'without any WHEN phrase evaluating to TRUE, or without encountering a WHEN OTHER phrase'; 2023 'and without'. §2023:E.2 lists this as a substantive change ('the whole condition is now true only when both of the constituent conditions are true', 'This corrects an error in the previous standard'), so on the committee's reading the 2002 rule omits all text-1 whenever no WHEN OTHER is present, even when a WHEN is TRUE, contradicting 2002 GR4/GR8, which include that WHEN's text-1. Another 2002 reading ('reached' = evaluation passed every WHEN without a TRUE one) makes it equal to 2023. The compiler at 2002 follows GR4/GR8 and the 2023 reading (ev_true_nootherwhentrue.cob: the TRUE WHEN's text is kept with no WHEN OTHER). Settled cases: no TRUE WHEN and no WHEN OTHER -> all text-1 omitted, witnessed at 2002. Pointer corrected: the slice named GR-7.3.13.4-6 for this format-2 rule; its twin is GR-7.3.13.4-10 (same words, format 2).",
+    "settles": "a recorded decision (docs/conformance) on the 2002 reading: if the literal disjunction (2023 E.2 item 8's description) governs, the row is DIFFERENT and the compiler at --std 2002 is wrong for a TRUE WHEN without WHEN OTHER; if GR4/GR8 prevail as the 2002 text's consistent reading, the row is SAME",
+    "compiler-at-2002": "follows GR4/GR8 (2023 reading); not settled against the literal 2002 GR10",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_true_nootherwhentrue.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-3",
+    "to": [
+     "GR-7.3.13.4-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "scope-2002": [
+     "EVALUATE format 1 boolean subject/objects evaluated per 7.2.6 (8.8.2 precedence B-NOT, B-AND, B-XOR, B-OR)"
+    ],
+    "evidence-2002": {
+     "evaluation": "covered by l1c07_evaldir_boolean_operands run at --std 2002 (matches .out: AND, NOT, precedence, XOR-before-OR) and probe ev_fmt1_bool.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR3",
+      "quote": "Boolean-expression-1 and boolean-expression-2 are evaluated in accordance with 7.2.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "the unary operator B-NOT",
+      "check": "OK"
+     }
+    ],
+    "reason": "Only the clause number differs; 7.2.6.2 GR1 and 7.3.7.3 GR1 are word-identical and the 2002 operators' precedence is unchanged in 2023 (2023 adds shifts, refused at 2002).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_fmt1_bool.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-6",
+    "to": [
+     "GR-7.3.13.4-6"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "scope-2002": [
+     "format 1: END-EVALUATE reached with no TRUE WHEN and no WHEN OTHER -> all text-1 omitted",
+     "format 1: (literal 2002 'or') a TRUE WHEN but no WHEN OTHER -> all text-1 omitted?"
+    ],
+    "evidence-2002": {
+     "no TRUE, no OTHER": "covered by l1c07_evaldir_fmt1_other_nomatch run at --std 2002 (matches .out) and probe ev_true_nootherwhentrue.cob",
+     "TRUE WHEN, no OTHER": "probe ev_true_nootherwhentrue.cob at 2002: text-1 of the TRUE WHEN is INCLUDED (W2-TRUE, F1-W2-TRUE), i.e. the 2023 reading"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR6",
+      "quote": "or without encountering a WHEN OTHER phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR6",
+      "quote": "and without encountering a WHEN OTHER phrase",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.10.3 GR4",
+      "quote": "If a WHEN phrase evaluates to TRUE, all lines of text-1 associated with that WHEN phrase are included",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:E.2",
+      "quote": "This corrects an error in the previous standard",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ: 2002 'without any WHEN phrase evaluating to TRUE, or without encountering a WHEN OTHER phrase'; 2023 'and without'. §2023:E.2 lists this as a substantive change ('the whole condition is now true only when both of the constituent conditions are true', 'This corrects an error in the previous standard'), so on the committee's reading the 2002 rule omits all text-1 whenever no WHEN OTHER is present, even when a WHEN is TRUE, contradicting 2002 GR4/GR8, which include that WHEN's text-1. Another 2002 reading ('reached' = evaluation passed every WHEN without a TRUE one) makes it equal to 2023. The compiler at 2002 follows GR4/GR8 and the 2023 reading (ev_true_nootherwhentrue.cob: the TRUE WHEN's text is kept with no WHEN OTHER). Settled cases: no TRUE WHEN and no WHEN OTHER -> all text-1 omitted, witnessed at 2002.",
+    "settles": "a recorded decision (docs/conformance) on the 2002 reading: if the literal disjunction (2023 E.2 item 8's description) governs, the row is DIFFERENT and the compiler at --std 2002 is wrong for a TRUE WHEN without WHEN OTHER; if GR4/GR8 prevail as the 2002 text's consistent reading, the row is SAME",
+    "compiler-at-2002": "follows GR4/GR8 (2023 reading); not settled against the literal 2002 GR6",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_true_nootherwhentrue.cob",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-8",
+    "to": [
+     "GR-7.3.13.4-8"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "7.2.10.3",
+    "clause-2023": "7.3.13.4",
+    "scope-2002": [
+     "EVALUATE TRUE: each WHEN's CCE evaluated per 2002 7.2.7 (its arithmetic per 7.2.5: standard arithmetic); first TRUE WHEN's text-1 included, others and WHEN OTHER omitted"
+    ],
+    "evidence-2002": {
+     "selection": "covered by l1c07_evaldir_fmt2_truth run at --std 2002 (matches .out)",
+     "standard arithmetic in the CCE": "covered by probe ev_true_std.cob (2002: WHEN-2/3*3=1; 2023: WHEN-2/3*3=2); not by the 2023 row"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR8",
+      "quote": "the constant-conditional-expression is evaluated in accordance with 7.2.7, Constant conditional expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical but 'evaluated in accordance with 7.2.7' reaches 2002 standard arithmetic for an arithmetic operand; a WHEN 2 / 3 * 3 = 1 is TRUE at 2002 and FALSE at 2023.",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/ev_true_std.cob",
+    "needs": "a 2002 witness for standard arithmetic in an EVALUATE TRUE WHEN (ev_true_std.cob)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-7.2.11.2-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.11.2",
+    "clause-2023": null,
+    "scope-2002": [
+     "FLAG-85 only between clauses (non-procedure divisions) and between statements (procedure division)"
+    ],
+    "evidence-2002": {
+     "placement inside a statement": "probe f85_midstmt.cob (MOVE 1 / >>FLAG-85 ALL ON / TO N): ACCEPTED at 2002, prints 001 -> wrong",
+     "placement inside a clause": "probe f85_midclause.cob (PIC 9(3) / >>FLAG-85 ALL ON / VALUE 5): ACCEPTED at 2002 -> wrong"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.2 SR1",
+      "quote": "may be specified only between clauses in divisions other than the procedure division",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (FLAG-85 was removed in 2023). The compiler recognizes >>FLAG-85 at 2002 and ignores it: no placement check.",
+    "licence-2002": "none: §2002:B.1 lists 'FLAG-85 directive (warning mechanism). This item is required.'",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_midstmt.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_midstmt.cob",
+     "expected": "refused: §2002:7.2.11.2 SR1 places FLAG-85 only between statements",
+     "observed": "compiles and runs, prints 001, rc=0, no diagnostic",
+     "known": "same mechanism as defects-2002.json 'at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are gated as words only: trailing text is accepted and no flagging is done'; the placement rule is a further reach not listed there"
+    },
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 is wrong (no placement check)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.11.3-1",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.11.3",
+    "clause-2023": null,
+    "scope-2002": [
+     "warning mechanism for each selected option"
+    ],
+    "evidence-2002": {
+     "NUMVAL": "probe f85_numval.cob: no warning at 2002 (the CLI does print warnings: f85_numval.2023-permissive.log shows a COBOL0902 warning)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR1",
+      "quote": "The implementor shall provide a warning mechanism that flags the incompatibilities",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (FLAG-85 removed in 2023). At --std 2002 the directive is recognized and ignored; the 2002 text requires the warning mechanism and B.1 marks it required, so there is no licence to decline it.",
+    "licence-2002": "none: §2002:B.1 lists 'FLAG-85 directive (warning mechanism). This item is required.'",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_numval.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_numval.cob",
+     "expected": "a warning flagging the NUMVAL reference (§2002:7.2.11.3 GR1)",
+     "observed": "compiles and runs at --std 2002, rc=0, no warning",
+     "known": "defects-2002.json 'at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are gated as words only: trailing text is accepted and no flagging is done'"
+    },
+    "needs": "its own verdict: wrong at --std 2002 until the FLAG-85 warning mechanism exists (or a recorded decision under a 2002 licence, of which there is none)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.11.3-2",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.11.3",
+    "clause-2023": null,
+    "scope-2002": [
+     "ON explicit or implicit enables the option until end of group or an OFF"
+    ],
+    "evidence-2002": {
+     "ON (implicit, ALL)": "probe f85_all_dediting.cob (>>FLAG-85 ALL, de-editing MOVE): no warning at 2002",
+     "ON explicit": "probe f85_numval.cob: no warning"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR2",
+      "quote": "the warning mechanism is enabled for that option for all text that follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (FLAG-85 removed in 2023). At --std 2002 the directive is recognized and ignored; the 2002 text requires the warning mechanism and B.1 marks it required, so there is no licence to decline it.",
+    "licence-2002": "none: §2002:B.1 lists 'FLAG-85 directive (warning mechanism). This item is required.'",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_all_dediting.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_all_dediting.cob",
+     "expected": "a warning flagging the de-editing MOVE E TO N (§2002:7.2.11.3 GR2)",
+     "observed": "compiles and runs at --std 2002, rc=0, no warning",
+     "known": "defects-2002.json 'at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are gated as words only: trailing text is accepted and no flagging is done'"
+    },
+    "needs": "its own verdict: wrong at --std 2002 until the FLAG-85 warning mechanism exists (or a recorded decision under a 2002 licence, of which there is none)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.11.3-3",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.11.3",
+    "clause-2023": null,
+    "scope-2002": [
+     "OFF disables the named options"
+    ],
+    "evidence-2002": {
+     "OFF": "probe f85_off.cob (ALL ON then NUMVAL OFF): no warning, but no flagging exists at all, so OFF is not distinguishable; not shown"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR3",
+      "quote": "If OFF is specified, flagging for the selected option or options is disabled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (FLAG-85 removed in 2023). At --std 2002 the directive is recognized and ignored; the 2002 text requires the warning mechanism and B.1 marks it required, so there is no licence to decline it.",
+    "licence-2002": "none: §2002:B.1 lists 'FLAG-85 directive (warning mechanism). This item is required.'",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_off.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_off.cob",
+     "expected": "no NUMVAL warning after NUMVAL OFF while the other ALL options stay enabled (§2002:7.2.11.3 GR3)",
+     "observed": "compiles and runs at --std 2002, rc=0, no warning",
+     "known": "defects-2002.json 'at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are gated as words only: trailing text is accepted and no flagging is done'"
+    },
+    "needs": "its own verdict: wrong at --std 2002 until the FLAG-85 warning mechanism exists (or a recorded decision under a 2002 licence, of which there is none)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-7.2.11.3-4",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "7.2.11.3",
+    "clause-2023": null,
+    "scope-2002": [
+     "the eleven options a)-k): ALL, CORRESPONDING, DE-EDITING, DIVIDE, FUNCTION-ARGUMENT, MOVE, NUMVAL, SET, STANDARD-1, STANDARD-2, ZERO-LENGTH"
+    ],
+    "evidence-2002": {
+     "NUMVAL": "probe f85_numval.cob: not flagged",
+     "DE-EDITING": "probe f85_all_dediting.cob: not flagged",
+     "DIVIDE": "probe f85_divide.cob: not flagged",
+     "STANDARD-1": "probe f85_std1.cob: not flagged",
+     "unknown option": "probe f85_badopt.cob (>>FLAG-85 NOSUCH ON) accepted"
+    },
+    "citations": [
+     {
+      "cite": "§2002:7.2.11.3 GR4g",
+      "quote": "The NUMVAL and NUMVAL-C intrinsic functions shall be flagged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 rule (FLAG-85 removed in 2023). At --std 2002 the directive is recognized and ignored; the 2002 text requires the warning mechanism and B.1 marks it required, so there is no licence to decline it.",
+    "licence-2002": "none: §2002:B.1 lists 'FLAG-85 directive (warning mechanism). This item is required.'",
+    "compiler-at-2002": "wrong",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_numval.cob",
+    "defect": {
+     "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/f85_numval.cob",
+     "expected": "each listed construct flagged (§2002:7.2.11.3 GR4g)",
+     "observed": "compiles and runs at --std 2002, rc=0, no warning",
+     "known": "defects-2002.json 'at --std 2002 FLAG-85 and FLAG-NATIVE-ARITHMETIC are gated as words only: trailing text is accepted and no flagging is done'"
+    },
+    "needs": "its own verdict: wrong at --std 2002 until the FLAG-85 warning mechanism exists (or a recorded decision under a 2002 licence, of which there is none)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-02",
+  "pinned-compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe",
+  "cases": [
+   {
+    "rule-id": "2002-GR-7.2.5.2-2",
+    "verdict": "OVERTURNED",
+    "reason": "The sentence is word-identical, but the 'final result' it truncates and declares 'an integer numeric literal' is in 2002 the product of standard arithmetic (§2002:7.2.5.2 GR1) over the FIXED standard-intermediate range of §2002:7.2.5.1 SR1c (up to about 10^1000), so in 2002 GR2 must handle legal final results of 32 or more integer digits. In 2023 the range is implementor-defined (§2023:7.3.6.2 SR2) and the compiler's documented System.Decimal limit stops every such expression at the OPERAND, before GR3 is reached; the 2023 row's only witness is a unit test in decimal mode (7 / 2 -> 3). So the 2023 verdict shows nothing about (a) GR2 truncation of 32-digit standard-arithmetic results (the reader's evidence is its own probe and pb5575, which does not list this row) and (b) the 2002-only case of a legal final result beyond 31 digits. Probe: 10^30 * 100 (every intermediate inside the §2002:8.8.1.3.1.1 range, so legal under §2002:7.2.5.1 SR1c) is refused at --std 2002 in all three contexts: DEFINE and >>IF with COBOL1619, a constant entry with COBOL1547, each saying the 33-digit final result is an integer numeric literal and citing §2023:7.3.6.3 GR3 and §2023:8.3.3.3.2. At --std 2023 the operand itself is refused under the §2023:7.3.6.2 SR2 limit. Whether 2002 permits the refusal turns on whether 'considered to be an integer numeric literal' brings in the implementor's literal capacity (§2002:8.3.1.2.2.1 sets only a 31-digit minimum), because 2002 has no counterpart of 2023 SR2's licence. The 2023 verdict cannot decide that, and the diagnostic cites the 2023 text at --std 2002.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.5.2 GR2",
+      "quote": "the resultant value shall be considered to be an integer numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.3 GR3",
+      "quote": "the resultant value shall be considered to be an integer numeric literal",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.1 SR1c",
+      "quote": "the value of the standard intermediate data item after each operation is within the range",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.6.2 SR2",
+      "quote": "The implementor shall define and document any rules restricting the precision",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.5.2 GR1",
+      "quote": "Standard arithmetic shall be used for all arithmetic operations",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.1",
+      "quote": "The implementor shall allow for fixed-point numeric literals of 1 through 31 digits in length",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 a final result of 32+ digits that §2002:7.2.5.1 SR1c makes legal is refused (gr2_def33/gr2_if33 COBOL1619, gr2_const33 COBOL1547). Decide and record whether the 2002 text licenses that refusal through literal capacity; if it does, record it as a documented limit with a 2002 citation; if not, it is a defect. Witness the truncation at 2002 with pb5575 / ct_arith_std, tagged to this row.",
+    "compiler-at-2002": "not settled: truncation correct (ct_arith_std: 2/3*3 -> 1, -7/2 -> -3); a 32+ digit legal result is refused, with a §2023 citation",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/gr2_def33.cob (also gr2_if33.cob, gr2_const33.cob; logs *.2002.log / *.2023.log)"
+   },
+   {
+    "rule-id": "2002-SR-7.2.7.1-3",
+    "verdict": "UPHELD",
+    "reason": "§2002:7.2.7.1 SR3 defers to 7.2.6, whose SR1 is word-identical to §2023:7.3.7.2 SR1. 2002 8.8.2 is 2023 8.8.2 without the shift operators (the 2023 additions: list item, rule 2 second form, rule 5, Table 4 shift row, rules 7b/8): a 2023 widening, so 2002 programs are a subset. Boolean literal formats are the same, and figurative ZERO and ALL are excluded by 'all operands shall be boolean literals' in both editions. Nothing in this rule reaches a CD or debugging line, since a directive may not be on a debugging line (§2002:7.2.2 SR8d). The twin's witness l1c05_cce_boolean_expression runs at --std 2002 and matches its .out (B1-B5).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.1 SR3",
+      "quote": "A boolean expression in a constant conditional expression shall be formed in accordance with 7.2.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.2 SR3",
+      "quote": "A boolean expression in a constant conditional expression shall be formed in accordance with 7.3.7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.6.1 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.2",
+      "quote": "a boolean expression and an integer operand separated by a boolean shift operator",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/twin_l1c05_cce_boolean_expression.2002.log"
+   },
+   {
+    "rule-id": "2002-GR-7.2.7.2-1",
+    "verdict": "UPHELD",
+    "reason": "2002 8.8.4.2 gives AND, OR and NOT the same meanings, Table 6 combinations (NOT NOT not permissible) and precedence NOT > AND > OR as 2023 8.8.4.9/8.8.4.11.3 for every condition without XOR. 2002 8.8.4.3 (order of evaluation, cited by 8.8.4.2.3) is word-identical to 2023 8.8.4.13. 2023 adds only EXCLUSIVE-OR/XOR. Abbreviated combined relations, which sit under 2002's 8.8.4.2.4, are excluded from a CCE in both editions. Weakness in the evidence, which does not change the verdict: the twin row's precedence witness (pb1390_abbreviated_tail_xor) is accept:[2023] and uses XOR, so at 2002 the precedence rests on the reader's probe cce_ok.cob R2 (1 = 1 OR 1 = 2 AND 1 = 2 selected; OR-first would not), which tells AND-first from OR-first, plus pb1371-cce-not-not. Adopt cce_ok R2 as the 2002 witness.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.7.2 GR1",
+      "quote": "Complex conditions are evaluated according to the rules in 8.8.4.2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.8.3 GR1",
+      "quote": "Complex conditions are evaluated according to the rules in 8.8.4.9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.3",
+      "quote": "The order of precedence of logical operators is",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-02/cce_ok.cob"
+   },
+   {
+    "rule-id": "2002-GR-7.2.8.2-2",
+    "verdict": "UPHELD",
+    "reason": "The general format (COBOL | call-convention-name-1), the five constructs, the definition of call-convention-name as an implementor-defined convention, and the 8.3.1.1.1 externalized-name rules that GR2a defers to ('the same implementor defined mapping rules as for ... no AS phrase') are the same in 2002 (8.3.1.1.1, p.90-91) and 2023 (8.3.2.1). The only change there is the program-prototype entry-convention sentence, which GR2 does not reach. No CD or removed form is involved. The twin's witness pb1383_call_convention_cobol runs at --std 2002 and matches its .out (IN SUB / BACK).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.8.2 GR2",
+      "quote": "INVOKE statements, inline method invocations, CALL statements, CANCEL statements, and program-address-identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.9.3 GR2",
+      "quote": "INVOKE statements, inline method invocations, CALL statements, CANCEL statements, and program-address-identifiers",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.1.1",
+      "quote": "For any externalized user-defined words for which the AS phrase is not specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/twin_pb1383_call_convention_cobol.2002.log"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-15",
+    "verdict": "UPHELD",
+    "reason": "This is the same deferral as 2002-SR-7.2.7.1-3: 7.2.6.1 SR1 equals 7.3.7.2 SR1, and the only change in 8.8.2 is the 2023 shift widening. The format 1 operands boolean-expression-1/-2 appear in identical general formats. The twin's witness pb1364-when-after-match-boolean-formation refuses at --std 2002 (COBOL1619), as it should. l1c07_evaldir_boolean_operands runs at 2002 and matches its .out.",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR15",
+      "quote": "Boolean-expression-1 and boolean-expression-2 shall be formed in accordance with 7.2.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR15",
+      "quote": "Boolean-expression-1 and boolean-expression-2 shall be formed in accordance with 7.3.7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.7.2 SR1",
+      "quote": "all operands shall be boolean literals or boolean expressions in which all operands are boolean literals",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/twin_pb1364-when-after-match-boolean-formation.2002.log"
+   },
+   {
+    "rule-id": "2002-SR-7.2.10.2-9",
+    "verdict": "UPHELD",
+    "reason": "'For purposes of this rule, text-1 and text-2 are not considered phrases' and 'Excluding text-1 and text-2' state the same exemption. The EVALUATE general formats (both formats, every phrase) are identical, and library text arises from COPY in both editions. The twin's witness pb1363-evaluate-closed-in-library-text refuses at --std 2002 (COBOL2649).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.2 SR9",
+      "quote": "For purposes of this rule, text-1 and text-2 are not considered phrases of the EVALUATE directive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.3 SR9",
+      "quote": "Excluding text-1 and text-2, the phrases of a given EVALUATE directive",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/twin_pb1363-evaluate-closed-in-library-text.2002.log"
+   },
+   {
+    "rule-id": "2002-GR-7.2.10.3-3",
+    "verdict": "UPHELD",
+    "reason": "The deferral reaches 2002 8.8.2 rules 6-8: precedence B-NOT > B-AND > B-XOR > B-OR, padding with boolean zeros on the right for unequal lengths, and result length equal to the larger operand. These are word-for-word in 2023 8.8.2 rules 7, 9 and 10. 2023 adds only the shift operators and the zero-length NOTE. The twin's witness l1c07_evaldir_boolean_operands runs at --std 2002 and matches its .out (AND, NOT, precedence, XOR before OR).",
+    "citations": [
+     {
+      "cite": "§2002:7.2.10.3 GR3",
+      "quote": "Boolean-expression-1 and boolean-expression-2 are evaluated in accordance with 7.2.6",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:7.3.13.4 GR3",
+      "quote": "Boolean-expression-1 and boolean-expression-2 are evaluated in accordance with 7.3.7",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.2",
+      "quote": "If the operands are of unequal length, the operation shall proceed as though the shorter operand were extended",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-02/twin_l1c07_evaldir_boolean_operands.2002.log"
+   }
+  ],
+  "disputed-different": [],
+  "side-findings": [
+   "At --std 2002 the compiler's diagnostics for 2002 rules cite the 2023 text (COBOL1619/1547 cite §2023:7.3.6.3 GR3 and §2023:8.3.3.3.2; COBOL2649 cites §2023:7.3.13.3 SR9; pb1364 cites §2023:7.3.7.2 SR1).",
+   "conformance-suite/cases/_unassigned/pb1592-ct-result-over-literal-capacity.cob says '2002/2014: standard arithmetic ... carries 34 digits'; 2002 standard arithmetic is 32 digits (§2002:8.8.1.3.1.1), and pb5575 now shows 32 at --std 2002, so the comment is stale."
+  ]
+ },
+ "imported": {
+  "asked": "22d450f6ad56cfe8cbff5dce92c8e92b962cd5aea8416b3e924e8c9ea4fc5cb5",
+  "read": "f1720ad6b5313dddbc504923af3f95a3dfb64453f5402d97c9f6450067c53473",
+  "refute": "2813919d91257cffa96bd00359fffa2e95af8d0092cc0afb6552e620070edf5a"
+ }
+}
