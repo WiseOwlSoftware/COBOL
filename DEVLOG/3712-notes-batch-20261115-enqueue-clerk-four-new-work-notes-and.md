@@ -1,3 +1,4 @@
-## Notes batch 20261115 (enqueue clerk): four new work notes and four finding files from the PB5575, PB5600 and PB5599 reports
+## Entry 3712 — 2026-11-15 17:54 PST — Notes batch 20261115 (enqueue clerk): four new work notes and four finding files from the PB5575, PB5600 and PB5599 reports
 
 Filed PB5742 (relative READ PREVIOUS after OPEN at 2002/2014, the relative twin of PB5639), PB5743 (stale 2002 store-row notes on the READ PREVIOUS probe), PB5744 (FLAG-NATIVE-ARITHMETIC misses the function-call and one-operand shapes; one mechanism, two sites) and PB5745 (FLAG-85 b constant-name subscript). Four leads joined existing notes as dated finding files: the Linux hook self-test red (PB5390), the two unreadable semgrep files (PB4617, once for both reports), the ExceptionCatalog IntroducedIn audit (PB5599) and the stale NUMERIC_DESIGN paragraph (PB5575). No code changed.
+
