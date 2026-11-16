@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-FMT-XIII.3.7.2",
  "rule-digest": "0d0b9edaab03",
- "test-ref": "conformance:cases/13.14-Report-description/pb483_control_final_first",
+ "test-ref": "conformance:cases/13.14-Report-description/pb483_control_final_first; conformance:cases/XIII.3.7@1985-CONTROL-CLAUSE/pb5774_control_index_data_item_85",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

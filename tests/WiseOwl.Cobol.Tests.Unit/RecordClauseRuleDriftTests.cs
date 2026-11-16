@@ -231,16 +231,19 @@ public sealed class RecordClauseRuleDriftTests
         static string Bare(string l) => l.Replace("║", "").Trim();
         string text2023 = SpecClauseText.Norm(string.Join(' ', SpecClauseText.Lines()));
         var designations = RecordClauseRules.Catalog.Where(r => r.Of1985 is not null).Select(r => r.Of1985!.Value)
-            .Concat([LinageClauseRules.Operand, LinageClauseRules.Footing]).ToList();
+            .Concat([LinageClauseRules.Operand, LinageClauseRules.Footing, ClauseOperandRules1985.TableElementSubscripted,
+                ClauseOperandRules1985.FileStatusItem, ClauseOperandRules1985.RelativeKeyUnsignedInteger,
+                ClauseOperandRules1985.RelativeKeyNotInRecord]).ToList();
         Assert.True(designations.Count >= 9, $"only {designations.Count} 1985 designations — the table lost rules.");
         foreach (var rule in designations)
         {
-            string subsection = "### " + rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
+            // Chapter IV prints its subclause headings without the markdown marks the other chapters carry (4.3.8.2.3 Syntax Rules).
+            string subsection = rule.Clause[(rule.Clause.IndexOf('.') + 1)..] + " Syntax Rules";
             string numbered = $"({rule.Ordinal}) ";
             bool found = false;
             for (int i = 0; i < lines.Length && !found; i++)
             {
-                if (Bare(lines[i]) != subsection) continue;
+                if (Bare(lines[i]).TrimStart('#', ' ') != subsection) continue;
                 for (int j = i + 1; j < lines.Length && !Bare(lines[j]).StartsWith('#'); j++)
                     if (Bare(lines[j]).StartsWith(numbered, StringComparison.Ordinal)
                         && SpecClauseText.Norm(lines[j]).Contains(SpecClauseText.Norm(rule.RuleText)))
