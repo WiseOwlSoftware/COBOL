@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-6.1.2.1-5",
+ "rule-digest": "613b38a8af3f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#Scan",
+ "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002-fi-debug-floating-on-fixed-continuation",
+ "notes": "Same text as the 2023 twin, reaching the fixed continuation line of a literal begun on a 2002 D line. §2002:6.1.2.1 SR5 prohibits a floating continuation indicator on that line; the case isolates SR5 (each literal uses one form) and --std 2002 refuses it with COBOL2686 at the violating line."
+}

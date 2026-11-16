@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-5",
+ "rule-digest": "5516ba3558da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#RegisterIndexed; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+ "test-ref": "conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85",
+ "notes": "§2002:12.3.4.3 GR5: the indexed format defines a connector for an indexed file; §2002:12.3.4.9.2 GR4: indexed organization identifies each record by the value of its keys; §2002:9.1.8.1: sequential access of an indexed file is ascending on the key of reference. pb742's IXF (ORGANIZATION IS INDEXED, RECORD KEY IS IX-KEY, ALTERNATE RECORD KEY IS IX-ALT WITH DUPLICATES) writes CC, AA, BB and its READ NEXT walk prints 'PRIME WALK:' then '  AA ZZ ONE', '  BB YY TWO', '  CC ZZ TRI': key order, not arrival order, which only an indexed connector gives. pb742_legal_entry_formats_85 run at --std 2002 on the pinned build: PASS (output equals its .out, exit 0)."
+}

@@ -25,38 +25,44 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
 ### Where we are
 
 - **▶ WHO RUNS WHAT (owner 2026-10-30: "Focus on fixing compiler bugs and getting to 100% deliverable"; "We should
-  try and fix all single point bottlenecks").** Since 2026-11-12 the orchestrator loop runs on account 1 (the operator on
-  account 2 released it) with the campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
+  try and fix all single point bottlenecks").** The orchestrator loop runs on account 2 (the operator
+  session) since 2026-11-14 17:49 PST. The operator runs the 2002 lanes (the golden lane gl2002, the read records, the fix
+  loop); the Mythos session on account 1 runs 1985 (kb/Work PB5730, the gl1985 witness lane, then the 1985 code
+  adjudications of PB5683). The campaign clusters PB4995 (the 1985 inventory) and PB3726 (the pipeline-scripts
   restructure, `DESIGN-orchestrator-loop.md` section 16: 30 serial steps starting at PB5428; `docs/CONFORMANCE.md` becomes
-  one file per determination with an untracked rendered view). The loop was stopped on the afternoon of 2026-11-12 for a
-  Claude Code CLI update; the next attended session restarts it. The 2023 inventory reached ZERO GAP on 2026-11-05
-  (kb/Work A11 closed DOC-A.1-17). **It reads 1 GAP since 2026-11-15, and that is not a regression in the compiler:**
-  `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or
-  more receivers edits it again, wrong at `--std 2023` too) already existed. The record was corrected to DIVERGES naming
-  PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it (1985 GAP 32 → 33). PB5678's fix closes both. The 2002
+  one file per determination with an untracked rendered view) are as their notes state. The 2023 inventory reached ZERO GAP on 2026-11-05
+  (kb/Work A11 closed DOC-A.1-17). **It reads 9 GAP since 2026-11-15, and that is not a regression in the compiler:**
+  each is a record corrected to match a defect that already existed. `GR-14.9.25.4-1` (§2023:14.9.25.4 GR1) was recorded
+  CONFORMS while kb/Work PB5678 (a MOVE of an edited sender to two or more receivers edits it again, wrong at `--std 2023`
+  too) already existed; it was corrected to DIVERGES naming PB5678, and the KEPT 1985 row `1985-GR-VI.6.19.4-2` follows it.
+  Eight more were found by the PB5692 sample's code read and corrected to PARTIAL by the registrar landing
+  records-sample-pb5692 (`inventory_view.py --summary` at its merge of main c50b53fba2: 2023 **1 → 9**, 2002 **1,980 →
+  1,983**, 1985 **835 → 844**, the older rises being KEPT rows that follow their 2023 targets): `GR-12.4.5.3-1` (kb/Work
+  PB5733), `SR-14.9.48.3-5`, `SR-14.9.48.3-6`, `SR-14.9.43.3-7` (PB5734), `SR-14.9.22.3-2` (PB5735), `SR-7.3.16.3-2`,
+  `SR-7.3.13.3-4` (PB5736) and `SR-13.18.29.3-3` (PB5711). Each note's fix closes its rows. The 2002
   inventory's count is held (kb/Work PB5256) and the 1985 inventory is described next. The Mythos lane runs the other GAP-campaign notes (PB1547, PB3738, PB4053), the GnuCOBOL tickets (PB3838), the
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch records-2002-reads-2 with
-  main e870f98665 (PB5675) merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,694 GAP**
-  (2,074 on that main before this branch's 380 own verdicts from pointers; 2,562 before the first 2002 golden-lane
-  landing), 915 adjudicated: CONFORMS 838, DOCUMENTED-NON-SUPPORT 64, DIVERGES 11, PARTIAL 2, beside the 704 KEPT change
-  records. The 2002 golden lane
-  (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; every one of the 1,528 unpaired 2002
-  rules is now read (`tests/version-matrix/lineage-reads-2002/`, 125 slices), and an upheld SAME of one becomes its own
-  verdict through `audit_batch.py own-verdict-batch` (DESIGN-spec-conformance-review.md section 10.6).
-- **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
-  2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
-  NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists
-  (pipeline `coderead-85-pipe.js`, Opus readers and refuters, each closing verdict refuted before it counts); rows held
-  from earlier waves decided by adjudicators and recorded through `record_verdicts.py --edition 1985`; mismatching
-  drafts re-run and triaged; and the COPY drafts unblocked by kb/Work PB5067 (landed). The dated records are the
-  directories kb/Work/PB4996 and kb/Work/PB4995. What is left is state, each part with its owner: rows with a
-  non-conforming verdict wait on their defect notes' fixes in the fix lane; rows that gained a witness today still need
-  their code read; fourteen rows KEPT in 2023 wait on kb/Work PB479 (their 2023 text is unnumbered prose or Table 12 and
-  has no catalog row); the 21 no-witness rules decided by class in kb/Work PB5373 wait on PB5374 (the derivation
-  tooling); five warning-only refusals are held for adjudication (kb/Work/PB4995/2026-11-12-drafts-85n.md).
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-4 with main
+  c50b53fba2 merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,896 GAP** (2,562 before the
+  first 2002 golden-lane landing), 713 adjudicated: CONFORMS 697, DIVERGES 11, DOCUMENTED-NON-SUPPORT 3, PARTIAL 2. The
+  2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; with the fourth
+  landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
+  The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
+  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression. The seventh
+  golden-lane landing (golden-2002-7, 16 wave-u slugs: rows the 2002 read left needs-own-witness, undecided or
+  uninterpretable) records 97 own-edition CONFORMS and takes it to **1,805 GAP** (1,787 never adjudicated, 18 open).
+  The landing records-2002-reads-2 (main 111a265843 merged in) records 375 own verdicts from pointers (every one of the
+  1,528 unpaired 2002 rules is read, `tests/version-matrix/lineage-reads-2002/`, 125 slices, and an upheld SAME becomes
+  its own verdict through `audit_batch.py own-verdict-batch`, DESIGN-spec-conformance-review.md section 10.6) and takes
+  it to **1,430 GAP** (1,412 never adjudicated, 18 open), 1,182 adjudicated: CONFORMS 1,105, DOCUMENTED-NON-SUPPORT 64,
+  DIVERGES 11, PARTIAL 2, beside the 704 KEPT change records.
+- **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary` computes every figure).** Two lines of work close it: the
+  own-edition witnesses (a 1985 case that witnesses a 1985 rule, kb/Work PB5675), and the code read of every KEPT row at `--std 85`
+  (kb/Work PB5683, sized by PB5692); a row a read contradicts gets its own defect note, and a non-conforming row waits on that
+  note's fix in the fix lane. This bullet carries no figure and no stamp because every 1985 landing changes the figures, so a
+  hand-written number here made every 1985 landing collide on this line (kb/Work PB5730's landing stopped on it on 2026-11-15).
 - **▶ ONE OWN-EDITION RULE FOR EVERY OLDER EDITION (kb/Work PB5675, 2026-11-15).** A KEPT row of 1985 or 2002 closes
   only on its chain AND a witness of its own, a suite case that runs at its own edition (design section 10.6; the
   2002-only switch `own-edition-evidence` is gone). Before this change 1985 stood at **32 GAP**; with it 1985 stands at
@@ -65,8 +71,18 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   regression: 570 of the 1,373 stored 1985
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
-  terms is still owed, so 835 is a lower bound. 1985 is the earliest edition: its rows are recorded with their own
-  verdicts, never as new KEPT records (its word-identical pairing is empty).
+  terms is still owed, so 835 is a lower bound (844 after the registrar landing records-sample-pb5692: eight KEPT rows
+  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732). 1985 is the
+  earliest edition: its rows are recorded with their own verdicts, never as new KEPT records (its word-identical pairing
+  is empty). **The 1985 widening (kb/Work PB5730):** `widen` now plans the stored KEPT rows too; of the 803 it planned
+  483 widenable and 320 needing a witness of their own, proved 74 of 365 candidate cases at 85 and wrote them, and
+  `witness-batch` closed **64 rows: 1985 from 844 to 780 GAP** (738 inherited without an own-edition witness; 634 of
+  the 1,373 KEPT records now carry their own). Of the 291 cases not proven, 258 use a later construct and 33 the
+  generator refuses (a run-time expectation before 2002); none is a suspected defect. The 739 rows still owed are the
+  witness lane's (320 held, 419 in `remaining-1985.json`). Since the PB5692 ruling of 2026-11-15 a shared verdict does
+  not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at `--std 85` (kb/Work PB5683), and until
+  the record-format switch (kb/Work PB5682) shows a verdict's provenance, the rows counted closed on a shared verdict
+  (the 64 PB5730 closed among them) are not evidence that 1985 is done.
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's
@@ -83,6 +99,8 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   reset account 1 on 2026-11-12 (kb/Work PB5357, dated files of that day); until its reset on Sunday 2026-11-15 at 02:00 PST
   he approved on account 1 only Mythos for orchestrator loop units and for workers on Mythos-grade jobs. Any other Mythos
   or Fable dispatch, and every one on account 2, needs the owner's explicit approval for that dispatch.
+  For the week of 2026-11-15 the owner lets both accounts spend ahead of the day line and pause at 90 % (kb/Work PB5357,
+  the dated file of 2026-11-15).
 - **▶ GATE POLICY (owner 2026-10-31, owner decision 1 of PB4323; kb/Work PB4328): THE POPULATION IS THE SELECTION.**
   Every gate of a change a test can read runs on Windows the WHOLE population of every test target (`scripts/build_targets.json`)
   (`scripts/gate.py`, one shape since 2026-10-11, kb/Work PB3015 Q1a, PB3022), the classes red at its previous run or

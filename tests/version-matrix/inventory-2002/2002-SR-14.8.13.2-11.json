@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.13.2-11",
+ "rule-digest": "7573c12eddc2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindExit",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2_exit_section_in_section; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2-exit-section-outside-section",
+ "notes": "§2002:14.8.13.2 SR11: EXIT SECTION is accepted inside a section and, by §2002:14.8.13.3 GR12, leaves it to the PERFORM return (IN-S1, BACK); outside any section it is refused (COBOL0827). Matched at --std 2002 with the pinned build of dc1f2dcce8."
+}

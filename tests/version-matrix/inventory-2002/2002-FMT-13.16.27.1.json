@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.27.1",
+ "rule-digest": "915aca1da3e6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#groupUsageClause",
+ "test-ref": "conformance:cases/13.16.31@2002-LEVEL-NUMBER/g2-fmt-cd-record-data-clauses",
+ "notes": "GROUP-USAGE IS BIT (GB) and GROUP-USAGE NATIONAL without IS (GN) in a CD record: GB = B\"10100110\" after moving its two 1(4) halves (the bit group compared as one item), LENGTH(GB)=08 boolean positions (§2002:15.39.3 RV1), LENGTH(GN)=02 national character positions (RV2). Lines GB=10100110, GBLEN=08, GNLEN=02. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

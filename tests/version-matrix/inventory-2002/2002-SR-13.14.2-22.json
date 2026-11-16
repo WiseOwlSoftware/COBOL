@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-22",
+ "rule-digest": "acbaea9032d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#CheckConditionNameAssociationsPass; src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckConditionNameAssociationsPass.cs#Sr24Exclusions; src/WiseOwl.Cobol.Compiler/Binding/Model/ItemCategory.cs#IsAlphanumericGroup",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-condition-name-associations; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-88-justified-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-88-sync-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-88-mixed-usage-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-88-index; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-88-pointer",
+ "notes": "§2002:13.14.2 SR22: in a CD record condition-names on a display group, its member, an elementary COMP item and elementary JUSTIFIED/SYNCHRONIZED items are accepted and test true/false by value (§2002:8.8.4.1.4.2 GR3); exclusions c), d) and e) draw COBOL1976; --std 2002 on build dc1f2dcce8."
+}

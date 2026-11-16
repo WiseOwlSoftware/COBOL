@@ -1734,6 +1734,21 @@ def self_test() -> int:
                and inert_run.ok and not lying.ok and not elsewhere.ok and no_linux_record.ok,
                f"{none_yet} {covered} {red_after} {dirty_run} {inert_run} {no_linux_record} {lying} {elsewhere}")
 
+        # kb/Work PB5697: a gate whose reds were the host running out (NOT RUN [host-exhausted]) judged nothing it left
+        # unjudged, so it covers no tip: the landing refuses it exactly as it refuses a tip with no GREEN record.
+        import gate_verdict  # noqa: PLC0415  (scripts/: the cause's one spelling)
+        shutil.rmtree(results_dir)
+        gate_run(1, verdict=gate_verdict.NOT_RUN_CAUSES["host-exhausted"].verdict, exit_code=2,
+                 unjudged={"Conformance": ["N.Conf.A"]}, exhausted=["commit"])
+        exhausted_run = seen()
+        stamped, notes[:] = [], []
+        rc_exhausted = run_land(tested=tested_locally, stamped=stamped)
+        expect("tested_locally and land: a NOT RUN [host-exhausted] record is no GREEN record: the tip is UNTESTED, exit 14, "
+               "before anything is merged or stamped (kb/Work PB5697)",
+               not exhausted_run.ok and "host-exhausted" in exhausted_run.text and rc_exhausted == EXIT_UNTESTED
+               and not stamped and fix.git("rev-parse", "HEAD") == fix_tip and lines[-1].startswith(verdict_line.PREFIX + "UNTESTED"),
+               f"{exhausted_run} {rc_exhausted} {lines[-1:]}")
+
         # kb/Work PB3660: a record the BRANCH's older driver wrote (schema 3 before PB3612: no head_tree) is that
         # gate's AGE, never "uncommitted changes", and its remedy is merge-then-gate (gating the tip again with the same
         # driver writes the same record). A schema-3 record that DOES carry the fields (a gate after PB3612 that kept the

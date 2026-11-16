@@ -117,8 +117,14 @@ from gate_verdict import BUSY, EXIT_BUSY, NOT_RUN_CAUSES, VERDICT, Outcome  # no
 from gate_host import BESIDE, Host, Spawn, _no_slot  # noqa: E402
 from gate_runs import AWAIT_PENDING_EXIT, AWAIT_WAIT_S, KEEP_RUNS, RECORD_SCHEMA, RUNS_LOCK, RUNS_LOCK_WAIT_S, RUN_LABEL, RUN_ROOT, VERDICT_FILE, gate_running, launch_and_follow, read_record, resolve_run, run_dirs, run_order, watch, write_pid  # noqa: E402
 from gate_reuse import Carry, PassCarry  # noqa: E402
+import host_resources  # noqa: E402  — THE host-resource signatures and their one judgement (kb/Work PB5697)
+from test_population import UnreadableTrx, failed_texts  # noqa: E402
 from gate_generated import Generations  # noqa: E402
 from gate_legs import Legs  # noqa: E402
+
+
+#: The cases a gate could not judge because the host ran out (kb/Work PB5697), one `<assembly>: <case>` per line.
+UNJUDGED_FILE = "unjudged.txt"
 
 
 class Gate:
@@ -148,6 +154,13 @@ class Gate:
     # The verdict line and exit code are decided here, once, for every path through the gate.
     def _finish(self, out: Outcome, run: Path | None, verdict: str, detail: str, code: int) -> Outcome:
         self._join_beside(out)  # an early end (a failed build, an unlistable population) still reports work beside it
+        if out.slot is not None and out.peak_commit_bytes is None:
+            # The slot-held tree's peak commit (kb/Work PB5697): every gate's record is a measurement of the threshold the
+            # commit admission reads (host_resources.GATE_PEAK_COMMIT_BYTES). A reading Windows refuses is said, never guessed.
+            try:
+                out.peak_commit_bytes = self.host.peak_commit()
+            except OSError as e:
+                self.say(f"build-local: the peak commit was not read ({e}); the verdict stands")
         out.verdict, out.exit_code = verdict, code
         out.line = f"{VERDICT}{verdict} — {detail} ==="
         if run is not None:
@@ -523,11 +536,58 @@ class Gate:
                   + (f" · {carried:,} carried from run(s) {', '.join(out.composed_from)} (kb/Work PB5099)" if carried else "")
                   + (f" · {out.slot}" if out.slot else "")
                   + (f" · toolchain {out.toolchain}" if out.toolchain else "") + f" ({first}; run {run.name})")
-        reds = [f"{r.asm} RED" for r in out.runs if r.red]
-        problems = reds + out.reasons + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective]
+        # ⛔ THE HOST'S RED IS NOT A TEST RED (kb/Work PB5697; scripts/host_resources.py): a red host whose every red case
+        # shows a host-resource signature (or whose log does, when it could not run) is the host running out, so its
+        # cases are UNJUDGED: a verdict of NOT RUN [host-exhausted] when nothing else is red, and named apart from the
+        # test reds when something is. Nothing is re-run here (a flake is never retried inside the run, CLAUDE.md).
+        judged = self._host_judgement(out, run)
+        host_reds = {r.asm for r in out.runs if r.red and judged.host_is_the_hosts(r.asm)}
+        reds = [f"{r.asm} RED" for r in out.runs if r.red and r.asm not in host_reds]
+        whole = judged.whole_host & host_reds
+        problems = (reds + [r for r in out.reasons if not any(r.startswith(f"{a} POPULATION ") for a in whole)]
+                    + [f"{a} POPULATION NOT EXACT" for a in pops if pops[a].defective and a not in whole])
+        host = self._unjudged(out, run, judged, whole)
         if problems:
-            return self._finish(out, run, "RED", f"{'; '.join(problems)} — {detail}", 1)
+            return self._finish(out, run, "RED", f"{'; '.join(problems)}{'; ' + host if host else ''} — {detail}", 1)
+        if host:
+            return self._finish(out, run, NOT_RUN_CAUSES["host-exhausted"].verdict, f"{host} — {detail}", 2)
         return self._finish(out, run, "GREEN", detail, 0)
+
+    @staticmethod
+    def _host_judgement(out: Outcome, run: Path) -> host_resources.Judgement:
+        """The run's red hosts judged against the host (`host_resources.judge`): each one's failed cases' texts, whether
+        its trx accounts for its red (`PassCarry.red_explained`), and its log. A trx that cannot be read gives no texts:
+        its red stays a test red, and the population check names the file."""
+        hosts = []
+        for r in out.runs:
+            if not r.red:
+                continue
+            trx, log = run / f"{r.asm}.trx", run / f"{r.asm}.log"
+            try:
+                failures = failed_texts([trx]) if trx.is_file() else {}
+            except UnreadableTrx:
+                failures = {}
+            hosts.append(host_resources.HostEvidence(
+                r.asm, True, PassCarry.red_explained(run, r.asm), failures,
+                log.read_text(encoding="utf-8", errors="replace") if log.is_file() else ""))
+        return host_resources.judge(hosts)
+
+    @staticmethod
+    def _unjudged(out: Outcome, run: Path, judged: host_resources.Judgement, whole: set[str]) -> str:
+        """The verdict's words for the cases the host left unjudged ("" when the host did not run out), each written to
+        `<run>/unjudged.txt` and the record: the resource named, how many, the first few, and what to do."""
+        if not judged.exhausted:
+            return ""
+        out.exhausted = list(judged.resources)
+        out.unjudged = {a: list(c) for a, c in judged.unjudged.items()} | {a: ["*"] for a in whole}
+        names = [f"{a}: {c}" for a, cs in out.unjudged.items() for c in cs]
+        (run / UNJUDGED_FILE).write_text("".join(f"{n}\n" for n in names), encoding="utf-8", newline="\n")
+        some = ", ".join(n.split(": ", 1)[1] for n in names[:3])
+        hosts = f"; the whole of {', '.join(sorted(whole))} (its host could not run)" if whole else ""
+        return (f"HOST EXHAUSTED ({judged.named()}): {judged.unjudged_count():,} case(s) UNJUDGED{hosts} ({some}"
+                f"{' …' if len(names) > 3 else ''}; every one in {run.name}/{UNJUDGED_FILE}), never passed and no test "
+                "red: wait for the host (`python scripts/gate_slot.py status` shows its free commit) and gate again, "
+                "which runs only what this gate did not pass (kb/Work PB5697, PB5099)")
 
     def _record(self, out: Outcome, run: Path) -> dict:
         return {"schema": RECORD_SCHEMA, "verdict": out.verdict, "line": out.line, "exit_code": out.exit_code,
@@ -537,6 +597,7 @@ class Gate:
                 "composed_from": out.composed_from, "carried": out.carried,
                 "keys": out.keys, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
                 "generated": out.generated,
+                "exhausted": out.exhausted, "unjudged": out.unjudged, "peak_commit_bytes": out.peak_commit_bytes,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,
                 "runs": [vars(r) for r in out.runs], "timings": out.timings,
                 "assembly_wall_s": Legs.assembly_walls(out), "effective_concurrency": Legs.concurrency(out),

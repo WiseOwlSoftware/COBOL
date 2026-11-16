@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.53.3-8",
+ "rule-digest": "00b533633b20",
+ "verdict": "CONFORMS",
+ "code-location": "docs/CONFORMANCE.md#DOC-A.1-195",
+ "test-ref": "conformance:cases/13.16.53@2002-SYNCHRONIZED-CLAUSE/g2syn01_sync_cd_ws_ls_file_layout",
+ "notes": "§2002:13.16.53.3 GR8: the implementor's a) external format and b) no implicit FILLER (DOC-A.1-195) are measured: the file record reads back P..Q in 4 bytes, the CD record is 87 with its letters at 1,4,..,16. The --std 2002 run of g2syn01 matched."
+}

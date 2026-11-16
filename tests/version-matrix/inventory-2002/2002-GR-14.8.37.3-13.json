@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-13",
+ "rule-digest": "0dda0bb0a5da",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/StartKeyLength.cs#TryCompareLength; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#CategorySource",
+ "test-ref": "conformance:cases/14.8.37@2002-START-STATEMENT/g2st01-indexed-key-operand-length; conformance:cases/14.9.41-START/pb355_start_length_past_operand; conformance:cases/14.9.41-START/pb355_start_length_national_past_operand",
+ "notes": "§2002:14.8.37.3 GR13: WITH LENGTH counts alphanumeric positions on an alphanumeric key (A1-A5) and national positions on a national key (N1 LENGTH 2 = N\"AB\" -> TWO, where a byte count would give ONE); both pb355 cases at --std 2002 matched their .out. Earlier record (kept): §2002:14.8.37.3 GR13: WITH LENGTH counts alphanumeric positions for an alphanumeric key and national positions for a national key: LENGTH 2 positions at R2 on both (not R1), LENGTH 6 on N(6) positions at R3 and LENGTH 7 is status 23 (GR14). Pinned build at --std 2002 matched."
+}

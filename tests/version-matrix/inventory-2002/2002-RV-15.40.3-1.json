@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.40.3-1",
+ "rule-digest": "629f7e68a3ba",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolLocale.cs#Compare",
+ "test-ref": "conformance:cases/15.40@2002-LOCALE-COMPARE-FUNCTION/g2lc01-locale-compare",
+ "notes": "§2002:15.40.3 RV1: a non-national operand compared with a national one is converted to class national, so N\"abc\" against \"abc   \" compares '=' both ways and N\"abc\" against \"abd\" '<' (NAT-ALN, ALN-NAT, NAT-ALPHA); g2lc01 at --std 2002 on the pinned build matched."
+}

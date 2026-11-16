@@ -1,9 +1,9 @@
 {
  "rule-id": "SR-14.9.48.3-6",
  "rule-digest": "60c5dd910fdb",
- "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
+ "verdict": "PARTIAL",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring",
  "test-ref": "conformance:cases/14.9.48-UNSTRING/pb88-unstring-pointer-not-integer",
  "editions": "85,2002,2014,2023",
- "notes": "kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-7 (the UNSTRING POINTER) shall be an elementary numeric integer data item without P (StrUnstrIsInteger) — the negative writes a PIC 9V9 pointer."
+ "notes": "PARTIAL, kb/Work PB5734 (open): a reference-modified integer item as identifier-7 (WITH POINTER) is no integer data item, but StrUnstrIsInteger reads the base item's PICTURE, so the binder admits it and the C# compile fails, CS1503, with no COBOL diagnostic. Repro E:/COBOL-coord/scratch/op-20261115/registrar-sample/probes/m4/m4ptr.cob (UNSTRING ... WITH POINTER PT (2:1)) at --std 2023: '(78,115): error CS1503: Argument 4: cannot convert from 'long' to 'string?''; expected COBOL1651. re-run 2026-11-15 on the registrar landing records-sample-pb5692's build of main 95e8e476ad (log E:/COBOL-coord/scratch/op-20261115/registrar-sample/runs.log). Prior record (CONFORMS), kept as the account of the half that still holds: kb/Work PB88 (2026-08-18): a bind-time rejection (COBOL1651) through the ONE Reject helper — it was a BoundUnsupported run-time stage on illegal source. Identifier-7 (the UNSTRING POINTER) shall be an elementary numeric integer data item without P (StrUnstrIsInteger) — the negative writes a PIC 9V9 pointer."
 }

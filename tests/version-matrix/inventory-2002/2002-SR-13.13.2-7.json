@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.13.2-7",
+ "rule-digest": "1850002beb1a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ResolveClauseOperand; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/ReportGroupResolution.cs; src/WiseOwl.Cobol.Compiler/Binding/ReportScope.cs#EntriesNamed; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ReportEntryReferenceRefused; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportNamedEntry",
+ "test-ref": "conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-send-from-report-item; conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-elementary-clauses",
+ "notes": "§2002:13.13.2 SR7 forbids any other reference to a report data-name: SEND OUT-CD FROM PV is refused at --std 2002 (COBOL5092 at line 42; the FROM W control is accepted), and the permitted GENERATE, USE BEFORE REPORTING, sum-counter qualifier, UPON and SUM operand references run in G2RGD01 with the derived 'RF 07 20'."
+}

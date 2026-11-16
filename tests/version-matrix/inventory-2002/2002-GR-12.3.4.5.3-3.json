@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.5.3-3",
+ "rule-digest": "baff6e934e27",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#DeclaredKeys; src/WiseOwl.Cobol.Runtime/IO/FixedFileAttributes.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/Store/MetaPage.cs#WriteKeyDescriptor",
+ "test-ref": "conformance:cases/12.3.4.5@2002-ALTERNATE-RECORD-KEY-CLAUSE/g2akc01_alternate_keys_as_created",
+ "notes": "§2002:12.3.4.5.3 GR3: the alternate key's description and relative location, and the number of alternate keys, shall be those used at creation. §2002:14.8.26.3 GR8 compares the connector with the fixed file attributes on OPEN, '39' on a mismatch, over the implementor's validated set (DOC-A.1-129 (3): an indexed file's key table). Create with prime bytes 1-4 and one alternate bytes 5-6 (MAKE 00 00 00); the agreeing connector opens and READ KEY IS S-ALT 'AA' finds K002 (SAME 00 K002); no alternate (NONE 39), two alternates (TWO 39), the alternate at bytes 7-8 (MOVED 39). run at --std 2002 on the pinned build: exit 0, 5 lines equal the derived .out (MATCH)."
+}

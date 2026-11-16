@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.57.2-1",
+ "rule-digest": "9dce60f98ace",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#PredicateViolation",
+ "test-ref": "conformance:cases/15.57@2002-ORD-FUNCTION/g2ord01",
+ "notes": "§2002:15.57.2 AR1 grants a one-position argument of category alphabetic, alphanumeric or national; g2ord01 writes each form (PIC A, PIC X, literal, reference modification, alphanumeric group, PIC N, national literal), and with user alphabets fixing both program collating sequences (§2002:12.2.5.3 GR9, §2002:12.2.6.3 GR7k) §2002:15.57.3 RV1/RV2 give 05 01 03 04 02 02 03. cobol.exe --std 2002 --run printed exactly that."
+}

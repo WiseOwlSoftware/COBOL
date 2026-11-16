@@ -3,6 +3,6 @@
  "rule-digest": "4a0c630dd01e",
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyRolled; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#PlanOf",
- "test-ref": "conformance:cases/13.18.53-SOURCE/pb1294_report_rolled_totals",
- "notes": "Own verdict from the read lineage-reads-2002/t-near.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.54.4-11, witnessed at 2002 by the cases test-ref names. The read: Only 'processing that instance' vs 'processing of that instance' (a 2002 typo). Report-section only. Cited: §2002:13.16.52.3 GR11."
+ "test-ref": "conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum04_sum_absent_addend_present_when_odo",
+ "notes": "§2002:13.16.52.3 GR11: an addend absent by PRESENT WHEN or OCCURS DEPENDING is not added; DP absent twice gives TP 007 and DX's absent occurrences give TX 013 006 002 (GR8 a) per occurrence). The --std 2002 run of g2sum04 matched the derived output."
 }

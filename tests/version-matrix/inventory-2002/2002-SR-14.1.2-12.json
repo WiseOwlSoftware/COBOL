@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.1.2-12",
+ "rule-digest": "aac3f94b2af7",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#methodDefinition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+ "test-ref": "conformance:cases/14.1@2002-PROCEDURE-DIVISION-STRUCTURE/g2-pd-format3-oo-elements; conformance:cases/14.1@2002-PROCEDURE-DIVISION-STRUCTURE/g2-pd-format3-in-method; conformance:cases/14.1@2002-PROCEDURE-DIVISION-STRUCTURE/g2-pd-format3-in-program",
+ "notes": "§2002:14.1.2 SR12 grants Format 3 in factory, instance and interface definitions: the accepted case writes all three and each method inside prints its line (FACTORY-METHOD / INSTANCE-METHOD / VIA-INTERFACE) at --std 2002; Format 3 in a factory method (COBOL5506) and in a program (COBOL0001) is refused at --std 2002."
+}

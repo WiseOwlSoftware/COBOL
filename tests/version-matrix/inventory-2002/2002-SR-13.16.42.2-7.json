@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-7",
+ "rule-digest": "96e2be8c6d81",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Cst/DataDescriptionCst.cs#RedefinesTarget; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#ResolveRedefinesPass",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-qualified",
+ "notes": "§2002:13.16.42.2 SR7: data-name-2 is never qualified, and a non-unique one binds by placement. In a CD record at --std 2002 two bare 'REDEFINES A' entries bind their own A (AR=12 BR=34) and 'REDEFINES A OF G' is refused COBOL2915 at line 24; both matched the derivation."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.7.5.2-5",
+ "rule-digest": "6dce3e77bfc0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5@2002-RELATIONAL-OPERATORS/g2_relop_format1_simple",
+ "notes": "§2002:8.7.5.2 SR5: < abbreviates LESS THAN, bare and in the 2002 Format 1 IS NOT < (one operator by SR1). g2_relop_format1_simple at --std 2002 matched: IS LESS THAN = IS < = < -> FFT, and IS NOT LESS THAN = IS NOT < = NOT < -> TTF for 5 vs 3,5,7."
+}

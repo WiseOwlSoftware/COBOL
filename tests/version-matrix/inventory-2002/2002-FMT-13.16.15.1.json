@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.15.1",
+ "rule-digest": "0d0b9edaab03",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportControlClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2-control-forms-cd; conformance:cases/13.16.52@2002-SUM-CLAUSE/g2sum01_sum_cd_addends_timing",
+ "notes": "§2002:13.16.15.1 grants CONTROL [IS] / CONTROLS [ARE] with {data-name-1}... or FINAL [data-name-1].... R-A (CONTROL with IS omitted, WS), R-B (CONTROLS ARE FINAL, operand in a CD record) and R-C (CONTROLS with ARE omitted, CD record) compile and print the lines derived from §2002:13.16.15.3 GR3-GR5. g2sum01 covers CONTROL IS FINAL alone. The --std 2002 run matched the derived .out."
+}

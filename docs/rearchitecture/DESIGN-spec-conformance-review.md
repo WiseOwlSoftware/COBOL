@@ -1851,26 +1851,47 @@ pairs the rule turns it red, each named, and rewriting the notes takes nothing o
 decides `own-verdict-from-pointer`. The own verdicts the first landing's witness writers recorded by hand for such rules
 (25 at 2002, with witnesses of their own) are held to the same test.
 
-**The band widening.** `python scripts/spec/lineage_reads.py widen --edition 2002 --state RUN --out PLAN` plans, for each
-read rule refused only for its evidence (a KEPT-refused row, or an own verdict from a pointer that only its evidence
-blocks: the plan row's `for`, so one `widen --apply` feeds both writers), what each target lacking a witness of the kind the rule needs can do at the
-edition (`case_status`: `widen`, a case accepted or flagged elsewhere; `widen-refusal`, a refusal test refused elsewhere;
-`band`, a case citing a rule whose band lacks the edition, which the generator would refuse; `missing`), and classes each
-row `widenable` (a widening gives every lacking target a witness of the right kind: a refusal or a flag helps only a
-diagnosed kind or a declined facility) or `needs-own-witness`. With `--apply --compiler EXE --scratch DIR` it adds the
+**The band widening.** `python scripts/spec/lineage_reads.py widen --edition YEAR [--state RUN] --out PLAN` plans ONE
+POPULATION (kb/Work PB5730, `lineage_reads.unwitnessed`): the KEPT rows of the edition that lack a witness of their own,
+from both sources through one function, the STORED KEPT records with no own `test-ref` (`bare_kept`, the walk
+`witness-batch` shares; 1985's records of its comparison audit are all of this kind) and, where the edition has read
+records, the read decisions refused only for their evidence (`no own-edition witness`): a KEPT-refused row, or an own
+verdict from a pointer that only its evidence blocks (the plan row's `for`, so one `widen --apply` feeds both writers;
+kb/Work PB5597). `--state` (the audit run
+`import-reads` wrote) is needed only there: an edition with no read records plans without it, and one with read records
+and no `--state` stops the tool, saying so (`widen_reads`), since its decisions would otherwise be missing unseen. A rule
+both sources name is planned once, and two sources that carry it into different targets stop the tool. For each row it
+plans what each target lacking a witness of the kind the rule needs can do at the edition (`case_status`: `widen`, a
+case accepted or flagged elsewhere; `widen-refusal`, a refusal test refused elsewhere; `band`, a case citing a rule whose
+band lacks the edition, which the generator would refuse; `runs`, a case that runs there already; `missing`), and classes
+each row `widenable` (a widening gives every lacking target a witness of the right kind: a refusal or a flag helps only a
+diagnosed kind or a declined facility), `needs-own-witness`, or `witness-batch` (a stored row the search already
+witnesses at every target, which `witness-batch` writes). A `needs-own-witness` row says WHY for each target no widening
+helps, from a closed set named once (`REASON_OF`, one reason per case by its status): `no-case` (no suite case at all),
+`band` (its cases cite a rule the edition does not have), `not-evidence` (a refusal or flag, which is no evidence for
+the rule's kind), `diagnosis-only` (a case runs at the edition already, as a diagnosis, for a rule whose kind takes
+none), `no-edition` and `uncommitted`. The plan counts rows by state and by reason and cases by status; the
+`needs-own-witness` rows with their reasons and the cases that ran are the input of the edition's witness lane, which
+writes each row's own program. With `--apply --compiler EXE --scratch DIR` it adds the
 edition to each widenable case's header (`accept` and the flag's `at`, a flagged case's control with it; the method of the
 S1 measurement, kb/Work PB5574) or refusal entry, PROVING FIRST AND WRITING LAST (review R2-1): each candidate's band is
-widened in memory, checked by the generator's own `check_cases` and given its manifest entries by `entry_for`
+widened in memory, checked by the generator's own `check_cases` (which holds every refusal that depends on the
+editions a case is placed at, `check_editions`: free form and a run-time expectation before 2002, kb/Work PB5730) and
+given its manifest entries by `entry_for`
 (`Witnesses.entries`), and run at the edition by the suite's runner (`run.py`) on a manifest in the scratch, which must be
 empty at the start; a run that exits outside 0 and 1 (the statuses on which it ran every test and wrote its results)
-proves nothing it was to judge; a refusal test must be refused with its expected diagnostic. Only then is the proof
+proves nothing it was to judge; a refusal test must be refused with its expected diagnostic AND draw no error there that
+it does not expect (`refused_at`, review R1-1 of records-2002-reads-2): every error code it draws at the edition is one
+its entry's `expect` names or one it also draws at its newest refusing edition, where it witnesses its rule, so a case
+the edition refuses first for an introduction gate (COBOL0900) or for the edition's own limit (COBOL1567) is never
+widened, its refusal there passing whatever the rule does. Only then is the proof
 written (`proof.json`) and each proven widening written into the tree, each recorded in `applied.json` once its files
 are written. A kill before the writes leaves the tree untouched; a kill during them leaves only proven widenings, and
 `--apply` with the same scratch reads the proof and finishes the writes, saying so (each write is idempotent). And a
 band is evidence only in the COMMITTED tree: a case file or refusal entry the working tree changes is no witness
 (`lineage_reads.uncommitted`, git's status), because every committed band ran green in the gate before it landed and an
 uncommitted one ran nowhere. The widened cases land in their own branch, whose gate is the
-proof; only then are the KEPT records written.
+proof; only then are the KEPT records written (for a stored row, by `witness-batch`, once the widened band is committed).
 
 **A KEPT row closes on its own witness, at every older edition (kb/Work PB5675).** The chain says the older rule states
 the newer one's requirement; it does not show the compiler meets it at the older `--std`. So a chained row's state
@@ -1905,7 +1926,8 @@ that runs at 85, never as new KEPT records. The 1,373 KEPT records its own audit
 records; each closes only on a witness of its own, which `witness-batch` found for 570 of them (every target witnessed
 at 85); 232 have a witness for some targets and 571 for none, so they are GAP (measured 2026-11-15: 1985 from 32 GAP to
 835, the count becoming true). The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
-terms is still owed, so 835 is a lower bound.
+terms is still owed, so 835 is a lower bound. The widening of the stored rows (kb/Work PB5730, 2026-11-15) proved 74
+suite cases at 85 and `witness-batch` then closed 64 rows (835 to 771 GAP; 634 KEPT records with their own witness).
 
 **Measured on 2026-11-15** at the head of review round 2 (all 69 slices then written, the `t-*` slices included; 1,720
 rules): kept before the evidence check 300; refused 632, every one for a flag the screen raises and the slice never asked

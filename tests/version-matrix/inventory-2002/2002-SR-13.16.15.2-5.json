@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.15.2-5",
+ "rule-digest": "f7f9f74d7d26",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandShapeViolation",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2-control-cd-record-odo; conformance:cases/13.18.16-CONTROL/pb177-control-occurs-depending",
+ "notes": "§2002:13.16.15.2 SR5: a CONTROL operand shall not have a variable-occurrence (OCCURS DEPENDING) entry subordinate to it. At --std 2002 the compiler refuses it (COBOL1699) for an operand in an output-CD record (g2-control-cd-record-odo, where §2002:A.1.2.2 SR9 sets no record size) and in working-storage (pb177)."
+}

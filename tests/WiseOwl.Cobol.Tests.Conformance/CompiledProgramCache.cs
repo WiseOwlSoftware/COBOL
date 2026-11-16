@@ -372,7 +372,19 @@ internal static class CompiledProgramCache
                 using (var blob = File.OpenRead(BlobPath(root, file.Blob)))
                 using (var inflate = new BrotliStream(blob, CompressionMode.Decompress))
                 using (var output = File.Create(dest))
-                    inflate.CopyTo(output);
+                {
+                    // BrotliStream reports a blob it cannot decode (torn, or a decoder that could not allocate on a host
+                    // out of commit: kb/Work PB5697) as InvalidOperationException, never InvalidDataException; either is
+                    // a miss, never a crash of the case that asked. A blob that does not decode is removed, so the real
+                    // compile's store (write-if-absent) writes it again instead of every later hit missing on it.
+                    try { inflate.CopyTo(output); }
+                    catch (InvalidOperationException e)
+                    {
+                        blob.Dispose();
+                        FileHarness.TryDelete(BlobPath(root, file.Blob));
+                        throw new InvalidDataException($"cache blob {file.Blob} does not decode", e);
+                    }
+                }
                 written.Add(dest);
             }
             try { File.SetLastWriteTimeUtc(path, DateTime.UtcNow); } catch (IOException) { }   // the LRU clock

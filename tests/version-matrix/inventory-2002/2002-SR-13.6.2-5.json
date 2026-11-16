@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.6.2-5",
+ "rule-digest": "8d3c99ab4a5a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ReceivingPlaceBar; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#IsFunctionFormal",
+ "test-ref": "conformance:cases/13.6@2002-LINKAGE-SECTION/g2lk01-function-formal-call-overflow-returning; conformance:cases/13.6@2002-LINKAGE-SECTION/g2lk02-function-formal-move-high-value; conformance:cases/13.6@2002-LINKAGE-SECTION/g2lk03_function_archaic_receivers_local",
+ "notes": "§2002:13.6.2 SR5 bars a function formal as a receiving operand. At 2002 that includes CALL ... RETURNING identifier-3 ON OVERFLOW (§2002:14.8.4.2 SR9) and MOVE HIGH-VALUE TO a numeric item (§2002:14.8.24.2 SR4). At --std 2002, g2lk01 and g2lk02 are refused with COBOL2747 at the violating lines, and the legal twin g2lk03 (CALL ... RETURNING W-N ON OVERFLOW and MOVE ALL \"7\" TO W-N, a digit-only alphanumeric figurative constant into a numeric WORKING-STORAGE item, so no EC-DATA-INCOMPATIBLE per §2002:14.8.24.3 GR4) printed R=00042 N=0041 as derived."
+}

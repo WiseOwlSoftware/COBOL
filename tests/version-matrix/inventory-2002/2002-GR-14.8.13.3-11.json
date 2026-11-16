@@ -4,5 +4,5 @@
  "verdict": "CONFORMS",
  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#TransferOut; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitDispatchMethod",
  "test-ref": "conformance:cases/14.9.14-EXIT/pb405_exit_paragraph_section_in_inline_perform",
- "notes": "Own verdict from the read lineage-reads-2002/t-erased.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.14.4-6, witnessed at 2002 by the cases test-ref names. The read: Same format 6 (EXIT PARAGRAPH/SECTION); only a comma in the NOTE differs. The rule is about the paragraph, not operands; the 2002 USE statement has no debugging form, so no 2002-only return mechanism exists. The other 2002 EXIT formats (RAISING etc.) are other rules. Cited: §2002:14.8.13.3 GR11."
+ "notes": "§2002:14.8.13.3 GR11: EXIT PARAGRAPH skips the rest of its paragraph, falling through when unperformed (S1-A to S1-B) and returning through the PERFORM when performed (P4 to AFTER-P4); pb405 (accept [2002]) shows both. Its output matched its .out at --std 2002 with the pinned build of dc1f2dcce8."
 }

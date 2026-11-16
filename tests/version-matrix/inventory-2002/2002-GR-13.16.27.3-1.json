@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.27.3-1",
+ "rule-digest": "6f065a4d8877",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#AsIfPic; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#OperandPic; src/WiseOwl.Cobol.Compiler/Binding/Model/BitLayout.cs#ExtentBits; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitBitMethods",
+ "test-ref": "conformance:cases/13.16.27@2002-GROUP-USAGE-CLAUSE/g2-gu-bit-group-ws-and-cd",
+ "notes": "a) G is a bit group: LENGTH(G)=12 boolean positions (§2002:15.39.3 RV1). b) G is treated as an elementary PIC 1(12): MOVE B\"101\" gives B\"101000000000\" (zero fill on the right), MOVE of a 14-bit literal gives B\"111100001111\" (truncated on the right; §2002:14.5.8), G sends to and receives from a PIC 1(12) USAGE BIT item, and compares as one item (M1-M4 OK). c) A, B and C sit at the next bit position (§2002:8.5.1.5.3): A=101, B=00000, C=0000, then A=111, B=10000, C=1111 (SUB OK); BYTE-LENGTH 02. The same holds in WS and in the CD record. Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

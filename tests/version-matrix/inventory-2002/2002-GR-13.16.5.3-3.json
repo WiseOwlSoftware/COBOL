@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.5.3-3",
+ "rule-digest": "6b1257424563",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#DataPtrNullError; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs",
+ "test-ref": "conformance:cases/13.16.5@2002-BASED-CLAUSE/g2-based-null-reference",
+ "notes": "§2002:13.16.5.3 GR3: the subject, a sending subordinate, a receiving subordinate and the SEND FROM source each raise EC-DATA-PTR-NULL (Fatal) when referenced while the address is NULL; USE plus RESUME AT NEXT STATEMENT (§2002:14.8.31.3 GR2) continues, and a valid address raises nothing. The --std 2002 run matched the derived output."
+}

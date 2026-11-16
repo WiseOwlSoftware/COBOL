@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.4.3-5",
+ "rule-digest": "009334a505f3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+ "test-ref": "conformance:cases/12.2.4@2002-SOURCE-COMPUTER-PARAGRAPH/g2002_debugging_lines_are_comments",
+ "notes": "§2002:12.2.4.3 GR5: with no DEBUGGING MODE in the unit or its container, D, d and >>D debugging lines are comment lines, so the program prints OUTER-1, INNER-1, OUTER-2, DBG-COUNT=0 and its debugging line naming an undeclared item does not compile; the --std 2002 run matched."
+}

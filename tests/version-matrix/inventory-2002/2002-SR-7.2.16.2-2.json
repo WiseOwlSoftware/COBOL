@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.16.2-2",
+ "rule-digest": "b6bc43815375",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/TextWord.cs#TextWordScanner",
+ "test-ref": "conformance:cases/7.2.16@2002-PAGE-DIRECTIVE/g2pg01_comment_text_unchecked",
+ "notes": "§2002:7.2.16.2 SR2 'Comment-text-1 is not checked syntactically': >>PAGE lines carrying an unterminated quote, unbalanced parentheses, COPY NOSUCH., END-IF ELSE and STOP RUN. compile and the program prints ONE/TWO/THREE at --std 2002 on the pinned build (dc1f2dcce8), equal to the derived output."
+}

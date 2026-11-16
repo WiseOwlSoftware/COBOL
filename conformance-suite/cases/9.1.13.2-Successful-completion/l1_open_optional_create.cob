@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_open_optional_create
       *> rules: [GR-9.1.13.2-4, GR-9.1.13.4-1, GR-14.9.27.4-17]
-      *> accept: [2002, 2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

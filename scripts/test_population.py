@@ -298,6 +298,28 @@ def red_cases(paths: list[str | Path]) -> set[str]:
     return {u.get("name", "") for u in _red_definitions(paths)}
 
 
+#: The elements of a result's `<Output>` whose text a failure's judgement reads (`failed_texts`).
+_FAILURE_TEXT_TAGS = frozenset(TRX_NS + t for t in ("Message", "StackTrace", "StdOut", "StdErr"))
+
+
+def failed_texts(paths: list[str | Path]) -> dict[str, str]:
+    """EVERY FAILED CASE'S TEXT in these trx files (kb/Work PB5697), by the definition's `name` (`red_cases`' spelling):
+    each Failed result's error message, stack trace and standard output and error, joined; a case failed in several
+    results keeps every text. What `host_resources.judge` reads to tell a host's resource exhaustion from a test red. A
+    file that cannot be read raises `UnreadableTrx` naming it."""
+    texts: dict[str, list[str]] = defaultdict(list)
+    for path in paths:
+        root = trx_root(path)
+        names = {u.get("id", ""): u.get("name", "") for u in root.iter(TRX_NS + "UnitTest")}
+        for r in root.iter(TRX_NS + "UnitTestResult"):
+            if r.get("outcome") != "Failed":
+                continue
+            out = r.find(TRX_NS + "Output")
+            parts = [] if out is None else [e.text for e in out.iter() if e.text and e.tag in _FAILURE_TEXT_TAGS]
+            texts[names.get(r.get("testId", ""), r.get("testName", ""))].append("\n".join(parts))
+    return {n: "\n".join(t) for n, t in texts.items()}
+
+
 # ── RED AT THE PREVIOUS GATE MEANS ANY HOST'S (kb/Work PB3155, PB3184, PB3644): the sources of the first classes ──────
 #: ⛔ EVERY LIVE TOOL THAT WRITES TEST RESULTS (a trx file) INTO A WORKTREE IS ONE ROW HERE: the results directory it
 #: writes, relative to the worktree (None: it writes none there), and what the gate takes from it (scripts/gate_legs.py `Legs.first`).
@@ -694,11 +716,13 @@ def shard_union_checks(workflow: str) -> list[str]:
 # ── the self-test ─────────────────────────────────────────────────────────────────────────────────────────────
 
 
-def synthetic_trx(path: Path, cases: list[tuple[str, list[str]]], stray_results: list[tuple[str, str, str]] = ()) -> str:
+def synthetic_trx(path: Path, cases: list[tuple[str, list[str]]], stray_results: list[tuple[str, str, str]] = (),
+                  messages: dict[str, str] | None = None) -> str:
     """A minimal trx: each case is (definition name, [result outcomes]), its test method's `className` the name up to
     its last `.` before any `(`; a stray result is (definition name it belongs to, the RESULT's own name, outcome) —
-    the shape of a theory xunit could not serialize."""
-    from xml.sax.saxutils import quoteattr
+    the shape of a theory xunit could not serialize. `messages`: a failed case's error message, by name (kb/Work
+    PB5697: what `failed_texts` reads)."""
+    from xml.sax.saxutils import escape, quoteattr
     ids = {}
     defs, results = [], []
     for i, (name, outs) in enumerate(cases):
@@ -706,7 +730,10 @@ def synthetic_trx(path: Path, cases: list[tuple[str, list[str]]], stray_results:
         ids.setdefault(name, tid)
         cls = name.partition("(")[0].rpartition(".")[0]
         defs.append(f"<UnitTest name={quoteattr(name)} id=\"{tid}\"><TestMethod className={quoteattr(cls)} /></UnitTest>")
-        results += [f"<UnitTestResult testId=\"{tid}\" testName={quoteattr(name)} outcome=\"{o}\" />" for o in outs]
+        msg = (messages or {}).get(name)
+        body = f"<Output><ErrorInfo><Message>{escape(msg)}</Message></ErrorInfo></Output>" if msg is not None else ""
+        results += [f"<UnitTestResult testId=\"{tid}\" testName={quoteattr(name)} outcome=\"{o}\">"
+                    f"{body if o == 'Failed' else ''}</UnitTestResult>" for o in outs]
     for owner, result_name, outcome in stray_results:
         results.append(f"<UnitTestResult testId=\"{ids[owner]}\" testName={quoteattr(result_name)} "
                        f"outcome=\"{outcome}\" />")
