@@ -1790,7 +1790,7 @@ A differential gate writes no growth sample (it is not a whole-population measur
   compiled-program cache keys and replays on). A compile that read the environment (a `>>DEFINE … AS PARAMETER`,
   §2023:7.3.11.4 GR4: `g2df04_parameter_environment`, `pb1367_define_general_format_alternatives`), the external
   repository, or the content of any file outside its own scratch directory, or that found anything a probe asked there, is
-  `ambient` (`ArchOracle.Ambient`): its program has no digest, and it is never carried.
+  `ambient` (`ArchOracle.Ambient`): its program has no digest, and it is never carried. An observation always compiles for real (`CompiledProgramCache.Cold`, kb/Work PB5862), and the store's staging directory, named by its content, is the compile's own place, so the classification never depends on whether the store was warm. The capture runs with the store off.
 - *What a compile did NOT find.* The default library searches the working directory first, so the capture compiles in the
   directory VSTest starts the Conformance test host in (its assembly's output directory), and each compile's absent probes
   outside its scratch directory are part of its row: a case one of whose absent probes now exists is not carried, as the
