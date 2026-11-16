@@ -43,7 +43,7 @@ namespace WiseOwl.Cobol.Tests.Conformance;
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
-    private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
+    private const string RecordDelimiterNonSupport = "COBOL1778";   // RECORD DELIMITER STANDARD-1 — A.3 item 26
     private const string FloatDecimalClauseNonSupport = "COBOL2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
     /// <summary>The conformance-suite test's source text — the witness and the suite run the SAME file.</summary>
@@ -63,19 +63,14 @@ public sealed class DocumentedNonSupportWitnessTests
         }
     }
 
-    /// <summary>RECORD DELIMITER → COBOL1778, at EVERY edition (the clause is in the '85 file control entry
-    /// and every edition since), and — the point of the pair — ONCE PER ARM. §2023:4.2.6 ¶3 compels the warning for
-    /// the STANDARD-1 arm: Annex A.3 item 26 makes it processor-dependent and §2023:12.4.5.11.4 GR2 makes its medium
-    /// a tape drive this implementation has none of. The feature-name arm is declined on a DIFFERENT licence —
-    /// §2023:12.4.5.11.3 SR2 leaves the available names to the implementor and Annex A.1 item 150 makes providing
-    /// them optional, and this implementation provides none (docs/CONFORMANCE.md §7) — so nothing about the
-    /// STANDARD-1 fix implies it fires.
-    /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE, and that is the whole design. kb/Work PB292's own
-    /// warning was that "a fix touching only the STANDARD-1 arm repeats the defect shape" — and a test that
-    /// only asked for COBOL1778 over a two-SELECT program would PASS with the feature-name arm still silent
-    /// (feedback_two_arm_dispatch). Each fact therefore demands the diagnostic that quotes ITS OWN clause
-    /// spelling back, which is exactly the `seen` half <see cref="WiseOwl.Cobol.Binding.EditionContext.Declined"/>
-    /// composes at the site.</para>
+    /// <summary>RECORD DELIMITER STANDARD-1 → COBOL1778, at EVERY edition (the clause is in the '85 file control entry
+    /// and every edition since). §2023:4.2.6 ¶3 compels the warning: Annex A.3 item 26 makes the phrase
+    /// processor-dependent and §2023:12.4.5.11.4 GR2 makes its medium a tape drive this implementation has none of. The
+    /// other arm, feature-name-1, is PROVIDED (kb/Work PB5844): BINARY-SEQUENTIAL and LINE-SEQUENTIAL select their
+    /// methods and draw nothing (<see cref="RecordDelimiterImplementorName_DrawsNoWarning"/>).
+    /// <para>⛔ THE ASSERTION IS ON THE ARM, NOT ON THE CODE: each fact demands the diagnostic that quotes ITS OWN
+    /// clause spelling back, which is exactly the `seen` half <see cref="WiseOwl.Cobol.Binding.EditionContext.Declined"/>
+    /// composes at the site, so a warning on another file cannot pass for it.</para>
     /// <para>⚠ The golden's <c>.out</c> pins INERTNESS only and cannot pin the decline: §2023:12.4.5.11.4 GR1 —
     /// "Any method used shall not be reflected in the record area or the record size used within the function,
     /// method, or program" — means a conforming processor honouring STANDARD-1 and this one ignoring it print
@@ -88,14 +83,23 @@ public sealed class DocumentedNonSupportWitnessTests
     public void RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec(int edition) =>
         AssertArmNamed(edition, "RECORD DELIMITER IS STANDARD-1");
 
-    /// <summary>The feature-name-1 arm of the same required choice — see the pair's rationale above.</summary>
+    /// <summary>The feature-name-1 arm of the same required choice is not declined (kb/Work PB5844): file F2 of the golden
+    /// names BINARY-SEQUENTIAL, the implementor-name of the method every record sequential file has
+    /// (docs/CONFORMANCE.md DOC-A.1-150), so it compiles with no COBOL1778 naming it, and its records read back as
+    /// the other three files' do.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    public void RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec(int edition) =>
-        AssertArmNamed(edition, "RECORD DELIMITER IS PB292-TAPE-FORMAT");
+    public void RecordDelimiterImplementorName_DrawsNoWarning(int edition)
+    {
+        string source = Golden("pb292_record_delimiter_witness");
+        Assert.Contains("RECORD DELIMITER IS BINARY-SEQUENTIAL", source, StringComparison.Ordinal);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
+        Assert.True(ok, $"--std {edition}: {string.Join("\n", errors)}");
+        Assert.DoesNotContain(warnings, w => w.Contains("on file 'F2'", StringComparison.OrdinalIgnoreCase));
+    }
 
     /// <summary>The same STANDARD-1 arm written WITHOUT the optional word. §2023:12.4.5.11.2's printed diagram
     /// underlines RECORD, DELIMITER and STANDARD-1 and leaves IS unmarked, so `RECORD DELIMITER STANDARD-1` is
@@ -109,27 +113,28 @@ public sealed class DocumentedNonSupportWitnessTests
     public void RecordDelimiterOptionalWordOmitted_NamedNonSupportWarning_PinnedToSpec(int edition) =>
         AssertArmNamed(edition, "RECORD DELIMITER STANDARD-1");
 
-    /// <summary>⛔ THE COMPLEMENT (feedback_measure_the_selectors_complement). The three facts above prove the
-    /// warning FIRES; this one proves it fires on the CLAUSE and not on the file, the file's organization or
+    /// <summary>⛔ THE COMPLEMENT (feedback_measure_the_selectors_complement). The two STANDARD-1 facts above prove the
+    /// warning FIRES; this one proves it fires on the declined PHRASE and not on the file, the file's organization or
     /// the RECORD VARYING clause — file F4 of the same golden is variable-length, sequential and opened,
-    /// written and read exactly like the other three, and writes NO RECORD DELIMITER clause. It is also the
-    /// only file in the program under which §2023:12.4.5.11.4 GR5 speaks at all ("If the RECORD DELIMITER clause is
-    /// not specified …"), so a warning there would contradict the determination filed as Annex A.1 item 151.
-    /// A diagnostic that cannot be silent is not evidence of anything.</summary>
+    /// written and read exactly like the other three, and writes NO RECORD DELIMITER clause, and F2 names an
+    /// implementor-name, which is provided. F4 is also the only file in the program under which §2023:12.4.5.11.4 GR5
+    /// speaks at all ("If the RECORD DELIMITER clause is not specified …"), so a warning there would contradict the
+    /// determination filed as Annex A.1 item 151. A diagnostic that cannot be silent is not evidence of anything.</summary>
     [Theory]
     [InlineData(85)]
     [InlineData(2002)]
     [InlineData(2014)]
     [InlineData(2023)]
-    public void RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheThreeClausesDo(int edition)
+    public void RecordDelimiterAbsent_DrawsNoWarning_AndOnlyTheStandard1ClausesDo(int edition)
     {
         string source = Golden("pb292_record_delimiter_witness");
         var (ok, errors, warnings) = EditionHarness.CompileFull(source, edition);
         Assert.True(ok, $"--std {edition}: {string.Join("\n", errors)}");
         var raised = warnings.Where(w => w.Contains(RecordDelimiterNonSupport, StringComparison.Ordinal))
             .ToList();
-        Assert.Equal(3, raised.Count);
-        Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(2, raised.Count);
+        Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase)
+                                           || w.Contains("on file 'F2'", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>BELOW 2023 THE FORMATS ARE AN INTRODUCTION, NOT THE FACILITY (kb/Work PB374). RECEIVE and SEND are

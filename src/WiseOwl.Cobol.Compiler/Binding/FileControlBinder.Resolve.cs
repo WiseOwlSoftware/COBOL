@@ -161,6 +161,7 @@ public sealed partial class FileControlBinder
                     file.VaryingDependingItem = null;
             }
             RecordClauseRules.Screen(file, Edition);
+            ScreenRecordDelimiter(file);   // §2023:12.4.5.11.3 SR1 — over the records the RECORD clause rules just judged
             ResolveLinage(file);   // §2023:13.18.34 — the logical-page operands and §2023:13.18.34.3's syntax rules
         }
         ResolveValueOfDataNames();   // §1985:VII.3.9.3 SR1, SR2 (kb/Work PB5070)

@@ -206,26 +206,40 @@ public sealed partial class FileControlBinder
                         file.ReserveAreas = ConstantEntryBinder.RecoveredIntegerOperand;
                     }
                 }
-                // RECORD DELIMITER clause (ISO §2023:12.4.5.11) — DECLINED, ACCEPT-INERT, and diagnosed by name at
-                // EVERY edition on BOTH arms of its required choice (kb/Work PB292). STANDARD-1 is Annex A.3
-                // item 26, a processor-dependent element whose §2023:12.4.5.11.4 GR2 medium is a tape drive; a
-                // feature-name-1 names nothing because §2023:12.4.5.11.3 SR2's available-name set is this
-                // implementation's to specify and is EMPTY (Annex A.1 item 150 is optional — docs/CONFORMANCE.md
-                // §7). The clause does not change the I-O: §2023:12.4.5.11.4 GR5's implementor method (the 4-byte
-                // length prefix) frames every variable-length record whatever the clause says. §2023:4.2.6 ¶3 makes
-                // the WARNING the obligation this discharges; §2023:12.4.5.11.4 GR1 keeps the framing out of the record
-                // area, so the accept is inert in the program's own terms. The phrase written IS captured
-                // (FileModel.RecordDelimiter), for the one reader that needs it: §2023:12.4.5.3 GR1 c) makes "Either
-                // the STANDARD-1 phrase or a consistent value of feature-name-1" part of an external file
-                // connector's entry identity (kb/Work PB1079). This arm is LAST because every preceding clause
-                // has a distinct leading token and `recordKeyClause` already back-tracks past `RECORD DELIMITER`.
+                // RECORD DELIMITER clause (§1985:VII.2.8, §2023:12.4.5.11; kb/Work PB292, PB5844). The operand is STANDARD-1
+                // or an implementor-name, and the two arms take two dispositions:
+                // · STANDARD-1 is DECLINED, ACCEPT-INERT, and diagnosed by name (COBOL1778): Annex A.3 item 26 and §1985:C.3
+                //   make it a reel-device element, §2023:12.4.5.11.4 GR2 puts it on a tape drive, and this implementation
+                //   provides none. The file keeps the implementor's method (§2023:12.4.5.11.4 GR5, A.1 item 151).
+                // · An implementor-name selects "that associated with implementor-name-1 by the implementor" (§1985:VII.2.8.4
+                //   GR3; §2023:12.4.5.11.4 GR4 for feature-name-1), and the ONE table of the names is RecordDelimiterNames.
+                //   A word it does not hold is no implementor-name and is refused (COBOL7598). The method is APPLIED once
+                //   the whole entry is read (ApplyRecordDelimiter), because the ORGANIZATION clause may follow this one.
+                // The clause's syntax rule (SR1, "may be specified only for variable-length records") needs the record
+                // descriptions, so it runs post-build (ScreenRecordDelimiter). This arm is LAST because every preceding
+                // clause has a distinct leading token and `recordKeyClause` already back-tracks past `RECORD DELIMITER`.
                 else if (clauses.recordDelimiterClause() is { } rd)
                 {
-                    file.RecordDelimiter = rd.STANDARD_1() is not null ? "STANDARD-1" : CobolNames.UpperFold(rd.cobolWord().GetText());
-                    Edition.Declined(DiagnosticCatalog.RecordDelimiterUnsupported,
-                        $"the RECORD DELIMITER clause on file '{name}' ({DataBinder.Spelled(rd)})");
+                    using var at = Edition.At(rd.cobolWord() ?? (Antlr4.Runtime.ParserRuleContext)rd);
+                    file.RecordDelimiterAt = Edition.Cursor;
+                    if (rd.STANDARD_1() is not null)
+                    {
+                        file.RecordDelimiter = "STANDARD-1";
+                        Edition.Declined(DiagnosticCatalog.RecordDelimiterUnsupported,
+                            $"the RECORD DELIMITER clause on file '{name}' ({DataBinder.Spelled(rd)})");
+                    }
+                    else
+                    {
+                        file.RecordDelimiter = CobolNames.UpperFold(rd.cobolWord().GetText());
+                        if (!RecordDelimiterNames.IsName(file.RecordDelimiter))
+                            Edition.Error(DiagnosticCatalog.RecordDelimiterNameUndefined,
+                                $"file '{name}': RECORD DELIMITER IS {file.RecordDelimiter} names no method — the implementor-names "
+                                + $"of the clause are {string.Join(" and ", RecordDelimiterNames.Names)} (§1985:VII.2.8.4 GR3, "
+                                + "§2023:12.4.5.11.3 SR2)");
+                    }
                 }
             }
+            ApplyRecordDelimiter(file, name);
             // §2023:12.4.5.5.2 SR2 — "The DYNAMIC and RANDOM phrases shall not be specified for a sequential file."
             // A FILE CONTROL ENTRY rule, so it belongs HERE, beside the clauses it relates, and not on any verb:
             // it constrains the ENTRY whether or not the file is ever read, written or started (kb/Work PB692).
@@ -265,8 +279,10 @@ public sealed partial class FileControlBinder
             // ⛔ The predicate is LINE SEQUENTIAL itself, NOT `IsSequential`: RECORD SEQUENTIAL and the omitted
             // clause (§2023:12.4.5.10.3 GR6) are sequential too and keep RESERVE (NIST IX4014, SQ2034, SQ2264 …).
             // The ORGANIZATION clause may follow the RESERVE clause, so the screen waits for the whole entry.
-            // Reachable at 2023 only: below it LINE SEQUENTIAL is refused by its introduction gate.
-            if (file.Organization == FileOrganization.LineSequential && reserveAt is not null)
+            // Reachable at 2023 only: below it the phrase is refused by its introduction gate. The subject is the WRITTEN
+            // phrase, so a file made line sequential by RECORD DELIMITER IS LINE-SEQUENTIAL keeps its RESERVE clause
+            // (kb/Work PB5844): its connector allocates the areas as every sequential connector does.
+            if (file.LineSequentialPhraseWritten && reserveAt is not null)
             {
                 using var rsv2 = Edition.At(reserveAt);
                 Edition.Error(DiagnosticCatalog.ReserveOnLineSequentialFile, $"file '{name}': the RESERVE clause "
@@ -301,6 +317,58 @@ public sealed partial class FileControlBinder
             _host.State.Files.Declare(name, file);
             if (screened) SelectedFiles[name] = file;
         }
+    }
+
+    /// <summary>Apply the method the RECORD DELIMITER clause's implementor-name selects (<see cref="RecordDelimiterNames"/>;
+    /// §1985:VII.2.8.4 GR3, §2023:12.4.5.11.4 GR4; kb/Work PB5844), once the whole entry is read. LINE-SEQUENTIAL makes a
+    /// sequential file LINE SEQUENTIAL; BINARY-SEQUENTIAL is the record sequential method a sequential file already has,
+    /// so it changes nothing, and on a file whose ORGANIZATION clause writes LINE SEQUENTIAL it names a method the file
+    /// cannot have and is refused. A relative or indexed file is left alone: the clause is Format 3's alone, and
+    /// §2023:12.4.5.2 SR11 refuses it there (<see cref="FileControlKeyRules"/>).</summary>
+    private void ApplyRecordDelimiter(FileModel file, string name)
+    {
+        if (file.RecordDelimiter is not { } word || !RecordDelimiterNames.TryMethod(word, out var method) || !file.IsSequential)
+            return;
+        if (method is FileOrganization.LineSequential)
+        {
+            if (file.Organization is FileOrganization.Sequential)
+            {
+                file.Organization = FileOrganization.LineSequential;
+                file.LineSequentialByDelimiter = true;
+            }
+        }
+        else if (file.Organization is FileOrganization.LineSequential)
+        {
+            using var at = Edition.At(file.RecordDelimiterAt);
+            Edition.Error(DiagnosticCatalog.RecordDelimiterNameUndefined,
+                $"file '{name}': RECORD DELIMITER IS {word} names the record sequential method, the 4-byte length prefix, and the "
+                + "file's ORGANIZATION clause writes LINE SEQUENTIAL, whose records end at the line delimiter (§2023:9.1.7.2); "
+                + "a line sequential file takes RECORD DELIMITER IS LINE-SEQUENTIAL or no RECORD DELIMITER clause");
+        }
+    }
+
+    /// <summary>§2023:12.4.5.11.3 SR1 and §1985:VII.2.8.3 SR1 — the RECORD DELIMITER clause "may be specified only for
+    /// variable-length records" (kb/Work PB5844). Post-build, because whether the records vary is the file description
+    /// entry's to say (<see cref="FileModel.HasVariableLengthRecords"/>). Asked of BOTH arms: §2023:4.2.6 ¶3's licence not
+    /// to diagnose syntax errors in unsupported syntax reaches the declined STANDARD-1 phrase, never the clause's
+    /// placement. A sort-merge, relative or indexed file is skipped: the clause is refused there by its format
+    /// (§2023:12.4.5.2 SR11 and SR13), and one refusal of one clause is enough.</summary>
+    private void ScreenRecordDelimiter(FileModel file)
+    {
+        if (file.RecordDelimiter is not { } word || !file.HasFd || file.IsSortMerge || !file.IsSequential
+            || file.HasVariableLengthRecords) return;
+        bool std85 = Edition.DialectLevel < 2002;
+        string why = file.RecordContains is { } n
+            ? $"its RECORD CONTAINS {n} CHARACTERS clause specifies fixed-length records ("
+              + (std85 ? "§1985:VII.3.8.4 GR3" : "§2023:13.18.43.4 GR6") + ")"
+            : "it writes no RECORD clause and no record description of it is variable-length, so this implementation gives "
+              + "it fixed-length records (" + (std85 ? "§1985:II.2.1.4.3" : "§2023:13.18.43.4 GR5")
+              + "; docs/CONFORMANCE.md §7, Annex A.1 item 147)";
+        using var at = Edition.At(file.RecordDelimiterAt);
+        Edition.Error(DiagnosticCatalog.RecordDelimiterOnFixedLengthRecords,
+            $"file '{file.CobolName}': RECORD DELIMITER IS {word} is specified for fixed-length records — {why}; the clause "
+            + "\"may be specified only for variable-length records\" (" + (std85 ? "§1985:VII.2.8.3 SR1" : "§2023:12.4.5.11.3 SR1")
+            + "). A RECORD IS VARYING or a RECORD CONTAINS integer TO integer clause specifies variable-length records.");
     }
 
     /// <summary>Capture the SOURCE phrase of a RECORD KEY (ISO §2023:12.4.5.12.2) or ALTERNATE RECORD KEY (§2023:12.4.5.6.2)

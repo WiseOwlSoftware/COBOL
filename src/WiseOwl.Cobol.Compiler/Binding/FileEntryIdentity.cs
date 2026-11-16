@@ -79,13 +79,16 @@ internal static class FileEntryIdentity
             new("ASSIGN", "the ASSIGN clause", f.AssignTarget.ToUpperInvariant()),
             new("USING", "the ASSIGN clause's USING phrase",
                 CobolNames.UpperFold(string.Join(" OF ", new[] { f.AssignUsingName ?? "" }.Concat(f.AssignUsingQualifiers)))),
-            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule: the same
-            // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
-            // The entries are compared on what they SPECIFY for the connector, so an omitted clause is the implementor's value, not an absent one
-            // (kb/Work PB5311; docs/CONFORMANCE.md §3.7.1): an omitted RECORD DELIMITER is the implementor's one method, which STANDARD-1 names too
-            // (§1985:VII.2.8.4 GR4, A.1 item 151), and an omitted RESERVE is the implementor's one area, which RESERVE 1 AREA writes
-            // (§1985:VII.2.9.3 GR1, A.1 item 164). The organization and the access mode are read the same way.
-            new("DELIM", "the RECORD DELIMITER clause", f.RecordDelimiter ?? StandardDelimiter),
+            // c) "Either the STANDARD-1 phrase or a consistent value of feature-name-1" — consistency rule (the implementor's,
+            // docs/CONFORMANCE.md DOC-A.1-150): the same METHOD. The entries are compared on what they SPECIFY for the connector,
+            // so an omitted clause is the implementor's value, not an absent one (kb/Work PB5311; docs/CONFORMANCE.md §3.7.1): an
+            // omitted RECORD DELIMITER is the implementor's method (§1985:VII.2.8.4 GR4, A.1 item 151), the one BINARY-SEQUENTIAL
+            // names and the declined STANDARD-1 leaves in force, and LINE-SEQUENTIAL names the line sequential file's
+            // (RecordDelimiterNames, kb/Work PB5844), so the method is the organization's and the segment reads it there. An
+            // omitted RESERVE is the implementor's one area, which RESERVE 1 AREA writes (§1985:VII.2.9.3 GR1, A.1 item 164).
+            // The organization and the access mode are read the same way.
+            new("DELIM", "the RECORD DELIMITER clause",
+                f.Organization is FileOrganization.LineSequential ? "LINE-SEQUENTIAL" : DefaultDelimiter),
             new("RESERVE", "the RESERVE clause", $"{f.ReserveAreas ?? DefaultReserveAreas}"),
             new("ORG", "the organization", $"{f.Organization}"),
             new("ACC", "the access mode", $"{f.AccessMode}"),
@@ -111,9 +114,10 @@ internal static class FileEntryIdentity
         ];
     }
 
-    /// <summary>The record-delimiting method an entry that writes no RECORD DELIMITER clause has (DOC-A.1-151: the clause is declined whole, so
-    /// every file takes the implementor's method, the one STANDARD-1 names).</summary>
-    private const string StandardDelimiter = "STANDARD-1";
+    /// <summary>The record-delimiting method of every sequential file that is not line sequential (DOC-A.1-151 (a): the 4-byte
+    /// length prefix), the one RECORD DELIMITER IS BINARY-SEQUENTIAL names, an omitted clause takes and a declined STANDARD-1
+    /// leaves in force.</summary>
+    private const string DefaultDelimiter = "BINARY-SEQUENTIAL";
 
     /// <summary>The number of input-output areas an entry that writes no RESERVE clause has (DOC-A.1-164: one area).</summary>
     private const int DefaultReserveAreas = 1;

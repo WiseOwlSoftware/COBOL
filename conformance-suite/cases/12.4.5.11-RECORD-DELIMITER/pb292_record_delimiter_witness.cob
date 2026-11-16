@@ -9,24 +9,25 @@
       *> portable: unverified
       *>---
       *> ISO 12.4.5.11 RECORD DELIMITER clause - THE INERTNESS HALF of the
-      *> kb/Work PB292 witness. The DECLINE half (COBOL1778 on both
-      *> arms, every edition) cannot be asserted by a positive golden,
-      *> because the corpus never reads the warning channel; it is pinned
-      *> by conformance-test DocumentedNonSupportWitnessTests over THIS
-      *> SAME source file, so both halves have one source of truth.
+      *> kb/Work PB292 witness. The DECLINE half (COBOL1778 on the
+      *> STANDARD-1 arm, every edition) cannot be asserted by a positive
+      *> golden, because the corpus never reads the warning channel; it
+      *> is pinned by conformance-test DocumentedNonSupportWitnessTests
+      *> over THIS SAME source file, so both halves have one source of
+      *> truth.
       *> WHAT THIS PROGRAM PROVES, AND WHY THE .OUT IS SPEC-DERIVED.
-      *> The clause is declined whole: STANDARD-1 is Annex A.3 item 26
-      *> ("The STANDARD-1 phrase of the RECORD DELIMITER clause is
-      *> dependent upon a reel type of device") and 12.4.5.11.4 GR2 makes
-      *> its medium a tape drive, which this implementation has none of;
-      *> feature-name-1 names nothing because 12.4.5.11.3 SR2 leaves the
-      *> available names to the implementor and this implementation
-      *> specifies NONE (Annex A.1 item 150 is optional -
-      *> docs/CONFORMANCE.md section 7). So 12.4.5.11.4 GR5 governs
-      *> instead: "If the RECORD DELIMITER clause is not specified, the
-      *> method used for determining the length of a variable-length
-      *> record is specified by the implementor" - the 4-byte
-      *> little-endian length prefix of Annex A.1 item 151.
+      *> STANDARD-1 is declined: it is Annex A.3 item 26 ("The
+      *> STANDARD-1 phrase of the RECORD DELIMITER clause is dependent
+      *> upon a reel type of device") and 12.4.5.11.4 GR2 makes its
+      *> medium a tape drive, which this implementation has none of, so
+      *> the file keeps the implementor's method of 12.4.5.11.4 GR5: "If
+      *> the RECORD DELIMITER clause is not specified, the method used
+      *> for determining the length of a variable-length record is
+      *> specified by the implementor" - the 4-byte little-endian length
+      *> prefix of Annex A.1 item 151. feature-name-1 is
+      *> BINARY-SEQUENTIAL, the name this implementation gives that same
+      *> method (12.4.5.11.3 SR2, Annex A.1 item 150, docs/CONFORMANCE.md
+      *> section 7; kb/Work PB5844), so 12.4.5.11.4 GR4 selects it.
       *> 12.4.5.11.4 GR1 is what makes the decline INERT rather than a
       *> wrong answer: "Any method used shall not be reflected in the
       *> record area or the record size used within the function, method,
@@ -46,7 +47,8 @@
       *> the feature-name arm with IS, C the STANDARD-1 arm with the
       *> optional word OMITTED. D writes NO clause at all, which is the
       *> only condition under which 12.4.5.11.4 GR5 speaks, and reads
-      *> back identically - which is what "declined whole" means.
+      *> back identically - which is what declining STANDARD-1 and
+      *> naming the default method BINARY-SEQUENTIAL mean.
       *> All four files are 12.4.5.11.3 SR1-legal - "The RECORD DELIMITER
       *> clause may be specified only for variable-length records" - via
       *> the RECORD IS VARYING clause, SR1's own second NOTE case. The
@@ -64,7 +66,7 @@
                FILE STATUS IS WS-ST.
            SELECT F2 ASSIGN TO "pb292rd1b.dat"
                ORGANIZATION IS SEQUENTIAL
-               RECORD DELIMITER IS PB292-TAPE-FORMAT
+               RECORD DELIMITER IS BINARY-SEQUENTIAL
                FILE STATUS IS WS-ST.
            SELECT F3 ASSIGN TO "pb292rd1c.dat"
                ORGANIZATION IS SEQUENTIAL

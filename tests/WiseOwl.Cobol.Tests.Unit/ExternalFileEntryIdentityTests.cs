@@ -38,7 +38,14 @@ public sealed class ExternalFileEntryIdentityTests
         { "a) OPTIONAL", f => f.Optional = true },
         { "b) ASSIGN literal-1", f => f.AssignTarget = "y.dat" },
         { "b) ASSIGN USING data-name-1", f => f.AssignUsingName = "FNAME" },
-        { "c) RECORD DELIMITER feature-name-1", f => f.RecordDelimiter = "VARDELIM" },
+        // c) the method the clause selects (kb/Work PB5844): LINE-SEQUENTIAL is the line sequential file's, which the
+        // organization carries, so the row changes both as the binder does.
+        { "c) RECORD DELIMITER feature-name-1", f =>
+            {
+                f.RecordDelimiter = "LINE-SEQUENTIAL";
+                f.Organization = FileOrganization.LineSequential;
+                f.LineSequentialByDelimiter = true;
+            } },
         { "d) RESERVE integer-1", f => f.ReserveAreas = 3 },
         { "e) organization", f => f.Organization = FileOrganization.Relative },
         { "f) access mode", f => f.AccessMode = FileAccessMode.Random },
@@ -58,16 +65,18 @@ public sealed class ExternalFileEntryIdentityTests
     };
 
     /// <summary>An omitted RESERVE clause is the implementor's one area and an omitted RECORD DELIMITER clause the implementor's one method, which RESERVE 1
-    /// AREA and STANDARD-1 specify too (§1985:VII.2.9.3 GR1, §1985:VII.2.8.4 GR4; DOC-A.1-164, DOC-A.1-151), so the entries specify the same connector
-    /// (kb/Work PB5311); a clause that specifies something else still differs.</summary>
-    [Fact]
-    public void An_omitted_clause_is_its_implementor_value()
+    /// AREA and BINARY-SEQUENTIAL specify too and the declined STANDARD-1 leaves in force (§1985:VII.2.9.3 GR1, §1985:VII.2.8.4 GR4; DOC-A.1-164,
+    /// DOC-A.1-150, DOC-A.1-151), so the entries specify the same connector (kb/Work PB5311, PB5844); a clause that specifies something else still differs.</summary>
+    [Theory]
+    [InlineData("STANDARD-1")]
+    [InlineData("BINARY-SEQUENTIAL")]
+    public void An_omitted_clause_is_its_implementor_value(string delimiter)
     {
         var plain = Entry();
         plain.RecordDelimiter = null;
         plain.ReserveAreas = null;
         var written = Entry();
-        written.RecordDelimiter = "STANDARD-1";
+        written.RecordDelimiter = delimiter;
         written.ReserveAreas = 1;
         Assert.Equal(FileEntryIdentity.Of(plain), FileEntryIdentity.Of(written));
         written.ReserveAreas = 3;
