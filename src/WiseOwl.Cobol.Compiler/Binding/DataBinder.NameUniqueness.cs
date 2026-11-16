@@ -18,20 +18,24 @@ public sealed partial class DataBinder
     /// sentence, §1985:IV.4.3.8.1). It states the rule on two items both written GLOBAL too, which §1985:X.4.6.3 SR2 repeats:
     /// "In the same Data Division, the data description entries for any two data items for which the same data-name is
     /// specified must not include the GLOBAL clause."
-    /// <para>The GLOBAL items are the records the clause (or their file description's) makes global AND every data-name
-    /// subordinate to one: "All data-names subordinate to a global name are global names" (§2023:13.18.27.4 GR1), so a
-    /// subordinate "possess[es] the global attribute" and its name may not be the name of any other data item of the source
-    /// element either. The note PB5150 adjudicated this against the pb1047 golden: §2023:8.4.6.2.1 3) b) 1. ("The item in
-    /// source element A if the name is declared in source element A") picks the nearest declaring element for a name
-    /// duplicated ACROSS nested source elements; it permits no reading under which one element declares a global name
-    /// twice, which §2023:8.4.2.1 forbids, so two same-named subordinates of GLOBAL records are refused at the declaration
-    /// (conformance:pb1047-two-globals-one-element-ambiguous, COBOL6862 in place of the reference-time COBOL1639). A
-    /// description a TYPE or SAME AS clause copied in IS a data item of the source element: "as though the type description
-    /// had been coded in place" (§2023:13.18.57.4 GR1; SAME AS, §2023:13.18.49.4 GR1), so the screen runs on the COMPOSED
-    /// forest (<see cref="Passes.CheckGlobalNameUniquenessPass"/>, after ExpandTypes) and counts the copies. A GLOBAL name a
-    /// CONTAINER declared and this unit inherited (<see cref="ForestSlice.DeclaringDepth"/> above 0) is another source
-    /// element's and is left out.</para>
-    /// <para>The pair is reported once, at the LATER entry of the two, where the user can edit it.</para></summary>
+    /// <para>The items that POSSESS the global attribute are the entries the clause (or their file description's) makes global,
+    /// the records: §2023:13.18.27.4 GR3 attaches the attribute to "the subject of that REDEFINES clause", and
+    /// §2023:8.4.6.2.3 says "If a data item possessing the global attribute includes a table described with an index-name",
+    /// so it is the group that possesses it (§1985:X.1.3.8.2 GR1 likewise applies "the normal rules for qualification" to
+    /// find a global name). The
+    /// data-names subordinate to it are global NAMES ("All data-names subordinate to a global name are global names",
+    /// §2023:13.18.27.4 GR1), a matter of SCOPE, and they are told apart by qualification like any other data-names
+    /// (§2023:8.4.2.2.1; §2023:8.4.6.2.1 3) b) 1. picks the nearest declaring element for a name duplicated ACROSS nested
+    /// source elements): a second subordinate of the same name, in the same record or another, is no violation of the
+    /// sentence, and an unqualified reference to the pair is the reference-time ambiguity COBOL1639
+    /// (the ruling, kb/Work PB5629, which reversed PB5150's reading of the same sentence). A description a TYPE or SAME AS clause copied in IS a data
+    /// item of the source element: "as though the type description had been coded in place" (§2023:13.18.57.4 GR1; SAME AS,
+    /// §2023:13.18.49.4 GR1), so the screen runs on the COMPOSED forest (<see cref="Passes.CheckGlobalNameUniquenessPass"/>,
+    /// after ExpandTypes) and counts the copies. A GLOBAL name a CONTAINER declared and this unit inherited
+    /// (<see cref="ForestSlice.DeclaringDepth"/> above 0) is another source element's and is left out.</para>
+    /// <para>The pair is reported once, at the LATER entry of the two that the programmer wrote: a copy is reported at the entry
+    /// whose TYPE or SAME AS clause brought it in (<see cref="DataItem.ReferenceSite"/>), never at the declaration it was
+    /// copied from, which is legal on its own.</para></summary>
     internal void ScreenGlobalNameUniqueness()
     {
         foreach (var (name, items) in State.Forest.ByName)
@@ -42,13 +46,13 @@ public sealed partial class DataBinder
             {
                 var item = items[i];
                 if (State.Forest.DeclaringDepth(item) != 0) continue;
-                bool global = IsGlobalRecord(item.Root);
+                bool global = ReferenceEquals(item, item.Root) && IsGlobalRecord(item);
                 bool another = i > 0 && items.Take(i).Any(p => State.Forest.DeclaringDepth(p) == 0);
                 if (another && (global || firstGlobal is not null))
                 {
-                    using var _ = Edition.At(item.DeclaredAt);
+                    using var _ = Edition.At(item.ReferenceSite);
                     Edition.Error(DiagnosticCatalog.GlobalDataNameNotUnique, $"data-name '{name}' names {(global ? "this GLOBAL item" : "this item")} "
-                        + $"and also {(global && firstGlobal is null ? "another data item" : "a GLOBAL item")} described in the same source element; "
+                        + $"and also {(global && firstGlobal is null ? "another data item" : "a GLOBAL item")} described in the same source element{ViaReference(item)}; "
                         + (Edition.DialectLevel < 2002
                             ? "the same data-name must not name an item possessing the global attribute and any other data item (ISO §1985:IV.4.3.8.1), "
                                 + "and no two data items of a Data Division with the same data-name may include the GLOBAL clause (ISO §1985:X.4.6.3 SR2)"

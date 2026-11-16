@@ -2,7 +2,7 @@
  "rule-id": "2002-SR-7.1.2.2-10",
  "rule-digest": "3d380561cfbc",
  "verdict": "CONFORMS",
- "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements",
- "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-replacing-word-operands; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5085-replacing-directive-indicator",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ApplyReplacements; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#Characters",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/g2-copy-replacing-word-operands; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5085-replacing-directive-indicator; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5608-copy-replacing-word-non-cobol-character-refused; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5608-copy-replacing-identifier-non-cobol-character-refused",
  "notes": "§2002:7.1.2.2 SR10 grants 'any single COBOL word except COPY' and the three indicators as word-1/word-2: MOVE BY ADD, SHOWIT BY DISPLAY and XXW BY YYW are accepted and applied (N=6, Y=[yw][x2]) at --std 2002; the excepted >> is refused (COBOL7006) by pb5085."
 }

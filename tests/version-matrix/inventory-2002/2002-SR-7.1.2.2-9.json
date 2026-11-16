@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.1.2.2-9",
+ "rule-digest": "5c6d1f8c6d9f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#Identifier; src/WiseOwl.Cobol.Frontend/Preprocessor/ReplacingIdentifierSubscripts.cs#FirstArithmeticSubscript; src/WiseOwl.Cobol.Editions/EditionInfo.cs#ReplacingIdentifierSubscriptsRestricted",
+ "test-ref": "conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5700-copy-replacing-subscript-offset-accepted; conformance:cases/7.1.2.2@2002-COPY-STATEMENT/pb5700-copy-replacing-subscript-arithmetic-refused; unit:TextManipulationStatementTests.CopyReplacingIdentifier_Subscripts_AreSingleLiteralIdentifierOrOffset",
+ "notes": "§2002:7.1.2.2 SR9: \"If subscripting is specified, it shall not include any arithmetic expressions as subscripts with the exception of a single literal or identifier, or an identifier plus or minus an integer.\" ReadOperand reads the identifier of text-1 / text-2 with its subscript groups and asks OperandScreen.Identifier, which asks ReplacingIdentifierSubscripts for the first subscript group holding an arithmetic expression (T(I * 2), T(I + J), T(1 + 2), T(I + 1 + 2)) and reports COBOL2572; a literal, an identifier with its qualifiers, an identifier plus or minus an integer (T(I + 1), T(I - 1), T(I -1)), ALL, a reference modifier and a function-identifier's argument list are not refused. Probes at --std 2002 and 2014 (§2014:7.2.2.2 SR9 has the same text): T(I * 2) is COBOL2572, T(I + 1) is replaced and runs. The sentence's second half (the format of an identifier within subscripts) is any identifier format, which the operand reader already admits. kb/Work PB5700."
+}

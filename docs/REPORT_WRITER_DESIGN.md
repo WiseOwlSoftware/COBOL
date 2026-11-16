@@ -67,7 +67,10 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 - ⛔ **TWO CLAUSES FILL A PRINTABLE ITEM AND THEY ARE NOT THE SAME RULE** (kb/Work PB506). A **SOURCE** operand
   renders through the orchestrator's ONE MOVE conversion (`MoveEmitter.ConvertSource`), so a numeric SOURCE
   edits through the printable PICTURE exactly like `MOVE src TO item` (alignment, truncation, editing,
-  JUSTIFIED, BLANK WHEN ZERO) — §2023:13.18.53.4 GR1 verbatim. A **VALUE** operand is an INITIALIZATION and renders
+  JUSTIFIED, BLANK WHEN ZERO) — §2023:13.18.53.4 GR1 verbatim. A SOURCE operand that is a GROUP item is a group
+  sender, which converts nothing (§2023:14.9.25.4 GR4; §1985:VI.6.19.4 GR5): `TransferImage` asks
+  `MoveClassifier.IsGroupSender` and takes `MoveEmitter.GroupSenderImage`, the sending image fitted to the printable
+  item's area, so group `4X7` over `PIC 999` prints `4X7`, not `047` (kb/Work PB5807). A **VALUE** operand is an INITIALIZATION and renders
   through the ONE §2023:13.18.63 VALUE recipe the working-storage lane uses
   (`ValueInitializer.InitializerFrom`, reached via `DataEmitter.ValueImageOf`), because §2023:13.18.63.4 GR21
   imports GR7 — "aligned … except that initialization is not affected by a JUSTIFIED clause and no editing
