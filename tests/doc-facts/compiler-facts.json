@@ -115,6 +115,11 @@
       "changedIn": 2002
     },
     {
+      "id": "linage-violating-open-leaves-file-open",
+      "vcrRow": "7.84",
+      "changedIn": 2002
+    },
+    {
       "id": "negative-base-requires-integer-exponent",
       "vcrRow": "7.67",
       "changedIn": 2002
