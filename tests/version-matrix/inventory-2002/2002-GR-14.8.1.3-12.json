@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-12",
+ "rule-digest": "8e61fb980aae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DayOfWeek",
+ "test-ref": "conformance:cases/14.8.1@2002-ACCEPT-STATEMENT/g2acp01_chronological_items",
+ "notes": "§2002:14.8.1.3 GR12: DAY-OF-WEEK is one unsigned display digit, 1 = Monday .. 7 = Sunday; the golden checks it against MOD(INTEGER-OF-DATE(today) - 1, 7) + 1 (integer day 1 = 1601-01-01, a Monday; the oracle itself is pinned at 2026-11-16 = 1) and its MOVE into X(3) and 99. Matched at --std 2002; a Sunday-based mutant fails."
+}

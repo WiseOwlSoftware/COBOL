@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-AR-15.73.2-1",
  "rule-digest": "9f51c82096cb",
+ "test-ref": "conformance:wiseowl/cases/_unassigned/pb248_integer_arg_float_admitted",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

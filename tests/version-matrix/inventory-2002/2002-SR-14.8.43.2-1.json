@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.43.2-1",
  "rule-digest": "771213ccf9c1",
+ "test-ref": "conformance:cases/14.9.47-UNLOCK/unlock-sort-file",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

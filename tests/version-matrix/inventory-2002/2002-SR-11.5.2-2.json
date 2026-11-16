@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-11.5.2-2",
  "rule-digest": "96959660dd15",
+ "test-ref": "conformance:cases/11.6-INTERFACE-ID/l1c15-interface-inherits-not-in-repository",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

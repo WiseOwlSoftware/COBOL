@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-IV.4.2.1-1",
  "rule-digest": "46f678ffba54",
+ "test-ref": "conformance:cases/8.3.5-Separators/l1c17_separator_spaces",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

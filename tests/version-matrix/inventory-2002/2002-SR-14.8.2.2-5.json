@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.2.2-5",
+ "rule-digest": "3a0f6596d08c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#BindAddCorresponding",
+ "test-ref": "conformance:cases/14.8.2@2002-ADD-STATEMENT/g2add02_corr_spelling_equivalent",
+ "notes": "§2002:14.8.2.2 SR5 makes CORR and CORRESPONDING one word; the golden runs the same format-3 ADD under both spellings (plain, ROUNDED, ON SIZE ERROR, NOT ON SIZE ERROR, END-ADD) on identical targets, with values from §2002:14.6.3/14.6.4/14.6.5, and both agree. Matched at --std 2002 (pinned dc1f2dcce8)."
+}

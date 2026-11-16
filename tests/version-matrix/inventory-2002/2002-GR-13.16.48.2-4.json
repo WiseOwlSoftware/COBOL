@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.48.2-4",
  "rule-digest": "c9b84d7edac8",
+ "test-ref": "conformance:wiseowl/cases/13.18.50-SECURE/a42-screen-secure",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

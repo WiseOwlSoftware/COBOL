@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-10.5.3-1",
  "rule-digest": "31118d0751ec",
+ "test-ref": "conformance:wiseowl/cases/12.3.8-REPOSITORY/pb2103_prototype_group_split_across_units",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

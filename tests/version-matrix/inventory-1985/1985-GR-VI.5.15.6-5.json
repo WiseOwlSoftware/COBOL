@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.5.15.6-5",
  "rule-digest": "8a5f588203b2",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb577_odo_value_initial_state",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

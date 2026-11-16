@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.58.2-1",
+ "rule-digest": "e160040dabd2",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Validation/LevelNumberPass.cs#BodyForm; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4",
+ "test-ref": "conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-usage-on-level-88; conformance:cases/13.16.58@2002-USAGE-CLAUSE/g2002-cd-usage-on-level-66",
+ "notes": "§2002:13.16.58.2 SR1 forbids USAGE on 66/88 entries; in a CD record (§2002:A.1.1.2) the 88 with USAGE was refused COBOL1747 and the 66 with USAGE COBOL0001 at the violating entry at --std 2002."
+}

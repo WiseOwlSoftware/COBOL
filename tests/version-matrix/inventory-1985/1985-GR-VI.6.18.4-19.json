@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.18.4-19",
  "rule-digest": "9918cd4ee71c",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1907_inspect_converting_overlap",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

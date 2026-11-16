@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.35.3-1",
  "rule-digest": "bb7b0f65fc2d",
+ "test-ref": "conformance:cases/14.9.39-SET/pb459_set_index_amount_guards",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

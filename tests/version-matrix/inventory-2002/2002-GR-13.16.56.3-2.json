@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.56.3-2",
+ "rule-digest": "2f15218b7dce",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RegisterTypeDecl",
+ "test-ref": "conformance:cases/13.16.56@2002-TYPEDEF-CLAUSE/g2002-cd-typedef-no-storage",
+ "notes": "§2002:13.16.56.3 GR2 with §2002:A.1.2.2 SR9: a TYPEDEF written first under an output CD has no storage, so the next record is the first redefinition and may carry VALUE; derived C1=V1, TA=TV, C2=V1TV matched the --std 2002 run (a second storage record with VALUE is refused COBOL6169), and MOVE to the type-name was refused COBOL1639."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.50.2-2",
+ "rule-digest": "4f1ee00b521e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#SignClauseElementaryDefect",
+ "test-ref": "conformance:cases/13.16.50@2002-SIGN-CLAUSE/g2-sign-cd-record-usage",
+ "notes": "§2002:13.16.50.2 SR2 requires display or national usage for an elementary item with SIGN; a CD-record entry (§2002:A.1.1.2) S9(3) COMP SIGN LEADING SEPARATE is refused COBOL2422 at --std 2002 on exactly that line."
+}

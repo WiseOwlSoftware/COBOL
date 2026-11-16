@@ -31,7 +31,7 @@
       *> repetitions at equal intervals, did not count as a repeating entry
       *> for a multi-operand SOURCE, or left the counter at its first item.
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2COL03.
+       PROGRAM-ID. G2CLM01.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        SPECIAL-NAMES.
@@ -39,8 +39,8 @@
                ARE 11 13 14.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT PRT ASSIGN TO "G2COL03.TXT".
-           SELECT CHK ASSIGN TO "G2COL03.TXT".
+           SELECT PRT ASSIGN TO "G2CLM01.TXT".
+           SELECT CHK ASSIGN TO "G2CLM01.TXT".
        DATA DIVISION.
        FILE SECTION.
        FD  PRT REPORT IS R.

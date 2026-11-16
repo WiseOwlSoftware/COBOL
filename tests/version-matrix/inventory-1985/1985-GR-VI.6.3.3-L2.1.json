@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.3.3-L2.1",
  "rule-digest": "2705fecd6821",
+ "test-ref": "conformance:cases/8.8.4.12-Abbreviated-combined-relation-conditions/pb1390_abbreviated_tail_and_or; conformance:cases/8.7.5-Relational-operators/pb1034_printed_relational_operator_set",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.36.3-13",
  "rule-digest": "9a5d0b50d892",
+ "test-ref": "conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_output_procedure; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_sort_merge_procedure_ends_at_last_paragraph; conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_sort_merge_called_program",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

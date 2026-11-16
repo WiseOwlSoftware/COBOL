@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.31.3-1",
  "rule-digest": "700579ec37cf",
+ "test-ref": "conformance:cases/14.9.33-RESUME/pb1160_resume_in_global_scope",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

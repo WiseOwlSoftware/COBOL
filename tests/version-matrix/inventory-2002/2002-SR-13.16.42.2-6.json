@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.42.2-6",
+ "rule-digest": "4be74c732c73",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ScreenDataNameShape; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.Odo.cs; src/WiseOwl.Cobol.Compiler/Binding/Passes/ClassifyRedefinesClassesPass.cs#ScreenRedefinesClause",
+ "test-ref": "conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-entry-rules; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-target-occurs; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-subscripted; conformance:cases/13.16.42@2002-REDEFINES-CLAUSE/g2-redefines-cd-odo",
+ "notes": "§2002:13.16.42.2 SR6: data-name-2 may sit under an OCCURS entry, unsubscripted, but carries no OCCURS itself and no variable-occurrence item on either side. In a CD record at --std 2002 the subordinate-to-OCCURS form compiles and binds per occurrence (T2=7856); OCCURS on data-name-2 (COBOL1701), a subscript (COBOL2024) and an ODO redefinition (COBOL0855) are refused; all matched the derivation."
+}

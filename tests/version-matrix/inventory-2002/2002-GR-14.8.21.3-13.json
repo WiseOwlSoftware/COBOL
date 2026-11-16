@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.21.3-13",
  "rule-digest": "aa6360bb532a",
+ "test-ref": "conformance:cases/14.9.22-INSPECT/pb1126_inspect_size_ec; conformance:cases/14.9.22-INSPECT/pb1128_inspect_identifier1_class_store",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

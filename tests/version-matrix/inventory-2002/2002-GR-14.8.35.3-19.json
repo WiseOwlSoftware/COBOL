@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-14.8.35.3-19",
  "rule-digest": "d634ecf90d30",
+ "test-ref": "conformance:cases/14.6.6-Locale-identification/pb64t1_set_locale_categories; conformance:cases/14.9.39-SET/pb64t1_save_restore_locale",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-13.16.61.2-26",
  "rule-digest": "e6b9188d7136",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb506_report_operand_lists_2002",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

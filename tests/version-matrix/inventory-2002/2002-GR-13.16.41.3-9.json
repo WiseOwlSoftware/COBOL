@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.41.3-9",
  "rule-digest": "8f38fb7a819d",
+ "test-ref": "conformance:cases/13.4.6-Sort-merge-file-description/pb1277_record_size_in_bytes",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

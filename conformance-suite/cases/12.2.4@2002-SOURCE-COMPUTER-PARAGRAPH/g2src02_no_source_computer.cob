@@ -20,15 +20,15 @@
       *> computer as their source computer and run. The source computer
       *> has no other observable effect in this implementation; what
       *> the case pins is that both units, each in GR2's situation
-      *> (G2SRC04 has no paragraph; G2SRC2A has none and its container
+      *> (G2SCP02 has no paragraph; G2SRC2A has none and its container
       *> has none), are compiled and execute:
-      *>   OUTER   (G2SRC04)
-      *>   INNER   (G2SRC2A, called from G2SRC04)
+      *>   OUTER   (G2SCP02)
+      *>   INNER   (G2SRC2A, called from G2SCP02)
       *>   OUTER-END
       *> No debugging line is written: §2002:6.2.7 permits one only
       *> "after the SOURCE-COMPUTER paragraph".
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. G2SRC04.
+       PROGRAM-ID. G2SCP02.
        PROCEDURE DIVISION.
            DISPLAY "OUTER".
            CALL "G2SRC2A".
@@ -40,4 +40,4 @@
            DISPLAY "INNER".
            GOBACK.
        END PROGRAM G2SRC2A.
-       END PROGRAM G2SRC04.
+       END PROGRAM G2SCP02.

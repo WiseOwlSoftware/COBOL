@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-7.2.10.3-2",
  "rule-digest": "4b515b1c5adf",
+ "test-ref": "conformance:cases/7.3.13-EVALUATE/l1c07_evaldir_numeric_literal_operand",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

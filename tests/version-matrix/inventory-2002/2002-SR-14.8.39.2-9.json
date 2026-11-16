@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-SR-14.8.39.2-9",
  "rule-digest": "46d58e2f54c5",
+ "test-ref": "conformance:cases/14.9.43-STRING/l1c31_string_operand_roles",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

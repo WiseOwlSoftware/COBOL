@@ -1,6 +1,7 @@
 {
  "rule-id": "2002-GR-13.16.52.3-2",
  "rule-digest": "5c2c5e2ba47c",
+ "test-ref": "conformance:cases/13.18.54-SUM/pb1297_sum_reset_level_upon_85; conformance:cases/13.18.41-PRESENT-WHEN/pb1272_present_when_snapshot; conformance:cases/13.18.35-LINE/pb1130_report_sum_size_line_overlap",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
