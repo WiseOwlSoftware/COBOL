@@ -1,4 +1,4 @@
-## EVALUATE figurative range ends and INITIALIZE of an alphabetic slice (PB5796, PB5813)
+## Entry 3766 — 2026-11-16 07:58 PST — EVALUATE figurative range ends and INITIALIZE of an alphabetic slice (PB5796, PB5813)
 
 Two code-read defects, one binder family: a screen or a category choice that treated an operand's class as unknown or fixed
 where the standard gives it a definite answer.
@@ -22,3 +22,4 @@ slice: ALPHANUMERIC writes, ALPHABETIC does not).
 
 Rows: `SR-14.9.13.3-4` and `GR-14.9.20.4-2`, `-4`, `-5`, `-6`, `SR-14.9.20.3-8` PARTIAL -> CONFORMS (GAP 38 -> 32); the three 1985
 rows gained their witnesses.
+
