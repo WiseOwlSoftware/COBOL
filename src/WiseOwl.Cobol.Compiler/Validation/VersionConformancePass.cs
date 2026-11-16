@@ -166,10 +166,12 @@ internal sealed class VersionConformancePass
         var inputs = new List<(PcRange Range, FileModel File)>();
         var outputs = new List<(PcRange Range, FileModel File)>();
         var uses = new List<(BoundStatement Node, FileModel File, bool Release, int Pc)>();
+        var refused = new HashSet<FileModel>(ReferenceEqualityComparer.Instance);   // a refused SORT/MERGE: its ranges are unknown (kb/Work PB5496)
         void Collect(BoundStatement s, int pc)
         {
             switch (s)
             {
+                case BoundRejected { RefusedSortMergeFile: { } rf }: refused.Add(rf); break;
                 case BoundSort so:
                     if (so.InputProcedure is { } ip) inputs.Add((ip, so.File));
                     if (so.OutputProcedure is { } op) outputs.Add((op, so.File));
@@ -193,6 +195,7 @@ internal sealed class VersionConformancePass
                 ranges[(file, release)] = range = ProcedureReach.Closure(prog.Paragraphs,
                     (release ? inputs : outputs).Where(p => ReferenceEquals(p.File, file)).Select(p => (p.Range, p.File)), followGoTo: true);
             if (range.ContainsKey(pc)) continue;
+            if (refused.Contains(file)) continue;   // a statement for this file was refused, its procedures' ranges are unknown, so the use is no cascade of ours (kb/Work PB5496)
             if (pc < prog.EntryPc && range.Count > 0) continue;   // a declarative the range may execute: GR7/GR10's run-time fact
             using var _ = _sink.At(node.At);
             string verb = release ? "RELEASE" : "RETURN";
