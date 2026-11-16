@@ -1,4 +1,4 @@
-## READ INTO moves the record the RECORD clause sizes, not the largest record description (PB5785)
+## Entry 3778 — 2026-11-16 10:22 PST — READ INTO moves the record the RECORD clause sizes, not the largest record description (PB5785)
 
 **The defect.** `FD FR RECORD CONTAINS 12 CHARACTERS` over `01 RR PIC X(5)` is legal (§1985:VII.3.8.3 SR1, §2023:13.18.43.3 SR3), and `READ FR INTO W` over a file of 12-character records delivered `W=[ABCDE       ]` with status 00, at every edition. The RECORD VARYING form did the same: a 15-character record under `DEPENDING ON DR` (DR = 15) put ten characters in W. Re-probed on this build before the fix, identical at 85, 2002 and 2023.
 
@@ -13,3 +13,4 @@
 **Left alone.** A Format 1/2 file whose records hold a variable-length member keeps the area image (its connector record is the fixed-form carriage, not the contiguous view); named in the note's landing addendum.
 
 Review round 1 (R1-1, blocking): the three goldens read whole records only, so the short-final-record path (status 04, §2023:14.9.30.4 GR14) of the new connector-image arm was unpinned. Added `pb5785_read_into_record_clause_short_final` (RECORD CONTAINS 12, a 5-byte description, a 19-byte file: `00` whole record, `04` with the 7 remaining positions moved and padded, then `10`), accepted at 85/2002/2014/2023; run through the probe at 85 and 2023 it prints the expected three lines. No compiler change was needed.
+
