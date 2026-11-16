@@ -1,0 +1,150 @@
+{
+ "rule-id": "1985-SR-VI.6.11.3-1",
+ "rule-digest": "73abbfb6070e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "d7f6e469f6bcc648f070528ada09aad6e695a16266c7bf0899aeab76772480e8",
+   "refuter": "a82e22de96abf55693d68b13e516a344e8a8bca846e3acf036b70164bc71155c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.11.3-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, in every DIVIDE format (1-5) each identifier (divisor, dividend, INTO receiver) must reference an elementary numeric item, and the GIVING identifier-3 and REMAINDER identifier-4 may also be an elementary numeric edited item; a group, an alphanumeric item, a reference-modified slice, an index data item, or a numeric-edited item in a non-GIVING position must be refused, and the admitted forms must compute.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#OperandRef; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#NonNumericOperandKind; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#Receivers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#IndexDataItemAdmittedAt",
+    "switches": "whether an index data item is admitted in an operand context; below 2002 only the FunctionArgument row changes, the arithmetic contexts answer no at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
+    "switches": "ConstructRegistry row numeric-function-identifier-operand-2002: a numeric function-identifier written as a DIVIDE identifier operand is refused at 85 (COBOL0900, §1985:IV.4.3.8.3.3 SR4) and admitted from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/ConstructRegistry in ArithmeticBinder.cs#BindDivide and ExpressionBinder.cs; ScreenResultant and the §2023:8.8.1.1 class screen are unconditional.",
+  "behaviour-differs-by-edition": "yes: a numeric intrinsic function-identifier as a DIVIDE identifier operand is refused at 85 (Amendment 1 SR4) and admitted from 2002; the category screens are the same at every edition",
+  "witnesses-cover": "part: the witnesses are ADD cases (alphanumeric, group, refmod operand, resultant categories) that share the screens; DIVIDE's INTO-receiver bar on numeric-edited, GIVING/REMAINDER numeric-edited admission and the REMAINDER refusal are not exercised by a DIVIDE witness",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d1.cob",
+    "printed": "error COBOL0844: item 'AN' of category alphanumeric is not a numeric operand",
+    "expected": "refused: identifier-1 not numeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d2.cob",
+    "printed": "error COBOL1675: the arithmetic resultant 'NE' is a numeric-edited item, which this receiver position does not admit",
+    "expected": "refused: format 1 INTO receiver numeric-edited"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d5.cob",
+    "printed": "error COBOL0844: group item 'G' is not a numeric operand",
+    "expected": "refused: group divisor"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d6.cob",
+    "printed": "error COBOL1675: resultant 'N2(1:2)' is a reference-modified slice",
+    "expected": "refused: refmod is not an elementary numeric item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d7.cob",
+    "printed": "error COBOL1675: resultant 'AN' is of category Alphanumeric",
+    "expected": "refused: GIVING alphanumeric"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d8.cob",
+    "printed": "error COBOL0844: item 'IX', an index data item ... is not a numeric operand",
+    "expected": "refused: index data item"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d9.cob",
+    "printed": "error COBOL0844: item 'NE' of category numeric-edited is not a numeric operand",
+    "expected": "refused: numeric-edited sending identifier in GIVING format"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d10.cob",
+    "printed": "error COBOL1675: resultant 'AN' is of category Alphanumeric (REMAINDER)",
+    "expected": "refused: REMAINDER alphanumeric"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d11.cob",
+    "printed": "error COBOL1675: resultant 'G' is a group item",
+    "expected": "refused: GIVING group"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d14.cob",
+    "printed": "error COBOL1675: resultant 'G' is a group item (REMAINDER)",
+    "expected": "refused: REMAINDER group"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d13.cob",
+    "printed": "error COBOL0844: a reference-modified operand of class alphanumeric is not a numeric operand",
+    "expected": "refused: refmod dividend"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d12.cob",
+    "printed": "error COBOL0900: a numeric or integer function-identifier where an identifier is written requires COBOL-2002 (§1985:IV.4.3.8.3.3 SR4)",
+    "expected": "refused at 85: a numeric function may be used only in an arithmetic expression"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d3.cob",
+    "printed": "  14.28 +014.29 +042.8 / 0014",
+    "expected": "accepted: GIVING numeric-edited (100/7 truncated 14.28), ROUNDED 14.29, scaled 9PP dividend 300/7 = 42.8, DIVIDE 7 INTO N2 = 14"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/d4.cob",
+    "printed": "+014.28    0.04 / 14.28 +000.0 / -001.00 +000.0",
+    "expected": "accepted: REMAINDER numeric-edited 0.04 (100 - 14.28*7); negative divisor quotient -1.00 remainder 0"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.3 SR1",
+    "check": "OK  §1985:VI.6.11.3 SR1  (6.11.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.4.3.8.3.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.3.3 SR4  (4.3.8.3.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "BindDivide screens INTO receivers with editedOk false (numeric only) and GIVING/REMAINDER with editedOk true through the one ScreenResultant; sending identifiers pass the §8.8.1.1 class screen in OperandRef. Every refusal half and both acceptance halves behave as SR1 states at --std 85; diagnostics cite §2023 clause numbers (wording only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.11.3-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,f",
+  "evidence": "cite.py: OK  §1985:VI.6.11.3 SR1  the text is in SR1 (REMAINDER is in the bars: added at 85). Probes at --std 85: v1 format 4 INTO..GIVING Q REMAINDER NE (numeric-edited REMAINDER) ran '014   2', format 5 BY..GIVING NE REMAINDER Q ran ' 14 002'; v7 multiple GIVING receivers numeric and numeric-edited with ROUNDED ran; v2 REMAINDER alphabetic PIC A(3) refused COBOL1675; v3 GIVING alphanumeric-edited PIC XXBX refused COBOL1675; v8 alphabetic divisor and a nonnumeric literal refused COBOL0844; v5 numeric-edited divisor in a GIVING format refused COBOL0844; v4 group INTO receiver refused COBOL1675, v4b subscripted and ODO-element INTO receivers with ROUNDED ran 025025100025; v6 divide by zero with REMAINDER took ON SIZE ERROR with receivers unchanged (SZ000000) and the normal path NOT ON SIZE ERROR (NOSZ014002). Diagnostics name an alphabetic or alphanumeric-edited item 'category Alphanumeric' (wording only; still refused).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

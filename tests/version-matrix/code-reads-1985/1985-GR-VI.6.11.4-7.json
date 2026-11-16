@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-7",
+ "rule-digest": "34b1fd2530c2",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-193",
+  "sources": {
+   "reader": "eae6d14c6d368e86e72a72f9c7a1a4202a67d8f178fa4af9d42e57273d386c39",
+   "refuter": "749ba570009cf3d3f58a8ebcbdfcde9d03f3fb5eaee484f0cf11a686ed824448"
+  },
+  "imported": {
+   "reader": "8418d67a259a256039e72263ad7752e86d45abf9fe9081b79c8d66dde5b42543",
+   "refuter": "13f27a60a10956a00e15a79bede1e02fecf526ea125da56fefbf35584d8dd4f0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, in DIVIDE formats 4 and 5 the remainder must be dividend minus (subsidiary quotient x divisor), the subsidiary quotient being identifier-3's digits, decimal point and sign presence, unedited and truncated even under ROUNDED (GR6), and the remainder must be stored into identifier-4 (numeric or numeric-edited) with decimal alignment and truncation, never rounding.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#NativeSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#CarriedSubsidiaryQuotient; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#FixedPointSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#StoreArith",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#UnsignedSubsidiary",
+    "switches": "below 2002 an UNSIGNED fixed-point identifier-3 makes the subsidiary quotient its absolute value (§1985:VI.6.11.4 GR6 sign presence); from 2002 the subsidiary is always signed",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "composite-of-operands cap 18 at 85 (receivers only), 31 from 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep DialectLevel/Edition in ArithmeticEmitter.cs: lines 264 (UnsignedSubsidiary) and 719 (EmitArith UnphrasedSizeErrorIsFatal)",
+  "behaviour-differs-by-edition": "yes: with an unsigned identifier-3 and a negative quotient, 85 forms the remainder from the unsigned quotient (DIVIDE -11 BY 3 GIVING PIC 99 REMAINDER gives -20) and 2023 from the signed one (-2)",
+  "witnesses-cover": "part: g85_f04_04 covers truncation of the remainder to fewer decimals, zero-fill to more, and ROUNDED quotient; the probes add numeric-edited remainder and quotient, SIGN SEPARATE, COMP/COMP-3, unsigned identifier-3 and identifier-4 with negative operands, an 18-digit dividend",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div7.cob",
+    "printed": "A 0.1 0.5345 / B NO SIZE ERROR / B 0.1 0.53 / C 0.1 .5 / D 0.1 [ 0.53] / E [ .2] 0.53+ / F -03 -02 / G 03 -20 / H 03 20 / I -0142 -0006.5 / J 142857142857142856 000000000000000006 / K 0.3 0.1000 / L 0.7 0.2000",
+    "expected": "1.2345-0.7=0.5345 truncated to .53/.5 (not rounded, no size error for low-order truncation); edited quotient: unedited truncated 0.1 used; ROUNDED 2/3 -> Q 0.7, remainder from 0.6 = 0.2; unsigned id-3 at 85 -> |q|=3, 11-... = -20; 18-digit dividend exact"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div7.cob",
+    "printed": "--std 2023: G 03 -02 / H 03 02, all other lines identical",
+    "expected": "2023 uses a signed subsidiary quotient; 1985 keeps identifier-3's sign absence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR7",
+    "check": "OK  §1985:VI.6.11.4 GR7  (6.11.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VI.6.11.4 GR6",
+    "check": "OK  §1985:VI.6.11.4 GR6  (6.11.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "The remainder is formed exactly (Combine with keepWide) and stored with CobolRounding.Truncation; REMAINDER has no ROUNDED in the grammar. The 1985 sign arm UnsignedSubsidiary is exercised by G/H and differs from 2023 as the editions' texts differ.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-7",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "div7r.cob at --std 85 (runs/div7r-001) vs --std 2023 (runs/div7r-002), DD = -11: unsigned EDITED quotient PIC Z9 -> R -020 at 85 (subsidiary |q|=3) and -002 at 2023; signed edited -9 and 9CR -> -002 at both (PicInfo.HoldsSign reads +,-,CR,DB in the mask); P-scaled 99P: 157/1 -> Q 150, R +007; VPP9: 1/997 -> .001, R +.00300; unsigned ROUNDED: Q 4, R -020 (subsidiary truncated, not rounded); unsigned COMP-3 and COMP quotient -> -020; unsigned remainder 999 -> 020; signed ROUNDED -7/2 -> Q -4, R -001. All match GR6's intermediate field and GR7's truncation. cites: OK  §1985:VI.6.11.4 GR7  (6.11.4 General Rules)  the text is in GR7; OK  §1985:VI.6.11.4 GR6  (6.11.4 General Rules)  the text is in GR6.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Validation/FlagConformancePass.Flag85.cs#VisitDivideStatement: FLAG-85 d flag on DIVIDE REMAINDER with an unsigned quotient and signed operand (a flagger, not on the 1985 run-time path)"
+  ],
+  "corrected": ""
+ }
+}

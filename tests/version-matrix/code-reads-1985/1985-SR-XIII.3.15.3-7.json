@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-XIII.3.15.3-7",
+ "rule-digest": "6952487ac6a5",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-211",
+  "sources": {
+   "reader": "89b67344229a37eb0eddba80cdf702b072e623423da097df8296dd2f13f92c3f",
+   "refuter": "baa2b9e02b0d2dc6e63040c74f240ef10e0668610646917a07e6528204dcc4ed"
+  },
+  "imported": {
+   "reader": "0390fe064be7b678fde4be77eb73053519188073f4abefd872c04024bc7f2638",
+   "refuter": "2e83e44c2092cf39cadbde1e4e416c633b226cad69c98903509aa23a4279d27a"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.15.3-7",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a LINE NUMBER clause with NEXT PAGE may appear only in a body group (CONTROL HEADING, DETAIL, CONTROL FOOTING) or a REPORT FOOTING group; in a REPORT HEADING, PAGE HEADING or PAGE FOOTING group (on the 01 or a subordinate entry, abbreviated or spelled out) it must be refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupKindOf; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#WrittenGroupKind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineOperand",
+    "switches": "a LINE operand of NEXT PAGE with no integer (the 2002 third alternative) refused below 2002 (COBOL0900, report-line-next-page-2002)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportLineClause",
+    "switches": "a multiple LINE clause and the LINES/NUMBERS/ARE spellings refused below 2002 (COBOL0900, report-multi-line-2002)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR7 test (kind not in ControlHeading/Detail/ControlFooting/ReportFooting) consults no edition; WrittenGroupKind/GroupKindOf map the written TYPE with no edition switch.",
+  "behaviour-differs-by-edition": "no: the same group-kind screen at every edition.",
+  "witnesses-cover": "part: g85_f30_05 covers NEXT PAGE in a permitted group; not exercised: the refusal in RH, PH and PF, a subordinate entry's NEXT PAGE, and CH/CF runtime placement.",
+  "probes": [
+   {
+    "class": "a,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6pos.cob",
+    "printed": "G1 PC 1 LC 04 / G2 PC 2 LC 04 / T  PC 3 LC 05; report bytes: page 1 lines 3-4 A,B; FF; page 2 lines 3-4 A,B; FF; page 3 line 5 RF",
+    "expected": "DE with LINE 3 ON NEXT PAGE then LINE PLUS 1 (NP R) and RF LINE 5 ON NEXT PAGE are legal; §1985:XIII.3.10.8 fit test 3c advances the page when a body group is already on it; the RF is presented alone on a new page at line 5"
+   },
+   {
+    "class": "c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r7body.cob",
+    "printed": "T  PC 4 LC 06; report bytes: CH line 4, A line 5 / CF line 6 / CH line 4, B line 5 / CF line 6, one page each after the first",
+    "expected": "CH and CF (body groups) with LINE n [ON] NEXT PAGE are legal and each NP group starts a new page when a body group is on the current one"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r7rh.cob",
+    "printed": "error COBOL2199: RD 'R1': the NEXT PAGE phrase may appear only in the description of a body group or a report footing, not a REPORT HEADING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r7ph.cob",
+    "printed": "error COBOL2199: ... not a PAGE HEADING",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r7pf.cob",
+    "printed": "error COBOL2199: ... not a PAGE FOOTING (plus a range error for line 18)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r7pfsub.cob",
+    "printed": "error COBOL2199: ... not a PAGE FOOTING (NEXT PAGE on a subordinate entry of TYPE PF)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r6bare.cob",
+    "printed": "error COBOL0900: a LINE operand of NEXT PAGE with no integer requires COBOL-2002",
+    "expected": "refused: not in the 1985 format"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.15.3 SR7",
+    "check": "OK  §1985:XIII.3.15.3 SR7  (3.15.3 Syntax Rules)  the text is in SR7"
+   }
+  ],
+  "notes": "ScreenReportLineClauses carries the group kind from the level-01 TYPE clause down to every subordinate LINE clause and refuses NEXT PAGE outside CH/DE/CF/RF. The diagnostic cites §2023:13.18.35.3 SR8, the same rule. The two positive probes also confirm the 1985 body group fit test 3c page advance for NP groups.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.15.3-7",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read GroupKindOf (first-token TYPE mapping, so 'CONTROL HEADING FINAL', 'REPORT HEADING', 'PAGE HEADING' spelled out map correctly). Probes at --std 85: Q7OK (TYPE REPORT HEADING LINE 1 NEXT GROUP NEXT PAGE; TYPE CONTROL HEADING FINAL LINE 3 NEXT PAGE; TYPE CONTROL FOOTING FINAL LINE 5 ON NEXT PAGE) -> compiles and runs, report bytes 'RH' FF, CH line 3 ... CF on a new page; Q7BAD (TYPE IS REPORT HEADING with 'LINE 2 ON NEXT PAGE' on a 02 subordinate; TYPE PAGE HEADING with 'LINE NUMBER IS 1 NEXT PAGE' on a 02) -> COBOL2199 'not a REPORT HEADING' and 'not a PAGE HEADING'. cite.py: OK  §1985:XIII.3.15.3 SR7  (3.15.3 Syntax Rules)  the text is in SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

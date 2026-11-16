@@ -2,78 +2,68 @@
  "rule-id": "1985-SR-VI.6.27.3-4",
  "rule-digest": "951610991de8",
  "read": {
-  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
-  "slice": "1985-06",
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-219",
   "sources": {
-   "reader": "e55e548b5e6aaa24b9a4a5773803694bc83db1502affa278584bb6f57c7c1c5e",
-   "refuter": "e676cfa069cef4f3ef933361d6ff3df214542537a99dec66381b31dc5d3347f8"
+   "reader": "7c961394c1d12251896ef90dabc7fb1a72e80a51d7bb955f972dd42aa433fbc8",
+   "refuter": "b1b8d23e1fed792537fc296897fa225f12feea58d1fcf6e9cc5753c5684ea785"
   },
   "imported": {
-   "reader": "0a233bc082c18902e656ae12592941e502b27d94b129eec8b68a38ca828494ac"
+   "reader": "50e17041839de323eb82264fb19fe85c25e94bea4f9e1460a92073e0ca469938",
+   "refuter": "327aeb0f72074bf84a9630aa2502c81b63e86768e7626fb55cdc557e7c65bb7f"
   }
  },
  "reader": {
   "rule-id": "1985-SR-VI.6.27.3-4",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 the compiler must refuse an UNSTRING COUNT IN identifier-6 or TALLYING IN identifier-8 that does not reference an integer data item (a numeric item with no digit positions right of the decimal point, §1985:III.2) or whose PICTURE uses 'P' - so a V or P picture, an alphanumeric, numeric-edited, index or group item, and a reference-modified item (which is alphanumeric, §1985:IV.4.3.8.4.4 GR2) are all refused - while admitting any-usage signed or unsigned integer items and subscripted integer table elements.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsUnscaledInteger",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitUnstringStatement",
-    "switches": "ConstructRegistry unstring-sender-reference-modified-2002 refuses a reference-modified identifier-1 at 85 (SR7); it does not look at identifier-6 or identifier-8",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "grep -n -i 'Edition.Edition|DialectLevel|ConstructRegistry|Integer' StringUnstringBinder.cs (only ctx.Edition as the diagnostic sink); PicInfo.IsUnscaledInteger has no edition term; grep VisitUnstringStatement in VersionConformancePass",
-  "behaviour-differs-by-edition": "no: the COUNT IN / TALLYING IN screen is the same code at 85 and 2023, and the reference-modified hole is the same at both",
-  "witnesses-cover": "part: pb88-unstring-count-without-delimited exercises SR6 (COUNT IN without DELIMITED BY), not this rule's integer/no-P screen; no witness exercises a V/P/alphanumeric/edited/index/group or reference-modified identifier-6 or identifier-8",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85 the UNSTRING COUNT IN identifier-6 and TALLYING IN identifier-8 must each reference an integer (numeric, no positions right of the assumed decimal point) data item whose PICTURE has no symbol P; any other operand (scaled V or P, alphanumeric, edited, group, index item, reference-modified slice) is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#Reject; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicResultType.cs#IsIntegerOperand; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#IsUnscaledInteger",
+  "edition-consulted": [],
+  "edition-search": "Grep of StringUnstringBinder.cs for Edition|CobolVersion|Dialect|Construct finds only ctx.Edition passed as the diagnostic sink to BoundRejected.Report/BoundOperandError (no switch); the grammar rules unstringIntoTarget and unstringTallying in CobolIO.g4 carry no version predicate; StrUnstrIsInteger, IsIntegerOperand and PicInfo.IsUnscaledInteger take no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb88-unstring-count-without-delimited exercises SR6 (COUNT IN without DELIMITED BY), not the integer/P screen of identifier-6 or identifier-8",
   "probes": [
    {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-219/u4ok.cob",
+    "printed": "C1=+02 C2=003 C3=+0000 C4=2 / T1=+014 / R1=AB   |R2=CDE  |R3=     |R4=F    |",
+    "expected": "legal signed COMP, display, zero-length and truncating PIC 9 counts accepted; counts 2,3,0,12 (12 stored in PIC 9 as 2); TALLYING 10+4=14"
+   },
+   {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c5a.cob",
-    "printed": "COBOL1651 for COUNT IN and for TALLYING IN over PIC 9V9, 9P, P9, XX, ZZ9, USAGE INDEX and a group; NO diagnostic for COUNT IN CN (1:1) or TALLYING IN CN (1:1) (CN PIC 99); same at 2023",
-    "expected": "all sixteen refused (SR4; ref-mod item is alphanumeric)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-219/u4bad.cob",
+    "printed": "16 x COBOL1651, one per statement: COUNT IN and TALLYING IN each refused for PIC 9V9, PIC 99P, PIC PP9, PIC X(3), PIC ZZ9, a group, USAGE INDEX, and CN (1:1)",
+    "expected": "every one refused: not an integer data item, or P used (SR4)"
    },
    {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c5b.cob",
-    "printed": "error: backend compilation failed (generated C# at c5b.g.cs): (75,119): error CS1503: Argument 4: cannot convert from 'long' to 'string?' (and at 91,111); same at 2023",
-    "expected": "a COBOL diagnostic citing §1985:VI.6.27.3 SR4 for COUNT IN CN (2:1) and TALLYING IN TN (1:1)"
-   },
-   {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c5c.cob",
-    "printed": "[ABCD ][CDE  ][+04][000300][+0012]",
-    "expected": "COUNT IN PIC S99 COMP = 4, COUNT IN TC (2) = 3, TALLYING IN PIC S9(4) from 10 = 12: accepted and correct"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-219/u4bad.cob",
+    "printed": "--std 2023: the same 16 COBOL1651 refusals",
+    "expected": "the rule is unchanged across editions; same arm"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VI.6.27.3 SR4",
     "check": "OK  §1985:VI.6.27.3 SR4  (║6.27.3 Syntax Rules║)  the text is in SR4"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.4.4 GR2",
-    "check": "OK  §1985:IV.4.3.8.4.4 GR2  (4.3.8.4.4 General Rules)  the text is in GR2"
-   },
-   {
-    "cite": "§1985:IV.4.3.8.4.3 SR3",
-    "check": "OK  §1985:IV.4.3.8.4.3 SR3  (4.3.8.4.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:III.2",
-    "check": "OK  §1985:III.2  (2. <u>DEFINITIONS</u>)  the text is in the clause"
    }
   ],
-  "notes": "StrUnstrIsInteger reads p.Item.Pic, the BASE item's PICTURE, so a reference-modified identifier-6/identifier-8 over an integer item passes the screen and the emitter then splices a long into a string image, which Roslyn refuses. Sibling, same predicate: WITH POINTER PN (1:2) (UNSTRING SR5, c5d.cob) fails the same way (CS1503), and STRING WITH POINTER uses the same StrUnstrIsInteger. PB5384 fixed this shape for SEND and IntrinsicResultType.IsIntegerOperand but not here.",
+  "notes": "The one integer screen (IsIntegerOperand on the bound operand, plus IsUnscaledInteger so P on either side is refused) is asked for COUNT IN and TALLYING IN at every edition; the diagnostic text cites the 2023 rule number (SR5) but the 1985 rule is SR4. Probe incidentally showed COMP-3 accepted at --std 85 (a USAGE matter outside this rule).",
   "seeded": true,
-  "harm": "misleads-diagnosis",
-  "cause": "b",
-  "at-2023": "identical: binder accepts, backend fails with CS1503",
-  "repro": "01 SRC PIC X(20) VALUE \"ABCD,CDE,F\". 01 R1 PIC X(5). 01 CN PIC 99. ... UNSTRING SRC DELIMITED BY \",\" INTO R1 COUNT IN CN (2:1). (E:/COBOL-coord/scratch/sample-shared/out/work-1985-06/c5b.cob; cobol --std 85 --source-format fixed --run)",
-  "expected": "refused with a COBOL diagnostic: \"Identifier-6 and identifier-8 must reference integer data items\" (§1985:VI.6.27.3 SR4); a reference-modified numeric item is operated upon \"as if it were redefined as an alphanumeric data item\" (§1985:IV.4.3.8.4.4 GR2)",
-  "observed": "no COBOL diagnostic; error: backend compilation failed (generated C# at c5b.g.cs): (75,119): error CS1503: Argument 4: cannot convert from 'long' to 'string?'",
-  "known_note": "none (PB5384 fixed the same base-PICTURE-through-ref-mod shape for SEND and IsIntegerOperand; PB1182 and PB543 touched StrUnstrIsInteger for other arms; none names a reference-modified COUNT IN / TALLYING IN / POINTER)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "same 16 refusals",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5734"
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.27.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Read SR4 and GR13e/GR16 (§1985:VI.6.27.3, .4) and StringUnstringBinder.cs#StrUnstrIsInteger (IsIntegerOperand on the bound operand AND Pic.IsUnscaledInteger, which excludes USAGE INDEX), asked at COUNT IN (line 293) and TALLYING IN (line 344) with no edition switch. Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-219/: u4r1.cob (legal forms the reader did not try: PIC 99V, PIC S9(3) SIGN LEADING SEPARATE, subscripted CT (I), BINARY TALLYING starting at -5) EXIT 0, printed 'C1=02 C2=+003 CT=000200 / T1=-0002 / R1=AB|R2=CDE|R3=FG' = counts 2,3,2 and -5+3; u4r3.cob refused all 7: condition-name (COBOL1639), index-name as COUNT and TALLYING (COBOL1637), PIC 9(3)/ and 9(2)B9 numeric-edited, S9(3)V99 COMP scaled, group TB (COBOL1651). u4r2.cob: TALLYING IN ZERO refused at parse (COBOL5506). cite.py: 'OK  §1985:VI.6.27.3 SR4  (6.27.3 Syntax Rules)  the text is in SR4'; 'OK  §1985:VI.6.27.4 GR13e ... the text is in GR13e'. No 1985-only operand class exists for identifier-6/8; a later edition's operand (national, BINARY-LONG) is refused by the PICTURE/USAGE clauses, not by this rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

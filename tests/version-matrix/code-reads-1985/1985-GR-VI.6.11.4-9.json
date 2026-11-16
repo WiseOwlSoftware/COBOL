@@ -1,0 +1,94 @@
+{
+ "rule-id": "1985-GR-VI.6.11.4-9",
+ "rule-digest": "4065118918e1",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-193",
+  "sources": {
+   "reader": "eae6d14c6d368e86e72a72f9c7a1a4202a67d8f178fa4af9d42e57273d386c39",
+   "refuter": "749ba570009cf3d3f58a8ebcbdfcde9d03f3fb5eaee484f0cf11a686ed824448"
+  },
+  "imported": {
+   "reader": "513708fde188c73e177a559ea01169d064470887ea4e4d78990186426cc50ca4",
+   "refuter": "9ad0e0692ce1b9264e2f72a77b3fd2dbcfba8bfe0fd7b9cfbf5cc4cce8670805"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.11.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 DIVIDE must also obey the referenced common rules: scope of statements (END-DIVIDE, phrase imperatives), ROUNDED (truncation unless ROUNDED, P-scaled rounding at the rightmost allocated integer position), ON SIZE ERROR (VI.6.4.2, BINARY limited by its PICTURE), the arithmetic-statement rules (18-digit operands and composite), overlapping operands (undefined) and multiple results (initial evaluation into a temporary, then left-to-right stores re-evaluating subscripts).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ArithmeticBinder.cs#BindDivide; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#GuardedStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitDivideRemainder",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckComposite",
+    "switches": "18-digit cap and receivers-only membership at 85 (§1985:VI.6.4.4 item 2, VI.6.11.3 SR3); 31 digits over all operands from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs#EmitArith",
+    "switches": "UnphrasedSizeErrorIsFatal: at 85 a phrase-less size error continues with the resultant unchanged; from 2002 fatal",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: composite cap 18 at 85 vs 31 later; a size error with no phrase continues at 85 and is fatal later",
+  "witnesses-cover": "part: g85_f04_05 covers ROUNDED, size error with multiple results and scope with END-DIVIDE; the probes add multiple results whose subscript the statement changes, a BINARY item limited by its PICTURE, a P-scaled resultant, scope without END-DIVIDE inside IF/ELSE, the 18-digit composite refusal and format-shape refusals",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div9.cob",
+    "printed": "A 1 206080 / B SE / B 07 / C 800 900 / D NSE / D INSIDE NOT ON / D 05 10",
+    "expected": "DIVIDE I INTO I A(I): temp=2, I=1, A(1)=20 (VI.6.4.6); 150 into PIC 99 COMP is a size error (VI.6.4.2 item 3); 850 into 9PP truncates to 800, ROUNDED 900 (VI.6.4.1); ELSE ends the DIVIDE's NOT ON imperative"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div9d.cob",
+    "printed": "COBOL0805 DIVIDE: the composite of operands spans 23 digits; ISO/IEC 1989:1985 caps the composite of operands at 18 digits",
+    "expected": "refused (§1985:VI.6.4.4 item 2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div9e.cob",
+    "printed": "COBOL1689 DIVIDE REMAINDER with 2 GIVING receivers",
+    "expected": "refused: format 4/5 print one identifier-3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-193/div9c.cob",
+    "printed": "COBOL2269 unexpected 'ROUNDED' after REMAINDER R",
+    "expected": "refused: REMAINDER takes no ROUNDED"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.11.4 GR9",
+    "check": "OK  §1985:VI.6.11.4 GR9  (6.11.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VI.6.4.6",
+    "check": "OK  §1985:VI.6.4.6  (6.4.6 Multiple Results in Arithmetic Statements)  the text is in the clause; it lies in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.4.4",
+    "check": "OK  §1985:VI.6.4.4  (6.4.4 The Arithmetic Statements)  the text is in the clause; it lies in SR2"
+   }
+  ],
+  "notes": "GR9 is a cross-reference rule; each referenced paragraph was probed on DIVIDE at 85 and behaved as its 1985 text says. Overlapping operands are undefined in 1985 and were not probed beyond the multiple-results case.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.11.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "div9r.cob at 85 (runs/div9r-001): ROUNDED -5/2 -> -3 and -0.25 -> -0.3 (absolute value increased, VI.6.4.1); 150 into 99 BINARY -> SE (VI.6.4.2(3)); a DIVIDE with END-DIVIDE nested in NOT ON SIZE ERROR scopes correctly (D INNER SE / D AFTER INNER); zero divisor with no phrase continues (values undefined in 1985). div9s.cob: GIVING 9(10) and V9(9) (composite 19) refused COBOL0805; div9u.cob: GIVING 9(10) V9(8) (18) and GIVING V9(8) REMAINDER 9(18) accepted (REMAINDER excluded, SR3); div9t.cob: 19-digit literal operand refused COBOL0802 (VI.6.4.4 18-digit operand). Note: the reader's 'phrase-less size error leaves the resultant unchanged at 85' is not always so (div9u: 3 into V9(8) without a phrase stored .00000000), but 1985 makes those values undefined, so no violation. cites: OK  §1985:VI.6.11.4 GR9; OK  §1985:VI.6.4.1  the text is in the clause; OK  §1985:VI.6.4.4  it lies in SR2; OK  §1985:VI.6.11.3 SR3  the text is in SR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

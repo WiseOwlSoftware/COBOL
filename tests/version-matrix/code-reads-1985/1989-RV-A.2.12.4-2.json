@@ -1,0 +1,90 @@
+{
+ "rule-id": "1989-RV-A.2.12.4-2",
+ "rule-digest": "490073a7d50f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-214",
+  "sources": {
+   "reader": "97f8c65c4098135ed1d60fb44cb2038836398e34ef9994273321a33ae82c3eb2",
+   "refuter": "349979257c11da5f69d405ae4ff7d14114d83e4c1abfd0f1cfeadb54a9388cd8"
+  },
+  "imported": {
+   "reader": "fd66e22f451603b5f0078c5558d8cafd4e7dfe2c844824a5f4e3611db25381f4",
+   "refuter": "05f23424e9862c7cbd674b10442cd6cab036e2508c212133451c4b535a38cc86"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.12.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "DATE-OF-INTEGER's returned value has the form YYYYMMDD (YYYY*10000 + MM*100 + DD), YYYY the Gregorian year, MM its month and DD the day of that month, for every positive integer argument, including years past 9999 at 1985.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DateOfInteger; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#DaysBefore; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#YearAndDayOf; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#IntArg",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the catalog's D8 edition window (IntroducedIn 85 for the 1989 module rows): the function is admitted at --std 85",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "DialectBehaviors.IsActive(IntegerDateFormBounded, year): inactive at 85, so BoundIntrinsicCall.IntegerDateFormUnbounded is true",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#IsActive",
+    "switches": "the row integer-date-form-bounded-9999, active from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum",
+    "switches": "renders `unbounded: true` into the CobolDate call when IntegerDateFormUnbounded",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder, IntrinsicRenderer, CobolDate and DialectBehavior for Edition, DialectLevel, DialectBehavior, IntegerDateForm, ConstructRegistry",
+  "behaviour-differs-by-edition": "yes: at 85 a year past 9999 yields a nine-digit YYYYMMDD (100000101); from 2002 such an argument is outside the integer date form",
+  "witnesses-cover": "part: the witness decomposes one mid value into YYYY, MM and DD; month and year ends (16011231, 16020101, 16010228/16010301) and five-digit years are probed here",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/15.22.4-Returned-value-rules/l1_date_of_integer_standard_form.cob",
+    "printed": "EXPECT: MATCH at --std 85",
+    "expected": "the golden"
+   },
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/pdate2.cob",
+    "printed": "SIGNED=19950215 COMP=17000301 PACKED=16040229 SUBSCR=16010228 EXPR=16010301 Y1601END=16011231 Y1602=16020101 MAX9999=99991231 Y10000=100000101 Y10000B=100000229 RT1=19991231 RT2=20241231 RT3=21001231 IOD1969=0134774 IOD2024=0154558 IODAY2024=0154558 IOD9999=3067671 IOD10000=3067672 IODAY10000=3067672 EDITED=16010410 ARITH=16010411 IODBIG=0000000 (an invalid argument, undefined at 1985)",
+    "expected": "proleptic Gregorian count with 1601-01-01 = day 1, every value checked against Python datetime; year 10000 representable at 1985 (the 1989 module bounds the year below only, §1989:A.2.16.3 AR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/pdate2.cob",
+    "printed": "at --std 2023: Y10000=000000000 Y10000B=000000000 IOD10000=0000000 IODAY10000=0000000 (bounded at 9999-12-31); at --std 85 the same lines print 100000101, 100000229, 3067672, 3067672",
+    "expected": "1985 admits years past 9999; 2002 and later end the integer date form at 3,067,671"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.12.4 RV2",
+    "check": "OK  §1989:A.2.12.4 RV2  (2.12.4 Returned Values)  the text is in RV2"
+   }
+  ],
+  "notes": "The month is found by DaysBefore over the leap-aware cumulative table and composed as year*10000 + month*100 + day. Only a year at the 64-bit carrier's limit returns 0, far beyond any argument an 18-digit COBOL-85 item carries.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.12.4-2",
+  "refutation": "UPHELD",
+  "classes": "c,f",
+  "evidence": "§1989:A.2.12.4 RV2 composes YYYY*10000+MM*100+DD with no bound on YYYY in 1985's argument rule; CobolDate.cs#DateOfInteger returns year*10000+month*100+day and only refuses a year the Int64 cannot hold (unreachable from an 18-digit 1985 argument: the largest 18-digit argument is year ~2.7E15, but a result past 18 digits is already beyond 1985's operand size). rdate.cob at 85: year boundaries 20001231/20010101, 44010101 at seven 400-year cycles, multi-digit years 27395080103 and 3380148080911 (month 08, day 11 checked against Python), round trip INTEGER-OF-DATE(987654320229) -> DATE-OF-INTEGER = 987654320229 (leap Feb 29 in year 98765432). cite.py: OK §1989:A.2.12.4 RV2 the text is in RV2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-8",
+ "rule-digest": "04a3873853d6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-195",
+  "sources": {
+   "reader": "8e9f846199cca1176b5b277e8ee59437f30f48aa84ef54c6c128ea345f8b1ab1",
+   "refuter": "1e43cf4cb1cc89170dc57bf1e7ddb0124a517da7b11476c126cb01ec9a395a49"
+  },
+  "imported": {
+   "reader": "0f0f180ad42dbd4400bebb7126771d75b8ccd6544969d8dfab7c45f62478d812",
+   "refuter": "f1cb412c9b0cf662b1201c6a31c38c09de7a833a0719ffd4df1827233cb4fad8"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "ACCEPT identifier-2 FROM DAY must deliver YYDDD (year of century, day of year; 25 December 1986 = 86359) as if from an unsigned five-digit integer item, stored by the MOVE rules.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Day; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundAccept.cs#ConceptualDigits; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ConceptualItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptTemporal",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
+    "switches": "refuses DATE YYYYMMDD / DAY YYYYDDD (accept-four-digit-year-2002, COBOL0815) and END-ACCEPT (end-accept-2002, COBOL0816) below 2002; the bare DATE / DAY / DAY-OF-WEEK / TIME forms pass through unchanged",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#Entries",
+    "switches": "the rows accept-four-digit-year-2002 and end-accept-2002 (introduced 2002) that the pass checks",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "DATE, DAY, DAY-OF-WEEK and TIME are reserved at 85, 2002, 2014 and 2023 alike, so a user item of those names is refused (COBOL0901)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep for Edition|CobolVersion|Dialect|Construct in AcceptDisplayBinder.cs, AcceptDisplayEmitter.cs, BoundAccept.cs, AcceptSource.cs and MoveTable16.cs: the binder's ctx.Edition is only the diagnostic sink; the emitter, the conceptual-digit table and the runtime clock reads consult no edition",
+  "behaviour-differs-by-edition": "no: at 2002 and later DAY YYYYDDD exists too; bare DAY is the same five digits, and the YYYYDDD phrase is refused at 85",
+  "witnesses-cover": "part: g85_f12_01 checks five digits and the ordinal day on the run day; day 366 of a leap year, day 001 of year 00, and edited or group receivers are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "pin 1986-12-25: DAY=86359",
+    "expected": "86359 (the GR8 example)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc2.cob",
+    "printed": "pin 1988-12-31: DAY=88366; pin 2000-01-01: DAY=00001; pin 2026-11-15: DAY=26319",
+    "expected": "day of year 366 in a leap year, 001 on 1 January with zeros kept"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "DAYED=[86 359] DAYX2=[86]",
+    "expected": "edited with B insertion; truncated on the right into X(2)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/acc1.cob",
+    "printed": "RECGRP=[86359 ]",
+    "expected": "receiving ODO group at maximum length 6 (§1985:VI.5.8.4 GR3b)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ref2.cob",
+    "printed": "error COBOL0815 ... ACCEPT FROM DAY YYYYDDD",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR8",
+    "check": "OK  §1985:VI.6.5.4 GR8  (6.5.4 General Rules)  the text is in GR8 [\"would be expressed as 86359\"]"
+   }
+  ],
+  "notes": "AcceptSource.Day computes Year mod 100 * 1000 + DayOfYear and the conceptual item is five digits. The pinned runs print the rule's example 86359 and the leap-year and year-00 edges correctly; the witness g85_f12_01 MATCHES at 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "acc1.cob at --std 2023 prints DAY=86359 too",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-8",
+  "refutation": "UPHELD",
+  "classes": "a,d,f",
+  "evidence": "AcceptSource.Day = Year%100*1000+DayOfYear; racc1.cob at 85 pinned 1986-12-25: 9 COMP FROM DAY = 9, XBXBX = [8 6 3], ***,**9 = *86,359, table elements W-E(3) and W-E(4) = 86359. cite.py: OK §1985:VI.6.5.4 GR8 [\"would be expressed as 86359\"].",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

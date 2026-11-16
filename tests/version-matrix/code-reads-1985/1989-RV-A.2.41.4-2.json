@@ -1,0 +1,82 @@
+{
+ "rule-id": "1989-RV-A.2.41.4-2",
+ "rule-digest": "2a2f5c4e0c3f",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-214",
+  "sources": {
+   "reader": "97f8c65c4098135ed1d60fb44cb2038836398e34ef9994273321a33ae82c3eb2",
+   "refuter": "349979257c11da5f69d405ae4ff7d14114d83e4c1abfd0f1cfeadb54a9388cd8"
+  },
+  "imported": {
+   "reader": "942dbe7b7593ff70eac1c53e94e0de76faed3602d462acc7cb91251ff85c8fda",
+   "refuter": "8ff942e741f83acd330c6a3162ba63d403386011ba3bbd9a5e20ccdb6d6b3772"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.41.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "STANDARD-DEVIATION returns the absolute square root of the mean of the squared deviations of each argument-1 value from the series mean (dividing by n), over every argument form: literals, signed and scaled items, arithmetic expressions and ALL-subscripted tables including OCCURS DEPENDING ON.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#ExactListBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#StandardDeviation; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#StdDevExact; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#TryVariance; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.ExactValue.cs#VarianceBig; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#NarrowResult; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#StdDevDec",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the catalog's D8 edition window (IntroducedIn 85 for the 1989 module rows): the function is admitted at --std 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of IntrinsicRenderer.cs, CobolIntrinsics.Float.cs, CobolIntrinsics.ExactValue.cs and FunctionValueLane.cs for Edition, DialectLevel, DialectBehavior, CobolVersion: none on the STANDARD-DEVIATION path past the catalog window (StdDevDec is reached only under STANDARD-DECIMAL, an ARITHMETIC clause 1985 lacks)",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise the exact variadic intake (large close values) and the float family; not ALL subscripts, OCCURS DEPENDING ON, negative or expression arguments",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/psd.cob",
+    "printed": "SD8=2 SD12=0.5 SDNEG=3 SDSCALED=0.5 SDBIG=0.5 SD1234=1.118033988749895 SDONE=0 SDEXPR=4.5 SDODO3=8.164965809277260 SDODO1=0 SDODOMIX=12.472191289246470 SD2DALL=1.118033988749895 SDCOL2=1 SDZERO=0 SDMAX=0 (size error) SDRND=1.118033988749895; identical at --std 2023",
+    "expected": "population SD: 2, 0.5, 3, 0.5, 0.5, 1.1180339887498948..., 0, 4.5, 8.1649658092772603..., 0, 12.4721912892464712..., 1.118..., 1, 0, 999999999999999999"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/psdmax3.cob",
+    "printed": "SD(-999999999999999999 999999999999999999) into S9(18): SIZE-ERROR; SD(0 99999999999999999) into 9(17)V9: 50000000000000000.0 (exact 49999999999999999.5); same at --std 2023",
+    "expected": "an approximation of the standard deviation (RV1), the technique the implementor's (IV-16)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.41.4 RV2",
+    "check": "OK  §1989:A.2.41.4 RV2  (2.41.4 Returned Values)  the text is in RV2"
+   },
+   {
+    "cite": "§1989:A.2.41.4 RV1",
+    "check": "OK  §1989:A.2.41.4 RV1  (2.41.4 Returned Values)  the text is in RV1"
+   },
+   {
+    "cite": "§1989:A.2.41.4 RV3",
+    "check": "OK  §1989:A.2.41.4 RV3  (2.41.4 Returned Values)  the text is in RV3"
+   }
+  ],
+  "notes": "Steps a-c are computed exactly (n*sum(d^2) - (sum d)^2 over n^2, then the one SQRT body) and the result is narrowed once to binary64, the documented native technique (DOC-A.1-123). DOUBT for a refuter: the narrowing makes an 18-digit result inexact (SD of +-999999999999999999 rounds to 1E18 and raises SIZE ERROR in S9(18); 49999999999999999.5 becomes 5E16). I judge it within 1989's 'approximation' (RV1) and IV-16's implementor-indicated technique; it is the same at every edition.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.41.4-2",
+  "refutation": "DOUBTFUL",
+  "classes": "a,b,c,d,f",
+  "evidence": "rsd.cob at --std 85 (runs/rsd-002) and identically at --std 2023: SD(-99999999999999999 99999999999999999) into S9(18) = 100000000000000000 (exact 99999999999999999: step b's quotient is a perfect square, so step c's root is exact and 17 digits); SD(0 99999999999999998) = 50000000000000000 (exact 49999999999999999); SD(0 A), A = 1234567890.12345678, into S9(10)V9(8) = 617283945.06172840 (exact 617283945.06172839, which the receiver holds). Cause: CobolIntrinsics.Float.cs#StandardDeviation computes StdDevExact then NarrowResult to binary64 (~16 significant digits). DOC-A.1-123 says the family's value is 'the exact value of the equivalent arithmetic expression ... rounded once' yet the SD body rounds that value to binary64. Correct otherwise: rsdmix.cob SD(TE(ALL) 4 FUNCTION INTEGER-OF-DATE(16010102)) = 1.019803902 (exact 1.0198039027...); rsded/rsdan/rsdlit (numeric-edited, alphanumeric item, nonnumeric literal) refused COBOL1627; rsdnone refused; DISPLAY and MOVE of the function refused COBOL0900 at 85. READING: UPHELD if 'approximation' (RV1) plus 'characteristics of the returned value ... defined by the implementor' (A.2.3 GR2) admit a binary64 returned value; OVERTURNED (wrong-answer, cause b) if the approximation RV1 allows is only that of step c's square root, since RV2 prescribes exact steps a-b and here the root itself is exact. cite.py: OK §1989:A.2.41.4 RV1 the text is in RV1; OK §1989:A.2.41.4 RV2 the text is in RV2; OK §1989:A.2.3 the text is in the clause; it lies in GR2.",
+  "edition-sites-missed": [],
+  "corrected": "Not overturned on the text alone. If the narrow reading holds: NON-CONFORMING wrong-answer at every edition (cause b); STANDARD-DEVIATION should return StdDevExact's value without narrowing it to binary64 (17- and 18-digit results lose their last digits)."
+ },
+ "adjudication": {
+  "verdict": "CONFORMS",
+  "reason": "The 1989 text asks for an approximation and leaves its precision to the implementor; the register documents the returned value.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-8",
+ "rule-digest": "720099307ec9",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "cec09c661914c1fa488ffa9499a1c53c3c508ba5cfaf4e1acdf34e028eaef878",
+   "refuter": "511ee158c2d1bf10a9340712a815ca0dbb4932d0d7894163872de376a071850a"
+  }
+ },
+ "reader": {
+  "edition-search": "grep for Edition, CobolVersion, DialectBehavior, IsAvailable and ConstructRegistry in FileRegistry.Register's ::EXT:: arm, ProgramTable.CallProgram/CancelNode and the emitted CloseFiles: the external connector is one per run unit keyed ::EXT::<name> and no edition is read on the call/exit/cancel path (the connector's Edition field governs only file sharing and CLOSE WITH LOCK).",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 calling a program, exiting it (including an initial program's exit, which is an implicit CANCEL) and canceling it leave the open mode, status and position of every file on an external file connector unchanged for every program that describes it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#CloseFiles; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitGoback",
+  "edition-consulted": [],
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f02_06 and 1985-GR-X_5_2_4-8 cover a sequential external file read by a non-initial callee; not covered: relative dynamic access, an initial callee (implicit CANCEL at exit), an explicit CANCEL of a describing program, a callee that opens the external file and returns it open",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr8a.cob",
+    "printed": "MAIN F MF01 00 / IW OPEN F 00 / IW REC1 00 / MAIN XS 00 / MAIN REC2 00 / IW OPEN F 00 / IW REC3 00 / MAIN REC4 00 / NW / MAIN REC4 10 / MAIN F MF02 00 (run gr8a-001, MATCH)",
+    "expected": "the initial callee IW opens the external relative file (after a 47 on the unopened file) and returns it open and positioned; its implicit CANCEL does not close it; the next IW entry reads on from the caller's position; an explicit CANCEL of NW, which describes the file, leaves it open (the next READ is AT END, 10)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR8",
+    "check": "OK  §1985:X.5.2.4 GR8  (cite.py --check with \"does not alter the status or positioning of a file associated with any external file connector\")"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR10",
+    "check": "OK  §1985:X.5.3.4 GR10  (cite.py --check with \"an implicit CLOSE statement without any optional phrases is executed for each file in the open mode that is associated with an internal file connector\")"
+   }
+  ],
+  "notes": "Both witnesses MATCH at 85. An EXTERNAL FD registers once per run unit under the ::EXT:: key band and a later describer keeps the live connector; CloseFiles closes only internal connectors, so CANCEL and an initial program's exit leave the external file alone."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-8",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "g8 (indexed, dynamic, EXTERNAL FD and EXTERNAL status item): INNER, contained in OUTER, opens and STARTs at K2; CANCEL OUTER (cascading to INNER) leaves it open and positioned (MAIN READ NEXT K2D2 00); INI2, contained in INITIAL INI, reads K3D3, and INI's implicit cancel at exit leaves it so MAIN reads K4D4; then INI2 AT END 10 and MAIN 46. My .out expected a stray AT END text on the 46 read; the printed output is the correct one. cite.py: OK §1985:X.5.2.4 GR8 the text is in GR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

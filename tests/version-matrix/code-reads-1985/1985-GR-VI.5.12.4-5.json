@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-5",
+ "rule-digest": "407b5f0fe087",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "82f4fa878ca28b2295526f43efc530a8c7bc6ca0b6a4157eccbdbe984befc48f",
+   "refuter": "19e6d52edf31a42aef11ceca9d39ebb40483768f5edf0e6c73a914a8f8f7a607"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a SIGN clause without SEPARATE CHARACTER must carry the operational sign in the leading or trailing DIGIT position (first or last 9, P positions excluded), must not count the S in the item's size, and must accept as valid exactly the implementor's documented sign set (DOC-A.1-178: plain digits plus the ibm punch tables at the sign position).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#CharacterPositions; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#ParseDisplay; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#Punch; src/WiseOwl.Cobol.Runtime/Values/Numeric/ZonedSign.cs#IsSignCharacter; src/WiseOwl.Cobol.Runtime/Values/Text/CobolClass.cs#IsNumericZoned",
+  "edition-consulted": [],
+  "edition-search": "grep of DialectLevel/Edition/ConstructRegistry in PictureAnalyzer (only max string length, case fold, repeatable symbols and BLANK WHEN ZERO at line 480, none about S or the sign position), ZonedSign, CobolNum, CobolClass: none on this rule's path",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_06 covers S9(3) LEADING/TRAILING size and digits; P-scaled and V items, the largest item, zero and negative zero, tables, and the valid-sign set are not exercised",
+  "probes": [
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg5a.cob",
+    "printed": "G1=[J21KJ25|] / G2=[R99999999999999999|] (1:1)=[R] / G2=[I99999999999999999|] (18:1)=[9] / G3=[{0000{] / G3=[}0100N] / G4=[3}1B2L3] / SUM=-000000000000001337",
+    "expected": "SPP99 LEADING -.0012 = J2, S99PP TRAILING -1200 = 1K, S9V99 LEADING -1.25 = J25 (S and P not counted); S9(18) is 18 positions at both extremes; -0 stored as +0; ODO table elements punched; arithmetic reads them"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/sg5b.cob",
+    "printed": "J23 -123; 123 +123; C23 +323; +23, -23, 1J3, ' 23' NOT NUMERIC; 12} -120; 12{ +120; 12Z NOT NUMERIC",
+    "expected": "DOC-A.1-178 valid set: digit or ibm punch at the sign position only; separate +/- invalid"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/VI.5.12@1985-SIGN-CLAUSE/g85_f08_06.cob",
+    "printed": "MATCH",
+    "expected": "witness output"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR5",
+    "check": "OK  §1985:VI.5.12.4 GR5  (5.12.4 General Rules)  the text is in GR5"
+   }
+  ],
+  "notes": "The embedded sign is punched into the first or last digit by ZonedSign tables and the S adds no character position; the valid set is derived from the same tables (IsSignCharacter) for NUMERIC and checked reads. Behaviour is edition-independent and matches the documented latitude DOC-A.1-178.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-5",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "r125a-002: S9 LEADING and TRAILING -4 both 'M' (one digit); SVPP99 LEADING -.0012 -> 'J2' (P excluded, sign on first 9), SV99 TRAILING -.25 -> '2N'; FUNCTION LENGTH (via COMPUTE) of LEADING+TRAILING+LEADING SEPARATE S9(3) = 10 (S not counted unless SEPARATE); '12L' in a LEADING item and 'J23' in a TRAILING item NOT NUMERIC (punch valid only at the sign position, DOC-A.1-178); '}00' LEADING is NUMERIC and moves to unsigned as 000; LEADING 'J23' moved to TRAILING gives '12L', compares equal and < 0. cite.py: OK  §1985:VI.5.12.4 GR5  (5.12.4 General Rules)  the text is in GR5",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

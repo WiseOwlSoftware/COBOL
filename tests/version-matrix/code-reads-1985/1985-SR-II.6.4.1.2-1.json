@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-II.6.4.1.2-1",
+ "rule-digest": "90f31d9bb487",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-205",
+  "sources": {
+   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
+   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+  },
+  "imported": {
+   "reader": "47c33b2a0e9cfc7f1a5fde14835343a340aa9ca84aa2df47e5b24924b47c45e4",
+   "refuter": "c04e8de3833ebe4d1614646bf00b4a9c4a6c6061e589e89f70231f11eb64594b"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-II.6.4.1.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a CALL written in any program (outermost, directly or indirectly contained, separately compiled, in this source file or compiled from another one) must activate any separately compiled program of the run unit, whether named by literal-1 or by an identifier-1 holding its name.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCall; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitCall; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ResolveVisible; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#ProgramPrototypeNamesExist",
+    "switches": "below 2002 a bare word in the CALL target is always identifier-1 (no program-prototype-name spelling); for a literal-1 or a word that names a data item the target binds as at 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+    "switches": "refuses the 2002 CALL ... AS phrase (call-as-phrase-2002, COBOL0900) at 85; not part of SR1's forms",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect|ConstructRegistry in CallBinder.cs, CallEmitter.cs, ProgramTable.cs, ProgramNameScope.cs: the runtime resolver (ResolveVisible rule 4 outermost + ProbeSiblingModule) reads no edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f02_01 covers an outermost and a directly contained caller calling a separately compiled program by literal in one source file; not exercised there: an indirectly contained caller, an identifier-1 target, a separately compiled caller, a callee compiled from another source file, and the not-found path",
+  "probes": [
+   {
+    "class": "b,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr1chain.cob",
+    "printed": "MAIN / N1 / N2 / SEPA / SEPB 1 / SEPB 2 / NONE NOT FOUND / NONE OVERFLOW / MAIN END (MATCH)",
+    "expected": "an indirectly contained program calls separately compiled SR1SEPA by identifier (PIC X(10) with trailing spaces), SR1SEPA calls separately compiled SR1SEPB by literal, the outermost calls SR1SEPB by identifier; a name absent from the run unit takes ON EXCEPTION / ON OVERFLOW"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr1caller.cob",
+    "printed": "XFILE GOT INNR / INNER SEES BACK / MAIN SEES SENT (MATCH), with SR1XFILE compiled from sr1callee.cob into its own assembly beside the caller",
+    "expected": "a contained program calls a program compiled in a separate compilation and BY REFERENCE data returns"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr2later.cob",
+    "printed": "error COBOL0900: the CALL ... AS phrase (program-prototype format) requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 CALL has no AS phrase; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.6.4.1.2 SR1",
+    "check": "OK  §1985:II.6.4.1.2 SR1  (6.4.1.2 Scope of the CALL Statement)  the text is in SR1"
+   }
+  ],
+  "notes": "The runtime resolver's rule 4 (an outermost program of the run unit, then the sibling-module probe) admits a separately compiled program from any caller regardless of containment, and no edition is read on that path. Witness g85_f02_01 matches at 85; every probe matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-II.6.4.1.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read ProgramTable.cs#ResolveVisible (rule 1 direct children, rule 2 RECURSIVE self only, rule 3 COMMON via ProgramNameScope.CommonProgramReferable, rule 4 Outermost then ProbeSiblingModule): no edition read. Probe refute-1985-205/src/rdup.cob at --std 85 (runs/rdup-001, EXPECT: MATCH) drives every arm of §1985:II.6.4.1.3 the reader did not: a contained COMMON RDUP and a separately compiled RDUP; RDD (contained in RDUP) and RDUP itself calling RDUP reach the separately compiled one; the outermost calling RGX, a non-common grandchild that is also a separately compiled program, reaches the separately compiled RGX. cite.py: 'OK  §1985:II.6.4.1.2 SR1  (6.4.1.2 Scope of the CALL Statement)  the text is in SR1'; 'OK  §1985:II.6.4.1.3  (6.4.1.3 Scope of Names of Programs)  the text is in the clause' (quote 'the program called is the separately compiled program').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,89 @@
+{
+ "rule-id": "1985-GR-XIII.4.9.4-1",
+ "rule-digest": "e9e33befd2b9",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "fa29323d97d1242a77d15d9266747638a50a13b641760f4eb01ce65b34dad7d1",
+   "refuter": "fc30943d0118982fb79a249660a9f714209c51c89d6db417e97b8b80e852e6a2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.4.9.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a USE BEFORE REPORTING declarative must be accepted in any program, whether it contains or is contained in another, and its procedures must execute just before each production of the report group identifier-1 names (any group type), during the execution of that program (with the X.5.6.4 precedence for a GLOBAL report's groups produced by a contained program).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ProcedureTableBuilder.cs#DeclBindUse; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitBeforeReportingSelectors; src/WiseOwl.Cobol.Compiler/CodeGen/EmitterState.cs#RunUseCall; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Terminate; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#BeginGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#RunBeforeReporting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentBody; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageHeading; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentPageFooting; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PresentHeadingFooting",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectLevel|DialectBehavior|Construct in ReportWriterEmitter.cs (only EmitReportConstruction bakes Edition, not the selectors), EmitterState.cs (none), ProcedureTableBuilder.cs (only ctx.Edition as the diagnostic sink), ReportWriterBinder.cs (ctx.Edition as sink; DialectLevel < 2002 only for GENERATE report-name detail count), ReportWriter.cs#RunBeforeReporting/BeginGroup (none). The selection, the hook and its placement before the presentation take one path at every edition",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f06_08 covers two separately compiled programs each with its own report and declarative; nested (contained) programs, a GLOBAL report produced by a contained program, a declarative for every group type, and an empty declarative section were probed here",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/use1.cob",
+    "printed": "OUTER USE O-PH LC=00 / OUTER USE O-DET LC=01 / OUTER AFTER LC=03 / OUTER GLOBAL USE G-DET / OUTER NON-GLOBAL USE G-DET2 / INNER USE I-DET LC=00 / INNER USE I-DET LC=03 / (inner GENERATEs of the GLOBAL report) OUTER GLOBAL USE G-DET only; report files: O 'OPH', 'DECL'; I 'IDCL','IDCL'; G GDET GDT2 GDET GDT2",
+    "expected": "declaratives in the containing and the contained program each run before their own groups, values moved in them appear in the group produced; for the contained program's GENERATE of the outer GLOBAL report only the GLOBAL declarative qualifies (§1985:X.5.6.4 GR1 b)"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/use2.cob",
+    "printed": "USE O-DT2 SEES SET1 / AFTER DECL; file: MAIN, DECL, DECL",
+    "expected": "an empty declarative section (SR1: zero paragraphs) compiles and runs nothing; the other declarative runs just before its group, after the main program's MOVE, and its MOVE is in the printed line"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/term1.cob",
+    "printed": "USE RH1, PH1, CHF, CHK, DE1, CFK, CFF, PF1, RF1 each before its group",
+    "expected": "a declarative runs for every group type it names"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/use1.cob (--std 2023)",
+    "printed": "identical stdout (plus an EXIT PROGRAM archaic warning)",
+    "expected": "same at the latest edition"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XIII.4.9@1985-USE-BEFORE-REPORTING-STATEMENT/g85_f06_08.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "O USE LC=03 / O AFTER LC=04 / I USE LC=00 / I AFTER LC=03"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.4.9.4 GR1",
+    "check": "OK  §1985:XIII.4.9.4 GR1  (4.9.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XIII.4.9.4 GR4",
+    "check": "OK  §1985:XIII.4.9.4 GR4  (4.9.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:X.5.6.4 GR1",
+    "check": "OK  §1985:X.5.6.4 GR1  (5.6.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "Each program gets selectors (EmitBeforeReportingSelectors) passed into Generate/Terminate; every presentation path funnels through BeginGroup -> RunBeforeReporting before any line is placed, and a contained program's selector walks outward to GLOBAL declaratives only. For a body group the hook precedes the page-fit test, as §1985:XIII.3.20.4 GR11 b/GR12 order it.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.4.9.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-204/us1.cob at --std 85 (runs/us1-002): two reports in one file each with a detail named DL; USE BEFORE REPORTING DL OF RA and DL IN RB (qualified identifier-1) each run only before their own report's DL; a NONPRINTABLE detail (01 DN TYPE DETAIL, no LINE) and a nonprintable CONTROL FOOTING each run their declarative when processed (USE DN 03, USE CFK 04 before USE DN 04 on the break, USE CFK at TERMINATE). GENERATE report-name of a report with 2 details is refused COBOL6823 (§1985:XIII.3.20.3 SR6), correctly. Contained/containing programs and GLOBAL precedence were already probed by the reader (use1.cob). cite.py: OK §1985:XIII.4.9.4 GR1 'invoked just before the named report group is produced'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

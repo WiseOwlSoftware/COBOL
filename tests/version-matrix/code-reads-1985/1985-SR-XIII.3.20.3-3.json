@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-XIII.3.20.3-3",
+ "rule-digest": "a2ba9ff0a907",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-212",
+  "sources": {
+   "reader": "1b0405c3a654eaab78e2d8728b87eacd71f77ebde52e4b223ad9638739a13e2e",
+   "refuter": "663010dc24447d49c346b05bd04557fc4f6fc5db83e3c7eaaa3d9d6855ee357e"
+  },
+  "imported": {
+   "reader": "d94982cd59c12452a47c47f183eee2b354aae5234d66ecc8d3b3858e5a13b399",
+   "refuter": "b9721a9040680820e6350e086268d5b1f08e8c51bd70747372d9be06dc7fa4c0"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.20.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, a PAGE HEADING (PH) or PAGE FOOTING (PF) report group is refused in a report whose RD has no PAGE clause, and accepted (and presented) when the RD has one.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindGroupType; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "refuses at 85 the 2002 PAGE forms (no page limit, a width), so a width-only PAGE clause cannot make a PH/PF legal at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "BindGroupType itself has no edition test: grep of DialectLevel/Edition.Year/Constructs in the member found none; the PH/PF screen is the same code at every edition",
+  "behaviour-differs-by-edition": "no: the screen is the same; at 85 the PAGE clause always carries the page limit, so 'PAGE clause specified' equals Paged",
+  "witnesses-cover": "part: g85_f30_06 exercises only the accepted half (PH and PF with a PAGE clause); the refusal without a PAGE clause is not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ty_ph_pf_nopage.cob",
+    "printed": "COBOL0899 'TYPE PageHeading requires a PAGE clause' and 'TYPE PageFooting requires a PAGE clause' (plus COBOL2199 for the relative first LINE of a PF, §1985:XIII.3.15.3 SR9)",
+    "expected": "PH and PF both refused without a PAGE clause"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ty_ph_only_nopage.cob",
+    "printed": "one COBOL0899 on R2's PH only; R1 (PAGE LIMIT 20) accepted",
+    "expected": "the rule is per report: only the unpaged R2's PH refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ty_pf_width_only.cob",
+    "printed": "COBOL0900 'the PAGE clause without its page limit requires COBOL-2002' and COBOL0899 on the PF",
+    "expected": "the 2002 width-only PAGE form refused at 85; PF refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/XIII.3.20@1985-TYPE-CLAUSE/g85_f30_06.cob",
+    "printed": "G1 PC 1 LC 003 / G2 PC 1 LC 004 / T PC 1 LC 019 / [PH] [DE] [DE] [PF]; EXPECT: MATCH",
+    "expected": "PH and PF accepted and presented with a PAGE clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.20.3 SR3",
+    "check": "OK  §1985:XIII.3.20.3 SR3  (3.20.3 Syntax Rules)  the text is in SR3 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]"
+   }
+  ],
+  "notes": "The 1985 transcription of this page is marked RECONSTRUCTED by cite.py (kb/Work PB4952); the reconstructed wording matches the rule's catalog text. The diagnostic prints the enum name (PageHeading) and cites §2023:13.18.57.3 SR12, cosmetic only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.20.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XIII.3.20.3 (SR3 is in the RECONSTRUCTED folio XIII-55, kb/Work PB4952; its substance is fixed by the sibling rules the reconstruction note names) and ReportSectionBinder.cs#BindGroupType (COBOL0899 when PH/PF and !model.Paged; no edition test). Probe refute-1985-212/src/ty_abbrev.cob: R1 'PAGE 20' (bare form, no LIMIT keyword) with TYPE PH and TYPE PF via the abbreviations, R2 with CONTROLS ARE FINAL WS-K and no PAGE clause with 'TYPE IS PH'/'TYPE IS PF': COBOL0899 on R2's PH and PF only, none on R1 (R1's other errors are LINE-region rules of an empty heading/footing area under PAGE 20 defaults, a different rule). cite.py: 'OK  §1985:XIII.3.20.3 SR3  (3.20.3 Syntax Rules)  the text is in SR3 [RECONSTRUCTED: editorial text, not the standard's; kb/Work PB4952]'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

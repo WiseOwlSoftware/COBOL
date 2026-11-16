@@ -1,0 +1,101 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-6",
+ "rule-digest": "42b53f2115d4",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "a178c2252b72ff5aa5f2c66b7263570c37d048c570c4687adde2c4a1563fe1c4",
+   "refuter": "cfa7bc3b5f32d77ebb1335070dc0bc349ad6fc0afd6898be3d8028dc39125d2d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.5.3-6",
+  "verdict": "CONFORMS",
+  "requirement": "For an indexed file, a READ in random access mode, and a READ of a dynamic-access file that retrieves randomly, is the format 2 READ (optional KEY IS data-name-1, INVALID KEY / NOT INVALID KEY): the compiler must accept and execute it as a random retrieval, and must not accept the format 1 phrases (NEXT, AT END, NOT AT END) on a random-access file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadRandomAccessPhrases; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyFormat; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundKeyedIo.cs#ReadKind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "below 2002 a dynamic-access READ writing AT END/NOT AT END without NEXT is refused (COBOL7144, the 1985 SR5); from 2002 NEXT is implied",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+    "switches": "severity seam only (error strict, warning --permissive) for the SR6 phrase screen; not edition-keyed",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Read KeyedIoBinder.BindRead's kind switch (AccessMode only, no edition) and the three StatementValidation checks it calls; grepped Edition.Year in StatementValidation's READ checks.",
+  "behaviour-differs-by-edition": "yes: at 85 a dynamic READ that retrieves sequentially must write NEXT (SR5, refused otherwise), so only a READ with none of NEXT/AT END/NOT AT END is the random format 2 read; from 2002 AT END implies NEXT. The random-access screen is the same code at every edition.",
+  "witnesses-cover": "part: g85_f21_05 covers format 2 on random and dynamic files with KEY and INVALID KEY; g85_f21_10 covers NEXT+AT END on a random file. Not exercised: INTO on a dynamic random read followed by READ NEXT from that position, AT END alone (no NEXT) on a random file, NEXT with INVALID KEY on a random file.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r6pos.cob",
+    "printed": "D1 K2BBB 00 / N1 K3CCC 00 / D2 INVALID 23 / D3 K1AAA 00",
+    "expected": "dynamic file: format 2 READ INTO finds K2, READ NEXT continues at K3 (GR13/GR16), KEY IS K9 invalid key 23, bare READ RECORD INVALID KEY finds K1"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r6ref1.cob",
+    "printed": "error COBOL1720: the AT END phrase shall not be specified for a READ statement that references a file whose file control entry specifies ACCESS MODE RANDOM",
+    "expected": "refused: random access mode uses format 2, which prints no AT END"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r6ref2.cob",
+    "printed": "error COBOL2269: unexpected 'INVALID'. READ INVALID KEY: this READ statement specifies NEXT ...",
+    "expected": "refused: NEXT is format 1 only"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r6ref3.cob",
+    "printed": "error COBOL2269: unexpected 'NOT'. READ NOT AT END: no general format of the READ statement prints the NOT AT END phrase beside the INVALID KEY phrase",
+    "expected": "refused: format 2 prints no NOT AT END"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r6prev.cob",
+    "printed": "error COBOL7144 (SR5, no NEXT) and error COBOL0900: READ PREVIOUS requires COBOL-2002",
+    "expected": "refused: 1985 prints no PREVIOUS phrase"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.3 SR6",
+    "check": "OK  §1985:IX.4.5.3 SR6  (4.5.3 Syntax Rules)  the text is in SR6"
+   },
+   {
+    "cite": "§1985:IX.4.5.3 SR4",
+    "check": "OK  §1985:IX.4.5.3 SR4  (4.5.3 Syntax Rules)  the text is in SR4"
+   }
+  ],
+  "notes": "Random-access refusals and the dynamic random/sequential split behave per the 1985 text. The COBOL1720 message at --std 85 cites §2023:14.9.30.3 SR6 rather than §1985:IX.4.5.3 SR6, a citation-only blemish that does not change the verdict.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.5.3-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.4.5 formats 1/2 and SR4-SR7. Compile-only at --std 85 on an ACCESS RANDOM indexed file with a USE AFTER STANDARD EXCEPTION declarative (so SR7 is not the trigger): READ NEXT alone (q1next) COBOL1720; NOT AT END alone (q2nae) COBOL1720; NEXT + NOT AT END (q6nextnae) COBOL1720; WITH NO LOCK (2002 phrase, q3lock) COBOL0900; KEY before INTO (q5keyinto) COBOL2269; bare READ RECORD (q4ctl) compiles. Run q7dyn (dynamic, ALTERNATE KEY WITH DUPLICATES): random READ after START reads K1 (R1 K1Baa 00), READ NEXT continues at K2, random READ KEY IS IXD-ALT 'B' gives the first-written K1Baa status 02, NEXT goes K3Bcc 00 then K4Cdd 00, missing alt key INVALID KEY 23. cite.py: 'OK  §1985:IX.4.5.3 SR6  (4.5.3 Syntax Rules)  the text is in SR6'; 'OK  §1985:IX.4.5.3 SR5  (4.5.3 Syntax Rules)  the text is in SR5'. Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-207/src and runs.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

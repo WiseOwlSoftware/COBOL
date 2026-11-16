@@ -1,0 +1,63 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-8",
+ "rule-digest": "a916e5de54c6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-205",
+  "sources": {
+   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
+   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+  },
+  "imported": {
+   "reader": "b905835c7ea890c857a54ba96113f1ab08f4d6a6e76c9f1dba43732a7840cccc",
+   "refuter": "e3c42f61cb6139847fd42cf11b9486d5f7ccf299e2b0e2afb7efa5d4629bc912"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-8",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a space may optionally precede every separator (comma, semicolon, period, parentheses, colon, opening quotation mark, closing pseudo-text delimiter) without changing the program's meaning, except where reference format rules govern (continuation), before a closing quotation mark (where the space is part of the nonnumeric literal), and before an opening pseudo-text delimiter (where the space is required).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#WS; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadOperand",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|Version|Year|dialect in SeparatorRule.cs (its summary states it is edition-invariant; only the Editions namespace import), PictureSeparatorPeriodRule.cs (none), CobolLexer.g4 WS/DOT/FNARG_SEPARATOR/LPAREN/RPAREN/PIC_STRING rules (the lexer's only edition read is _caseMappingEdition, word case folding, not separators) and CopyProcessor.cs#ReadOperand (none).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f03_01 and 1985-SR-IV_4_2_1-8 cover a space before comma, semicolon, period, parentheses and the closing quotation mark; not exercised there: a space before the colon of a reference modifier, before a closing pseudo-text delimiter, before the period of headers and data entries, before the separator after a PICTURE string, and the reference-format exception (a continued literal and a continued word)",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr8.cob",
+    "printed": "BCD / XYZ / 042 / 7 / 07 / GT / [B ] / [YZ          PQ] / CONT (MATCH)",
+    "expected": "spaces before every separator are inert: W-STR ( 2 : 3 ), REPLACE == XX1 == BY == W-A == ., PIC X(3) , VALUE, PIC 9(3) ; VALUE, T ( I ), FUNCTION LENGTH ( W-STR ), IF ( ... ), headers ending ' .'; a space before the closing quote is literal content; a continued literal keeps the spaces up to margin R and a continued word DIS/-PLAY joins (reference format exception a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr6open.cob",
+    "printed": "error COBOL2573: REPLACE statement: the opening == follows 'E' with no space",
+    "expected": "exception c: the space before an opening pseudo-text delimiter is required"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR8",
+    "check": "OK  §1985:IV.4.2.1 SR8  (4.2.1 Separators)  the text is in SR8"
+   }
+  ],
+  "notes": "The lexer skips WS and the comma/semicolon-plus-space separator outside list regions, so a preceding space never changes a token; literals keep their spaces; ReadOperand enforces exception c. No edition is consulted on this path. A first sr8 run (sr8-001) differed only because the probe's own line overran column 72; the corrected probe matched.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-8",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "s89.cob at --std 85 (runs s89-002): a space before every period of headers, entries and sentences (PROGRAM-ID . S89SUB ., END PROGRAM S89 .), before commas and semicolons in a two-subscript reference TC ( 2 , 3 ), in an 88 VALUE 1 , 3 ; 5 ., in CALL USING W , K and PROCEDURE DIVISION USING LW , LK, in FUNCTION MAX ( 3 , 9 ; 4 ), before ':' and ')' in W ( 2 : 3 ) and W( K :1 ): every separator line printed as expected (74 / BCDDEA / 09 / ODD / XYZDEF). The one differing line is the DISPLAY of N PIC S9V9 SIGN LEADING SEPARATE (printed -0.5 for a 3-character item), a DISPLAY conversion question (§1985:VI.6.10.4 GR1, implementor-defined), not a separator. cite.py: 'OK  §1985:IV.4.2.1 SR8  (4.2.1 Separators)  the text is in SR8'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

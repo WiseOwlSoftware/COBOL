@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-SR-XIII.3.16.3-3",
+ "rule-digest": "b7f08ef9003e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-212",
+  "sources": {
+   "reader": "1b0405c3a654eaab78e2d8728b87eacd71f77ebde52e4b223ad9638739a13e2e",
+   "refuter": "663010dc24447d49c346b05bd04557fc4f6fc5db83e3c7eaaa3d9d6855ee357e"
+  },
+  "imported": {
+   "reader": "f75ff14a4ed0e11a6618959ba9481969ac501b53927cfd74732b6ef4100d59cc",
+   "refuter": "c98780f1a3cf8ff2cac999b1eb61df4084495a22bbbcdeca17e4385adda0065f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XIII.3.16.3-3",
+  "verdict": "CONFORMS",
+  "requirement": "At COBOL-85, in a report whose RD has no PAGE clause, every NEXT GROUP clause in every report group must be the relative form (NEXT GROUP PLUS integer-2): the absolute form (integer-1) and NEXT PAGE must be refused, and the relative form accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "Edition.DialectLevel < 2002 adds the 1985-only SR1 screen (NEXT GROUP needs a LINE NUMBER clause); the SR3 test (!model.Paged with an absolute or NEXT PAGE form) is unconditional",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReportPageClause",
+    "switches": "Constructs.ReportPageForms2002 refuses at 85 a PAGE clause without its page limit or with a width, so at 85 a written PAGE clause always sets model.Paged",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: the SR3 screen is the same code at every edition; only the PAGE-clause forms that decide 'paged' differ (85 has no width-only PAGE clause)",
+  "witnesses-cover": "part: g85_f01_06 exercises only the accepted relative form in an unpaged report; the refusal of the absolute form and of NEXT PAGE without a PAGE clause is not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ng_abs_nopage.cob",
+    "printed": "COBOL2284 on RH1 NEXT GROUP IS 5 and on DE1 NEXT GROUP IS 9: 'the report is not divided into pages, so only the relative form of the NEXT GROUP clause may be specified' (plus COBOL2199 for the absolute LINE 1)",
+    "expected": "both absolute NEXT GROUP clauses refused (SR3)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ng_nextpage_nopage.cob",
+    "printed": "COBOL2284 on DE1 and CF1 NEXT GROUP NEXT PAGE (plus an unrelated COBOL0899: the probe's CF FINAL lacked CONTROL FINAL)",
+    "expected": "NEXT PAGE refused in an unpaged report (SR3)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-212/src/ng_abs_paged.cob",
+    "printed": "EXIT 0; G1 LC 10; G2 LC 25",
+    "expected": "absolute NEXT GROUP and NEXT PAGE accepted when PAGE is written"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/XIII.3.16@1985-NEXT-GROUP-CLAUSE/g85_f01_06.cob",
+    "printed": "RH LC 00 / DE LC 03 / DE LC 07 / END LC 11; EXPECT: MATCH",
+    "expected": "relative NEXT GROUP accepted without a PAGE clause and applied"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.16.3 SR3",
+    "check": "OK  §1985:XIII.3.16.3 SR3  (3.16.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "The rule is a pure refusal rule keyed on model.Paged, set only when the PAGE clause's integer-1 is written; at 85 integer-1 is mandatory (the width-only form is refused as a 2002 form), so 'PAGE clause omitted' and !Paged coincide. Diagnostics cite §2023:13.18.37.3 SR3 at --std 85, the same rule in substance.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XIII.3.16.3-3",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Read §1985:XIII.3.16 whole (SR1-SR5) and ReportSectionBinder.cs#BindNextGroupClauses (SR3 arms at lines 930 and 944, keyed on model.Paged set in BindReportDescriptionClauses only when the PAGE clause's integer-1 is written; at 85 integer-1 is mandatory). Probe refute-1985-212/src/ng_two_reports.cob (one FD, REPORTS ARE R1 R2; R1 paged with absolute NEXT GROUP 3 and 10; R2 unpaged with absolute NEXT GROUP on RH, CH (bare 'NEXT GROUP 6' without IS) and CF, relative PLUS 2 on DE) at --std 85: three COBOL2284 exactly on R2's RH2, CH2, CF2; R1 and R2's relative DE2 not flagged. The screen is per report and covers every group type the rule reaches (PH/RF NEXT GROUP is refused by SR5 first). cite.py: 'OK  §1985:XIII.3.16.3 SR3  (3.16.3 Syntax Rules)  the text is in SR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

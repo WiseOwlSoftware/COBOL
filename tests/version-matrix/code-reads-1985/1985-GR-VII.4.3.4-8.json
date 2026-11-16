@@ -65,5 +65,11 @@
   "evidence": "r5/q1.cob at --std 85: OPEN INPUT VF OK in one statement, VF an OPTIONAL RECORD VARYING FD over an unframed file whose first prefix overruns the file: VF 39 with USE ON INPUT run, OK 00 and readable (each file opened separately), record area and DEPENDING ON item untouched; READ VF 47; OPEN EXTEND VF 39 with USE ON EXTEND; WRITE after failed EXTEND 48, medium unchanged (8 bytes). GR8 leaves the validated set to the implementor; the set the code applies is the documented one (docs/conformance/7/DOC-A.1-129.md), and every conflict in it was unsuccessful. cite.py: 'OK §1985:VII.4.3.4 GR8 ... the text is in GR8'.",
   "edition-sites-missed": [],
   "corrected": ""
- }
+ },
+ "adjudication": {
+  "verdict": "PARTIAL",
+  "reason": "A variable-length record sequential file that a program writes with ADVANCING, or under LINAGE, cannot be read back through the file description that wrote it: OPEN INPUT answers 39 and the READ 47, at every edition.",
+  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md"
+ },
+ "work": "PB5860"
 }

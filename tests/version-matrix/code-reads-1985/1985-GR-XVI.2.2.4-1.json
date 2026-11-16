@@ -1,0 +1,113 @@
+{
+ "rule-id": "1985-GR-XVI.2.2.4-1",
+ "rule-digest": "fe846f88f9a5",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-204",
+  "sources": {
+   "reader": "dffb0e24abb8dbf7a5dca9f2740d667c494a7beae275ada08d1fc408f2742f3c",
+   "refuter": "cf5adc8b29c2f9f8c7b939135d61e7541a5ad8d238409d167c4ec071b65784a6"
+  },
+  "imported": {
+   "reader": "2160e9b368a3856fd11c3823e34b08ef47cffe965a5b1c18307fd0fbc0ec437d",
+   "refuter": "74d805c2f72289602bf6eec181960dca3a4672212a6aed5e6831657660771785"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XVI.2.2.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every clause of the (Segmentation-module) OBJECT-COMPUTER paragraph (computer-name, MEMORY SIZE, PROGRAM COLLATING SEQUENCE, SEGMENT-LIMIT) must apply to the program that specifies it and to every program contained in it, directly or indirectly; a contained program has no configuration section of its own to override them.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Produce; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#BindSpecialNames; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMemorySizeClause; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSegmentLimitClause",
+    "switches": "Constructs.SegmentLimitRemoved2002: the clause is available (and range-screened 1..49, COBOL6819) at 85, refused COBOL0902 from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitMemorySizeClause",
+    "switches": "Constructs.MemorySizeRemoved2002: available at 85, refused from 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Segmentation.cs#MeaningKept",
+    "switches": "ConstructRegistry.IsAvailable(SegmentNumbersRemoved2002): section segment-numbers keep their 85 meaning (independent segments' initial state) at 85 or under --permissive",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep SegmentLimit|ProgramCollating|Edition in ConfigurationStep.cs, BinderDriver.cs, SpecialNamesBinder.cs, Segmentation.cs, VersionConformancePass.cs; the inheritance itself (ConfigurationStep.Produce's Contained arm, called from BinderDriver for every unit with a parent) consults no edition",
+  "behaviour-differs-by-edition": "yes: the SEGMENT-LIMIT and MEMORY SIZE clauses exist only at 85 (refused COBOL0902 at 2002); the PROGRAM COLLATING SEQUENCE inheritance is the same at every edition",
+  "witnesses-cover": "part: g85_f06_03 covers PROGRAM COLLATING SEQUENCE in one directly contained program's comparisons and a segmented contained program; an indirectly contained program, HIGH/LOW-VALUE, FUNCTION ORD, SORT keys and group comparisons in a contained program, and the refusals were probed here",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/obj1.cob",
+    "printed": "OUTER A>B YES / INNER1 A>B YES / INNER1 GROUP AA>AB YES / INNER1 LOW-VALUE IS [Z] / INNER1 ORD(A) 003 / INNER1 SORTED ZBA / INNER2 Z<A YES / INNER2 LOW-VALUE IS Z",
+    "expected": "the container's PROGRAM COLLATING SEQUENCE REV (Z,B,A,...) governs nonnumeric comparisons of elementary and group items, LOW-VALUE, ORD and default SORT key order in the directly contained INNER1 and the indirectly contained INNER2 (§1985:VI.4.4.4 GR7, GR8)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/obj2.cob",
+    "printed": "error COBOL1643: a CONFIGURATION SECTION is specified in a program contained within another program; the containing program's configuration section applies to it",
+    "expected": "refused: a contained program cannot state its own OBJECT-COMPUTER (the Configuration Section rule of the Nucleus)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/obj3.cob",
+    "printed": "error COBOL6819: the SEGMENT-LIMIT clause: the segment-number 50 is not in the range 1 through 49",
+    "expected": "refused (§1985:XVI.2.3.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-204/obj1.cob (--std 2002)",
+    "printed": "error COBOL0902: the MEMORY SIZE clause ... removed in COBOL-2002; the SEGMENT-LIMIT clause ... removed in COBOL-2002; section-header segment-numbers removed",
+    "expected": "the 85-only clauses are refused at a later edition"
+   },
+   {
+    "class": "witness",
+    "file": "conformance-suite/cases/XVI.2.2@1985-OBJECT-COMPUTER-PARAGRAPH/g85_f06_03.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "OUTER A>B YES / INNER Z<A YES / INNER A>B YES / S20-ALTERED"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XVI.2.2.4 GR1",
+    "check": "OK  §1985:XVI.2.2.4 GR1  (2.2.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.4.4.4 GR2",
+    "check": "OK  §1985:VI.4.4.4 GR2  (4.4.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.4.4.4 GR7",
+    "check": "OK  §1985:VI.4.4.4 GR7  (4.4.4 General Rules)  the text is in GR7"
+   },
+   {
+    "cite": "§1985:VI.4.4.4 GR8",
+    "check": "OK  §1985:VI.4.4.4 GR8  (4.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:XVI.2.3.1",
+    "check": "OK  §1985:XVI.2.3.1  (2.3.1 Function)  the text is in the clause"
+   }
+  ],
+  "notes": "Every contained unit's configuration slice is seeded from its container's before it binds (ConfigurationStep, one level at a time, container first), so the collating sequence reaches any depth. SEGMENT-LIMIT is accepted and range-checked but has no run-time consumer: all segments are resident and every segment below 50 keeps fixed-segment logic, which is exactly what §1985:XVI.2.3.1 says an overlayable fixed segment retains, so its application to contained programs is behaviourally vacuous; MEMORY SIZE likewise has no effect. The BinderDriver member named is the method that calls ConfigurationStep.Produce.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XVI.2.2.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-204/oc1.cob at --std 85 (runs/oc1-002): container OBJECT-COMPUTER with PROGRAM COLLATING SEQUENCE IS REV (ALPHABET REV IS \"C\" \"B\" \"A\") and SEGMENT-LIMIT 10. Aimed at the GR7/GR8 uses the reader did not probe: condition-name conditions (88 VALUE \"C\" THRU \"A\" holds \"B\" only under REV) evaluate true in the outer program, in the directly contained INNER1 (local and GLOBAL 88) and in the indirectly contained INNER2; EVALUATE WHEN \"C\" THRU \"A\" true in INNER1; HIGH-VALUE > \"A\" in INNER1; a MERGE with no COLLATING SEQUENCE phrase in INNER1 merges inputs ordered under REV to C B A. cite.py: OK §1985:XVI.2.2.4 GR1 'apply to the program in which they are explicitly or implicitly specified'; OK §1985:VI.4.4.4 GR7 'Explicitly specified in condition-name conditions'; OK §1985:VI.4.4.4 GR8 'applied to any nonnumeric merge or sort keys'. SEGMENT-LIMIT/MEMORY SIZE have no observable run-time effect (all segments resident), as the reader said.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

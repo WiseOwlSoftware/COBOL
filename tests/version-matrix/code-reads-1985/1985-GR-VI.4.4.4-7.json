@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.4.4.4-7",
+ "rule-digest": "0f987780057c",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-190",
+  "sources": {
+   "reader": "9f84612e1446d04f92a3e05be9d85915c1ae8946ea67fbf9f11ec70e8c6d13a0",
+   "refuter": "d420eaba9d38718a153d905d95f312f4181bc8113eb6a67dba76c88228f581f8"
+  },
+  "imported": {
+   "reader": "8497586f84c2fc57d6c5c9e4c3fa2d48063caf2f38edb0e250f7b5be834b74ad",
+   "refuter": "2ce6c26ab9b4e960468371c45de994765a751e22c0f14d3bc56a7a4c99737dae"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.4.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every nonnumeric comparison in a relation condition (elementary, group, numeric-integer versus nonnumeric, edited, figurative and ALL operands, unequal lengths padded with spaces, abbreviated and negated forms), in a condition-name condition (single values and THRU ranges) and in the CONTROL clause's break test must be decided by the program collating sequence, while numeric comparisons are not.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderRelationalCore; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderCondition88; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#RenderMembershipTest; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ComparisonText; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#CollateArgFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitReportConstruction; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#EmitMembers",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#ComparisonText",
+    "switches": "below 2002 a numeric operand's comparison image is its item characters (§1985:VI.6.3.1.1.2 GR1), not the 2002 sending image; the collating argument is unchanged",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs#DropsOperationalSign",
+    "switches": "below 2002 a signed numeric opposite a group keeps its sign character",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of DialectLevel/Edition in ConditionRenderer.cs, EmitCore.CollateArgFor, CollatingModel.cs and ReportWriterEmitter control-break code: only the two operand-image switches above; the choice of collating sequence consults no edition",
+  "behaviour-differs-by-edition": "no: the collating sequence applies identically; only the 1985 operand image of a numeric operand differs, which this rule does not govern",
+  "witnesses-cover": "part: g85_f06_01 covers a, b and c with elementary one-character items; unequal lengths, groups, numeric-versus-nonnumeric, edited, figurative, ALL, reversed THRU ranges, ALSO-equal singletons, ref-mod and ODO are not exercised",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/rel7a.cob",
+    "printed": "A >AB YES / 5>Z YES / GRP<A1 YES / E>Z5 YES / AA>ALLB YES / Z=LOW YES / A<SPACE YES / B IN Z-A YES / C IN Z-A NO / Q IS KQ YES / K=Z NO / BAK<AZ YES / ODO<2A YES / 05<10 YES / EVAL A IN B-K YES / ABBR YES / NOT A>Z NO",
+    "expected": "under REV (Z B A K=Q, rest native): each line as printed; 88 VALUE Z THRU A holds B but not C; 88 VALUE K holds Q (ALSO); numeric 05<10 unaffected"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-190/src/rel7a.cob",
+    "printed": "BAK<AZ YES (ref-mod (2:3)); ODO<2A YES (ODO group at extent 2)",
+    "expected": "comparison of ref-mod and variable-length group operands under REV"
+   },
+   {
+    "class": "d",
+    "file": "conformance-suite/cases/VI.4.4@1985-OBJECT-COMPUTER-PARAGRAPH/g85_f06_01.cob",
+    "printed": "MATCH (no CF after K->Q, CF after Q->Z)",
+    "expected": "CONTROL break test under the program collating sequence"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.4.4 GR7",
+    "check": "OK  §1985:VI.4.4.4 GR7  (4.4.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "Every alphanumeric comparison surface (relation, 88 singleton and range, EVALUATE range, CONTROL break) takes the collating argument from the one CollateArgFor reader. A first rel7a run showed wrong lines, traced to my own source running past column 72 (rel7a-001); the corrected rel7a-002 matches.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.4.4-7",
+  "refutation": "UPHELD",
+  "classes": "a,d",
+  "evidence": "r7a-002 under ALPHABET REV IS \"Z\" THRU \"A\": SEARCH ALL over a REDEFINES table ZRMDA with ASCENDING KEY finds D and R (a native binary search on that order would miss), serial SEARCH WHEN ENT < \"R\" stops at Z, PERFORM UNTIL ENT(i) > \"N\" stops at 3 (M), numeric-edited '  5' vs alphanumeric '  A' gives NE<AN NO, symbolic-character 2 IN REV equals 'Y', 'A' > ALL \"B\" YES. All match the program collating sequence. cite.py: OK  §1985:VI.4.4.4 GR7  (4.4.4 General Rules)  the text is in GR7",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

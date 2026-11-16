@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-7",
+ "rule-digest": "b798ba4c49b4",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "856acde6ccd33b57ef2a849f773e75af17c5766d7ffc081c64285dba5d9ee5fa",
+   "refuter": "662f2811f7f187d014e5c5085a00caed6523557dabf85861aaaaadae6b413939"
+  }
+ },
+ "reader": {
+  "edition-search": "",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 the files on a called program's internal file connectors are not open whenever the program is in its initial state (first call, after CANCEL of it or a container, every call of an initial program); on every other entry each such file's open mode, status and position (sequential, relative and indexed, any access mode, including a failed OPEN or an AT END) are as when the program last exited.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#CloseFiles; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#Register",
+    "switches": "stamps the connector's Edition, which FileConnector.SharingFacilityInEffect and CLOSE WITH LOCK read (DialectBehavior.FileSharingFacility, CloseWithLockLocksFileConnector); neither decides whether a connector stays open or positioned across a CALL",
+    "same-arm-as-latest": false
+   }
+  ],
+  "behaviour-differs-by-edition": "no: retention and the CANCEL/initial-program implicit CLOSE are one path; the I-O status values seen (35, 46, 47, 10) are 1985 codes",
+  "witnesses-cover": "part: g85_f02_05 and 1985-GR-X_5_2_4-7 cover a sequential file left open across calls and reopened after CANCEL; not covered: relative and indexed files, dynamic access and START positioning, a failed OPEN or an AT END carried to the next entry, an initial program's files",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr7a.cob",
+    "printed": "OPEN NF 35 / IX K2D2 00 / RL R1 00 / NF 47 / IX K3D3 00 / RL R2 00 / NF 47 / RL3 10 / RL4 46 / IXR K1D1 00 / IX5 K2D2 00 / REOPEN IX 00 / REOPEN RL 00 / FI OPEN 00 / FI R1 00 / FI OPEN 00 / FI R1 00 (run gr7a-002, MATCH)",
+    "expected": "the START position of an indexed dynamic file and the relative sequential position survive each exit; the failed OPEN leaves the file not open on later entries (47); an AT END carries over (46); after CANCEL both files OPEN with 00; the initial program FI opens with 00 on each call"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr8a.cob",
+    "printed": "MAIN F MF01 00 ... IW OPEN F 00 ... IW OPEN F 00 ... MAIN F MF02 00",
+    "expected": "an initial callee's internal file F is closed at its exit and opens again with 00, while the caller's own internal F of the same file-name keeps its position"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR7",
+    "check": "OK  §1985:X.5.2.4 GR7  (cite.py --check with \"the states and positioning of all such files is the same as when the called program was last exited\")"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR2",
+    "check": "OK  §1985:X.2.4.1 GR2  (cite.py --check with \"Files with internal file connectors associated with the program are not in the open mode\")"
+   },
+   {
+    "cite": "§1985:X.5.3.4 GR10",
+    "check": "OK  §1985:X.5.3.4 GR10  (cite.py --check with \"an implicit CLOSE statement without any optional phrases is executed for each file in the open mode that is associated with an internal file connector\")"
+   }
+  ],
+  "notes": "Both witnesses MATCH at 85. Internal connectors live in the run-unit registry under per-program keys and are untouched by CALL and EXIT PROGRAM; CancelNode and EndInitialActivation run the emitted CloseFiles, so the next initial-state entry finds the files closed."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-7",
+  "refutation": "UPHELD",
+  "classes": "e",
+  "evidence": "g67: a LINAGE 5 file opened by non-initial LP keeps its LINAGE-COUNTER across calls (3, 5, then 1 on the new page, status 00); KP's file CLOSEd WITH LOCK gives 38 on reopen at the next entry and after CANCEL KP (lock is a run-unit property per §1985 CLOSE 'cannot be opened again during this execution of this run unit'), the file is not in open mode (READ 47, CLOSE 42); NF's file in a program contained in an INITIAL program is closed at each new activation (OPEN 00). cite.py: OK §1985:X.5.2.4 GR7 the text is in GR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

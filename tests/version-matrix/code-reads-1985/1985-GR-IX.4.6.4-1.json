@@ -1,0 +1,78 @@
+{
+ "rule-id": "1985-GR-IX.4.6.4-1",
+ "rule-digest": "4866efe5a564",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "57bb5b0203d7bc8beea598b027e165ca95b8f0d8334f3ff26a44dfa34f80d55d",
+   "refuter": "b752fe8a4654888a0b1e88a501ae0b1f24bc53f7df5391a3059fe5284f7e101d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.6.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a REWRITE on an indexed (mass storage) file must execute only when the file is open in the I-O mode; when it is not open, or open INPUT, OUTPUT or EXTEND, the statement is unsuccessful with I-O status 49 (§1985:IX.1.3.4 logic error h), the record is not replaced, and the applicable USE procedure runs.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#MutationTargetRecordId; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RewriteShared; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility: at 85 no file sharing, so RewriteShared's lock arms are inert; the open-mode guard itself is not edition-gated",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+    "switches": "ctx.ExceptionPhrases.Require: the COBOL-85 mandatory INVALID KEY phrase (SR3, a different rule); not on the GR1 path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|CobolVersion|Dialect over Runtime/IO; MutationOpenModeGuard and IndexedConnector.Rewrite's first line consult no edition: the I-O-mode check is the same code at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses are OPEN/RELEASE cases; none exercises REWRITE on an indexed file open INPUT, OUTPUT, EXTEND or closed",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/rwmode.cob",
+    "printed": "USE OUTPUT FS=49 / USE CLOSED FS=49 / USE INPUT FS=49 / READ K001ORIGNL / AFTER I-O FS=00 / READ K001IOCHGD",
+    "expected": "status 49 and record not replaced in every mode but I-O; I-O REWRITE succeeds (§1985:IX.4.6.4 GR1, §1985:IX.1.3.4)"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/rwmode2.cob",
+    "printed": "USE EXTEND FS=49 / USE I-O-NOREAD FS=43 / READ 08 3 / AFTER I-O FS=00 / READ 10 K0015BBBBB",
+    "expected": "EXTEND REWRITE 49; sequential-access I-O REWRITE without READ 43 (GR2); varying-length record replaced at its new length after READ"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.4 GR1",
+    "check": "OK  §1985:IX.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5h"
+   }
+  ],
+  "notes": "The open-mode precondition is written once in FileConnector.MutationOpenModeGuard and is the first line of IndexedConnector.Rewrite; it answers '49' before any record is identified. Indexed files are mass storage by definition, so the mass-storage half needs no check. Probed through a USE AFTER STANDARD ERROR/EXCEPTION declarative and FILE STATUS.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.6.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,d,e",
+  "evidence": "refute-1985-189/rw3.cob (ACCESS RANDOM, which the reader did not try; USE AFTER STANDARD ERROR, FILE STATUS) at --std 85 printed: OPEN OUTPUT then REWRITE ... FROM WS-REC with INVALID KEY and NOT INVALID KEY -> USE FS=49, neither phrase taken; OPEN INPUT with a key absent from the file -> 49 (not 23: the open-mode check comes first); OPEN I-O then CLOSE then REWRITE -> 49; the statement after a FAILED OPEN I-O of a missing non-OPTIONAL file (FS2=35) -> REWRITE gives FS2=49 through USE; OPEN I-O random REWRITE -> 00 and READ shows K001RNDCHG. With the reader's DYNAMIC and SEQUENTIAL probes (OUTPUT, closed, INPUT, EXTEND) every mode but I-O is refused with 49 and the record is unchanged. cite.py: OK  §1985:IX.4.6.4 GR1  (4.6.4 General Rules)  the text is in GR1.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.4.3-4",
+ "rule-digest": "333334bc30f3",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "35db9c4f77d1d1f36bd91e19fe991daea6218bc79917ca941011e04ab9b47c4f",
+   "refuter": "429e18f83afd6016c58107dcb3cfeb4b9dc40cc5931c19cf0a331c15cb09e343"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.4.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the data-name-1 of a reference modification may carry qualifiers (data-names, a file-name) and 1985 subscripts (integer, integer data-name, index-name, each with relative +/- integer, multi-dimensional, over an ODO table) written before the modifier, as sender and receiver, while a 2002 arithmetic-expression subscript is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#dataReference; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#refModPart; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#ReadRefMod",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSubscriptPart",
+    "switches": "subscript-arithmetic-expression-2002: refuses a subscript that is not a 1985 integer, data-name or index-name with optional +/- integer",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenCobol85SubscriptDataNames",
+    "switches": "the same construct: refuses a subscript data-name that is not an integer at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Grepped RefModBinder.cs, SubscriptBinder.cs, ReferenceResolver.cs for DialectLevel/ConstructRegistry/Constructs./CobolVersion; only the subscript-shape construct is consulted; qualification and the modifier bind the same at every edition.",
+  "behaviour-differs-by-edition": "yes: the subscripts data-name-1 may carry are narrower at 85 (an arithmetic-expression subscript is refused COBOL0900 at 85 and runs at 2002); qualification and the modifier itself do not differ",
+  "witnesses-cover": "part: g85_f04_09 covers one-level qualification and single integer subscripts; not index-names, relative subscripts, multiple dimensions, file-name qualification, ODO tables, or the 85 subscript-shape refusal",
+  "probes": [
+   {
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rm-qs.cob",
+    "printed": "M1 HI / M2 JKL / M3 I / M4 GH / M5 ZZZ / M6 EF A",
+    "expected": "CE OF CL OF RW OF T2 (2, 1) (2:2)=HI; index-names (IR, IC)=JKL; relative (IR + 1, IC - 1) (3:1)=I; data-name subscripts and positions=GH; ODO element OE (OC) (2:3)=ZZZ; NM OF FR and NM OF F1 qualified up to the file-name"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rm-f.cob",
+    "printed": "F1 6 / F2 8",
+    "expected": "subscript and positions evaluated before K is changed: TE (2) (2:1)=6, TE (2) (4:1)=8"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rm-wrong-order.cob",
+    "printed": "COBOL5506 cannot parse construct near ')' (TE (1:2) (2))",
+    "expected": "refused: the subscript precedes the modifier"
+   },
+   {
+    "class": "b,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rm-comp.cob",
+    "printed": "COBOL1647 reference modification of a numeric item of USAGE Binary is not permitted",
+    "expected": "refused (SR1, usage DISPLAY)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rm-c.cob",
+    "printed": "--std 85: COBOL0900 the arithmetic-expression subscript K * 2 requires COBOL-2002; --std 2002: runs, prints 67",
+    "expected": "85 refuses the 2002 subscript form; expression positions in the modifier are legal (SR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.4.3 SR4",
+    "check": "OK  §1985:IV.4.3.8.4.3 SR4  the text is in SR4"
+   }
+  ],
+  "notes": "A qualified or subscripted data-name-1 resolves through the one ReferenceResolver path and the modifier applies to the resolved element. The 85 subscript-shape gate fires on the subscript, not on the modifier.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.4.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "rm-all.cob at 85: the Amendment 1 ALL subscript with a reference modifier, applied to each element (§1985:IV.4.3.8.4.4 GR3 a): FUNCTION MAX (TE (ALL) (2:1)) = Z, MIN = A, MAX (C (ALL, 2) (3:1)) = l over a 2-dimensional table; signed integer subscript TE (+2) (1:2) = BC; qualified data-name subscripts TE (K OF H) (3:2) = DE, TE (K OF G + 2) (1:1) = C, C (K IN H, K IN G) (2:2) = hi; receiving MOVE \"XY\" TO TE (K OF H - 1) (3:2) gives AZXY. Refusals: TE (2) OF T (1:2) refused COBOL2776 (qualifiers precede subscripts); TE (1:2) on a table element refused COBOL2270 (§1985:IV.4.3.8.2.3 SR4). cite.py: OK §1985:IV.4.3.8.4.3 SR4 the text is in SR4; OK §1985:IV.4.3.8.4.4 GR3 the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

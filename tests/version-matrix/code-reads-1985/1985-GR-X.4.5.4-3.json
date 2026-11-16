@@ -1,0 +1,85 @@
+{
+ "rule-id": "1985-GR-X.4.5.4-3",
+ "rule-digest": "51457c5fa926",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-199",
+  "sources": {
+   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
+   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+  },
+  "imported": {
+   "reader": "4ec91ffccded0fdf0b7ee1d3a485c39ba02c630f1b743d1319807b17d6e4463d",
+   "refuter": "047e41172bd41e7be969fd35c370bac85f33b1d62f938e15328d6f6e0de3d38d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.4.5.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 an EXTERNAL file-name or data-name (with its subordinate names and condition-names) is not visible to a contained program that does not describe it, unless it is also GLOBAL. A contained program that describes the same external record itself shares the storage.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindExternalAndGlobal; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallMakeExternal; src/WiseOwl.Cobol.Compiler/Binding/BinderDriver.cs#BindUnitData",
+  "edition-consulted": [],
+  "edition-search": "A grep for Edition.Year, IsAtLeast, CobolVersion and Constructs in LinkageBinder.cs, NameResolution.cs, ReferenceResolver.cs and InheritedGlobals.cs found nothing. At every edition the global roots come only from HasGlobalClause (and GLOBAL FDs), never from HasExternalClause.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_bf31_07 covers an EXTERNAL data-name. The probes add an EXTERNAL file-name, the record of an EXTERNAL FD, a condition-name under an EXTERNAL record, and the positive EXTERNAL GLOBAL and redescribe forms.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c4a_witness.cob",
+    "printed": "COBOL1639 'BF31-XREC' is not defined at (28,20)",
+    "expected": "refused: an EXTERNAL data-name is not global"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c4b_ext_file_not_global.cob",
+    "printed": "COBOL1639 'XF' is not defined as a file (OPEN in the contained program)",
+    "expected": "refused: an EXTERNAL file-name is not global"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c4c_ext_record_of_fd_not_global.cob",
+    "printed": "COBOL1639 'XF-REC' is not defined",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c4d_ext_cond_not_global.cob",
+    "printed": "COBOL1639 'XF-ON' is not defined",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c4e_ext_global_and_redescribe.cob",
+    "printed": "INNER XF=AAA YF=BBB / OUTER YF=CCC",
+    "expected": "EXTERNAL GLOBAL is visible in the contained program, and a contained program that redescribes the EXTERNAL record shares it"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.4.5.4 GR3",
+    "check": "OK  §1985:X.4.5.4 GR3  (║4.5.4 General Rules║)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:X.4.6.4 GR2",
+    "check": "OK  §1985:X.4.6.4 GR2  (║4.6.4 General Rules║)  the text is in GR2"
+   }
+  ],
+  "notes": "Only the GLOBAL attribute makes a name visible to contained programs. EXTERNAL only re-bases storage onto the run-unit cell, so the rule holds on the one arm every edition takes.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.4.5.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,e",
+  "evidence": "Probe r4a_ext_linage_counter.cob (--std 85): OUTER has FD XF IS EXTERNAL LINAGE IS 10 LINES (not GLOBAL), and the contained INNER references LINAGE-COUNTER. Result: COBOL5997 'no file description entry contains a LINAGE clause'. Neither the external file nor its LINAGE-COUNTER is visible in the contained program, which is consistent with GR3. The reader's probes cover the data-name, file-name, FD record and condition-name legs. cite.py: OK  §1985:X.4.5.4 GR3  (║4.5.4 General Rules║)  the text is in GR3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

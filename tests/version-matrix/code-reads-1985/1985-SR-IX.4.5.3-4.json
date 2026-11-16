@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-SR-IX.4.5.3-4",
+ "rule-digest": "26afad2a3e91",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "cfb74c5997e27f771a69377c1faec681e3bfef489582b19632001d2445884c00",
+   "refuter": "22b377790397bdc18766b35d345f5d9cfee6b890aa5d9e035dd3d80678a529bb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.5.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a READ of an indexed file in sequential access mode must be Format 1: the Format 2 phrases KEY IS, INVALID KEY and NOT INVALID KEY are refused there, and Format 1 (NEXT optional, AT END, INTO) reads in prime-key order.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyFormat; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Year < 2002 dynamic-mode NEXT requirement; returns at once for a sequential-access file",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExceptionPhraseRequirement.cs#Require",
+    "switches": "Year < 2002: AT END or INVALID KEY required (SR7)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS is a 2002 construct",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The SR4 refusals (CheckReadKeyFormat; ScreenForbiddenPhrase through EditionContext.Removed, which switches on --permissive only) and the ReadKind switch carry no edition test; the listed sites are the READ-wide 85 arms on the same path.",
+  "behaviour-differs-by-edition": "no: not for this rule; the 85-only SR7 arm additionally requires AT END on the Format 1 READ",
+  "witnesses-cover": "part: g85_f21_05 covers Format 1 on a sequential file and 1985-SR-IX_4_5_3-4 the INVALID KEY refusal; not KEY IS on a sequential file, NOT INVALID KEY, INTO, or a READ on a file that is not open",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-seq-key.cob",
+    "printed": "COBOL2269 READ AT END: this READ statement specifies KEY IS, and no general format prints both",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-seq-key-nophr.cob",
+    "printed": "COBOL0864 READ KEY on 'IXF': the file's access mode is SEQUENTIAL ... which has no KEY phrase; COBOL6826 (SR7)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-seq-notinv.cob",
+    "printed": "COBOL1720 the NOT INVALID KEY phrase shall not be specified ... Format-1 sequential read; COBOL6826",
+    "expected": "refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-seq-ok2.cob",
+    "printed": "S1 K1 00 / S2 K2 / S3 EOF 10 / S4 47",
+    "expected": "Format 1 reads K1, then K2 (NEXT, INTO), then the at end condition 10; a READ on the closed file fails with status 47"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-dyn-ok.cob",
+    "printed": "D1 BBB / D2 EOF 10",
+    "expected": "dynamic access keeps Format 2 (INVALID KEY) and READ NEXT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/rd-seq-ok.cob",
+    "printed": "COBOL6826 READ specifies no INVALID KEY or AT END phrase",
+    "expected": "a bare READ is refused at 85 by SR7, not SR4"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.5.3 SR4",
+    "check": "OK  §1985:IX.4.5.3 SR4  the text is in SR4"
+   }
+  ],
+  "notes": "A sequential-access indexed READ binds ReadKind.Next and every Format 2 phrase is refused: KEY by CheckReadKeyFormat (hard error), INVALID and NOT INVALID KEY by ScreenForbiddenPhrase (error strict, warning under --permissive).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.5.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Attack on the reader's bare-READ evidence: with a USE AFTER STANDARD EXCEPTION procedure SR7 no longer demands AT END, so a bare Format 1 READ must compile. rd-use.cob (indexed, ACCESS MODE omitted, so sequential): READ IXF, READ IXF NEXT RECORD END-READ, READ IXF compile and print U1 K1 00 / U2 K2 00 / USE 10 / U3 10 (the at end condition reaches the USE procedure). With that USE in place: READ IXF KEY IS PK refused COBOL0864 (access mode assumed SEQUENTIAL); READ IXF INVALID KEY refused COBOL1720. Class c: READ ... WITH NO LOCK refused COBOL0900 (2002) and READ PREVIOUS refused COBOL0900 (2002). cite.py: OK §1985:IX.4.5.3 SR4 the text is in SR4; OK §1985:IX.4.5.3 SR7 the text is in SR7.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

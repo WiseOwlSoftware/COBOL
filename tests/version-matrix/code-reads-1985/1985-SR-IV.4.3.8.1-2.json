@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-IV.4.3.8.1-2",
+ "rule-digest": "2bec33c30c4e",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-206",
+  "sources": {
+   "reader": "783ab9b762905f3058755480e17743e02ef4d6a5ba711bead08d72577d30a7ea",
+   "refuter": "a2a52398a6cd21fc62926923bec9f43b7621149266c7b166ddbaa70b5badd306"
+  },
+  "imported": {
+   "reader": "9d83ef7051b61641aaebe9a7c2bf9c6ba89a306243fd3421df93577164e7684f",
+   "refuter": "f258b74af13106f96b7f4db901e6b1cac8876cc5ed3102edd5e14904d858f907"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.3.8.1-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a non-unique data-name written as the REDEFINES operand is uniquely referenced by the clause's placement (the preceding entry at the same level, unqualified), at level 01 and at subordinate levels, while the same non-unique name elsewhere still needs qualification.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#RedefinesDataName2; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Resolve",
+  "edition-consulted": [],
+  "edition-search": "Grepped ResolveRedefinesPass.cs and DataBinder.RedefinesDataName2 for DialectLevel, Year, ConstructRegistry, Constructs., IsAvailable: none; the binder.Edition calls there are Error/Removed severity seams (Removed switches on --permissive, not the edition). Resolution takes the nearest preceding same-named sibling in the same scope at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f04_06 and the redefines-unqualified case cover subordinate-level duplicates; not a level-01 REDEFINES of a name also declared subordinate, a nested duplicate (05 X / 10 X), the qualified-operand refusal, or a later-sibling refusal",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/redef-ok.cob",
+    "printed": "B=TOPA / Y1=INZZ / Y2=G/2G2 / X2=Q2G2",
+    "expected": "01 B REDEFINES A binds the 01 A, not G0's 05 A; 05 Y REDEFINES X binds the 05 X, not its subordinate 10 X; G2's Y binds G2's X"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/redef-qual.cob",
+    "printed": "COBOL2915 'FR' REDEFINES 'F OF G1': Data-name-2 shall not be qualified",
+    "expected": "refused (placement, not qualification, makes it unique)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/redef-later.cob",
+    "printed": "COBOL1654 data-name-2 does not name a preceding entry in the same scope",
+    "expected": "refused: only the preceding entry at that level is unique by context"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-206/src/redef-unqual-use.cob",
+    "printed": "COBOL1639 'F' does not uniquely identify a data item",
+    "expected": "refused: outside the REDEFINES clause the duplicate needs qualification"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.1 SR2",
+    "check": "OK  §1985:IV.4.3.8.1 SR2  the text is in SR2"
+   }
+  ],
+  "notes": "Uniqueness by placement is ResolveRedefinesPass.Run's preceding-sibling search in the subject's own scope (Parent.Children, or the section's roots at level 01); a qualified operand is refused by DataBinder.RedefinesDataName2. No edition switch on the path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.3.8.1-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Read §1985:VI.5.10.3 SR7, SR8 (multiple redefinitions must use the name of the entry that ORIGINALLY defined the area), SR10, SR11 and ResolveRedefinesPass.Run lines 79-93: the candidate is the nearest preceding same-named entry that is not itself a redefinition (DataItem.RedefinedEntry), roots filtered to the same Section. Probes: redef-chain.cob (05 X / 05 X REDEFINES X / 05 Z REDEFINES X, and the same at 01) compiles and prints Z=ABC T=TT Y=TOPXX G=ABCDTT, so Z and Y bind the ORIGINAL X, not the nearer redefining X; redef-nested.cob (outer 01 A GLOBAL, inner 01 A, inner 01 B REDEFINES A) prints B=INNA; redef-nested-bad.cob (inner has no A, only the outer GLOBAL A) refused COBOL1654; redef-link.cob (WS 01 A, LINKAGE 05 A under 01 L, LINKAGE 01 B REDEFINES A) refused COBOL1654, the cross-section and wrong-level names are not taken. cite.py: OK §1985:IV.4.3.8.1 SR2 the text is in SR2; OK §1985:VI.5.10.3 SR8 the text is in SR8.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

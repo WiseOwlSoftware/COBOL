@@ -1,0 +1,113 @@
+{
+ "rule-id": "1985-SR-XI.4.1.3-2",
+ "rule-digest": "70f4cb457ad7",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-217",
+  "sources": {
+   "reader": "3d8d8fecb598225035e5e6749b0c7173f8d1dcd382d76160b8315c7de9be5edf",
+   "refuter": "fb0c4b4dc25370e003c23c6e442ad683a8ed15c0b7ef4f3fab4062d8e4dbe37c"
+  },
+  "imported": {
+   "reader": "2a19f1cbd852b894400b39b74728fabe700511e4811e73e52028a3f1c4a078bc",
+   "refuter": "247fb57eab00979ed7508c5fbde5e30b057ea9831c92401d5d4aeb232c23d547"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-XI.4.1.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "The compiler must refuse a MERGE statement whose file-name-1 is not described by an SD entry visible to it, whether that name is an FD file of any organization, a GLOBAL FD of a containing program, a data-name, or no file at all, and it must accept a MERGE whose file-name-1 has an SD.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindMerge; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveFile; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#IsSortMerge",
+  "edition-consulted": [],
+  "edition-search": "BindMerge tests file.IsSortMerge with no edition test; grep 'Edition.(Edition|DialectLevel)|DialectLevel|ConstructRegistry|Version' over StatementValidation.ResolveFile and the BindMerge region of SortBinder.cs: only the diagnostic sink (ctx.Edition / data.Edition.Error), no switch. The SD entry's closed clause list (ClosedFormatPass) also refuses GLOBAL on an SD at 85 and 2023 alike.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c18-merge-file-not-sort-merge is a sequential FD only; not covered: a relative FD, a file-name that is a USING file, an undeclared name, a data-name, a containing program's SD (not visible: 1985 SD has no GLOBAL) or GLOBAL FD, and the accepting SD case at 85",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6ok-001/p6ok.cob",
+    "printed": "AAA01 BBB02 CCC03 DDD04 (MERGE SD ON ASCENDING KEY USING F1 F2 GIVING FO)",
+    "expected": "accepted: file-name-1 is described by an SD"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6fd-001/p6fd.cob",
+    "printed": "error COBOL1757: MERGE file 'SF' is not described in a sort-merge description entry",
+    "expected": "refused (SR2): sequential FD"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6rel-001/p6rel.cob",
+    "printed": "error COBOL1757 (relative FD)",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6usingfile-001/p6usingfile.cob",
+    "printed": "error COBOL1757: MERGE file 'F1' is not described in a sort-merge description entry",
+    "expected": "refused (SR2)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6undecl-001/p6undecl.cob",
+    "printed": "error COBOL1639: 'NOFILE' is not defined as a file",
+    "expected": "refused: no file-name"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6data-001/p6data.cob",
+    "printed": "error COBOL1639: 'WS-ITEM' is not defined as a file",
+    "expected": "refused: a data-name is not a file-name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6nested-001/p6nested.cob",
+    "printed": "error COBOL1639: 'SF' is not defined as a file (contained program, container's SD)",
+    "expected": "refused: a 1985 SD has no GLOBAL clause, so the name is not visible to the contained program"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6globalfd-001/p6globalfd.cob",
+    "printed": "error COBOL1757 (contained program, container's GLOBAL FD)",
+    "expected": "refused (SR2): visible, but described by an FD"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p6globalsd-001/p6globalsd.cob",
+    "printed": "error COBOL1970: 'IS' is not a clause of the sort-merge file description entry (SD SF IS GLOBAL); the same at --std 2023",
+    "expected": "the 1985 SD format (page XI-7) prints only the RECORD and DATA RECORDS clauses after file-name-1 (§1985:XI.3.2.3 SR2)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XI.4.1.3 SR2",
+    "check": "OK  §1985:XI.4.1.3 SR2  (4.1.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:XI.4.1.3 SR5",
+    "check": "OK  §1985:XI.4.1.3 SR5  (4.1.3 Syntax Rules)  the text is in SR5"
+   },
+   {
+    "cite": "§1985:XI.3.2.3 SR2",
+    "check": "OK  §1985:XI.3.2.3 SR2  (3.2.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "BindMerge resolves file-name-1 through StatementValidation.ResolveFile (COBOL1639 for a name that is no file) and refuses any file whose FileModel.IsSortMerge is false (COBOL1757), at every edition by the same code. COBOL1757's text cites §2023:14.9.24.3 at --std 85 rather than §1985:XI.4.1.3 SR2, a message matter only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-XI.4.1.3-2",
+  "refutation": "UPHELD",
+  "classes": "c,e",
+  "evidence": "Class c r6local-001 at --std 85: a containing program declares 'FD SF IS GLOBAL'; the contained program declares its own SELECT SF and 'SD SF' and runs 'MERGE SF ON ASCENDING KEY SF-KEY USING F1 F2 GIVING FO': compiled and ran, printing AAA01 / BBB02 / CCC03, so the local SD hides the global FD and file-name-1 resolves to the SD as the 1985 scope rules require (no rejection of legal source through the global name). The 1985 SD has no GLOBAL clause: the GLOBAL clause is for 'data description entries whose level-number is 01 in the File Section or the Working-Storage Section, file description entries, or report description entries' (cite.py 'OK  §1985:X.4.6.3 SR1 ... the text is in SR1'), and the Inter-Program Communication module prints GLOBAL only in the FD formats (X-15 to X-17), so the reader's refusals of a container's SD (not visible) and of 'SD SF IS GLOBAL' are right. BindMerge's IsSortMerge test has no edition switch. cite.py 'OK  §1985:XI.4.1.3 SR2  (4.1.3 Syntax Rules)  the text is in SR2' for 'File-name-1 must be described in a sort-merge file description entry in the Data Division'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

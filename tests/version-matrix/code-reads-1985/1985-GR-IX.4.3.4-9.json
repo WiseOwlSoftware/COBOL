@@ -1,0 +1,90 @@
+{
+ "rule-id": "1985-GR-IX.4.3.4-9",
+ "rule-digest": "01ae8c2c5671",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-220",
+  "sources": {
+   "reader": "50a8f3d68f3d437a001985558ba4659dc474823cff7dca3474cc911605a78541",
+   "refuter": "3db9c99631f73777b37640bd411ef66839539b74e8f6ef69e0309533a50ff9aa"
+  },
+  "imported": {
+   "reader": "afe7ec65ace34a2777e27776544143d2045ce1bf5e21dfa86e67ae0cbb86cc5d",
+   "refuter": "92fc5590a40d254f63aadabecad88ea796ff0919b7a01f3ac07cd10a9f4ee72d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.3.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "END-DELETE ends the scope of the indexed-file DELETE statement per §1985:IV.6.4.3: a DELETE with END-DELETE is a delimited scope (imperative) statement usable inside IF, inside another statement's conditional phrase and inside another DELETE's INVALID KEY phrase, where each END-DELETE closes the most recently begun unterminated DELETE, an unterminated DELETE's scope is ended by a period or by the containing statement's next phrase, and a conditional phrase binds to the nearest preceding unterminated DELETE; END-DELETE is legal with or without the INVALID KEY phrases (random, dynamic and sequential access), and an END-DELETE with no DELETE is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#deleteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#UnownedScopeTerminator",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRetryPhrase",
+    "switches": "the 2002 RETRY phrase the deleteStatement rule also parses is refused below 2002; it does not touch END-DELETE",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete",
+    "switches": "ctx.ExceptionPhrases.Require applies the 1985-only mandatory INVALID KEY (§1985:IX.4.3.3 SR2, kb/Work PB5076); the scope of the statement and END-DELETE are the same grammar and binding at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grammar rule deleteStatement has no edition predicate on END_DELETE; END-DELETE is a reserved word at 85; the parser's ANTLR nesting (END_DELETE? closing the innermost open deleteStatement) carries the IV.6.4.3 rules at every edition",
+  "behaviour-differs-by-edition": "no for the scope rule; 1985 additionally requires the INVALID KEY phrase when no USE procedure applies (a different rule), and 2002+ add RETRY, which 1985 refuses",
+  "witnesses-cover": "part: g85_f21_04 exercises END-DELETE in a flat sequence; nested DELETE in DELETE's INVALID KEY, conditional-phrase association to the inner DELETE, ELSE terminating an unterminated DELETE, END-DELETE in a SIZE ERROR phrase, END-DELETE without phrases on a sequential-access DELETE, and the refusals are not exercised",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/sc1.cob",
+    "printed": "1 INVALID 23 / 1 AFTER END-DELETE IN IF / 2 OUTER INVALID / 2 INNER DELETED 0001 / 2 STILL IN OUTER INVALID / 2 AFTER / 3 INNER NOT INVALID / 3 AFTER / 4 ELSE / ... / 7 DELETED SEQ 00 / 8 DELETED 0003 / 8 GONE 23 / 8 END SIZE ERROR; EXPECT MATCH",
+    "expected": "END-DELETE closes the innermost DELETE; NOT INVALID KEY after an unterminated inner DELETE is the inner DELETE's phrase; ELSE ends the DELETE in IF; a delimited DELETE is imperative inside ON SIZE ERROR; sequential-access DELETE ... END-DELETE with no phrases"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_stray_enddelete.cob",
+    "printed": "error COBOL0306: unexpected 'END-DELETE'. END-DELETE appears without a matching DELETE statement.",
+    "expected": "a terminator with no DELETE refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_read_enddelete.cob",
+    "printed": "error COBOL0306: END-DELETE appears without a matching DELETE statement (READ ... INVALID KEY ... END-DELETE)",
+    "expected": "END-DELETE does not terminate a READ"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-220/src/scr_double_enddelete.cob",
+    "printed": "error COBOL0306: unexpected 'END-DELETE' (the second of two)",
+    "expected": "a second END-DELETE has no unterminated DELETE to close"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.3.4 GR9",
+    "check": "OK  §1985:IX.4.3.4 GR9  (4.3.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause (\"each explicit scope terminator terminates the statement begun by the most recently preceding\"; \"any optional conditional phrase encountered is considered to be the next phrase of the nearest preceding unterminated statement\")"
+   }
+  ],
+  "notes": "The seed named deleteFileStatement (the 2023 DELETE FILE format); the record DELETE is the grammar rule deleteStatement, whose optional END_DELETE closes the innermost open DELETE, which is IV.6.4.3's most-recently-preceding rule. All scope cases probed at --std 85 behave as the text says.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.3.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "cite.py: OK §1985:IX.4.3.4 GR9. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d1.cob: an UNTERMINATED READ (or DELETE) inside another READ's (DELETE's) INVALID KEY phrase, and an unterminated IF inside READ's INVALID KEY / NOT INVALID KEY, are refused (COBOL2796): right at 85, since the phrase's operand is imperative-statement-1 and only a conditional statement delimited by its explicit scope terminator is imperative (§1985:IV.6.4.2.3.1), so the IV.6.4.3 'no such phrase has already been associated' case cannot arise inside a key phrase. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d2.cob (EXPECT MATCH at 85): a delimited inner READ inside the outer READ's INVALID KEY followed by a further statement and the outer NOT INVALID KEY; an unterminated READ and an unterminated DELETE inside IF whose ELSE ends them (IV.4.4.4 item 2); END-DELETE and END-READ each followed by a statement in the same sentence; READ NEXT AT END/NOT AT END END-READ inside an inline PERFORM. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d3.cob, d4.cob (compile-only): DELETE ... RETRY 3 TIMES ... END-DELETE and READ ... RETRY 3 TIMES ... END-READ refused at 85 (COBOL0900 'the RETRY phrase requires COBOL-2002'); E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-220/src/d5.cob: DELETE FILE ... END-DELETE refused (COBOL0900 'DELETE FILE requires COBOL-2023'). (d3-d5 also draw a COBOL0900 for a missing paragraph-name, a probe-writing slip that does not affect the RETRY/DELETE FILE refusal lines.) Refusal messages cite §2023 clauses, cosmetic only. cite.py: OK §1985:IV.6.4.3; OK §1985:IV.6.4.2.3.1; OK §1985:IV.4.4.4 (GR2).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

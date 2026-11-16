@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-GR-VI.6.19.4-6",
+ "rule-digest": "6946bcf49fdc",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-194",
+  "sources": {
+   "reader": "bdd3863e8ec76aad6f11f7e0e65a0c8963616a15ae67e48a809b4a2c0a6f76df",
+   "refuter": "10340cc44f038713176d94e3e5c8e9ab7219d8557dae7045825a145a7d1ded96"
+  },
+  "imported": {
+   "reader": "780087140e19e081aa2ea89ed4d3a62741c388400eb3d169486cf726b7ef2771",
+   "refuter": "35e369dc1a292631029a69a453e92b5343411bda8c21802276a960ae84dd8f26"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.19.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "Every elementary MOVE between the five 1985 categories (alphabetic, alphanumeric, alphanumeric edited, numeric integer/noninteger, numeric edited) is legal or refused exactly as Table 1 says: the No cells (alphabetic or alphanumeric edited to numeric/numeric edited, numeric or numeric edited to alphabetic, noninteger numeric to alphanumeric/alphanumeric edited) are refused, and each Yes cell is performed by GR4a/4b/4c, with literals and figurative constants classed per GR3 (SPACE alphabetic, ZERO numeric toward numeric receivers, every other figurative alphanumeric).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#MoveCategoryLegality; src/WiseOwl.Cobol.Compiler/Binding/MoveTable16.cs#Heading; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#Table16Refusal; src/WiseOwl.Cobol.Runtime/Values/MoveValidity.cs#FigurativeRefusal; src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateMove",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr5",
+    "switches": "construct rows MoveAlphanumericFigurativeRemoved2023, MoveQuoteNumericObsolete2014, MoveAllDigitIntegerObsolete2023: HIGH-VALUE/LOW-VALUE/QUOTE/ALL literal to a numeric or numeric-edited receiver admitted at 85 (alphanumeric category, Yes/4b), refused COBOL0902 at 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FigurativeAssociation.cs#GateSr3",
+    "switches": "construct FigurativeAllZeroNumericRemoved2002 / multi-character ALL literal to numeric: admitted at 85, removed 2002",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateMove",
+    "switches": "asks GateSr5 per receiver of every bound MOVE under the target edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "The table itself (MoveValidity.Table16Refusal, read through Table16Operand.Heading) consults no edition: its 1985 rows are a subset of the 2023 table with the same cells; grep ConstructRegistry|Edition in MoveBinder.cs, MoveTable16.cs and FigurativeAssociation.cs located the figurative edition rows.",
+  "behaviour-differs-by-edition": "yes: an alphanumeric figurative constant (HIGH-VALUE, LOW-VALUE, QUOTE, a non-digit or multi-character ALL literal) to a numeric or numeric-edited receiver is a legal Yes/4b move at 85 and is refused at 2023; the table's data-item cells are the same.",
+  "witnesses-cover": "part: g85_f13_04 exercises every Yes cell; the No cells, figurative constants and literal senders are not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/mv1.cob",
+    "printed": "A-A [ABCD  ] A-X [ABCD  ] A-AE [AB CD] X-A [123   ] X-AE [12 3 ] X-9 [00123] X-NE [   123.00 ] AE-A [P Q   ] I-X [045   ] I-AE [04 5 ] I-9 [00045] I-S9 [-045.00] I-NE [    45.00-] N-9 [00007] N-NE [     7.50 ] NE-X [- 12.3] NE-AE [-  12] NE-S9 [-012.34] NE-NE [    12.34-] ALL-9 [12121] Z-X [000000] SP-A [      ] NUMLIT-X [42    ] Q-A [\"\"\"\"\"\"]",
+    "expected": "each Yes cell per GR4a (no sign, no de-editing), GR4b (alignment, de-editing, alphanumeric as unsigned integer), GR4c"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/mv2.cob",
+    "printed": "15 x error COBOL0819: A->9, A->NE, AE->9, AE->NE, 9->A, 9V9->A, 9V9->X, 9V9->AE, NE->A, SPACE->9, SPACES->NE, ZERO->A, literal 5->A, 5.5->X, 5.5->AE",
+    "expected": "every No cell of Table 1 (3a, 3b, 3c) refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/mv3.cob",
+    "printed": "--std 85: OK (LOW-VALUE->9(3), QUOTE->ZZ9, ALL \"AB\"->9(3), ODO group <-> numeric accepted); --std 2023: COBOL0902 on the three figurative moves",
+    "expected": "at 85 these are alphanumeric->numeric Yes/4b (GR3: all other figurative constants are alphanumeric)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/mv3.cob",
+    "printed": "OK (group G OCCURS DEPENDING ON moved to and from 9(3))",
+    "expected": "a group move is GR5 alphanumeric to alphanumeric, outside the table"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-194/src/g85_f13_04.cob",
+    "printed": "EXPECT: MATCH (g85_f13_04.out)",
+    "expected": "the witness's derived Yes-cell results"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.19.4 GR6",
+    "check": "OK  §1985:VI.6.19.4 GR6  (6.19.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3",
+    "check": "OK  §1985:VI.6.19.4 GR3  (6.19.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR3c",
+    "check": "OK  §1985:VI.6.19.4 GR3c  (6.19.4 General Rules)  the text is in GR3c"
+   },
+   {
+    "cite": "§1985:VI.6.19.4 GR4b",
+    "check": "OK  §1985:VI.6.19.4 GR4b  (6.19.4 General Rules)  the text is in GR4b"
+   }
+  ],
+  "notes": "Every Yes and No cell of the 1985 Table 1 was probed at --std 85 and matched; the 1985-only legality of alphanumeric figurative constants into numeric receivers takes its own edition arm in FigurativeAssociation.GateSr5 and is admitted. The diagnostics cite the 2023 clause numbers (SR10, Table 16), which is a wording matter, not a conformance defect. GR3d (level 1 refuses numeric edited to numeric) is a level-1 restriction; the compiler implements level 2, where de-editing is legal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.19.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Attacked the cells the reader did not probe. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/rm1.cob at --std 85 (runs/rm1-001): HIGH-VALUE, LOW-VALUE, QUOTE, ALL 'AB', ALL '5', a SYMBOLIC CHARACTER and a nonnumeric literal '123' to PIC A(4) all compile (alphanumeric->alphabetic Yes/4c) and print QA [\"\"\"\"] ALLA [ABAB] ALL5A [5555] STARA [****] LITA [123 ]; AE->A [X B ], nonnumeric literal->9(3) [042] and ->ZZ9 [  7], integer 99PP->X(4) [1200] and ->XXBXX [12 00] (GR4a P counted as zero), SPACE->AE, ZERO->AE [0 0], ZERO->X [000000], NE->AE [-1. 5], A->AE. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/rm2.cob (runs/rm2-001): symbolic character (a figurative constant, alphanumeric per GR3) to 9(3) and ZZ9 admitted at 85 (Yes/4b) giving 777; X->NE 777. E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-194/src/rm3.cob --compile-only: PP99 (noninteger) -> X and -> XXBXX refused (No/3c), PP99 -> A refused (3b), literal .5 -> X refused (3c), 9V9 -> A refused, each COBOL0819. ZERO -> alphabetic refused is right: GR3b names ZERO explicitly. cite.py: OK §1985:VI.6.19.4 GR6; OK §1985:VI.6.19.4 GR3 the text is in GR3 ('All other figurative constants belong to the category alphanumeric'); OK §1985:VI.6.19.4 GR3b the text is in GR3b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
