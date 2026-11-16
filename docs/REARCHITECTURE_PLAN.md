@@ -44,13 +44,13 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   partition redesign (PB4146) and each fuzz night's triage. Neither lane plans what the other's dispatch holds
   (`inflight-groups.json`). The `blocked_by` holds on PB4047, PB4012 and PB2103 last until PB1253 lands, so the loop plans
   nothing else on `docs/CONFORMANCE.md`.
-- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-5 on main
-  20cad156a4):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,983 GAP** (2,562 before the first
-  2002 golden-lane landing), 625 adjudicated: CONFORMS 610, DIVERGES 11, DOCUMENTED-NON-SUPPORT 3, PARTIAL 1. At the
-  registrar landing records-sample-pb5692 (main c50b53fba2 merged) it reads 1,980 before that landing's records and
-  1,983 after (three KEPT rows following their corrected 2023 targets), 629 adjudicated. The 2002
-  golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; the fifth landing
-  integrates 17 more of its 85 input files and the 12 rows kb/Work PB5625's adjudication decided.
+- **▶ THE 2002 INVENTORY (`python scripts/spec/inventory_view.py --summary`, 2026-11-15, branch golden-2002-4 with main
+  c50b53fba2 merged in):** 3,298 rules (a lower bound: 89 clauses pending adjudication), **1,896 GAP** (2,562 before the
+  first 2002 golden-lane landing), 713 adjudicated: CONFORMS 697, DIVERGES 11, DOCUMENTED-NON-SUPPORT 3, PARTIAL 2. The
+  2002 golden lane (gl2002, kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`; with the fourth
+  landing all 85 of its input files are integrated, and the 12 rows kb/Work PB5625's adjudication decided are recorded.
+  The registrar landing records-sample-pb5692 (main fbe1a21ef4 merged) takes it to **1,899 GAP**: three KEPT rows follow
+  their corrected 2023 targets (see the 2023 paragraph above), records corrected, not a regression.
 - **▶ THE 1985 INVENTORY (`python scripts/spec/inventory_view.py --summary`, run 2026-11-12 at main 2fe86f96f0):**
   2,274 rules, **316 GAP** (443 that morning; v1.0 is zero), 791 adjudicated: CONFORMS 583, PARTIAL 179, DIVERGES 24,
   NOT-IMPLEMENTED 3, DOCUMENTED-NON-SUPPORT 2 (superseded for the GAP count by the PB5675 line below). The 2026-11-12 method: code-read waves over rows whose witness exists

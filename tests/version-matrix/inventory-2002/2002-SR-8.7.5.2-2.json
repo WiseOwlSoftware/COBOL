@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.7.5.2-2",
+ "rule-digest": "cf536f66a4fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5@2002-RELATIONAL-OPERATORS/g2_relop_format1_simple",
+ "notes": "§2002:8.7.5.2 SR2, with the 2002 Format 1 IS [NOT] GREATER/>/LESS/</EQUAL/=, makes the six NOT forms simple operators, so in an abbreviated combined relation NOT before one of them is part of the operator and is carried (§2002:8.8.4.2.4.3 GR2b, GR1). g2_relop_format1_simple at --std 2002 matched the derived truth tables for all twelve operators and the four carry legs."
+}

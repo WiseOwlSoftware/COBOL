@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.13.2-11",
+ "rule-digest": "a3961a741d10",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportEntryClausePresence",
+ "test-ref": "conformance:cases/13.13@2002-REPORT-GROUP-DESCRIPTION-ENTRY/g2-rgd-elementary-clauses",
+ "notes": "§2002:13.13.2 SR11 grants PICTURE, COLUMN, SOURCE, VALUE, SUM and GROUP INDICATE in elementary entries: G2RGD01 at --std 2002 prints [DE A 03] [DE   04] [D2] [TOT 07 20], GROUP INDICATE suppressed on the second detail per §2002:13.16.26.3 GR1."
+}

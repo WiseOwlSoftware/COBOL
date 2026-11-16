@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.2.5.3-11",
+ "rule-digest": "1e62cfa792ea",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#ConditionBinder; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/ObjectComputerEmit.cs#ObjectComputerEmit; src/WiseOwl.Cobol.Compiler/Binding/SpecialNamesBinder.cs#ResolveProgramCollating",
+ "test-ref": "conformance:cases/12.2.5@2002-OBJECT-COMPUTER-PARAGRAPH/g2obj03_collating_relation_88_control; conformance:cases/12.2.5@2002-OBJECT-COMPUTER-PARAGRAPH/g2obj04_collating_locale",
+ "notes": "§2002:12.2.5.3 GR11 uses the program collating sequences for a) relations (alphanumeric, national, on a CD field), b) condition-names (on working storage and a CD record) and c) CONTROL breaks (ALSO makes X equal A, so no break), and LC_COLLATE for a locale alphabet; both goldens MATCH at --std 2002 and the no-PCS controls print the native results."
+}

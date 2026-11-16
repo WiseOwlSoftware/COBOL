@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.33.2-8",
+ "rule-digest": "c4ca8e9879d5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ScreenReportLineClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#GroupKindOf",
+ "test-ref": "conformance:cases/13.16.33@2002-LINE-CLAUSE/g2-line-next-page-body-rf",
+ "notes": "§2002:13.16.33.2 SR8 grants NEXT PAGE on body groups and the report footing; a CH FINAL, a DE and an RF with LINE n ON NEXT PAGE are accepted at --std 2002 and print H1 (page 1 line 2), D1 and D2 (line 4 of pages 2 and 3) and R1 (page 4 line 3), as §2002:13.16.33.3 GR4/GR5 derive; no printed value depends on the counters' unordered SOURCE timing (§2002:13.16.51.3 GR3)."
+}

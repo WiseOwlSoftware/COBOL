@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-6.1.2.1-2",
+ "rule-digest": "5d45316da471",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#ReportComment; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatDiagnostics.cs#ReferenceFormatDiagnostics",
+ "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002_fi_debug_lines_on; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2002-fi-debug-comment-after-continuation",
+ "notes": "Same text as the 2023 twin, reaching debugging lines in 2002 (§2002:6.2.3). §2002:6.1.2.1 SR2: inline comments preceded by a separator space on D and >>D lines are accepted and run (g2002_fi_debug_lines_on matched at --std 2002); exception b) on a D line is refused with COBOL2689 at the violating line (g2002-fi-debug-comment-after-continuation)."
+}
