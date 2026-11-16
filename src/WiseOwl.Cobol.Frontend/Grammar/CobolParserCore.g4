@@ -678,8 +678,22 @@ programCollatingSequenceClause
     : PROGRAM? COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord ({!objectComputerClauseAhead()}? cobolWord)?)
     ;
 
+// computer-name-1 is a SYSTEM-NAME (§1985:VI.4.3.3 SR1, §1985:VI.4.4.3 SR1, §1985:XVI.2.2.3 SR1: "Computer-name is a
+// system-name"), a COBOL word whose one standard restriction beyond its formation is §2023:8.3.2.1 SR1's "Reserved words
+// shall not be used as user-defined words or system-names" (§1985:IV.4.2.2.1.3 alike). So a reservation-gated word §2023:8.9
+// leaves FREE at the targeted edition is a legal computer-name, and the `reservedGatedWord` arm is where the slot takes it:
+// its match frees the word, and the token-level gate (ReservationGateRewriter) retypes it and parses again (kb/Work PB5804).
+// Without the arm the optional name let the parse LEAVE the paragraph at a word that heads a later edition's construct, so
+// `OBJECT-COMPUTER. CLASS-ID.` at COBOL-85 opened a class definition and failed at the next token, never at the word, and
+// the gate's second witness (a syntax error AT the free word) never fired; a word that heads nothing (TYPEDEF) reached the
+// name through that witness. ⛔ THE ARM IS TAKEN ONLY WHERE THE WORD IS FREE (gatedWordFreeHere, a left-edge predicate, so
+// it steers the optional slot's enter/skip decision): where §2023:8.9 reserves the word the slot is a system-name that may
+// not be it, and the empty paragraph followed by the construct the word heads is the reading (`OBJECT-COMPUTER.` then
+// `REPOSITORY.` at 2023). Migration-blind on purpose, the entryNameHere reason: --permissive never changes the reading of
+// conforming source.
 computerName
     : cobolWord
+    | {gatedWordFreeHere()}? reservedGatedWord
     ;
 
 // ==========================================
