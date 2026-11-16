@@ -1,4 +1,4 @@
-## PB4333: the program differential carries the Conformance cases byte-identical to a passed case, and a pass is keyed to its target's inputs
+## Entry 3752 — 2026-11-16 04:57 PST — PB4333: the program differential carries the Conformance cases byte-identical to a passed case, and a pass is keyed to its target's inputs
 
 `gate_growth.py` had FIRED (a test-phase median of 653 s over 304 gates against 360 s; Conformance 27,004 cases), and the
 changed-program fraction was 0.00 %, so by DESIGN-test-build-ci.md section 3.14.13 the differential was due.
@@ -43,3 +43,4 @@ one case (1 compile, 6.5 s). Conformance is the larger share. Its floor is now t
 differential), that no classification is copied anywhere, that the cited rule is the brief's rule (the selection is a
 superset of the changed cases), the hot paths (a set lookup per case) and the silent-failure paths: every failure leaves the
 whole population to run. The gate's verdict line is in the report.
+
