@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.20.2-2",
+ "rule-digest": "9d4ee557d192",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CheckExternalizedNameUniqueness",
+ "test-ref": "conformance:cases/13.16.20@2002-EXTERNAL-CLAUSE/g2-external-name-not-unique",
+ "notes": "§2002:13.16.20.2 SR2 with §2002:13.16.20.3 GR3: G2-A EXTERNAL AS \"G2-B\" and G2-B EXTERNAL share the externalized name G2-B in one source element; refused COBOL2159 at --std 2002."
+}

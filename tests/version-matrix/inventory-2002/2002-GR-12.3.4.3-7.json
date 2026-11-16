@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.3-7",
+ "rule-digest": "8b91c8b9d337",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/CobolFile.cs#RegisterRelative; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#MapOrganization",
+ "test-ref": "conformance:wiseowl/cases/12.4.5-File-control/pb742_legal_entry_formats_85",
+ "notes": "§2002:12.3.4.3 GR7: the relative format defines a connector for a relative file; §2002:12.3.4.9.2 GR3: each record is identified by an integer, its ordinal position; §2002:14.8.29.3 GR26: a READ of a relative file makes available the record whose relative record number equals the RELATIVE KEY. pb742's RLF (ORGANIZATION IS RELATIVE, ACCESS MODE IS RANDOM, RELATIVE KEY IS WS-RK) writes ONE at 1 and TWO at 2, then MOVE 2 TO WS-RK / READ prints 'R=0002 TWO'. pb742_legal_entry_formats_85 run at --std 2002 on the pinned build: PASS."
+}

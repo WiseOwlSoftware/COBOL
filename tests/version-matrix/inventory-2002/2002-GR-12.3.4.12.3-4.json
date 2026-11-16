@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.12.3-4",
+ "rule-digest": "982798d51c6d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
+ "test-ref": "conformance:cases/12.4.5.12-RECORD-KEY/pb354_start_generic_key_ok",
+ "notes": "§2002:12.3.4.12.3 GR4: data-name-1 need be described in only one record description entry; the identical byte positions in any other entry of the file are implicitly keys. pb354's FD IXF has IX-REC (RECORD KEY IS IX-KEY, bytes 1-6) and IX-VIEW (VW-KEY, the same bytes). 'MOVE \"BBBBBB\" TO VW-KEY / START IXF KEY IS = VW-KEY' prints K2-OK and the READ NEXT K2=REC-03, the record whose prime key is BBBBBB: VW-KEY acts as the prime key. pb354_start_generic_key_ok run at --std 2002 on the pinned build: PASS."
+}

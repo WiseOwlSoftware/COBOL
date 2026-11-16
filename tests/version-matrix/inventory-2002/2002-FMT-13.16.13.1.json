@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.13.1",
+ "rule-digest": "e6702f27202c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#codeSetClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCodeSetClause; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindCodeSetClause",
+ "test-ref": "conformance:cases/13.16.13@2002-CODE-SET-CLAUSE/g2-code-set-forms",
+ "notes": "§2002:13.16.13.1 grants IS alphabet-name-1 [alphabet-name-2] and FOR ALPHANUMERIC/FOR NATIONAL (one or both, either order). All six spellings compile, including both FOR orders (FE reversed, FF diagram order). By §2002:13.16.13.3 GR1/GR2/GR3 and §2002:14.8.29.3 GR5 each round-trips with EBCDIC on the medium (FA=ABCD ... FE=EFGH, FF=ABCD). The --std 2002 run of the pinned build matched the derived .out."
+}
