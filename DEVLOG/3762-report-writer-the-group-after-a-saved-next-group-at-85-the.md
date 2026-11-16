@@ -1,4 +1,4 @@
-## Report Writer: the group after a saved NEXT GROUP at 85, the raise time of a SUM size error at 2002, and a signed zero in a numeric CONTROL item
+## Entry 3762 — 2026-11-16 07:04 PST — Report Writer: the group after a saved NEXT GROUP at 85, the raise time of a SUM size error at 2002, and a signed zero in a numeric CONTROL item
 
 Wave 20262063, group C (kb/Work PB5823, PB5643, PB5782). Each note was re-probed on this branch's Debug build before any edit, and each reproduced.
 
@@ -9,3 +9,4 @@ Wave 20262063, group C (kb/Work PB5823, PB5643, PB5782). Each note was re-probed
 **PB5643 (2002).** `Accumulate` raised EC-REPORT-SUM-SIZE at the addition at every edition. §2002:13.16.52.3 GR3 only sets the indicator and GR4 raises when the entry is presented; §2014:13.18.54.3 GR3 and §2023:13.18.54.4 GR3 raise at the addition. New dialect behavior `SumSizeErrorRaisedAtAddition` (2014, VCR row 7.83). Golden `13.18.54-SUM/pb5643_sum_size_error_raise_time` (`.2002.out`: GEN1 DONE, GEN2 DONE, RAISED 1; `.out`: GEN1 DONE, RAISED 1). `2002-GR-13.16.52.3-3` recorded CONFORMS (GAP 1234 to 1233); the 1985 witness additions took GAP 99 to 98.
 
 Docs: `docs/conformance/3/D-RW-NEXT-GROUP-SUM-SIZE-CONTROL.md`, `docs/VERSION_CHANGE_REFERENCE.md` rows 7.82 and 7.83, `docs/REPORT_WRITER_DESIGN.md` (NEXT GROUP, controls, SUM rows), `tests/doc-facts/compiler-facts.json`.
+
