@@ -513,6 +513,8 @@ class Gate:
         stale = self.generations.check_generated(out, run, [r.asm for r in out.runs])
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
         out.tree_end = self.host.measured_tree()  # a tree edited WHILE it was gated is never reused (`PassCarry.reusable`)
+        # ...but a TARGET whose declared inputs did not move keeps its pass (kb/Work PB4333): its key at the end tree
+        out.keys_end = self.passes.end_keys(out)  # equals its key at the start
         self.passes.record_passes(out, run, [a for a in todo if a not in stale], self.generations.outputs())
         self._prune(run, out.composed_from)
         return self._verdict(out, run)
@@ -595,7 +597,7 @@ class Gate:
                 "head_tree": out.head_tree, "toolchain": out.toolchain,
                 "reused_from": out.reused_from, "reused_detail": out.reused_detail, "reasons": out.reasons,
                 "composed_from": out.composed_from, "carried": out.carried,
-                "keys": out.keys, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
+                "keys": out.keys, "keys_end": out.keys_end, "up_to_date": out.up_to_date, "recorded": out.recorded, "audit_reds": out.audit_reds,
                 "generated": out.generated,
                 "exhausted": out.exhausted, "unjudged": out.unjudged, "peak_commit_bytes": out.peak_commit_bytes,
                 "slot": out.slot, "gate_class": out.gate_class, "lane": out.lane, "tooling": out.tooling, "first": out.first,

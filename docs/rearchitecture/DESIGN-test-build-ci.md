@@ -1568,8 +1568,15 @@ key (the counts, the facets, the worktree, run and head that proved it), written
 the store holds a pass at its key: that is the only rule, so a pass recorded in worktree A is up to date in worktree B at the
 same content (a branch re-cut from main, a second worktree). The store holds only what was proven: after its population check,
 `PassCarry.record_passes` records each assembly whose host was green (or that needed no host because its carried passes covered
-it) and whose population was EXACT, at a tree that did not change while the gate ran. A red, a partial or an unmeasured
-population records nothing.
+it) and whose population was EXACT, and whose KEY did not move while the gate ran. **A pass is keyed to its target's
+declared inputs, never to the whole tree** (kb/Work PB4333): the gate computes every key again at the tree it measures after
+the hosts (`PassCarry.end_keys`, recorded as `keys_end`; a generated dependency's digest read from the store at its key
+there), and a target whose end key equals its start key had no input change while it ran. Before this, `record_passes`
+recorded nothing when the tree moved at all, so a plan file committed while a gate ran (golden-2002-8, run
+000002-20261116T031738Z: 3,184 s, `recorded: []`) voided three passes whose keys it did not touch, and the next gate re-ran
+Conformance, Unit and RepoDrift at the same keys. A target whose end key differs or cannot be resolved records nothing; the
+whole-gate REUSE (section 3.14.12) still needs the whole tree unchanged, because it answers for the audits too. A red, a
+partial or an unmeasured population records nothing.
 
 *A gate, per target.* After the lane (section 3.18) says full, the gate computes each target's key and asks the store. A
 target up to date starts no host and is not listed; its verdict-line entry is `<assembly> up to date (run <run> of
@@ -1584,9 +1591,10 @@ has exited (a self-test that hangs past the last host) stops no host (`_Live.sto
 populations are checked, each exact green one's pass is recorded, and the verdict is RED for the audit alone.
 
 *At a target's key, a re-gate runs only what has not passed* (`PassCarry.carry`, `Legs.plan`). For each target that is not up to
-date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree and did not
-see it change while it ran (`tree` equals `tree_end`; an audit-stopped run has no `tree_end` and counts for nothing), is not
-itself a REUSED record, and recorded THIS key for that assembly. Its PASSES (`test_population.passed_cases`: a definition with
+date, an EARLIER RUN of this worktree counts when it is a full-lane run (schema 5 on) that measured its own tree, is not
+itself a REUSED record, and recorded THIS key for that assembly, a key that did not move while it ran (`tree` equals
+`tree_end`, or its `keys_end` names the same key, kb/Work PB4333; an audit-stopped run has no `tree_end` and counts for
+nothing). Its PASSES (`test_population.passed_cases`: a definition with
 a Passed result and no Failed one; a failed case, a harness non-observation and a skip are not passes) are carried. The gate
 lists that assembly's population first (about 2 s), writes the listed names the carried passes do not cover to
 `<run>/only-<assembly>.txt` and hands the path to its host as `WISEOWL_COBOL_GATE_ONLY` (`host_env`, the one place a host's

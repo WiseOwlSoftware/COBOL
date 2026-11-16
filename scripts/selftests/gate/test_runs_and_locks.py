@@ -313,6 +313,24 @@ def case_00_second_gate_same_worktree_refused_at_once(expect):
         and not edited.recorded and "build" in he.events and "REUSED" not in rebased.line
         and "EVERY TARGET UP TO DATE" in rebased.line and hb.events == [],
         f"{after_edit.line} | {rebased.line}")
+    d = root / "moved-inert"
+    d.mkdir()
+    # The tree moves WHILE the gate runs by a path only Unit reads (kb/Work PB4333: a plan file committed mid-gate moved
+    # golden-2002-8's tree, and run 000002 recorded no pass, so the next gate re-ran every target).
+    moved, hm = regate(d, trees=["tree-1", "tree-moved"],
+                       keys={"tree-moved": {"Conformance": "tree-1", "Characterization": "tree-1", "RepoDrift": "tree-1"}})
+    next_gate, hn = regate(d, trees=["tree-moved"],
+                           keys={"tree-moved": {"Conformance": "tree-1", "Characterization": "tree-1", "RepoDrift": "tree-1"}})
+    expect("a pass is keyed to its TARGET'S inputs, never the whole tree (kb/Work PB4333): a run whose tree moved while it "
+        "ran records the pass of every target whose key at the end equals its key at the start, and not of the one whose "
+        "key moved; the next gate at the moved tree runs only that one",
+        moved.verdict == "GREEN" and moved.tree_end == "tree-moved"
+        and sorted(moved.recorded) == ["Characterization", "Conformance", "RepoDrift"]
+        and moved.keys_end["Unit"] != moved.keys["Unit"] and moved.keys_end["Conformance"] == moved.keys["Conformance"]
+        and read_record(run_dirs(d / "runs")[0]).get("keys_end") == moved.keys_end
+        and sorted(next_gate.up_to_date) == ["Characterization", "Conformance", "RepoDrift"]
+        and sorted(hn.envs) == ["Unit"],
+        f"{moved.recorded} {moved.keys_end} | {next_gate.line} {sorted(hn.envs)}")
     d = root / "compose"
     d.mkdir()
     red1, _ = regate(d, plant={"red"})
