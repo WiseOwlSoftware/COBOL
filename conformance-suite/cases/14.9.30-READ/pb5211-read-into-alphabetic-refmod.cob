@@ -4,6 +4,7 @@
 *> source-format: free
 *> portable: unverified
 *>---
+*> kb/Work PB5615: at --std 2002 §2002:8.5.2.1 lets an alphabetic item stand wherever an elementary alphanumeric one is permitted as an operand, so this source is refused at 85, 2014 and 2023 only (the 2002 twins are the pb5615-* cases).
 *> kb/Work PB5211. READ's INTO phrase with two record descriptions is admitted only when identifier-1 and
 *> every record-name "describe an alphanumeric group item or an elementary item of category alphanumeric or
 *> category national" (ISO 1989:2023 14.9.30.3 SR1 b; §1985:IX.4.5.4 GR7 b, "a group item or an elementary
