@@ -195,7 +195,7 @@ public sealed class WideArgumentBodiesTests
         foreach (int scale in new[] { 0, 3, 17 })
         {
             CobolDec wide = CobolIntrinsics.MeanWide(mode, scale, list.Select(W).ToArray());
-            CobolDec sdidi = CobolIntrinsics.MeanDec(mode, list.Select(v => new CobolDec(Int128.Parse(v), -scale)).ToArray());
+            CobolDec sdidi = CobolIntrinsics.MeanDec(DecArithmetic.Sdidi(mode), list.Select(v => new CobolDec(Int128.Parse(v), -scale)).ToArray());
             Assert.True(wide.Sig == sdidi.Sig && wide.Exp == sdidi.Exp,
                 $"MEAN ({string.Join(' ', list)}) at scale {scale}, {mode}: wide {wide.Sig}E{wide.Exp}, SDIDI {sdidi.Sig}E{sdidi.Exp}");
         }

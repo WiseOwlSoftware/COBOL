@@ -55,7 +55,7 @@ public sealed class CobolIntrinsicsDecTests
         AssertDec(D(-3, 0), CobolIntrinsics.FloorDec(D(-25, 1)));           // INTEGER(−2.5) = −3
         AssertDec(D(-2, 0), CobolIntrinsics.TruncDec(D(-25, 1)));           // INTEGER-PART(−2.5) = −2
         AssertDec(D(2, 0), CobolIntrinsics.FloorDec(D(2, 0)));              // integral fixed point
-        AssertDec(D(75, 2), CobolIntrinsics.FractionPartDec(CobolRounding.NearestAwayFromZero, D(275, 2)));
+        AssertDec(D(75, 2), CobolIntrinsics.FractionPartDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(275, 2)));
     }
 
     // ── MOD / REM over the SDIDI (§2023:15.64.4 r1 / §2023:15.77.4 r1), including the sign table ─────────────────
@@ -67,19 +67,19 @@ public sealed class CobolIntrinsicsDecTests
     [InlineData(-11, -5, -1)]
     public void ModDec_SignTable_AgreesWithExactCarrier(long a, long b, long expected)
     {
-        AssertDec(D(expected, 0), CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, D(a, 0), D(b, 0)));
+        AssertDec(D(expected, 0), CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(a, 0), D(b, 0)));
         Assert.Equal(CobolIntrinsics.ModScaled(a, b), (System.Int128)expected);
     }
 
     [Fact]
     public void ModDec_SubMicroscale_IsExact() =>
-        AssertDec(D(1, 9), CobolIntrinsics.ModDec(CobolRounding.NearestAwayFromZero, D(7, 9), D(3, 9)));
+        AssertDec(D(1, 9), CobolIntrinsics.ModDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(7, 9), D(3, 9)));
 
     // ── The formerly staged inexact-EAE four (COBOL0899 retired with these bodies) ───────────────────
 
     [Fact]
     public void AnnuityDec_RateZero_IsReciprocalOfPeriods() =>
-        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(4, 0)));
+        AssertDec(D(25, 2), CobolIntrinsics.AnnuityDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(0, 0), D(4, 0)));
 
     /// <summary>⛔ kb/Work PB637 — argument-2 is a TOTAL integer (§2023:15.9.3 r3 "positive integer" is a sign rule), so a
     /// count past <c>long</c> reaches the body whole. At rate 0 the equivalent expression §2023:15.9.4 r1a is
@@ -97,7 +97,7 @@ public sealed class CobolIntrinsicsDecTests
         try
         {
             AssertDec(D(1, exponent),
-                CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(0, 0), D(1, -exponent)));
+                CobolIntrinsics.AnnuityDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(0, 0), D(1, -exponent)));
         }
         finally { WiseOwl.Cobol.Runtime.Exceptions.ExceptionState.ArgumentFunctionChecking = saved; }
     }
@@ -109,7 +109,7 @@ public sealed class CobolIntrinsicsDecTests
     [Fact]
     public void AnnuityDec_TinyRate_PastLong_IsTheExpressionsValue()
     {
-        double actual = CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(1, 30),
+        double actual = CobolIntrinsics.AnnuityDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(1, 30),
             D(1, -20)).ToDouble();
         Assert.True(System.Math.Abs(actual - 1.00000000005E-20) <= 1E-32, $"ANNUITY(1E-30 10^20) = {actual:R}");
     }
@@ -125,25 +125,25 @@ public sealed class CobolIntrinsicsDecTests
     public void AnnuityDec_PositiveRate_PastTheRange_IsTheExpressionsSizeCondition(int exponent)
     {
         var ex = Assert.ThrowsAny<WiseOwl.Cobol.Runtime.Exceptions.CobolFatalException>(() =>
-            CobolIntrinsics.AnnuityDec(CobolRounding.NearestAwayFromZero, D(5, 2), D(1, -exponent)));
+            CobolIntrinsics.AnnuityDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(5, 2), D(1, -exponent)));
         Assert.Equal("EC-SIZE-OVERFLOW", ex.EcName);
     }
 
     [Fact]
     public void PresentValueDec_Rate1_SumsDiscountedAmounts() =>
         // §2023:15.74.4 r1: 8/(1+1)^1 + 8/(1+1)^2 = 4 + 2 = 6.
-        AssertDec(D(6, 0), CobolIntrinsics.PresentValueDec(CobolRounding.NearestAwayFromZero, D(1, 0), D(8, 0), D(8, 0)));
+        AssertDec(D(6, 0), CobolIntrinsics.PresentValueDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(1, 0), D(8, 0), D(8, 0)));
 
     [Fact]
     public void VarianceDec_OneTwoThree_IsTwoThirds()
     {
-        var v = CobolIntrinsics.VarianceDec(CobolRounding.NearestAwayFromZero, D(1, 0), D(2, 0), D(3, 0));
+        var v = CobolIntrinsics.VarianceDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(1, 0), D(2, 0), D(3, 0));
         Assert.Equal((System.Int128)66666, v.ToUnscaled(5, CobolRounding.Truncation));
     }
 
     [Fact]
     public void StdDevDec_ConstantList_IsZero() =>
-        Assert.Equal(0, CobolIntrinsics.StdDevDec(CobolRounding.NearestAwayFromZero, D(2, 0), D(2, 0), D(2, 0)).Sig);
+        Assert.Equal(0, CobolIntrinsics.StdDevDec(DecArithmetic.Sdidi(CobolRounding.NearestAwayFromZero), D(2, 0), D(2, 0), D(2, 0)).Sig);
 
     // ── The drift half: Dec bodies agree with the exact Int128 bodies on the shared domain ─────────────
     // An all-fixed-point argument list stays on the exact family at the dispatch, so this agreement is what
@@ -160,11 +160,11 @@ public sealed class CobolIntrinsicsDecTests
 
         Assert.Equal(CobolIntrinsics.MaxScaled(exact), CobolIntrinsics.MaxDec(dec).ToUnscaled(2, CobolRounding.Truncation));
         Assert.Equal(CobolIntrinsics.MinScaled(exact), CobolIntrinsics.MinDec(dec).ToUnscaled(2, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.SumScaled(exact), CobolIntrinsics.SumDec(m, dec).ToUnscaled(2, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.RangeScaled(exact), CobolIntrinsics.RangeDec(m, dec).ToUnscaled(2, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.SumScaled(exact), CobolIntrinsics.SumDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(2, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.RangeScaled(exact), CobolIntrinsics.RangeDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(2, CobolRounding.Truncation));
         // Median/Midrange: the exact bodies return at scale s+1 (the ×10/2 discipline) — compare there.
-        Assert.Equal(CobolIntrinsics.MedianScaled(exact), CobolIntrinsics.MedianDec(m, dec).ToUnscaled(3, CobolRounding.Truncation));
-        Assert.Equal(CobolIntrinsics.MidrangeScaled(exact), CobolIntrinsics.MidrangeDec(m, dec).ToUnscaled(3, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.MedianScaled(exact), CobolIntrinsics.MedianDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(3, CobolRounding.Truncation));
+        Assert.Equal(CobolIntrinsics.MidrangeScaled(exact), CobolIntrinsics.MidrangeDec(DecArithmetic.Sdidi(m), dec).ToUnscaled(3, CobolRounding.Truncation));
     }
 
     // ── The NUMVAL family under STANDARD-DECIMAL (PB60, RV-15.67.4-1a): the one scan lifted EXACTLY ─────

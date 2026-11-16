@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.17.3-1",
+ "rule-digest": "dcb1cdbca63f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StandardArgument",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.17.3 RV1: DATE-OF-INTEGER returns the standard date of its integer argument; the argument 145732 + 1 / K * K is the 32-digit 145732.99999999999999999999999999, rounded to 31 digits by situation 2, so 20000102."
+}

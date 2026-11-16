@@ -131,7 +131,7 @@ internal static class OperandText
     /// (§1985:VI.5.9.4 GR8, symbol P), so it is no character of the item. <see cref="AsString"/> is the MOVE's sending image, in
     /// which a P scaling position is a zero counted in the sending size (§1985:VI.6.19.4 GR4), so this cuts the zeros it laid:
     /// the trailing zeros of <c>PIC 99PP</c> holding 1200 and the leading zeros of <c>PIC PP9</c> holding .007, leaving "12" and
-    /// "7". Its consumers are the 1985 mixed comparison, "treated as though it were moved to an elementary alphanumeric data
+    /// "7". Its consumers are the 1985 mixed comparison (through <see cref="AsComparisonTemporary1985"/>), "treated as though it were moved to an elementary alphanumeric data
     /// item of the same size as the numeric data item (in terms of standard data format characters)" (§1985:VI.6.3.1.1.2 GR1;
     /// kb/Work PB5187), and INSPECT, which inspects an unsigned numeric item "as though it had been redefined as alphanumeric"
     /// (§1985:VI.6.18.4 GR3b; kb/Work PB5375). Only an elementary numeric item with P scaling differs from the sending image, so
@@ -146,6 +146,29 @@ internal static class OperandText
             || p.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false, HasPScaling: true } pic)
             return text;
         return pic.TrailingPScaling > 0 ? $"({text})[..{pic.Digits}]" : $"({text})[{pic.LeadingPScaling}..]";
+    }
+
+    /// <summary>⛔ THE 1985 COMPARISON TEMPORARY of a numeric operand opposite an elementary nonnumeric one: the operand "treated
+    /// as though it were moved to an elementary alphanumeric data item of the same size as the numeric data item (in terms of
+    /// standard data format characters)" (§1985:VI.6.3.1.1.2 GR1). The SIZE counts a SIGN SEPARATE item's sign position, which
+    /// "is counted in determining the size of the item" (§1985:VI.5.12.4 GR6), as <see cref="DataItem.DisplayTextWidthOf"/>
+    /// counts it; the de-signed sending image (<see cref="AsString"/>, the P zeros laid) is moved into that size left-justified,
+    /// cut on the right or space-filled, as a move to an alphanumeric item is. So <c>S99PP SIGN SEPARATE</c> holding -1200
+    /// (size 3) is "120", the image <c>MOVE</c> stores in a <c>PIC X(3)</c>, and <c>S9(3) SIGN SEPARATE</c> holding 121
+    /// (size 4) is "121 ", against which an ALL literal repeats to four positions (§1985:IV.4.2.2.2.3 GRL2.1; kb/Work PB5569).
+    /// An item whose size is its digits is <see cref="AsItemCharacters"/>' image (kb/Work PB5187), and INSPECT, which reads
+    /// the item's own characters, never this temporary.</summary>
+    public static string AsComparisonTemporary1985(BoundOperand op, NumericRenderer num, bool deSign)
+    {
+        if (!deSign || op is not BoundFieldOperand { Place: var p and not RefModPlace }
+            || p.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false } pic
+            || DataItem.DisplayTextWidthOf(pic) == pic.Digits)
+            return AsItemCharacters(op, num, deSign);
+        int size = DataItem.DisplayTextWidthOf(pic);
+        string text = AsString(op, num, deSign);
+        // The operand is an integer (a noninteger one is refused, COBOL2532), so its sending image is its digits followed by
+        // its trailing P zeros: with one P or more it already fills the size and is cut on the right, else it is space-filled.
+        return pic.TrailingPScaling > 0 ? $"({text})[..{size}]" : $"({text}).PadRight({size})";
     }
 
     /// <summary>Whether a computed operand IS a counter register (LINAGE-COUNTER, LINE-COUNTER, PAGE-COUNTER), the shape

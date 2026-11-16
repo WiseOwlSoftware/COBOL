@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.36.2-1",
+ "rule-digest": "f16c5e5f30a0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StandardArgument",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.36.2 AR1: the argument of INTEGER-OF-DATE is an integer of the form YYYYMMDD; 20000100 + 1 / K * K is 20000100.999999999999999999999999 as a standard intermediate data item and, rounded to 31 digits (situation 2), the valid date 20000101, whose integer date is 145732."
+}

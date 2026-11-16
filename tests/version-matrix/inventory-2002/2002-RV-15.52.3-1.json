@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.52.3-1",
+ "rule-digest": "11c6f4ca1423",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#ModDec; src/WiseOwl.Cobol.Runtime/Values/Numeric/DecArithmetic.cs#DecArithmetic",
+ "test-ref": "conformance:cases/8.8.1.3@2002-STANDARD-ARITHMETIC/pb5575-std-arith-function-values",
+ "notes": "kb/Work PB5575. §2002:15.52.3 RV1: MOD is a - b * INTEGER (a / b) over the 32-digit quotient; MOD (-99999999999999999999999999999997, 3) is -1 (the exact remainder 2 is not taken under standard arithmetic)."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.36.2-13",
+ "rule-digest": "2065d75532b4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ScreenTableSubjectRightmostAll; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#TableSortSubjectRightmostAll",
+ "test-ref": "conformance:cases/14.8.36@2002-SORT-STATEMENT/pb5641_table_sort_nested_subject_all; conformance:cases/_unassigned/pb5641-table-sort-nested-subject-needs-all",
+ "notes": "§2002:14.8.36.2 SR13: a table SORT subject subject to more than one OCCURS level writes a subscript for every level, the rightmost the word ALL. At COBOL-2002 SORT E (2) over a nested table is refused COBOL7369 and SORT E (2, ALL) sorts row 2 (kb/Work PB5641); COBOL-2014 and later let the subject omit its own level (§2023:8.4.2.3.3 SR5 e)."
+}
