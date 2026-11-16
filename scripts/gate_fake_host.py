@@ -77,6 +77,7 @@ class FakeHost(Host):
         self.blobs: dict[str, str] = {}
         self.oracle: dict[str, tuple[str, str, str]] = {}
         self.captures = 0
+        self.compiled: list[str] = []
         if "differential" in plant:
             self.POPULATION = {**self.POPULATION, "Conformance": list(self.DIFFERENTIAL_POPULATION)}
 
@@ -111,12 +112,15 @@ class FakeHost(Host):
         """The planted measured tree (`blobs`), as `git ls-tree` entries."""
         return [(f"100644 blob {b}\t{p}".encode(), p) for p, b in sorted(self.blobs.items())]
 
-    def oracle_digests(self, out, spawn, handed):
-        """The planted capture (`oracle`): written as the oracle host writes it; `capture-fails` plants a host that failed."""
+    def oracle_digests(self, out, spawn, handed, only=None):
+        """The planted capture (`oracle`) of the ids `only` names (every one without it), written as the oracle host
+        writes it; `compiled` records each id compiled; `capture-fails` plants a host that failed."""
         self.captures += 1
         if "capture-fails" in self.plant:
             raise OSError("planted: `WiseOwl.Cobol.ArchOracle digests` exited 4")
-        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\n" for i, (c, d, p) in sorted(self.oracle.items())),
+        ids = set(Path(only).read_text(encoding="utf-8").split()) if only is not None else set(self.oracle)
+        self.compiled += sorted(ids & set(self.oracle))
+        out.write_text("".join(f"{i}\tpop\t{c}\t{d}\t{p}\n" for i, (c, d, p) in sorted(self.oracle.items()) if i in ids),
                        encoding="utf-8", newline="\n")
         return out
 

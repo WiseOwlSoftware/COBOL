@@ -302,7 +302,7 @@ public static class ArchOracle
     /// <c>capture --out DIR [--jobs N]</c> compiles every case and writes, under DIR, each case's emitted C#
     /// (<c>&lt;id&gt;.g.cs</c>) and diagnostic stream (<c>&lt;id&gt;.diag.txt</c>), <c>cases.tsv</c> — one line
     /// per case, ordinal order: id, population, SHA-256 of the C# (<c>-</c> when none), SHA-256 of the diagnostics.
-    /// <c>digests --out FILE [--jobs N]</c> compiles every case and writes FILE alone, one line per case: id, population,
+    /// <c>digests --out FILE [--only IDS] [--jobs N]</c> compiles every case (or only those the file IDS names, one id a line) and writes FILE alone, one line per case: id, population,
     /// the C# digest, the diagnostics digest and the PROGRAM digest (<c>-</c> when none, <c>clock</c> for a compilation
     /// that read the compile clock; <c>!</c> for each when the case threw), the program differential's input (kb/Work PB4333; scripts/gate_differential.py).
     /// <c>list</c> prints the population (id TAB population) without compiling. Exit 0 on success; 2 on a usage
@@ -311,13 +311,14 @@ public static class ArchOracle
     public static int Run(string[] args, TextWriter stdout, TextWriter stderr)
     {
         string? verb = args.Length > 0 ? args[0] : null;
-        string? outDir = null;
+        string? outDir = null, only = null;
         int jobs = Environment.ProcessorCount;
         for (int i = 1; i < args.Length; i++)
         {
             switch (args[i])
             {
                 case "--out" when i + 1 < args.Length: outDir = args[++i]; break;
+                case "--only" when i + 1 < args.Length && verb == "digests": only = args[++i]; break;
                 case "--jobs" when i + 1 < args.Length && int.TryParse(args[i + 1], out int j) && j > 0: jobs = j; i++; break;
                 default: return Usage(stderr, $"unrecognized argument '{args[i]}'");
             }
@@ -338,7 +339,14 @@ public static class ArchOracle
             return 3;
         }
 
-        var cases = Population();
+        IReadOnlyList<OracleCase> cases = Population();
+        if (only is not null)
+        {
+            // Only the cases the file names (one id per line): the differential compiles what it has no digest of.
+            var wanted = File.ReadAllLines(only).Where(l => l.Length > 0).ToHashSet(StringComparer.Ordinal);
+            cases = [.. cases.Where(c => wanted.Contains(c.Id))];
+        }
+
         var lines = new string[cases.Count];
         var failures = new System.Collections.Concurrent.ConcurrentBag<string>();
         if (verb == "digests")
@@ -354,7 +362,7 @@ public static class ArchOracle
                 lines[i] = $"{c.Id}\t{c.Population}\t{(o.CSharp is null ? "-" : Sha256(o.CSharp))}\t{Sha256(o.Diagnostics)}\t{o.Program ?? "-"}";
             });
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outDir))!);
-            File.WriteAllText(outDir, string.Join("\n", lines) + "\n");
+            File.WriteAllText(outDir, lines.Length == 0 ? "" : string.Join("\n", lines) + "\n");
             stdout.WriteLine($"digests of {cases.Count} cases written to {outDir}");
             return 0;
         }
@@ -387,7 +395,7 @@ public static class ArchOracle
     private static int Usage(TextWriter stderr, string message)
     {
         stderr.WriteLine($"error: {message}");
-        stderr.WriteLine("usage: WiseOwl.Cobol.ArchOracle list | capture --out DIR [--jobs N] | digests --out FILE [--jobs N]");
+        stderr.WriteLine("usage: WiseOwl.Cobol.ArchOracle list | capture --out DIR [--jobs N] | digests --out FILE [--only IDS] [--jobs N]");
         return 2;
     }
 

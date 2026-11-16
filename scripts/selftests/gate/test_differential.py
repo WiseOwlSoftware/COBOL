@@ -86,21 +86,26 @@ def case_00_the_differential_carries_exactly_the_unchanged_cases(expect):
            second.verdict == "GREEN" and ran2 == [HAND] and second.differential.get("carried") == 5
            and second.populations["Conformance"].exact and second.populations["Conformance"].carried == 5
            and "Conformance" in second.recorded and "5 carried as byte-identical" in second.line
-           and h2.growth == [], f"{second.line} | {ran2}")
+           and h2.growth == [] and h2.compiled == [], f"{second.line} | {ran2} | compiled {h2.compiled}")
 
-    def program(host):   # the compiler now emits other bytes for t1
+    def program(host):   # a compiler change, after which it emits other bytes for t1
+        host.blobs["src/WiseOwl.Cobol.Compiler/Emit.cs"] = "d" * 40
         host.oracle["suite/2023/t1"] = ("cs1", "dg1", "pg1-changed")
-    changed, _, ran3 = gate(change=program)
-    expect("a changed PROGRAM is selected: t1, whose program digest differs, runs, with the case of no family",
-           changed.verdict == "GREEN" and ran3 == sorted([t(1), HAND]), f"{changed.line} | {ran3}")
+    changed, h3, ran3 = gate(change=program)
+    expect("a changed PROGRAM is selected: after a compiler change every compile is made again (a new compiler key), and t1, "
+           "whose program digest differs, runs, with the case of no family",
+           changed.verdict == "GREEN" and ran3 == sorted([t(1), HAND]) and len(h3.compiled) == 5, f"{changed.line} | {ran3}")
 
     def expected_output(host):
         host.blobs["conformance-suite/cases/c/t2.out"] = "e" * 40
-    out_changed, _, ran4 = gate(change=expected_output)
-    expect("a changed EXPECTED OUTPUT is selected: t2, whose named file's blob differs, runs",
-           out_changed.verdict == "GREEN" and ran4 == sorted([t(2), HAND]), f"{out_changed.line} | {ran4}")
+    out_changed, h4, ran4 = gate(change=expected_output)
+    expect("a changed EXPECTED OUTPUT is selected: t2, whose named file's blob differs, runs, and only its compile is made "
+           "again (the others are the capture store's at the same compiler key)",
+           out_changed.verdict == "GREEN" and ran4 == sorted([t(2), HAND]) and h4.compiled == ["suite/2023/t2"],
+           f"{out_changed.line} | {ran4} | compiled {h4.compiled}")
 
-    def diagnostics(host):
+    def diagnostics(host):   # another compiler change, after which it reports r5 otherwise
+        host.blobs["src/WiseOwl.Cobol.Compiler/Emit.cs"] = "7" * 40
         host.oracle["refusal/r5@2023"] = ("-", "dg5-changed", "-")
     diag_changed, _, ran5 = gate(change=diagnostics)
     expect("a changed DIAGNOSTIC STREAM is selected: the refusal r5 runs",
@@ -137,7 +142,9 @@ def case_00_the_differential_carries_exactly_the_unchanged_cases(expect):
            missing.verdict == "GREEN" and ran10 == sorted(hm.POPULATION["Conformance"])
            and len(list(store.dir.glob("*.txt"))) == 1, f"{ran10}")
 
-    failed, hf, ran11 = gate(plant={"capture-fails"})
+    def compiler_again(host):   # a compiler change: every compile must be made again, and the capture fails
+        host.blobs["src/WiseOwl.Cobol.Compiler/Emit.cs"] = "6" * 40
+    failed, hf, ran11 = gate(plant={"capture-fails"}, change=compiler_again)
     expect("a capture that FAILS carries nothing: everything runs, the verdict is the hosts' (GREEN), and nothing is recorded "
            "at the harness key from it",
            failed.verdict == "GREEN" and ran11 == sorted(hf.POPULATION["Conformance"]) and not failed.differential
@@ -184,7 +191,7 @@ def case_02_a_case_the_rule_cannot_name_exactly_runs(expect):
     truncated = NAMES[0].replace('id: "t1")', 'id: "t1"...)')
     clock = NAMES[0].replace('"t1"', '"t6"')
     listed = Counter({NAMES[0]: 1, NAMES[1]: 1, NAMES[2]: 1, NAMES[3]: 1, NAMES[4]: 2, truncated: 1, HAND: 1, clock: 1})
-    got = gate_differential.case_digests(listed, oracle, manifest, {p: b for p, b in blobs.items()})
+    got = gate_differential.case_digests(gate_differential.case_inputs(listed, manifest, blobs), oracle)
     expect("only t1 has a digest: a multi-unit entry, an untracked named file, a capture that threw, a program that reads "
            "the compile clock, a name listed twice, a truncated display name and a case of no family each have none, by "
            "their reasons",
@@ -193,6 +200,22 @@ def case_02_a_case_the_rule_cannot_name_exactly_runs(expect):
                "a file its entry names is not tracked": 1, "no digest of its compile": 1, "listed more than once": 2,
                "its program reads the compile clock (WHEN-COMPILED)": 1,
                "not a carried family": 2}), f"{sorted(got.by_name)} {dict(got.uncarriable)}")
+
+
+def case_03_a_set_no_gate_wrote_for_three_weeks_is_pruned(expect):
+    """A pass set or capture whose harness or compiler key no tree has any more is deleted when another is written, its
+    age measured on the file system's clock (the one that stamped it)."""
+    import os
+    isolate()
+    store = gate_differential.CaseStore(scratch_dir("gate-differential-prune-"))
+    old, recent = "a" * 64, "b" * 64
+    store.record(old, ["c" * 64])
+    store.record(recent, ["d" * 64])
+    stamp = (store.dir / f"{recent}.txt").stat().st_mtime
+    os.utime(store.dir / f"{old}.txt", (stamp - (gate_differential.PRUNE_DAYS + 1) * 86400,) * 2)
+    store.record(recent, ["e" * 64])
+    expect("the set not written for PRUNE_DAYS before the one just written is pruned; the written one keeps every digest",
+           store.lookup(old) is None and store.lookup(recent) == frozenset({"d" * 64, "e" * 64}), str(store.lookup(recent)))
 
 
 if __name__ == "__main__":

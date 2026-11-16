@@ -480,44 +480,64 @@ class Gate:
         listed = self.legs.pool_listings(spawn, todo)
         listings: dict[str, Counter] | None = None
         plan: dict[str, Path | None] = {asm: None for asm in todo}
-        # ⭐ THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py; DESIGN-test-build-ci.md §3.14.13): when
-        # a pass set stands at this tree's harness key, the capture runs BEFORE the hosts and the Conformance cases whose
-        # digest passed there are carried; when none stands, it runs BESIDE the hosts so the pass this gate records leaves
-        # one. Anything it cannot read leaves the whole population to run.
-        selection: gate_differential.Selection | None = None
+        # ⭐ THE PROGRAM DIFFERENTIAL (kb/Work PB4333; scripts/gate_differential.py; DESIGN-test-build-ci.md §3.14.13). When
+        # a pass set stands at this tree's harness key, the Conformance host's plan is DEFERRED: the other hosts start now,
+        # and in its own thread the capture (only the compiles the capture store does not hold) decides which of its cases
+        # are carried. When none stands, the capture runs BESIDE the hosts and the pass this gate records leaves the set.
+        # Anything it cannot read leaves the whole population to run.
+        asm_d = gate_differential.ASSEMBLY
+        selection: list[gate_differential.Selection] = []   # set by whichever thread made it
         prepared: gate_differential.Prepared | None = None
-        captured: list[dict | None] = []
-        handed = self.generations.handed(gate_differential.ASSEMBLY)
-        if gate_differential.ASSEMBLY in todo:
+        handed = self.generations.handed(asm_d)
+        if asm_d in todo:
             prepared = self.differential.prepare(out, self.passes.facets(str(out.toolchain)), handed)
-        if prepared is not None and prepared.passed is not None:
-            oracle = self.differential.capture(run, spawn, handed, self.say)
-            if oracle is not None:
-                try:
-                    listings = self.legs.listings(listed, run)
-                except PopulationError as e:
-                    return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
-                                        f"the population could not be listed: {e}", 2)
-                selection = self.differential.select(prepared, oracle, listings[gate_differential.ASSEMBLY])
-                if selection is not None:
-                    carry = self._with_differential(carry, selection)
-        elif prepared is not None:
-            def capture_beside() -> tuple[list[str], list[str]]:
-                lines: list[str] = []
-                captured.append(self.differential.capture(run, spawn, handed, lines.append))
-                return [], lines
-            self._beside(out, "differential_capture", capture_beside)
+
+        def differential(say: Callable[[str], None]) -> gate_differential.Selection | None:
+            """The capture and the selection over Conformance's own listing (joined here: ~2 s, no file written)."""
+            try:
+                listing = listed[asm_d].result()[0]
+            except PopulationError as e:
+                say(f"build-local: program differential: Conformance could not be listed ({e}); nothing is carried")
+                return None
+            inputs = gate_differential.case_inputs(listing, prepared.manifest, prepared.blobs)
+            sel = self.differential.select(prepared, self.differential.capture(prepared, inputs, run, spawn, handed, say),
+                                           inputs)
+            if sel is not None:
+                selection.append(sel)
+            return sel
+
         if carry is not None:
             # A RETRY needs the population first (what the carried passes leave is the listing less them), where a whole
             # run joins the listings after the hosts: ~2 s each, which the retry's saved minutes repay.
             try:
-                listings = listings or self.legs.listings(listed, run)
+                listings = self.legs.listings(listed, run)
             except PopulationError as e:
                 return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                     f"the population could not be listed: {e}", 2)
             plan = self.legs.plan(out, run, listings, carry, todo)
-            if selection is not None and not carry.passed.get(gate_differential.ASSEMBLY):
-                selection.carried.clear()   # `Legs.plan` dropped every carried pass of a host red in an earlier run
+        if prepared is not None and prepared.passed is not None and asm_d in plan:
+            retry = plan[asm_d]
+
+            def conformance_plan() -> Path | None | object:
+                """Conformance's plan, in its host thread: its retry (or whole run) when nothing is carried, else the cases
+                neither an earlier run nor the differential passed (`Legs.plan` over the one Carry)."""
+                sel = differential(self.say)
+                if sel is None:
+                    return retry
+                merged = self._with_differential(carry, sel)
+                kept, runs = dict(out.carried), list(out.composed_from)
+                one = self.legs.plan(out, run, {asm_d: listed[asm_d].result()[0]}, merged, [asm_d])
+                out.carried, out.composed_from = {**kept, **out.carried}, runs or out.composed_from
+                if not merged.passed.get(asm_d):
+                    sel.carried.clear()   # `Legs.plan` dropped every carried pass of a host red in an earlier run
+                return one.get(asm_d, Legs.NO_HOST)
+            plan[asm_d] = conformance_plan
+        elif prepared is not None:
+            def capture_beside() -> tuple[list[str], list[str]]:
+                lines: list[str] = []
+                differential(lines.append)
+                return [], lines
+            self._beside(out, "differential_capture", capture_beside)
         if out.tooling:
             self._beside(out, "post_build_self_tests", lambda: self.host.built_self_tests(spawn))
         first = self.legs.first(out, run, self.previous_run(run))
@@ -540,10 +560,10 @@ class Gate:
         except PopulationError as e:
             return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
                                 f"the population could not be listed: {e}", 2)
-        if selection is None and prepared is not None and captured and gate_differential.ASSEMBLY in listings:
-            selection = self.differential.select(prepared, captured[0], listings[gate_differential.ASSEMBLY])
-        if selection is not None:
-            out.differential = selection.record()
+        if selection:
+            out.differential = selection[0].record()
+            # the one Carry the population check composes: an earlier run's passes and the cases the differential carried
+            carry = self._with_differential(carry, selection[0])
         self.legs.check_populations(out, listings, run, carry, todo)
         stale = self.generations.check_generated(out, run, [r.asm for r in out.runs])
         out.timings["wall_s"] = round(time.monotonic() - started, 1)
@@ -551,7 +571,7 @@ class Gate:
         # ...but a TARGET whose declared inputs did not move keeps its pass (kb/Work PB4333): its key at the end tree
         out.keys_end = self.passes.end_keys(out)  # equals its key at the start
         self.passes.record_passes(out, run, [a for a in todo if a not in stale], self.generations.outputs())
-        self.differential.record(out, selection)
+        self.differential.record(out, selection[0] if selection else None)
         self._prune(run, out.composed_from)
         return self._verdict(out, run)
 

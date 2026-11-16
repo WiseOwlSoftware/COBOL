@@ -226,18 +226,20 @@ class Host:
         """Every `git ls-tree -r` entry of the measured `tree` (`buildgraph.tree_entries`)."""
         return buildgraph.tree_entries(self.repo, tree)
 
-    def oracle_digests(self, out: Path, spawn: Spawn, handed: dict[str, str]) -> Path:
+    def oracle_digests(self, out: Path, spawn: Spawn, handed: dict[str, str], only: Path | None = None) -> Path:
         """THE PROGRAM DIFFERENTIAL'S CAPTURE (kb/Work PB4333; scripts/gate_differential.py): the built oracle host's
         `digests` verb over this build, in the environment a test host has (`scrubbed_env`), handed the suite the
-        Conformance host is handed, with the compiled-program cache off (the capture observes the compiler). Returns
-        `out`; raises OSError naming the failure."""
+        Conformance host is handed, with the compiled-program cache off (the capture observes the compiler); `only`: a
+        file of the oracle ids to compile (one a line), else every compile. Returns `out`; raises OSError naming the
+        failure."""
         found = sorted((self.repo / ORACLE_HOST).glob(f"bin/{GATE_CONFIGURATION}/*/WiseOwl.Cobol.ArchOracle.dll"))
         if len(found) != 1:
             raise OSError(f"expected one built WiseOwl.Cobol.ArchOracle.dll under {ORACLE_HOST}bin/{GATE_CONFIGURATION}, "
                           f"found {len(found)}")
         env = {**scrubbed_env(), "DOTNET_CLI_UI_LANGUAGE": "en", **handed, "WISEOWL_COBOL_COMPILE_CACHE": "off"}
         with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace", newline="\n") as fh:
-            with process_job.ProcessJob.start(["dotnet", str(found[0]), "digests", "--out", str(out)], cwd=self.repo,
+            with process_job.ProcessJob.start(["dotnet", str(found[0]), "digests", "--out", str(out),
+                                               *(["--only", str(only)] if only is not None else [])], cwd=self.repo,
                                               stdout=fh, stderr=subprocess.STDOUT, **spawn(env=env)) as p:
                 rc = p.wait()
             fh.seek(0)
