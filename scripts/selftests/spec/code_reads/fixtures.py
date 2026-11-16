@@ -25,10 +25,15 @@ def rows(digest="0b2e58f8a250"):
     return [row(GR8), row(GR12), row(SR1, witnessed=False), row(AR1), row(OWN, kept=False)]
 
 
+def note(ident, status="open"):
+    """The text of a kb/Work note with the status `status`: the frontmatter the register's reader (`work.read_note`) reads."""
+    return f'---\ntitle: "{ident} - planted"\nid: {ident}\nkind: defect\nstatus: {status}\n---\n# {ident}\n'
+
+
 def tree():
-    """A scratch repository with one commit (the pin), a kb/Work note PB1 and a tracked adjudication file."""
+    """A scratch repository with one commit (the pin), an OPEN kb/Work note PB1 and a tracked adjudication file."""
     repo = ScratchRepo.init(scratch_dir("code-reads-") / "repo")
-    repo.commit("the tree", {"kb/Work/PB1.md": "# PB1\n", "kb/Work/PB1/adj.md": "the adjudication\n"})
+    repo.commit("the tree", {"kb/Work/PB1.md": note("PB1"), "kb/Work/PB1/adj.md": "the adjudication\n"})
     return repo, repo.git("rev-parse", "HEAD").strip()
 
 

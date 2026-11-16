@@ -358,6 +358,53 @@ def case_12_the_plan_leaves_out_a_row_its_own_derivation_closed(expect):
     expect("--witnessed leaves the closed row out too", "1985-GR-DRV-1" not in C.store.owed(rows, F.SCHEMA, {}, True))
 
 
+def case_13_a_contradicted_read_whose_fix_has_landed_is_owed_a_re_read(expect):
+    """kb/Work PB5854: `fixed_since` and the refusal that makes it total, on planted notes at a pin and in the tree."""
+    repo, _ = F.tree()   # PB1 open
+    repo.commit("a note landed at the pin, and one open", {"kb/Work/PB3.md": F.note("PB3", "landed"),
+                                                           "kb/Work/PB4.md": F.note("PB4")})
+    pin = repo.git("rev-parse", "HEAD").strip()   # the read's pin: PB1 open, PB3 landed, PB4 open, PB2 and PB5 absent
+    repo.commit("the fixes land", {"kb/Work/PB1.md": F.note("PB1", "landed"), "kb/Work/PB2.md": F.note("PB2", "landed"),
+                                   "kb/Work/PB5.md": F.note("PB5", "wontfix")})
+    ctx = F.context(repo.path)
+
+    def contradicted(rid, work):
+        return {**C.record_of(F.read(rid, "PARTIAL"), None, "0b2e58f8a250", pin, "s", {"reader": "a" * 64}), "work": work}
+    landed_since = contradicted(F.GR12, "PB1")
+    expect("a contradicted read whose note is landed in the tree and was open at the pin is fixed since",
+           C.fixed_since(landed_since, ctx))
+    expect("... a note ABSENT at the pin and landed in the tree is fixed since too", C.fixed_since(contradicted(F.GR12, "PB2"), ctx))
+    expect("a note still open is not", not C.fixed_since(contradicted(F.GR12, "PB4"), ctx))
+    expect("a note in some other status (not landed) is not", not C.fixed_since(contradicted(F.GR12, "PB5"), ctx))
+    confirmed = {**C.record_of(F.read(F.GR8), F.refute(F.GR8), "0b2e58f8a250", pin, "s", {"reader": "a" * 64}), "work": "PB1"}
+    expect("a CONFIRMED record that names a landed note is not", not C.fixed_since(confirmed, ctx))
+    expect("a contradicted record that names a note landed AT its pin is not fixed 'since'",
+           not C.fixed_since(contradicted(F.GR12, "PB3"), ctx))
+    records = {F.GR12: landed_since, F.GR8: confirmed, F.SR1: contradicted(F.SR1, "PB4")}
+    expect.equal("`reread` lists the fixed-since rows", C.reread(ctx, records), [F.GR12])
+    expect.equal("`--witnessed` keeps those with a test-ref of their own (SR1 has none)",
+                 C.reread(ctx, {**records, F.SR1: contradicted(F.SR1, "PB1")}, witnessed=True), [F.GR12])
+    expect.equal("the rows owed a read are the plan's other group: a contradicted row is decided, fixed since or not",
+                 C.owed(ctx, records), [F.AR1])
+    expect.equal("the store's counts still count the fixed-since record as contradicted",
+                 C.store.counts(ctx.rows, ctx.schema, records)[C.CONTRADICTED], 2)
+    # the refusal: a note already landed at the read's pin is no mechanism of a contradiction read after it
+    reads, store = repo.path / "reads", repo.path / "store"
+    F.plant(reads, "s-01", [F.read(F.GR12, "PARTIAL"), F.read(F.GR8, "PARTIAL")], [])
+    C.store.write(C.import_reads(ctx, reads, store, pin)[0], store)
+    expect("`work` refuses a note landed at the pin, saying to file a new note",
+           F.refused(lambda: C.attach_work(ctx, store, F.GR12, "PB3"), "already `landed`", "NEW kb/Work note"))
+    expect("`adjudicate` refuses it too",
+           F.refused(lambda: C.adjudicate(ctx, store, F.GR8, "PARTIAL", "why", "kb/Work/PB1/adj.md", "PB3"),
+                     "already `landed`"))
+    expect("a note landed since the read is accepted by `work`", C.attach_work(ctx, store, F.GR12, "PB1")[F.GR12]["work"] == "PB1")
+    expect("the audit's question is red on a stored record that holds a note landed at its pin",
+           any("already `landed`" in e for e in C.record_problems(contradicted(F.GR12, "PB3"), ctx)))
+    expect.equal("... and silent on one fixed since (information, never red)", C.record_problems(landed_since, ctx), [])
+    expect("a pin that is no commit is no answer of `absent`: it refuses",
+           F.refused(lambda: C.status_at("PB1", "0" * 40, repo.path), "no commit"))
+
+
 if __name__ == "__main__":
     ensure_utf8()
     sys.exit(selftest_cases.run(sys.modules[__name__]))

@@ -6,7 +6,7 @@ a reader and a refuter (kb/Work PB5759, PB5683, PB5692; DESIGN-spec-conformance-
     python scripts/spec/code_reads.py work --edition YEAR RULE-ID PBnnnn          # the mechanism note of a record
     python scripts/spec/code_reads.py adjudicate --edition YEAR RULE-ID --verdict V --reason TEXT --ref PATH [--work PBnnnn]
     python scripts/spec/code_reads.py withdraw --edition YEAR RULE-ID --reason TEXT  # remove a read defective as a read
-    python scripts/spec/code_reads.py plan --edition YEAR [--witnessed] [--json]  # the KEPT rows still owed a read
+    python scripts/spec/code_reads.py plan --edition YEAR [--witnessed] [--json]  # the KEPT rows owed a read, and the re-reads
     python scripts/spec/code_reads.py --check [YEAR]                              # the gate's CODE READS audit
 
 WHY (kb/Work PB5692's ruling, 2026-11-15). A verdict shared from the 2023 adjudication does not close a 1985 row: every
@@ -46,8 +46,10 @@ not parse to the shape (`record_problems`, the import's own checks); a rule the 
 does not parse (`citation.parse`), is of an edition the repository does not hold, does not check (`cite.resolve`), or a
 read none of whose citations is of the rule's own edition, its catalog citation's or `§1989:`; a code-location of no inventory shape
 (`inventory_schema.witness_shape_error`); a held part edited since its import; a digest of the wrong shape; an
-adjudication whose `ref` is no file of the tree; a contradicted record whose `work` is no note of kb/Work. Stale, undecided
-and owed are counted, never red. That every site of a code-location still RESOLVES is the battery gate's question, asked
+adjudication whose `ref` is no file of the tree; a contradicted record whose `work` is no note of kb/Work, or is a note
+already `landed` at the record's own pin (`landed_at_pin_problem`). Stale, undecided and owed are counted, never red, and so
+is a contradicted read FIXED SINCE (`fixed_since`: its note landed after its pin), which `plan` lists as owed a RE-READ
+(kb/Work PB5854). That every site of a code-location still RESOLVES is the battery gate's question, asked
 with the one predicate the inventory's rows are held to (`SpecTraceabilityInventoryDriftTests.SymbolResolves`, its
 `EveryCodeReadLocation_ResolvesInTheTree`): the inventory's own division of labour (`inventory_schema`'s docstring, SHAPE
 here and REFERENCE there), so no second copy of the resolver exists.
@@ -73,6 +75,7 @@ import inventory_schema  # noqa: E402  (the editions, the verdict vocabulary, th
 import inventory_view  # noqa: E402  (each edition's rows and their digests)
 import lineage  # noqa: E402  (which rows are KEPT, and a row's own witnesses)
 import lineage_reads  # noqa: E402  (the content digest every read record carries, and the refuter's vocabulary)
+import work as register  # noqa: E402  (THE reader of a kb/Work note's frontmatter: `read_note`)
 from inventory_schema import Edition, Schema  # noqa: E402
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
@@ -92,6 +95,8 @@ REFUTE_SUFFIX = "-refute"
 SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 PIN = re.compile(r"\A[0-9a-f]{40}\Z")
 NOTE = re.compile(r"\APB[0-9]+\Z")
+#: The status of a note whose fix has landed (the register's own word).
+LANDED = "landed"
 
 #: The keys every record has (`code_read_store.RECORD_KEYS` are all it may have).
 RECORD_KEYS = store.RECORD_KEYS
@@ -365,6 +370,64 @@ def work_problem(work: Any, root: pathlib.Path) -> str | None:
     return None
 
 
+def note_status(work: str, text: str | None) -> str | None:
+    """The `status` of the kb/Work note `work` whose file holds `text` (None: no such file), read by THE REGISTER'S reader
+    of a note (`work.read_note`), so a note at a pin goes through the one parser a note in the tree does. A file that is
+    no readable note refuses loudly: it is never read as a note that is not landed (kb/Work PB3654)."""
+    if text is None:
+        return None
+    note, why = register.read_note(f"{work}.md", text)
+    if note is None:
+        raise SystemExit(f"{TOOL}: {work}: {why or 'not a work note'}")
+    return note.get("status")
+
+
+def status_in_tree(work: str, root: pathlib.Path) -> str | None:
+    """`work`'s status in the tree at `root` (None when the note is no file there)."""
+    path = root / WORK_DIR / f"{work}.md"
+    return note_status(work, path.read_text(encoding="utf-8") if path.is_file() else None)
+
+
+def status_at(work: str, pin: str, root: pathlib.Path) -> str | None:
+    """`work`'s status in the commit `pin` of the repository at `root` (None when the note was no file there). A pin that is
+    no commit of the repository refuses: a status that cannot be read is no answer of "absent"."""
+    shown = subprocess.run(["git", "-C", str(root), "show", f"{pin}:{WORK_DIR}/{work}.md"], capture_output=True)
+    if shown.returncode:
+        if subprocess.run(["git", "-C", str(root), "cat-file", "-e", f"{pin}^{{commit}}"], capture_output=True).returncode:
+            raise SystemExit(f"{TOOL}: {work}: the pin {pin} is no commit of the repository at {root}, so the note's status "
+                             "at the read cannot be known")
+        return None
+    return note_status(work, shown.stdout.decode("utf-8"))
+
+
+def landed_at_pin(work: str, pin: str, root: pathlib.Path) -> bool:
+    """Was the note `work` already `landed` in the commit `pin` the code was read at?"""
+    return status_at(work, pin, root) == LANDED
+
+
+def fixed_since(record: dict[str, Any], ctx: Context) -> bool:
+    """THE PREDICATE of kb/Work PB5854: is `record` a contradicted read whose mechanism's note has LANDED since the read? Its
+    outcome is `contradicted`, it names a `work` note whose status in the tree is `landed`, and at the record's own pin the
+    note was absent or not `landed`. Such a row is owed a RE-READ on the fixed code (`plan`): the contradiction was true
+    when it was made, and the count of contradicted rows can reach zero only by reading the row again."""
+    work = record.get("work")
+    if outcome(record, ctx) != CONTRADICTED or not isinstance(work, str) or not NOTE.match(work):
+        return False
+    if status_in_tree(work, ctx.root) != LANDED:
+        return False
+    return not landed_at_pin(work, record["read"]["pin"], ctx.root)
+
+
+def landed_at_pin_problem(work: str, pin: str, root: pathlib.Path) -> str | None:
+    """Why `work` cannot be the mechanism of a contradiction read at `pin`, or None. A note already `landed` at the read
+    describes a defect that was fixed when the code was read: the contradiction is no defect of that note, and `fixed_since`
+    could never see it fixed 'since' (kb/Work PB5854)."""
+    if landed_at_pin(work, pin, root):
+        return (f"`work` {work} was already `{LANDED}` at the read's pin {pin[:10]}: a contradiction read after the fix is "
+                "no defect of that note; file a NEW kb/Work note for it")
+    return None
+
+
 def ref_problem(ref: Any, root: pathlib.Path) -> str | None:
     """Why `ref` names no file of the tree at `root` (repository-relative, `/`-separated), or None."""
     if not isinstance(ref, str) or not ref.strip() or ref.startswith("/") or "\\" in ref or ".." in ref.split("/"):
@@ -433,6 +496,9 @@ def record_problems(record: Any, ctx: Context) -> list[str]:
             if e := ref_problem(adj["ref"], ctx.root):
                 out.append(f"adjudication: {e}")
     if "work" in record and (e := work_problem(record["work"], ctx.root)):
+        out.append(e)
+    elif "work" in record and outcome(record, ctx) == CONTRADICTED and (
+            e := landed_at_pin_problem(record["work"], record["read"]["pin"], ctx.root)):
         out.append(e)
     if not out and outcome(record, ctx) == CONTRADICTED and "work" not in record:
         out.append("a contradicted record names its mechanism's kb/Work note (`work`): "
@@ -567,7 +633,7 @@ def _one(ctx: Context, directory: pathlib.Path, rid: str) -> tuple[dict[str, dic
 def attach_work(ctx: Context, directory: pathlib.Path, rid: str, work: str) -> dict[str, dict[str, Any]]:
     """The store with `rid`'s record naming the kb/Work note `work` of its mechanism."""
     records, record = _one(ctx, directory, rid)
-    if e := work_problem(work, ctx.root):
+    if e := work_problem(work, ctx.root) or landed_at_pin_problem(work, record["read"]["pin"], ctx.root):
         raise SystemExit(f"{TOOL}: {rid}: {e}")
     records[rid] = {**record, "work": work}
     return records
@@ -585,7 +651,8 @@ def adjudicate(ctx: Context, directory: pathlib.Path, rid: str, verdict: str, re
         problems.append("--reason is empty")
     if e := ref_problem(ref, ctx.root):
         problems.append(e)
-    if work is not None and (e := work_problem(work, ctx.root)):
+    if work is not None and (e := work_problem(work, ctx.root)
+                             or landed_at_pin_problem(work, record["read"]["pin"], ctx.root)):
         problems.append(e)
     if verdict != CONFORMS and work is None and "work" not in record:
         problems.append(f"a {verdict} adjudication names its mechanism's note: --work PBnnnn")
@@ -616,6 +683,14 @@ def owed(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = Fal
     return store.owed(ctx.rows, ctx.schema, records, witnessed)
 
 
+def reread(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
+    """The rows owed a RE-READ (kb/Work PB5854), in the catalog's order: each a contradicted record `fixed_since` its read.
+    `witnessed` keeps those that carry a test-ref of their own, as `owed` does. The record stays in the store, counted as
+    contradicted, until the re-read replaces it (`import --replace`)."""
+    return [rid for rid in ctx.rows if rid in records and fixed_since(records[rid], ctx)
+            and (not witnessed or lineage.own_witness_refs(ctx.rows[rid], ctx.schema))]
+
+
 def older_years(root: pathlib.Path = REPO) -> list[int]:
     """Every older held edition that has a store of code reads."""
     return [e.year for e in inventory_schema.load_schema().all_editions
@@ -638,6 +713,10 @@ def check(years: list[int]) -> int:
         errs = [f"{rid}: {e}" for rid, es in problems.items() for e in es]
         c = store.counts(ctx.rows, ctx.schema, {rid: r for rid, r in records.items() if not problems[rid]})
         print(f"{y}: {len(records)} code read(s); {store.count_text(c)}")
+        if not errs:   # `fixed_since` asks the tree and the pin: a record that does not stand is no question for it
+            fixed = reread(ctx, records)
+            print(f"  {len(fixed)} contradicted read(s) fixed since their read (their note has landed): `plan` lists them "
+                  "as owed a re-read" if fixed else "  no contradicted read is fixed since its read")
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:
@@ -689,13 +768,17 @@ def main(argv: list[str] | None = None) -> int:
     ctx = Context.of(a.edition)
     tracked = store.store_dir(a.edition)
     if a.cmd == "plan":
-        rows = owed(ctx, load(ctx), a.witnessed)
+        records = load(ctx)
+        rows, again = owed(ctx, records, a.witnessed), reread(ctx, records, a.witnessed)
         if a.json:
-            print(json.dumps(rows, indent=1))
+            print(json.dumps({"owed": rows, "re-read": again}, indent=1))
         else:
             print(f"plan {a.edition}: {len(rows)} KEPT row(s){' with a witness of their own' if a.witnessed else ''} "
                   "owed a code read")
             print("\n".join(rows))
+            print(f"plan {a.edition}: {len(again)} contradicted row(s) fixed since their read, owed a RE-READ "
+                  "(import --replace)")
+            print("\n".join(f"{rid} ({records[rid]['work']})" for rid in again))
         return 0
     if a.cmd == "import":
         directory = pathlib.Path(a.record) if a.record else tracked

@@ -2130,6 +2130,25 @@ printed. That every site still RESOLVES is the battery gate's, by the one predic
 (`SpecTraceabilityInventoryDriftTests.EveryCodeReadLocation_ResolvesInTheTree`, `SymbolResolves`): the inventory's own
 division of SHAPE (Python, at record time) and REFERENCE (the C# battery), so the resolver has no second copy.
 
+**A contradicted read whose fix has landed is owed a re-read (kb/Work PB5854, 2026-11-16).** A contradiction is true when it
+is read; when its mechanism's note (`work`) lands, nothing told the store, and `plan` (which lists only rows no confirmed or
+contradicted record decides) never offered the row again, so the count of contradicted rows could never reach zero. ONE
+PREDICATE, `code_reads.fixed_since(record, ctx)`: the record's outcome is `contradicted`, it names a `work` note whose
+`status` in the tree is `landed`, and at the record's own pin (`read.pin`, `git show <pin>:kb/Work/<id>.md`) the note was
+absent or not `landed`. A note's status, in the tree and at the pin alike, is read from its TEXT by the register's own reader
+(`work.read_note`): never a second parser. `plan` lists such a row in a group of its own after the rows owed a read (the text
+prints a second header and `rule (note)` lines; `--json` is `{"owed": [...], "re-read": [...]}`, which replaces the earlier
+bare list: nothing in the tree read it), and `--check` prints under the edition's counts line how many contradicted reads
+are fixed since: information, never red. The re-read replaces the record (`import --replace`): a replaced record loses its
+adjudication and its `work`, and its new reader and refuter judge the fixed code. THE REFUSAL that makes the predicate total:
+a note ALREADY `landed` at the record's pin cannot be the mechanism of a contradiction read after it (it would never be fixed
+"since"), so `work` and `adjudicate` refuse to name one (the message says to file a NEW note) and `--check` is red on a record
+that holds one; a pin that is no commit of the repository refuses too, never reads as "the note was absent".
+`code_read_store.py` IS NOT TOUCHED and does not learn to read `kb/Work`: it is in the conformance-suite generator's import
+closure (the reason it is a separate file) and `kb/` is the gate's inert lane, so a fixed-since record counts as
+`contradicted` in the inventory view's counts line until its re-read replaces it. The self-test is
+`scripts/selftests/spec/code_reads/test_code_reads.py`, `case_13` (planted notes at a pin and in the tree).
+
 **What the view shows, and what nothing here does.** `inventory_view.py --summary` prints, for an older edition with a
 store, a line of its own (`code_read_store.view_line`; the session probe prints it unchanged): the reads by outcome and the
 KEPT rows still owed one, beside the edition's GAP; both reach zero before the edition is done. No row's state changes
