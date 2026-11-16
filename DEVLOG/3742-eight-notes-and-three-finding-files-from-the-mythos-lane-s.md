@@ -1,4 +1,4 @@
-## Eight notes and three finding files from the Mythos lane's batch-9 rulings of 2026-11-16
+## Entry 3742 — 2026-11-16 02:02 PST — Eight notes and three finding files from the Mythos lane's batch-9 rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed, and a Sites block.
 
@@ -13,3 +13,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 Three dated finding files beside existing notes: `kb/Work/PB5775/2026-11-16-two-more-rows.md` (the rows `1985-SR-XIII.3.7.3-1` and `1985-SR-XIII.4.3.3-1`), `kb/Work/PB4950/2026-11-16-more-instances-at-85.md` (the diagnostics that cite a 2023 rule at `--std 85`, COBOL2973, COBOL2198 and COBOL1627), and the ruling copied unchanged as `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-9.md`.
 
 **The population is read.** The ruling counts 83 of 1,106 rows of the 1985 code reads contradicted (7.5 %), from the rulings files by script.
+
