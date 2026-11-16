@@ -22,11 +22,10 @@ public sealed class StandardArgumentRoundingDriftTests
 {
     private static readonly string[] Exceptions = ["SQRT", "MAX", "MIN", "ORD-MAX", "ORD-MIN"];
 
-    /// <summary>The names of the chapter-15 functions whose section of <paramref name="specFile"/> states an equivalent arithmetic
+    /// <summary>The names of the chapter-15 functions whose section of an edition's text (<paramref name="lines"/>) states an equivalent arithmetic
     /// expression, and of those whose section says the argument "is not rounded".</summary>
-    private static (HashSet<string> Eae, HashSet<string> NotRounded) Read(string specFile)
+    private static (HashSet<string> Eae, HashSet<string> NotRounded) Read(string[] lines)
     {
-        string[] lines = File.ReadAllLines(TestRepo.Specs(specFile));
         var heading = new Regex(@"^#### 15\.(\d+) (.+) function$");
         HashSet<string> eae = new(StringComparer.Ordinal), notRounded = new(StringComparer.Ordinal);
         string? current = null;
@@ -49,8 +48,8 @@ public sealed class StandardArgumentRoundingDriftTests
     [Fact]
     public void TheArgumentsThatKeepAllDigits_AreTheEquivalentExpressionFunctionsOfBothEditions_AndTheStatedExceptions()
     {
-        var (eae02, notRounded02) = Read("ISO_COBOL_2002.md");
-        var (eae14, notRounded14) = Read("ISO_COBOL_2014.md");
+        var (eae02, notRounded02) = Read(File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2002.md")));
+        var (eae14, notRounded14) = Read(File.ReadAllLines(TestRepo.Specs("ISO_COBOL_2014.md")));
         Assert.True(eae02.Count > 20 && eae14.Count > 20, $"the chapter-15 reader found {eae02.Count} and {eae14.Count} functions");
         // SQRT's text names the equivalent arithmetic expression only to say it has none; it is an exception, not an EAE member.
         var expected = new SortedSet<string>(eae02.Union(eae14).Union(Exceptions), StringComparer.Ordinal);
