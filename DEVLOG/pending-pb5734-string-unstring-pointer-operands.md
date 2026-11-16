@@ -38,3 +38,5 @@ pb5646-inspect-national-group-national-literal.
 **Self-review.** Architecture: one size predicate in the binder, one capacity predicate in PicInfo, one elementary-or-
 bit-or-national predicate beside `IsElementaryReference`; no C# text in a bound node. Code: each citation was run through
 `cite.py --check`. Duplication: STRING and UNSTRING share `PointerTooSmall`.
+
+Review round 1 (R1-1): INSPECT SR2 (identifier-3..n) asked `IsElementaryReference`, so a GROUP-USAGE NATIONAL group as a TALLYING/REPLACING operand was refused COBOL0847 while SR4 in the same statement already treated it as an elementary national item (§2023:13.18.29.4 GR2b). `StatementValidation.IsInspectElementaryCharacterItem` (the one elementary arm of SR1 and SR2) now asks `ItemCategory.IsElementaryOrBitNationalGroupReference`; a bit group stays refused by the usage half. Golden `pb5646-inspect-national-group-operand` (output 03). R1-2 (lead): golden `pb5607-string-pointer-binary-container` reaches the `CanHoldUnscaledValue` container arm (COMP-5 PIC 99 and BINARY-CHAR UNSIGNED pointers over PIC X(200)).
