@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.26.4-4",
  "rule-digest": "ae76ab1eb541",
+ "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/g85_f14_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

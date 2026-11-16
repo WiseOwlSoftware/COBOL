@@ -769,6 +769,22 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // representable, and <see cref="FreezeOdoExtent"/> freezes it (kb/Work PB394).</para>
         if (item.IsGroup && VariableLengthCompatibility.IsVariableLength(item))
             return null;
+        // ⛔ AN ALPHANUMERIC-EDITED OR NATIONAL-EDITED SENDER IS HELD AS THE CHARACTERS IT CONTAINS, NEVER RE-EDITED
+        // (kb/Work PB5678). The identity copy into the intermediate is a MOVE, and a MOVE into an item whose PICTURE carries
+        // insertion characters EDITS (§2023:14.9.25.4 GR6, "along with any editing specified for, or de-editing implied by") — so a
+        // temp cloned WITH the sender's mask put the already-inserted blank or slash through the mask a second time, and
+        // `MOVE SXE (PIC XBX, "A B") TO RX RX2` stored "A" in both receivers where GR1 moves "the content of the data
+        // item referenced by identifier-1" to each. The intermediate result item's description is the implementor's
+        // (§2023:14.9.25.4 GR1, "temp is an intermediate result item provided by the implementor"), so it is the
+        // unedited item of the sender's category, usage and length: the copy is exact and the second move reads
+        // the same characters the sender holds. (The sender's own validity against each receiver was screened on the
+        // written statement, §2023:14.9.25.3 SR6 and Table 16.)
+        if (item.Pic is { IsCharacterEdited: true } edited)
+            return new TempModel(new DataItem
+            {
+                Level = 1, CobolName = "__SENDVAL-UNEDITED", ClrName = "__sendvalUnedited",
+                Pic = new PicInfo(edited.Category, edited.Usage, edited.Length, Digits: 0, Scale: 0, Signed: false),
+            }, DynLimit: 0);
         return new TempModel(item, DynLimit: 0);
     }
 

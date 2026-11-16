@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-GR-VII.1.3.5-3",
  "rule-digest": "36833954591f",
+ "test-ref": "conformance:cases/VII.1.3@1985-LANGUAGE-CONCEPTS/g85_f15_01",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

@@ -1,7 +1,8 @@
 {
  "rule-id": "2002-GR-14.8.24.3-1",
  "rule-digest": "9e06d67317e9",
- "verdict": "DIVERGES",
- "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#Materialize",
- "notes": "kb/Work PB5678: at --std 2002 (golden-2002-2 re-probe on main 63ab0c4ece, repro g2mvd2.cob) MOVE of a PIC XBX \"A B\" sender to two receivers stores [A    ] in each, X/X \"A/B\" stores [A//  ], NBN stores [C    ]: the frozen temporary re-edits the sender, where GR1 moves its content [A B  ], [A/B  ], [C D  ]."
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindMoveOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#Materialize; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#OfPlace",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov20_national_edited_sender_multi_receiver; conformance:cases/14.9.25-MOVE/pb5678_move_edited_sender_multi_receiver",
+ "notes": "kb/Work PB5678: CONFORMS. The intermediate result item of a MOVE to two or more receivers (SendingValueTemp.Materialize) took the sender's edit mask and so edited an alphanumeric-edited or national-edited sender a second time; SendingValueTemp.OfPlace now describes it as the unedited item of the sender's category, usage and length. At --std 2002 MOVE SXE (PIC XBX \"A B\") TO RX RX2 gives [A B  ][A B  ], PIC X/X \"A/B\" gives [A/B  ][A/B  ], PIC NBN N\"C D\" to two national receivers gives [C D  ][C D  ] (GR1: the content moves to each receiver)."
 }

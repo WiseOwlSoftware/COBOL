@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-SR-XIII.4.8.3-6",
  "rule-digest": "a695256dd9d4",
+ "test-ref": "conformance:cases/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/g85_bf28_04",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

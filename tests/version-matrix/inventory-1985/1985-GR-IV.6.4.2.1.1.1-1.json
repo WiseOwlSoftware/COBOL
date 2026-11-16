@@ -1,0 +1,8 @@
+{
+ "rule-id": "1985-GR-IV.6.4.2.1.1.1-1",
+ "rule-digest": "9651cdef2067",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ConditionalStatements.cs#IsConditional; src/WiseOwl.Cobol.Compiler/Validation/ProcedureFormatPass.cs#VisitStatementBlock",
+ "test-ref": "conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x08; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x09; conformance:cases/IV.6.4.2.1@1985-Conditional-Statements-and-Sentences/g85_x37",
+ "notes": "Adjudicated 2026-11-15 and upheld by a refuter at --std 85. §1985:IV.6.4.2.1.1.1 GR1: \"AT END or NOT AT END phrase when specified within a READ statement\". KEPT in substance by the 2023 text, no `next` recorded: the 2023 side has no catalog row until PB5451 and a new 1985 KEPT record is refused (DESIGN-spec-conformance-review.md 10.6). Witnesses: g85_x08, g85_x09, g85_x37."
+}

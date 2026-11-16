@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.39.2-6",
+ "rule-digest": "0bcd347987fa",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#PointerTooSmall",
+ "test-ref": "conformance:cases/14.8.39@2002-STRING-STATEMENT/pb5607-string-pointer-too-small-2002",
+ "notes": "§2002:14.8.39.2 SR6: identifier-4 must hold 1 plus the size of identifier-3; BindString refuses a pointer too small for a receiver whose size is known at compile time (COBOL1651, PointerTooSmall over PicInfo.CanHoldUnscaledValue). PIC 9 against a 10-character receiver is refused; the boundary is accepted (conformance:cases/14.9.43-STRING/pb5607-string-unstring-pointer-fits). kb/Work PB5607."
+}
