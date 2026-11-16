@@ -7,8 +7,8 @@
       *>---
       *> §1985:VI.6.13.3 SR4 - "Two operands connected by a THROUGH
       *> phrase must be of the same class." (cite.py --check OK.)
-      *> The legal twins of the refused ranges: ZERO takes the class
-      *> of the selection subject (§1985:VI.6.13.4 GR1b), so ZERO THRU
+      *> The legal twins of the refused ranges: ZERO also stands for the
+      *> numeric value 0 (§1985:IV.4.2.2.2.3 (1)), so ZERO THRU
       *> 9 is numeric to numeric; SPACE THRU "Z" and SPACE THRU
       *> HIGH-VALUE are alphanumeric to alphanumeric. A screen that
       *> refused every figurative would fail each of the three.

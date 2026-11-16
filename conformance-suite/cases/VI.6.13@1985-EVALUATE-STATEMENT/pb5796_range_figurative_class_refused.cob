@@ -10,9 +10,9 @@
       *>   by a THROUGH phrase must be of the same class" -> OK
       *> SPACE represents a character of the computer's character set
       *> (§1985:IV.4.2.2.2.3), so it is a nonnumeric literal, of
-      *> category alphanumeric (§1985:IV.4.2.2.2.1.3 GR3); only ZERO
-      *> takes the class of the selection subject (§1985:VI.6.13.4
-      *> GR1b). SPACE THRU 9 therefore joins an alphanumeric and a
+      *> category alphanumeric (§1985:IV.4.2.2.2.1.3 GR3); only ZERO also
+      *> stands for the numeric value 0 (§1985:IV.4.2.2.2.3 (1)); SPACE THRU 9
+      *> therefore joins an alphanumeric and a
       *> numeric operand. Leg: the one WHEN line; the program is
       *> otherwise legal, and pb5796_range_figurative_class_accepted
       *> is the same shape with legal operands and runs.

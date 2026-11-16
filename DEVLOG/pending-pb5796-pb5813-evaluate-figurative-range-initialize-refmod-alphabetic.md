@@ -6,8 +6,8 @@ where the standard gives it a definite answer.
 **PB5796.** `EVALUATE N WHEN SPACE THRU 9` and `WHEN 1 THRU HIGH-VALUE` (N PIC 9(3)) compiled and printed `IN` at 85 and 2023,
 while `"A" THRU 9` was refused COBOL2107. `ClassOf` answers null for a figurative (two candidates), and `ScreenRangeOperands`
 tested same-class only when both ends were non-null. SPACE, QUOTE, HIGH-VALUE and LOW-VALUE are character values
-(§2023:8.3.3.6.4 GR1; at 1985 nonnumeric literals, §1985:IV.4.2.2.2.1.3 GR3), never numeric; only ZERO takes its partner's
-class (§1985:VI.6.13.4 GR1b). Fix: `IntrinsicArgumentRules.CanShareClass` asks that the two ends' `CandidateClasses`, projected
+(§2023:8.3.3.6.4 GR1; at 1985 nonnumeric literals, §1985:IV.4.2.2.2.1.3 GR3), never numeric; ZERO alone also stands for the numeric value 0 and so pairs with any class (§1985:IV.4.2.2.2.3 (1); §2023:8.3.3.6.4 GR1).
+Fix: `IntrinsicArgumentRules.CanShareClass` asks that the two ends' `CandidateClasses`, projected
 through `TableTwoClass`, intersect (an empty set still fails open), and `ScreenRangeOperands` calls it when an end abstained.
 Both repros now exit 65 with COBOL2107 at 85 and 2023; the controls (`"A" THRU 9` refused, `ZERO THRU 9` legal) are unchanged.
 Goldens: `pb5796_range_figurative_class_refused`, `pb5796_range_figurative_high_value_refused` (refused at 85/2002/2014/2023),
