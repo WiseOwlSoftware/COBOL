@@ -112,6 +112,8 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             ? ""
             : $" (counting {(count == 1 ? "a REPORT SECTION entry" : $"{count} REPORT SECTION entries")} of that spelling)";
         string msg;
+        // The uniqueness rule is the edition's own (kb/Work PB5627): §1985:IV.4.3.8.1 SRL2.1 below COBOL-2002.
+        string rule = data.Edition.DialectLevel < 2002 ? "ISO §1985:IV.4.3.8.1 SRL2.1" : "ISO §2023:8.4.2.2";
         // ⛔ A DECLARED CONDITION-NAME (kb/Work PB567): one qualified by a data-name it is NOT subordinate to (`IS-A OF
         // H1`, H1 an unrelated record; `IS-A OF G1 OF S`, real ancestors in reversed order) is worded by the one
         // misqualified-condition text. Every other kind — an alphabet-name (kb/Work R38: GnuCOBOL's INSPECT CONVERTING
@@ -128,7 +130,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
                 + "reference that uniquely identifies that resource\"). Check the spelling, or declare the item.";
         else if (qualifiers.Count == 0)
             msg = $"'{text}' does not uniquely identify a data item — {candidates.Count + reportEntries} declarations share the "
-                + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them (ISO §2023:8.4.2.2 — "
+                + $"name{ReportEntriesWording(reportEntries)} and no qualification distinguishes them ({rule} — "
                 + "qualification shall establish uniqueness).";
         else
         {
@@ -138,11 +140,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             msg = matches > 1
                 ? $"'{text}' does not uniquely identify a data item — {matches} declarations of '{name}'"
                   + $"{ReportEntriesWording(reportEntries)} match "
-                  + "the written qualifiers (ISO §2023:8.4.2.2 — qualification shall establish uniqueness; write "
+                  + $"the written qualifiers ({rule} — qualification shall establish uniqueness; write "
                   + "further qualifiers to single one out)."
                 : $"'{text}' does not uniquely identify a data item — '{name}' is declared, but not under the "
                   + $"given qualifier{(qualifiers.Count > 1 ? "s" : "")} ({string.Join(" OF ", qualifiers)}) "
-                  + "(ISO §2023:8.4.2.2 — qualification shall establish uniqueness).";
+                  + $"({rule} — qualification shall establish uniqueness).";
         }
         data.Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
     }
@@ -252,7 +254,11 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         // container's hides a farther one (kb/Work PB1047 / PB1243): the unit map holds every tier, and the ONE
         // nearest-tier rule narrows it before ambiguity is asked.
         if (!data.Symbols.TryResolveUnqualified(name, data.ActiveScope, out var list)) return null;
-        if (list.Count > 1)
+        // ⛔ A REPORT SECTION ENTRY OF THE SAME SPELLING AND SOURCE ELEMENT COUNTS WITH THE ITEMS (kb/Work PB5775), as the qualified
+        // lookup counts it (DataBinder.QualifiedCandidates): a data item that shares its name with a report group is not unique, so
+        // the unqualified reference is the ambiguity (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1).
+        int reportEntries = data.ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(list), name, []);
+        if (list.Count + reportEntries > 1)
         {
             // §2023:8.4.2.2.1 (kb/Work R33): "Qualification of a user-defined name is required unless … 1) No
             // other name has the identical spelling." TryResolve returns ONE namespace — the §2023:8.4.6.2.1
@@ -265,7 +271,7 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
             if (!data.Edition.Permissive) return null;
             if (refs.Probing) return list[0];   // R30 purity: the committing resolution warns (kb/Work PB157)
             data.Edition.Warning(DiagnosticCatalog.UndefinedReference,
-                $"'{name}' is declared {list.Count} times and referenced without qualification — "
+                $"'{name}' is declared {list.Count + reportEntries} times and referenced without qualification — "
                 + "ISO §2023:8.4.2.2.1 requires qualification when spellings collide; --permissive resolves to "
                 + "the first declaration");
         }

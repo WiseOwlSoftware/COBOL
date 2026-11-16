@@ -4363,7 +4363,7 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
         // which precludes any ambiguity of reference", §1985:IV.4.3.8.1 SRL2.1) and below 2002 a detail of ANOTHER report is
         // then refused by name. COBOL-2002's SR7 lets the report-name qualifier name any report (kb/Work PB1294).
         var match = ReportGroupResolution.Resolve(Edition, _scope.Declared, det.Name, det.Qualifier, where,
-            out var owner, out var group, preferred: model);
+            out var owner, out var group, _d, preferred: model);
         if (match == ReportGroupResolution.Match.Ambiguous) return;   // COBOL1920 is reported; binding its first candidate cascades
         if (match == ReportGroupResolution.Match.None)
         {

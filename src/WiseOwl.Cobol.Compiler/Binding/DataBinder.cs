@@ -5999,7 +5999,15 @@ public sealed partial class DataBinder(EditionContext? edition = null) : IPlaceF
         // §2023:8.4.6.2.1 3) AFTER qualification (rule 1 applies "the normal rules for qualification" over the whole
         // set first): the survivors of the nearest declaring source element (kb/Work PB1047 / PB1243), and none when a
         // report entry of a nearer source element is the referenced item (kb/Work PB4196).
-        return new NameCandidates<DataItem>(Symbols.NearestDeclaringData(survivors, name, quals));
+        var tier = Symbols.NearestDeclaringData(survivors, name, quals);
+        // ⛔ A REPORT SECTION ENTRY OF THE SAME SPELLING AND SOURCE ELEMENT IS ANOTHER DECLARATION OF THE NAME (kb/Work PB5775): its
+        // data-name is a user-defined name, so "uniqueness must then be established through qualification for each user-defined name
+        // explicitly referenced" (§1985:IV.4.3.8.1 SRL2.1; §2023:8.4.2.2.3 SR1) counts it, and `MOVE "Z" TO DA` over a Working-Storage
+        // DA and a report group DA is nonunique, never the storage item (the report entry is named by DA OF the-report). It counts
+        // WITH the items and resolves to none, and only beside one: a name the report section alone declares is the report-item
+        // refusal's (ReportSectionBinder.ReportEntryReferenceRefused).
+        int reportEntries = tier.Count == 0 ? 0 : ReportSection.ReportEntriesInTierOf(new NameCandidates<DataItem>(tier), name, quals);
+        return new NameCandidates<DataItem>(tier, reportEntries);
     }
 
     /// <summary>⛔ ISO §2023:8.4.2.2.1 RULE 4, IN THE ONE PLACE EVERY DATA-NAME LOOKUP READS (kb/Work PB1476). "Qualification
