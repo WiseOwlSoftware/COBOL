@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.15.2-3",
+ "rule-digest": "8de075e4809d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ControlOperandRef; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindReportDescriptionClauses",
+ "test-ref": "conformance:cases/13.16.15@2002-CONTROL-CLAUSE/g2-control-forms-cd",
+ "notes": "§2002:13.16.15.2 SR3 'Data-name-1 may be qualified': K OF REC-A / K OF REC-B (two items named K) and CD-K OF CDIN-REC are accepted and each footing follows its own item (A:CF-A AAAA, A:CF-B XX33, B:CF AA33). --std 2002 run matched the derived .out."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.27.2-1",
+ "rule-digest": "92c926049b99",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UsageInheritanceGroup",
+ "test-ref": "conformance:cases/13.16.27@2002-GROUP-USAGE-CLAUSE/g2-gu-bit-group-ws-and-cd",
+ "notes": "Accepted: GROUP-USAGE BIT on group items that are not strongly typed (G and its subordinate group SG), in working-storage and in a CD record, compiles and runs (all 18 lines). Refused: GROUP-USAGE NATIONAL on an elementary PIC N(4) entry of a CD record (g2-gu-cd-elementary-subject). Ran at --std 2002 (pinned dc1f2dcce8): output equals the derived .out."
+}

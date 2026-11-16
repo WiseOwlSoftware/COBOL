@@ -44,7 +44,7 @@ class Legs:
         with and how many cases it carries."""
         lefts = {asm: not_passed(listings[asm], carry.passed[asm]) for asm in todo}
         for asm in carry.red_hosts & set(todo):
-            # ⛔ A HOST WHOSE RED THE CASES DO NOT EXPLAIN (`_red_explained`: a class or collection cleanup failure, a crash
+            # ⛔ A HOST WHOSE RED THE CASES DO NOT EXPLAIN (`red_explained`: a class or collection cleanup failure, a crash
             # after the last result, no verdict line, a failure count beside a failed case that the trx does not name)
             # has a cause no retry of cases reaches, and composing around it would turn a deterministic host failure
             # GREEN: the host runs the whole assembly again.

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-12.3.4.5.3-1",
+ "rule-digest": "3f37f5d35a22",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#AddAlternateKey",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/l1_read_key_of_reference",
+ "notes": "§2002:12.3.4.5.3 GR1: the ALTERNATE RECORD KEY clause specifies an alternate record key for the file. l1_read_key_of_reference declares ALTERNATE RECORD KEY IS R-ALT over records 01/DD 02/CC 03/BB 04/AA; 'MOVE \"CC\" TO R-ALT / READ F KEY IS R-ALT' prints A1=00 02/CC (the record found by its alternate key), and the following READ NEXT gives A2=00 01/DD and A3-ATEND=10 (ascending on the alternate key of reference, §2002:9.1.8.1), opposite to prime order. l1_read_key_of_reference run at --std 2002 on the pinned build: PASS."
+}

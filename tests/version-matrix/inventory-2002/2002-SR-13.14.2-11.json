@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.14.2-11",
+ "rule-digest": "eecdb25c1a3f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckPictureRequiredPass.cs#CheckElementaryOnlyClauses; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+ "test-ref": "conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-elementary-only-clauses; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-ws-sync-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-sync-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-picture-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-justified-group; conformance:cases/13.14@2002-DATA-DESCRIPTION-ENTRY/g2-dde-cd-bwz-group",
+ "notes": "§2002:13.14.2 SR11: the four clauses on elementary items of a CD record are accepted and behave (B1=[  AB], B2 blank at zero then 005, B3=0007); SYNCHRONIZED on a group (working-storage and CD) draws COBOL0900, PICTURE COBOL2191, JUSTIFIED and BLANK WHEN ZERO COBOL2403; --std 2002 on build dc1f2dcce8."
+}

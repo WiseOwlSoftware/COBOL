@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.5.3-4",
+ "rule-digest": "f0f7c54c2b1e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CobolPtr.cs#Deref; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#End; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#BoundPtrError",
+ "test-ref": "conformance:cases/13.16.5@2002-BASED-CLAUSE/g2-based-invalid-address",
+ "notes": "§2002:13.16.5.3 GR4: a based item pointed at the LOCAL-STORAGE of an activation that has returned (dead per §2002:8.6.3 and 8.6.4) raises EC-BOUND-PTR on MOVE and on SEND FROM; static storage does not. The --std 2002 run matched the derived output."
+}

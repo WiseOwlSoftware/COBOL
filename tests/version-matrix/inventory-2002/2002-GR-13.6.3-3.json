@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.6.3-3",
+ "rule-digest": "51cd52f7ba95",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Activate; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Call; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Unbound; src/WiseOwl.Cobol.Compiler/CodeGen/HostEntryEmitter.cs",
+ "test-ref": "conformance:cases/13.6@2002-LINKAGE-SECTION/g2-lk-call-using-access",
+ "notes": "§2002:13.6.3 GR3: under each 2002 CALL form with USING (format 1 plain and with ON OVERFLOW, format 2 with NOT ON EXCEPTION, format 3 AS NESTED), the callee reads its formals, and its writes reach the by-reference arguments and the returning item. The --std 2002 run printed the 10 derived lines. The OS leg is undefined. The non-COBOL leg is documented in DOC-A.1-116 and is not shown by a 2002 run."
+}

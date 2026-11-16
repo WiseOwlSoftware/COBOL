@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-11.6.2-3",
+ "rule-digest": "012a46f0a7d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#MarkRoster; src/WiseOwl.Cobol.Compiler/Oo/OoClassTable.cs#Build; src/WiseOwl.Cobol.Compiler/Oo/OoConformance.cs",
+ "test-ref": "conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid01-override-same-name-superclass; conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid02-override-no-superclass-method; conformance:cases/11.6@2002-METHOD-ID-PARAGRAPH/g2mid03-override-final-method",
+ "notes": "§2002:11.6.2 SR3 requires that an OVERRIDE name a superclass method with the same NAME that is not FINAL. A same-interface override and a covariant-RETURNING override (§2002:9.3.7.1.2 rule 5c2) are both accepted and dispatch to the overriding method per §2002:11.6.3 GR2 ('I AM Y', 'I AM X'). An OVERRIDE with no such method is refused with COBOL0838, and an OVERRIDE of a FINAL method with COBOL0839. Matched at --std 2002 on build dc1f2dcce8."
+}
