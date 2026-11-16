@@ -408,6 +408,12 @@
     "14.8.21"
    ],
    "why": "the INSPECT statement, §2002:14.8.21"
+  },
+  "move-sign-is-the-values-sign": {
+   "sections": [
+    "14.8.24"
+   ],
+   "why": "the MOVE statement, §2002:14.8.24, whose GR4b1 places the sign of the sending operand at 2002 (kb/Work PB5852, VCR row 7.85); every statement that stores by the MOVE rules sends its store through it"
   }
  },
  "holds": {

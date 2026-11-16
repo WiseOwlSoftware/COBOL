@@ -752,8 +752,8 @@ public sealed class LinageConformanceTests
         EditionHarness.AssertHasDiagnostic(diags, "SR13");
     }
 
-    [Fact]   // §2023:8.4.3.14 SR3 / §2023:8.4.2.2: an UNQUALIFIED LINAGE-COUNTER is ambiguous when two files have
-             // LINAGE clauses — rejected with a qualification diagnostic.
+    [Fact]   // §1985:IV.4.3.8.1 SRL2.8: an UNQUALIFIED LINAGE-COUNTER is ambiguous when the program has two files with
+             // LINAGE clauses — rejected at 85 with a diagnostic citing the 1985 rule (not a 2023 one).
     public void UnqualifiedCounter_TwoLinageFiles_IsRejected()
     {
         var (ok, diags) = EditionHarness.Compile("""
@@ -783,7 +783,7 @@ public sealed class LinageConformanceTests
                 STOP RUN.
             """, 85);
         Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diags, "8.4.3.14");
+        EditionHarness.AssertHasDiagnostic(diags, "§1985:IV.4.3.8.1 SRL2.8");
     }
 
     // ── GR6 b)'s VALUE RULES and what a violation does (kb/Work PB525 + PB526) ────────────────────────────
