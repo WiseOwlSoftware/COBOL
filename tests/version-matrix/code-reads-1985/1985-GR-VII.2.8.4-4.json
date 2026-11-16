@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VII.2.8.4-4",
+ "rule-digest": "293766be4fe0",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "aa2d680b11da6173c4ecffd8ec0b343673a5e384c457f377807faa44073a5404",
+   "refuter": "a3462051e383e658ac46b42421325d646c7ff2d99a9cb59f0127292ad0744ab4"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.8.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85, with no RECORD DELIMITER clause, a variable-length record's length on the medium is determined by the implementor's method, which the implementor must specify; WiseOwl specifies a 4-byte little-endian length prefix per record and must write and read by it.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrame; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#EncodeFrameHead; src/WiseOwl.Cobol.Runtime/IO/RecordFraming.cs#ReadFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#NextFrame; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#Read",
+  "edition-consulted": [],
+  "edition-search": "grep of RecordFraming.cs and SequentialConnector.cs for Edition, Std, Version, CobolVersion, DialectBehavior: no hit; the runtime framing takes no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: file D of pb292 (RECORD VARYING, no clause); the on-medium bytes were checked here",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
+    "printed": "D1=00 LEN=03 [PQR] D2=00 LEN=08 [PQRSTUVW]; pb292rd1d.dat = 03 00 00 00 50 51 52 08 00 00 00 50..57",
+    "expected": "the documented method (docs/conformance/7/DOC-A.1-151.md: 4-byte little-endian length prefix) on the medium, the lengths back through DEPENDING ON"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_odo_bytes-001",
+    "printed": "F3A 00 1AB / F3B 00 3CDEFGH; RDO3.DAT = '1AB    3CDEFGH' (two 7-byte records, no prefix); F4 OPEN 35 / F4 READ 47",
+    "expected": "with no RECORD clause fixed or variable is the implementor's (§1985:II.2.1.4.3); records written fixed at maximum read back as written"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.4 GR4",
+    "check": "OK  §1985:VII.2.8.4 GR4  (║2.8.4 General Rules║)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "The determination is documented (DOC-A.1-151) and the probe's file bytes match it. An FD with no RECORD clause over an OCCURS DEPENDING ON record yields fixed records at the maximum size, an implementor choice §1985:II.2.1.4.3 allows; this rule then has no variable-length record to speak of.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.8.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,e",
+  "evidence": "The reader's requirement: with no RECORD DELIMITER clause WiseOwl specifies its method (DOC-A.1-151: 4-byte little-endian length prefix; DOC-A.1-146 (b)/(c'): a RECORD VARYING record of a record sequential print stream is 'framed exactly as in (b)' with the print controls written between records, a LINAGE file is unframed text) 'and must write and read by it'. Probe rd_print-001 (--std 85, E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-221/runs/rd_print-001): FB = RECORD IS VARYING IN SIZE FROM 1 TO 10 DEPENDING ON LB, no LINAGE, no RECORD DELIMITER, written WRITE FB-REC AFTER ADVANCING 1 LINE twice (L=4 'AB  ', L=3 'CDE') -> 'W 00 00 00'; CLOSE; OPEN INPUT FB through the same FD -> 39; READ -> 47 (stdout 'OPEN INPUT 39 39 39', 'LAST 47 47 47'). RDPB.DAT = 0a 04 00 00 00 41 42 20 20 0a 03 00 00 00 43 44 45 0a: the documented prefix IS written, with LF controls between frames, and the reader refuses its own method's output. FA (LINAGE, no clause, no ADVANCING phrase) and rd_linage2-001 (LINAGE, DEPENDING ON) the same: OPEN INPUT 39. --std 2023 identical (rd_print-002): cause (b). Non-print variable-length files read back correctly (rd_sizes-002, rd_reversed-001 incl. 1985 REVERSED and EXTEND), so the defect is the print-stream arm of the method. Code: SequentialConnector.cs#FixedAttributeConflict returns 39 when IsVarying && !RecordFraming.StreamFramingParses(HostPath); its own remarks say 'writing a print, report or extract file and reading it back ... is exactly the idiom' the 04/06/09 statuses exist for. 39 is defined only as a conflict between the fixed file attributes and the program's (§1985:VII.1.3.5 item f); the FD that created the file has none. cite.py: 'OK  §1985:VII.2.8.4 GR4  (║2.8.4 General Rules║)  the text is in GR4'; 'OK  §1985:VII.1.3.5  (1.3.5 I-O Status)  the text is in the clause; it lies in GRL2.3f'; 'OK  §1985:VII.4.7.4 GR16  (4.7.4 General Rules)  the text is in GR16'; 'OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11'. Fixed-length sibling (outside this rule, same mechanism family): rd_print_fixed-002 reads CR/LF control bytes into the record area and misaligns records (§1985:II.2.1.4). kb/Work: none found (PB1664, PB2509 cover the print-stream write form; PB2754 torn tails).",
+  "edition-sites-missed": [],
+  "corrected": "NON-CONFORMING (wrong-answer), cause b: the implementor's no-clause method for a variable-length record sequential file written with ADVANCING or LINAGE (DOC-A.1-146 (b)/(c')) is not the method used to determine record length on input: OPEN INPUT of the file through the FD that wrote it answers 39 and no record is read. Repro: FD F RECORD IS VARYING IN SIZE FROM 1 TO 10 CHARACTERS DEPENDING ON L; OPEN OUTPUT F; MOVE 4 TO L; WRITE F-REC AFTER ADVANCING 1 LINE; CLOSE F; OPEN INPUT F -> FILE STATUS 39 (expected 00, then READ 00 with L=04). Same at --std 2023."
+ }
+}

@@ -2,59 +2,63 @@
  "rule-id": "1985-GR-XIII.4.8.4-5",
  "rule-digest": "5b97eec058e8",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-154",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-235",
   "sources": {
-   "reader": "d6d8b0b0f17a94669df01f8e0e63b46be19f274694e886e4d79820e9005e7cb5",
-   "refuter": "8ebd24c079ba77d212b3d6985ce997d85c8b423c1554ac6f225bf8d122755c1b"
+   "reader": "4fb59c7dee2bfd90d7da9fd052e20da4e4adc03242010c0c08b12cf3e52acf98",
+   "refuter": "941565f694152392a807690337899f49132bf6018cec07c01a9d85c2e2208b33"
   },
   "imported": {
-   "reader": "27716203c0ef3dac9c0d6e8b132a898a47dc2080672502bdff7897070c043b5f",
-   "refuter": "4408da414d6d17957dbc5c8497c7c30b0b947e2d876b15070f2bcea87e19fd85"
+   "reader": "18fcf8ef9d50f80d0cb9c89c1f585a7d5fa2a6bb92d730466afdb2f2c1d50fa5",
+   "refuter": "693660e4c04ad22d6a3295a2ec5e213a8b0faa788d76dcdfc3cd571f5bf3dc3d"
   }
  },
  "reader": {
   "rule-id": "1985-GR-XIII.4.8.4-5",
   "verdict": "CONFORMS",
-  "requirement": "At 1985, after an unsuccessful I-O operation (no AT END phrase taking precedence) the USE procedure that names the file runs; otherwise the OUTPUT (or EXTEND) procedure runs for a file open, or being opened, in output (or extend) mode, except a file named by file-name-1 in another USE of the same condition; a file in neither situation (e.g. CLOSE of an unopened file) runs no mode procedure.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeView; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenModeOf",
-  "edition-consulted": [
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
-    "switches": "DialectLevel >= 2002 adds the SORT GR17 ProgramReturn exit filter around the EC-free __RunUse; 1985 takes the bare try/finally",
-    "same-arm-as-latest": false
-   }
-  ],
-  "edition-search": "UseTierEmitter has no edition test (its remarks record the edition-invariance as a determination, kb/Work PB344); grepped DispatchEmitter, UseTierEmitter, EcEmitter, SequentialIoEmitter and FileConnector for DialectLevel, CobolVersion, Edition, DialectBehavior, ConstructRegistry: only EmitRunUseBody's GR17 filter, which does not change which procedure is selected.",
-  "behaviour-differs-by-edition": "no: the file-name tier then open-mode tier selection is the same code at 1985 and 2023; w1 and p6 print identically at --std 2023",
-  "witnesses-cover": "part: g85_bf26_09 covers file-name over mode, OUTPUT and EXTEND during an OPEN on report files; not exercised there: non-report organizations under the same mode procedure, a non-OPEN statement on a file already open OUTPUT, a file in no open mode, the INVALID KEY phrase precedence",
+  "requirement": "At 1985 a USE AFTER STANDARD EXCEPTION/ERROR PROCEDURE declarative runs after an unsuccessful I-O operation (unless the statement's AT END phrase takes it): a file-name USE for its named files; ON OUTPUT for any file open in, or being opened in, output mode; ON EXTEND likewise for extend mode; a file named in a file-name USE is excepted from the OUTPUT/EXTEND procedures. The witness covers only OPEN failures (35, 41) on report files.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery; src/WiseOwl.Cobol.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#UseModeView; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeView; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenedModeView",
+  "edition-consulted": [],
+  "edition-search": "grep for CobolVersion, EditionContext, DialectBehavior, .Std, IsAtLeast in UseTierEmitter.cs, DispatchEmitter.cs, FileConnector.cs, FileRegistry.cs: the USE tiers and UseModeView consult no edition (UseTierEmitter's remarks record the tiers as deliberately edition-invariant, kb/Work PB344). Only the format-3 USE AFTER EXCEPTION CONDITION refusal at 85 (COBOL0877/0878) consults it, outside this rule's path.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: only OPEN failures on report files; not CLOSE failures, an OPEN that fails in the process of opening, a non-report file under ON OUTPUT, or the AT END precedence",
   "probes": [
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/w1.cob",
-    "printed": "USE-EXTEND/OPEN-B 35/USE-FILE/OPEN-D 35/OPEN-C1 00/USE-OUTPUT/OPEN-C2 41/OPEN-A1 00/USE-FILE/OPEN-A2 41 (MATCH)",
-    "expected": "GR5 a, b, c: named file runs its own procedure, OUTPUT/EXTEND procedure for files being opened in those modes"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c1-close-mode.cob",
+    "printed": "USE-FILE / CLOSE-A 42 / CLOSE-B 42 / OPEN-E1 00 / USE-EXTEND / OPEN-E2 41 / CLOSE-E 00 / CLOSE-E2 42 / USE-OUTPUT / OPEN-X 30 / OPEN-S1 00 / USE-OUTPUT / OPEN-S2 41",
+    "expected": "CLOSE of the named never-opened RPT-A runs the file-name USE; CLOSE of an unopened, unnamed RPT-B runs no mode procedure (not open in any mode); second OPEN EXTEND runs EXTEND; failed OPEN OUTPUT (being opened in output mode) runs OUTPUT; a sequential file open OUTPUT re-opened runs OUTPUT"
    },
    {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/p5b.cob",
-    "printed": "CLOSE-C 42 (no procedure); USE-OUTPUT on second OPEN OUTPUT of an INDEXED file (41); WRITE with INVALID KEY phrase -> INVALID-KEY-PHRASE, no procedure; WRITE without phrase, status 22 on a file open OUTPUT -> USE-OUTPUT; OPEN EXTEND of a sequential file already open EXTEND -> USE-EXTEND (41), not USE-OUTPUT",
-    "expected": "GR5 b/c reach any file open or being opened in the mode, of any organization (SR5); a file not open in output or extend mode reaches neither"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c1-atend.cob",
+    "printed": "AT-END-PHRASE 10 / USE-FILE 46 / READ-2 46 / USE-FILE 10 / READ-3 10",
+    "expected": "AT END phrase takes precedence over the USE; a READ without AT END runs the USE (GR5)"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-154/w1.cob",
-    "printed": "--std 2023: MATCH, identical output",
-    "expected": "same selection"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c1-ec-cond.cob",
+    "printed": "error COBOL0877: USE AFTER EXCEPTION CONDITION requires COBOL-2002 (targeting COBOL-85); error COBOL0878 EC-I-O introduced by 2002",
+    "expected": "the 2002 USE AFTER EXCEPTION CONDITION form is not in the 1985 format and is refused"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/XIII.4.8@1985-USE-AFTER-STANDARD-EXCEPTION-PROCEDURE-STATEMENT/g85_bf26_09.cob",
+    "printed": "EXPECT: MATCH (g85_bf26_09.out)",
+    "expected": "the witness's .out"
    }
   ],
   "citations": [
    {
     "cite": "§1985:XIII.4.8.4 GR5",
     "check": "OK  §1985:XIII.4.8.4 GR5  (4.8.4 General Rules)  the text is in GR5"
+   },
+   {
+    "cite": "§1985:XIII.4.8.4 GR5b",
+    "check": "OK  §1985:XIII.4.8.4 GR5b  (4.8.4 General Rules)  the text is in GR5b"
    }
   ],
-  "notes": "Selection is UseTierEmitter's file-name switch then a switch on the connector's OpenModeView, which answers with the mode an OPEN is establishing, so 'in the process of being opened' is covered. The ERROR/EXCEPTION synonym (p5b uses ERROR) and the mixed organizations behave as the rule says.",
+  "notes": "One renderer (UseTierEmitter.EmitScopeTiers) emits the file-name tier then the open-mode tier for both the plain __IoCheck and the EC-model __IoCheckEc; the runtime UseModeView picks the attempted mode, else the mode the file is open in. The file-name tier precedes the mode tier, which implements the 'except those files referenced by file-name-1' clause. Every probe matched the 1985 text.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -66,19 +70,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-XIII.4.8.4-5",
-  "refutation": "OVERTURNED",
-  "classes": "e,c",
-  "evidence": "Read §1985:XIII.4.8.4 GR5 b/c and FileConnector.OpenModeView (src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs: `_statementMode is { } scoped ? (int)scoped : ModeKnown ? (int)Mode : -1`; BeginOpen sets _statementMode to the mode being ATTEMPTED even when the file is already open in another mode). So an OPEN INPUT or OPEN I-O of a file already open OUTPUT (status 41) reports INPUT/I-O to UseTierEmitter.EmitScopeTiers and the OUTPUT procedure is skipped, although GR5b makes it applicable 'for any file open in the output mode or in the process of being opened in the output mode'. Probe refute-1985-154/u1.cob --std 85 (runs/u1-001): OPEN-S1 00 / OPEN-S2-INPUT-WHILE-OPEN-OUTPUT 41 / OPEN-S3-IO-WHILE-OPEN-OUTPUT 41 (no USE-OUTPUT line for either) / USE-OUTPUT S=47 / READ-S4 47 / OPEN-G1 00 / OPEN-G2-INPUT-WHILE-OPEN-EXTEND 41 (no USE-EXTEND). Only OUTPUT and EXTEND procedures are declared, so no other procedure competes. u2.cob (runs/u2-001), the same in a program with a report file and the Report Writer USE format: OPEN INPUT of the sequential file open OUTPUT -> 41 and no procedure, while a second OPEN OUTPUT of the report file -> USE-OUTPUT. --std 2023 (runs/u1-002): identical output. cite.py: 'OK  §1985:XIII.4.8.4 GR5  (4.8.4 General Rules)  the text is in GR5'. The reader's p5b only tried a second OPEN in the SAME mode, where the attempted and current modes coincide.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenModeView: no edition switch; the attempted mode replaces the current open mode for every edition",
-   "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#BeginOpen: records the attempted mode before the 41 refusal (the kb/Work PB5200 fix)"
-  ],
-  "corrected": "NON-CONFORMING (wrong-answer, silent), cause b: the same at --std 2023. Repro u1.cob: OPEN OUTPUT SQ-F, then OPEN INPUT SQ-F with only USE ... ON OUTPUT declared; expected the OUTPUT procedure to run on the 41 (the file is open in output mode, GR5b), observed no procedure. Likewise OPEN INPUT of a file open EXTEND runs no EXTEND procedure (GR5c). The PB5200 fix (kb/Work/PB5200/2026-11-10-refuter-85.md) made the being-opened mode win outright, so the 'file open in the mode' half of GR5 b/c is lost whenever the attempted mode differs; when the attempted mode's procedure is absent the current mode's procedure must still run (which of two to run when both are declared is a reading the text leaves open). Known note: PB5200, the arm its fix introduced; no note covers this case."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "OPEN INPUT of a file already open OUTPUT (or EXTEND) fails with status 41 and runs no declarative, though USE ... ON OUTPUT (or ON EXTEND) is declared. See below. I ran it.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-8.md"
- },
- "work": "PB5825"
+  "refutation": "DOUBTFUL",
+  "classes": "e,b",
+  "evidence": "r1-modes.cob at --std 85 (runs/r1-modes-001): a named file failing in output mode runs only USE-FILE (OPEN-A2 41, OPEN-A3 41: correct, GR4/GR5a); READ on a sequential file open OUTPUT (47) runs USE-OUTPUT and open EXTEND (47) runs USE-EXTEND (correct); OPEN OUTPUT on a file open EXTEND (41) runs USE-OUTPUT only; but OPEN EXTEND on a report file OPEN OUTPUT (OPEN-E2 41) runs ONLY USE-EXTEND, not USE-OUTPUT, although the file is 'open in the output mode'. cite.py: 'OK §1985:XIII.4.8.4 GR5b the text is in GR5b' ('for any file open in the output mode or in the process of being opened in the output mode'); 'OK §1985:XIII.4.8.4 GR5c'; 'OK §1985:XIII.4.8.3 SR3' ('Appearance of file-name-1 in a USE statement must not cause the simultaneous request for execution of more than one USE procedure', which bars two procedures for file-name-1 only). FileConnector.UseModeView's own remark: 'Where both have one the text names no order and the attempted mode's runs (kb/Work PB5825)'.",
+  "edition-sites-missed": [],
+  "corrected": "Reading: when an OPEN of one mode fails on a file open in the other mode, GR5b and GR5c both qualify literally, and the 1985 text neither orders them nor bars running both (SR3 restricts only file-name-1). The compiler runs one procedure, chosen by the attempted mode (PB5825). The verdict rests on that reading, and the reader's requirement and notes do not state it."
+ }
 }

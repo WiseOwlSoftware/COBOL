@@ -2,146 +2,150 @@
  "rule-id": "1985-SR-IV.4.2.2.1-2",
  "rule-digest": "77afa26dd589",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-205",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-235",
   "sources": {
-   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
-   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+   "reader": "4fb59c7dee2bfd90d7da9fd052e20da4e4adc03242010c0c08b12cf3e52acf98",
+   "refuter": "941565f694152392a807690337899f49132bf6018cec07c01a9d85c2e2208b33"
   },
   "imported": {
-   "reader": "812f00b772f361d156ce2e543972d8c15b023b25b9eb2d65d799ec1581c87dc2",
-   "refuter": "57b73f4870783b3e20c90623e27fd21af08b2a19b92461ba29a6e1040e3ddca4"
+   "reader": "2fe19ec4f5c816b705bb4597368f79b22ab6623ad860288ed7da82b1884da281",
+   "refuter": "6858b76725b8d5a742df169cda696fb8c0932dfa11b95a206d6fe2e7df220e85"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.2.2.1-2",
   "verdict": "CONFORMS",
-  "requirement": "At 85 the words LENGTH, RANDOM and SUM must be accepted both as function-names (FUNCTION LENGTH/RANDOM/SUM) and as reserved words in their keyword contexts (ACCESS MODE IS RANDOM, the report SUM clause), classified by context in the same program, and must be refused as any user-defined word (data-name at any level, condition-name, index-name, paragraph-name, file-name, program-name, mnemonic-name) or system-name (computer-name) regardless of context.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#reservedGatedWord; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#cobolWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReservedGatedWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FlagReservedUserWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCobolWord; src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
+  "requirement": "At 1985 (Amendment 1 applied) LENGTH, RANDOM and SUM are both reserved words and function-names, classified by context (FUNCTION LENGTH/RANDOM/SUM work beside ACCESS MODE RANDOM and the SUM clause), and none of the three may be used as any user-defined word (data-name, condition-name, paragraph/section-name, file-name, program-name, mnemonic-, alphabet-, class-, index-name, text-name, library-name) or as a system-name (computer-name). The witnesses cover only the COPY text-name position.",
+  "code-location": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FlagReservedUserWord; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FlagCopyNameReservedWords; src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#userWordHere; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4#reservedGatedWord",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#RejectsAt",
-    "switches": "whether the word is reserved at the edition; the LENGTH, RANDOM and SUM rows (ReservedWords.Table.cs) are reserved at 85, 2002, 2014 and 2023 alike",
+    "switches": "whether the word is reserved at the compiled edition year (generated table ReservedWords.Table.cs: LENGTH, RANDOM, SUM reserved at 85, 2002, 2014, 2023, confidence high)",
     "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FlagCopyNameReservedWords",
+    "switches": "the reservation via RejectsAt(word, edition) and, through EditionContext.CopyNamesAreUserDefinedWords, only the message: at 85 a text-/library-name is a user-defined word, from 2002 a system-name; the refusal is the same",
+    "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#FlagReservedUserWord",
-    "switches": "COBOL0901 severity and message by edition year (strict error at 85 as at 2023)",
+    "switches": "RejectsAt(word, edition year) for a reserved word written in a user-word slot (COBOL0901)",
     "same-arm-as-latest": true
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#KeywordOmittedFunction",
-    "switches": "a function-name written without FUNCTION: the REPOSITORY FUNCTION entry (repository-function-2002) does not exist at 85, so SUM (1 2) is refused (COBOL1543) with the 85 remedy",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#ScreenIdentifierPlacement",
-    "switches": "numeric-function-identifier-operand-2002: at 85 a numeric function (LENGTH, RANDOM, SUM) is admitted only inside an arithmetic expression; not part of this rule's word classes",
-    "same-arm-as-latest": false
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/CobolParserCoreBase.cs#userWordHere",
+    "switches": "parser gate: a token whose canonical word RejectsAt the edition is not a user word",
+    "same-arm-as-latest": true
    }
   ],
   "edition-search": "",
-  "behaviour-differs-by-edition": "no: the three words are reserved and usable as function-names at every edition; only the keyword-omitted function spelling (2002 REPOSITORY) differs, and it is outside this rule",
-  "witnesses-cover": "part: g85_f03_02 covers FUNCTION LENGTH/SUM/RANDOM beside ACCESS MODE IS RANDOM; not exercised: the refusal half (b) in any user-defined-word or system-name slot, SUM as the report SUM clause, FUNCTION RANDOM without argument, LENGTH of a variable-length group",
+  "behaviour-differs-by-edition": "no: the three words are reserved and function-names at every edition; only the COPY-name message wording differs (user-defined word at 85, system-name from 2002)",
+  "witnesses-cover": "part: only the COPY text-name position; data-, condition-, paragraph-, section-, file-, program-, mnemonic-, alphabet-, class-, index-, library-name, computer-name and the function-name half are not exercised",
   "probes": [
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_len_data.cob",
-    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
-    "expected": "01 LENGTH refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_sum_data.cob",
-    "printed": "error COBOL0901: 'SUM' is a reserved word in COBOL-85",
-    "expected": "01 SUM refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_rnd_data.cob",
-    "printed": "error COBOL0901: 'RANDOM' is a reserved word in COBOL-85",
-    "expected": "01 RANDOM refused"
-   },
-   {
-    "class": "b,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_len_sub.cob",
-    "printed": "error COBOL0901 on 05 LENGTH",
-    "expected": "subordinate data-name refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_sum_88.cob",
-    "printed": "error COBOL0901 on 88 SUM",
-    "expected": "condition-name refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_rnd_para.cob",
-    "printed": "error COBOL0901 on paragraph RANDOM",
-    "expected": "paragraph-name refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_len_idx.cob",
-    "printed": "error COBOL0901 on INDEXED BY LENGTH",
-    "expected": "index-name refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_sum_mnem.cob",
-    "printed": "error COBOL5506: unexpected 'SUM' ... expected a user-defined word (same at --std 2023)",
-    "expected": "mnemonic-name C01 IS SUM refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_len_comp.cob",
-    "printed": "error COBOL1971: unexpected 'LENGTH' ... not a paragraph of the CONFIGURATION SECTION",
-    "expected": "computer-name (a system-name) LENGTH refused"
-   },
-   {
-    "class": "b,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_rnd_file.cob",
-    "printed": "error COBOL5506: unexpected 'RANDOM' ... expected a user-defined word",
-    "expected": "file-name RANDOM refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_pgm_sum.cob",
-    "printed": "error COBOL5506: unexpected 'SUM' ... expected a user-defined word",
-    "expected": "program-name SUM refused"
-   },
-   {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_ok_other.cob",
-    "printed": "3U (MATCH)",
-    "expected": "SR1(b) contrast: function-names MAX and UPPER-CASE are legal data-names at 85 and MAX is also used as a function in the same statement"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-pos.cob",
+    "printed": "LEN 007 / SUM 011 / RANDOM-OK / WRITE 00; report file 005 005 0010",
+    "expected": "SR2a: FUNCTION LENGTH/SUM/RANDOM evaluate while ACCESS MODE IS RANDOM and the SUM clause keep their reserved-word meaning"
    },
    {
-    "class": "d,e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_rw_sum.cob",
-    "printed": "042 05 (MATCH); the report file holds 10 / 32 / 42",
-    "expected": "the report SUM clause (reserved word) and FUNCTION SUM / FUNCTION LENGTH in one program"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r1.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85 and cannot be used as a user-defined word",
+    "expected": "data-name LENGTH refused (SR2b)"
    },
    {
-    "class": "a,f",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_fn_ctx.cob",
-    "printed": "06 / 10 / R OK / 010 (MATCH)",
-    "expected": "FUNCTION LENGTH of an OCCURS DEPENDING ON group follows N (3 then 5 occurrences of 2), FUNCTION RANDOM with no argument lies in [0,1), FUNCTION SUM (N, 7, -2) = 10"
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r2.cob",
+    "printed": "error COBOL0901: 'RANDOM' is a reserved word in COBOL-85",
+    "expected": "paragraph-name RANDOM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r3.cob",
+    "printed": "error COBOL1971: unexpected 'SUM'. 'SUM' is not a paragraph of the CONFIGURATION SECTION",
+    "expected": "computer-name (system-name) SUM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r4.cob",
+    "printed": "error COBOL5506: unexpected 'SUM' ... expected a user-defined word",
+    "expected": "file-name SUM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r5.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85",
+    "expected": "program-name LENGTH refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r6.cob",
+    "printed": "error COBOL5506: unexpected 'RANDOM' ... expected a user-defined word",
+    "expected": "mnemonic-name RANDOM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r7.cob",
+    "printed": "error COBOL0901: 'SUM' is a reserved word in COBOL-85",
+    "expected": "condition-name SUM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r8-alphabet.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85",
+    "expected": "alphabet-name LENGTH refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r9-class.cob",
+    "printed": "error COBOL5506: unexpected 'RANDOM'",
+    "expected": "class-name RANDOM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r10-index.cob",
+    "printed": "error COBOL5506: unexpected 'SUM'",
+    "expected": "index-name SUM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r11-section.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85",
+    "expected": "section-name LENGTH refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-r12-library.cob",
+    "printed": "with --copy lib (lib/RANDOM/PB5848TX.cpy present): error COBOL0901: 'RANDOM' is a reserved word in COBOL-85 and cannot be the library-name of a COPY statement; control c2-r12-ctl.cob (OF OKLIB) compiles, exit 0",
+    "expected": "library-name RANDOM refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/IV.4.2.2.1@1985-COBOL-Words/pb5848-copy-text-name-length.cob",
+    "printed": "error COBOL0901: 'LENGTH' is a reserved word in COBOL-85 and cannot be the text-name of a COPY statement",
+    "expected": "text-name LENGTH refused"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/w_fn_bare.cob",
-    "printed": "error COBOL1543: 'SUM' is written without the word FUNCTION ... the REPOSITORY FUNCTION entry is a COBOL-2002 introduction (targeting COBOL-85)",
-    "expected": "1985 has no keyword-omitted function reference; SUM (1 2) refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-235/c2-ctl.cob",
+    "printed": "RAN (exit 0)",
+    "expected": "control: the function-name MAX used as a data-name is legal at 85 under SR1b, so only the three SR2 words are refused"
    }
   ],
   "citations": [
    {
-    "cite": "§1985:IV.4.2.2.1 SR2",
-    "check": "OK  §1985:IV.4.2.2.1 SR2  (4.2.2.1 COBOL Words)  the text is in SR2"
+    "cite": "§1985:IV.4.2.2.1 SR2a",
+    "check": "OK  §1985:IV.4.2.2.1 SR2a  (4.2.2.1 COBOL Words)  the text is in SR2a"
+   },
+   {
+    "cite": "§1985:IV.4.2.2.1 SR2b",
+    "check": "OK  §1985:IV.4.2.2.1 SR2b  (4.2.2.1 COBOL Words)  the text is in SR2b"
    }
   ],
-  "notes": "LENGTH reaches a user-word slot through reservedGatedWord and is refused by the 0901 funnel; SUM and RANDOM are refused by the parser in slots where they are keyword tokens (COBOL5506) and by the funnel elsewhere (COBOL0901), so every user-defined-word and system-name class probed is refused at 85. The reserved rows for the three words are the same at all four editions.",
+  "notes": "Every user-defined-word and system-name position probed refuses LENGTH, RANDOM and SUM at --std 85, and the three still work as function-names and in their reserved-word contexts. Several positions (file-, mnemonic-, class-, index-name, computer-name) are refused by the parser with COBOL5506/COBOL1971 'unexpected' rather than COBOL0901; the refusal is correct, only the diagnostic wording is less specific.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -153,19 +157,10 @@
  },
  "refuter": {
   "rule-id": "1985-SR-IV.4.2.2.1-2",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,e",
-  "evidence": "§1985:IV.4.2.2.1.1 lists text-name and library-name among the types of user-defined words (items 9 and 19), and SR2b forbids LENGTH, RANDOM and SUM as any user-defined word 'regardless of context'. At --std 85 k_text.cob (WORKING-STORAGE: COPY LENGTH. with LENGTH.cpy beside it) compiles and runs, printing TXT (runs/k_text-001, EXIT 0); k_textr.cob COPY RANDOM. likewise prints TXT; sibling k_texta.cob COPY ADD. (any reserved word as a text-name) also compiles and runs. k_lib.cob COPY KTLIB OF SUM. is refused only as 'CBL3620 COPY copybook KTLIB OF SUM not found' (a search failure, not the reserved-word refusal: misleads-diagnosis). The reader's other slots hold: section-name SUM (COBOL0901), alphabet-name LENGTH (COBOL0901), class-name RANDOM (COBOL5506), symbolic-character SUM (COBOL5506), cd-name LENGTH (COBOL0901), report-name SUM (COBOL5506), language-name LENGTH in ENTER (COBOL0901), implementor-name RANDOM (COBOL1970); k_cdok.cob CD ... TEXT LENGTH IS KC-LEN beside FUNCTION LENGTH(W) prints 05 (context classification works). At --std 2023 COPY LENGTH also compiles and runs (TXT). cite.py: 'OK  §1985:IV.4.2.2.1 SR2  (4.2.2.1 COBOL Words)  the text is in SR2' (quote 'may not be used as a system-name or as a user-defined word regardless of context'); 'OK  §1985:IV.4.2.2.1.1  (4.2.2.1.1 User-Defined Words)  the text is in the clause'. Known note: none for the reserved-word half; kb/Work PB5482 (landed) is the sibling that made 1985 text-names and library-names user-defined words for the disjoint-set check only.",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/CopyNameCensus.cs#Build: reads EditionInfo.CopyNamesAreUserDefinedWords (true below 2002) to treat COPY text-names and library-names as user-defined words, but only for the disjoint-set check; no reserved-word check on that 85 arm",
-   "src/WiseOwl.Cobol.Editions/EditionInfo.cs#CopyNamesAreUserDefinedWords: the 85 switch that makes text-name and library-name user-defined words"
-  ],
-  "corrected": "UNDER-REJECTS (non-conforming): at --std 85 a COPY text-name LENGTH, RANDOM or SUM (and any other reserved word) is accepted as a user-defined word, and a reserved library-name is reported as a missing copybook instead of a reserved-word refusal. Cause c: the rule covers the text-name and library-name user-defined words of 1985 (made user-defined words by CopyNameCensus's 85 arm, PB5482) which the reader's probes and the COBOL0901 funnel do not reach. Repro: WORKING-STORAGE SECTION. COPY LENGTH. with LENGTH.cpy present; expected a refusal (§1985:IV.4.2.2.1 SR2b), observed compile and run."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "`COPY LENGTH.` and `COPY ADD.` compile: a text-name is never checked against the reserved words. Sibling of kb/Work PB5482. The checker's confidence in the 2023 half is medium.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
- },
- "work": "PB5848"
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probed at --std 85 the positions the reader left out; each compile-only refuses: symbolic-character LENGTH (r2-symchar: COBOL0901), report-name SUM in FD REPORT IS and RD (r2-report: COBOL5506 at both; control r2-report-ctl with OKREP exit 0), report group data-name LENGTH (r2-rptdata: COBOL0901), cd-name RANDOM (r2-cd: COBOL5506), CD field data-name SUM (r2-cdkey: COBOL5506 and COBOL0901), 66 RANDOM RENAMES (r2-renames: COBOL0901), implementor-name position SUM IS MN1 (r2-implementor: COBOL1970). Every user-defined word class of 1985 and the system-name positions are now refused; the function-name half was shown by the reader's c2-pos. The reader's cite.py lines for SR2a/SR2b stand.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

@@ -2,116 +2,88 @@
  "rule-id": "1985-GR-X.5.1-4",
  "rule-digest": "19aad336fec5",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-199",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-233",
   "sources": {
-   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
-   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+   "reader": "d5767a4d1b8f183c1b26f5da0e39f022e8e9cd05a366a0ffb799105169a627dc",
+   "refuter": "0791f68cd40c59737f5d0cc5aedbe62476dc3b7f692de925a6495b580da8532f"
   },
   "imported": {
-   "reader": "db26452599c0aaf9d114944eec394938e13dd3d58f13c68cd16ee782f8ac838c",
-   "refuter": "2f739defb60d58c4daccf6809ce9a283a1cfa5459be08469e77c3f5b4646e267"
+   "reader": "f0c867f62cb3e5be8526f58f7c427cdc1398918b33b8a5e74db41670d1102b0f",
+   "refuter": "e5aa1ed72bee1e3c074f6d14bb4fc88bf0f54ab298518c03eedd9051745d4a9c"
   }
  },
  "reader": {
   "rule-id": "1985-GR-X.5.1-4",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 the procedure division may reference a Linkage Section item only when it is one of the following: a USING operand; subordinate to one; a REDEFINES or RENAMES of one; subordinate to such a redefinition; or a condition-name or index-name of any of these. Every other linkage reference is refused (85 has no BASED or RETURNING leg). At least five USING operands are accepted on CALL and on the header.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#SealLinkageRules; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#UnreferenceableLinkageRecord; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ScreenLinkageReference; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ScreenLinkageIndex; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnreferenceableLinkage; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage",
+  "requirement": "The Procedure Division may reference a Linkage Section item only if it is a USING operand of the header, subordinate to one, a REDEFINES or RENAMES whose object is one, subordinate to such a redefinition, or a condition-name or index-name of any of these; every other linkage reference is refused; and at least five USING operands are accepted in the header and the CALL.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#SealLinkageRules; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#UnreferenceableLinkageRecord; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ScreenLinkageReference; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ScreenLinkageIndex; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnreferenceableLinkage; src/WiseOwl.Cobol.Compiler/Binding/ReferenceResolver.cs#Identify; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#BindPosition",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitBasedClause",
-    "switches": "refuses BASED at 85, so the IsBased leg of SealLinkageRules is unreachable at 85",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReturningClause",
+    "switches": "refuses PROCEDURE DIVISION RETURNING below 2002 (COBOL0900), so the RETURNING leg of SealLinkageRules is unreachable at 85",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
-    "switches": "refuses RETURNING at 85; with the 2002 header-phrase gates this makes the RETURNING leg unreachable",
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitBasedClause",
+    "switches": "refuses the BASED clause below 2002 (COBOL0900), so the BASED leg of SealLinkageRules is unreachable at 85",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "SealLinkageRules and the NameResolution screens hold no edition test. The 85 range of the rule comes from gating the 2002 legs (BASED, RETURNING, SET ADDRESS OF) upstream.",
-  "behaviour-differs-by-edition": "yes: 2002+ also admits BASED items and the RETURNING item. At 85 those forms are refused at their own gates, and the a-e decision is the same code.",
-  "witnesses-cover": "part: g85_f21_06 covers the accepting side. The probes add each refusal leg (data-name, condition-name, index-name, REDEFINES, RENAMES, level 77, a main program's linkage) and six USING operands.",
+  "edition-search": "grep DialectLevel|CobolVersion|ConstructRegistry in LinkageBinder.cs, NameResolution.cs, ProcedureHeaderScreen.cs, ProcedureFormatPass.cs: the referenceability decision itself (SealLinkageRules) is edition-free; the two gates above remove the 2002 legs at 85.",
+  "behaviour-differs-by-edition": "yes: at 2002+ a RETURNING item and a BASED linkage item are referenceable too; at 85 both phrases are refused, leaving exactly the 1985 legs a-e",
+  "witnesses-cover": "part: the witnesses refuse a non-USING record, a reference in a subscript and in a reference modifier, and the operand position; not exercised: the c leg (REDEFINES and RENAMES of an operand, admitted and refused), the e leg (condition-name and index-name of a non-operand), a level-77 linkage item, and six USING operands",
   "probes": [
    {
-    "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5a_positive.cob",
-    "printed": "COND OK / L1-T(LX)=3 RN=ABC HEAD=AB L7=-0042 L3-6=3456 / MAIN W1=ZZC123 W7=-0041 W6=X",
-    "expected": "legs a-e are accepted, six USING operands and a level-77 operand work, and the changes are visible to the caller"
+    "class": "a,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_ok.cob",
+    "printed": "S L1A=AB L1R=CD L1X1=A L2=42 L3-5=345 / S L1B-CD TRUE / M W1=XBCD W6=ZQZ",
+    "expected": "six USING operands (01 and 77), a subordinate, a RENAMES and a REDEFINES of an operand, a condition-name and an index-name of an operand's table are all referenceable; the MOVEs reach the caller's storage"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5b_ref_nonusing.cob",
-    "printed": "COBOL2746 'L2-A' belongs to LINKAGE SECTION record 'L2'",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_bad_redef.cob",
+    "printed": "error COBOL2746: 'L2X1' belongs to LINKAGE SECTION record 'L2X', which the procedure division may not reference",
+    "expected": "c: the REDEFINES object L2 is no operand: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5c_ref_cond.cob",
-    "printed": "COBOL2746 'L2-ON'",
-    "expected": "refused (condition-name of a non-USING record)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_bad_cond.cob",
+    "printed": "error COBOL2746: 'L2-Y' belongs to LINKAGE SECTION record 'L2'",
+    "expected": "e: a condition-name of a non-operand: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5d_ref_index.cob",
-    "printed": "COBOL2746 'L2X'",
-    "expected": "refused (index-name of a non-USING table)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_bad_index.cob",
+    "printed": "error COBOL2746: 'IX2' belongs to LINKAGE SECTION record 'L2'",
+    "expected": "e: an index-name of a non-operand table: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5e_ref_redef.cob",
-    "printed": "COBOL2746 'L2R-A' (REDEFINES of a non-USING record)",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_bad_renames.cob",
+    "printed": "error COBOL2746: 'L2R' belongs to LINKAGE SECTION record 'L2'",
+    "expected": "c: a RENAMES of a non-operand: refused"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5f_ref_renames.cob",
-    "printed": "COBOL2746 'L2-RN' (RENAMES of a non-USING record)",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5g_ref_77.cob",
-    "printed": "COBOL2746 'L77'",
-    "expected": "refused"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5i_main_linkage.cob",
-    "printed": "COBOL2746 'L1' (no USING)",
-    "expected": "refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_bad_77.cob",
+    "printed": "error COBOL2746: 'L0' belongs to LINKAGE SECTION record 'L0'",
+    "expected": "a level-77 linkage item not in USING: refused"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5j_based.cob",
-    "printed": "COBOL0900 BASED requires COBOL-2002",
-    "expected": "refused at 85"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c5k_set_address.cob",
-    "printed": "COBOL0900 SET ADDRESS OF requires COBOL-2002, plus COBOL0869 and COBOL2746",
-    "expected": "refused at 85"
-   },
-   {
-    "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c6a_positional.cob",
-    "printed": "linkage ODO table LT=T1T2, LT-E(2)(2:1)=2",
-    "expected": "a variable-length USING operand can be referenced"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-233/src/lk_ret85.cob",
+    "printed": "error COBOL0900: BASED clause requires COBOL-2002; error COBOL0900: PROCEDURE DIVISION RETURNING requires COBOL-2002",
+    "expected": "1985 has neither phrase, so neither can make a linkage item referenceable: both refused"
    }
   ],
   "citations": [
    {
     "cite": "§1985:X.5.1 GR4",
     "check": "OK  §1985:X.5.1 GR4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4"
-   },
-   {
-    "cite": "§1985:X.5.1 GR4e",
-    "check": "OK  §1985:X.5.1 GR4e  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4e"
    }
   ],
-  "notes": "The COBOL2746 message tells a COBOL-85 user to 'describe it BASED (§2023:13.18.5)', a remedy that 85 refuses (COBOL0900). The wording misleads slightly, but the refusal itself is correct.",
+  "notes": "One per-record decision (SealLinkageRules) covers legs a-e: subordinates, RENAMES, condition-names and index-names follow their record, and a REDEFINES root follows its object. COBOL2746's text at --std 85 cites §2023:13.7.3 SR4 and suggests RETURNING or BASED, neither of which 1985 has: a wording point, not a conformance failure (the refusal is right).",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -125,16 +97,10 @@
   "rule-id": "1985-GR-X.5.1-4",
   "refutation": "OVERTURNED",
   "classes": "a,b,c",
-  "evidence": "Every probe below puts the non-USING linkage item L2-N in the callee's Procedure Division. A top-level reference is refused: DISPLAY L2-N (r5i), COMPUTE W = L2-N + 1 (r5f), IF L2-N + 1 > 0 (r5g), CALL USING L2 (r5c) and a reference inside DECLARATIVES (r5e) all give COBOL2746. The same item used as a SUBSCRIPT or a REFERENCE-MODIFIER operand is NOT refused. In r5a_subscript_nonusing.cob, DISPLAY L1-T (L2-N) compiles and runs: EXIT 0 and prints 'A', a value read through a linkage item that has no storage. In r5b_refmod_nonusing.cob, DISPLAY L1 (L2-N:1) compiles and dies at run time with 'EC-BOUND-REF-MOD (fatal): reference modification (0:1) out of range'. In r5h, L1 (1:L2-N) compiles and gives '(1:0) out of range'. At --std 2023, r5a gives the same EXIT 0 and 'A', and r5b gives the same EC-BOUND-REF-MOD. Code: ReferenceResolver.Identify calls Names.ScreenLinkageReference only for the identifier being resolved. SubscriptBinder.ResolveSubscriptName (line 910) resolves a subscript or ref-mod operand through refs.Names.ResolveUnqualified/ResolveQualified and never reaches the screen. A search of kb/Work for COBOL2746 and '13.7.3 SR4' (PB1249, PB3287, PB2988, PB4485) found no note on this hole; PB3287's '-all-subscript-linkage-table-not-referenceable' covers a non-referenceable TABLE, not a non-referenceable subscript. cite.py: OK  §1985:X.5.1 GR4  (5.1 THE PROCEDURE DIVISION HEADER)  the text is in GR4.",
+  "evidence": "Probe lk_odo.cob at --std 85 (E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-233/src; run lk_odo-001): callee LINKAGE 01 L1. 05 L1E PIC X OCCURS 1 TO 5 DEPENDING ON LN. 01 L2. 05 LN PIC 9. PROCEDURE DIVISION USING L1. DISPLAY \"S L1=\" L1 -- compiles clean and prints 'S L1=' (empty: LN, in the non-operand record L2, is read as 0 with no storage), though the caller passed 5 A's. 1985 defines a Procedure Division reference as explicit OR implicit: cite.py OK §1985:IV.4.4.1 the text is in the clause ('Such an implicit reference occurs if and only if the data item contributes to the execution of the statement'); LN contributes to DISPLAY L1 (it fixes L1's length), so LN is referenced within the Procedure Division, and GR4 admits that 'if, and only if' it satisfies a-e (cite.py OK §1985:X.5.1 GR4 the text is in GR4); LN satisfies none. 1985 OCCURS (§1985:VI SR1-12) puts no section restriction on data-name-1, so the source is otherwise legal and the reference is the only defect. Same output at --std 2023 (lk_odo-002). lk_callarg.cob: explicit references in a DECLARATIVES paragraph and as a CALL USING argument are refused COBOL2746 (the explicit path holds). kb/Work PB1249's sweep chose the opposite reading ('the data-division resolvers (OCCURS DEPENDING ...) are not within the procedure division and are not asked'), argued from the 2023 text; the 1985 text's IV.4.4.1 is the counter. The reader's probes covered only explicit references.",
   "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#ResolveSubscriptName: the subscript and ref-mod data-name arm resolves the name without the X.5.1 GR4 linkage screen (no edition switch; the same at every edition)"
+   "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#UnreferenceableLinkageRecord: consulted only for written references, never for the DEPENDING ON object a variable-length operand's reference implicitly reads"
   ],
-  "corrected": "MISSING-CHECK (under-rejects, silent wrong value). §1985:X.5.1 GR4 allows a linkage item in the Procedure Division 'if, and only if' one of legs a to e holds. A non-USING linkage data-name written as a subscript (L1-T (L2-N)) or as a reference-modification position or length (L1 (L2-N:1), L1 (1:L2-N)) is such a reference, so it must be refused, and the compiler accepts it. Cause (b): it fails the same way at --std 2023 (§2023:13.7.3 SR4). Repro: r5a_subscript_nonusing.cob. Expected: refused (COBOL2746). Observed: EXIT 0, prints 'A'."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "A Linkage Section item that is not in the USING phrase is accepted as a subscript or a reference-modification operand. Sibling of the landed kb/Work PB3287.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
- },
- "work": "PB5846"
+  "corrected": "PARTIAL: legs a-e are enforced for every explicit reference, but an implicit Procedure Division reference (§1985:IV.4.4.1) to a non-operand Linkage item through an operand's OCCURS DEPENDING ON is admitted and reads storage that does not exist (LN = 0). Harm: under-rejects / wrong-answer. Cause (b): the same at --std 2023. Reading stated: an implicit reference counts as 'referenced within the Procedure Division' (IV.4.4.1); under PB1249's reading (only written references) the verdict stays CONFORMS. Known note: PB1249 (landed; its sweep excluded OCCURS DEPENDING)."
+ }
 }

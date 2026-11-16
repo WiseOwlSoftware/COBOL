@@ -1,0 +1,103 @@
+{
+ "rule-id": "1985-GR-VII.2.13.4-1",
+ "rule-digest": "6237fb04d6a3",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "67a1e4c01dc25c81c62849ee8dcac1253c6a05abd5292fa7099b71ade711112f",
+   "refuter": "3f5eb10df14cb5cd16943525ac1737f7dfdb39edbbac9b69128766351da60e2e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.13.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a SAME AREA clause makes two or more non-sort files share all their storage areas, so the program may keep at most one of them open at a time; the compiler must accept the clause over files of any organization and access, give each file its own records when the files are used one at a time, treat the record areas of the named files as one storage area, and keep sort or merge files out of the clause (the 1985 text states no required outcome for a program that opens two at once: it is 'not valid').",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#BindIoControl; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameOperands; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#ScreenSameClauses; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#StorageSharingFiles; src/WiseOwl.Cobol.Compiler/Binding/Model/StorageSharing.cs#IsRecordAreaOf",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.IoControl.cs#SameOccurrenceRule",
+    "switches": "Edition.Edition.Year < 2002 selects the 1985 report-file row (a report file may be in SAME SORT/SORT-MERGE AREA clauses); the sort-merge and other-file rows that GR1's non-sort files take are one arm at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "SAME and AREA are keywords by the per-edition reserved-word table; both rows are reserved at 85, 2002, 2014 and 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of FileControlBinder.IoControl.cs, FileModel.cs and the runtime IO directory for Edition, CobolVersion, DialectLevel, ConstructRegistry, SameClauseKind.Area and SameArea; Validation and Editions searched for sameClause and ioControl (no hit). The file-area format binds as a no-op plus membership at every edition.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1c28_same_area_mixed_org covers one clause over sequential, relative and indexed files opened one at a time; not covered are variable-length records under the clause, the shared record area seen by WRITE FROM, and the sort-file exclusion",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/l1c28_same_area_mixed_org-001",
+    "printed": "FS SEQ-A / FS SEQ-B 00 / FR REL-1 / FR REL-2 00 / FI K1 IDX-1 / FI K2 IDX-2 00; EXPECT: MATCH",
+    "expected": "each of the sequential, relative and indexed files keeps its own records when opened in turn (SR4 and GR1)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/sa_odo_seq-001",
+    "printed": "FA1 2 XY 00 / FA2 5 QQQQQ 00 / FA3 EOF 10 / FB1 09 123456789 00 / FB2 01 Z 00",
+    "expected": "an OCCURS DEPENDING ON record and a RECORD VARYING record in one SAME AREA clause, used in turn, read back exactly what each wrote"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/sa_write_from_peer-001",
+    "printed": "error COBOL6827: WRITE FROM FB-REC: the operand names the record area of file 'FA' (§1985:VII.4.7.3 SR1)",
+    "expected": "the shared area includes all storage areas of FA and FB, so FB-REC is FA's storage and WRITE FA-REC FROM FB-REC names one area twice: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/sa_sort_file-001",
+    "printed": "error COBOL2738: SAME AREA: sort or merge file 'SF' is named in a file-area format clause, which its kind bars (ISO §2023:12.4.6.4.3 SR6 ...)",
+    "expected": "GR1 covers files that do not represent sort or merge files, and §1985:XI.2.5.3 SR4 bars a sort file from a SAME clause without SORT, SORT-MERGE or RECORD: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/sa_both_open-001",
+    "printed": "OPEN FA 00 / OPEN FB 00 / FA-REC AAAAAA FB-REC BBBBBB / FA AAAAAA 00 (identical at --std 2023, sa_both_open-002)",
+    "expected": "the program breaks GR1 ('not valid'); the 1985 text gives no status or diagnosis, so any outcome is the implementor's; observed: both files work independently"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.13.4 GR1",
+    "check": "OK  §1985:VII.2.13.4 GR1  (2.13.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:XI.2.5.3 SR4",
+    "check": "OK  §1985:XI.2.5.3 SR4  (2.5.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.4.7.3 SR1",
+    "check": "OK  §1985:VII.4.7.3 SR1  (4.7.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "The file-area format is bound as membership plus a no-op (no physical aliasing), which GR1 permits: a valid program keeps one file open at a time, so sharing is unobservable except through the record areas, and StorageSharingFiles carries that to the WRITE/REWRITE FROM rule. Opening two members at once is not diagnosed; the 1985 text asks nothing for that case. Side observation: the sort-file refusal cites §2023:12.4.6.4.3 SR6 at --std 85, where the 1985 rule is §1985:XI.2.5.3 SR4.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.2.13.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:VII.2.13.2-.4, XI.2.5.3, XI.4.4.3 SR9, XIII.2.4.3 SR2 and the record-area syntax rules of READ/WRITE/REWRITE; read FileControlBinder.IoControl.cs#ScreenSameOperands, #SameOccurrenceRule, #ScreenSameClauses, FileModel.cs#StorageSharingFiles, StorageSharing.cs#IsRecordAreaOf, StatementValidation.cs#CheckPhraseOperandIsNotRecordArea, RecordAreaRule.cs#InForce. Probes under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-221/runs: (b) sa_one_file-001 SAME AREA FOR FA (one file) -> error COBOL2738 'names only one file' (format prints file-name-1 {file-name-2}..., GR1 'two or more files'): refused as required. (b/d) sa_into_peer-001 READ FA INTO FB-REC and REWRITE FC-REC FROM FA-REC, FA FB FC (seq, seq, relative) in one SAME AREA -> COBOL6827 on both, citing §1985:VII.4.4.3 SR1 and §1985:VIII.4.6.3 SR1: the shared storage reaches READ INTO and REWRITE FROM, not only the reader's WRITE FROM; at --std 2023 (sa_into_peer-002) the same program compiles (RecordAreaRule.InForce < 2014), the right 2014+ arm. (c/e) sa_report_failopen2-001: a report file (1985-only admission, XIII.2.4.3 SR2) in SAME AREA with two sequential files; OPEN INPUT of the missing member -> 35, then FA OPEN 00, write, close, report OPEN 00 and GENERATE (file 'LINE-ONE'), FA re-read 'ABCDEFGH 00': the failed OPEN leaves no member open and the others work in turn. (c) sa_sort_using_giving-001: SAME AREA FOR FA FB with SORT SF USING FA GIVING FB, which §1985:XI.4.4.3 SR9 permits (it bars pairs only in SAME SORT/SORT-MERGE AREA; the compiler also refuses SF FA FB in one SAME SORT AREA, sa_sort_area-001 COBOL1757, as SR9 requires) -> compiles, runs, FB AAAA/BBBB/CCCC. No probe found an admitted program refused, a refused one admitted, or wrong output. cite.py: 'OK  §1985:VII.2.13.4 GR1  (2.13.4 General Rules)  the text is in GR1'; 'OK  §1985:XI.4.4.3 SR9  (4.4.3 Syntax Rules)  the text is in SR9'; 'OK  §1985:VII.4.4.3 SR1  (4.4.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:XIII.2.4.3 SR2  (2.4.3 Syntax Rules)  the text is in SR2'; 'OK  §1985:VII.2.13.2  (2.13.2 General Format)  the text is in the clause'. Residual: the diagnostics for the one-file clause and the sort-file refusal cite ISO §2023 at --std 85 (wording only; the outcome is the 1985 one).",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckPhraseOperandIsNotRecordArea: RecordAreaRule.InForce(Year < 2014) decides whether the SAME AREA shared storage refuses a READ INTO / WRITE FROM / REWRITE FROM operand; 85 takes the refusing arm, 2023 the admitting one (so behaviour-differs-by-edition is 'yes' for that consequence of GR1, not 'no')",
+   "src/WiseOwl.Cobol.Compiler/Binding/Validation/RecordAreaRule.cs#Describe: editionYear < 2002 selects the 1985 module citation and 'must' wording"
+  ],
+  "corrected": ""
+ }
+}

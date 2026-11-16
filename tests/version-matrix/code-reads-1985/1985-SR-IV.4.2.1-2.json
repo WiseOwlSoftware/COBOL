@@ -2,73 +2,44 @@
  "rule-id": "1985-SR-IV.4.2.1-2",
  "rule-digest": "51c05b292f56",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-042",
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-230",
   "sources": {
-   "reader": "14d2b0105f24092ed65e9ae26302fb068a0e84b6a64867dd9083c587d651c0fb",
-   "refuter": "409e6d12258bdd082bf19e73191b0bd4d3ccff4bf9a1cb6cfb3f144a27f82644"
+   "reader": "cb3be01a78846309688098d11baa3d09e17121eaadae4196bf7c132343a631e8",
+   "refuter": "025c5d214ae191eb324d267335fc86df1d6e8dd720161061dd4841a11927f046"
   },
   "imported": {
-   "reader": "6398c707e14c68ae1e059764b5285798df82145b62e679fae3f69261431b9fb4"
+   "reader": "90468698620e18fbd372b19254d95a1ed5ca9348b31e76a7ad656053492d6b11",
+   "refuter": "124534f3fc451058f876695ed1d18d310ac794877a710ba78a7283f0185b7624"
   }
  },
  "reader": {
   "rule-id": "1985-SR-IV.4.2.1-2",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 a comma or semicolon immediately followed by a space is a separator that may stand anywhere the separator space may stand (except a comma inside a PICTURE character-string, which is a picture symbol), and a comma or semicolon with no space after it is no separator.",
-  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#OnDefaultLParen; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#InListRegion; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#subscriptList; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a comma or semicolon immediately followed by a space must be accepted as the separator space anywhere a space separator may stand (between clauses, operands, statement words, phrases, inside subscript, reference-modification and argument lists, in COPY and REPLACE text), while a comma inside a PICTURE character-string stays a PICTURE symbol, and a comma or semicolon with no following space is no separator.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#ListItemBoundary; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#InfixWordAhead; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#COMMA; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SEMICOLON; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Pipeline/Frontend.cs#LexAndParse",
   "edition-consulted": [],
-  "edition-search": "Read SeparatorRule.cs whole (remarks: edition-invariant), the FNARG_SEPARATOR/COMMA/SEMICOLON lexer rules and the list-region actions (OnDefaultLParen, OpenRegion, OnDefaultRParen), and the subscriptList / functionArgList parser rules; grepped Edition|Version|Std in SeparatorRule.cs (none). Frontend.cs#LexAndParse passes the edition only to retypes.PrimeLexer and the debugging-line rewriter.",
+  "edition-search": "grep Edition|Version|Std in SeparatorRule.cs (only a remark that the rule is edition-invariant) and CobolLexer.g4 (the one read, _caseMappingEdition in ApplyEditionSpelling, folds identifier letters and does not touch separators); grep FNARG_SEPARATOR|SEMICOLON|SeparatorRule over src: no VersionConformancePass or edition table consumer",
   "behaviour-differs-by-edition": "no",
-  "witnesses-cover": "part: w73a_separator_context_conforming covers comma/semicolon between MOVE receivers and DISPLAY operands; nothing exercises a comma separator inside a subscript, reference-modifier or function-argument parenthesis other than between two items",
+  "witnesses-cover": "part: the witnesses cover list regions (subscripts, reference modifiers, argument lists, qualifiers) and statement contexts; not exercised by them: data description clauses, PICTURE followed by ', ' or '; ', a comma ending a source line, COPY REPLACING and REPLACE operands, the IF/ELSE and PERFORM phrase positions",
   "probes": [
    {
-    "class": "c,d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_comma.cob",
-    "printed": "A=007 / B=YXZ / C=1,234 D=12 E=34 / F / H=014 I / J=015008 (EXPECT: MATCH)",
-    "expected": "comma/semicolon separators after a level number, between clauses, after a verb and its operands, in IF/ELSE, after an arithmetic operator, at line end, concatenated (', ;'), PIC 9,999 (comma is a picture symbol) and PIC 99, (comma ends the picture): all accepted"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_paren.cob",
-    "printed": "A=016 / B (EXPECT: MATCH)",
-    "expected": "comma separators after '(' , after an operator and before ')' of a grouping parenthesis: accepted"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub1.cob",
-    "printed": "DISPLAY W-E (I +, 1): COBOL0001 cannot parse construct near ', ' (same at --std 2023)",
-    "expected": "accepted, W-E (I + 1): the comma-space stands where the separator space between '+' and integer-2 stands"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub2.cob",
-    "printed": "DISPLAY W-E (I, ): COBOL0001 cannot parse construct near ')' (same at --std 2023)",
-    "expected": "accepted: the optional separator space before ')' (SR8) may be a comma-space"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub3.cob",
-    "printed": "DISPLAY W-E (, I): COBOL0001 near ', ' (same at --std 2023)",
-    "expected": "accepted: the optional separator space after '(' (SR9) may be a comma-space"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub15.cob",
-    "printed": "DISPLAY W-S (2 :, 1): COBOL0001 near ', ' (same at --std 2023); W-S (2, : 1) c3_sub14: COBOL0001 near ':'",
-    "expected": "accepted as W-S (2 : 1)"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c2sep.cob",
+    "printed": "A=005 C=    5 / B=1,234 N=2 / IF-OK / ADD=003 / P2 / P2 / MULT=001 01 / CMP=006 / E=Y",
+    "expected": "every ', ' and '; ' acts as a space (01 A, PIC 999, VALUE 5.; 05 E, PIC X, OCCURS 3, TIMES.; MOVE, A, TO, C; IF A, =, 5; ... ELSE, ...; PERFORM P2, 2, TIMES; PIC 99, at line end; COMPUTE A = N, *, 3), while PIC 9,999 keeps its comma (B displays 1,234)"
    },
    {
     "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-042/src/c3_sub11.cob",
-    "printed": "W-F (1; 2): B=B at 85 and 2023",
-    "expected": "semicolon separator between two subscripts: accepted"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c2cpy.cob",
+    "printed": "YY=ABC QQ=DEF / MAX=3",
+    "expected": "COPY C2BOOK, REPLACING, ==XX==, BY, ==YY==; ZZ BY QQ. and REPLACE, ==ALPHA==, BY, ==DISPLAY==. treat the separators as spaces; FUNCTION MAX (W, 3; 2) = 3"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/8.3.5-Separators/w73a-comma-not-followed-by-space.cob",
-    "printed": "COBOL2631 at N,M and N;M",
-    "expected": "a comma or semicolon with no space after it is no separator: refused"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-230/c2bad.cob",
+    "printed": "error COBOL2631 at MOVE 1 TO A,D and at MOVE 2 TO A;D: not immediately followed by a space, so it is not a separator",
+    "expected": "a comma or semicolon not followed by a space is no separator; the source is refused"
    }
   ],
   "citations": [
@@ -77,27 +48,28 @@
     "check": "OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2"
    },
    {
-    "cite": "§1985:IV.4.2.1 SR8",
-    "check": "OK  §1985:IV.4.2.1 SR8  (4.2.1 Separators)  the text is in SR8"
-   },
-   {
-    "cite": "§1985:IV.4.2.1 SR9",
-    "check": "OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9"
-   },
-   {
-    "cite": "§2023:8.3.5 SR2",
-    "check": "OK  §2023:8.3.5 SR2  (Separators)  the text is in SR2"
+    "cite": "§1985:IV.4.2.1 SR1",
+    "check": "OK  §1985:IV.4.2.1 SR1  (4.2.1 Separators)  the text is in SR1"
    }
   ],
-  "notes": "Outside parentheses that open a list region, the comma-space is skipped exactly as a space is and SR2 holds everywhere probed. Inside a REF_LPAREN or FNARG_LPAREN region (subscripts, reference modifiers, function arguments, and any grouping parenthesis nested in them) the lexer keeps ', '/'; ' as a real FNARG_SEPARATOR token, and the grammar admits that token only between two list items, so a comma or semicolon separator in any other separator-space position inside the region is a parse error.",
+  "notes": "One lexer rule (FNARG_SEPARATOR) matches ', '/'; ' everywhere and skips it like a space outside list regions; inside a list region ListItemBoundary keeps it only where a space would separate two items. SeparatorRule reports a comma or semicolon with no following space (COBOL2631). The PICTURE lexer mode keeps an embedded comma in the character-string and ends the string at ', '. Nothing on the path reads the edition.",
   "seeded": true,
-  "harm": "rejects-legal-source",
-  "cause": "b",
-  "at-2023": "the same COBOL0001 parse error for every repro (§2023:8.3.5 SR2 says the same as the 1985 rule)",
-  "repro": "01 W-T VALUE \"XYZ\". 05 W-E OCCURS 3 TIMES PIC X. 01 I PIC 9 VALUE 1. ... DISPLAY W-E (I +, 1). (also W-E (I, ), W-E (, I), W-S (2 :, 1), FUNCTION MAX (I +, 1, 2))",
-  "expected": "\"the punctuation characters comma and semicolon, immediately followed by a space, are separators that may be used anywhere the separator space is used\" (§1985:IV.4.2.1 SR2): W-E (I +, 1) is W-E (I + 1) and displays Y",
-  "observed": "error COBOL0001: cannot parse construct near ', ' (exit 65) at --std 85 and --std 2023",
-  "known_note": "none (PB4246 is the open naming analysis of FNARG_SEPARATOR as the separator token of every list region; it does not record this refusal)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5793"
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-2",
+  "refutation": "OVERTURNED",
+  "classes": "b,c,d",
+  "evidence": "refute-1985-230/r2d.cob at --std 85: '01 B PICTURE; 9(3) VALUE 12.' -> 'error COBOL0001: missing token before 9' and 'unexpected ('. r2e.cob: '01 B PIC, 999 VALUE 12.' -> 'error COBOL2419: the PICTURE character-string , ends in the symbol ...' plus COBOL0307. r2c.cob: 'PICTURE IS, X(2)' also refused (COBOL0001 at '('). Same refusals at --std 2023 (r2d-002, r2e-002). The format is 'PICTURE IS character-string' with a separator space between the key word and the character-string; SR2 lets ', ' or '; ' stand anywhere the separator space is used, and SR9's paragraph says 'PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period'. A semicolon is never a PICTURE symbol, so the 'Except when the comma is used in a PICTURE character-string' clause cannot reach '; '; and ',' alone is no allowable character-string (VI.5.9.3 SR2), so the leading comma is the separator too. Cause in the lexer: CobolLexer.g4 mode PICMODE skips only [ \\n]+ (PIC_WS) before the string, so PIC_STRING captures the leading ',' or ';' (its trailing-separator trim fires only when Text.Length > 1 and only at the END). Everything else the reader did not try passes: r2b.cob 'IDENTIFICATION, DIVISION.', 'DATA, DIVISION.', 'SELECT, F1, ASSIGN, TO, ...; ORGANIZATION, IS,' across a line, 'FD, F1; LABEL RECORDS, ARE,', '01, X PIC X(6), VALUE, \"A, B;C\"' (literal content kept), '88, N-ODD, VALUE, 1, 3; 5 THRU, 9', 'PIC 9,999, .', 'MOVE 1234 TO Y, .', 'GO, TO, P2, P3, DEPENDING, ON, N' (-> P3), 'P0, SECTION.', a comma in column 72 before a continued line, 'STOP, RUN.' all run correctly (X=A, B;C Y=1,234 / EVEN / P3 / COL72 END). kb/Work searched (PIC, / PICTURE; / PICMODE leading separator): no note; PB5213 (multiple IS) is a different defect. cite.py: OK  §1985:IV.4.2.1 SR2  (4.2.1 Separators)  the text is in SR2; OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators) ('PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period'); OK  §1985:VI.5.9.3 SR2  (5.9.3 Syntax Rules)  the text is in SR2.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PICMODE: the mode pushed after PIC/PICTURE (and PIC_IS) is the separator path for the character-string's leading delimiter; it skips only spaces and line ends, no edition arm, and the reader's code-location does not name it"
+  ],
+  "corrected": "REJECTS-LEGAL-SOURCE (cause b, the same at every edition): a comma or semicolon separator between PICTURE/PIC [IS] and the character-string (PICTURE; 9(3), PIC, 999, PICTURE IS, X(2)) is refused at --std 85 and --std 2023; SR2 admits it wherever the separator space stands. No kb/Work note found."
+ }
 }

@@ -2,66 +2,67 @@
  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.2",
  "rule-digest": "0775a17e5cfe",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-087",
+  "pin": "1712645b4772cda5433a5a24f9b7d597298915e6",
+  "slice": "1985-229",
   "sources": {
-   "reader": "3a7372f623de84840730f25aaafe908e16fb6758ef274e8caa8bdd291c3ea2e4",
-   "refuter": "cb9bea7e3745bb11813da4e72dddd8f9d0adbb7f310aeaf95a0c9b612192d5d5"
+   "reader": "f5081c2e6e45c84bcdd5c0f7a240f2fb217fe751699cc6f6751d3f1db55eeeaf",
+   "refuter": "d4cc1110df77fe77780a50cdb915af235d4469c622c06c4ebe041d9c013c1ef3"
   },
   "imported": {
-   "reader": "5e8fa953a7fe8d227b2e8bd2f07872ca09ab641158bc4a1cb0edef6a73ef354d"
+   "reader": "7185d2a74462ee89a9ea49bf166b16d328a11ae6684a11a29d2849a3f12c8899",
+   "refuter": "97d304a031746a5b1567dcef53acb9fc20a9b50dfaf7bcd6f6c7f313681da3dc"
   }
  },
  "reader": {
   "rule-id": "1985-GR-IV.4.2.2.2.3-L2.2",
-  "verdict": "PARTIAL",
-  "requirement": "At --std 85 every figurative constant other than ALL literal (ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S), symbolic-character, each with or without the redundant ALL) that is not associated with another data item - a DISPLAY operand, a STOP literal-1, a STRING sending operand or delimiter, an UNSTRING delimiter - is a one-character string; the witnesses exercise only ZERO/SPACE/QUOTE in DISPLAY, STRING and UNSTRING.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/FigurativeConstants.cs#Fill; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#WriteImage; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStop; src/WiseOwl.Cobol.Compiler/Binding/ConcatFolder.cs#FigurativeChar; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#stopStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#literal",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a figurative constant other than ALL literal (ZERO/ZEROS/ZEROES, SPACE/SPACES, HIGH-VALUE(S), LOW-VALUE(S), QUOTE(S), a symbolic-character, each with or without the redundant word ALL) that is not associated with a data item, as in DISPLAY, STOP literal, STRING (sending operand or delimiter) and UNSTRING (delimiter), must stand for exactly one character.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#FigurativeOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#SymbolicOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrOperand; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStop; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStopWord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral; src/WiseOwl.Cobol.Compiler/CodeGen/StatementEmitter.cs#Visit",
   "edition-consulted": [
    {
     "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#ScreenStopLiteral",
-    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): the 1985 STOP literal SR1/SR3 screen runs only where STOP literal exists",
+    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): the STOP literal SR1/SR3 screens run only where STOP literal exists (1985); later editions refuse the statement (COBOL0902 from VersionConformancePass)",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitStopStatement",
-    "switches": "Check(Constructs.StopLiteralRemoved2002): STOP literal passes at 85, is refused (removed) at 2002+",
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindStopWord",
+    "switches": "ConstructRegistry.IsAvailable(StopLiteralRemoved2002): a STOP word naming no symbolic-character is refused by name (COBOL7558) at 1985 only",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "grep of Edition/ConstructRegistry/CobolVersion/IsAvailable over OperandText.cs, FigurativeConstants.cs, StringEmitter.cs, AcceptDisplayEmitter.cs, ConcatFolder.cs, StringUnstringBinder.cs: the DISPLAY/STRING/UNSTRING one-character arms consult no edition (StringUnstringBinder only passes ctx.Edition to diagnostic reporting); only the STOP literal path is edition-gated.",
-  "behaviour-differs-by-edition": "yes: STOP literal exists only at 85 (removed 2002), so the STOP arm of this rule has no latest-edition counterpart; DISPLAY/STRING/UNSTRING take the same code at every edition.",
-  "witnesses-cover": "part: g85_bf02_01 exercises ZERO/SPACE/QUOTE in DISPLAY, STRING and UNSTRING only; not HIGH-/LOW-VALUE, symbolic-character, ALL-prefixed non-literal figuratives, STRING/UNSTRING delimiters other than SPACES, or STOP at all.",
+  "edition-search": "grep for CobolVersion/Edition/IsAtLeast/DialectBehavior in OperandText.cs and FigurativeConstants.cs: none; the DISPLAY/STRING/UNSTRING one-character rendering (OperandText.AsString's BoundFigurative arm: new string(fill, 1)) is edition-blind; only the STOP path consults the edition, through the StopLiteralRemoved2002 construct row.",
+  "behaviour-differs-by-edition": "yes: the STOP literal statement exists only at 1985 (removed by 2002), so the STOP arm of the rule is 1985's alone; the DISPLAY/STRING/UNSTRING one-character length is the same at every edition",
+  "witnesses-cover": "part: g85_bf02_01 covers DISPLAY ZERO/SPACE/QUOTES, STRING SPACES/ZEROS as senders and UNSTRING DELIMITED BY SPACES; pb5809 covers STOP symbolic-character. Not exercised there: HIGH-VALUE/LOW-VALUE, the redundant ALL before a non-literal figurative, a symbolic-character in DISPLAY/STRING, STRING delimiters, UNSTRING delimiters other than SPACE, STOP with a keyword figurative",
   "probes": [
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/fig1.cob",
-    "printed": "D1[0][0][0] D2[ ][ ][\"][\"] D3[0][ ][\"] D4[*][*] D5[U+FFFF][NUL][U+FFFF] (od: one char each); STRING ZERO SPACE QUOTE STAR HIGH-VALUE LOW-VALUE INTO .. POINTER: P=07 (6 chars); STRING delimited by SPACE/QUOTES/STAR: [ABEFGHIJ....] P=09; UNSTRING DELIMITED BY ZERO OR STAR: [AB ][CD ][   ][EF ] 04; DELIMITED BY ALL STAR OR ZEROS: [AB ][CD ][EF ][---] 03; STOP SPACE / STOP ZERO wrote ' ' and '0' to stderr and continued",
-    "expected": "each figurative one character (GRL2.2); DISPLAY GR3 single occurrence"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stop3.cob",
-    "printed": "STOP QUOTES -> '\"', STOP LOW-VALUE -> NUL, one char each, execution continues (A1 A2 A3)",
-    "expected": "one character each"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stop4.cob",
-    "printed": "stop4.cob(9,21): error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&' (ISO §2023:5.2.1).",
-    "expected": "STOP STAR (STAR a SYMBOLIC CHARACTERS figurative constant) accepted; the one character '*' communicated, execution continues"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/stopall.cob",
-    "printed": "error COBOL6817: STOP ALL \"AB\": the literal breaks §1985:VI.6.24.3 SR1",
-    "expected": "refused (STOP SR1)"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/fig1.cob",
+    "printed": "D1 [ ][0][\"][*][*][0]  (DISPLAY ALL SPACES, ALL ZEROS, ALL QUOTE, symbolic STAR, ALL STAR, ZEROES)",
+    "expected": "one character each (GRL2.2; DISPLAY GR3 'only a single occurrence of the figurative constant is displayed'); ALL redundant before a non-literal figurative (exception 3)"
    },
    {
     "class": "d",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-087/symsib.cob",
-    "printed": "W1 / [***][A B] (VALUE STAR, INSPECT REPLACING ALL STAR, EVALUATE WHEN STAR all accept a symbolic-character)",
-    "expected": "sibling sweep: other literal positions accept a symbolic-character; only STOP refuses it"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/fig1.cob",
+    "printed": "S1 P=06 (STRING HIGH-VALUE LOW-VALUE SPACES STAR QUOTES from pointer 1); S2 P=04 (\"<\" HIGH-VALUES \">\"); S3 [AB|A|A......] P=07 (DELIMITED BY SPACE / ZERO / QUOTE)",
+    "expected": "five one-character senders advance the pointer by 5; each figurative delimiter is one character"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/fig1.cob",
+    "printed": "U1 [A  ][B  ][   ][C  ] 04 (\"A0B00C D\" DELIMITED BY ZERO OR SPACE); U2 [AB ][CD ][   ] 02 (DELIMITED BY ALL SPACE); U3 [A  ][B  ][C  ] 03 (DELIMITED BY QUOTES)",
+    "expected": "each figurative delimiter is one character, so 00 delimits an empty field; with the UNSTRING ALL phrase contiguous spaces are one delimiter"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/fig1.cob",
+    "printed": "STOP SPACE / STOP QUOTE / STOP ZERO wrote ' ', '\"', '0' to stderr and execution continued (T2, T3, T4 displayed)",
+    "expected": "STOP literal (1985 only) communicates the one-character figurative and continues (GRL2.2, VI.6.24.4 GR4)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-229/src/fig1.cob",
+    "printed": "first run: COBOL1757 on STRING ALL SPACES / ALL QUOTES / ALL HIGH-VALUES as sending operands",
+    "expected": "§1985:VI.6.25.3 SR1 forbids a figurative that begins with ALL in STRING (refusal correct; message cites §2023:14.9.43.3 SR2 at --std 85)"
    }
   ],
   "citations": [
@@ -70,19 +71,34 @@
     "check": "OK  §1985:IV.4.2.2.2.3 GRL2.2  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.2"
    },
    {
-    "cite": "§1985:IV.4.2.2.2.3 GRL2.3",
-    "check": "OK  §1985:IV.4.2.2.2.3 GRL2.3  (4.2.2.2.3 Figurative Constant Values)  the text is in GRL2.3 (quoted: the length of the string is the length of the literal)"
+    "cite": "§1985:VI.6.10.4 GR3",
+    "check": "OK  §1985:VI.6.10.4 GR3  (6.10.4 General Rules)  the text is in GR3"
+   },
+   {
+    "cite": "§1985:VI.6.25.3 SR1",
+    "check": "OK  §1985:VI.6.25.3 SR1  (║6.25.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.6.24.3 SR1",
+    "check": "OK  §1985:VI.6.24.3 SR1  (6.24.3 Syntax Rules)  the text is in SR1"
    }
   ],
-  "notes": "DISPLAY, STRING (sender and delimiter), UNSTRING delimiter and STOP keyword figuratives are each one character at 85 (OperandText.AsString's BoundFigurative arm, ConcatFolder.FigurativeChar for STOP). But STOP symbolic-character - a figurative constant (IV.4.2.2.2.3 item 7) usable wherever 'literal' appears, which STOP SR1 restricts only for ALL - is a parse error: stopStatement takes `literal`, whose nonNumericLiteral has no cobolWord arm (only concatOperand does, hence 'expected &'), so the one-character STOP arm is unreachable for that form.",
+  "notes": "Every keyword figurative binds to a BoundFigurative (the word ALL dropped), a symbolic-character to a one-character BoundAllLiteral, and OperandText.AsString renders a BoundFigurative in a string position as new string(fill, 1); STOP folds the figurative to its one character (ConcatFolder.FigurativeChar) or the symbolic value. All four statements named by the rule were probed and give one character. Side observation: the STRING ALL-figurative refusal at --std 85 cites §2023:14.9.43.3 SR2 rather than §1985:VI.6.25.3 SR1 (diagnostic citation only).",
   "seeded": true,
-  "harm": "rejects-legal-source",
-  "cause": "c",
-  "at-2023": "same parse error COBOL5506 'expected &' (STOP literal is removed in 2002+, so a refusal is the right outcome there, though not the COBOL0902 removal diagnostic)",
-  "repro": "SPECIAL-NAMES. SYMBOLIC CHARACTERS STAR IS 43. ... PROCEDURE DIVISION. P. STOP STAR. DISPLAY \"A2\". STOP RUN.  (cobol --std 85 --source-format fixed)",
-  "expected": "§1985:IV.4.2.2.2.3: a figurative constant 'may be used whenever literal appears in a format'; GRL2.2: in a STOP statement 'the length of the string is one character' - compiles, communicates '*', continues to A2",
-  "observed": "error COBOL5506: unexpected '.'. The separator period is not expected here: expected '&'",
-  "known_note": "none (searched kb/Work for STOP + symbolic-character; PB5074 covers STOP SPACE's spelling and PB1406 symbolic operands in concatenations, neither this)"
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
  },
- "work": "PB5809"
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.2.2.2.3-L2.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "fg2.cob under PROGRAM COLLATING SEQUENCE IS REV (ALPHABET REV IS \"Z\" THRU \"A\"). STRING HIGH-VALUES LOW-VALUES ZERO advances the pointer by 3 (H1 P=04; od -c shows one U+FFFF, then 'Z' as the lowest character of the program sequence, then '0'). DISPLAY HIGH-VALUE / LOW-VALUE shows one character each. UNSTRING DELIMITED BY symbolic STAR gives [AB][CD][  ][EF] T=4, and with ALL STAR [AB][CD][EF] T=3. STRING 'ABC' DELIMITED BY LOW-VALUE and 'XAY' DELIMITED BY HIGH-VALUE gives P=07. STRING SPACE DELIMITED BY SPACE / ZERO DELIMITED BY QUOTE / STAR gives [0*] P=03. STOP HIGH-VALUE and STOP STAR each write one character and continue. STRING ALL ZERO was refused COBOL1757, matching the 1985 STRING SR1 bar on ALL. All of this agrees with the one-character rule. cite.py: OK §1985:IV.4.2.2.2.3 GRL2.2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

@@ -2,88 +2,66 @@
  "rule-id": "1985-GR-VIII.3.2.4-5",
  "rule-digest": "542c7262bb2a",
  "read": {
-  "pin": "1df234fa728a5e07064ecdde50d3f862e2d72abd",
-  "slice": "1985-131",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-232",
   "sources": {
-   "reader": "077c4d26f8afe05187e521cf4e919cbb44d4d2cad5e3b47ea84b460842b78cf4",
-   "refuter": "3216838ec51aca23102145102d132f2612c28935f4fefd0091de2678d7670aa0"
+   "reader": "cf8681bc145484779ce9f0982ab21570945da69ac24767a7d14fca700f8c6174",
+   "refuter": "0909c661edb5a95d13731204d31a3269aaf920b55ee57278af641637447929de"
   },
   "imported": {
-   "reader": "257a7ca45131663aeeebaa76a589b973419ed58e35dab4445326ea06313d8532",
-   "refuter": "4636c3b08633fee19960411b247928e5bbe0ac5552667168a5b43b6225944282"
+   "reader": "c0945a1c2b0559ecb6a230663f94c9fa487ff8c163ad73d366da2ee77e350837",
+   "refuter": "f28385c7325fb280eb420c01610cfcaeed2130e5d82e12cc03db226a64eafa2a"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VIII.3.2.4-5",
   "verdict": "CONFORMS",
-  "requirement": "At --std 85 a relative file's FD admits all three RECORD clause formats of the Sequential I-O module (VII.3.8): SR1/SR2/SR3/SR4 refuse a record description over integer-1, one outside integer-2..integer-3, integer-3 not greater than integer-2, and a DEPENDING item that is not an elementary unsigned integer in Working-Storage or Linkage; at run time GR10 sizes a WRITE/REWRITE by data-name-1 or the ODO table, an output record out of range is unsuccessful (44), GR11 stores the read length in data-name-1, GR12 bounds READ INTO, and Format 3 is the implementor's fixed-or-variable choice. The witness covers Format 1 and Format 2 with DEPENDING on a random-access file only.",
-  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#RecordClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingLengthArg; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReadLengthStore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#RecordRulesFailure",
+  "requirement": "At --std 85 a relative file description entry takes the Sequential I-O RECORD clause in all three formats with the same syntax rules (VII.3.8.3 SR1-SR4) and general rules (VII.3.8.4), including the Format 2 bounds that give a WRITE outside them status 44.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Rows; src/WiseOwl.Cobol.Compiler/Binding/FileDescriptionFormats.cs#Of; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#FileDescriptionClauseAdmitted; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordWidth; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRegistration; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordLengthConflicts",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
-    "switches": "row Since: every Format 1/2 row is Since 85 (same arm as 2023); the Format 3 SR9 row (integer-5 > integer-4) is Since 2002, so at 85 RECORD CONTAINS 8 TO 4 is accepted, as VII.3.8 prints no Format 3 syntax rule",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#CitationAt",
-    "switches": "the diagnostic cites §1985:VII.3.8.3 SRn below 2002 instead of the 2023 clause; text only",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Sr6Sentence",
-    "switches": "SR4 message names Working-Storage or Linkage below 2002 (no Local-Storage); the predicate is the same",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#RecordClause",
-    "switches": "integer-2 / integer-4 of zero is admitted from 2002 only; at 85 FROM 0 is refused (COBOL2386, §1985:III.2)",
-    "same-arm-as-latest": false
-   },
-   {
     "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRecordClause",
-    "switches": "the BYTES word is a 2023 construct: refused COBOL0900 at 85, accepted at 2023",
+    "switches": "BYTES refused below 2023",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "RecordContainsRangeBindsRecordSize: Format 3 range does not bound WRITEs at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#AppliesAt",
+    "switches": "rows by Since and the 1985 citation (CitationAt); SR4 names working-storage or linkage only below 2002",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 85 BYTES is refused, FROM 0 is refused, and Format 3 has no integer-5 > integer-4 rule; the run-time sizing (44, DEPENDING store) is the same code at every edition",
-  "witnesses-cover": "part: g85_f17_05 covers Format 1 and Format 2 DEPENDING ON with random access; not the refusals (SR1-SR4), Format 2 without DEPENDING over an ODO record, Format 3, out-of-range WRITE/REWRITE (44), READ INTO, or dynamic/sequential access",
+  "edition-search": "the clause row in FileDescriptionFormats.Rows is FileDescriptionFormat.All with no edition; BindRecordClause is organization-independent",
+  "behaviour-differs-by-edition": "yes: only as the sequential RECORD clause itself differs (Format 3 range unbounded at 85, BYTES refused, SR4's section list); the relative module adds nothing of its own",
+  "witnesses-cover": "part: Format 1 and Format 2 with DEPENDING ON on relative files; not exercised: Format 3, a WRITE outside the Format 2 bounds (44), and the SR1-SR4 refusals on a relative FD",
   "probes": [
    {
     "class": "a",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/rec1.cob",
-    "printed": "W1 00 RL=04 / W2 00 / W3-SHORT 44 / W4-LONG 44 / W5 00 / R1 00 RL=04 INTO [ABCD        ] / R5 00 RL=07 [ABCDEFG] / R3 23 RL=99 / RW-SHORT 44 / RW9 00 / R5B 00 RL=09 / RO1 00 [2AB] / RO2 00 [6UVWXYZ] / R31 00 [AAA     ] / R32 00 [BBBBBBBB]",
-    "expected": "GR10 a and c size the output; out of 4..12 is unsuccessful with 44 (VIII.1.3.4 GRL2.5d1); GR11 stores the length on success and GR9 leaves it unchanged on a failed READ; Format 3 records read back at their own size"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p4_rel.cob",
+    "printed": "W12 00, W6 00, W13 44 (USE ran), W3 44 (USE ran); READ key 2 R2 00 L=06 [ABCDEF]; READ key 3 INV3 23",
+    "expected": "relative RECORD VARYING FROM 4 TO 12 DEPENDING ON L: 13 and 3 are 44 (§1985:VIII.1.3.4 GRL2.5), the 6-position record reads back with L=6"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p4_rel.cob",
+    "printed": "relative Format 3 RECORD CONTAINS 3 TO 9: W3A 00 W3B 00, RA 00 [XYZ], RB 00 [123456789]",
+    "expected": "Format 3 accepted on a relative FD; records sized by their descriptions"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/sr1.cob",
-    "printed": "error COBOL2010: record 'R2' describes 6 bytes, but the RECORD clause states integer-1 = 5 (ANSI §1985:VII.3.8.3 SR1)",
-    "expected": "refused, SR1"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p4_sr.cob",
+    "printed": "COBOL2010 (SR1), COBOL2010 (SR2), COBOL2009 (SR3), COBOL2922 (SR4, DEPENDING ON item in the file section), each citing ANSI §1985:VII.3.8.3",
+    "expected": "each sequential syntax rule refuses on a relative FD"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/sr2a.cob; sr2b.cob",
-    "printed": "error COBOL2010 for a 3-byte record under FROM 4 and for a 9-byte record under TO 8 (ANSI §1985:VII.3.8.3 SR2)",
-    "expected": "refused, SR2 both arms"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/sr3.cob",
-    "printed": "error COBOL2009: FROM 8 TO 8; integer-3 shall be greater than integer-2 (ANSI §1985:VII.3.8.3 SR3)",
-    "expected": "refused, SR3"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/sr4a.cob; sr4b.cob; sr4c.cob; sr4d.cob; ok4.cob",
-    "printed": "COBOL2922 for S99, 9V9, a group, a File Section item; ok4 (PIC 9(3) COMP) compiles EXIT 0",
-    "expected": "SR4 refuses each; an unsigned integer is accepted"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-131/byt.cob; zro.cob; f3.cob",
-    "printed": "85: BYTES refused COBOL0900, FROM 0 refused COBOL2386, RECORD CONTAINS 8 TO 4 accepted; 2023: BYTES and FROM 0 accepted",
-    "expected": "VII.3.8.2 formats say CHARACTERS only; III.2 integers nonzero unless allowed; no 1985 Format 3 syntax rule"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p2_fmt1c.cob",
+    "printed": "relative Format 1 RECORD CONTAINS 12 over PIC X(5): two 12-position records read back",
+    "expected": "Format 1 on a relative FD sizes each record"
    }
   ],
   "citations": [
@@ -92,27 +70,11 @@
     "check": "OK  §1985:VIII.3.2.4 GR5  (3.2.4 General Rules)  the text is in GR5"
    },
    {
-    "cite": "§1985:VII.3.8.3 SR1",
-    "check": "OK  §1985:VII.3.8.3 SR1  (3.8.3 Syntax Rules)  the text is in SR1"
-   },
-   {
-    "cite": "§1985:VII.3.8.3 SR3",
-    "check": "OK  §1985:VII.3.8.3 SR3  (3.8.3 Syntax Rules)  the text is in SR3"
-   },
-   {
-    "cite": "§1985:VII.3.8.3 SR4",
-    "check": "OK  §1985:VII.3.8.3 SR4  (3.8.3 Syntax Rules)  the text is in SR4"
-   },
-   {
-    "cite": "§1985:VII.3.8.4 GR10",
-    "check": "OK  §1985:VII.3.8.4 GR10  (3.8.4 General Rules)  the text is in GR10"
-   },
-   {
-    "cite": "§1985:VII.3.8.4 GR11",
-    "check": "OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11"
+    "cite": "§1985:VIII.1.3.4 GRL2.5",
+    "check": "OK  §1985:VIII.1.3.4 GRL2.5  (1.3.4 I-O Status)  the text is in GRL2.5"
    }
   ],
-  "notes": "A pointer rule: the relative FD reuses the sequential RECORD clause, and the compiler applies the same RecordClauseRules table and the same keyed-connector size rule to a relative file. Each syntax rule is refused with a §1985 citation, and the run-time rules give 44 and the DEPENDING length. Format 3 is read back as a variable-length record of its own size (GR13 leaves that choice to the implementor).",
+  "notes": "One binder (BindRecordClause) and one rule table (RecordClauseRules) serve every organization, so the relative FD gets exactly the sequential clause. Formats 1, 2 and 3, the 44 boundary and SR1-SR4 were each probed on relative files.",
   "seeded": true,
   "harm": "",
   "cause": "",
@@ -124,16 +86,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VIII.3.2.4-5",
-  "refutation": "OVERTURNED",
-  "classes": "a,b,c,d,e",
-  "evidence": "Probe refute-1985-131/c6.cob (relative FD, RECORD VARYING DEPENDING ON DL, where 01 G. 05 DL PIC 99 OCCURS 3 TIMES) compiles EXIT 0 at --std 85, and at --std 2023 too. Run probe g9c.cob (runs/g9c-001, --std 85): FD RT RECORD VARYING FROM 2 TO 8 DEPENDING ON TL, TL a table element; MOVE 5 TO TL(1), WRITE RT-REC answers 00 and the record reads back as all 8 characters '12345678', and after the successful READ TL is still 00,00,00. So the DEPENDING item is accepted and then silently ignored: GR10a (write length from data-name-1) and GR11 (length stored after READ) are not performed for it. Under the 1985 text the reference is illegal: 'Each table element reference must be subscripted except when such reference appears' in USE FOR DEBUGGING, a SEARCH subject, REDEFINES, OCCURS KEY IS (none is the RECORD clause), so data-name-1 can never be a table element and the FD must be refused. RecordClauseRules.Rules' three SR-13.18.43.3-6 rows (Of1985 VII.3.8.3 SR4) test IsElementary, the integer picture and the section only, never a table element. The same mechanism was fixed for VALUE OF data-name-1 in kb/Work PB5299 (DataItem.IsTableElement, COBOL6849); the RECORD clause DEPENDING operand is the sibling that sweep did not reach. Everything else the reader claimed held: c1 'RECORD IS VARYING IN SIZE CHARACTERS', c2 'RECORD 4 TO 8', c3 'RECORD 8', c4 'VARYING TO 8 DEPENDING ON', c5 qualified 'DL OF G', c10 'DEPENDING DL' with a COMP item all compile; c7 (ZZ9) and c9 (X(2)) refused COBOL2922 SR4; c8 RECORD CONTAINS 0 refused COBOL2386 (III.2); g9b-002 at 85: RL unchanged by REWRITE/START/DELETE (GR9), a 30 length write 44, Format 2 without FROM/TO takes min 3 max 9 from the record descriptions (2 and 10 give 44, GR6/GR7). cite.py: OK §1985:VIII.3.2.4 GR5 (the text is in GR5); OK §1985:VII.3.8.3 SR4 (the text is in SR4); OK §1985:IV.4.3.8.2.3 SR4 (the text is in SR4); OK §1985:VII.3.8.4 GR10 (the text is in GR10); OK §1985:VII.3.8.4 GR11 (the text is in GR11).",
+  "refutation": "UPHELD",
+  "classes": "a,e",
+  "evidence": "Attacked the sequential RECORD clause rules the reader did not carry onto a relative FD: GR10c (no DEPENDING ON, size from the ODO count), GR9, GR11 and GR12. Probe r4_rel.cob at --std 85 (runs/r4_rel-001), relative random: FD RECORD IS VARYING FROM 2 TO 8 with no DEPENDING ON over C PIC 9 + T OCCURS 1 TO 7 DEPENDING ON C: WRITE C=1 and C=7 -> 00, 00; read through a second FD with DEPENDING ON L: R1 L=02 [1A], READ INTO L=08 W=[7BCDEFGH    ] (GR11, GR12 a), READ INTO of the 2-position record L=02 W=[1A          ]; an INVALID KEY READ (23) leaves L=55 (GR9); WRITE with L=5 -> 00 and L unchanged; WRITE L=1 -> 44 (INVALID KEY not taken), REWRITE L=9 -> 44. The relative clause behaves as the sequential one. cite.py: 'OK  §1985:VIII.3.2.4 GR5  (3.2.4 General Rules)  the text is in GR5'; 'OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9'; 'OK  §1985:VII.3.8.4 GR12  (3.8.4 General Rules)  the text is in GR12'.",
   "edition-sites-missed": [],
-  "corrected": "NON-CONFORMING (under-rejects, silent): a relative FD whose RECORD VARYING DEPENDING ON names a table element (05 DL PIC 99 OCCURS 3) is accepted at --std 85 and the item is then ignored at run time (the full 8-character record is written with TL(1)=5; READ stores no length). Expected: refused, §1985:IV.4.3.8.2.3 SR4 with §1985:VII.3.8.3 SR4. Cause (b): the same at --std 2023 (c6 compiles EXIT 0 there). Fix site: src/WiseOwl.Cobol.Compiler/Binding/RecordClauseRules.cs#Rules (a table-element row for the DependingOperand subject, as PB5299 did for VALUE OF). Known note: none for the RECORD clause; PB5299 (landed) is the VALUE OF sibling."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "The mechanism of kb/Work PB5810 in two more files: a relative file's WRITE with RECORD VARYING DEPENDING ON a table element gives status 00 where the length 9 requires 44, and a sort file's RETURN delivers all 8 characters and leaves the length item `00`.",
-  "ref": "kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-7.md"
- },
- "work": "PB5810"
+  "corrected": ""
+ }
 }

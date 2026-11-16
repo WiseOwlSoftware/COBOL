@@ -2,122 +2,83 @@
  "rule-id": "1985-GR-VII.1.3.5-L2.5",
  "rule-digest": "d6985f93a2ee",
  "read": {
-  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
-  "slice": "1985-195",
+  "pin": "7a32e1dfd2227042dea69db82f70d1e0085a50cc",
+  "slice": "1985-232",
   "sources": {
-   "reader": "8e9f846199cca1176b5b277e8ee59437f30f48aa84ef54c6c128ea345f8b1ab1",
-   "refuter": "1e43cf4cb1cc89170dc57bf1e7ddb0124a517da7b11476c126cb01ec9a395a49"
+   "reader": "cf8681bc145484779ce9f0982ab21570945da69ac24767a7d14fca700f8c6174",
+   "refuter": "0909c661edb5a95d13731204d31a3269aaf920b55ee57278af641637447929de"
   },
   "imported": {
-   "reader": "1303a95cd8a7614f5a63b817f124eff2b606c07970f4d75a4ff0c70fd7cd3e82",
-   "refuter": "de581e2a4f2cb00264918f672649549e7e9d31158d6b406a5d1184892fbd9712"
+   "reader": "8f87d3503781fd7c3996f4df1012f6699df132ece75a230d7325568edbb9e92b",
+   "refuter": "973bdb67eb74ec1ca0337e7c4b40779e25347c88bbe3a4681c3ca422f5ad6e32"
   }
  },
  "reader": {
   "rule-id": "1985-GR-VII.1.3.5-L2.5",
   "verdict": "CONFORMS",
-  "requirement": "An implementor-defined unsuccessful condition on a sequential file must set I-O status 9x, with x the implementor's, and the condition must not duplicate any condition that values 00 through 49 specify in 1985.",
-  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#EvaluateLinage; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#HasCharacterWithoutImage; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+  "requirement": "At --std 85 an I-O status 9x is set only for an implementor-defined unsuccessful condition that none of the 1985 status values 00 through 49 describes, and a condition the edition does define keeps its own value (never 9x).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#LinageValueViolation; src/WiseOwl.Cobol.Runtime/IO/FileStatus.cs#CharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#RefuseOpenForLinage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#WriteRecord; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#RecordHasCharacterWithoutByteImage; src/WiseOwl.Cobol.Runtime/IO/CodeSetConversion.cs#HasCharacterWithoutImage; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
   "edition-consulted": [
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
-    "switches": "DialectBehavior.FileSharingFacility (2002+): at 85 no file lock is taken and no '61' file-sharing status is produced; a second connector's OPEN of the same file answers '00'",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
+    "switches": "DialectBehavior.LinageViolatingOpenLeavesFileOpen: at 85 a LINAGE value violation refuses the OPEN with 90 and the file is not open, so a later WRITE/CLOSE answers the 1985 48/42 rather than 90",
     "same-arm-as-latest": false
    },
    {
     "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#OpenOnceEntered",
-    "switches": "a host refusal of the OPEN answers '61' when the sharing facility is in effect and the 1985 value '30' at 85",
+    "switches": "SharingFacilityInEffect (DialectBehavior.FileSharingFacility): at 85 a host sharing refusal answers 30, never the 2002 status 61 the 1985 list lacks",
     "same-arm-as-latest": false
    },
    {
-    "site": "src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing",
-    "switches": "the clause-less connector's sharing mode: no restriction at 85 (FileSharing.AllOther)",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Runtime/Control/DialectBehavior.cs#DialectBehaviors",
-    "switches": "the file-sharing-facility row (introduced 2002) the three sites above read",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitOrganizationClause",
-    "switches": "ORGANIZATION LINE SEQUENTIAL refused below 2023 (COBOL0900), so the line-sequential '71' cannot arise at 85",
-    "same-arm-as-latest": false
-   },
-   {
-    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAssignClause",
-    "switches": "ASSIGN USING refused below 2002 (COBOL0900), so the '31' association failure cannot arise at 85",
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#TakeRunUnitFileLock",
+    "switches": "SharingFacilityInEffect: no run-unit file lock and no 61 at 85",
     "same-arm-as-latest": false
    }
   ],
-  "edition-search": "",
-  "behaviour-differs-by-edition": "yes: at 2002 and later a second connector's conflicting OPEN answers '61' (and a host refusal '61'); at 85 the file sharing facility is off, so those OPENs answer '00' or the 1985 '30', and no status outside the 1985 list or 9x is produced for a sequential file",
-  "witnesses-cover": "part: the witnesses cover '90' and '91' under CODE-SET; the non-duplication half (1985-named conditions keeping 35/42/44/47) and '91' without CODE-SET are covered only by this slice's probes",
+  "edition-search": "grep of FileStatusCode 9x constants and their callers; grep DialectBehavior/SharingFacilityInEffect on the OPEN and WRITE paths",
+  "behaviour-differs-by-edition": "yes: at 85 the 90 OPEN leaves the file not open (later statements 48/42/41 per the 1985 list); from 2002 the OPEN succeeds into a broken page and later WRITEs repeat 90. The 9x values themselves (90 LINAGE, 91 character without byte image) are the same at every edition.",
+  "witnesses-cover": "part: LINAGE 90 and CODE-SET 91 on sequential files; not exercised: 91 on a sequential file with no CODE-SET and on a relative file, and the refusal of line sequential (the 71/06/09 organization) at 85",
   "probes": [
    {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios6.cob",
-    "printed": "85: OPEN I-O TWICE FS1=00 FS2=00, F2 READ SAME RECORD FS=00, both REWRITEs FS=00; 2002: FS2=61 then 47/49",
-    "expected": "at 85 no 2002 file-sharing or record-lock value (61, 51); only 1985 values or 9x"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios1.cob",
-    "printed": "error COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
-    "expected": "refused at 85, so '71' is unreachable"
-   },
-   {
-    "class": "c",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios4.cob",
-    "printed": "error COBOL0900: the USING phrase of the ASSIGN clause requires COBOL-2002",
-    "expected": "refused at 85, so '31' is unreachable"
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p1_91.cob",
+    "printed": "USE 91 00 / SQ-W=91 / SQ-W2=00 / USE 00 91 / RL-W=91 / SQ-R=00 ABC / EOF / SQ-R2=10",
+    "expected": "a WRITE of a character with no byte image is an implementor-defined unsuccessful condition (none of 00-49 describes it): 9x, USE runs, nothing reaches the medium, next WRITE 00"
    },
    {
     "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios2.cob",
-    "printed": "MISSING OPEN FS=35; READ AFTER FAILED OPEN FS=47; CLOSE NOT OPEN FS=42; VARYING TOO LONG FS=44; VARYING TOO SHORT FS=44; two OPEN OUTPUT of one file FS=00 and 00",
-    "expected": "each a 1985 value (35, 47, 42, 44); no implementor 9x replaces a condition 00-49 names"
-   },
-   {
-    "class": "e",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios3.cob",
-    "printed": "ASSIGN TO W-NAME (blank) OPEN OUTPUT FS=00",
-    "expected": "the 1985 ASSIGN word is an implementor-name, no '31'"
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p1_91.cob",
+    "printed": "relative WRITE RL-W=91 with USE run",
+    "expected": "same 9x on the relative organization"
    },
    {
     "class": "b",
-    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-195/src/ios7.cob",
-    "printed": "USE ENTERED FS=91; WRITE EURO FS=91; WRITE PLAIN FS=00; READ FS=00 R1=ABCD (the refused record never reached the file)",
-    "expected": "an implementor-defined unsuccessful condition answers 9x, the declarative runs, nothing is written"
+    "file": "E:/COBOL-wt/coderead85-tree-d/conformance-suite/cases/VII.4.3@1985-OPEN-STATEMENT/pb5845_linage_open_refused_85.cob",
+    "printed": "EXPECT: MATCH (OPEN 90, second OPEN 90 not 41, WRITE 48 not 90, CLOSE 42)",
+    "expected": "9x must not duplicate 4x: the not-open file's WRITE is 48, CLOSE 42"
    },
    {
-    "class": "b",
-    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/13.18.34-LINAGE/pb526_linage_ec_condition_85.cob",
-    "printed": "USE-A FS=90 LC=000; A-W2 FS=90 ... EXPECT: MATCH",
-    "expected": "LINAGE value violation (page size not greater than zero, §1985:VII.3.7.4 GR2) reported as implementor-defined 90"
-   },
-   {
-    "class": "b",
-    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/A.1-Implementor-defined-language-element-list/pb1542_code_set_unrepresentable_85.cob",
-    "printed": "SQ-E=91 SQ-EURO=91 SQ-REWR=91 ... EXPECT: MATCH",
-    "expected": "CODE-SET unrepresentable character reported as implementor-defined 91"
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-232/p1_ls.cob",
+    "printed": "COBOL0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "a later edition's organization (whose 06/09/71 statuses 1985 lacks) is refused at 85"
    }
   ],
   "citations": [
    {
     "cite": "§1985:VII.1.3.5 GRL2.5",
-    "check": "OK  §1985:VII.1.3.5 GRL2.5  (1.3.5 I-O Status)  the text is in GRL2.5 [\"The value of x is defined by the implementor\"]"
+    "check": "OK  §1985:VII.1.3.5 GRL2.5  (1.3.5 I-O Status)  the text is in GRL2.5"
    },
    {
-    "cite": "§1985:VII.3.7.4 GR2",
-    "check": "OK  §1985:VII.3.7.4 GR2 [\"The value must be greater than zero\"]"
+    "cite": "§1985:VII.1.3.5 GR5",
+    "check": "OK  §1985:VII.1.3.5 GR5  (1.3.5 I-O Status)  the text is in GR5"
    }
   ],
-  "notes": "Both implementor values are 9x: '90' for a LINAGE page size or footing value not greater than zero or a footing past the page size, a condition no 1985 value 00-49 names, and '91' for an unrepresentable record character, which is not the 1985 '30' (no further information) or a 4x logic error. The probes show the conditions 1985 does name keep their own values at 85 (35, 42, 44, 47) and no 9x stands in for them.",
+  "notes": "The runtime defines exactly two 9x values (90 LINAGE value violation, 91 character with no byte image) and neither condition is one the 1985 00-49 list names. Conditions the 1985 list does name keep their values (48/42/41 after a refused OPEN). At 85 the sharing-refusal 61 is replaced by 30 and line sequential is refused, so no non-1985 status leaks.",
   "seeded": true,
   "harm": "",
   "cause": "",
-  "at-2023": "ios7 at 2023: 91 the same; ios2 at 2023: the second OPEN of one file answers 61 (the 2002 facility)",
+  "at-2023": "",
   "repro": "",
   "expected": "",
   "observed": "",
@@ -125,19 +86,10 @@
  },
  "refuter": {
   "rule-id": "1985-GR-VII.1.3.5-L2.5",
-  "refutation": "OVERTURNED",
-  "classes": "b,c,e",
-  "evidence": "Same probe io6.cob at --std 85: after the LINAGE-0 OPEN OUTPUT answers 90, a WRITE answers 90 and a CLOSE 00. Under 1985 that OPEN was unsuccessful (9x is 'Implementor-Defined Condition With Unsuccessful Completion'; §1985:VII.4.3.4 GR1: only a successful OPEN results in an open mode), so the WRITE is a WRITE on a file not open in output mode, the condition 48 names (§1985:VII.1.3.5 GRL2.4), and the 1985 LINAGE values are only determined at OPEN and page overflow on an open file (§1985:VII.3.7.4 GR6). Answering 90 there reports, under the implementor's 9x, a condition that 00-49 already specify; the CLOSE answering 00 instead of 42 is the same root. cite.py: OK §1985:VII.1.3.5 GRL2.5 [\"This condition must not duplicate any condition specified by the I-O status values 00 through 49\"]; OK §1985:VII.1.3.5 GRL2.4 (41/42). The value choice itself (90 for LINAGE, 91 for a character with no byte image) and the absence of 61/51/31/71 at 85 (reader's ios probes; my io1-io3: 30/35/37 only) hold. Reading stated: an unsuccessful OPEN leaves no open mode at 1985, so the 90 latch on later WRITEs stands in for 48. kb/Work: none for 1985 (PB526 chose the 2023 continuation for all editions).",
-  "edition-sites-missed": [
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage: no 1985 arm; the 90 OPEN leaves an open connector",
-   "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#LinageViolationStatus: latched 90 answered to WRITE where 1985's 48 applies"
-  ],
-  "corrected": "NON-CONFORMING (misleads-diagnosis; cause a). The 9x LINAGE condition at 1985 must leave the OPEN unsuccessful, so a later WRITE answers 48 and CLOSE 42 (1985 conditions 00-49), not 90 and 00. Same repro as 1985-GR-VII.1.3.5-5."
- },
- "adjudication": {
-  "verdict": "PARTIAL",
-  "reason": "An OPEN refused with status 90 (LINAGE of zero) leaves the file open: a second OPEN gives 41, a WRITE 90, the CLOSE 00. At 1985 a 9x statement is unsuccessful, so the WRITE is 48 and the CLOSE 42. The 2023 continuation (kb/Work PB526) is applied at every edition. Checker's confidence: medium-high.",
-  "ref": "kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10.md"
- },
- "work": "PB5845"
+  "refutation": "UPHELD",
+  "classes": "c,d,e",
+  "evidence": "Read 1985 VII.1.3.5 whole (00/04/05/07, 10, 30/34/35/37/38/39, 41-49): none names a LINAGE value violation (VII.3.7.4 GR2/GR3 only say 'The value must be greater than zero', no status) or a character with no byte image. grep of src for \"9[0-9]\" finds only FileStatusCode.LinageValueViolation '90' and CharacterWithoutByteImage '91' (MessageStore's 91-93 are communication statuses, not I-O). Probe refute-1985-232/r1_9x.cob at --std 85 (runs/r1_9x-001): LINAGE data-name PG set to 0 then WRITE AFTER ADVANCING PAGE -> USE ran, 90; FOOTING 9 > PG 5 then WRITE ADVANCING PAGE -> 90; relative REWRITE of 'X€Y' -> USE ran, 91, then READ gives 00 ABC (medium unchanged); indexed WRITE of a no-byte-image character -> 91, the next WRITE of the same key 00 (nothing stored). No 9x was produced for a condition the 1985 list names, and the reader's 48/42 after a refused OPEN stands. cite.py: 'OK  §1985:VII.1.3.5 GRL2.5  (1.3.5 I-O Status)  the text is in GRL2.5'; 'OK  §1985:VII.3.7.4 GR2  (║3.7.4 General Rules║)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
 }

@@ -1,0 +1,72 @@
+{
+ "rule-id": "1985-SR-VII.2.8.3-1",
+ "rule-digest": "292416a01477",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "1c27e325336cd78c6cb6030f4a5400a76ad23bc4e0988410d8a25e761e1a9f8f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VII.2.8.3-1",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "requirement": "At --std 85 the RECORD DELIMITER clause (either STANDARD-1 or implementor-name-1) may be written only for a file whose records are variable length (RECORD IS VARYING; a Format 1 RECORD CONTAINS n CHARACTERS file is explicitly fixed, a file with no RECORD clause or Format 3 is implementor-defined), so the clause on an explicitly fixed file is not conforming source.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause",
+  "edition-consulted": [],
+  "edition-search": "Read FileControlBinder.BindFileControl's recordDelimiterClause arm and EditionContext.Declined (severity of the descriptor and --permissive only; no edition test). Grepped src for RecordDelimiter/recordDelimiterClause: FileControlKeyRules (Format 3 organization rule), FileEntryIdentity (external connector identity) and FileModel; none consults the edition. rd1.cob gives the same three COBOL1778 warnings and the same output at --std 85 and --std 2023.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb292_record_delimiter_witness writes the clause only on RECORD IS VARYING files (the legal half); the clause on an explicitly fixed (Format 1 RECORD clause) file, the half SR1 forbids, is not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd1.cob",
+    "printed": "warning COBOL1778 on FV (VARYING, STANDARD-1), FF (RECORD CONTAINS 10 CHARACTERS, STANDARD-1) and FN (RECORD CONTAINS 10 CHARACTERS, MYDELIM); EXIT 0; '03 ABC 0123456789 XYZ'",
+    "expected": "FF and FN violate SR1 (Format 1 is fixed length, §1985:II.2.1.4.1); the compiler gives the same decline warning as for the legal FV and does not name SR1"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd2.cob",
+    "printed": "warning COBOL1778 and error COBOL2912: file 'FR' is RELATIVE, but its file control entry specifies the sequential format (a RECORD DELIMITER clause)",
+    "expected": "the 1985 clause is Sequential I-O only; a relative file entry refuses it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/rd1.cob",
+    "printed": "at --std 2023: 3 x warning COBOL1778, same output",
+    "expected": "edition-blind decline"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.3 SR1",
+    "check": "OK  §1985:VII.2.8.3 SR1  (║2.8.3 Syntax Rules║)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:II.2.1.4.1",
+    "check": "OK  §1985:II.2.1.4.1  (2.1.4.1 Fixed Length Records)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:I.1.5.2.5.1",
+    "check": "OK  §1985:I.1.5.2.5.1  (1.5.2.5.1 Hardware Dependent Language Elements)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:C.3",
+    "check": "OK  §1985:C.3  (3. <u>HARDWARE DEPENDENT LANGUAGE ELEMENT LIST</u>)  the text is in the clause"
+   }
+  ],
+  "notes": "The whole clause is declined accept-inert with COBOL1778 at every edition (docs/conformance/2/26.md, DOC-A.1-150; kb/Work PB292), and DiagnosticCatalog records the decision not to enforce SR1 inside the declined clause, citing §2023:4.2.6 para 3. DOUBT: at 1985 the licence is §1985:I.1.5.2.5.1 with §1985:C.3 item 6, which reaches the STANDARD-1 phrase only; 1985 has no sentence excusing syntax errors in unsupported syntax, so the implementor-name-1 arm on a fixed file (FN) is flagged only by the generic decline warning. Since this implementation defines no implementor-name, that arm is never conforming source and is warned; an adjudicator who wants SR1 named would rate it DIVERGES (under-rejects, cause c).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB292 (landed: the decline itself)"
+ }
+}

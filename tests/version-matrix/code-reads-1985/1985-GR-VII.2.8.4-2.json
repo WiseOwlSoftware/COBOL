@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VII.2.8.4-2",
+ "rule-digest": "f51d2a28d39a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-221",
+  "sources": {
+   "reader": "028328aac0c5fcf9e3876475a14235cad7621e65d41413876f1c571e3854079a",
+   "refuter": "f6a98d0447bf8be2dcfc10143829e65c9104acad7229d11bfe1bd697d7a12542"
+  },
+  "imported": {
+   "reader": "172a1ed9f294cadc81a8b0b42d5d766fe852fdcd139f12af8dce9f4e5a800800"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.2.8.4-2",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "requirement": "At 85 RECORD DELIMITER IS STANDARD-1 must frame variable-length records by the X3.27-1978 / ISO 1001 magnetic-tape method; the element is on the 1985 hardware-dependent list (reel devices), so an implementation that claims no reel device may omit it if the absence is documented (§1985:I.1.5.2.5.1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#EntryClauses",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.cs#AdmitsAsKeyword",
+    "switches": "DELIMITER and STANDARD-1 reserved at all four editions",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "EditionContext#Declined reads the descriptor severity and Permissive only; grep of Validation (VersionConformancePass, ClosedFormatPass), Editions and ConstructRegistry for recordDelimiter / RECORD DELIMITER found no gate; the EntryClauses row for the clause has no edition predicate.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "all of the rule's range at this edition: files A and C of pb292 write STANDARD-1 with and without IS",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/pb292_record_delimiter_witness-001",
+    "printed": "warning COBOL1778 on F1 (RECORD DELIMITER IS STANDARD-1) and F3 (RECORD DELIMITER STANDARD-1); run output MATCH; pb292rd1a.dat framed 03 00 00 00 ABC 08 00 00 00 ..., the same framing as the no-clause file",
+    "expected": "declined by name with the documented implementor framing in its place"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_relative-001",
+    "printed": "COBOL1778 then error COBOL2912 on a RELATIVE and an INDEXED file: the clause appears only in the sequential format",
+    "expected": "1985 prints the clause in the sequential file control entry only (§1985:VII.2.3.2): refused on relative and indexed entries"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_literal-001",
+    "printed": "error COBOL5506: unexpected '\"X\"' ... no literal is expected at this position",
+    "expected": "a literal is neither STANDARD-1 nor an implementor-name: refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-221/runs/rd_missing-001",
+    "printed": "error COBOL0312: unexpected '.'",
+    "expected": "the required choice is missing: refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.4 GR2",
+    "check": "OK  §1985:VII.2.8.4 GR2  (║2.8.4 General Rules║)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VII.2.8.3 SR2",
+    "check": "OK  §1985:VII.2.8.3 SR2  (║2.8.3 Syntax Rules║)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:I.1.5.2.5.1",
+    "check": "OK  §1985:I.1.5.2.5.1  (1.5.2.5.1 Hardware Dependent Language Elements)  the text is in the clause"
+   }
+  ],
+  "notes": "The clause is declined whole and accepted inert with warning COBOL1778 at every edition (docs/conformance/2/26.md, kb/Work PB292); the 1985 hardware-dependent list names STANDARD-1 as dependent on a reel device, and §1985:I.1.5.2.5.1 lets an implementation that claims no reel omit it if the absence is specified, which the conformance row does. Verdict by the kb/Work PB5373 class-3 decision (a rule whose subject is an element declined by documented decision is DOCUMENTED-NON-SUPPORT, witnessed by the named diagnostic at --std 85). PB292 records that the owner question (provide the tape framing?) was raised but not answered; COBOL1778's text cites the 2023 clauses at --std 85.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same: COBOL1778 and identical output (pb292_record_delimiter_witness-002)",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "PB292; PB5373"
+ }
+}

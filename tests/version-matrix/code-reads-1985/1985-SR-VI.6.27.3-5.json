@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-SR-VI.6.27.3-5",
+ "rule-digest": "4b7073136e4b",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-223",
+  "sources": {
+   "reader": "84716e4119386c189ba9d3e72cbd7112564a9de256d94eb36424ba20cec228e7",
+   "refuter": "71aa1d520b40d70e8bd38f10f4c2067a0bd1de296f5285cdafc3ec0dbdaf19b0"
+  },
+  "imported": {
+   "reader": "5173a462fd486b31108828a9b66ac1ecce3a9c0af2c4eccd28516f4a4f3f2809",
+   "refuter": "f59d40bcf945f64879d3292f82efc0a3aa8a0b3ec398385b269c6dda30f05009"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.27.3-5",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the UNSTRING POINTER operand identifier-7 must be an elementary numeric integer item with no P in its PICTURE, large enough to hold 1 plus the size of identifier-1; any other description (non-integer, P-scaled, alphanumeric, numeric-edited, group, too few digits for 1 + size of the sender, including the maximum size of a variable-length sender) is refused.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#StrUnstrIsInteger; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#PointerTooSmall; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#unstringWithPointer",
+  "edition-consulted": [],
+  "edition-search": "Grepped StringUnstringBinder.cs for CobolVersion, Edition.(Is|At|Version|Std|Allows|Declined), ConstructRegistry, DialectBehavior, ReservedWords: the only hit is ctx.Edition.At(dref) (diagnostic position scope). BoundRejected.Report(ctx.Edition, ...) only reports. Grammar unstringStatement/unstringWithPointer carry no predicate. The pointer screen is edition-blind; the same code serves 85 and 2023 (u1bad gives 7 COBOL1651 at both).",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb88-unstring-pointer-not-integer covers the not-integer arm; the size arm (1 + size of identifier-1), the P arm, edited/alphanumeric/group pointers, a binary pointer, a subscripted pointer and a variable-length sender are not exercised by it",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/u1bad.cob",
+    "printed": "COBOL1651 x7: P1 PIC 9 'too small to contain 1 plus the size of identifier-1' (sender X(9)); PV 9V9, PP 9P, PX XX, PE Z9, PG group: 'shall be an elementary numeric integer data item without the symbol P'; PC PIC 9 COMP: too small",
+    "expected": "every one refused by SR5 (pointer must be elementary numeric integer, no P, holding 1 + 9 = 10)"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/u1ok.cob",
+    "printed": "A=CD   B=EFG  P=10 / A=AB   PS=+04 / A=AB   GN=04 / OVF P=10 / OVF0 P=00",
+    "expected": "PIC 99, signed binary S99 COMP and an elementary 05-level integer pointer accepted; pointer 10 (> size 9) and 0 give overflow with pointer unchanged (GR)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/u1odo.cob",
+    "printed": "A=A    PT=03 / A=A    P1=3",
+    "expected": "subscripted pointer PT(2) accepted; PIC 9 pointer accepted for an ODO sender of max 8 (1+8=9 fits)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/u1odo9.cob",
+    "printed": "error COBOL1651: UNSTRING WITH POINTER 'P1': identifier-7 is too small to contain 1 plus the size of identifier-1 'SRC'",
+    "expected": "ODO sender of max 9: PIC 9 cannot hold 10, refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-223/src/u1ok.cob",
+    "printed": "pointer 0 -> OVF0 P=00; pointer 10 -> OVF P=10",
+    "expected": "pointer below 1 or above size of identifier-1 is the overflow condition"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.27.3 SR5",
+    "check": "OK  §1985:VI.6.27.3 SR5  (║6.27.3 Syntax Rules║)  the text is in SR5"
+   }
+  ],
+  "notes": "One edition-blind screen in BindUnstring: StrUnstrIsInteger (elementary unscaled integer, asked of the operand as bound) then PointerTooSmall (compile-time size of identifier-1, ODO maximum included). The 1985 text and the 2023 SR6 state the same rule, so one arm is right for both. The diagnostic cites §2023:14.9.48.3 SR6 at --std 85 (cosmetic).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.27.3-5",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,f",
+  "evidence": "Read StringUnstringBinder.cs#BindUnstring pointer arm, #StrUnstrIsInteger (operand as bound, IsUnscaledInteger) and #PointerTooSmall (compile-time size incl. group size). Probes at --std 85 (refute-1985-223/src): ux1 USAGE INDEX pointer -> COBOL1651 'shall be an elementary numeric integer data item' (an index item has no PICTURE, so refusal is right); ux2 group sender of 98 bytes with PIC 99 pointer accepted, group of 99 bytes -> COBOL1651 too small (1+99=100); ux3 66 RENAMES of one elementary PIC 99 item accepted, A=CD RP=07; ux4 FUNCTION LENGTH(SRC) as identifier-7 -> COBOL5506 parse refusal; ux5 binary PIC 99 COMP and S9(3)V SIGN LEADING SEPARATE pointers accepted, A=CD PN=07 / PD=+007. Every boundary agreed with SR5. cite.py: OK  §1985:VI.6.27.3 SR5  (6.27.3 Syntax Rules)  the text is in SR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
