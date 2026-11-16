@@ -923,6 +923,7 @@
   "D-MCS-SORTKEY",
   "D-MCS-TRANSPORT",
   "D-MCS-WAIT",
+  "D-MEDIUM-85",
   "D-N8",
   "D-NUMVAL-F-EXPONENT-SIGN",
   "D-NUMVAL-F-EXPONENT-SPACE",
@@ -1007,6 +1008,20 @@
    "refuter": "tests/version-matrix/derivation-refutations/pb5373-class2.jsonl"
   },
   {
+   "key": "DRV-1985-GR-VI.5.13.4-3",
+   "arm": "unfalsifiable-under-determination",
+   "names": "DOC-A.1-197",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-3.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-VI.5.13.4-4",
+   "arm": "unfalsifiable-under-determination",
+   "names": "DOC-A.1-197",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-3.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-VI.6.10.4-10",
    "arm": "unpopulatable-antecedent",
    "names": "the DISPLAY device set at --std 85 is closed at two streams: CONSOLE and SYSOUT name standard output and SYSERR names standard error (the only output-capable device rows of ImplementorNames, a table no edition varies), and both are line streams on which vertical positioning applies",
@@ -1035,6 +1050,13 @@
    "refuter": "—"
   },
   {
+   "key": "DRV-1985-GR-VII.4.3.4-22",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of files spanning more than one reel/unit is empty: every file is ONE host path (SequentialConnector, RelativeConnector, IndexedConnector) and an ASSIGN TO naming more than one operand is refused (COBOL2256)",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
+  },
+  {
    "key": "DRV-1985-GR-XI.4.1.4-10",
    "arm": "definitional",
    "names": "defines a constraint on the USER's program (no statement executed in a MERGE output procedure, or in a USE procedure the MERGE invokes, may manipulate file-name-2, file-name-3 or file-name-4 or access their record areas), with no I-O status and no result, so §1985:I.1.6 leaves a violation undefined and the implementation is obliged to nothing",
@@ -1052,6 +1074,20 @@
    "key": "DRV-1985-GR-XIII.3.21.4-1",
    "arm": "indistinguishable-consequent",
    "names": "1985-GR-XIII.3.21.4-4",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.4.5.4-9",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of storage media WiseOwl COBOL supports at --std 85 that permit rewinding is empty: by the documented determination D-MEDIUM-85 (section 3 of the conformance register) every physical file is one host path on a non-reel/unit medium",
+   "signature": "claude: 2026-11-16",
+   "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept-2.jsonl"
+  },
+  {
+   "key": "DRV-1985-GR-XIII.4.5.4-15",
+   "arm": "unpopulatable-antecedent",
+   "names": "the set of report files spanning more than one reel/unit is empty: a report file is one host path (SequentialConnector) and an ASSIGN TO naming more than one operand is refused (COBOL2256)",
    "signature": "claude: 2026-11-16",
    "refuter": "tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl"
   },

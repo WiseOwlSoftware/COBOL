@@ -76,3 +76,12 @@ of the wrong shape, no refuter record, a chained row), five lineage self-test ca
 real row is recorded on the arm. Also in this round: two audit reds the registrar found (a planted
 derivation anchor typed as a literal in the drift test, now computed by `DerivationAnchor`; a self-test write without
 `newline=`), and the comment of `g85_bf31_07.cob` no longer names a case that is not in the tree.
+
+The second fold recorded five more 1985 rows and one register entry (all `claude: 2026-11-16`). By arm:
+`unpopulatable-antecedent` for `1985-GR-VII.4.3.4-22`, `1985-GR-XIII.4.5.4-15` (one physical extent per file) and
+`1985-GR-XIII.4.5.4-9` (on the new entry D-MEDIUM-85, section 3: every file at COBOL-85 is on a non-reel/unit medium);
+`unfalsifiable-under-determination` (kb/Work PB5831, resting on DOC-A.1-197) for `1985-GR-VI.5.13.4-3` and `-4`. The
+second refuter's tally on the rows it read: `1985-GR-XIII.4.5.4-9` upheld, `1985-GR-XIII.4.5.4-18` overturned (it is
+witnessable, not a derivation), the two SYNCHRONIZED rows doubtful; a third reading on the sixth arm upheld both. Its
+lines are in `pb5822-1985-kept-2.jsonl` and `-3.jsonl`. The 1985 line moved from "89 GAP (64 inherited, no own-edition
+witness · 1 never adjudicated · 24 open)" to "84 GAP (59 inherited, no own-edition witness · 1 never adjudicated · 24 open)".

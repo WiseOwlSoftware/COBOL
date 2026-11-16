@@ -1577,6 +1577,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
             "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
             "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
+            // ⚙ Five more, added deliberately (kb/Work PB5822 and PB5831, signature `claude: 2026-11-16`): two on
+            // `unpopulatable-antecedent` over one physical extent, one on D-MEDIUM-85, and two on the sixth arm
+            // `unfalsifiable-under-determination` (DOC-A.1-197), each on the UPHELD record of the second and third refuter passes,
+            // tests/version-matrix/derivation-refutations/pb5822-1985-kept-2.jsonl and pb5822-1985-kept-3.jsonl (and, for the first two, pb5822-1985-kept.jsonl).
+            "1985-GR-VII.4.3.4-22", "1985-GR-XIII.4.5.4-15", "1985-GR-XIII.4.5.4-9",
+            "1985-GR-VI.5.13.4-3", "1985-GR-VI.5.13.4-4",
         ];
 
         var s = LoadSchema();
