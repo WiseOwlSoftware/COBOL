@@ -45,7 +45,7 @@ def case_01_every_malformed_reader_field_is_named(expect):
             ("a citation that does not parse", {"citations": [{"cite": "§XII.2.4", "check": "x"}]}, "does not parse"),
             ("a citation of another edition", {"citations": [{"cite": "§2023:7.2.2.5 GR3", "check": "x"}]},
              "not of the rule's own text"),
-            ("a citation that does not check", {"citations": [{"cite": "§1985:XII.2.4 GR99", "check": "x"}]},
+            ("a citation that does not check", {"citations": [{"cite": "§1985:XII.2.4 GR99", "check": "x"}]},  # citation-audit: example
              "does not check"),
             ("a rule of no catalog row", {"rule-id": "1985-GR-IX.99.9-1"}, "no rule of the 1985 catalog")):
         got = C.reader_problems(F.read(F.GR8, **kw), ctx)
@@ -74,11 +74,11 @@ def case_02_the_import_takes_every_slice_or_none(expect):
     F.plant(reads, "s-02", [F.read(F.SR1)], [F.refute(F.SR1, "OVERTURNED")])
     F.plant(reads, "t-01", [F.read("2002-GR-1.1-1")], [], edition=2002)   # another edition's slice: not this import's
     records, imported, replaced = C.import_reads(ctx, reads, store, pin)
-    C.write(records, store)
+    C.store.write(records, store)
     got = C.load(ctx, store)
     expect.equal("the edition's slices only, one record per rule", sorted(got), sorted([F.GR8, F.GR12, F.SR1]))
     expect.equal("each outcome", {r: C.outcome(got[r], ctx) for r in got},
-                 {F.GR8: C.CONFIRMED, F.GR12: C.CONTRADICTED, F.SR1: C.UNDECIDED})
+                 {F.GR8: C.CONFIRMED, F.GR12: C.CONTRADICTED, F.SR1: C.store.UNDECIDED})
     r = got[F.GR8]
     expect("the record holds the read verbatim, its pin, slice and the digests of its source files and parts",
            r["reader"] == F.read(F.GR8) and r["refuter"] == F.refute(F.GR8) and r["read"]["pin"] == pin
@@ -87,7 +87,7 @@ def case_02_the_import_takes_every_slice_or_none(expect):
                                          "refuter": C.lineage_reads.digest(r["refuter"])})
     expect("a non-conforming read holds no refuter's part", "refuter" not in got[F.GR12])
     expect("the file is the store's one spelling, LF", (store / f"{F.GR8}.json").read_bytes()
-           == C.inventory_store.render_record(r).encode("utf-8"))
+           == C.store.inventory_store.render_record(r).encode("utf-8"))
     expect("a second read of a recorded rule is refused without --replace",
            F.refused(lambda: C.import_reads(ctx, reads, store, pin), F.GR8, "already recorded"))
     _, _, replaced = C.import_reads(ctx, reads, store, pin, replace=True)
@@ -113,14 +113,14 @@ def case_03_the_outcome_is_one_function(expect):
     expect.equal("CONFORMS upheld is confirmed", C.outcome(rec, ctx), C.CONFIRMED)
     for ref in ("OVERTURNED", "DOUBTFUL"):
         o = C.outcome({**rec, "refuter": F.refute(F.GR8, ref)}, ctx)
-        expect.equal(f"CONFORMS {ref} with no adjudication is undecided", o, C.UNDECIDED)
+        expect.equal(f"CONFORMS {ref} with no adjudication is undecided", o, C.store.UNDECIDED)
     over = {**rec, "refuter": F.refute(F.GR8, "OVERTURNED")}
     expect.equal("an adjudication that is not CONFORMS contradicts",
                  C.outcome({**over, "adjudication": {"verdict": "PARTIAL", "reason": "r", "ref": "x"}}, ctx), C.CONTRADICTED)
     expect.equal("an adjudication of CONFORMS confirms",
                  C.outcome({**over, "adjudication": {"verdict": "CONFORMS", "reason": "r", "ref": "x"}}, ctx), C.CONFIRMED)
     expect.equal("a read whose rule's text moved is stale, whatever it says",
-                 C.outcome(rec, F.context(repo.path, digest="111111111111")), C.STALE)
+                 C.outcome(rec, F.context(repo.path, digest="111111111111")), C.store.STALE)
 
 
 def case_04_work_and_adjudication_are_written_by_the_module(expect):
@@ -128,15 +128,15 @@ def case_04_work_and_adjudication_are_written_by_the_module(expect):
     ctx = F.context(repo.path)
     reads, store = repo.path / "reads", repo.path / "store"
     F.plant(reads, "s-01", [F.read(F.GR8), F.read(F.GR12, "PARTIAL")], [F.refute(F.GR8, "OVERTURNED")])
-    C.write(C.import_reads(ctx, reads, store, pin)[0], store)
+    C.store.write(C.import_reads(ctx, reads, store, pin)[0], store)
     expect("an adjudication that is not CONFORMS names its note",
            F.refused(lambda: C.adjudicate(ctx, store, F.GR8, "PARTIAL", "why", "kb/Work/PB1/adj.md", None), "--work"))
     expect("an adjudication's ref is a file of the tree",
            F.refused(lambda: C.adjudicate(ctx, store, F.GR8, "PARTIAL", "why", "kb/Work/none.md", "PB1"), "no file"))
     expect("a note that is not in kb/Work is refused",
            F.refused(lambda: C.attach_work(ctx, store, F.GR12, "PB2"), "no note"))
-    C.write(C.adjudicate(ctx, store, F.GR8, "PARTIAL", "why", "kb/Work/PB1/adj.md", "PB1"), store)
-    C.write(C.attach_work(ctx, store, F.GR12, "PB1"), store)
+    C.store.write(C.adjudicate(ctx, store, F.GR8, "PARTIAL", "why", "kb/Work/PB1/adj.md", "PB1"), store)
+    C.store.write(C.attach_work(ctx, store, F.GR12, "PB1"), store)
     got = C.load(ctx, store)
     expect("the adjudication and the note are recorded; both rows are contradicted",
            got[F.GR8]["adjudication"] == {"verdict": "PARTIAL", "reason": "why", "ref": "kb/Work/PB1/adj.md"}
@@ -185,8 +185,8 @@ def case_06_the_plan_is_the_kept_rows_no_read_decides(expect):
                  [F.GR12, F.AR1])
     expect.equal("a stale confirmed read is owed again", C.owed(F.context(repo.path, "111111111111"), records),
                  [F.GR8, F.GR12, F.SR1, F.AR1])
-    expect.equal("the counts", C.counts(ctx, records),
-                 {C.CONFIRMED: 1, C.CONTRADICTED: 0, C.UNDECIDED: 1, C.STALE: 0, "owed": 3})
+    expect.equal("the counts", C.store.counts(ctx.rows, ctx.schema, records),
+                 {C.CONFIRMED: 1, C.CONTRADICTED: 0, C.store.UNDECIDED: 1, C.store.STALE: 0, "owed": 3})
 
 
 def case_07_the_newest_edition_has_no_store(expect):

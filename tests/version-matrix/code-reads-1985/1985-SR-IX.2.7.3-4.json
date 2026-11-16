@@ -1,0 +1,138 @@
+{
+ "rule-id": "1985-SR-IX.2.7.3-4",
+ "rule-digest": "eaa2bfc7ac20",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-05",
+  "sources": {
+   "reader": "4e026e4ca8e7d9587b19cd1db70afcd88f5ab39909bcba9e1a0ea09ace9a9597",
+   "refuter": "bf6bcbb4287d4b923e260ed10390cdba27847f0033f73632bad7bedf6ee70498"
+  },
+  "imported": {
+   "reader": "2f16ca8654e8ce19a9525e635eb4224e1a12796b047f8290a7b30401b7182ea7",
+   "refuter": "65b6ed18d3bdd2743d9de29529c52776790c81d67ef094318c51f076b3c644aa"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.2.7.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for an indexed file that contains variable length records (RECORD IS VARYING, or a Format 3 RECORD CONTAINS i4 TO i5 / no RECORD clause where the implementor chooses variable records, II.2.1.4.3, VII.3.8.4 GR13), the compiler must refuse a RECORD KEY whose character positions reach past x = the file's minimum record size (integer-2 when stated, else the least size described for a record, VII.3.8.4 GR4/GR6, with an ODO table at its minimum, GR5a), and accept a key ending at or before x; a fixed-length file is outside the rule.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Rules; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor; src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#Screen; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#VaryMin; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries; src/WiseOwl.Cobol.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowInFile",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#RulesFor",
+    "switches": "DialectLevel < 2002 selects Rules85 = the 2023 rows minus those a 1985 row Supersedes, plus Rules1985 (SR2 category/location and SR3 group-with-ODO rows). The SR4 row SR-12.4.5.12.3-4 is superseded by no 1985 row, so the same row runs at 85 and 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.FileSection.cs#BindRecordClause",
+    "switches": "VaryingRecordInfo.BoundsEnforced for Format 3 (RECORD CONTAINS i4 TO i5) via DialectBehavior.RecordContainsRangeBindsRecordSize (active from 2002): at 85 the Format 3 integers are not the minimum, so FileModel.VaryMin falls to the smallest record description (VII.3.8.4 GR14: i4 'refer[s] to the minimum number of characters in the smallest size data record'); at 2023 integer-4 is the minimum",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "Read FileControlKeyRules.Rules/Rules1985/RulesFor/Screen/BeyondMinimum and FileModel.VaryMin/VaryMax/RecordSizeVaries/ImpliesVariableFormat; grep 'BoundsEnforced' and 'RecordContainsRangeBindsRecordSize' to find the record-clause edition arm.",
+  "behaviour-differs-by-edition": "yes: for a Format 3 RECORD CONTAINS i4 TO i5 clause the minimum is the smallest record description at 85 and integer-4 from 2002; for VARYING FROM integer-2 and for no clause the minimum is the same at both",
+  "witnesses-cover": "part: pb1025 covers RECORD IS VARYING FROM 10 TO 50 only; Format 3, VARYING without FROM, multi-record and ODO-record files and the exact boundary are covered by probes",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v1.cob",
+    "printed": "error COBOL0863: RECORD KEY 'RK' occupies bytes 11..15 of the record, but indexed file 'F' contains variable-length records with minimum size 10",
+    "expected": "refused (VARYING FROM 10 TO 20, key past x=10)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v2.cob",
+    "printed": "OPEN=00",
+    "expected": "accepted: key bytes 6..10 end exactly at x=10"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v3.cob",
+    "printed": "COBOL0863 bytes 7..11, minimum size 10",
+    "expected": "refused: one position past x"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v4.cob",
+    "printed": "COBOL0863 bytes 15..19, minimum size 10 (only a 20-byte record described)",
+    "expected": "refused: x = integer-2 (GR4), not the described record size"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v5.cob",
+    "printed": "COBOL0863 bytes 12..16, minimum size 10 (VARYING DEPENDING ON, no FROM, records 10 and 20)",
+    "expected": "refused: x = least size described (GR6)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/f3.cob",
+    "printed": "COBOL0863 bytes 12..16, minimum size 10 (Format 3 RECORD CONTAINS 10 TO 20)",
+    "expected": "refused under the implementation's choice of variable records for Format 3 (GR13), x = smallest record (GR14)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/f4.cob",
+    "printed": "OPEN=00 (Format 3, key bytes 6..10)",
+    "expected": "accepted"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/m1.cob",
+    "printed": "OPEN=00 (no RECORD clause, records 10 and 20, key 12..16); o1/o3 (ODO record + shorter record, no RECORD clause) also OPEN=00",
+    "expected": "outside the rule: with no RECORD clause the record type is implementor defined (II.2.1.4.3) and this implementation registers the file FIXED (FileModel.ImpliesVariableFormat false: no dynamic-length member, docs/conformance D-FRA), so the file does not contain variable length records; the emitter passes no varying bounds (KeyedIoEmitter line 58 keys on RecordSizeVaries), so binder and runtime agree"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/x1.cob",
+    "printed": "OPEN=00 (single fixed 20-byte record, key 12..16)",
+    "expected": "fixed file: rule does not apply"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c3/v1.cob",
+    "printed": "--std 2023: same COBOL0863 for v1 and f3",
+    "expected": "same row at both editions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.2.7.3 SR4",
+    "check": "OK  §1985:IX.2.7.3 SR4  (2.7.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR4",
+    "check": "OK  §1985:VII.3.8.4 GR4  (3.8.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR6",
+    "check": "OK  §1985:VII.3.8.4 GR6  (3.8.4 General Rules)  the text is in GR6"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR13",
+    "check": "OK  §1985:VII.3.8.4 GR13  (3.8.4 General Rules)  the text is in GR13"
+   },
+   {
+    "cite": "§1985:II.2.1.4.3",
+    "check": "OK  §1985:II.2.1.4.3  (2.1.4.3 Implementor-Defined Record Types)  the text is in the clause"
+   }
+  ],
+  "notes": "The 2023 SR4 row runs unchanged at 85 because 1985's rule is the same test; the minimum it measures against is FileModel.VaryMin, whose only edition arm is the Format 3 integers (correctly not the minimum at 85, per GR14). Files with no RECORD clause are fixed under the implementation's documented choice, so the rule rightly does not fire on m1/o1/o3. The diagnostic cites §2023:12.4.5.12.3 SR4 at --std 85 (presentation only).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.2.7.3-4",
+  "refutation": "UPHELD",
+  "classes": "a,c,d",
+  "evidence": "cite.py: OK §1985:IX.2.7.3 SR4; OK §1985:VII.3.8.4 GR5a ('The minimum number of table elements described in the record is used'); OK §1985:VII.3.8.4 GR6. Probes at --std 85 under refute-1985-05/c3, aimed at the minimum the reader did not exercise: k2 VARYING (no FROM), a short record 4 + ODO 0 TO 6 (min 4, max 10) and the key in another record at bytes 5..9 -> COBOL0863 'minimum size 4' (the ODO is measured at its minimum, not its maximum); k7 same with ODO 1 TO 6 (min 5) and a 1-byte key at byte 5 -> OPEN=00 (exact boundary accepted); k3 VARYING FROM 4 and k5 Format 3 'RECORD CONTAINS 4 TO 20' with the same records -> COBOL0863 minimum 4; k4 key in the fixed part before an ODO -> OPEN=00; k1 a SYNCHRONIZED binary item in the short record -> minimum 5, consistent with the documented no-slack layout (docs/conformance/7/DOC-A.1-197: no implicit FILLER for SYNCHRONIZED, so GR5's 'plus any implicit FILLER' adds nothing); k6 a 2002 'RECORD KEY IS RK SOURCE IS A' -> COBOL0900 requires COBOL-2002. No hole found.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-IX.4.7.4-8",
+ "rule-digest": "473c73177ea1",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-02",
+  "sources": {
+   "reader": "947391f858415b91571413850b8dfa4d67aafeca9bcd46000d5d84a7f2418a24",
+   "refuter": "907717b7e6c40c57a172ea394fbfbec32a5c3910046b2600f5383a0707419c6d"
+  },
+  "imported": {
+   "reader": "feb99e1c0efc595bc7a906b6be94c6e721445b9a75afb619c9197c9cce0f49dd",
+   "refuter": "807bb6d7e5c607595b191444b48994697ef73dccd560f7418a612d9c6ffd27f1"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IX.4.7.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, after any unsuccessful START on an indexed file (invalid key '23' on any key of reference and any relational operator, the absent-OPTIONAL '23', the open-mode '47'), the file position indicator must indicate no valid next record, so the next sequential READ (READ NEXT in dynamic access, READ in sequential access) is unsuccessful with '46' (IX.1.3.4 status 46 item 1) until a successful START, random READ or OPEN repositions; the key of reference is undefined (not observable except that a later START/READ establishes its own).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#StartFail; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#StartOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#StartIndexed; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart",
+  "edition-consulted": [],
+  "edition-search": "grep -n Edition over src/WiseOwl.Cobol.Runtime/IO/*.cs: the connector carries Edition (FileConnector#Edition, set from ctx.Data.DialectLevel at registration in KeyedIoEmitter) but the only switches are SharingFacilityInEffect, IndexedReadPreviousAfterOpenAtEnd (READ PREVIOUS only), IndexedDuplicateKeyStatusSequentialOnly (the '02' after a successful read), RelativeWriteKeyOutOfRangeIsPermanentError, CloseWithLock and report-writer rows; none lies on IndexedConnector#Start -> StartFail -> Unsuccessful -> InvalidateFilePosition or on SequentialReadGuard's '46' arm. KeyedIoEmitter#EmitStart has no Edition/Version/Dialect reference. The path is edition-blind: 85 takes the latest edition's code.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: pb359 covers prime-key START KEY > on dynamic access and '47' in OUTPUT mode; not exercised: START on an ALTERNATE key, ACCESS SEQUENTIAL (READ without NEXT), KEY = with a short (generic) operand, the absent-OPTIONAL '23', START on a closed file, and the reposition by a random READ after the failure.",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r1/p1.cob",
+    "printed": "A2 INVALID / A2=23 A3=46 A4=46 (alternate-key START NOT LESS fails, then READ NEXT twice); A5=00 BBBB M002 A6=00 CCCC (random READ repositions); A7=23 A8=46 (prime KEY >); A9=00 A10=00 AAAA; A11=23 A12=46 (KEY = with a 2-char 'ZZ' generic operand); A13=47 (START on a closed file); B1=23 B2=46 B3=00 B4=00 AAAA M001 (ACCESS SEQUENTIAL, alternate key, then a successful START establishes its key of reference); C0=05 C1=23 C2=46 (absent OPTIONAL indexed file)",
+    "expected": "every unsuccessful START is followed by a '46' sequential READ (§1985:IX.4.7.4 GR8, §1985:IX.1.3.4 status 46 item 1); a successful START/random READ repositions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-02/r1/p1.cob",
+    "printed": "A13=47 for START on a closed file; A11=23 for no match",
+    "expected": "each kind of unsuccessful START leaves no valid next record"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.7.4 GR8",
+    "check": "OK  §1985:IX.4.7.4 GR8  (║4.7.4 General Rules║)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:IX.1.3.4",
+    "check": "OK  §1985:IX.1.3.4  (1.3.4 I-O Status)  the text is in the clause; it lies in GRL2.5e.1"
+   }
+  ],
+  "notes": "Every failing exit of IndexedConnector#Start returns through Unsuccessful, whose InvalidateFilePosition (sealed override in KeyedConnector) clears FpiValid and arms LastReadUnsuccessful; SequentialReadGuard answers '46' first. Probes on alternate keys, sequential access, generic keys, closed and absent-optional files all printed '46' after the failure.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IX.4.7.4-8",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Read §1985:IX.4.7 whole (the 1985 format with Amendment's IS GREATER THAN OR EQUAL TO / >=, SR4b generic key, GR2 implied EQUAL, GR4b, GR6, GR8, GR10) and IX.1.3.4 status 46 item 1. Probe s1/t1.cob at --std 85, dynamic I-O with a USE AFTER STANDARD ERROR procedure, aimed at forms the reader did not try: START with NO KEY phrase (implied EQUAL on the prime key) failing T1=23 then READ NEXT T1R=46 (USE saw 46); START KEY IS >= failing T2=23/T2R=46; START KEY IS GREATER THAN OR EQUAL TO on the duplicate alternate key failing T3=23, then a failed WRITE (T3W=22), then READ NEXT T3R=46 (the indicator stayed invalid across another failed statement); a successful START KEY = alternate repositions T4=00, T4R=02 BBBBM200; START with no INVALID KEY phrase failing (USE saw 23) T5=23/T5R=46; START KEY NOT < a 2-char redefinition of the prime key T6=23/T6R=46. Class c: the 2002 reverse operators START KEY < and KEY IS LESS THAN OR EQUAL TO and the WITH LENGTH phrase are each refused at 85 (COBOL0900, t1c/t1d/t1e.cob). cite.py: OK §1985:IX.4.7.4 GR8; OK §1985:IX.4.7.4 GR2; OK §1985:IX.1.3.4 (it lies in GRL2.5e.1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1869,6 +1869,77 @@ state opens with a checked 2002 citation; the 107 values that begin `none` or `n
 --edition 2002 --dry-run` accepts all 204 (GAP 3,297 to 3,094). Of the 96 rows refused only for their evidence, `widen`
 finds 66 widenable and 30 that need a witness of their own.
 
+#### 10.6.1 The code read at an edition: the tracked record of a rule adjudicated on the code (kb/Work PB5759)
+
+**Why.** Kb/Work PB5692's ruling (2026-11-15): a verdict shared from the 2023 adjudication does not close a 1985 row, so
+every KEPT row of 1985 needs a verdict adjudicated on the CODE at `--std 85`, by a reader and a refuter (the sample's
+pipeline: `BRIEF-coderead.md`, `BRIEF-coderead-refuter.md`). A code read judges a rule against the compiler (CONFORMS,
+PARTIAL, DIVERGES, ...: the inventory's own vocabulary), with a code location, the places its path consults the edition
+and probes. It has no place in a read record of 10.6 (a SAME, DIFFERENT or DOUBTFUL pairing of two texts), and a KEPT row
+holds no verdict of its own (`lineage.next_errors`). So it is kept beside the row until the switch (kb/Work PB5682)
+folds it in: `tests/version-matrix/code-reads-<year>/<rule-id>.json`, one file per rule, written only by
+`scripts/spec/code_reads.py` (through `inventory_store.write_store`). The store's reader and writer, the outcome and the
+counts are its half the view imports, `scripts/spec/code_read_store.py`: the inventory view is in the conformance-suite
+generator's import closure (the BUILD TARGETS audit), and the shape checks' closure (the citation checker, the lineage
+reads' digest) is no input of the generator, so the two halves are two files. The edition is a parameter; the newest edition has
+no such store (its rows carry their own verdicts) and is refused.
+
+**The record** holds the read as the two agents gave it and nothing invented: `reader` (the reader's record verbatim),
+`refuter` (the refuter's case verbatim; absent for a non-conforming read, which the refuter does not attack; a CONFORMS
+read without one is refused), `rule-digest` (the rule's catalog digest at the import), `read` (`pin`, the commit the code
+was read at, which the importer is told with `--pin`; `slice`; `sources`, the SHA-256 of each source file's content; and
+`imported`, the SHA-256 of each part held, so a hand edit is red), and, written by subcommands only, `adjudication`
+(`verdict`, `reason`, `ref`, a tracked file) and `work` (the mechanism's kb/Work note). The reader's required fields are
+decided from the reader brief (`code_reads.reader_problems`): `rule-id` (a rule of the edition), `verdict` (the schema's
+vocabulary: the brief's `UNDECIDED` is no verdict, and such a row is left out of a slice or read again), `requirement`,
+`code-location` (every site of the inventory's shape, `inventory_schema.witness_shape_error`; empty only where the
+schema's `requires` of the verdict allows), `edition-consulted` (`site`, `switches`, a boolean `same-arm-as-latest`; an
+empty list needs `edition-search`), `behaviour-differs-by-edition`, `witnesses-cover`, `probes` (non-empty, each `class`,
+`file`, `printed`, `expected`), `citations` (non-empty, each `{cite, check}`, its `cite` parsed by `citation.py`, of the
+rule's own edition or of the edition the catalog's own citation of the rule names, the amendment's `§1989:`, and checked
+by `cite.resolve`), `notes`, `seeded` (a boolean); and for a non-conforming read `harm`, `cause` (a, b or c), `repro`,
+`expected`, `observed`, `known_note`, and `at-2023` for cause (b). The refuter's: `refutation` (UPHELD, OVERTURNED,
+DOUBTFUL), `classes`, `evidence`, `edition-sites-missed` (a list), and `corrected` for an overturn or a doubt.
+
+**The outcome, one function** (`code_read_store.outcome`; the audit, the view and the planner ask it): `confirmed` (reader
+CONFORMS and refuter UPHELD, or an adjudication of CONFORMS); `contradicted` (reader not CONFORMS, or an adjudication of
+another verdict; it names its `work`); `undecided` (an overturn or a doubt nobody has adjudicated); `stale` (the rule's
+catalog digest is no longer the record's), which counts as no read.
+
+**The commands.** `import --edition YEAR --reads DIR --pin COMMIT [--record DIR] [--replace]` takes each `<slice>.json`
+whose own `edition` is the year with its `<slice>-refute.json`, as the pipeline writes them; every problem of every slice
+is reported together and nothing is written when any slice is refused (a rule of no catalog row, a row that is not KEPT,
+a rule read twice, a malformed field, a refuter's case of no CONFORMS read, an orphan refuter's file); a second read of a
+recorded rule replaces it only with `--replace`, which says what it replaced; `--record` elsewhere is a dry run.
+`adjudicate --edition YEAR RULE --verdict V --reason TEXT --ref PATH [--work PBnnnn]` records what a tracked file
+decides. `work --edition YEAR RULE PBnnnn` names a record's mechanism note. `plan --edition YEAR [--witnessed] [--json]`
+lists the KEPT rows no confirmed or contradicted record decides (stale and undecided are still owed; `--witnessed` keeps
+those with a test-ref of their own): the population the campaign's slices are built from.
+
+**The audit** (`code_reads.py --check`, the gate's CODE READS and a step of CI's audits job) is RED on a record that does
+not parse to its shape, a rule the edition lacks, a citation that does not parse, is of another edition or does not
+check, a code-location of no inventory shape, a held part edited since its import, a digest or pin of the wrong shape, an
+adjudication whose `ref` is no file, and a contradicted record whose `work` is no note; stale, undecided and owed are
+printed. That every site still RESOLVES is the battery gate's, by the one predicate a row is held to
+(`SpecTraceabilityInventoryDriftTests.EveryCodeReadLocation_ResolvesInTheTree`, `SymbolResolves`): the inventory's own
+division of SHAPE (Python, at record time) and REFERENCE (the C# battery), so the resolver has no second copy.
+
+**What the view shows, and what nothing here does.** `inventory_view.py --summary` prints, for an older edition with a
+store, a line of its own (`code_read_store.view_line`; the session probe prints it unchanged): the reads by outcome and the
+KEPT rows still owed one, beside the edition's GAP; both reach zero before the edition is done. No row's state changes
+(`lineage.state_of` is not touched; `--states --edition 1985` is byte-identical before and after the first import), no
+row, change record or schema key is written, and nothing is adjudicated: a disagreement is recorded as a tracked file
+decides it. What the switch takes from the store: each confirmed or contradicted record as the row's own adjudicated
+verdict (provenance `adjudicated`, 10.7.1 D3), its code-location and its probes as the evidence.
+
+**The first import** (2026-11-15, the PB5692 sample, pin `d615406082`, the reading tree's head while the sample ran):
+of the sample's ten 1985 slices, four (`1985-01`, `1985-07`, `1985-09`, `1985-10`, 24 rows) are refused, because
+eleven rows write a parenthetical note inside a code-location (`path#Member (the arm)`), which is no inventory shape;
+the six others give 36 records: 31 confirmed, 4 contradicted (the three cause (a) rows adjudicated from
+`kb/Work/PB5692/2026-11-15-adjudication-of-the-sample.md`, notes PB5731 and PB5732, and one reader PARTIAL of cause (b),
+PB5734), 1 undecided (`1985-SR-VI.5.8.3-1`, open adjudication PB5737). 1,338 KEPT rows are owed a read, 535 of them
+witnessed.
+
 ### 10.7 Lineage runs forward: the decision, the switch's requirements, the open questions (kb/Work PB5679; STAGED)
 
 **What this section is.** The decision that the rule lineage runs forward, the requirements a design of the change of

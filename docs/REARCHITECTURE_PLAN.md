@@ -75,7 +75,11 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   verdicts, never as new KEPT records (its word-identical pairing is empty). Since the PB5692 ruling of
   2026-11-15 a shared verdict does not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at
   `--std 85` (kb/Work PB5683), and until the record-format switch (kb/Work PB5682) shows a verdict's provenance, the
-  rows counted closed on a shared verdict are not evidence that 1985 is done.
+  rows counted closed on a shared verdict are not evidence that 1985 is done. Those reads are tracked records now
+  (kb/Work PB5759, `tests/version-matrix/code-reads-1985/`, `python scripts/spec/code_reads.py`, design section 10.6.1):
+  the first import holds 36 of the sample's 60 rows (31 confirmed, 4 contradicted, 1 undecided; four slices refused for a
+  code-location of no inventory shape), and 1,338 KEPT rows are owed a read (535 witnessed), the count
+  `inventory_view.py --summary` prints beside 1985's GAP.
 - **▶ DECISIONS OF 2026-11-12.** kb/Work PB5373 decides how a 1985 rule with no reachable witness closes: the
   deciding session signs derivations (the owner confirmed "You sign derivations"; the dated file beside PB5373).
   kb/Work PB479 designs rows for the standard's unnumbered obligations (the unit is the paragraph printed at a clause's

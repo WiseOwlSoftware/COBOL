@@ -27,11 +27,9 @@ kb/Work note of the mechanism, required of a contradicted record; written by `wo
 record must carry is `READER_REQUIRED` and `reader_problems`, decided field by field from the reader brief; a missing or
 malformed required field refuses the whole import, naming the slice, the rule and the field.
 
-THE OUTCOME OF A RECORD is ONE function, `outcome`, which the audit, the view and the planner all ask:
-  confirmed     the reader CONFORMS and the refuter UPHELD it; or an adjudication whose verdict is CONFORMS;
-  contradicted  the reader is not CONFORMS; or an adjudication whose verdict is not CONFORMS (it names its `work`);
-  undecided     the refuter OVERTURNED or DOUBTFUL a CONFORMS, and nobody has adjudicated it;
-  stale         the rule's catalog text is no longer the text it was read against: it counts as no read.
+THE OUTCOME OF A RECORD is ONE function, `code_read_store.outcome` (confirmed, contradicted, undecided, stale), which
+the audit, the view and the planner all ask; the store's reader and writer live beside it, in the half the inventory view
+imports (`code_read_store.py`, whose docstring says why the code reads are two files).
 
 THE AUDIT (`--check`, the gate's CODE READS) reads every store of an older held edition and is RED on: a record that does
 not parse to the shape (`record_problems`, the import's own checks); a rule the edition does not have; a citation that
@@ -59,8 +57,9 @@ from typing import Any, Iterable
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cite  # noqa: E402  (THE checker of a citation)
 import citation  # noqa: E402  (THE citation parser)
+import code_read_store as store  # noqa: E402  (the store, the outcome, the counts: the view's half)
+from code_read_store import CONFIRMED, CONFORMS, CONTRADICTED, OUTCOMES, UPHELD  # noqa: E402
 import inventory_schema  # noqa: E402  (the editions, the verdict vocabulary, the code-location shape)
-import inventory_store  # noqa: E402  (the one-file-per-rule store: its reader, its writer, its file names)
 import inventory_view  # noqa: E402  (each edition's rows and their digests)
 import lineage  # noqa: E402  (which rows are KEPT, and a row's own witnesses)
 import lineage_reads  # noqa: E402  (the content digest every read record carries, and the refuter's vocabulary)
@@ -72,14 +71,7 @@ TOOL = "code_reads"
 REPO = inventory_schema.REPO
 WORK_DIR = "kb/Work"
 
-#: The outcomes of a record (`outcome`), in the order the views print them.
-CONFIRMED, CONTRADICTED, UNDECIDED, STALE = "confirmed", "contradicted", "undecided", "stale"
-OUTCOMES = (CONFIRMED, CONTRADICTED, UNDECIDED, STALE)
-#: The reader's verdict that the refuter attacks and that confirms a rule: the inventory schema's own word, checked to be
-#: in its vocabulary (`Context.of`); every other verdict of the vocabulary is a contradiction of the shared one.
-CONFORMS = "CONFORMS"
 #: The refuter's verdicts: the one vocabulary every refuter brief of the repository uses (`lineage_reads`).
-UPHELD = "UPHELD"
 REFUTATIONS = lineage_reads.REFUTE_VERDICTS
 #: The causes a non-conforming reader names (the reader brief's step 5): (a) another arm at this edition, (b) the same
 #: failure at every edition, (c) the rule covers more or less in this edition.
@@ -91,8 +83,8 @@ SHA256 = re.compile(r"\A[0-9a-f]{64}\Z")
 PIN = re.compile(r"\A[0-9a-f]{40}\Z")
 NOTE = re.compile(r"\APB[0-9]+\Z")
 
-#: The keys a record carries, in the order it is written; `REQUIRED_KEYS` are the ones every record has.
-RECORD_KEYS = ("rule-id", "rule-digest", "read", "reader", "refuter", "adjudication", "work")
+#: The keys every record has (`code_read_store.RECORD_KEYS` are all it may have).
+RECORD_KEYS = store.RECORD_KEYS
 REQUIRED_KEYS = ("rule-id", "rule-digest", "read", "reader")
 #: The reader's text fields every record carries non-empty (the reader brief's record): its step 1's sentence, how the
 #: rule's behaviour differs by edition, what its witnesses cover and its notes.
@@ -133,11 +125,6 @@ class Context:
                              "read confirms")
         rows = inventory_view.inventory(year, schema) if rows is None else rows
         return cls(ed, schema, {r["rule-id"]: r for r in rows}, root)
-
-
-def store_dir(year: int, root: pathlib.Path = REPO) -> pathlib.Path:
-    """The store of the code reads of the older edition `year` in the tree at `root`."""
-    return root / "tests" / "version-matrix" / f"code-reads-{year}"
 
 
 # -- the shape of a read: the ONE place the reader's and the refuter's records are checked ------------------------------
@@ -250,21 +237,6 @@ def refuter_problems(case: Any) -> list[str]:
     return out
 
 
-# -- the outcome: ONE function --------------------------------------------------------------------------------------------
-
-def outcome(record: dict[str, Any], ctx: Context) -> str:
-    """The outcome of `record` (module docstring): `stale` when the rule's text moved under it, else the adjudication's,
-    else the reader's and the refuter's."""
-    row = ctx.rows.get(record["rule-id"])
-    if row is None or row["rule-digest"] != record["rule-digest"]:
-        return STALE
-    if adj := record.get("adjudication"):
-        return CONFIRMED if adj["verdict"] == CONFORMS else CONTRADICTED
-    if record["reader"]["verdict"] != CONFORMS:
-        return CONTRADICTED
-    return CONFIRMED if (record.get("refuter") or {}).get("refutation") == UPHELD else UNDECIDED
-
-
 # -- the record -----------------------------------------------------------------------------------------------------------
 
 def record_of(case: dict[str, Any], refute: dict[str, Any] | None, rule_digest: str, pin: str, slice_name: str,
@@ -275,10 +247,6 @@ def record_of(case: dict[str, Any], refute: dict[str, Any] | None, rule_digest: 
             "read": {"pin": pin, "slice": slice_name, "sources": sources,
                      "imported": {k: lineage_reads.digest(v) for k, v in parts.items()}},
             **parts}
-
-
-def _ordered(record: dict[str, Any]) -> dict[str, Any]:
-    return {k: record[k] for k in RECORD_KEYS if k in record}
 
 
 def work_problem(work: Any, root: pathlib.Path) -> str | None:
@@ -365,15 +333,14 @@ def record_problems(record: Any, ctx: Context) -> list[str]:
     return out
 
 
+def outcome(record: dict[str, Any], ctx: Context) -> str:
+    """`record`'s outcome in `ctx` (`code_read_store.outcome`, the one function)."""
+    return store.outcome(record, ctx.rows)
+
+
 def load(ctx: Context, directory: pathlib.Path | None = None) -> dict[str, dict[str, Any]]:
-    """Every record of the store of `ctx`'s edition (`directory`, the tracked store by default), by rule id; a stray or
-    misnamed file is a SystemExit naming each (`inventory_store.read_store`)."""
-    return inventory_store.read_store(directory or store_dir(ctx.ed.year, ctx.root))
-
-
-def write(records: dict[str, dict[str, Any]], directory: pathlib.Path) -> int:
-    """Make the store at `directory` hold exactly `records` (`inventory_store.write_store`: one file per rule, atomic)."""
-    return inventory_store.write_store([_ordered(r) for _, r in sorted(records.items())], directory)
+    """Every record of the store of `ctx`'s edition (`directory`, the tracked store by default) (`code_read_store.load`)."""
+    return store.load(ctx.ed.year, ctx.root, directory)
 
 
 # -- the import -----------------------------------------------------------------------------------------------------------
@@ -525,38 +492,14 @@ def adjudicate(ctx: Context, directory: pathlib.Path, rid: str, verdict: str, re
 # -- the plan, the counts, the audit ----------------------------------------------------------------------------------------
 
 def owed(ctx: Context, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
-    """The KEPT rows of `ctx`'s edition (in spec order) that no confirmed or contradicted record decides: a stale or an
-    undecided record is still owed. `witnessed` keeps those that carry a test-ref of their own (`lineage.own_witness_refs`)."""
-    decided = {rid for rid, r in records.items() if outcome(r, ctx) in (CONFIRMED, CONTRADICTED)}
-    return [rid for rid, row in ctx.rows.items() if lineage.chained(row, ctx.schema) and rid not in decided
-            and (not witnessed or lineage.own_witness_refs(row, ctx.schema))]
-
-
-def counts(ctx: Context, records: dict[str, dict[str, Any]]) -> dict[str, int]:
-    """Each outcome's count over `records`, and the KEPT rows still `owed` a read."""
-    by = Counter(outcome(r, ctx) for r in records.values())
-    return {**{o: by.get(o, 0) for o in OUTCOMES}, "owed": len(owed(ctx, records))}
-
-
-def count_text(c: dict[str, int]) -> str:
-    """The counts as every view prints them."""
-    return (f"code reads {c[CONFIRMED]} confirmed · {c[CONTRADICTED]} contradicted · {c[UNDECIDED]} undecided · "
-            f"{c[STALE]} stale · {c['owed']} KEPT rows owed a read")
-
-
-def view_line(ed: Edition, schema: Schema, rows: list[dict[str, Any]]) -> str | None:
-    """The inventory view's line for `ed` (`inventory_view.summary`), or None for an edition with no store of code reads.
-    It changes no row's state: it counts the store against the rows."""
-    if ed.newest or not store_dir(ed.year).is_dir():
-        return None
-    ctx = Context.of(ed.year, schema=schema, rows=rows)
-    return f"       {ed.year}: {count_text(counts(ctx, load(ctx)))} (kb/Work PB5759)"
+    """The KEPT rows of `ctx`'s edition still owed a read (`code_read_store.owed`)."""
+    return store.owed(ctx.rows, ctx.schema, records, witnessed)
 
 
 def older_years(root: pathlib.Path = REPO) -> list[int]:
     """Every older held edition that has a store of code reads."""
     return [e.year for e in inventory_schema.load_schema().all_editions
-            if e.held and not e.newest and store_dir(e.year, root).is_dir()]
+            if e.held and not e.newest and store.load(e.year, root)]
 
 
 def check(years: list[int]) -> int:
@@ -571,9 +514,10 @@ def check(years: list[int]) -> int:
             print(f"  ⛔ {e.code}")
             red.append(y)
             continue
-        errs = [f"{rid}: {e}" for rid, r in sorted(records.items()) for e in record_problems(r, ctx)]
-        c = counts(ctx, {rid: r for rid, r in records.items() if not record_problems(r, ctx)})
-        print(f"{y}: {len(records)} code read(s); {count_text(c)}")
+        problems = {rid: record_problems(r, ctx) for rid, r in sorted(records.items())}
+        errs = [f"{rid}: {e}" for rid, es in problems.items() for e in es]
+        c = store.counts(ctx.rows, ctx.schema, {rid: r for rid, r in records.items() if not problems[rid]})
+        print(f"{y}: {len(records)} code read(s); {store.count_text(c)}")
         for e in errs:
             print(f"  ⛔ {e}")
         if errs:
@@ -619,7 +563,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return check([a.check] if a.check else older_years())
     ctx = Context.of(a.edition)
-    tracked = store_dir(a.edition)
+    tracked = store.store_dir(a.edition)
     if a.cmd == "plan":
         rows = owed(ctx, load(ctx), a.witnessed)
         if a.json:
@@ -632,7 +576,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "import":
         directory = pathlib.Path(a.record) if a.record else tracked
         records, imported, replaced = import_reads(ctx, pathlib.Path(a.reads), directory, a.pin, a.replace)
-        write(records, directory)
+        store.write(records, directory)
         by = Counter(outcome(records[rid], ctx) for rid in imported)
         print(f"import {a.edition}: {len(imported)} read(s) -> {directory}: "
               + " · ".join(f"{by.get(o, 0)} {o}" for o in OUTCOMES))
@@ -640,9 +584,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  replaced the earlier record of {rid}")
         return 0
     if a.cmd == "work":
-        write(attach_work(ctx, tracked, a.rule, a.note), tracked)
+        store.write(attach_work(ctx, tracked, a.rule, a.note), tracked)
     else:
-        write(adjudicate(ctx, tracked, a.rule, a.verdict, a.reason, a.ref, a.work, a.replace), tracked)
+        store.write(adjudicate(ctx, tracked, a.rule, a.verdict, a.reason, a.ref, a.work, a.replace), tracked)
     record = load(ctx)[a.rule]
     print(f"{a.cmd} {a.rule}: {outcome(record, ctx)}" + (f", work {record['work']}" if "work" in record else ""))
     return 0

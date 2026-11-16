@@ -1,0 +1,115 @@
+{
+ "rule-id": "1985-GR-VII.3.7.4-9",
+ "rule-digest": "5eb8a029486f",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-03",
+  "sources": {
+   "reader": "9790cc467c3b586ac588730bbc505d6fcfb8b0adb29e0f59e38e179b812e39aa",
+   "refuter": "2a3fa4b37a43dcb87419e3ab5080c47f5ce8c630cb6c0d65e69e2ff546abdc45"
+  },
+  "imported": {
+   "reader": "55710c7370bb049f0bcb1f6184342ac567d3b26d26d556d9e242c32671d0c714",
+   "refuter": "a0eec17fd370344bbbd5eac791a54c4fca54891b41e6ef79bf139c448a395484"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.7.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, each LINAGE file gets its own LINAGE-COUNTER holding the body line the device is on; it may be referenced only in Procedure Division statements and never as a receiving operand, must be qualified by file-name when the source program has more than one LINAGE file, is set to 1 by OPEN OUTPUT, and is changed by WRITE only: +1 with no ADVANCING, +n for ADVANCING n / identifier, reset to 1 by ADVANCING PAGE and at every move to a succeeding logical page.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ReceivingOperandForms.cs; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#ReportLinageCounterOutsideProcedure; src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginLinagePage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#PositionOnLogicalPage; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#BeginNextLogicalPage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+    "switches": "below 2014 the unqualified-reference count is the source program's OWN LINAGE FDs (a container's GLOBAL LINAGE file is a second candidate only when the program has none); from 2014 the visible set counts",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition.(Edition|Year|DialectLevel|Is)|IsActive|CobolVersion in CounterResolver.cs and ReceivingOperandForms.cs (one site, Has(2014)); the runtime counter arms in SequentialConnector.cs (BeginLinagePage, PositionOnLogicalPage, BeginNextLogicalPage) carry no edition test.",
+  "behaviour-differs-by-edition": "yes: only the qualification count in a contained program: at 85 a contained program with its own LINAGE file and a container's GLOBAL LINAGE file may write unqualified LINAGE-COUNTER (it names its own file); at 2023 the same source is refused COBOL5997",
+  "witnesses-cover": "part: the witnesses cover the receiving-operand refusal, LINAGE-COUNTER as a LINAGE operand and ADVANCING PAGE as overflow; not exercised: counter values after plain / ADVANCING n / identifier / 0 / BEFORE PAGE writes, the OPEN OUTPUT reset, separate counters per file, the qualification requirement and its 85 contained-program arm",
+  "probes": [
+   {
+    "class": "c,f",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r3/p3a.cob",
+    "printed": "OPEN A=01 / PLAIN A=02 / ADV2 A=04 / BEFN(3) A=07 / ADV0 A=07 / OPEN B=1 A=07 / PAGE A=01 / BPAGE A=01 / subscript T(LINAGE-COUNTER) ok / B4 B=5 / B+3 OVERFLOW B=1 / REOPEN B=1",
+    "expected": "GR9d 1 at OPEN OUTPUT; GR9c3 +1; GR9c2 +n for integer and identifier; GR9c1 PAGE -> 1; GR9c4 overflow -> 1; GR9a separate counters; size of integer-1 (VII.1.3.7: 2 digits for LINAGE 10, 1 for LINAGE 5)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r3/b1.cob (b1..b8)",
+    "printed": "MOVE/ADD/ACCEPT/INITIALIZE/READ INTO/COMPUTE to LINAGE-COUNTER: COBOL2026 receiving operand refused; unqualified with two LINAGE files: COBOL5997; OF a non-LINAGE file: COBOL0863; MOVE LINAGE-COUNTER OF LPA TO W accepted",
+    "expected": "GR9b: only the I-O control system changes it; qualify when more than one exists"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r3/b9.cob",
+    "printed": "OCCURS DEPENDING ON LINAGE-COUNTER in WORKING-STORAGE: error COBOL2024",
+    "expected": "GR9b: referenced only in Procedure Division statements"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r3/b10.cob",
+    "printed": "UNQ=02 / COND OK",
+    "expected": "unqualified reference allowed with a single LINAGE file"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-03/r3/c1.cob",
+    "printed": "--std 85: INNER UNQ=1 / INNER OF LPG=04; --std 2023: error COBOL5997 unqualified LINAGE-COUNTER with more than one LINAGE file",
+    "expected": "85: qualification needed only when more than one LINAGE FD is in the source program; the contained program has one of its own"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.7.4 GR9a",
+    "check": "OK  §1985:VII.3.7.4 GR9a  (║3.7.4 General Rules║)  the text is in GR9a"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9b",
+    "check": "OK  §1985:VII.3.7.4 GR9b  (║3.7.4 General Rules║)  the text is in GR9b"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9c1",
+    "check": "OK  §1985:VII.3.7.4 GR9c1  (║3.7.4 General Rules║)  the text is in GR9c.1"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9c2",
+    "check": "OK  §1985:VII.3.7.4 GR9c2  (║3.7.4 General Rules║)  the text is in GR9c.2"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9c3",
+    "check": "OK  §1985:VII.3.7.4 GR9c3  (║3.7.4 General Rules║)  the text is in GR9c.3"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9c4",
+    "check": "OK  §1985:VII.3.7.4 GR9c4  (║3.7.4 General Rules║)  the text is in GR9c.4"
+   },
+   {
+    "cite": "§1985:VII.3.7.4 GR9d",
+    "check": "OK  §1985:VII.3.7.4 GR9d  (║3.7.4 General Rules║)  the text is in GR9d"
+   },
+   {
+    "cite": "§1985:VII.1.3.7",
+    "check": "OK  §1985:VII.1.3.7  (║1.3.7 Special Register LINAGE-COUNTER║)  the text is in the clause"
+   }
+  ],
+  "notes": "Every counter transition GR9 c/d names printed its required value at --std 85, the receiving and Data Division references are refused, and qualification follows the 85 own-entries count. The refusal diagnostics cite §2023 clauses even at --std 85 (text only, not a conformance defect).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.7.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "r3/v1..v18 at --std 85: LINAGE-COUNTER as PERFORM VARYING, INSPECT REPLACING, INSPECT TALLYING counter, UNSTRING INTO / COUNT IN / TALLYING IN, STRING INTO / WITH POINTER, SUBTRACT, MULTIPLY BY, DIVIDE REMAINDER, SEARCH VARYING, CALL USING, SET, ACCEPT FROM DATE, ADD GIVING: each refused COBOL2026; LINAGE-COUNTER IN LP (IN qualifier) accepted, 01. r3/w1.cob: EXTERNAL LINAGE file described in two separately compiled programs: WRITE before OPEN 48 leaves LC, OPEN 01, BEFORE ADVANCING 2 -> 03, plain -> 04, callee sees 04 and AFTER 3 -> 07, caller after CALL 07, then 08: one counter per file connector, device position shared. cite.py: 'OK §1985:VII.3.7.4 GR9a', 'OK §1985:VII.3.7.4 GR9b ... the text is in GR9b'. The refusal text cites §2023 clauses at --std 85 (diagnostic wording only).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

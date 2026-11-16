@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-SR-II.4.2-1",
+ "rule-digest": "cb42ac1a0140",
+ "read": {
+  "pin": "d6154060822ed60ab891c9200bb97d2d2915558c",
+  "slice": "1985-05",
+  "sources": {
+   "reader": "4e026e4ca8e7d9587b19cd1db70afcd88f5ab39909bcba9e1a0ea09ace9a9597",
+   "refuter": "bf6bcbb4287d4b923e260ed10390cdba27847f0033f73632bad7bedf6ee70498"
+  },
+  "imported": {
+   "reader": "f204bdc8d0bb45e5bbe35e9631409ed763c6a4618cd5432abce397d949c13923",
+   "refuter": "09cc53df54ac030227c8b891d791bb4a3b507d90fdd5ae69feb479332e523fc3"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-II.4.2-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, when a Working-Storage table is initialized by a series of VALUE-bearing entries and given its structure by a REDEFINES entry, the compiler must refuse a VALUE clause on any entry subordinate to the REDEFINES entry that is repeated by an OCCURS clause (the entry with OCCURS or one below it, at any depth, whether the REDEFINES is at level 01 or lower), while still accepting the legal table and condition-name (88) entries under it (VI.5.15.6 GR2 exempts condition-names).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#ScreenItemValuePlacement; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.ValuePlacement.cs#EntryWithClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+  "edition-consulted": [],
+  "edition-search": "Read DataBinder.ValuePlacement.cs whole (no Edition/Version/DialectBehavior read; Edition is only the diagnostic sink) and the one call site DataBinder.cs:878 inside the entry-attach loop (no edition guard; grep 'Edition|Version|Std' around it shows only an unrelated CONSTANT RECORD diagnostic). The screen walks the written-REDEFINES ancestor chain for every format 1/2 VALUE, identically at every --std.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witnesses exercise VALUE in a redefining entry/subordinate; the specific repeated-by-OCCURS shapes (OCCURS entry itself, element under OCCURS, nested REDEFINES at 01, REDEFINES+OCCURS on one entry, 88 under the repeated entry) are covered by probes",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/v1.cob",
+    "printed": "error COBOL2406: data item 'E': the VALUE clause shall not be specified in an entry subordinate to 'TR', which contains a REDEFINES clause",
+    "expected": "refused: 10 E OCCURS 3 ... VALUE under 05 TR REDEFINES TVAL (II.4.2 item 1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/v2.cob",
+    "printed": "error COBOL2406 on 'E1' (elementary item under the OCCURS group)",
+    "expected": "refused: repeated due to OCCURS"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/d1.cob",
+    "printed": "COBOL2406 on 'E2' (VALUE ZERO, 01 REDEFINES / group / OCCURS / elementary) and on 'TS2' (REDEFINES + OCCURS + VALUE on one entry)",
+    "expected": "both refused (figurative constant VALUE too)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/vg.cob",
+    "printed": "COBOL2406 on 'G' (VALUE SPACE) plus COBOL1539 size",
+    "expected": "refused"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/v88.cob",
+    "printed": "E(1)=AB E(2)=CD E(3)=EF",
+    "expected": "accepted: an 88 under the repeated entry is a condition-name entry (VI.5.15.6 GR2 exemption)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/ok.cob",
+    "printed": "E(1)=AB E(2)=CD E(3)=EF",
+    "expected": "legal II.4.2 item 1 table: values from the redefined entries, structure from the REDEFINES/OCCURS"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/sample-shared/out/work-1985-05/c2/v1.cob",
+    "printed": "--std 2023: same COBOL2406; v88 at 2023 runs the same",
+    "expected": "no edition arm"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:II.4.2 SR1",
+    "check": "OK  §1985:II.4.2 SR1  (4.2 INITIAL VALUES OF TABLES)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:VI.5.15.6 GR2",
+    "check": "OK  §1985:VI.5.15.6 GR2  (5.15.6 Data Description Entries Other Than Condition-Names)  the text is in GR2"
+   }
+  ],
+  "notes": "II.4.2 item 1's VALUE prohibition is a subset of VI.5.15.6 GR2 (no VALUE in or under a REDEFINES entry), which the single ancestor-walk screen enforces at every edition. Diagnostic text cites §2023:13.18.63.3 SR12 at --std 85 (a presentation matter, not this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-II.4.2-1",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "cite.py: OK §1985:II.4.2 SR1 ('repeated due to OCCURS clauses, must not contain VALUE clauses'); OK §1985:VI.5.15.6 GR2 (no VALUE in or under a REDEFINES entry; 'This rule does not apply to condition-name entries'). The II.4.2 item is a subset of GR2, which the edition-free ancestor-walk screen enforces. Probes at --std 85 under refute-1985-05/c2: q1 VALUE on the second elementary of an OCCURS group under 01 T REDEFINES G -> COBOL2406; q3 VALUE under a REDEFINES inside an OCCURS element -> COBOL2406; q2 VALUE on an OCCURS-subordinate entry not under REDEFINES (II.4.2 item 3 form) -> runs QQQ, not over-refused; q4 legal item-1 table from a FILLER VALUE with an 88 under the repeated entry -> runs '12 AB'. No hole and no legal form refused.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
