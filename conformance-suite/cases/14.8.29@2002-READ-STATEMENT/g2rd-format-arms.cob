@@ -25,10 +25,10 @@
       *>   R3 KEY IS AK with IX-D = thr and IX-K = 9: AK is the key of
       *>     reference (GR27), so the prime key's 9 is not consulted:
       *>     R3 3thr.
-      *>   START KEY = IX-K with 3 sets the position to 3 (§2002:
-      *>     14.8.37.3 GR17e). P1 PREVIOUS takes the first record <= 3
-      *>     (GR18c): P1 3thr. P2 takes the record < 3 (GR18d): P2 2two.
-      *>     P3: P3 1one. P4 finds none: at end, status 10 (GR18,
+      *>   START KEY = IX-K with 3 sets the position to 3
+      *>     (§2002:14.8.37.3 GR17e). P1 PREVIOUS takes the first
+      *>     record <= 3 (GR18c): P1 3thr. P2 takes the record < 3
+      *>     (GR18d): P2 2two. P3: P3 1one. P4 finds none: at end, status 10 (GR18,
       *>     GR21b): P4 END 10.
       *>   SQ holds AAAA BBBB: S1 NEXT INTO: S1 AAAA; S2 (NEXT implied,
       *>     SR7): S2 BBBB; S3 RETRY 2 TIMES meets no sharing or record
