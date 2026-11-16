@@ -304,8 +304,9 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         row = by_id.get(rid, {})
         verdict = rec.get("verdict", "")
         # ⛔ AN OLDER EDITION'S CHANGE RECORD (kb/Work PB4993, lineage.py). A chained (KEPT) rule's verdict is its chain's,
-        # so its record carries none (its own-edition witness, `test-ref`, aside: kb/Work PB5675); every other check of an older row is the change record's own (`next_errors`, the
-        # schema's `next`), asked of the row as it will be written.
+        # so its record carries none of the schema's `next.verdict-fields` (its own-edition evidence, a `test-ref` or a
+        # `derivation` of its own, aside: kb/Work PB5675, PB5822); every other check of an older row is the change
+        # record's own (`next_errors`, the schema's `next`), asked of the row as it will be written.
         if "next" in fields:
             # ⛔ A WITNESS AT AN OLDER EDITION IS SOURCE TEXT OF THAT EDITION (kb/Work PB5754): each conformance-suite case
             # the record names is written in a reference format the edition defines, asked of the one predicate the

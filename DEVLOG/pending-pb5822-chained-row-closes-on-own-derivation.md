@@ -85,3 +85,11 @@ second refuter's tally on the rows it read: `1985-GR-XIII.4.5.4-9` upheld, `1985
 witnessable, not a derivation), the two SYNCHRONIZED rows doubtful; a third reading on the sixth arm upheld both. Its
 lines are in `pb5822-1985-kept-2.jsonl` and `-3.jsonl`. The 1985 line moved from "89 GAP (64 inherited, no own-edition
 witness · 1 never adjudicated · 24 open)" to "84 GAP (59 inherited, no own-edition witness · 1 never adjudicated · 24 open)".
+
+Merged with main after PB5754 and PB5699 landed (no conflict; their format rule screens a KEPT row's own test-refs
+beside this branch's derivation predicate, and `bare_kept` still leaves out a derivation-closed row), with PB5819's
+row recorded as waiting on PB5815 (`blocked_by`, and the refuter's witness program `g18rd2.cob` copied in full beside
+the note): on the merged tree the 1985 line reads "37 GAP (12 inherited, no own-edition witness · 1 never adjudicated
+· 24 open)", from main's 55. The second fold's two rows on the sixth arm put `DOC-A.1-197` in their §8 Names cells,
+and the ANNEX A.1 audit's token count (`audit_annex_a1.evaluate`) counted them as prose: it now counts a `register-key`
+arm's Names cell as a legitimate occurrence, as it learned the §8 row keys in PB386, with a planted pair of cases.
