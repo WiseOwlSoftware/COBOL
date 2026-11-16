@@ -132,8 +132,6 @@ public sealed class SymbolTable
             : tier;
     }
 
-
-
     /// <summary>The condition-name twin of <see cref="NearestDeclaringData"/>: the nearest declaring source element's
     /// condition-names, or none when a data-name (or a report entry) of the spelling is declared nearer
     /// (<see cref="NearerDataNameHides"/>), or a constant-name, index-name or file-name is

@@ -23,6 +23,7 @@ public sealed class InheritedGlobals
     private readonly Dictionary<FileModel, int> _fileDepths = new(ReferenceEqualityComparer.Instance);
     private readonly Dictionary<DataItem, FileModel> _recordAreas = new(ReferenceEqualityComparer.Instance);
     private readonly List<FileModel> _containerLocalFiles = [];
+    private readonly HashSet<string> _hiddenFileNames = new(CobolNames.Comparer);
     private readonly Dictionary<string, DataItem> _typeDecls = new(CobolNames.Comparer);
     private readonly Dictionary<string, InheritedConstant> _constants = new(CobolNames.Comparer);
     private readonly HashSet<string> _shadowedSymbolics = new(CobolNames.Comparer);
@@ -54,6 +55,12 @@ public sealed class InheritedGlobals
     /// and the shared <see cref="FileModel"/> keys the child's verbs to the owner's connector, so the child never
     /// re-registers, re-qualifies or CANCEL-closes it. (An EXTERNAL non-GLOBAL FD is not here — §2023:13.18.22.4 GR1 NOTE 1.)</summary>
     public IReadOnlyDictionary<string, FileModel> Files => _files;
+
+    /// <summary>The spellings in <see cref="Files"/> that a data-, condition- or index-name declared in a nearer source element
+    /// hides (<see cref="InheritStep.DropShadowed"/>): the word no longer NAMES the file here, but the file stays in
+    /// <see cref="Files"/> because its GLOBAL record-names are still global names, so a WRITE of such a record identifies
+    /// the container's file (§2023:8.4.6.2.1 3) a) hides the word only; kb/Work PB5786 review R1-1).</summary>
+    public IReadOnlySet<string> HiddenFileNames => _hiddenFileNames;
 
     /// <summary>How many containment levels out <paramref name="file"/> is declared: n for a GLOBAL file of the n-th
     /// container (<see cref="Files"/>), 0 for any other — the file-name twin of <see cref="ForestSlice.DeclaringDepth"/>
@@ -149,9 +156,9 @@ public sealed class InheritedGlobals
                 _shadowedSymbolics.Add(name);
         // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
         // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
-        foreach (var (name, file) in _files.ToList())
+        foreach (var (name, file) in _files)
             if (declaredNearerThan(name, FileDepth(file)))
-                _files.Remove(name);
+                _hiddenFileNames.Add(name);
     }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>
