@@ -1,4 +1,4 @@
-## Nine notes from the Mythos lane's rulings of 2026-11-15, and the 1985 inventory bullet loses its figures
+## Entry 3715 — 2026-11-15 19:07 PST — Nine notes from the Mythos lane's rulings of 2026-11-15, and the 1985 inventory bullet loses its figures
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed at `--std 85` (and `--std 2023`), and the leads.
 
@@ -17,3 +17,4 @@ The sources are copied unchanged beside kb/Work PB5683 as `2026-11-15-rulings-co
 **The rate so far at 1985:** 15 of 180 rows read are contradicted (the sample 6 of 60, this batch 9 of 120), about 8 %.
 
 **The plan edit.** The bullet `THE 1985 INVENTORY` in `docs/REARCHITECTURE_PLAN.md` section 0 now names the command that computes the figures (`python scripts/spec/inventory_view.py --summary`) and the two lines of work (own-edition witnesses; the code read of every KEPT row, kb/Work PB5683) and carries no figure and no stamp. Every 1985 landing rewrote the hand-written figures and the "run ... at main ..." stamp, so every 1985 landing collided on that line (kb/Work PB5730's landing stopped on it on 2026-11-15). `git grep` of scripts, tests and .claude found nothing that reads the bullet.
+
