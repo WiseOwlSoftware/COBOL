@@ -1,4 +1,4 @@
-## FileRegistry: an external file's alternate keys registered once, a READ's refused lock grant is its status, and ODO status 34 is 2023 only (PB5733, PB5770, PB5811)
+## Entry 3747 — 2026-11-16 03:45 PST — FileRegistry: an external file's alternate keys registered once, a READ's refused lock grant is its status, and ODO status 34 is 2023 only (PB5733, PB5770, PB5811)
 
 Wave 20262068 group B replayed the three unlanded commits of its predecessor (w20262063a, stopped by the loop's STOP-loop
 before its gate) onto main and gated them. Each note was re-probed on this build.
@@ -46,3 +46,4 @@ the edition.
 Self-review: architecture (one predicate, one edition gate; one grant path), full code (the cited rules, both READ entries
 agree), performance (a READ that sets a lock on a file holding none now peeks and asks the host once before its grant;
 one null test per grant attempt), duplication (no second copy of the grant rule).
+
