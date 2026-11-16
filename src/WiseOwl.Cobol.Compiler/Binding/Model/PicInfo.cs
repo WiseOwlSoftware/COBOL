@@ -633,6 +633,25 @@ public sealed record PicInfo(
     /// item was accepted as an OCCURS DEPENDING ON object and as a STRING / UNSTRING pointer or tally (kb/Work PB543).</summary>
     public bool IsUnscaledInteger => IsClassNumericFixedPoint && Scale == 0;
 
+    /// <summary>True when an item of this unscaled-integer description can hold the non-negative <paramref name="value"/> — the
+    /// "of sufficient size to contain a value equal to 1 plus the size of the data item referenced" a STRING / UNSTRING POINTER asks
+    /// (§2023:14.9.43.3 SR7, §2023:14.9.48.3 SR6; kb/Work PB5607). A DISPLAY / PACKED / plain COMPUTATIONAL item holds the
+    /// <see cref="Digits"/> its PICTURE gives; a BinaryCapacity item (COMP-5, BINARY-CHAR ...) owns its whole container range
+    /// (§2023:13.18.60.4 GR12; DOC-A.1-208), so the larger of the two.</summary>
+    public bool CanHoldUnscaledValue(long value)
+    {
+        long pictured = Digits >= 19 ? long.MaxValue : (long)Math.Pow(10, Digits) - 1;
+        if (Truncation != NumericTruncation.BinaryCapacity) return value <= pictured;
+        long container = StorageWidth switch
+        {
+            1 => Signed ? sbyte.MaxValue : byte.MaxValue,
+            2 => Signed ? short.MaxValue : ushort.MaxValue,
+            4 => Signed ? int.MaxValue : uint.MaxValue,
+            _ => long.MaxValue,
+        };
+        return value <= Math.Max(pictured, container);
+    }
+
     /// <summary>The count of TRAILING symbol 'P' positions of a numeric PICTURE (ISO §2023:13.18.40.4 GR14: the assumed
     /// decimal point lies to the right of the digits, so the signed <see cref="Scale"/> is NEGATIVE — <c>PIC 99P</c>
     /// is −1). Zero for any other description. <see cref="PictureAnalyzer"/> derives the signed scale from the
