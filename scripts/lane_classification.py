@@ -367,10 +367,12 @@ CLASSIFICATION = Classification(inert={
        "Directory.Build.props": "scripts/abi_pin.py (settling the ABI pin)",
        "LICENSE": "scripts/arch/census.py (read on Linux)",
        "WiseOwl.Cobol.sln": "scripts/arch/census.py, scripts/linux-gate.sh, scripts/orchestrator/test_orchestrate_account.ps1",
-       "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files)",
+       "conformance-suite/adapters/": "scripts/differential_fuzz.py (the GnuCOBOL and WiseOwl adapter files), "
+                                      "scripts/orchestrator/run_probe.py (the WiseOwl adapter's environment)",
        "conformance-suite/fuzz-history.json": "scripts/test_fuzz_history.py (every record of the tracked history carries the "
                                               "night's date, kb/Work PB5371)",
-       "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py and the harness self-tests (the "
+       "conformance-suite/harness/": "scripts/line_endings.py, live_tools.py, temp_names.py, orchestrator/run_probe.py (it imports "
+                                     "run.py and config.py) and the harness self-tests (the "
                                      "names of the harness files)",
        "docs/rearchitecture/spec-rule-catalog.json": "scripts/spec/audit_annex_a1.py, audit_code_citations.py",
        "global.json": "scripts/toolchain_audit.py (the SDK pin global.json's version and rollForward must accept)",

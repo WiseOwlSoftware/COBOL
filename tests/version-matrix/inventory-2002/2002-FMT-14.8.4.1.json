@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.4.1",
+ "rule-digest": "84eeda4f6c2b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#callArgument; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitCallStatement",
+ "test-ref": "conformance:cases/14.8.4@2002-CALL-STATEMENT/g2call05_three_formats",
+ "notes": "§2002:14.8.4.1 three formats: Format 1 ON OVERFLOW (literal and identifier, USING BY REFERENCE/CONTENT, RETURNING, END-CALL optional), Format 2 with NOT ON EXCEPTION before ON EXCEPTION (§2002:5.1.5.3 any order), Format 3 prototype-name, literal/identifier AS prototype, AS NESTED, BY VALUE expression, BY CONTENT boolean expression, OMITTED; values from §2002:14.8.4.3 GR3g/GR3h/GR4/GR5/GR11. Format 3 also BY VALUE identifier-4 and BY CONTENT arithmetic-expression-1 (legs 10, 11). --std 2002 run matched all 22 derived lines."
+}

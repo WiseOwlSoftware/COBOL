@@ -1,7 +1,8 @@
 {
  "rule-id": "1985-SR-VI.4.5.3-4",
  "rule-digest": "36ec2ce6aa18",
- "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_alphabet_count_at_native_bound; conformance:cases/12.3.7-SPECIAL-NAMES/pb1557_full_alphabet_ordinals_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb770_alphabet_repertoire_85; conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_literal_alphabet_unspecified_ordinals",
+ "test-ref": "conformance:cases/12.3.7-SPECIAL-NAMES/l1c30_alphabet_count_at_native_bound; conformance:cases/12.3.7-SPECIAL-NAMES/pb1557_full_alphabet_ordinals_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb793_code_name_alphabets_85; conformance:cases/12.3.7-SPECIAL-NAMES/pb770_alphabet_repertoire_85",
+ "notes": "retired-witness: conformance:cases/A.1-Implementor-defined-language-element-list/l1c30_literal_alphabet_unspecified_ordinals (its only ALSO operand is a legal one-character literal and no numeric literal appears in the literal phrase, so a compiler that dropped either arm of SR4 still prints its .out; it tests the ordinals of unspecified characters, and the row keeps four cases that cite SR-12.3.7.3-14 and GR-12.3.7.4-7)",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

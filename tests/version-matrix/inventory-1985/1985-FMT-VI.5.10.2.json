@@ -1,6 +1,7 @@
 {
  "rule-id": "1985-FMT-VI.5.10.2",
  "rule-digest": "d30a2cc46541",
+ "test-ref": "conformance:cases/VI.5.10@1985-REDEFINES-CLAUSE/g85_bf09_03",
  "next": {
   "kind": "KEPT",
   "edition": 2023,

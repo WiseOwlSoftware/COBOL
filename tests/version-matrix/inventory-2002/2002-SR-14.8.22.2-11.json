@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-11",
+ "rule-digest": "f546b374aa01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoScreenReturning; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ParameterConformance.cs#ScreenSection; src/WiseOwl.Cobol.Compiler/Binding/Model/SectionDataItem.cs#NonSectionKind",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.2 SR11: RETURNING into the CD items CO, RV and OTL stores the result (RV=0007, OTL=0007). --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

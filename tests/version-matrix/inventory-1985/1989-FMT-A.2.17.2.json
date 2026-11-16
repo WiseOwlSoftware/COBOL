@@ -1,6 +1,7 @@
 {
  "rule-id": "1989-FMT-A.2.17.2",
  "rule-digest": "5aa9246fdc1b",
+ "test-ref": "conformance:cases/A.2.17@1985-INTEGER-OF-DAY-FUNCTION/g85_f36_02",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
