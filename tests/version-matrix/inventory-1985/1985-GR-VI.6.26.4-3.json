@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-VI.6.26.4-3",
  "rule-digest": "512f87538196",
- "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/g85_f14_02",
+ "test-ref": "conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/g85_f14_02; conformance:cases/VI.6.26@1985-SUBTRACT-STATEMENT/pb5814_subtract_corresponding_subscript_once_85",
  "next": {
   "kind": "KEPT",
   "to": [

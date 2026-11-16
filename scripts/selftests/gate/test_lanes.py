@@ -41,9 +41,11 @@ def case_00_script_self_tests_audits_tooling_only_post(expect):
         and "SELF-TESTS" in [n for n, _ in AUDITS], str(TOOLING_ONLY))
     two = Outcome(runs=[HostRun("Unit", 0, False, 30.0, 30.0), HostRun("Conformance", 0, False, 60.0, 60.0)],
                   timings={"tests_s": 60.0})
-    expect("the verdict file records, per assembly, the seconds its host ran and the hosts' effective concurrency "
-        "(their summed wall seconds over the span they took; kb/Work PB4326)",
-        sorted(rec_no["assembly_wall_s"]) == sorted(GATED_ASSEMBLIES)
+    expect("the verdict file records, per assembly whose population host ran (an assembly the preflight ran whole has "
+        "none, and its preflight host's seconds are the record's `preflight`), the seconds its host ran and the hosts' "
+        "effective concurrency (their summed wall seconds over the span they took; kb/Work PB4326, PB5872)",
+        sorted(rec_no["assembly_wall_s"]) == sorted(a for a in GATED_ASSEMBLIES if a not in h.planted_preflight_whole())
+        and sorted(rec_no["preflight"]["hosts_s"]) == sorted(h.planted_preflight)
         and all(isinstance(v, float) for v in rec_no["assembly_wall_s"].values())
         and isinstance(rec_no["effective_concurrency"], float)
         and Legs.concurrency(two) == 1.5 and Legs.assembly_walls(two) == {"Conformance": 60.0, "Unit": 30.0}
@@ -131,7 +133,7 @@ def case_07_red_post_build_self_test_one_reads(expect):
     expect("a red post-build self-test (one that reads the built assemblies, kb/Work PB2563) runs beside the hosts and "
         "makes the gate RED after them, its output printed whole",
         o.verdict == "RED" and o.exit_code == 1 and "POST-BUILD SELF-TESTS RED" in o.line
-        and len(o.runs) == len(GATED_ASSEMBLIES) and not any(r.red for r in o.runs)
+        and fixtures.hosted_once(h) and not any(r.red for r in o.runs)
         and said("PLANTED-POST-BUILD-RED"), o.line)
 
 

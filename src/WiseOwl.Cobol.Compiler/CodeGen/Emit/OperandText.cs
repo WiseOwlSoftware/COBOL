@@ -924,9 +924,15 @@ internal static class OperandText
     {
         public bool Visit(BoundStringLiteral n) => true;
         public bool Visit(BoundAllLiteral n) => true;   // ALL "literal" is an alphanumeric figurative
-        public bool Visit(BoundFieldOperand n) => n.Place.Item.IsGroup || n.Place.Item.Pic?.Category
-            is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean;
+        // ⛔ A REFERENCE-MODIFIED operand's category is its UNIQUE DATA ITEM'S (kb/Work PB5780; RefModPlace.Category, kb/Work
+        // PB70): "the categories numeric, numeric edited, and alphanumeric edited are considered class and category
+        // alphanumeric" (§1985:IV.4.3.8.4.4 GR5; §2023:8.4.3.3.4 GR6), so `N3 (1:3) = 5` compares characters, never the
+        // inner numeric item's value.
+        public bool Visit(BoundFieldOperand n) => n.Place is RefModPlace rm
+            ? IsTextCategory(rm.Category)
+            : n.Place.Item.IsGroup || n.Place.Item.Pic?.Category is { } c && IsTextCategory(c);
+        private static bool IsTextCategory(PicCategory c) =>
+            c is PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
         // The current record is an ALPHANUMERIC value — §2023:14.9.30.4 GR4 b) calls the implied move "an
         // alphanumeric group move" and §2023:13.18.43.4 GR16 counts its size in BYTES.
         public bool Visit(BoundCurrentRecord n) => true;

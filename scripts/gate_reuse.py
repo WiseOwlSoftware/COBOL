@@ -19,7 +19,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 import buildgraph  # noqa: E402  — THE targets, their keys and the one store of their passes (kb/Work PB5207, PB5218)
 from test_population import GATED_ASSEMBLIES, PopulationError, UnreadableTrx, check as check_population, failed_results, passed_cases, parse_listing  # noqa: E402
 from test_leg_report import verdict_of  # noqa: E402  — THE reader of a host's verdict line
-from gate_verdict import HOST_PASSED, Outcome, audit_reasons, result_outcomes  # noqa: E402
+from gate_verdict import HOST_PASSED, PREFLIGHT_PREFIX, Outcome, audit_reasons, result_outcomes  # noqa: E402
 from gate_host import GATE_CONFIGURATION, Host  # noqa: E402
 from gate_runs import ORIGINAL_VERDICT_FILE, SCHEMA_WHOLE, VERDICT_FILE, read_record, record_schema, run_dirs, run_started  # noqa: E402
 
@@ -107,9 +107,11 @@ class PassCarry:
             found = {}
             try:
                 for asm in todo:
-                    if (keys.get(asm) == out.keys.get(asm) and still.get(asm) == keys.get(asm)
-                            and (p / f"{asm}.trx").is_file()):
-                        found[asm] = passed_cases([p / f"{asm}.trx"])
+                    # its population's trx and its preflight's (kb/Work PB5872: a target the preflight ran whole has no
+                    # population trx at all)
+                    trxs = [f for f in (p / f"{asm}.trx", p / f"{PREFLIGHT_PREFIX}{asm}.trx") if f.is_file()]
+                    if keys.get(asm) == out.keys.get(asm) and still.get(asm) == keys.get(asm) and trxs:
+                        found[asm] = passed_cases(trxs)
             except UnreadableTrx as e:
                 self.say(f"build-local: ⚠ run {p.name}'s passes are not carried ({e})")
                 continue
@@ -117,9 +119,13 @@ class PassCarry:
                 runs.append(p.name)
                 for asm, names in found.items():
                     passed[asm] |= names
-                red_hosts |= {r["asm"] for r in rec.get("runs") or []
-                              if isinstance(r, dict) and r.get("red") and r.get("asm") in found
-                              and not self.red_explained(p, r["asm"])}
+                # every host of the run, its population's (`runs`) and its preflight's (`preflight.runs`, kb/Work PB5872
+                # review R1-1), each read by its own file stem: a red the cases do not explain reruns the whole assembly
+                pre = rec.get("preflight") if isinstance(rec.get("preflight"), dict) else {}
+                hosts = [r for r in [*(rec.get("runs") or []), *(pre.get("runs") or [])] if isinstance(r, dict)]
+                red_hosts |= {r["asm"] for r in hosts
+                              if r.get("red") and r.get("asm") in found
+                              and not self.red_explained(p, str(r.get("name") or r["asm"]))}
         return Carry(runs, passed, red_hosts=red_hosts) if runs else None
 
     def end_keys(self, out: Outcome) -> dict[str, str]:
@@ -178,7 +184,8 @@ class PassCarry:
           * EVERY HOST FINISHED GREEN: the record lists each gated assembly's host with exit 0, its log ends in the host's
             own `Passed!  - Failed: 0, Passed: P, Skipped: S, Total: T` line, and its trx is COMPLETE against that line (T
             results, P Passed, S NotExecuted and nothing else: `result_outcomes`, the results that line counts). A host
-            that never finished has no such line; a short trx, too few results;
+            that never finished has no such line; a short trx, too few results. A GREEN preflight's host of an assembly
+            (kb/Work PB5872) is held to the same proof, and an assembly the preflight ran whole has no population host;
           * EVERY REASON IS AN AUDIT'S (`audit_reasons`): a host-level or population reason is never re-derived;
           * THE TREE DID NOT MOVE while it ran: it measured HEAD's own tree (`tree` equals `head_tree`, so nothing
             uncommitted), HEAD's reflog puts HEAD at the recorded head when the run started (`run_started`: its
@@ -213,34 +220,40 @@ class PassCarry:
         if not host_tools.matched or tools != rec.get("toolchain"):
             refusals.append(f"the toolchain it recorded ({rec.get('toolchain')}) is not this host's ({tools})")
         hosts = {r.get("asm"): r for r in rec.get("runs") or [] if isinstance(r, dict)}
+        # THE PREFLIGHT'S HOSTS (kb/Work PB5872): a GREEN preflight's host of an assembly is one of its hosts, held to the
+        # same proof, and an assembly it ran whole has no population host at all.
+        pre = rec.get("preflight") if isinstance(rec.get("preflight"), dict) else {}
+        pre_ran = set(pre.get("hosts_s") or {}) if pre.get("verdict") == "GREEN" else set()
         ends: list[float] = []
-        for asm in GATED_ASSEMBLIES:
-            r, log, trx = hosts.get(asm), run / f"{asm}.log", run / f"{asm}.trx"
-            if r is None or r.get("rc") != 0 or r.get("red"):
+        for asm, stem in [(a, s) for a in GATED_ASSEMBLIES
+                          for s in ([f"{PREFLIGHT_PREFIX}{a}"] if a in pre_ran else [])
+                          + ([a] if a in hosts or a not in pre_ran else [])]:
+            r, log, trx = hosts.get(asm), run / f"{stem}.log", run / f"{stem}.trx"
+            if stem == asm and (r is None or r.get("rc") != 0 or r.get("red")):
                 refusals.append(f"{asm}: the record does not show its host exiting green ({r})")
                 continue
             try:
                 line = verdict_of(log.read_text(encoding="utf-8", errors="replace").splitlines()) or ""
                 ends += [log.stat().st_mtime, trx.stat().st_mtime]
             except OSError as e:
-                refusals.append(f"{asm}: its host log or trx cannot be read ({e})")
+                refusals.append(f"{stem}: its host log or trx cannot be read ({e})")
                 continue
             m = HOST_PASSED.search(line)
             if m is None:
-                refusals.append(f"{asm}: its host log ends in no `Passed!` verdict line (it never finished): {line!r}")
+                refusals.append(f"{stem}: its host log ends in no `Passed!` verdict line (it never finished): {line!r}")
                 continue
             passed_n, skipped_n, total = (int(g) for g in m.groups())
             try:
                 outcomes = result_outcomes(trx)
             except UnreadableTrx as e:
-                refusals.append(f"{asm}: its trx cannot be read ({e})")
+                refusals.append(f"{stem}: its trx cannot be read ({e})")
                 continue
             got = (sum(outcomes.values()), outcomes["Passed"], outcomes["NotExecuted"])
             if got != (total, passed_n, skipped_n):
-                refusals.append(f"{asm}: its trx is not complete against its host's verdict line (results, Passed, "
+                refusals.append(f"{stem}: its trx is not complete against its host's verdict line (results, Passed, "
                                 f"NotExecuted {got}; the host said {(total, passed_n, skipped_n)})")
                 continue
-            found.append(f"{asm}: host exit 0, `Passed!` {passed_n:,} of {total:,}, trx complete")
+            found.append(f"{stem}: host exit 0, `Passed!` {passed_n:,} of {total:,}, trx complete")
         audit, other = audit_reasons([str(x) for x in rec.get("reasons") or []])
         if other:
             refusals.append(f"reasons no audit gave: {other}")
@@ -283,7 +296,8 @@ class PassCarry:
                 levels[asm] = "passes"
                 continue
             where, listed = listing
-            pop = check_population(asm, listed, [str(run / f"{asm}.trx")])
+            pop = check_population(asm, listed, [str(p) for p in (run / f"{asm}.trx", run / f"{PREFLIGHT_PREFIX}{asm}.trx")
+                                                 if p.is_file()])
             if not pop.exact:
                 return Rederived(None, found, [f"{asm}: not EXACT against the listing of run {where} at its key: "
                                                f"{pop.verdict_line()}"])
@@ -367,15 +381,16 @@ class PassCarry:
                                         newline="\n")
 
     @staticmethod
-    def red_explained(run: Path, asm: str) -> bool:
-        """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host printed a
-        `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least one. Then a retry of
-        those cases tests everything the red was about. Any other red (no verdict line, a count the trx does not
-        account for, a crash after the last result, a cleanup failure) has a host-level cause no case carries, and the
-        assembly runs whole again."""
+    def red_explained(run: Path, stem: str) -> bool:
+        """WHETHER A RED HOST'S RED IS THE CASES ITS TRX NAMES (kb/Work PB5099, review R1-1 and R2-1): the host whose files
+        in `run` are `<stem>.log` and `<stem>.trx` (an assembly's population host, or `preflight-<assembly>`, kb/Work
+        PB5872) printed a `Failed!` verdict whose Failed count equals the trx's Failed results, and there is at least
+        one. Then a retry of those cases tests everything the red was about. Any other red (no verdict line, a count the
+        trx does not account for, a crash after the last result, a cleanup failure) has a host-level cause no case
+        carries, and the assembly runs whole again."""
         try:
-            verdict = verdict_of((run / f"{asm}.log").read_text(encoding="utf-8", errors="replace").splitlines())
-            failed = failed_results(run / f"{asm}.trx")
+            verdict = verdict_of((run / f"{stem}.log").read_text(encoding="utf-8", errors="replace").splitlines())
+            failed = failed_results(run / f"{stem}.trx")
         except (OSError, UnreadableTrx):
             return False
         m = re.match(r"Failed!\s+-\s+Failed:\s+(\d+)", verdict or "")

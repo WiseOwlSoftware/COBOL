@@ -40,9 +40,15 @@
       *>  W-N 0 with F1 now open: OPEN OUTPUT is 41, USE: GRL2.4 a) is
       *>    the condition that applies to a file in the open mode, and
       *>    the file stays open (its CLOSE is 00).
-      *>  OPEN INPUT F1 with W-N 0: 00. VII.3.7.4 GR6 reads the LINAGE
-      *>    values only "at the time the file is opened by the execution
-      *>    of an OPEN statement with the OUTPUT phrase".
+      *>  OPEN INPUT F1 with W-N 0: 37, not 90. VII.3.7.4 GR6 reads the
+      *>    LINAGE values only "at the time the file is opened by the
+      *>    execution of an OPEN statement with the OUTPUT phrase". The
+      *>    OPEN INPUT of a LINAGE file answers 37 since kb/Work PB5815:
+      *>    such a file does not support read operations
+      *>    (docs/conformance/7/DOC-A.1-146.md (c')), and 1985 VII.1.3.5
+      *>    GRL2.3 makes that 37: "The INPUT phrase is specified but
+      *>    the file will not support read operations". The file is not
+      *>    open after it, so CLOSE-3 is 42.
       *>  F2, footing 0 and then 6 (body 5): 90 both times, WRITE 48,
       *>    CLOSE 42 for the first; footing 5 (not greater than the body)
       *>    is accepted, 00.
