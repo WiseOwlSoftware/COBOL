@@ -1,0 +1,67 @@
+{
+ "rule-id": "1985-GR-VII.3.8.4-11",
+ "rule-digest": "8945a54081b4",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "2373ac474c3e79536cbbbb333c88b61d6157bb06ca270d05e760bafbee468637",
+   "refuter": "1328f54bfdfa79f54d3ca4bdb72fa4172711070e59c94205401d9efd105682cb"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.3.8.4-11",
+  "verdict": "CONFORMS",
+  "requirement": "For a file (FD of any organization, or SD via RETURN) whose RECORD IS VARYING clause names DEPENDING ON data-name-1, every SUCCESSFUL READ or RETURN must leave in data-name-1 the number of character positions of the record just read; an unsuccessful one leaves it unchanged (GR9).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitReadLengthStore; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#VaryingDepending; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitReturn; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#NoteRecordRead; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#LastReadLength; src/WiseOwl.Cobol.Runtime/IO/CobolSort.cs#LastReturnedLength",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|DialectBehavior' over SequentialIoEmitter.cs, KeyedIoEmitter.cs, SortEmitter.cs: the only hit is DialectBehavior.SelectWhenOnlyForFilePhraseStatements (SequentialIoEmitter line 593), which selects a file-phrase record and is not on the length-store path; FileConnector.NoteRecordRead (the one writer of LastReadLength) has no edition test. The store is edition-neutral.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness pb339_into_current_record_2023 exercises a sequential READ INTO; relative, indexed, SD RETURN, ODO records and the unsuccessful-READ leg are not exercised by it",
+  "probes": [
+   {
+    "class": "a,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rcv11.cob",
+    "printed": "S1 LEN=05 ST=00 / S2 LEN=20 ST=00 / S3 LEN=01 ST=00 / S AT END / S4 LEN=77 ST=10 / R-RAND LEN=13 / R-RAND LEN= 2 / R-NEXT LEN=13 / R INVALID / R-FAIL LEN=13 ST=23 / X-RAND LEN=003 / X-RAND LEN=010 / X-NEXT LEN=003 / W1 LEN=09 A / W2 LEN=05 B / W AT END / W3 LEN=55",
+    "expected": "sequential, relative (random and NEXT), indexed (random and NEXT) and SD RETURN each store the just-read length (5,20,1 at min..max bounds; 13,2,13; 3,10,3; 9,5); the at-end READ, invalid-key READ and at-end RETURN leave the item unchanged (77, 13, 55)"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rcv11b.cob",
+    "printed": "O1 LEN=04 N=3 / O2 LEN=10 N=9 / OPEN NF ST=35 / NF READ ST=47 LEN=42",
+    "expected": "a record with OCCURS DEPENDING ON and no FROM/TO reads back lengths 4 and 10; a READ after a failed OPEN (35 then 47) leaves data-name-1 at 42"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.3.8.4 GR11",
+    "check": "OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11"
+   },
+   {
+    "cite": "§1985:VII.3.8.4 GR9",
+    "check": "OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9"
+   }
+  ],
+  "notes": "The DEPENDING item is stored from the runtime's LastReadLength (sequential/relative/indexed, via KeyedIoEmitter.EmitRead and SequentialIoEmitter.EmitRead inside the success branch) and from CobolSort.LastReturnedLength for RETURN. All six probe legs printed the record lengths and left the item unchanged on every unsuccessful READ/RETURN. The 2023 rerun of rcv11b was refused only for LABEL RECORDS (COBOL0902), unrelated to this rule.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.3.8.4-11",
+  "refutation": "UPHELD",
+  "classes": "a,b,d,e,f",
+  "evidence": "Read §1985:VII.3.8.4 GR4-GR12 and READ GR13 (record length conflict: READ successful, 04). Read FileConnector.NoteRecordRead (LastReadLength = delivered length, clamped to VaryMax on truncation), SequentialIoEmitter.EmitRead (length store in the success branch, before the USE hook, so a 04 READ also stores) and SortEmitter.EmitReturn. Probe refute-1985-197/gr11c.cob at --std 85 (runs/gr11c-002): one physical file written through an FD of 1..30 and read through an FD of 5..10 DEPENDING ON a qualified PACKED-DECIMAL item: 'C1 LEN=10 ST=04' (30-char record truncated, successful), 'C2 LEN= 2 ST=04' (below minimum, successful), 'C3 LEN= 7 ST=00', 'C4 LEN=10 ST=04' (READ NEXT RECORD); MERGE of two varying USING files into an OUTPUT PROCEDURE with a BINARY/DISPLAY DEPENDING item: 'M A LEN=05 / M B LEN=12 / M C LEN=03 / M D LEN=02 / M AT END 02' (at-end RETURN leaves the item unchanged per GR9). cite.py: 'OK  §1985:VII.3.8.4 GR11  (3.8.4 General Rules)  the text is in GR11'; 'OK  §1985:VII.4.4.4 GR13  (4.4.4 General Rules)  the text is in GR13'; 'OK  §1985:VII.3.8.4 GR9  (3.8.4 General Rules)  the text is in GR9'. The one reading taken: on a truncated (04) record 'the record just read' is the record as delivered (max size); the code records it as kb/Work PB5480 and it is the only reading consistent with GR13's truncation. No edition site on the path; none missed.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

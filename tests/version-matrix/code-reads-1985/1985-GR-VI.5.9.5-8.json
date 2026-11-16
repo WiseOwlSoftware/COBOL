@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.5.9.5-8",
+ "rule-digest": "32e89c1aa7ef",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-192",
+  "sources": {
+   "reader": "4a68cbe3cd84f7a9f354cf2aac4d07323512c1bd9a9d19b41240fdbdee6b837d",
+   "refuter": "2bdd3e2fb0ab1d610efc20ebec801f6e002b4401a1ee80c6c14965b5f0fd1ee6"
+  },
+  "imported": {
+   "reader": "e4a26a7e161f0c756d88049fbe10a7a809852ccda305eaee6738904a92f8000c",
+   "refuter": "0b60baac4927990e3a8c53960bbb17c9935e59a66abb8af2b8d7176c31470d06"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.9.5-8",
+  "verdict": "CONFORMS",
+  "requirement": "Z (space) and * (asterisk) suppress leading zeros, are mutually exclusive, are counted in the size, carry embedded or immediately following simple insertion characters as part of the string, may represent only leading positions left of the decimal point or all numeric positions, stop at the first nonzero digit or the decimal point, and for a zero value with all positions suppressed give all spaces (Z, editing characters included) or all asterisks except the actual decimal point (*).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate; src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence; src/WiseOwl.Cobol.Compiler/Binding/PictureAnalyzer.cs#Analyze; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Format; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#Materialize; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolEdit.cs#TrySimpleInsertion",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Precedence",
+    "switches": "at 1985 a fixed currency symbol takes only the leading role; the Z/* rows and columns are the same arm",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/PictureComposition.cs#Validate",
+    "switches": "BLANK WHEN ZERO beside '*' cites §1985:VI.5.9.3 SR7 at 1985 and refuses 'S' with BLANK WHEN ZERO only from 2002; the Z/* exclusion test is the same arm",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for Dialect|Edition|Version in CobolEdit.cs found none; the runtime edit is edition-free",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_04 edits through Z/*; the all-positions zero cases with insertion and sign symbols, and the refusal half, were exercised only by these probes",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/zsup.cob",
+    "printed": "ZZ,ZZ9: 123->[   123] 0->[     0] 12345->[12,345]; **,**9: 123->[***123] 0->[*****0]; ZZ.ZZ: 0->[     ] .05->[  .05] 1.5->[ 1.50]; **.**: 0->[**.**] .05->[**.05]; *,***.**: 0->[*****.**] 12.5->[***12.50]; +ZZ.ZZ: 0->[      ] 1.25->[+ 1.25]; **.**-: 0->[**.***] -1.25->[*1.25-]; ZZZ.99: 0->[   .00]; ***.99: 0->[***.00] 5->[**5.00]; ZZBZZ0: 0->[      ] 1->[    10]; $ZZ9.99CR: 0->[$  0.00  ]; **/**: 0->[*****] 1->[****1]",
+    "expected": "per GR8: embedded insertion characters suppressed with the string; all-Z zero is all spaces including '+'; all-* zero is all '*' including ',' and '-' but keeps the decimal point; suppression stops at the decimal point"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/zsup.cob",
+    "printed": "1000.5 into ZZ.ZZ -> [  .50]; -1.25 into **.**- -> [*1.25-]",
+    "expected": "edit of the truncated value; negative value with a fixed '-' sign"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-192/src/zsupbad.cob",
+    "printed": "COBOL1934 for Z*99 and **Z9 (mutually exclusive); COBOL1935 for 99.ZZ, Z9Z, ZZ.Z9, **.*9, 9ZZ (precedence chart, naming §1985:VI.5.9.6 at --std 85)",
+    "expected": "refused: Z and * exclusive; suppression only in leading positions left of the point or in all numeric positions"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.9.5 GR8",
+    "check": "OK  §1985:VI.5.9.5 GR8  (5.9.5 Editing Rules)  the text is in GR8"
+   }
+  ],
+  "notes": "Runtime CobolEdit.Format/Materialize produce every GR8 result probed, including the all-'*' zero image that turns ',' and a trailing '-' into '*' while keeping the decimal point. The refusals come from PictureComposition (exclusion test plus the precedence chart, the 1985 chart named at --std 85). The same refusal file gives the same verdicts at --std 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "same refusals (zsupbad at --std 2023); same runtime edit",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.9.5-8",
+  "refutation": "UPHELD",
+  "classes": "d,f",
+  "evidence": "cite.py: OK  §1985:VI.5.9.5 GR8. refute-1985-192/src/zsup2.cob at --std 85: ZZVZZ 0 [    ] .05 [  05] 1.5 [ 150]; **V** 0 [****] .05 [**05]; **.**CR 0 [**.****] -1.25 [*1.25CR]; ZZ.ZZCR 0 [7 spaces]; **,99 (insertion immediately right of the string) 5 [***05] 123 [*1,23] 0 [***00]; ZZPP 1200 [12] 0 [  ]; **B** 5 [****5] 0 [*****]; ZZ.ZZDB 0 spaces; **.**DB 0 [**.****]; -**.** 0 [***.**] -1.5 [-*1.50]; ***,*** 0 [*******]; ZZ/ZZ 105 [ 1/05]. zsup3.cob: -0.001 truncated to zero into **.**- [**.***] and +ZZ.ZZ [6 spaces]; COMPUTE/SUBTRACT GIVING/MULTIPLY GIVING/PACKED sender giving zero into **.** [**.**] and ZZ.ZZ [5 spaces]. All match GR8 on the MOVE and arithmetic store paths.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

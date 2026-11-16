@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-6",
+ "rule-digest": "dc7138fd4633",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "c5a4b5391f3212db99543bee6b4de93278269977aab10ff1b1fc54c24a7f591c",
+   "refuter": "134f6676e5c5c507d9348038e7ce6ca1b48e5e279aebcbeebac9909278b980ff"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-6",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a signed numeric DISPLAY item with SIGN ... SEPARATE [CHARACTER] (written on the item or inherited from a group SIGN clause) stores its sign as an extra leading/trailing character position that is not a digit, counts the S in its size, and uses '+' for positive (including zero) and '-' for negative.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Compiler/Binding/Passes/InheritSignClausesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ElementaryImageWidth; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#ParseDisplayMagnitude; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.Image.cs#DeSignImage",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Passes/CheckSignClausesPass.cs#Run",
+    "switches": "only the syntax-rule subject screen: at DialectLevel < 2002 GateGroupSignSubordinates refuses a group SIGN clause with no signed subordinate or over a non-DISPLAY subordinate (COBOL0900); the GR6 representation path is not switched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SignClause.cs#ScreenReportSignClauses",
+    "switches": "report-group SIGN without SEPARATE refused below 2002; not on the data-item GR6 path",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|CobolVersion over src/WiseOwl.Cobol.Runtime/Values/Numeric (0 files) and over PicInfo.SignKindFor, DataItem width members and the grammar rule signClause (CobolData.g4, no predicate): the representation path takes the same code at every edition; only the SR1/SR2 subject gates above are edition-switched.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f08_07 covers elementary LEADING/TRAILING SEPARATE with positive and negative values; not zero, scaled P/V pictures, the 18-digit maximum, group-inherited SIGN SEPARATE, ODO, reference modification or file records",
+  "probes": [
+   {
+    "class": "a,d,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p1sep.cob",
+    "printed": "ZERO=[+000000+] BIG=[+999999999999999999] BIGN=[-999999999999999999] SCALED=[12-+12] ODO=[31-2+3-] ODO2=[21-2+] NZ=[+00] GRP=[-0506-] RM=[+][+] SE=[+99] FILE=[-00725+] READBACK=-0070",
+    "expected": "sign is an extra '+'/'-' character position at the leading/trailing end, S counted in size (S9(3)=4, S9V9=3), zero positive, group SIGN LEADING SEPARATE applies to GA, GB's own TRAILING takes precedence"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p1ref.cob",
+    "printed": "COBOL2422 on PIC 9(3) (no S), on S9(3) COMP, on PIC X(3); COBOL0900 on group SIGN with only unsigned subordinate and on group SIGN over a COMP subordinate (2002 relaxations refused at 85)",
+    "expected": "§1985:VI.5.12.3 SR1/SR2 refusals"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/VI.5.12@1985-SIGN-CLAUSE/g85_f08_07.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "G1=[-012045+|] G1=[+007008-|]"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR6",
+    "check": "OK  §1985:VI.5.12.4 GR6  (5.12.4 General Rules)  the text is in GR6"
+   }
+  ],
+  "notes": "All three lettered items hold across elementary, group-inherited, scaled, ODO, maximum-size and file-record forms at --std 85. The representation path has no edition switch; edition only gates which subjects may carry the clause (syntax rules). Minor: the SR2 refusal message says 'usage is BINARY' for an item the 85 source wrote as COMP.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-6",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,f",
+  "evidence": "Probe refute-1985-191/r1sep.cob at --std 85 (runs/r1sep-001), aimed at what the reader did not try: negative results that store as zero (COMPUTE A=-0.4 -> [+0]; COMPUTE B=-3*0 -> [00+]; MOVE -0 -> [+000]; COMPUTE D=-1/3 -> [0+]; VALUE -0 -> [+00]); MOVE of a separate-sign item to alphanumeric X(4)/X(3)/X(2) -> [012 ]/[012]/[01] and trailing -> [034 ] (sign character not moved, size one less, as §1985:VI.6.19.4 GR4a requires); MOVE to unsigned 99 -> 12; class NUMERIC with the sign position ' ', '*', and an embedded '-' -> NOT, with '+'/'-' -> NUMERIC (§1985:VI.6.3.1.2: valid separate signs are only + and -); INITIALIZE of a group of LEADING/TRAILING SEPARATE items -> [+00000+]; comparison with nonnumeric literal \"012\" -> EQ; ADD 1 to raw image -099 -> -098. Class c: r1nat.cob refuses USAGE NATIONAL (COBOL0900, 2002 form) and SIGN SEPARATE on PACKED-DECIMAL (COBOL2422); USAGE DISPLAY SIGN IS TRAILING SEPARATE compiles. r3sync.cob: SIGN LEADING SEPARATE SYNC RIGHT item images [-012] and truncates 1234 to [+234]. cite.py: OK §1985:VI.5.12.4 GR6 (the text is in GR6); OK §1985:VI.6.19.4 GR4a; OK §1985:VI.6.3.1.2 (lies in GR5). Lead outside this rule: MOVE -100 TO PIC S99 SIGN LEADING SEPARATE stores [+00] at 85 and at 2023 (runs/r1sep-002 at --std 2023), where §1985:VI.6.19.4 GR4b ('the sign of the sending operand is placed in the receiving item', cite OK) read literally gives [-00]; the project's determination (docs/conformance/7/DOC-A.1-85: a negative zero is no distinct value) normalizes it. That is a MOVE-rule question, not GR6's, whose three lettered items all hold.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

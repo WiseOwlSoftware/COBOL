@@ -1,0 +1,91 @@
+{
+ "rule-id": "1985-GR-VII.4.4.4-4",
+ "rule-digest": "42f996ce9713",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "4fa5fedc765456f763452de1bc5ccb36d6c594a9219d7eb114ad0724562c8ed9",
+   "refuter": "506a611d73c9f1a6650c0e94d8f20c4786c633ec17df70c63b25df733a643d8f"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VII.4.4.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "A sequential READ must select its record from the file position indicator: unsuccessful (46) when no valid next record is established (after an at end or other unsuccessful READ); at end (10) on the first READ of an absent OPTIONAL file; after OPEN the first record; after a READ the next record by record number; at end (10) when none remains; and on success set the indicator to that record's number.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SequentialReadGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#ReadOpenModeGuard; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Unsuccessful; src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#InvalidateFilePosition; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#ReadRecord; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#MovesBackward; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#EditionArg",
+    "switches": "passes --std into the connector registration (FileConnector.Edition)",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#SharingFacilityInEffect",
+    "switches": "DialectBehavior.FileSharingFacility: at 1985 no file sharing / record lock arbitration around the governed READ; at 2023 the lock checks run. Record selection by the file position indicator is not switched",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "PREVIOUS refused below 2002, so a 1985 READ always moves forward unless OPEN REVERSED (accepted only at 1985, construct open-reversed-removed-2002) set SequentialConnector.Reversed",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep 'Edition|DialectBehavior' over SequentialConnector.cs and FileConnector.cs: SequentialReadGuard and ReadRecord have no edition test; the edition reaches the connector only through SharingFacilityInEffect (locking) and the 1985-only REVERSED phrase",
+  "behaviour-differs-by-edition": "yes: at 1985 there is no PREVIOUS phrase and no file-sharing lock check, and OPEN INPUT REVERSED (1985 only) reverses the record-number order; the selection rules a-d themselves are the same code at every edition",
+  "witnesses-cover": "part: the witnesses cover the absent-OPTIONAL 10 then 46 arm, 46 after at end and OPEN of an optional file; the I-O mode REWRITE-then-READ ordering, an empty present file, reopen reset, and the REVERSED order are not exercised",
+  "probes": [
+   {
+    "class": "b,c,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/fpi.cob",
+    "printed": "A1 AAA 00 / A2 BBB 00 / A3 CCC 00 / A4 AT END 10 / A5 46 / A6 46 / B1 AAA 00 / C1 REW 00 / C2 BBB 00 / C3 XXX 00 / E1 AT END 10 / E2 46 / O0 05 / O1 AT END 10 / O2 46 / V0 00 / V1 CCC 00 / V2 BBB 00 / V3 XXX 00 / V4 AT END 10",
+    "expected": "c) first record after OPEN; d) next by record number after READ (REWRITE does not move it); no record -> 10; a) after at end -> 46 and again 46; empty file 10 then 46; b) absent OPTIONAL 05, first READ 10, then 46; reopen restarts at record 1; OPEN REVERSED reads 3,2,1 then 10"
+   },
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/rcv11b.cob",
+    "printed": "O1 LEN=04 N=3 / O2 LEN=10 N=9 / OPEN NF ST=35 / NF READ ST=47 LEN=42",
+    "expected": "ODO records selected in order; a READ after a failed OPEN is unsuccessful 47"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.4.4.4 GR4",
+    "check": "OK  §1985:VII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VII.4.4.4 GR12",
+    "check": "OK  §1985:VII.4.4.4 GR12  (4.4.4 General Rules)  the text is in GR12"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.4",
+    "check": "OK  §1985:VII.1.3.5 GRL2.4  (1.3.5 I-O Status)  the text is in GRL2.4"
+   },
+   {
+    "cite": "§1985:VII.1.3.5 GRL2.2",
+    "check": "OK  §1985:VII.1.3.5 GRL2.2  (1.3.5 I-O Status)  the text is in GRL2.2"
+   }
+  ],
+  "notes": "SequentialReadGuard tests open mode (47), then the GR12 poison (46), then absent OPTIONAL (10), so the first-time-only 10 and the 46 that follows come out in the 1985 order; ReadRecord selects forward by ordinal, or backward under OPEN REVERSED. Every probe leg matched the 1985 text. Tooling aside: cite.py suggested the designator GRL2.4e.2 for the 46 text but then rejects that designator; GRL2.4 checks OK.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VII.4.4.4-4",
+  "refutation": "UPHELD",
+  "classes": "a,b,e",
+  "evidence": "Attacked GR4a/GR12's scope: only an UNSUCCESSFUL READ poisons the indicator; an unsuccessful REWRITE must not, and a 04 READ is successful. fpi2.cob at --std 85 (runs/fpi2-001), varying sequential file in I-O mode: REWRITE before any READ -> 'USE VF 43 / K0 43', then READ selects record 1 'K1 AAAAA 00' (indicator from OPEN, GR4c); REWRITE of a wrong-length record -> 'USE VF 44 / K2 44', then READ selects record 2 'K3 BBB 00' and 'K4 CCCCCCC 00' (GR4d, not 46). Absent OPTIONAL file opened I-O (§1985:VII.4.3.4 GR21 creates it): 'O0 05 / O1 AE 10 / O2 46'; reopened INPUT now present and empty: 'P0 00 / P1 AE 10'. gr11c.cob: a 04 READ (truncated record) is followed by the next record 'C2 ... ST=04', 'C3 ... ST=00' (no 46). cite.py: 'OK  §1985:VII.4.4.4 GR4  (4.4.4 General Rules)  the text is in GR4'; 'OK  §1985:VII.4.4.4 GR12  (4.4.4 General Rules)  the text is in GR12'; 'OK  §1985:VII.4.3.4 GR21  (4.3.4 General Rules)  the text is in GR21'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

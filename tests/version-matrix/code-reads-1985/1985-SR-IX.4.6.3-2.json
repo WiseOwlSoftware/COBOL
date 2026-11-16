@@ -1,0 +1,104 @@
+{
+ "rule-id": "1985-SR-IX.4.6.3-2",
+ "rule-digest": "439e82672dd2",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "1f3c6db3cd9784bcaa17944a5e6a62a80205db1e513f362a47f35da302a21e84",
+   "refuter": "7e545ae96cf7126520e82b93d48bf538c55ea4f068e25e53ddbeb293230b9d2e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IX.4.6.3-2",
+  "verdict": "CONFORMS",
+  "requirement": "The operand of an indexed-file REWRITE must be record-name-1, the name of a logical (level-01) record in the File Section, qualified where needed (by record or file name); a Working-Storage item, a subordinate item, a reference-modified record, a file-name, or the later FILE file-name-1 form must be refused at 85, and a qualified record-name must bind to the right file.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#ResolveRewriteRecord; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ResolveRecordName; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#GateFilePhrase",
+    "switches": "REWRITE FILE file-name-1 refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRewriteStatement",
+    "switches": "the word RECORD after record-name refused below 2002",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "ResolveRecordName and ResolveRewriteRecord contain no edition test (read whole); the edition consults are the parse-time gates in VersionConformancePass.",
+  "behaviour-differs-by-edition": "yes: from 2002 REWRITE also takes the FILE file-name-1 alternative; at 85 only record-name-1. The record-name check itself is the same code at every edition.",
+  "witnesses-cover": "part: pb347_record_name_identity exercises the qualified record-name acceptance on a sequential file; the indexed arm, the refusals (WS item, subordinate item, ref-mod, ambiguous name, file-name, FILE form) are not in the witness.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwpos.cob",
+    "printed": "RW1 00 / RW2 00 / RW3 INV 23 / N1 K1123 / N2 K2ZZZ",
+    "expected": "REWRITE REC-A OF FX (qualified, same name in FY) and REWRITE REC-B (second record of FX) replace the right records; non-existent key gives invalid key 23"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref1.cob",
+    "printed": "error COBOL1757: REWRITE 'WS-REC' ... is not a logical record of any file description entry",
+    "expected": "refused: not a File Section record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref2.cob",
+    "printed": "error COBOL1757: ... is subordinate to 'REC-A', which is the logical record of 'FX'",
+    "expected": "refused: not a logical record"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref3.cob",
+    "printed": "error COBOL1639: 'REC-A' does not uniquely identify a data item",
+    "expected": "refused: must be qualified to be unique"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref4.cob",
+    "printed": "error COBOL1757: record-name-1 is a record-name, not an identifier, so it shall not be reference-modified",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref6.cob",
+    "printed": "error COBOL1639: 'FX' is declared as a file-name ... not as a data item",
+    "expected": "refused: a file-name is not a record-name"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/rwref5.cob",
+    "printed": "error COBOL0900: the FILE phrase of a WRITE or REWRITE statement requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "refused: §1985:IX.4.6.2 prints record-name-1 alone"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IX.4.6.3 SR2",
+    "check": "OK  §1985:IX.4.6.3 SR2  (4.6.3 Syntax Rules)  the text is in SR2"
+   }
+  ],
+  "notes": "Every refusal and the qualified acceptance behave per the 1985 rule. COBOL1757 messages cite §2023:14.9.35.3 SR1 and print the qualified operand with its spaces dropped ('FX-DATAOFREC-AOFFX'), cosmetic only.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IX.4.6.3-2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d,e",
+  "evidence": "Read §1985:IX.4.6.2-4.6.4. Run at --std 85: REWRITE REC-A OF FX of a GLOBAL indexed FD from a contained program (q8glob) accepted and rewrites (IN 00 / OUT K1ZZZ 00); REWRITE of the second (implicitly redefining) record REC-B of an EXTERNAL random indexed FD (q9ext) accepted (RW 00 / OUT K1QQQ 00). Refusals: REWRITE of an SD record (q10sd) COBOL1692 + COBOL1720; REWRITE of a Linkage Section 01 (q11lnk) COBOL1757 'not a logical record of any file description entry'. cite.py: 'OK  §1985:IX.4.6.3 SR2  (4.6.3 Syntax Rules)  the text is in SR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,108 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-1",
+ "rule-digest": "a117e37a34bd",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-216",
+  "sources": {
+   "reader": "3b7646bf42922a2658edef0fcc3fd548476033cb695823d8bb6c07271ee84524",
+   "refuter": "137fede05aeb2c66926551a20dcf1510fe229ca8aa9a65013918339e4f77b5f8"
+  },
+  "imported": {
+   "reader": "c90a2af6b64dbdd79e4a45a4e0330e10730ac5bb2a919b545c4973fc255e9565",
+   "refuter": "ba4f700c0fd52b23f8a57b9893e15d9daba13ccb369a4ff6f0ab3d4f58080781"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, a Format 1 ACCEPT (FROM omitted, or FROM a mnemonic-name of a hardware device) must transfer data from the device and replace the whole content of identifier-1, for every receiver the 1985 formats allow (alphanumeric, alphabetic, numeric DISPLAY or COMPUTATIONAL, edited, group, subscripted, reference-modified, a group containing OCCURS DEPENDING ON), with the device-to-item conversion the implementor documents (DOC-A.1-1).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#CharacterPositions; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceNumeric; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#RecordSize",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAcceptStatement",
+    "switches": "END-ACCEPT (construct end-accept-2002, COBOL0816) refused below COBOL-2002; outside the device transfer itself",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAccept",
+    "switches": "ctx.Edition is only the diagnostic sink; the Format 1 device binding has no edition arm",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep Edition|DialectLevel|CobolVersion|DialectBehavior in AcceptDisplayEmitter.cs, AcceptSource.cs and ReceivingStore.cs: no hit; the conversion form is the --numeric-display compile option, not the edition (DOC-A.1-1: 'at every --std').",
+  "behaviour-differs-by-edition": "no: the device transfer and its conversion are the same code at every edition",
+  "witnesses-cover": "part: g85_z05 covers alphanumeric receivers and an unsigned numeric DISPLAY receiver, with and without FROM; not exercised: alphabetic, signed, scaled, COMP, edited, group, ODO group, subscripted and reference-modified receivers",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_kinds.cob",
+    "printed": "A10[HELLOWORLD] AL6[ABCDEF] N3[007] SN3[-012] SC5[012.50] CB4[1234] ED6[12.34 ] BIG[123456789012345678] GRP[ABC123]",
+    "expected": "every receiver's prior content (all Z, 999, QQQ) is replaced; numeric receivers convert by the documented decimal form; an edited receiver stores the characters unedited (DOC-A.1-1)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_kinds.cob",
+    "printed": "ODO[ODOODOWWWW] RM1[0123456789] RM2[RRRRRRRRRX] RM3[RRRPQRSTUV] T5[TTTTTTUVWXTTTTT]",
+    "expected": "an ODO group at 3 occurrences receives 6 characters; reference modification at (1:10), (10:1) and (4:) and a subscripted element receive exactly their positions"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_kinds.cob",
+    "printed": "run with empty input: N3[000] SN3[+000] BIG[000000000000000000] A10[          ]",
+    "expected": "end of input leaves the receiver spaces, converting to zero (DOC-A.1-5); the 18-digit maximum takes 18 digits"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_ref_nodev.cob",
+    "printed": "error COBOL0817: ACCEPT FROM 'NO-DEV': not a mnemonic-name declared in SPECIAL-NAMES",
+    "expected": "refused (§1985:VI.6.5.3 SR1)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_ref_switch.cob",
+    "printed": "error COBOL0817: 'SW1' is the mnemonic-name of the switch-name 'SWITCH-1', not of a device-name",
+    "expected": "refused: not associated with a hardware device (§1985:VI.6.5.3 SR1)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_ref_endacc.cob",
+    "printed": "error COBOL0816: END-ACCEPT (explicit scope terminator) requires COBOL-2002",
+    "expected": "refused at 85: the 1985 ACCEPT has no END-ACCEPT"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_ref_exc.cob",
+    "printed": "error COBOL2269: unexpected 'ON'. ACCEPT ON EXCEPTION ...",
+    "expected": "refused at 85: no ON EXCEPTION phrase in the 1985 formats"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR1",
+    "check": "OK  §1985:VI.6.5.4 GR1  (6.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.6.5.3 SR1",
+    "check": "OK  §1985:VI.6.5.3 SR1  (6.5.3 Syntax Rules)  the text is in SR1"
+   }
+  ],
+  "notes": "run_probe.py gives the program /dev/null as standard input, so the input-bearing runs executed the program run_probe built (runs/acc_kinds-002) as `dotnet acc_kinds.dll < acc_kinds.in` in that same run directory; the run_probe run itself is the end-of-input probe. COBOL0817 and COBOL2269 cite §2023 text at --std 85 (a diagnostic-wording matter, not this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,d,f",
+  "evidence": "Read AcceptDisplayBinder.BindAccept (excluded receivers, the device arm) and checked DOC-A.1-1 (the implementor's conversion). Probes at --std 85 under runs/: acc_grp (input acc_grp.in, the built program run with input redirected): an 80-byte group ending in PIC S9(9) COMP stores the record byte for byte (G shows ...aaaaABCD back), a group with PIC 9(4) COMP stores its 8 leftmost characters, a signed SIGN LEADING SEPARATE item inside a group takes characters positionally; class a: a group J holding its own ODO object (JN=3 before the ACCEPT) takes 10 characters, its MAXIMUM length, which 1985 requires for a receiving group ('OK  §1985:VI.5.8.4 GR3b ... If the group is a receiving item, the maximum length of the group will be used'). class c: ACCEPT X FROM CONSOLE with no SPECIAL-NAMES refused COBOL0817 (acc_dev); FROM a mnemonic for SYSOUT refused 'not capable of input' (acc_outdev); a PIC N receiver refused COBOL0900 'requires COBOL-2002' (acc_nat). An index data item is refused (BindAccept line 80), as 1985 USAGE INDEX allows no ACCEPT reference. No receiver kept prior content. cite.py: 'OK  §1985:VI.6.5.4 GR1  (6.5.4 General Rules)  the text is in GR1'. Diagnostics cite §2023 text at --std 85: a wording matter, not this rule.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

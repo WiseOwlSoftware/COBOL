@@ -1,0 +1,81 @@
+{
+ "rule-id": "1985-GR-IV.4.3.8.2.4-3",
+ "rule-digest": "f92fced27f15",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-187",
+  "sources": {
+   "reader": "6a998a4b1e57a690f7e45cdec6fe86e3fd296177f87d26c4e5397bed4746166a",
+   "refuter": "d6a21439328cab15932be6b7a4e5f211c8acebc58be757ed8d33d358dae71686"
+  },
+  "imported": {
+   "reader": "e92b2a2aee10aeff5dc4828396e3c6972556ed2810db41ef269715ddc52e8d6e",
+   "refuter": "c8889095810ea4805b9b9dc94a7baf6a93c7c3699fedfc766779a141db66b384"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "An index-name's index gets its value only from PERFORM VARYING, SEARCH (ALL, serial, and serial VARYING) and SET, and the compiler must refuse every other statement that would store into an index-name (MOVE, ADD, SUBTRACT, COMPUTE, INITIALIZE, ACCEPT, INSPECT); using an index before it is initialized is the program's error, which the rule leaves undefined.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ReportUnidentified; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName",
+    "switches": "ConstructRegistry.Check QualifiedIndexName2002 refuses a qualified index-name (IX OF T) at 85; an unqualified index-name resolves the same way at every edition",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/ConstructRegistry in NameResolution.cs and Procedure/Verbs/SetBinder.cs; the index-name-in-identifier-position refusal (COBOL1637) consults no edition",
+  "behaviour-differs-by-edition": "no: the statements that may modify an index and the refusal of the others are the same at every edition; at 85 a qualified index-name and an inline PERFORM VARYING ... AFTER are refused by their own gates",
+  "witnesses-cover": "part: g85_f04_07 covers SET TO, SET UP BY, inline PERFORM VARYING, SEARCH ALL and serial SEARCH; not exercised are the refusals of other modifying statements, PERFORM VARYING ... AFTER over two indexes, SET DOWN BY, SEARCH VARYING another table's index, an index data item, and relative subscripts",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/idx1.cob",
+    "printed": "COBOL1637 for MOVE 1 TO IX, ADD 1 TO IX, SUBTRACT 1 FROM IX, COMPUTE IX, MOVE IX TO N, INITIALIZE IX, ACCEPT IX, INSPECT IX",
+    "expected": "an index may be modified only by PERFORM, SEARCH and SET: each other statement refused"
+   },
+   {
+    "class": "a,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/idx2.cob",
+    "printed": "PV CBAFED / REL CE / DN D / SV 03 03 X / XI 03",
+    "expected": "PERFORM ... VARYING IR AFTER IC FROM 3 BY -1 walks CBAFED; IR - 1, IC + 2 relative subscripts; SET DOWN BY 2; SEARCH C VARYING IU steps IU with IC; SET through a USAGE INDEX item"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/idx4.cob",
+    "printed": "COBOL0900 a qualified index-name requires COBOL-2002",
+    "expected": "IX OF T is not 1985 syntax: refused"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-187/idx3.cob",
+    "printed": "INIT 01 / USE [A] at --std 85 and at --std 2023",
+    "expected": "undefined: the rule obliges the program to initialize the index; the compiler starts it at occurrence 1"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.3.8.2.4 GR3",
+    "check": "OK  §1985:IV.4.3.8.2.4 GR3  (4.3.8.2.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "An index-name is in no data-name table, so every identifier position that would store into it reaches ReportUnidentified's IndexName arm and COBOL1637; SET, SEARCH and PERFORM VARYING resolve it through ResolveIndexName. An uninitialized index reads as occurrence 1; the 1985 rule makes that a program error with no required behaviour, so it is not a conformance gap.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-IV.4.3.8.2.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,d,f",
+  "evidence": "Probe refute-1985-187/ri1.cob (runs/ri1-001, --std 85, compile-only): every storing position the reader did not try is refused with COBOL1637: MULTIPLY BY IX, DIVIDE INTO IX, UNSTRING COUNT IN / WITH POINTER / TALLYING IN IX, STRING WITH POINTER IX, INSPECT TALLYING IX, ADD/MULTIPLY/DIVIDE GIVING IX, DIVIDE REMAINDER IX (12 statements, 12 refusals). Probe ri2.cob (runs/ri2-001): out-of-line PERFORM VARYING IX leaves 06, serial SEARCH AT END, SET TO an identifier, SET UP BY an identifier, SEARCH WHEN setting from IX, and index-name relation conditions (IX = 3, IX < M) all accepted and correct. cite.py: 'OK  §1985:IV.4.3.8.2.4 GR3  (4.3.8.2.4 General Rules)  the text is in GR3'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

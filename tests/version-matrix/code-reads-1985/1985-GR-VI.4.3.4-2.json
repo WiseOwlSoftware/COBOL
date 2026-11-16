@@ -1,0 +1,86 @@
+{
+ "rule-id": "1985-GR-VI.4.3.4-2",
+ "rule-digest": "85d32a92093a",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-189",
+  "sources": {
+   "reader": "3af5318bf9ff3976f66ce74c54ffe674c4f422852c670fb921cfe8c4c13b3f15",
+   "refuter": "f1088f9ce80fd8fc6afebba27599237dfdb6a4bf42fb275ba450e4cef10d73c3"
+  },
+  "imported": {
+   "reader": "41fd98e134a1c7182b5bd1e3877d022adc3fb28d150f76fb8fd238bdeb820cc6",
+   "refuter": "2190224f30bab11e5762463c0bff63b6b56ab070649dd75b03e1ee4e21b49398"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.4.3.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a program with no SOURCE-COMPUTER paragraph, and not contained in a program that has one, is compiled for the host on which it is compiled: the compiler must accept it, compile it as for the host, and apply none of the paragraph's clauses (in particular, debugging lines are comment lines).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#configurationParagraph; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindDeclarations; src/WiseOwl.Cobol.Compiler/Binding/ConfigurationStep.cs#Inherit; src/WiseOwl.Cobol.Frontend/Parsing/DebuggingLineRewriter.cs#Rewrite",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitSourceComputerParagraph",
+    "switches": "Constructs.ComputerNameOptional2002: at 85 WITH DEBUGGING MODE without computer-name is refused (COBOL0900); ConfigurationParagraphLonePeriod2002 via GateLonePeriod",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "placement of contained programs (from 2002 inside the procedure-division bracket); reached by the contained-program probes only",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Version|Year in DebuggingLineRewriter.cs and ConfigurationStep.cs found none; DataBinder's DebuggingModeDeclared OR-in is edition-free. The default (no paragraph) path consults no edition: there is one source computer, the host.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f05_03 is one program; the contained-program half (no paragraph in container or containee) is not exercised",
+  "probes": [
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc1.cob",
+    "printed": "SC1 NO ENVIRONMENT DIVISION (the D line not displayed)",
+    "expected": "compiled for the host; debugging line is a comment (GR2 with GR5)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc2.cob",
+    "printed": "SC2 NO SOURCE-COMPUTER / SC2IN CONTAINED (no D lines)",
+    "expected": "container and containee without the paragraph compile for the host; no debugging lines compiled"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc6.cob",
+    "printed": "SC6 DEBUGGING MODE / DEBUG LINE COMPILED / SC6IN CONTAINED / DEBUG LINE COMPILED IN",
+    "expected": "contrast: a container WITH a SOURCE-COMPUTER paragraph carries its clause into the containee (GR1), the case GR2 excludes"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-189/sc7.cob",
+    "printed": "error COBOL1643: a CONFIGURATION SECTION is specified in a program contained within another program",
+    "expected": "refused: the 1985 Environment Division forbids a configuration section in a contained program, so a containee's source computer comes only from its container"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.4.3.4 GR2",
+    "check": "OK  §1985:VI.4.3.4 GR2  (4.3.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "There is one source computer, the host the compiler runs on; an absent paragraph yields exactly that and no clause takes effect. The contained-program clause of the rule is honoured through ConfigurationStep.Inherit, which copies the container's slice, so a containee is never seeded with a clause its container lacks.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.4.3.4-2",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "refute-1985-189/seqcfg.cob: SQA (SOURCE-COMPUTER ... WITH DEBUGGING MODE, END PROGRAM SQA) followed by a separately compiled SQB with no Environment Division and two D lines, one of them not COBOL ('THIS IS @@ NOT COBOL ((.') -> compiles; SQA's D line runs, SQB's do not (SQB is not contained in SQA, so the source computer is the host and its debugging lines are comments). The mode does not leak along the sequence: DebuggingLineRewriter#Rewrite pushes a fresh UnitFrame(inheritedMode: false) for an outermost PROGRAM-ID. cite.py: OK  §1985:VI.4.3.4 GR2 ... the text is in GR2; OK  §1985:VI.4.3.4 GR5 ... the text is in GR5.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

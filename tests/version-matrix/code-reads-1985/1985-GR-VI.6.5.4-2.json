@@ -1,0 +1,73 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-2",
+ "rule-digest": "16f8de0a059a",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-216",
+  "sources": {
+   "reader": "3b7646bf42922a2658edef0fcc3fd548476033cb695823d8bb6c07271ee84524",
+   "refuter": "137fede05aeb2c66926551a20dcf1510fe229ca8aa9a65013918339e4f77b5f8"
+  },
+  "imported": {
+   "reader": "20af59a972fcde61cbd6c1b2a022e3839bb1674a38991d22d499481a377e6baa",
+   "refuter": "6315526fbc322ae42df12f6c3f4aedf0811de01c2d397c31011ab558dfce33ca"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, the implementor must define the size of a data transfer for each hardware device ACCEPT reaches, and the compiler must transfer that size: WiseOwl documents one 80-character record for every input device (CONSOLE, SYSIN and the FROM-omitted default), a shorter line padded and a longer line split into consecutive records (DOC-A.1-5).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#RecordSize; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceNumeric; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectLevel|CobolVersion|DialectBehavior in AcceptDisplayEmitter.cs, AcceptSource.cs and ReceivingStore.cs: no hit; the conversion form is the --numeric-display compile option, not the edition (DOC-A.1-1: 'at every --std').",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_z08 covers elementary alphanumeric receivers; not exercised: a COMP receiver (one whole record) and a receiver spanning three records",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_size.cob",
+    "printed": "5[01234]; 6[the 90-character line, 70 spaces, then 'WXYZ      ']",
+    "expected": "a 90-character line is two 80-character records, the second padded; X(170) takes both and requests a third record (WXYZ) for its last 10 positions"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_size.cob",
+    "printed": "7[012.50] from the record '         12.5'",
+    "expected": "a COMP receiver converts one whole record (DOC-A.1-1, DOC-A.1-5)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-216/acc_size.cob",
+    "printed": "run with empty input: every receiver spaces, 7[000.00]",
+    "expected": "end of input leaves spaces, converting to zero (DOC-A.1-5)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR2",
+    "check": "OK  §1985:VI.6.5.4 GR2  (6.5.4 General Rules)  the text is in GR2"
+   },
+   {
+    "cite": "§1985:VI.6.5.4 GR4a",
+    "check": "OK  §1985:VI.6.5.4 GR4a  (6.5.4 General Rules)  the text is in GR4a"
+   }
+  ],
+  "notes": "The size is the implementor's, documented in docs/conformance/7/DOC-A.1-5.md and implemented by the one constant AcceptSource.RecordSize for every device. Input runs used the run_probe-built program with input redirected (acc_size.in, acc_size2.in), as for GR1.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,f",
+  "evidence": "The size is the implementor's (DOC-A.1-5: one 80-character record for every input device; output-only devices are refused for ACCEPT, so they need no input size). Probe acc_lines (CRLF input, runs/acc_lines-001, run with acc_lines.in redirected): a 100-character line into X(10) keeps 0123456789 and the next ACCEPT Y(10) starts at the NEXT line (NEXTLINE01), as DOC-A.1-5 says; a 100-character line into X(100) takes record 1 (80) plus 20 characters of record 2; CRLF terminators never reach the receiver; '42' into PIC 9(3) is 042. The behaviour matches the documented size at every case tried. cite.py: 'OK  §1985:VI.6.5.4 GR2  (6.5.4 General Rules)  the text is in GR2'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

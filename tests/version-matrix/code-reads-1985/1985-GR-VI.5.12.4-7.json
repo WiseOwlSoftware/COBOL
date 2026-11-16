@@ -1,0 +1,69 @@
+{
+ "rule-id": "1985-GR-VI.5.12.4-7",
+ "rule-digest": "5f676516c2ac",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-191",
+  "sources": {
+   "reader": "f79c1e53f16169309b98fd73d01548ddf5f1f52d20ab5c3a6a7ca32929d753ca",
+   "refuter": "4b6629f737dbf9518ef40f154e29ec9ddfd9c17bca9e454bde0f0f2fec9296d5"
+  },
+  "imported": {
+   "reader": "7d5ef182c97833f86fce9d973132773b3327787f0473cc354ed716af8a35bd4a",
+   "refuter": "56562ae090d2687e145f07553c692745b1ef307cc650c6341dab37bdca19c0cd"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.5.12.4-7",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every numeric item whose PICTURE contains S is signed (holds negative values), and items with differing sign representations (SIGN LEADING/TRAILING, SEPARATE or not, and other usages) are converted automatically when compared or used in computation.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/PicInfo.cs#SignKindFor; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#ParseDisplayMagnitude; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#FormatDisplaySigned; src/WiseOwl.Cobol.Runtime/Values/Numeric/CobolNum.cs#Compare; src/WiseOwl.Cobol.Runtime/Values/Numeric/OverlappingMove.cs#SignOf",
+  "edition-consulted": [],
+  "edition-search": "grep Edition|DialectLevel|CobolVersion over src/WiseOwl.Cobol.Runtime/Values/Numeric (0 files); PicInfo.SignKindFor takes (usage, signed, sign) only; comparisons and arithmetic decode each operand through its NumProfile SignKind with no edition input.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: l1_sign_signed_item_conversion covers LEADING SEPARATE vs TRAILING SEPARATE compare/add; not over-punch LEADING/TRAILING, COMP and PACKED-DECIMAL operands, scaled items, size error or division",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p2conv.cob",
+    "printed": "EQ6=YES NEG=YES SCALEQ=YES LT=OK ZEQ=YES SUM=-72 EXPR=156 SM=-7 TRUNC=-2 DIV=1 SUBS=C D MV=-12",
+    "expected": "-12 in six layouts compare equal and negative; sum -72; (-12*-12)-(-1.2*10)=156; MOVE -12 to S9 truncates to -2; -12/-12=1"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-191/p2se.cob",
+    "printed": "SIZE-ERR SM=[-5] SUB=OK",
+    "expected": "-5 + -12 = -17 overflows S9 SIGN LEADING SEPARATE: size error, receiver unchanged; TRAILING SEPARATE minus LEADING over-punch = -19"
+   },
+   {
+    "class": "witness",
+    "file": "E:/COBOL-wt/gl1985-tree-a/conformance-suite/cases/13.18.52-SIGN/l1_sign_signed_item_conversion.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "IMG=[-012][012-] EQ=YES NEG=YES SUM=[0024-]"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.12.4 GR7",
+    "check": "OK  §1985:VI.5.12.4 GR7  (5.12.4 General Rules)  the text is in GR7"
+   }
+  ],
+  "notes": "Conversion between trailing/leading over-punch, leading/trailing separate, COMP and PACKED-DECIMAL is automatic in relation conditions, COMPUTE, ADD/SUBTRACT/DIVIDE and MOVE, including scaled operands and size error. No edition switch on this path.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.5.12.4-7",
+  "refutation": "UPHELD",
+  "classes": "d,e,f",
+  "evidence": "Probe refute-1985-191/r2sort.cob at --std 85 (runs/r2sort-001), the comparison paths the reader did not try: SORT ASCENDING on S9(3) SIGN LEADING SEPARATE key over {5,-7,0,-1,12} returns -7,-1,0,5,12 (a byte compare would put '+' 0x2B before '-' 0x2D); SORT DESCENDING on S9(2) SIGN TRAILING (over-punch) returns 12,5,0,-1,-7; ASCENDING on SIGN LEADING over-punch returns -7,-1,0,5,12; ASCENDING on S9(2) SIGN TRAILING SEPARATE over {3,-4,0,-10} returns 10-,04-,00+,03+; SEARCH ALL over an ASCENDING KEY S9(2) SIGN LEADING SEPARATE table finds -3 -> B and 4 -> D; PERFORM VARYING a S9 SIGN LEADING SEPARATE item FROM -3 BY 1 UNTIL > 2 runs 6 times and ends at +3. r3sync.cob: COMPUTE over COMP SYNC, COMP SYNC in ODO and TRAILING SEPARATE SYNC in ODO gives -3+9-5=+1. r6usage.cob: group PACKED-DECIMAL/COMP/BINARY members in COMPUTE/ADD give W=617, C=10. cite.py: OK §1985:VI.5.12.4 GR7 (the text is in GR7).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

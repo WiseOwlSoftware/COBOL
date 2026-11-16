@@ -1,0 +1,112 @@
+{
+ "rule-id": "1985-GR-XIII.3.10.6-4",
+ "rule-digest": "6d9fd08a2005",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-202",
+  "sources": {
+   "reader": "d62b1f86a5e0c82ef539c77b85d2afa99d230d06d7c725d6a79a4e39518c3e39",
+   "refuter": "a07a7838b5d3e16c51b85a49cfeb493f866f3e26fa43d7e35cf17e83e593fb67"
+  },
+  "imported": {
+   "reader": "ee6f0fd15b7f3a823e73c969d2b3b4dc6427e22f94fc4127ad01d1b034cd4ecb",
+   "refuter": "9c49b3c437017db1bc78c7374b6029f78db8e9e9a6440b03530553e967ca222d"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-XIII.3.10.6-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a report heading's NEXT GROUP must (a) absolute: be greater than the line of the heading's final print line and less than FIRST DETAIL; (b) relative: added to that final line, stay less than FIRST DETAIL; (c) NEXT PAGE: present the report heading alone on page 1, the RWCS presenting no other group (page heading, body group, page footing) on that page. The witness covers the legal form of each of a, b and c; the refusal halves are not witnessed.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#MinimumLastLine; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#ApplyNextGroup; src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#PageFeed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+    "switches": "Edition.DialectLevel < 2002 adds the §1985:XIII.3.16.3 SR1 check (NEXT GROUP needs a LINE NUMBER clause in the group); the presentation-rule range checks after it take no edition branch",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#ExceedsThreeSignificantDigits85",
+    "switches": "DialectLevel < 2002: the 85-only three-significant-digit limit on integer-1/integer-2 (§1985:XIII.3.16.3 SR2), checked before the range checks",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/Year in ReportSectionBinder.BindNextGroupClauses, MinimumLastLine (none) and ReportWriter.ApplyNextGroup/PageFeed (none); the report-heading case of the range switch has no edition branch, so 85 takes the latest arm",
+  "behaviour-differs-by-edition": "no: the report-heading NEXT GROUP limits and the NEXT PAGE effect are the same check and runtime at 85 and 2023",
+  "witnesses-cover": "part: the legal forms of a, b and c (g85_f01_04); not the refusals, nor a heading whose lines are relative",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHABS10.cob",
+    "printed": "COBOL2284 integer-1 10 ... less than the FIRST DETAIL integer 10",
+    "expected": "refused: must be less than FIRST DETAIL 10 (GR4a)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHABS03.cob",
+    "printed": "COBOL2284 integer-1 3 shall be greater than the minimum last line number of the report heading (3)",
+    "expected": "refused: the final print line is 3 (GR4a)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHABS09.cob",
+    "printed": "EXIT 0 RAN (RHABS04 also EXIT 0 RAN)",
+    "expected": "accepted: 3 < 9 < 10 and 4 > 3"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHREL07.cob",
+    "printed": "COBOL2284 minimum last line (3) plus integer-2 7 shall be less than FIRST DETAIL 10; RHREL06 EXIT 0",
+    "expected": "3+7=10 refused, 3+6=9 accepted (GR4b)"
+   },
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHRLA05.cob",
+    "printed": "relative lines PLUS 4, PLUS 1 (final line 5): NEXT GROUP 5 refused COBOL2284, 6 accepted (RHRLA06); PLUS 4 accepted (RHRLR04), PLUS 5 refused (RHRLR05)",
+    "expected": "final line = HEADING 1 + 4 - 1 + 1 = 5 (rule 3b): 5 refused, 6 legal; 5+4=9 legal, 5+5=10 refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/RHNP.cob",
+    "printed": "RH NEXT GROUP NEXT PAGE with a CONTROL HEADING FINAL and a PAGE FOOTING: file bytes CRLF 'RH' FF, then CH on line 4, DE on 5, PF on 10; declaratives print 'CH PG 2 LC 00' and 'PF PG 2' only",
+    "expected": "GR4c: the report heading alone on page 1, no control heading and no page footing there"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-202/src/g85_f01_04.cob",
+    "printed": "EXPECT: MATCH",
+    "expected": "the witness golden"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:XIII.3.10.6 GR4a",
+    "check": "OK  §1985:XIII.3.10.6 GR4a  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR4a"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR4b",
+    "check": "OK  §1985:XIII.3.10.6 GR4b  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR4b"
+   },
+   {
+    "cite": "§1985:XIII.3.10.6 GR4c",
+    "check": "OK  §1985:XIII.3.10.6 GR4c  (3.10.6 Report Heading Group Presentation Rules)  the text is in GR4c"
+   }
+  ],
+  "notes": "BindNextGroupClauses refuses (COBOL2284) every boundary violation of a and b, with the final line computed by MinimumLastLine for absolute and relative heading lines; ApplyNextGroup's NEXT PAGE arm feeds a page with no page footing, and the first body group lands on page 2. The diagnostics cite §2023:13.18.37.3 SR6a/SR7a rather than the 1985 rule, which states the same limits.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-XIII.3.10.6-4",
+  "refutation": "UPHELD",
+  "classes": "a,b,c,f",
+  "evidence": "PAGE-default arm: RHFD3 (HEADING 2, FIRST DETAIL omitted, so integer-3 = 2 per §1985:XIII.3.8.4 GR2b): NEXT GROUP 3 refused COBOL2284 against FIRST DETAIL 2. 'A R' sequence (LINE 2, LINE PLUS 1, final line 3): RHAR6 (3+6=9 < 10) accepted, RHAR7 (3+7=10) refused. GR4c with a PAGE HEADING, CH FINAL, CF FINAL, PF and RF (RHNPPH): page 1 holds only 'RH' on line 2, then a form feed; PH, CH, DE, DE, CF, PF and RF all print on page 2, and the USE BEFORE REPORTING PHG declarative printed 'PH PG 2 LC 00' only. cite.py: OK §1985:XIII.3.10.6 GR4c; OK §1985:XIII.3.8.4 GR2b.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

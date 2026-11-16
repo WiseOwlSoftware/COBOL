@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-GR-X.2.5.4-1",
+ "rule-digest": "ae23d8e316f9",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-199",
+  "sources": {
+   "reader": "f2e7d2c327033860b1b3ff81a6c5e472804dc40391f672cc6a9ce331d9f25e49",
+   "refuter": "ec70c5001a4b0986d42377a2a7fc5caa65fc0f05f6e0af63a8f5ec8eb884fc16"
+  },
+  "imported": {
+   "reader": "683d2a4813ac087badb9214cb92216da81f8bba2182e465c3d0c76335c5d6bd6",
+   "refuter": "db3ca0b8c49dc2cec47a0f0c2e4a6865a2abe4fe63a52fbe7470bdc774b4f22c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.2.5.4-1",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 every program that contains another program, or is contained in one, must carry its END PROGRAM header; a contained program or container without one is refused, and a single uncontained program may omit it.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#ScreenProgram; src/WiseOwl.Cobol.Compiler/Validation/EndMarkerPass.cs#Run; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#programUnit; src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#Screen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/SourceUnitShape.cs#ContainedFollowProcedureDivision",
+    "switches": "Year>=2002 requires a procedure division before contained programs; at 85 a container without a procedure division is admitted (separate brackets, §1985:X.2.3.1). Not the end-header presence test itself.",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "EndMarkerPass.cs takes EditionContext only to report. A grep for Edition.Year, CobolVersion and Constructs in EndMarkerPass.cs and in the programUnit, nestedProgram and endProgramHeader grammar rules found no gate. The SR1 presence test (contains / precedes) is one arm at every edition.",
+  "behaviour-differs-by-edition": "no: the presence rule is the same arm. 2023 SR1 adds 'precedes another source unit', which 1985 states separately as §1985:VI.2.3.3 GR2, so the shared arm matches 1985 too. Only the procedure-division-before-contained-programs check differs, and that is another rule.",
+  "witnesses-cover": "part: g85_f05_02 covers the accepting side (three levels, each with its header). A contained program without a header and a middle level without one are not in the witness and were probed.",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1b_outer_noend.cob",
+    "printed": "COBOL2793 at (2,8): PROGRAM-ID 'OUTER' contains another source unit, so its end marker END PROGRAM OUTER shall be present",
+    "expected": "refused: the container lacks its end program header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1a_inner_noend.cob",
+    "printed": "COBOL2793 SR1 on OUTER, plus SR3 at END PROGRAM OUTER (the marker pairs with the inner unit)",
+    "expected": "refused: a contained program lacks its end program header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1c_middle_noend.cob",
+    "printed": "COBOL2793 SR1 + SR3: refused",
+    "expected": "refused: the middle program (contained and containing) lacks its header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1f_nopd_contains_noend.cob",
+    "printed": "COBOL2793 SR1 only (85 admits a container with no procedure division)",
+    "expected": "refused: the container lacks its header"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1g_sequence_noend.cob",
+    "printed": "COBOL2793: FIRSTP precedes another source unit",
+    "expected": "refused per §1985:VI.2.3.3 GR2"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1e_single_noend.cob",
+    "printed": "EXIT 0, SOLO",
+    "expected": "a lone uncontained program may omit END PROGRAM"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1d_good.cob",
+    "printed": "EXIT 0: INNER / OUTER DONE",
+    "expected": "accepted and run"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-199/src/c1h_witness.cob",
+    "printed": "EXIT 0, EXPECT MATCH g85_f05_02.out",
+    "expected": "accepted; the nested CALLs print in order"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.2.5.4 GR1",
+    "check": "OK  §1985:X.2.5.4 GR1  (2.5.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VI.2.3.3 GR2",
+    "check": "OK  §1985:VI.2.3.3 GR2  (2.3.3 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "Even at --std 85 the refusal cites ISO §2023:10.7.3 SR1 and says 'source unit'. The behaviour is right, but the citation names the wrong edition. When a contained program lacks its header, the grammar pairs the next END PROGRAM with the inner unit, so the report reads as an ordering error (SR3) plus SR1 on the container; it is still a refusal.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.2.5.4-1",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "Probe r1a_sibling_noend.cob (--std 85): OUTER contains A (with END PROGRAM A) and a sibling B that has no header, then END PROGRAM OUTER. Result: EXIT 65, COBOL2793 SR1 on OUTER plus COBOL2793 SR3 at END PROGRAM OUTER (it 'stands where the end marker of PROGRAM-ID B belongs'). Refused, as GR1 requires. This adds to the reader's container, inner, middle, sequence and lone-program probes. cite.py: OK  §1985:X.2.5.4 GR1  (2.5.4 General Rules)  the text is in GR1. Nothing in the 1985 text makes the presence test differ from the shared arm. The diagnostic cites §2023:10.7.3 at --std 85, which is a wording issue only.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

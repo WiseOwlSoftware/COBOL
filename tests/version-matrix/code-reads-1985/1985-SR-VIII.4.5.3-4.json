@@ -1,0 +1,136 @@
+{
+ "rule-id": "1985-SR-VIII.4.5.3-4",
+ "rule-digest": "9b02c2896ebe",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-211",
+  "sources": {
+   "reader": "89b67344229a37eb0eddba80cdf702b072e623423da097df8296dd2f13f92c3f",
+   "refuter": "baa2b9e02b0d2dc6e63040c74f240ef10e0668610646917a07e6528204dcc4ed"
+  },
+  "imported": {
+   "reader": "88162dfd9e8f8ee6cd5de90538349fab75064d3f044a55fe227b2b916c3cb9fc",
+   "refuter": "599fc3caaeb1974e761e6725a99f08fb0d19fc2f70e321910e105bbb29195410"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VIII.4.5.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a READ of a relative file in random access mode, or of a dynamic-access relative file read without NEXT, is a Format 2 read (random retrieval by the RELATIVE KEY, INVALID KEY/NOT INVALID KEY, no NEXT, AT END or NOT AT END), and the compiler must refuse a Format 1 phrase on a random-access file and bind the dynamic no-NEXT READ as a random retrieval.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadRandomAccessPhrases; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#ScreenForbiddenPhrase; src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadKeyOrganization; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundKeyedIo.cs#ReadKind",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "Edition.Year < 2002: a dynamic READ writing AT END without NEXT is refused (COBOL7144, 1985 SR3) instead of being the 2002+ SR9-implied NEXT; the bound ReadKind is the same either way",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadAdvancingOnLock",
+    "switches": "record-lock phrases refused below 2002 (COBOL0900)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+    "switches": "severity seam only (strict error, permissive warning); not keyed on the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 a dynamic READ with AT END and no NEXT is refused (SR3), where 2002+ implies NEXT; PREVIOUS and the lock phrases are refused at 85. The random-mode refusal and the dynamic no-NEXT random binding are the same code at every edition.",
+  "witnesses-cover": "part: g85_f21_03 covers random and dynamic Format 2 reads with fixed records; g85_f21_09 covers NEXT+AT END on a random file. Not exercised: AT END alone or NOT AT END on a random file, INVALID KEY on a NEXT read of a dynamic file, variable-length records, INTO on a random read, key 0 / out of range.",
+  "probes": [
+   {
+    "class": "a,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1pos.cob",
+    "printed": "R4 [3DD111222333] 00 / R3 INVALID 23 / R2 1BB 00 / D9999 INVALID 23 / D0 INVALID 23 / D1 0AA 00 / DN 1BB 0002 00 / DN 3DD 0004 00 / D1B [0AA         ] 00",
+    "expected": "random reads return the record the RELATIVE KEY names (ODO record of 3..12 chars, INTO padded), INVALID KEY 23 for a missing record or key 0, and a dynamic NEXT after a random read continues from the record read"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1atend.cob",
+    "printed": "error COBOL1720: the AT END phrase shall not be specified for a READ ... ACCESS MODE RANDOM",
+    "expected": "refused: random access uses Format 2, which has no AT END"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1natend.cob",
+    "printed": "error COBOL2269: unexpected 'NOT'. READ NOT AT END: no general format ... prints the NOT AT END phrase beside the INVALID KEY phrase",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1dynnik.cob",
+    "printed": "error COBOL2269: unexpected 'INVALID' ... this READ statement specifies NEXT",
+    "expected": "refused: a NEXT read is Format 1, which has no INVALID KEY"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1seqik.cob",
+    "printed": "error COBOL1720: the INVALID KEY phrase shall not be specified for a READ ... Format-1 sequential read",
+    "expected": "refused (sequential access uses Format 1, SR2)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1dynae.cob",
+    "printed": "error COBOL7144: READ of relative file 'FX' (ACCESS MODE IS DYNAMIC) retrieves sequentially but specifies no NEXT phrase (§1985:VIII.4.5.3 SR3)",
+    "expected": "refused at 85: no NEXT means a random (Format 2) read, which has no AT END"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1prev.cob",
+    "printed": "error COBOL2269: unexpected 'INVALID' ... specifies NEXT or PREVIOUS",
+    "expected": "refused (PREVIOUS is not in the 1985 formats)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1prev2.cob",
+    "printed": "error COBOL7144 ... and error COBOL0900: READ PREVIOUS requires COBOL-2002",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1key.cob",
+    "printed": "error COBOL0864: READ KEY on 'FX': the KEY phrase may be specified only when ORGANIZATION IS INDEXED",
+    "expected": "refused: the 1985 relative Format 2 prints no KEY phrase"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-211/src/r1lock.cob",
+    "printed": "error COBOL0900: a record-lock phrase ... requires COBOL-2002",
+    "expected": "refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.3 SR4",
+    "check": "OK  §1985:VIII.4.5.3 SR4  (4.5.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VIII.4.5.3 SR3",
+    "check": "OK  §1985:VIII.4.5.3 SR3  (4.5.3 Syntax Rules)  the text is in SR3"
+   }
+  ],
+  "notes": "KeyedIoBinder.BindRead binds RANDOM as ReadKind.Random and DYNAMIC without NEXT/AT END as Random; CheckReadRandomAccessPhrases refuses Format 1 phrases on a random file and the grammar's phrase association refuses INVALID KEY beside NEXT. At 85 the dynamic AT-END-without-NEXT form gets its own refusal (CheckReadDynamicNextWritten). Probe r1prev's diagnostic names the INVALID KEY association rather than the 2002 introduction of PREVIOUS, but the program is refused.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VIII.4.5.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85 (runs under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-211/runs): q1rndnext (READ NEXT on a RANDOM relative file, USE declarative, no phrase) -> COBOL1720 'the NEXT phrase shall not be specified ... ACCESS MODE RANDOM'; q1rndnxik (NEXT + INVALID KEY on RANDOM) -> COBOL2269; q1dynuse (DYNAMIC, READ with no phrase under a USE declarative, NOT INVALID KEY alone, INTO, then READ NEXT) -> R5 EEE 00 / USE 23 (key 3 missing) / NIK BBB / R2 BBB 00 / RN EEE 00 0005 / R7 GGG 00: the no-NEXT dynamic READ is a random retrieval by the RELATIVE KEY and NEXT continues from it. cite.py: OK  §1985:VIII.4.5.3 SR4  (4.5.3 Syntax Rules)  the text is in SR4.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

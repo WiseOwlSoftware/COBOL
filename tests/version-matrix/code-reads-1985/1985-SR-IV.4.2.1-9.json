@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-SR-IV.4.2.1-9",
+ "rule-digest": "77c9438e7076",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-205",
+  "sources": {
+   "reader": "1ffa4dd02533b45bf6a816da55ed3989ef16e382a03adf8924fd8064cb6f49af",
+   "refuter": "5cc0ff15703deefc81eafaf93b6fbe5aa936a05baa1edaea549e45f9856d51ca"
+  },
+  "imported": {
+   "reader": "e4df015f28f1afff5a763251dc3cf07a841fd98418b3ac6e92b92c84cb7f882b",
+   "refuter": "26447c6847da7a846fbb5cba508a266d3508c63dc803852727ed7e2dffcbe4be"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-IV.4.2.1-9",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a space may optionally follow any separator except the opening quotation mark (where it is literal content); a punctuation character inside a PICTURE character-string or numeric literal is a symbol of that string (including the comma decimal point under DECIMAL-POINT IS COMMA), a PICTURE string ends only at a space, comma, semicolon or period separator; and separator rules do not apply inside nonnumeric literals, comment-entries or comment lines.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#PIC_STRING; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#DOT; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#FNARG_SEPARATOR; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STR_BODY; src/WiseOwl.Cobol.Frontend/Parsing/SeparatorRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Parsing/PictureSeparatorPeriodRule.cs#Violations; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#CommentEntryParagraphs",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAuthorParagraph",
+    "switches": "the comment-entry paragraphs (AUTHOR, DATE-WRITTEN, ...) are accepted at 85 and refused from 2002 (COBOL0902); the comment-entry text itself is discarded by the logical conversion at every edition",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint",
+    "switches": "a floating-point numeric literal (2002) is refused at 85 (COBOL0900)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition|Version|Year|dialect in SeparatorRule.cs, PictureSeparatorPeriodRule.cs, the lexer's separator and PICMODE rules and ReferenceFormatProcessor's comment-entry set: none reads the edition; the two edition reads are VersionConformancePass construct gates for forms outside or beyond 1985's rule.",
+  "behaviour-differs-by-edition": "yes: comment-entries exist at 85 (their content is exempt from separator rules) and are refused from 2002; floating-point literals are refused at 85",
+  "witnesses-cover": "part: g85_f03_01 and 1985-SR-IV_4_2_1-9 cover a space after the opening quote, '.' and ',' in a PICTURE, a PICTURE ended by a semicolon, separators inside a literal and a comment line; not exercised: comment-entries, DECIMAL-POINT IS COMMA literals and pictures, a signed decimal literal, the refusal of a PICTURE not delimited by a separator, a space after '(' ',' ':' ",
+  "probes": [
+   {
+    "class": "c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr9.cob",
+    "printed": "$1.234,50 / 00,25 / E3 OK / ( \"==; ,.) / [Q  ] / 03,00 (the program's own .out expected ' $1.234,50'; the printed '$1.234,50' is right, since the first $ of $$.$$9,99 is the currency position and 1234 fills the four digit positions)",
+    "expected": "AUTHOR and DATE-WRITTEN comment-entries holding an unbalanced quote, ==, parentheses, ; and , compile; under DECIMAL-POINT IS COMMA the literals 1234,5 / +,25 / -1,5 / 2,0 / -2,9 and pictures $$.$$9,99 / 99,99 / S9(3)V99 read the comma as decimal point; PIC ...; VALUE and PIC X(3), VALUE end the PICTURE at the separator; separators inside a literal are content; ( 1 + 2 ) with spaces after '('"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr9picdelim.cob",
+    "printed": "error COBOL0808: invalid PICTURE symbol 'L' in PICTURE X(3),VALUE",
+    "expected": "a comma with no space after it is no separator, so PIC X(3),VALUE is one PICTURE character-string; refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-205/src/sr9float.cob",
+    "printed": "error COBOL0900: a floating-point numeric literal requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1.5E+3 is no 1985 numeric literal; refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:IV.4.2.1 SR9",
+    "check": "OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9"
+   }
+  ],
+  "notes": "PIC_STRING takes every non-space character and backs off a trailing period, comma or semicolon only when a space follows it, which is exactly SR9's delimiting rule; comment-entry text never reaches the lexer at 85. The one probe difference (sr9-002) was the probe author's expected value for a floating insertion picture, not the compiler.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-IV.4.2.1-9",
+  "refutation": "UPHELD",
+  "classes": "c,d",
+  "evidence": "s89.cob at --std 85: spaces after '(' ',' ':' (TC( 1 ,2 ), W(4: 2), W( K :1 )) inert; numeric literals beginning with punctuation (VALUE -.5, + .5 in COMPUTE) read as symbols of the literal; PIC .99 (a PICTURE beginning with a period) and PIC S9V9 ... VALUE -.5 . compile and print .50. Class c: s9float.cob, the 2002 floating comment indicator *> in area B, refused COBOL0900 at 85. cite.py: 'OK  §1985:IV.4.2.1 SR9  (4.2.1 Separators)  the text is in SR9' (quote 'PICTURE character-strings are delimited only by the separators space, comma, semicolon, or period').",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

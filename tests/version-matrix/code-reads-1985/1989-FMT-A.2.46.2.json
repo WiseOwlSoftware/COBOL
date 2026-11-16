@@ -1,0 +1,86 @@
+{
+ "rule-id": "1989-FMT-A.2.46.2",
+ "rule-digest": "e6ec40d01fbe",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-213",
+  "sources": {
+   "reader": "07a3bc781ea4553ae95c6f4c46d319a4ba3926e90fd22d0612a8c806a5a59f7f",
+   "refuter": "dcc28c5606f0ba555728df0bbafe761ad65887dcddc2af0e1f9e17a8d30cc23b"
+  },
+  "imported": {
+   "reader": "04e352fb7251010a00a52e6981dc70ef3a3ad45bdbe517a5f6165be91e95eed3",
+   "refuter": "73efa5e8db0973c7629729bccebfd78cdd09f3a0a2cf1e8409219219fbfb5fe8"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-FMT-A.2.46.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 FUNCTION WHEN-COMPILED is written with the FUNCTION keyword and no argument list (optionally a reference modifier), returns the 21-character compile-time stamp of §1989:A.2.46.3, and a written argument, an empty '( )' or the bare word are refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#ProgramEmitter; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/EmitCore.cs#WhenCompiledStamp",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
+    "switches": "D8 window: IntroducedIn 85 against DialectLevel",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitFunctionCall",
+    "switches": "function-empty-argument-list-2002: FUNCTION WHEN-COMPILED ( ) refused at 85",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep of IntrinsicBinder.cs and VersionConformancePass.cs; the stamp (ProgramEmitter, RuntimeApi.DateFormat21) takes no edition",
+  "behaviour-differs-by-edition": "yes: only the empty list '( )', refused at 85; the no-argument format and the 21-character value are the same",
+  "witnesses-cover": "part: g85_f39_06 covers the bare form, its length and digits 1-16; not positions 17-21, the reference modifier, stability across executions or the refusals",
+  "probes": [
+   {
+    "class": "d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/wc1.cob",
+    "printed": "FIELDS-OK / SIGN-OK / OFFSET-OK / STABLE x3 / REFMOD-OK / PAD-OK",
+    "expected": "date/time fields in range, position 17 '+', '-' or '0', 18-21 digits, the same value on every execution, (1:4) reference modifier admitted, 21 characters then spaces"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/wc4.cob",
+    "printed": "WC=[2026111604141404-0800] CD=[2026111604141493-0800] (host clock 2026-11-16T04:14:14-08:00)",
+    "expected": "compile time with the local offset -0800"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/wc2.cob",
+    "printed": "COBOL1504 takes 0 argument(s); 1 given for (1) and (\"X\"); COBOL1639 'WHEN-COMPILED' not defined without FUNCTION",
+    "expected": "no argument list in the format"
+   },
+   {
+    "class": "b,c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-213/src/wc3.cob",
+    "printed": "COBOL0900 empty function argument list '( )' requires COBOL-2002",
+    "expected": "refused at 85"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.46.1",
+    "check": "OK  §1989:A.2.46.1  (2.46.1 Description)  the text is in the clause"
+   }
+  ],
+  "notes": "§1989:A.2.46.2's format text is two words, below cite.py's four-word floor, so the Description was checked instead. The value is folded at compile time once per compilation and baked into the program, so every execution sees the same stamp.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-FMT-A.2.46.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "xwc1b.cob at --std 85: FUNCTION WHEN-COMPILED (17:) = [-0800], (1:16) equals the first 16 characters of the moved value, REVERSE (FUNCTION WHEN-COMPILED) is 21 characters (positions 22-30 of the receiver are spaces), and a CONTAINED program XWCSUB returns the same stamp as its container (MAIN=[2026111604220937-0800] SUB=[2026111604220937-0800]) as §1989:A.2.46.3 RV2 requires (cite.py: OK  §1989:A.2.46.3 RV2  (2.46.3 Returned Values)  the text is in RV2). xwc2.cob: WHEN-COMPILED (\"A\" \"B\") refused COBOL1504, (1:2) (1:1) refused COBOL1630. The reader covered (1), (\"X\"), '( )' at 85 and the keyword-omitted form.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,100 @@
+{
+ "rule-id": "1985-FMT-VI.5.13.2",
+ "rule-digest": "34a7eb815bfa",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "09f4199f583cc75e62d4e978f3e75d5445dcd5acbd56a5d2d7dd0255f0b0bf14",
+   "refuter": "29cb7378ec023535bd1e55e5667868e202161f080bb81d1556fa2c15b6354188"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VI.5.13.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 the compiler must accept a data description entry's SYNCHRONIZED clause written as SYNCHRONIZED or its abbreviation SYNC, each alone or followed by exactly one of LEFT or RIGHT, and refuse any other arrangement of those words.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#syncClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SYNCHRONIZED; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#SYNC; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntry; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#InheritSynchronized",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "SYNC, SYNCHRONIZED, LEFT, RIGHT reserved per edition; all four rows are reserved at 85, 2002, 2014 and 2023",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/DataBinder.SynchronizedClause.cs#GateSynchronizedGroup",
+    "switches": "Edition.DialectLevel >= 2023: SYNC written on a GROUP entry is refused COBOL0900 below 2023 (SR1 territory, not the format); the elementary-item path the format governs is untouched",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep -i 'Sync' over src/WiseOwl.Cobol.Frontend/Grammar (only syncClause and the two lexer tokens), VersionConformancePass.cs (only a comment on the group gate), and the binder; syncClause has no version predicate and BindEntry maps LEFT/RIGHT/none to SynchronizedPhrase with no edition test.",
+  "behaviour-differs-by-edition": "no: the format is the same at every edition; only the group-item placement (SR1, a different rule) differs, refused at 85 and legal at 2023",
+  "witnesses-cover": "all of the rule's range at this edition: g85_f09_02 writes all six forms (SYNCHRONIZED, SYNCHRONIZED LEFT, SYNCHRONIZED RIGHT, SYNC, SYNC LEFT, SYNC RIGHT)",
+  "probes": [
+   {
+    "class": "a,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/sync1.cob",
+    "printed": "-12345.67 -345.67 999999999999999999 / -0007 +1234 / +3456",
+    "expected": "SYNC RIGHT and SYNCHRONIZED LEFT inside an OCCURS DEPENDING ON table, SYNCHRONIZED on a signed SIGN LEADING SEPARATE item, SYNC on an edited item and on an 18-digit COMP item all accepted; values use the PICTURE size (GR5: 123456 into S9(4) truncates to 3456)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/syncbadSYNCLEFTRIGH.cob",
+    "printed": "error COBOL1941: unexpected 'RIGHT' (SYNC LEFT RIGHT)",
+    "expected": "refused: the bracket admits at most one of LEFT, RIGHT"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/syncbadLEFTSYNC.cob",
+    "printed": "error COBOL1941: unexpected 'LEFT' (LEFT SYNC)",
+    "expected": "refused: LEFT/RIGHT only follow SYNCHRONIZED"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/syncbadSYNCHRONIZED.cob",
+    "printed": "error COBOL5506: cannot parse construct near 'LEFT' (SYNCHRONIZED IS LEFT)",
+    "expected": "refused: no IS in the format"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/syncgrp.cob",
+    "printed": "error COBOL0900: SYNCHRONIZED on a group item requires COBOL-2023 (targeting COBOL-85)",
+    "expected": "refused at 85: SR1 'This clause may only appear with an elementary item' (the 2023 group form)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.13.1",
+    "check": "OK  §1985:VI.5.13.1  (5.13.1 Function)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VI.5.13.3 SR2",
+    "check": "OK  §1985:VI.5.13.3 SR2  (5.13.3 Syntax Rules)  the text is in SR2"
+   },
+   {
+    "cite": "§1985:VI.5.13.4 GR3",
+    "check": "OK  §1985:VI.5.13.4 GR3  (5.13.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The general format itself carries fewer than four words, so cite.py refuses a quotation on §1985:VI.5.13.2; the function clause and SR2 are cited instead. The grammar syncClause is exactly the 1985 diagram and edition-neutral; every form is accepted and every malformed arrangement probed is refused. The refusal diagnostics cite §2023 clauses at --std 85 (a diagnostic-wording matter, not this rule).",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VI.5.13.2",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "Probes at --std 85 under E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-186/: sy1.cob (run sy1-002) SYNC RIGHT on a 77-level S9(4) COMP, SYNCHRONIZED on COMP, SYNC LEFT on S9(9) COMP, SYNCHRONIZED RIGHT with JUSTIFIED RIGHT, SYNC on a REDEFINES and on FILLER, the clause before and after PICTURE: compiles and prints '-000000005' / '-0012 99999 [ AB]'. Class c: sy2.cob 'SYNCHRONISED' (a spelling no 1985 format has) refused COBOL1941. Class b: sy3 SYNC written twice refused COBOL2423; sy4 SYNC RIGHT LEFT refused COBOL1941; sy5 RIGHT alone refused COBOL1941. Side finding: SYNC on USAGE INDEX refused COBOL2405 citing §1985:VI.5.14.3 SR6 (correct at 85). cite.py: 'OK  §1985:VI.5.13.3 SR2  (5.13.3 Syntax Rules)  the text is in SR2'. The diagram is SYNCHRONIZED|SYNC with an optional LEFT|RIGHT; no form escaped the grammar.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

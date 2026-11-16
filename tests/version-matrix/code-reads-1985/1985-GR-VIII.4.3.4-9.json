@@ -1,0 +1,77 @@
+{
+ "rule-id": "1985-GR-VIII.4.3.4-9",
+ "rule-digest": "01ae8c2c5671",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-197",
+  "sources": {
+   "reader": "359c0ab0e8cbd5c307a03768823e69fdf2f0764e839a7c394dc5c248940caff3",
+   "refuter": "14dbb44353cc61e0ef0d20861d6dba71f6a4ac39506967ccce5af27ba08d26c0"
+  },
+  "imported": {
+   "reader": "7fd20c6ef46544c315f1f1e7fb1e7943707d3c80e2a6570432852dc125a34221",
+   "refuter": "1d84965f746b0e072623f683707415d3501835e68f5970d09741b52d86983951"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.3.4-9",
+  "verdict": "CONFORMS",
+  "requirement": "On a relative-file DELETE, END-DELETE must terminate the most recently preceding unterminated DELETE (§1985:IV.6.4.3), so statements after it lie outside its INVALID KEY / NOT INVALID KEY phrases, a DELETE ... END-DELETE nests as an imperative statement, a DELETE with no phrase (sequential access) may carry END-DELETE, and a stray END-DELETE is refused.",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#deleteStatement; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#conditionalPhrases; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#statementBlock; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindDelete; src/WiseOwl.Cobol.Frontend/Parsing/CobolErrorStrategy.cs#Report",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "END-DELETE reserved at each edition (row reserved true at 1985, 2002, 2014, 2023)",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "deleteStatement ends in conditionalPhrases END_DELETE? with no predicate; its only edition-gated part is the 2002 retryPhrase (VersionConformancePass.VisitRetryPhrase), which is not on the scope path",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f21_02 covers a random-access DELETE inside IF with INVALID KEY / NOT INVALID KEY and END-DELETE; DELETE nested in DELETE, END-DELETE on a sequential-access DELETE with no phrase, implicit termination by ELSE and the stray END-DELETE refusal are not exercised",
+  "probes": [
+   {
+    "class": "b,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/enddel.cob",
+    "printed": "OUTER INVALID 23 / INNER DELETED / AFTER INNER (IN OUTER INVALID) / AFTER OUTER 00 / L2 INVALID 23 / L2 DONE 23 / L3 00 / L3 NEXT QQ2 00",
+    "expected": "the inner END-DELETE ends the inner DELETE so the next DISPLAY runs inside the outer INVALID KEY and the outer NOT INVALID KEY is the outer statement's; ELSE ends an unterminated DELETE in IF; a sequential-access DELETE with only END-DELETE deletes and the next READ returns record 2"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-197/enddel_bad.cob",
+    "printed": "enddel_bad.cob(52,12): error COBOL0306: unexpected 'END-DELETE'. END-DELETE appears without a matching DELETE statement.",
+    "expected": "an extra END-DELETE with no unterminated DELETE is refused"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.3.4 GR9",
+    "check": "OK  §1985:VIII.4.3.4 GR9  (4.3.4 General Rules)  the text is in GR9"
+   },
+   {
+    "cite": "§1985:VIII.4.3.3 SR1",
+    "check": "OK  §1985:VIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1"
+   },
+   {
+    "cite": "§1985:IV.6.4.3",
+    "check": "OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause"
+   }
+  ],
+  "notes": "The record DELETE is the shared grammar rule deleteStatement (the seed KeyedIoBinder.BindDeleteFile is the 2002 DELETE FILE statement, not this one; the record DELETE binds in KeyedIoBinder.BindDelete). Nested, phrase-less and implicitly terminated forms behave as §1985:IV.6.4.3 states and a stray END-DELETE draws COBOL0306.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.3.4-9",
+  "refutation": "UPHELD",
+  "classes": "b,c",
+  "evidence": "ed2.cob at --std 85 (runs/ed2-001): DELETE RM ... INVALID KEY ... NOT INVALID KEY ... END-DELETE inside the OUTER DELETE's INVALID KEY, followed by the outer NOT INVALID KEY: 'O-OK 00 / AFTER 0 / O-INV 23 / I-OK 00 / O-INV-TAIL / AFTER 1' (inner END-DELETE closes only the inner; the NOT INVALID KEY after it is the outer's); dynamic-access DELETE ... END-DELETE 'M2-INV 23 / M2 23'. Refusals: ed3.cob unterminated inner DELETE with INVALID KEY + NOT INVALID KEY inside the outer's imperative-statement -> 'error COBOL2796 ... Write END-DELETE to close it'; ed4.cob NOT INVALID KEY after END-DELETE -> 'error COBOL2269: unexpected 'NOT'. The DELETE statement ends before this token'; ed5.cob later-edition forms: DELETE ... RETRY 3 TIMES -> 'COBOL0900: the RETRY phrase requires COBOL-2002 (targeting COBOL-85)', DELETE FILE -> 'COBOL0900: DELETE FILE requires COBOL-2023 (targeting COBOL-85)'. cite.py: 'OK  §1985:VIII.4.3.4 GR9  (4.3.4 General Rules)  the text is in GR9'; 'OK  §1985:VIII.4.3.3 SR1  (4.3.3 Syntax Rules)  the text is in SR1'; 'OK  §1985:IV.6.4.3  (6.4.3 Scope of Statements)  the text is in the clause'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

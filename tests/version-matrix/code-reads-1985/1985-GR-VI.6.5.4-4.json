@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-GR-VI.6.5.4-4",
+ "rule-digest": "5de860d222dd",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-217",
+  "sources": {
+   "reader": "3d8d8fecb598225035e5e6749b0c7173f8d1dcd382d76160b8315c7de9be5edf",
+   "refuter": "fb0c4b4dc25370e003c23c6e442ad683a8ed15c0b7ef4f3fab4062d8e4dbe37c"
+  },
+  "imported": {
+   "reader": "ac7d986060860ca59eedba4629c93e40c694150300fd8d376d8ab9f289be020a",
+   "refuter": "fed247d8e3464fcacc1ce47c30f8230c52a38c669fcfb1dd2312ddf57fadb98c"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VI.6.5.4-4",
+  "verdict": "CONFORMS",
+  "requirement": "When the device's transfer size differs from the receiver's size, a larger receiver stores each transfer left-aligned in the positions not yet occupied and requests more data (level 2), and a transfer larger than the receiver or its remaining portion stores only its leftmost characters and ignores the rest, for every receiver form 1985 admits (elementary of any category, group, occurs-depending group, reference-modified identifier).",
+  "code-location": "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#Device; src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceNumeric; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitAcceptDevice; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#CharacterPositions; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/PlaceRenderer.cs#UsesCurrentExtent",
+  "edition-consulted": [],
+  "edition-search": "grep -n 'Edition|CobolVersion|Dialect' over AcceptSource.cs, ReceivingStore.cs, AcceptDisplayEmitter.cs and PlaceRenderer.UsesCurrentExtent: no hit on the device-transfer path; the only ACCEPT edition checks are VersionConformancePass.VisitAcceptStatement (END-ACCEPT and the four-digit-year phrases), outside GR4. AcceptDisplayBinder.BindAccept consults ctx.Edition only as the diagnostic sink.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_z08 exercises alphanumeric elementary receivers of 5, 80, 100 and 170 positions only; not exercised: group receivers, occurs-depending groups (data-name-1 outside and inside), edited and signed numeric receivers, reference-modified receivers",
+  "probes": [
+   {
+    "class": "a",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p1acc-002/p1acc.cob",
+    "printed": "1[ABCDEFGHIJKL<spaces>] (ODO group, data-name-1 outside, CNT=3: 12 characters of a 16-character record, rest ignored); 2[05] and the NEXT ACCEPT read line 4 (ODO group, data-name-1 inside, receiving: maximum 122 positions, two records requested); 7[QQ0123QQQQ] 8[QQ0123QQQZ] (ref-mod (3:4) and (10:1) at the right bound)",
+    "expected": "§1985:VI.5.8.4 GR3a/GR3b: current extent when data-name-1 is outside, maximum length for a receiving group holding it; §1985:VI.6.5.4 GR4a/b: left-aligned fill, more data requested, leftmost characters kept"
+   },
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p1acc-002/p1acc.cob",
+    "printed": "3[ABC][123] (group of X(3)+9(3) from 'ABC123XYZ'); 4[12.34 ] (ZZ9.99 edited, characters stored as-is); 5[-012] (S9(3) SIGN LEADING SEPARATE from '-12'); 6[L7..L8..L9..] (X(200) takes three 80-character records, the third cut to 40)",
+    "expected": "GR4a: each transfer stored left-aligned in the unoccupied portion, additional data requested; GR4b: excess characters ignored; numeric conversion is the implementor's (GR1)"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p1acc-001/p1acc.cob",
+    "printed": "with no input left every receiver is space-filled (9[      ]), the signed numeric receiver is +000",
+    "expected": "the receiver is replaced by the (empty) transfer, left-aligned and space-filled"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.5.4 GR4",
+    "check": "OK  §1985:VI.6.5.4 GR4  (6.5.4 General Rules)  the text is in GR4"
+   },
+   {
+    "cite": "§1985:VI.5.8.4 GR3",
+    "check": "OK  §1985:VI.5.8.4 GR3  (5.8.4 General Rules)  the text is in GR3"
+   }
+  ],
+  "notes": "The transfer is one 80-character record (DOC-A.1-5); AcceptSource.Device appends records until the receiver's size and cuts at that size, which is GR4a's left-aligned fill with more data requested and GR4b's truncation. The run helper starts the program with a null standard input, so the input-bearing runs compiled through run_probe.py --compile-only in a fresh directory and ran the produced dll there with the .in file redirected. 'In level 1, only one transfer' does not bind: the implementation provides the level-2 Nucleus.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VI.6.5.4-4",
+  "refutation": "OVERTURNED",
+  "classes": "a,c,d,f",
+  "evidence": "Probe r1comp (runs/r1comp-001 at --std 85, r1comp-002 at --std 2023; compiled with run_probe.py --compile-only, the dll run in that fresh directory with src/r1comp.in redirected): input line '12345678' into PIC 9(4) DISPLAY, COMP, BINARY and PACKED-DECIMAL printed 'D4[1234] C4[5678] B4[5678] K4[5678]'; input '12.50CR' into PIC 9(3)V99 COMP and DISPLAY printed 'CV[000.00] DV[012.50]'. Identical at --std 2023. The 1985 size of every one of these receivers is 4 (resp. 5) characters: cite.py 'OK  §1985:IV.4.3.4  (4.3.4 Selection of Character Representation and Radix)  the text is in the clause' for 'The size of an elementary data item or a group item is the number of characters in standard data format of the item. Synchronization and usage may cause a difference between this size and that required for internal representation'. The 80-character transfer exceeds that size, so GR4b keeps the leftmost characters and ignores the rest: cite.py 'OK  §1985:VI.6.5.4 GR4b ... the text is in GR4b' for 'only the leftmost characters of the transferred data are stored in the receiving data item' and 'OK  §1985:VI.6.5.4 GR4' for 'The remaining characters of the transferred data which do not fit into the receiving data item are ignored'. A binary or packed receiver instead takes ONE WHOLE RECORD (AcceptSource.DeviceNumeric: Device(receiver.ByteForm == Zoned ? size : RecordSize)) and converts all of it, so characters 5-8 decide the value (5678) and the 'CR' past the fifth position makes the value zero: characters GR4b says are ignored are examined. The implementor's own size statement agrees with GR4b and not with the code: DOC-A.1-5 gives the receiving size GR3/GR4 compare against as 'the digit count plus a SIGN SEPARATE position for a fixed-point numeric one' and exempts only floating-point (one record); DOC-A.1-1 documents the whole-record read for binary/packed, so the two implementor entries contradict each other. GR1's implementor conversion governs how the stored characters become the item's representation, not which characters are stored; USAGE COMPUTATIONAL's implementor latitude (§1985:VI.5.14.4 GR4, checked OK) covers representation and range, not the standard-data-format size. Other probes upheld the reader: r1acc-001 (JUSTIFIED RIGHT X(5) from 'AB' -> [AB   ], 9(5) from '1234567' -> [12345], X(85) from 'A' then 'BCDEFGH' -> A + 79 spaces + BCDEF, A(3) from 'XYZW' -> [XYZ], X(100) from a 120-character line -> its first 100, group with a JUSTIFIED RIGHT member from 'P' -> [P ][  ]); class c r1endacc-001: 'ACCEPT X1 END-ACCEPT' refused at 85, COBOL0816.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Runtime/IO/AcceptSource.cs#DeviceNumeric: not an edition switch, a usage switch the reader did not read: NumericByteForm.Zoned takes the receiver's size, every other byte form takes one whole 80-character record, at every --std"
+  ],
+  "corrected": "NON-CONFORMING (wrong-answer, silent), cause (b): the same at --std 2023. Minimal repro: 01 C4 PIC 9(4) COMP. ACCEPT C4. DISPLAY C4. with input '12345678' prints 5678; §1985:VI.6.5.4 GR4b with the 1985 size of the item (4 characters, §1985:IV.4.3.4) stores the leftmost four characters, '1234', and ignores the rest, as the same program does for PIC 9(4) DISPLAY (1234). '12.50CR' into PIC 9(3)V99 COMP stores zero where the five-character window '12.50' is 12.50. Known: kb/Work PB3513 (landed) chose the whole-record read for binary/packed deliberately, following GnuCOBOL 3.2.0, as GR1 conversion latitude; that latitude does not reach GR4b's choice of which characters are stored, and DOC-A.1-5 states the opposite size. Reading stated: if the owner holds that a binary item's GR4 size is one record, DOC-A.1-5 must say so and this becomes a documentation defect only."
+ }
+}

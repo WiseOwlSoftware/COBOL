@@ -1,0 +1,131 @@
+{
+ "rule-id": "1985-GR-VIII.2.4.4-8",
+ "rule-digest": "f727b086773b",
+ "read": {
+  "pin": "d92742fe62d0e2870547f2464006d8bd5722cbfa",
+  "slice": "1985-217",
+  "sources": {
+   "reader": "3d8d8fecb598225035e5e6749b0c7173f8d1dcd382d76160b8315c7de9be5edf",
+   "refuter": "fb0c4b4dc25370e003c23c6e442ad683a8ed15c0b7ef4f3fab4062d8e4dbe37c"
+  },
+  "imported": {
+   "reader": "1e7ea06ff1ff03cdbf0e584b4ae7719fdec231a7fca6b3758db1e97bf1afe31a",
+   "refuter": "0bb468bbf0e3e09d1af1285f92fef9fa2da98d3ae8c907037cfdc6696ed08795"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.2.4.4-8",
+  "verdict": "CONFORMS",
+  "requirement": "For an external relative file connector, every file control entry in the run unit that describes it must specify the same access mode (an omitted ACCESS MODE clause being sequential), data-name-1 of the RELATIVE KEY phrase must be an external data item, and each entry's RELATIVE KEY phrase must reference that same external data item; a run unit that breaks any part must not be accepted.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#NotExternal; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#SameItem; src/WiseOwl.Cobol.Compiler/Binding/FileEntryIdentity.cs#Segments; src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#ExternalTable",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+    "switches": "is2023 (FILE STATUS and LINAGE externality) and DialectLevel<2002 (CheckFileDescriptions against CheckFormat); the RELATIVE KEY externality test (COBOL1624), the same-item test (COBOL1575) and the ACC segment comparison (COBOL6847) run unconditionally, at Error severity, at every edition",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Cite",
+    "switches": "the rule the diagnostics cite: §1985:VIII.2.4.4 GR8 below 2002, §2002:12.3.4.3 GR1 i), §2023:12.4.5.3 GR1 h)",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitRelativeKeyClause",
+    "switches": "ConstructRegistry RelativeKeyClauseAlone2002: at 85 RELATIVE KEY is only a phrase of the ACCESS MODE clause (COBOL0900 otherwise)",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "yes: at 85 the RELATIVE KEY phrase must be written inside ACCESS MODE (the separate RELATIVE KEY clause is COBOL-2002's and is refused); the agreement and externality checks themselves are the same",
+  "witnesses-cover": "part: pb5069_external_entries_agree is the agreeing RANDOM pair; the access-mode disagreement, a non-external key, two different external items, an omitted ACCESS MODE against an explicit one, and sequential access are not in that witness (pb5069-external-access-mode-differs and pb5069-external-relative-key-not-external cover two of them without a 1985 accept line)",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5agree-001/p5agree.cob",
+    "printed": "B[THIRD-REC ] (A writes key 3 in RANDOM access, B reads key 3 through the shared external key)",
+    "expected": "agreeing entries compile and share the connector and the key item"
+   },
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5seqagree2-001/p5seqagree2.cob",
+    "printed": "B[THIRD-REC ][0001] (ACCESS SEQUENTIAL RELATIVE REL-KEY against ACCESS MODE IS SEQUENTIAL RELATIVE KEY IS REL-KEY; the sequential READ sets the shared key to 1)",
+    "expected": "same mode and same external item: accepted"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5omitagree-001/p5omitagree.cob",
+    "printed": "B[THIRD-REC ] (ACCESS MODE omitted against ACCESS MODE IS SEQUENTIAL)",
+    "expected": "an omitted clause is sequential (§1985:VIII.2.4.4 GR1), the same mode"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5moddiff-001/p5moddiff.cob",
+    "printed": "error COBOL6847: ... differ in the access mode (RANDOM against DYNAMIC)",
+    "expected": "refused: entries must specify the same access mode"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5omitdiff-001/p5omitdiff.cob",
+    "printed": "error COBOL6847: ... differ in the access mode (omitted, i.e. sequential, against RANDOM); also COBOL0900 for the bare RELATIVE KEY clause",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5notext1-001/p5notext1.cob",
+    "printed": "error COBOL1624: the RELATIVE KEY data item 'REL-KEY' shall be an external data item (ISO §1985:VIII.2.4.4 GR8) (one describer); p5notext (two describers): COBOL1624 twice and COBOL1575",
+    "expected": "refused: data-name-1 must reference an external data item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5diffitem-001/p5diffitem.cob",
+    "printed": "error COBOL1575: all corresponding SELECT statements ... shall specify RELATIVE KEY naming the same external data item",
+    "expected": "refused: each RELATIVE KEY phrase must reference that same external data item"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5keyomit-001/p5keyomit.cob",
+    "printed": "error COBOL1575 (one sequential entry writes no RELATIVE KEY phrase, the other names the external item)",
+    "expected": "§1985:VIII.2.3.4 GR1f: all entries must have the same external data item in the RELATIVE KEY phrase; refusal is the reading that an entry without the phrase does not have it"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-217/runs/p5seqagree-001/p5seqagree.cob",
+    "printed": "error COBOL0900: a RELATIVE KEY clause that is not a phrase of the ACCESS MODE clause requires COBOL-2002",
+    "expected": "the 1985 relative file control entry format (page VIII-8) prints RELATIVE KEY only as a phrase of the ACCESS MODE clause"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.2.4.4 GR8",
+    "check": "OK  §1985:VIII.2.4.4 GR8  (2.4.4 General Rules)  the text is in GR8"
+   },
+   {
+    "cite": "§1985:VIII.2.3.4 GR1",
+    "check": "OK  §1985:VIII.2.3.4 GR1  (2.3.4 General Rules)  the text is in GR1"
+   },
+   {
+    "cite": "§1985:VIII.2.4.4 GR1",
+    "check": "OK  §1985:VIII.2.4.4 GR1  (2.4.4 General Rules)  the text is in GR1"
+   }
+  ],
+  "notes": "All three parts are checked across the describers of one compilation group; the access mode is also in the SelectFingerprint the run time compares across separately compiled elements (not probed: one source holds both programs). An entry that omits the RELATIVE KEY phrase while another names the external item is refused (COBOL1575), a reading of GR1f/GR8 that treats a missing phrase as a different item; it rejects no source the text plainly allows.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.2.4.4-8",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,e",
+  "evidence": "New accepting probes at --std 85: r5noKey-001 (both entries ACCESS MODE IS SEQUENTIAL with no RELATIVE KEY phrase) ran, 'B[FIRST-REC ]'; r5qual-002 (RELATIVE KEY IS REL-KEY against RELATIVE KEY IS REL-KEY OF EXT-KEYS) ran, 'B[FIRST-REC ]'. The doubt: r5offrnd-001: program A describes '01 EXT-KEYS IS EXTERNAL. 05 REL-KEY PIC 9(4). 05 FILLER PIC X(4).', program B describes the same external record as '05 FILLER PIC X(4). 05 REL-KEY PIC 9(4).'; both entries are ACCESS MODE IS RANDOM RELATIVE KEY IS REL-KEY. It compiled with no diagnostic and ran: A wrote records 2 and 3 through positions 1-4, B moved 2 to its REL-KEY and read 'B[SECOND-REC] KEYS[00030002]': the two entries' keys are different storage (positions 1-4 hold 3, positions 5-8 hold 2). The compile-time check (ExternalFileConnectorRules.Check -> SameItem over DataItem.ExternalItemIdentity) compares the name path 'EXT-KEYS.REL-KEY' only, while the same file's RECORD KEY identity (FileEntryIdentity.KeyEntry) includes the byte offset. 1985 lets each program describe an external record's subordinate items its own way as long as the record name and size agree (cite.py 'OK  §1985:X.4.5.4 GR2 ... the text is in GR2' for 'each record-name of the associated record description entries must be the same and the records must define the same number of standard data format characters'), so a same-named item at another position is not obviously 'that same external data item' (cite.py 'OK  §1985:VIII.2.4.4 GR8 ... the text is in GR8'). Two readings decide it: (1) whether 'the same external data item' is the same name path or the same character positions of the external record; (2) whether GR8, a rule on the run unit, obliges the compiler to refuse at all (the reader's requirement says it must not be accepted). Under the reader's own requirement and reading (1) by position, r5offrnd is a run unit that breaks GR8 and is accepted, which would OVERTURN; under the name-path reading, or if GR8 obliges no detection, CONFORMS stands. Class c: the reader's COBOL0900 for a free-standing RELATIVE KEY clause is confirmed by r5omitA-001 at 85.",
+  "edition-sites-missed": [
+   "src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#ExternalItemIdentity: no edition switch, but the identity GR8's sameness test uses is the name path (record name and subordinate names) without position, unlike FileEntryIdentity.KeyEntry's offset-bearing identity for RECORD KEY"
+  ],
+  "corrected": "If 'the same external data item' means the same character positions of the external record: NON-CONFORMING (under-rejects), cause (b) (ExternalItemIdentity has no edition arm). Repro: runs/r5offrnd-001/r5offrnd.cob, accepted at --std 85 with the two RELATIVE KEY items at positions 1-4 and 5-8 of one external record. No kb/Work note found for the position-blind identity (grep of kb/Work for ExternalItemIdentity and 'same external data item' hits PB1965, PB2118, PB2293, PB2418, PB3212, PB5069, PB5602, PB673; none names a same-named item at another position). For case 1 the known note is PB3513 (landed, the deliberate whole-record read)."
+ }
+}

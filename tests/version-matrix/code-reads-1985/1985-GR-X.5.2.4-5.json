@@ -1,0 +1,82 @@
+{
+ "rule-id": "1985-GR-X.5.2.4-5",
+ "rule-digest": "353b676aefd6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-200",
+  "sources": {
+   "reader": "26bb19fe1d4bb01c88a769c3a58463eeb8ab46fea462e5c6064d202818529b52",
+   "refuter": "ba0b579a4bec30e41782e838b8dd6d1f645c1ed0730b967486861cfa537b810b"
+  },
+  "imported": {
+   "reader": "8677da0668e48b35be87ee8d8db28b0151ab983f1aec6f56ba9830cf6c754a94",
+   "refuter": "69a41049e3237f9ad33b7498f10768b2bb953042d2143273181a4893ec004da5"
+  }
+ },
+ "reader": {
+  "edition-search": "",
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": "",
+  "seeded": true,
+  "rule-id": "1985-GR-X.5.2.4-5",
+  "verdict": "CONFORMS",
+  "requirement": "At 85 a called program without the initial attribute, and every program it contains, is in its initial state (VALUE data, files not open, PERFORM controls and ALTERed GO TOs reset) on its first call in the run unit and on the first call after a CANCEL of it or of a program containing it; on every other entry its state (data, ALTER settings, nested programs' state) is as when last exited, apart from EXIT PROGRAM ending its PERFORM ranges.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CallProgram; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#Cancel; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#EmitStaticReset; src/WiseOwl.Cobol.Runtime/Control/StorageCell.cs#Reinitialize",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+    "switches": "refusesEveryActiveProgram (DialectBehavior.CancelRefusesEveryActiveProgram, folded at the CANCEL site): false at 85 (only a called program that has not exited is refused), true from 2002; the reset itself is one arm",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitProgramIdAttributes",
+    "switches": "RECURSIVE refused at 85, so CallProgram's freshInstance is n.Initial alone and every non-initial program is the cached last-used instance",
+    "same-arm-as-latest": true
+   }
+  ],
+  "behaviour-differs-by-edition": "no: the cached-instance and CANCEL-reset path is the same at every edition; only the CANCEL-of-an-active-program check (CANCEL's own rule) differs",
+  "witnesses-cover": "part: g85_f02_03 covers a numeric counter in a program and its contained program, and CANCEL of the container; not covered: ALTER state, PERFORM-range state, ODO and signed/scaled/edited data, CANCEL of a contained program alone",
+  "probes": [
+   {
+    "class": "a,c,d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr5a.cob",
+    "printed": "ONE -1.5   1.00  1 A / NB 1 / TWO -0.5   0.50- 2 AB / NB 2 / CANCELLED / ONE -1.5   1.00  1 A / NB 1 / ONE -0.5   0.50- 2 AB / NB 1 (run gr5a-001, MATCH)",
+    "expected": "an ALTER (an 85-only verb) and signed-scaled, edited and ODO table data survive to the next entry; CANCEL restores VALUE data and the unaltered GO TO; CANCEL of the contained NB alone makes only NB initial"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-200/src/gr5b.cob",
+    "printed": "SP B1 / SP B2 / SP C / IP B1 / IP B2 / IP C (run gr5b-001, MATCH)",
+    "expected": "an exit from inside a PERFORM range ends it (§1985:X.5.4.4 GR2), so the next entry falling through the range end continues to C, non-initial and initial alike"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.2.4 GR5",
+    "check": "OK  §1985:X.5.2.4 GR5  (cite.py --check with \"is in its initial state the first time it is called within a run unit\")"
+   },
+   {
+    "cite": "§1985:X.2.4.1 GR4",
+    "check": "OK  §1985:X.2.4.1 GR4  (cite.py --check with \"A GO TO statement referred to by an ALTER statement contained in the same program is set to its initial state\")"
+   },
+   {
+    "cite": "§1985:X.5.4.4 GR2",
+    "check": "OK  §1985:X.5.4.4 GR2  (cite.py --check with \"the ends of the ranges of all PERFORM statements executed by that called program are considered to have been reached\")"
+   }
+  ],
+  "notes": "g85_f02_03 MATCHes at 85. A non-initial program is one cached instance per run unit (last-used state); CancelNode cascades to contained programs in reverse order, closes internal files, drops the instance and runs the static reset, so the next CALL builds the initial state."
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.2.4-5",
+  "refutation": "UPHELD",
+  "classes": "c,d,f",
+  "evidence": "g5red (MATCH): a non-initial SUB5 with a REDEFINES over a VALUE item, an OCCURS item with VALUE (legal at 85 per the 1985 Annex item 46), a group VALUE, COMP and ALL-literal VALUEs keeps its changed state on the next call and returns to every VALUE after CANCEL; an EXTERNAL item persists through CANCEL (101,102,103); a contained IN5 with an ALTERed GO TO and a counter keeps both across calls of OUT5 and is initial again after CANCEL OUT5. cite.py: OK §1985:X.5.2.4 GR5 the text is in GR5; OK §1985:X.2.4.1 the text is in the clause (GR1).",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

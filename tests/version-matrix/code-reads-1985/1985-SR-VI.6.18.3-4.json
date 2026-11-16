@@ -1,0 +1,109 @@
+{
+ "rule-id": "1985-SR-VI.6.18.3-4",
+ "rule-digest": "1906864824b0",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-209",
+  "sources": {
+   "reader": "e67efa97fa7def09f93fca295ec3bf1442696d40155671442223522267174241",
+   "refuter": "58b9949a14dc09c0541af37b1d1f61f7860ecb6c16fd51836ed173e8be5ac5b6"
+  },
+  "imported": {
+   "reader": "7818f35955fe541fcd8ee6c5cca5188b73f2c1d204c8afae3226542ad550c212",
+   "refuter": "1745168d0a6495f1c68d771de159aeb36f4e7500af1c1a521453aa998a22f6a2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.6.18.3-4",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85, for every ALL, LEADING, CHARACTERS (TALLYING and REPLACING), FIRST and CONVERTING phrase of INSPECT formats 1-4 the compiler must refuse a second BEFORE or a second AFTER phrase on the same phrase, and accept at most one BEFORE and one AFTER in either order (with the GR8 b/c boundaries both applied).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectDelimiters; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectCountOperand; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingItem; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectReplacingPair; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#inspectConvertingPhrase; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectDelimiters; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+    "switches": "DialectBehavior.InspectBeforeFromFirstEligiblePosition: at 85 a BEFORE boundary is found from the leftmost position (§1985:VI.6.18.4 GR8b), at 2023 from the first eligible position; governs the run-time meaning of a BEFORE+AFTER pair, not the SR4 count",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep Edition/DialectLevel/ConstructRegistry/DialectBehavior in InspectBinder.cs and VersionConformancePass.cs (VisitInspectStatement gates only BACKWARD; VisitInspectConvertingPhrase only CONVERTING TO ALL); the inspectDelimiters grammar rule that enforces SR4 is not edition-gated.",
+  "behaviour-differs-by-edition": "no: the SR4 refusal is the grammar's at every edition (the BEFORE+AFTER run-time boundary differs by GR8b, which the probe's values confirm follow the 1985 text)",
+  "witnesses-cover": "part: pb1125_inspect_printed_format_shapes covers printed-format shapes; a duplicate BEFORE or AFTER on each of the five phrase kinds and the run-time intersection of one BEFORE with one AFTER are not exercised",
+  "probes": [
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i1.cob",
+    "printed": "error COBOL2269: unexpected 'BEFORE' (ALL with two BEFORE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i2.cob",
+    "printed": "error COBOL2269: unexpected 'AFTER' (TALLYING CHARACTERS with two AFTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i3.cob",
+    "printed": "error COBOL2269: unexpected 'BEFORE' (LEADING BEFORE AFTER BEFORE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i4.cob",
+    "printed": "error COBOL2269: unexpected 'AFTER' (REPLACING FIRST with two AFTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i5.cob",
+    "printed": "error COBOL2269: unexpected 'BEFORE' (CONVERTING with two BEFORE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i6.cob",
+    "printed": "error COBOL2269: unexpected 'BEFORE' (REPLACING CHARACTERS with two BEFORE)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i7.cob",
+    "printed": "error COBOL2269: unexpected 'AFTER' (REPLACING ALL AFTER BEFORE AFTER)",
+    "expected": "refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-209/src/i8.cob",
+    "printed": "00 / 00 / 05 / 02 / XAABQAYA / X11B21YA / X11B**YA",
+    "expected": "accepted with one BEFORE and one AFTER in both orders; S='AYAXAA Y' ALL 'A' AFTER 'X' BEFORE 'Y' is 0 by GR8b (BEFORE measured from the leftmost position), T='XAABAAYA' CHARACTERS 5, LEADING 2, FIRST/CONVERTING/CHARACTERS replace only positions in both boundaries"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.6.18.3 SR4",
+    "check": "OK  §1985:VI.6.18.3 SR4  (6.18.3 Syntax Rules)  the text is in SR4"
+   },
+   {
+    "cite": "§1985:VI.6.18.4 GR8b",
+    "check": "OK  §1985:VI.6.18.4 GR8b  (6.18.4 General Rules)  the text is in GR8b"
+   }
+  ],
+  "notes": "The one inspectDelimiters rule (BEFORE [AFTER] | AFTER [BEFORE]) is shared by every count, replacing and converting phrase, so a repeated BEFORE or AFTER ends the statement and draws COBOL2269 at every edition. The binder orders the pair by token index; the 85 arm of GR8b gives the boundaries the 1985 text prints.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.6.18.3-4",
+  "refutation": "UPHELD",
+  "classes": "b,c,d",
+  "evidence": "cite.py: OK  §1985:VI.6.18.3 SR4  the text is in SR4. Probes at --std 85 on S='XABAYABZAB': n1 one ALL phrase with two literal-1 operands each carrying its own BEFORE/AFTER INITIAL, plus a second tally identifier with ALL and LEADING, accepted and printed '05 01' (C1: A at 2,4,6 before Z plus B at 7,10 after Y; C2: A at 9) as the left-to-right GRs give; n3 format 3 with one AFTER and one BEFORE in both orders on ALL, a second ALL operand pair and FIRST printed '03 XabaYAbzAB', correct; n2 two BEFORE INITIAL on one ALL refused COBOL2269; n4 two AFTER (second with INITIAL) on a REPLACING ALL pair refused COBOL2269; n5 CHARACTERS AFTER BEFORE AFTER refused COBOL2269. The optional INITIAL keyword does not let a duplicate through, and a second operand's own phrase is not miscounted as a duplicate.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

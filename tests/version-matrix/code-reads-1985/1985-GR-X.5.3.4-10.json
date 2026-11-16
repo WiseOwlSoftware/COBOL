@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-X.5.3.4-10",
+ "rule-digest": "d73658bdbba6",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-201",
+  "sources": {
+   "reader": "936cada97ec16c97b1455d17cf21dde8a45cc6fb78469daa47404beadd64246d",
+   "refuter": "9abe86d702cdfe03e9f5ffb384226eea6c0cd60316199a366e9b94901e7c4f56"
+  },
+  "imported": {
+   "reader": "abb21f6c2d9ce36ed201b3b6de3964f0076a03cb224ead389825cb4b98b6ca21",
+   "refuter": "d43f36b78e8997c1eb0a8b214ea947cfd705847310199b145b75746bd6b65a45"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-X.5.3.4-10",
+  "verdict": "CONFORMS",
+  "requirement": "During an explicit or implicit CANCEL (including the implicit one of an INITIAL program's EXIT PROGRAM and the GR4 cascade to contained programs), every file in the open mode associated with an INTERNAL file connector of the cancelled program is closed as by a CLOSE with no optional phrases, for every organization, with no USE procedure executed; EXTERNAL connectors are not closed.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode; src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#EndInitialActivation; src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs#EmitProgramClass; src/WiseOwl.Cobol.Compiler/CodeGen/Roslyn/RuntimeApi.cs#FileCloseIfOpen",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CallBinder.cs#BindCancel",
+    "switches": "folds DialectBehavior.CancelRefusesEveryActiveProgram (active from 2002) into BoundCancel: false at 85",
+    "same-arm-as-latest": false
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Runtime/Control/ProgramTable.cs#CancelNode",
+    "switches": "refusesEveryActiveProgram selects the GR5 active test: at 85 the never-called active MAIN program is GR8's no-action case instead of EC-PROGRAM-CANCEL-ACTIVE (kb/Work PB5241); every later step of CancelNode (GR8 test, GR4 cascade, implicit close, reset) is one arm for all editions",
+    "same-arm-as-latest": false
+   }
+  ],
+  "edition-search": "grep for EditionContext/DialectLevel/DialectBehavior/CobolVersion over ProgramTable.cs, the emitted CloseFiles block in ProgramEmitter.EmitProgramClass and CallEmitter.EmitCancel: only the GR5 active-program switch; the implicit-close loop (skip EXTERNAL and SD, CloseIfOpen) has no edition test.",
+  "behaviour-differs-by-edition": "no: for this rule the implicit close is the same code at every edition (the edition arm in CancelNode concerns GR5's active test only)",
+  "witnesses-cover": "part: g85_f02_08 covers one sequential internal file and no USE invocation; not exercised by it: relative and indexed organizations, an EXTERNAL file left open, files of contained programs, the INITIAL program's implicit CANCEL",
+  "probes": [
+   {
+    "class": "e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p10d.cob",
+    "printed": "SUB 00000000 / SQ 00 SSSS / RL 00 RRRR / IX 00 IIII / EX WRITE 00 / EX CLOSE 00 / EX 00 SUBX / EX 00 MAIN (no USE RAN line)",
+    "expected": "sequential, relative and indexed internal files closed by the CANCEL (caller reopens INPUT 00 and reads the record); EXTERNAL file still open (caller's WRITE 00 appends); USE procedure on SQ RL IX not executed (GR10)"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p3a.cob",
+    "printed": "IX O 00 / IY O 00 / EX WRITE 00 / MAIN OPEN 00 / MAIN YYYY / AFTER CANCEL / IX O 00 / IY O 00 / CI1 / CI1 (MATCH)",
+    "expected": "implicit CANCEL by EXIT PROGRAM of INITIAL P3AIX closes contained P3AIY's internal file (no USE) but leaves the EXTERNAL EX open"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-201/src/p4b.cob",
+    "printed": "... CANCELLED / MAIN OPEN 00 / MAIN GGGG / ... GG1 00 (MATCH)",
+    "expected": "relative file left open by a grandchild contained program is closed when the outermost is cancelled; re-OPEN OUTPUT 00 not 41"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:X.5.3.4 GR10",
+    "check": "OK  §1985:X.5.3.4 GR10  (║5.3.4 General Rules║)  the text is in GR10 -- 'an implicit CLOSE statement without any optional phrases is executed'"
+   }
+  ],
+  "notes": "ProgramEmitter.EmitProgramClass emits CloseFiles as CloseIfOpen over every declared file except EXTERNAL and SD; CancelNode runs it (through a transient instance when none is cached) after cascading to contained programs. The runtime close never enters generated declaratives, so no USE runs; a close failure maps to status 30 and the loop continues.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-X.5.3.4-10",
+  "refutation": "OVERTURNED",
+  "classes": "e,c,b",
+  "evidence": "Probe E:/COBOL-coord/scratch/coderead-1985/out/refute-1985-201/src/q1.cob (run q1-001 at --std 85): contained program Q1C declares internal file F with FILE STATUS IS GST, GST a GLOBAL item of the container Q1 (legal: §1985:VII.2.5.3 SR2 only bars the File and Communication Sections). Q1C opens F, reads to AT END (GST=10) and exits; Q1 then executes CANCEL \"Q1C\". Printed 'AFTER CALL GST=10 / AFTER CANCEL GST=10'. GR10 executes 'an implicit CLOSE statement without any optional phrases' for the open file; a CLOSE updates the I-O status (§1985:VII.4.2.4 GR4) and the FILE STATUS item is 'always updated ... whenever the I-O status is updated' (§1985:VII.2.5.4 GR1), so GST must read 00 after the CANCEL. The connector itself IS closed (the reader's p10d shows that). The reader's GLOBAL-file sibling holds: Q1C opened the container's GLOBAL file GF, the CANCEL left it open ('GLOBAL FILE STILL OPEN WRITE 00'). Same output at --std 2023 (q1-002), so cause (b). Code: ProgramEmitter.EmitProgramClass emits CloseFiles as bare FileCloseIfOpen calls with no EmitStoreFileStatus (SequentialIoEmitter.EmitStoreFileStatus is the only status-item store and runs only after an emitted I/O verb); ProgramTable.CancelNode and EndInitialActivation call it. Sibling precedent: kb/Work PB749 (SORT USING/GIVING implicit I/O statements had to store the status item). kb/Work search ('implicit close' x 'file status', 'CloseFiles'): no note for this; PB5685 is the related report-active implicit-close defect. cite.py: OK §1985:X.5.3.4 GR10 'an implicit CLOSE statement without any optional phrases is executed'; OK §1985:VII.4.2.4 GR4 'causes the value of the I-O status associated with file-name-1 to be updated'; OK §1985:VII.2.5.4 GR1 'always updated to contain the value of the I-O status whenever the I-O status is updated'.",
+  "edition-sites-missed": [],
+  "corrected": "NONCONFORMING (wrong-answer, cause b): the CANCEL's implicit CLOSE closes the connector but never stores its I-O status (00) into the file's FILE STATUS item, so an item that outlives the cancelled program (a GLOBAL item of the container, a LINKAGE item, an EXTERNAL item) keeps the last explicit statement's status. Repro q1.cob: expected 'AFTER CANCEL GST=00', observed 'AFTER CANCEL GST=10'."
+ }
+}

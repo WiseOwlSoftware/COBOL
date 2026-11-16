@@ -1,0 +1,79 @@
+{
+ "rule-id": "1989-RV-A.2.35.4-3",
+ "rule-digest": "8ad47c1964fd",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-214",
+  "sources": {
+   "reader": "97f8c65c4098135ed1d60fb44cb2038836398e34ef9994273321a33ae82c3eb2",
+   "refuter": "349979257c11da5f69d405ae4ff7d14114d83e4c1abfd0f1cfeadb54a9388cd8"
+  },
+  "imported": {
+   "reader": "ead1b9a2cc62bb67383498f95a9fbb9917f5c6a6ca41ae0d49d7a572bf59696f",
+   "refuter": "25982c14e8102c16d34d92a3645847dc1e74a5595ba179e7922222b1cc2417c2"
+  }
+ },
+ "reader": {
+  "rule-id": "1989-RV-A.2.35.4-3",
+  "verdict": "CONFORMS",
+  "requirement": "The implementor specifies the subset of RANDOM's argument-1 domain that yields distinct pseudo-random sequences, and that subset includes every seed 0 through 32767.",
+  "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Restart; src/WiseOwl.Cobol.Runtime/Intrinsics/RandomSequence.cs#Next; docs/conformance/7/DOC-A.1-145.md#DOC-A.1-145",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindFunctionResult",
+    "switches": "the catalog's D8 edition window (IntroducedIn 85 for the 1989 module rows): the function is admitted at --std 85",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep of CobolIntrinsics.Float.cs, RandomSequence.cs and IntrinsicRenderer.cs for Edition, DialectLevel, DialectBehavior, CobolVersion: none on the RANDOM path past the catalog window",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: the witness checks four seeds (0, 1, 16384, 32767) pairwise over three draws; the probe here checks all 32768 seeds",
+  "probes": [
+   {
+    "class": "a",
+    "file": "conformance-suite/cases/A.2.35@1985-RANDOM-FUNCTION/g85_f39_01.cob",
+    "printed": "EXPECT: MATCH at --std 85 (six pairs DISTINCT)",
+    "expected": "every pair distinct"
+   },
+   {
+    "class": "f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/prandall.cob",
+    "printed": "32768 lines: 32768 distinct first-two-draw pairs and 32768 distinct first draws for seeds 0..32767",
+    "expected": "seeds 0 through 32767 yield distinct sequences"
+   },
+   {
+    "class": "c,d,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-214/prand.cob",
+    "printed": "SAME-SEED-SAME (literal 32767 vs COMP expression SB + 1), 32766-VS-32767-DISTINCT, 32768-DISTINCT, SEED0-RESTARTS, BIGSEED-IN-RANGE (seed 999999999999999999)",
+    "expected": "same seed, same sequence; a seed restarts the sequence; any non-negative seed is legal"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1989:A.2.35.4 RV3",
+    "check": "OK  §1989:A.2.35.4 RV3  (2.35.4 Returned Values)  the text is in RV3"
+   },
+   {
+    "cite": "§1989:A.2.35.3 AR1",
+    "check": "OK  §1989:A.2.35.3 AR1  (2.35.3 Arguments)  the text is in AR1"
+   }
+  ],
+  "notes": "The subset is specified in docs/conformance/7/DOC-A.1-145.md: every seed 0..2^31-1 selects its own System.Random state (seed AND 0x7FFFFFFF), measured distinct over 0..65535 by unit test. The probe confirmed at --std 85 that all 32768 required seeds give distinct sequences.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1989-RV-A.2.35.4-3",
+  "refutation": "UPHELD",
+  "classes": "b,c,f",
+  "evidence": "§1989:A.2.35.4 RV3 asks only that the implementor specify the subset and that it include 0..32767; DOC-A.1-145 specifies 0..2^31-1 and the reader measured all 32768 required seeds distinct. rrand.cob at 85 (runs/rrand-001), aimed at the documented subset's edge: seed 0 and seed 2147483647 give the SAME first, second and fourth draws (0.72624326996795980, 0.81732535959096870, 0.55816119143653720) and differ only in the 9th digit of the third (0.76802268939466340 vs 0.76802269218863120): distinct sequences, so the documented subset holds literally, though the two are near-aliases (System.Random's Knuth seeding reduces MSEED - seed modulo 2^31-1, and 0 and 2^31-1 are congruent). Not a breach of RV3 (outside the required floor and still distinct); worth a note on DOC-A.1-145. Refusals at 85: RANDOM(1.5) COBOL1627, RANDOM(AN) COBOL1627. cite.py: OK §1989:A.2.35.4 RV3 the text is in RV3.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "rule-id": "1985-SR-VI.5.10.3-8",
+ "rule-digest": "d4447119a016",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-207",
+  "sources": {
+   "reader": "1e685c287cf25c6b82ba3533f88499a0cee75edba5218bec9e04b0aa5eedfbcc",
+   "refuter": "f5444eb570593d583f39afd12b302904d4909af21ca72f4b52ff47f207b6f700"
+  },
+  "imported": {
+   "reader": "a463c6a475b96ffda4cebe91c4b5c59f0575550b20f0fac67da750b571614f93",
+   "refuter": "9b56476532841d5d67a655e9737d465f4acf235af2bd6232181887ab3f4fe98e"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-SR-VI.5.10.3-8",
+  "verdict": "CONFORMS",
+  "requirement": "Several REDEFINES entries may redefine the same character positions, and each must name as data-name-2 the entry that originally defined the area; a REDEFINES naming an entry that is itself a redefinition must be refused, at subordinate levels and at 01/77.",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Passes/ResolveRedefinesPass.cs#Run; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#RedefinedEntry; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Removed",
+    "switches": "COBOL1656 is an error under strict and a warning under --permissive (chain accepted); not keyed on the edition",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "Grepped ResolveRedefinesPass.cs, ClassifyRedefinesClassesPass.cs and DataItem.RedefinedEntry for Edition.Edition, .Year, CobolVersion, Constructs., ConstructRegistry: none. The only edition-adjacent consult is EditionContext.Removed, the strict/permissive severity seam.",
+  "behaviour-differs-by-edition": "no",
+  "witnesses-cover": "part: g85_f09_01 covers the acceptance (RD1, RD2 both REDEFINES ORIG). The refusal of a chain is not exercised.",
+  "probes": [
+   {
+    "class": "d",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r8pos.cob",
+    "printed": "A=1235 C2=35 D=12 / W1=ZZCD W2=ZZCD",
+    "expected": "accepted: B (numeric), C (group), D (shorter) all REDEFINES A; 77 W2 and W3 both REDEFINES W1; all share A's / W1's positions"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r8ref1.cob",
+    "printed": "error COBOL1656: 'C' REDEFINES 'B', which is itself a redefinition - data-name-2 shall be the entry that originally defined the storage area (ISO §2023:13.18.44.3 SR7)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-207/src/r8ref2.cob",
+    "printed": "error COBOL1656: 'R3' REDEFINES 'R2', which is itself a redefinition",
+    "expected": "refused (level 01)"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VI.5.10.3 SR8",
+    "check": "OK  §1985:VI.5.10.3 SR8  (5.10.3 Syntax Rules)  the text is in SR8"
+   }
+  ],
+  "notes": "Multiple redefinitions bind and share storage; a chain is refused with COBOL1656 under strict. Under --permissive the chain is a warning and binds to the anchor, a documented leniency outside the strict conformance mode.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-SR-VI.5.10.3-8",
+  "refutation": "UPHELD",
+  "classes": "b,d",
+  "evidence": "Attacked the chain refusal inside a nested (level-2, SR12) redefinition: 10 B3 REDEFINES B2 where B2 REDEFINES B1 under 05 B REDEFINES A (d4nest) refused COBOL1656 at --std 85; multiple redefinitions of B1 and of A in the same program (d5nestok) accepted. Default mode is strict (error); the --permissive warning is EditionContext.Removed, not edition-keyed. cite.py: 'OK  §1985:VI.5.10.3 SR8  (5.10.3 Syntax Rules)  the text is in SR8'.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}

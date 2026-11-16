@@ -1,0 +1,97 @@
+{
+ "rule-id": "1985-FMT-VII.2.8.2",
+ "rule-digest": "bc1ebf10066c",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-186",
+  "sources": {
+   "reader": "06fab355c0f7982567e6291699a175466a32d112655170fc71a808aaaf14a3a2",
+   "refuter": "afb1f7fd11992ae89d0188327bb15255aba7d6173fe5c95d0310d20f89a1add3"
+  },
+  "imported": {
+   "reader": "349c6c77a2d61b6ed98b6c0c4fead88041c4178fd924e9bb6dfc9b5548161a6b",
+   "refuter": "9a40d3a977fa3a5d40346683e6afbd6717bd1b7aa797f22f9f44687a1f87c4b2"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-FMT-VII.2.8.2",
+  "verdict": "CONFORMS",
+  "requirement": "At --std 85 a sequential file control entry must accept RECORD DELIMITER [IS] followed by exactly one of STANDARD-1 or an implementor-name, and refuse any other operand (a literal, another reserved word, none, or two); what the clause does is the implementor's (GR2 ties STANDARD-1 to X3.27 magnetic tape, GR3 leaves implementor-name-1's method to the implementor).",
+  "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#recordDelimiterClause; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#STANDARD_1; src/WiseOwl.Cobol.Compiler/Binding/FileControlBinder.cs#BindFileControl; src/WiseOwl.Cobol.Compiler/Binding/EditionContext.cs#Declined; src/WiseOwl.Cobol.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Editions/ReservedWords.Table.cs#Entries",
+    "switches": "DELIMITER and STANDARD-1 reserved per edition; both rows reserved at 85, 2002, 2014, 2023",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "grep -rn RecordDelimiter over src (FileControlBinder.BindFileControl, FileControlKeyRules, FileEntryIdentity, FileModel, the catalog row): none tests the edition; EditionContext.Declined reports by the descriptor's severity and --permissive only (Refuses), never by edition; VersionConformancePass has no recordDelimiter visitor.",
+  "behaviour-differs-by-edition": "no: the clause is accepted with warning COBOL1778 and bound inert at every edition; the 2023 text renames implementor-name-1 feature-name-1, the syntax is the same",
+  "witnesses-cover": "part: pb292_record_delimiter_witness runs at 85 with both arms; the refusal half (malformed operands) is not exercised by it",
+  "probes": [
+   {
+    "class": "a,e",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdel1.cob",
+    "printed": "warning COBOL1778 on both files; F1 1 [ABC     ] / F1 2 [DEFGHIJK] / F1 EOF / F2 1 02 00 / F2 2 10 00 0123456789",
+    "expected": "RECORD DELIMITER IS STANDARD-1 on a RECORD CONTAINS 3 TO 8 file and RECORD DELIMITER implementor-name (IS omitted) on a RECORD VARYING DEPENDING ON file both accepted; records of each length read back with their size (GR1: the method is not reflected in the record area or record size)"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdbad1.cob",
+    "printed": "error COBOL0312: unexpected '.' (RECORD DELIMITER IS with no operand)",
+    "expected": "refused: one of STANDARD-1 or implementor-name-1 is required"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdbad2.cob",
+    "printed": "error COBOL5506: unexpected '\"X\"' (a literal operand)",
+    "expected": "refused"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdbad3.cob",
+    "printed": "error COBOL5506: unexpected 'STANDARD-2'",
+    "expected": "refused: STANDARD-2 is not in the 1985 brace"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdbad4.cob",
+    "printed": "error COBOL5506: unexpected 'SEQUENTIAL'",
+    "expected": "refused: a reserved word is no implementor-name"
+   },
+   {
+    "class": "b",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-186/rdbad5.cob",
+    "printed": "warning COBOL1778 then error COBOL1970: 'MY-M' is not a clause of the file control entry",
+    "expected": "refused: the brace takes exactly one operand"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VII.2.8.1",
+    "check": "OK  §1985:VII.2.8.1  (║2.8.1 Function║)  the text is in the clause"
+   },
+   {
+    "cite": "§1985:VII.2.8.3 SR1",
+    "check": "OK  §1985:VII.2.8.3 SR1  (║2.8.3 Syntax Rules║)  the text is in SR1"
+   }
+  ],
+  "notes": "The format is level 2 of the 1985 Sequential I-O module (boxed); the grammar matches it (IS optional, STANDARD-1 or a cobolWord). The clause is declined as processor-dependent: accepted with warning COBOL1778 and inert, every variable-length record framed by the implementor's length prefix, which GR1/GR4 permit; the warning text cites only §2023. The seed site DataBinder.cs#BindFileControl does not exist; the member is FileControlBinder.cs#BindFileControl. SR1 (variable length only) is deliberately not enforced inside the declined clause, a separate row.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-FMT-VII.2.8.2",
+  "refutation": "DOUBTFUL",
+  "classes": "b,c,e",
+  "evidence": "Probes at --std 85: rd1.cob and rd2.cob, RECORD DELIMITER on an ORGANIZATION RELATIVE file and an ORGANIZATION INDEXED file, both refused COBOL2912 (correct: the clause is only in the sequential file control entry). rd3.cob, ORGANIZATION LINE SEQUENTIAL, refused COBOL0900 at 85. rd5.cob, the clause written twice, refused COBOL2423. rd4.cob, 'RECORD DELIMITER IS F1' where F1 is the file's own name, COMPILES AND RUNS ('OK', exit 0) with only warning COBOL1778. That warning says 'no feature-name is available either ... this implementation provides none' (docs/conformance/7/DOC-A.1-150.md: 'the set specified here is empty'). FileControlBinder.cs#BindFileControl reads any cobolWord as the implementor-name with no lookup. cite.py: 'OK  §1985:VII.2.8.4 GR3  (║2.8.4 General Rules║)  the text is in GR3' (quoted 'that associated with implementor-name-1 by the implementor'). THE READING THE VERDICT RESTS ON: the 1985 brace admits only STANDARD-1 or an implementor-name. With an empty implementor-name set, a strict reading leaves STANDARD-1 as the only legal operand, so accepting an arbitrary user word (even a file-name) under-rejects. The reader's CONFORMS needs the opposite reading: a documented, diagnosed accept-inert decline of an optional element (the clause is boxed level 2 in the 1985 Sequential I-O module) meets the format. The 1985 text does not settle which reading is right.",
+  "edition-sites-missed": [],
+  "corrected": "Not overturned. If the strict reading is adopted, the verdict should be a non-conformance (under-rejects, cause b: every edition takes the same accept-any-word arm), because implementor-name-1 is accepted although the implementor defines no such name."
+ }
+}

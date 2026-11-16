@@ -1,0 +1,80 @@
+{
+ "rule-id": "1985-GR-VIII.4.5.4-2",
+ "rule-digest": "c9ea4ae936fe",
+ "read": {
+  "pin": "acffeb97abab09c2da7bafaaf2ca23fc9f5f23d4",
+  "slice": "1985-198",
+  "sources": {
+   "reader": "caef838ac74e1bcf53cc909e4d02aab906b025894cf6c92ea174675b764d9872",
+   "refuter": "063949351f81cf3514569fd27cba225f4684a82ba71145513e7580139eb4aafe"
+  },
+  "imported": {
+   "reader": "a21ee95e13f5ba227b2ee34b59b054d7c5692751c35ca354865166ae21273028",
+   "refuter": "139bd06aee66bd3fed05dd0e48a37158dcc524575b35a4dc0cecb4648f6ba399"
+  }
+ },
+ "reader": {
+  "rule-id": "1985-GR-VIII.4.5.4-2",
+  "verdict": "CONFORMS",
+  "requirement": "For a relative file in sequential access mode a format 1 READ with or without the NEXT phrase must retrieve the same next record and set the same I-O status, relative key, record length and file position indicator, in every open mode (input or I-O) and for every outcome (success, at end 10/14, 46 after an at end).",
+  "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRead; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundKeyedIo.cs#ReadKind; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadNext",
+  "edition-consulted": [
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckReadDynamicNextWritten",
+    "switches": "below 2002 a DYNAMIC-access READ with AT END and no NEXT is refused (VIII.4.5.3 SR3); returns at once for a sequential-access file, so the sequential arm is untouched",
+    "same-arm-as-latest": true
+   },
+   {
+    "site": "src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitReadDirection",
+    "switches": "READ PREVIOUS refused below 2002; NEXT is not gated",
+    "same-arm-as-latest": true
+   }
+  ],
+  "edition-search": "",
+  "behaviour-differs-by-edition": "no: KeyedIoBinder.BindRead maps ACCESS SEQUENTIAL to ReadKind.Next whether NEXT is written or not, at every edition; only PREVIOUS (a 2002 phrase) is refused at 85",
+  "witnesses-cover": "part: g85_f21_03 covers NEXT vs no NEXT on a dense fixed-length file opened INPUT through the at end; not exercised there: a sparse file, I-O mode with REWRITE after a NEXT read, RECORD VARYING, the RELATIVE KEY update, status 14 and the 46 after an at end",
+  "probes": [
+   {
+    "class": "a,e,f",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p1next.cob",
+    "printed": "S1 00 K=2 L=02 1A / S2 00 K=5 L=04 3BCD / RW 00 / S3 AT END 14 / S4 46 / S5 46 / T2 00 K=5 3XCD / T3 AT END 14 / T4 46",
+    "expected": "READ NEXT and READ alike: records 2 and 5 of a sparse varying file in RRN order with the key and length set (GR4c,d, GR14), REWRITE after either succeeds, RRN 12 overflows the 1-digit key giving 14 (VIII.1.3.4), then 46 for either form"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p1prev.cob",
+    "printed": "error COBOL0900: READ PREVIOUS requires COBOL-2002 (targeting COBOL-85)",
+    "expected": "1985 format 1 has only [NEXT]; PREVIOUS is not 1985 syntax and is refused"
+   },
+   {
+    "class": "c",
+    "file": "E:/COBOL-coord/scratch/coderead-1985/out/work-1985-198/src/p1next.cob (--std 2023)",
+    "printed": "identical to the --std 85 output",
+    "expected": "same behaviour; the rule is not edition-split"
+   }
+  ],
+  "citations": [
+   {
+    "cite": "§1985:VIII.4.5.4 GR2",
+    "check": "OK  §1985:VIII.4.5.4 GR2  (4.5.4 General Rules)  the text is in GR2"
+   }
+  ],
+  "notes": "The binder decides the read kind from the access mode alone for a sequential-access relative file, so the NEXT phrase is inert there, which is exactly GR2. Probed on a sparse RECORD VARYING file in both INPUT and I-O mode with REWRITE, key overflow 14 and the following 46; both forms agree at 85 and at 2023.",
+  "seeded": true,
+  "harm": "",
+  "cause": "",
+  "at-2023": "",
+  "repro": "",
+  "expected": "",
+  "observed": "",
+  "known_note": ""
+ },
+ "refuter": {
+  "rule-id": "1985-GR-VIII.4.5.4-2",
+  "refutation": "UPHELD",
+  "classes": "a,c,e",
+  "evidence": "Probe r1next.cob at --std 85 (runs/r1next-002): sequential-access relative file positioned by START (KEY GREATER THAN 2, KEY EQUAL TO 5), READ NEXT RECORD INTO vs READ RECORD INTO give the same record, status and relative key (A1 and B1 both '00 K=0005 R005 R005'), READ NEXT walks 5 then 9 then AT END 10; a file with no ACCESS clause (sequential by default) and no RELATIVE KEY alternates READ NEXT / READ / READ NEXT RECORD over 2,5,9 identically (N1-N3). 1985 SR refusals of START and WRITE without INVALID KEY and USE fired as SR3 requires (run r1next-001). Read RelativeConnector.ReadNext path; no edition consult on the NEXT arm beyond the reader's two. cite: OK  §1985:VIII.4.5.4 GR2  (4.5.4 General Rules)  the text is in GR2.",
+  "edition-sites-missed": [],
+  "corrected": ""
+ }
+}
