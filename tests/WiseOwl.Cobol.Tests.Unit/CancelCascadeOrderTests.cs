@@ -105,4 +105,50 @@ public sealed class CancelCascadeOrderTests
         var x = Assert.Throws<CobolCallException>(() => table.CallProgram("P5241", "", [], null));
         Assert.Equal("EC-PROGRAM-CANCEL-ACTIVE", x.EcName);
     }
+
+    /// <summary>A program instance that knows the container instance its factory was given, and logs the chain its GR9
+    /// close runs in.</summary>
+    private sealed class Chained(string name, ICobolProgram? parent, List<string> log, Action? body = null) : ICobolProgram
+    {
+        public string Name => name;
+        public ICobolProgram? Parent => parent;
+        public void Call(CobolArg[] args, CobolArg? returning) => body?.Invoke();
+        public void Activate() => body?.Invoke();
+        public void CloseFiles()
+        {
+            var chain = new List<string>();
+            for (ICobolProgram? p = parent; p is not null; p = (p as Chained)?.Parent) chain.Add((p as Chained)?.Name ?? "?");
+            log.Add($"close {name} in [{string.Join(",", chain)}]");
+        }
+    }
+
+    /// <summary>kb/Work PB5847 — the CANCEL's implicit CLOSE stores each file's I-O status into its FILE STATUS item
+    /// (§2023:14.9.5.4 GR9 with §2023:14.9.6.4 GR4), which can be a GLOBAL item of a container further out, reached through
+    /// the instance's parent chain. A RECURSIVE program's slot is null once its activation returns, so the close runs on a
+    /// transient instance, and a RECURSIVE container's slot is null too: the transient's parent must then be a transient
+    /// of the container whose own parent is the live outer instance, never null (a null parent made the status store
+    /// throw a NullReferenceException). Fails if the chain is cut at the container.</summary>
+    [Fact]
+    public void CancelOfARecursiveContainer_ClosesARecursiveContaineeOnAnUnbrokenParentChain()
+    {
+        var log = new List<string>();
+        var table = new RunUnit().Programs;
+        void Reg(string path, string name, string? parent, bool recursive, Action? body = null) =>
+            table.Register(path, name, parent, initial: false, common: false, recursive: recursive,
+                p => new Chained(name, p, log, body), staticReset: null);
+        table.RegisterModule("Cobol.OUTER.__CobolModule", RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi, () =>
+        {
+            Reg("OUTER", "OUTER", null, recursive: false);
+            // M calls R during its own activation (a containee is activated only while its container is instantiated).
+            Reg("OUTER/M", "M", "OUTER", recursive: true, body: () => table.CallProgram("R", "OUTER/M", [], null));
+            Reg("OUTER/M/R", "R", "OUTER/M", recursive: true);
+        });
+        table.CallProgram("OUTER", "", [], null);
+        table.CallProgram("M", "OUTER", [], null);
+        log.Clear();
+
+        table.Cancel("M", "OUTER", refusesEveryActiveProgram: true);
+
+        Assert.Equal(new[] { "close R in [M,OUTER]", "close M in [OUTER]" }, log);
+    }
 }

@@ -2008,13 +2008,10 @@ internal static class RuntimeApi
     // "without a SHARING phrase" arm and <see cref="FileOpenShared"/> for a phrase-bearing one — so the DRIFT IS
     // COMPILE-ENFORCED: there is no phrase-less implicit-open renderer left for a new call site to reach.
 
-    /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
-    public static string FileClose(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
-
-    /// <summary>The IMPLICIT close (§2023:14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
-    public static string FileCloseIfOpen(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
+    /// <summary>The guard of a program's IMPLICIT CLOSE (§2023:14.9.5.4 GR9 — only a connector "that is open") —
+    /// <c>CobolFile.IsOpen</c>; the CLOSE behind it is <see cref="FileClose(string, Binding.Bound.BoundCloseKind)"/>.</summary>
+    public static string FileIsOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.IsOpen)}({name})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
@@ -2524,6 +2521,11 @@ internal static class RuntimeApi
     /// <summary>The break test of a floating-point CONTROL item — <c>CobolReport.FloatControlEqual</c> as a method
     /// group for the engine's equality delegate.</summary>
     public static string ReportFloatControlEqual => $"{nameof(CobolReport)}.{nameof(CobolReport.FloatControlEqual)}";
+
+    /// <summary>The break test of an image-carried NUMERIC CONTROL item — <c>CobolReport.NumericControlEqual</c> over the
+    /// two saved character images and the item's profile (ISO §1985:XIII.3.7.4 GR3 a; kb/Work PB5782).</summary>
+    public static string ReportNumericControlEqual(string a, string b, string profile) =>
+        $"{nameof(CobolReport)}.{nameof(CobolReport.NumericControlEqual)}({a}, {b}, {profile})";
 
     /// <summary>A report VARYING FROM/BY value landed as the Int128 integer ISO §2023:13.18.64.4 GR1 makes the counter,
     /// raising EC-REPORT-VARYING for a noninteger value (GR5) — <c>CobolReport.VaryingInteger</c>. The argument

@@ -995,14 +995,11 @@ public sealed class ProgramTable
         // RECURSIVE activation restores a NULL slot on return while its connectors persist (and stay open)
         // in the run-unit registry — the old instance-gated close leaked the OS handle and the post-CANCEL
         // reopen answered '30' (kb/Work PB154). A transient factory instance supplies the emitted CloseFiles
-        // surface; its construction runs field initializers only. The parent lookup is TOLERANT here, unlike
-        // the activation path's ParentInstance invariant: the §2023:14.9.18.4 GR2 implicit cancel runs AFTER the
-        // activation's finally restored an INITIAL/RECURSIVE container's slot to null, so a canceled
-        // containee's container legitimately has no live instance — and CloseFiles never touches container
-        // data, only run-unit-registry connectors keyed by name.
-        var parentInst = n.ParentPath is not null && _byPath.TryGetValue(n.ParentPath, out var pp)
-            ? pp.Instance : null;
-        (n.Instance ?? n.Factory(parentInst)).CloseFiles();
+        // surface; its construction runs field initializers only. The implicit CLOSE stores each file's I-O status into
+        // its FILE STATUS item (kb/Work PB5847), which can be a GLOBAL item of a container, reached through the parent
+        // chain — so the chain is never broken: a container with no live instance (a RECURSIVE container whose
+        // activation's finally restored its slot to null) is supplied transiently the same way (InstanceForClose).
+        InstanceForClose(n).CloseFiles();
         // §2023:8.6.4: a static item persists to "the execution of a CANCEL statement of a program that directly or
         // indirectly contains the items" — the instance's storage ends HERE (contained programs already did, above),
         // and a pointer taken into it is no longer a valid address of storage (§2023:8.6.5; §2023:13.18.5.4 GR4; kb/Work PB1216).
@@ -1029,6 +1026,13 @@ public sealed class ProgramTable
     {
         for (int i = n.Children.Count - 1; i >= 0; i--) CancelNode(n.Children[i], refusesEveryActiveProgram: true);
     }
+
+    /// <summary>The instance a CANCEL's implicit CLOSE runs on: the live one, or a transient factory instance whose parent
+    /// chain is completed the same way, so the emitted CloseFiles can store into a container's GLOBAL FILE STATUS item that
+    /// lives in a container further out (kb/Work PB5847). Before the status store, a missing parent was passed as null,
+    /// and the store into an outer container's item dereferenced it.</summary>
+    private ICobolProgram InstanceForClose(Node n) =>
+        n.Instance ?? n.Factory(ParentOf(n) is { } parent ? InstanceForClose(parent) : null);
 
     private ICobolProgram? ParentInstance(Node n) =>
         n.ParentPath is null ? null

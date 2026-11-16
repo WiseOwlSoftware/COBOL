@@ -140,6 +140,11 @@
       "changedIn": 2014
     },
     {
+      "id": "saved-next-group-forces-page-advance",
+      "vcrRow": "7.82",
+      "changedIn": 2002
+    },
+    {
       "id": "search-index-below-table-unsuccessful",
       "vcrRow": "7.56",
       "changedIn": 2002
@@ -153,6 +158,11 @@
       "id": "sum-size-error-blanks-printable-item",
       "vcrRow": "7.58",
       "changedIn": 2002
+    },
+    {
+      "id": "sum-size-error-raised-at-addition",
+      "vcrRow": "7.83",
+      "changedIn": 2014
     },
     {
       "id": "terminate-discards-saved-next-group",

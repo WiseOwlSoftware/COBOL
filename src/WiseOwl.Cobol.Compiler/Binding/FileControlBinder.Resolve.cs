@@ -154,8 +154,12 @@ public sealed partial class FileControlBinder
             // READ/RETURN set (§2023:13.18.43.4) — is resolved FIRST, because SR6 (an elementary unsigned integer in the
             // working-storage, local-storage or linkage section) is one of the screen's rows (kb/Work PB858).
             if (file.Varying?.DependingName is { } vn)
+            {
                 file.VaryingDependingItem = _host.ResolveClauseOperand(
                     vn, file.Varying.DependingQualifiers, "RECORD DEPENDING ON", file.Varying.DependingAt);
+                if (file.VaryingDependingItem is { } depending && !ScreenRecordDependingOccurs(file, depending, vn))
+                    file.VaryingDependingItem = null;
+            }
             RecordClauseRules.Screen(file, Edition);
             ResolveLinage(file);   // §2023:13.18.34 — the logical-page operands and §2023:13.18.34.3's syntax rules
         }
@@ -176,6 +180,26 @@ public sealed partial class FileControlBinder
         using var _ = Edition.At(at);
         return DataBinder.ScreenOperandOccurrence(item, subscripts, face, DataBinder.WrittenQualified(name, quals) + WrittenSubscripts(subscripts),
             Edition);
+    }
+
+    /// <summary>⛔ THE RECORD CLAUSE'S DEPENDING OPERAND NAMES NO TABLE ELEMENT (kb/Work PB5810). The clause's data-name-1 is written
+    /// without a subscript (the capture refuses a written one, COBOL2024), and §2023:8.4.2.3.3 SR5 — "Each table element reference
+    /// shall be subscripted except when such reference appears" in seven contexts, none of them this clause — makes an item subject
+    /// to an OCCURS clause un-nameable here; COBOL-85 says it as §1985:IV.4.3.8.2.3 SR4. The clause is the sequential one for
+    /// the indexed, relative and sort-merge files alike (§1985:IX.3.2.4 GR5, §1985:VIII.3.2.4 GR5, §1985:XI.3.2.4 GR2), so the
+    /// one screen here serves every FD and SD. It used to compile and the length register was then ignored at run time. A refusal
+    /// makes the clause resolve to no item, so SR6's rows stay silent and the refusal is the one verdict.</summary>
+    private bool ScreenRecordDependingOccurs(FileModel file, DataItem item, string name)
+    {
+        if (!RecordLayout.IsSubjectToOccurs(item)) return true;
+        using var _ = Edition.At(file.Varying!.DependingAt);
+        Edition.Error(DiagnosticCatalog.TableElementNotSubscripted,
+            $"{file.EntryFace} '{file.CobolName}': the RECORD clause's DEPENDING ON '{name}' is subject to an OCCURS clause, so naming it "
+            + "is a table element reference, which "
+            + (Edition.DialectLevel < 2002
+                ? $"must be subscripted, and data-name-1 is written without a subscript ({ClauseOperandRules1985.TableElementSubscripted.Citation})"
+                : "shall be subscripted, and data-name-1 is written without a subscript (ISO §2023:8.4.2.3.3 SR5)"));
+        return false;
     }
 
     /// <summary>The subscripts as written, <c>(2, 1)</c>, for a diagnostic; empty for none.</summary>
