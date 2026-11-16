@@ -1,0 +1,102 @@
+      *>--- conformance-case
+      *> id: g2fac02-factory-picture-nonconforming
+      *> rules: [2002-SR-11.3.2-2]
+      *> source-format: fixed
+      *> portable: unverified
+      *>---
+      *> §2002:11.3.2 SR2 - refused: G2F2XC's factory SPEAK takes PIC
+      *> 9(8) where the G2F2XI prototype takes PIC 9(4), so the factory
+      *> interface does not conform: §2002:9.3.7.1.2 rule 3 requires
+      *> 'the same ANY LENGTH, BLANK WHEN ZERO, JUSTIFIED, PICTURE,
+      *> SIGN, and USAGE clauses'. SR1 holds (G2F2XI is in the
+      *> REPOSITORY).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. G2F2X01.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS G2F2XC
+           INTERFACE G2F2XI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 S USAGE OBJECT REFERENCE G2F2XI.
+       01 N PIC 9(4) VALUE 42.
+       01 V PIC 99 VALUE 0.
+       PROCEDURE DIVISION.
+       MAIN-P.
+           SET S TO G2F2XC.
+           INVOKE S "SPEAK" USING N.
+           INVOKE S "GETV" RETURNING V.
+           DISPLAY "GOT " V.
+           INVOKE S "HELLO".
+           STOP RUN.
+       END PROGRAM G2F2X01.
+
+       IDENTIFICATION DIVISION.
+       INTERFACE-ID. G2F2XI.
+       PROCEDURE DIVISION.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. SPEAK.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 P PIC 9(4).
+       PROCEDURE DIVISION USING P.
+       END METHOD SPEAK.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. GETV.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 R PIC 99.
+       PROCEDURE DIVISION RETURNING R.
+       END METHOD GETV.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. HELLO.
+       PROCEDURE DIVISION.
+       END METHOD HELLO.
+       END INTERFACE G2F2XI.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. G2F2XB INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
+       IDENTIFICATION DIVISION.
+       FACTORY.
+       PROCEDURE DIVISION.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. HELLO.
+       PROCEDURE DIVISION.
+           DISPLAY "BASE HELLO".
+       END METHOD HELLO.
+       END FACTORY.
+       END CLASS G2F2XB.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. G2F2XC INHERITS FROM G2F2XB.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS G2F2XB
+           INTERFACE G2F2XI.
+       IDENTIFICATION DIVISION.
+       FACTORY. IMPLEMENTS G2F2XI.
+       PROCEDURE DIVISION.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. SPEAK.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 P PIC 9(8).
+       PROCEDURE DIVISION USING P.
+           DISPLAY "FAC SPEAK " P.
+       END METHOD SPEAK.
+       IDENTIFICATION DIVISION.
+       METHOD-ID. GETV.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 R PIC 99.
+       PROCEDURE DIVISION RETURNING R.
+           MOVE 7 TO R.
+       END METHOD GETV.
+       END FACTORY.
+       END CLASS G2F2XC.

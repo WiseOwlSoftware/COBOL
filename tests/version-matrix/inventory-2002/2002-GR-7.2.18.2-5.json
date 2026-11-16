@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.18.2-5",
+ "rule-digest": "b5e889e88577",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#NormalizeCopybookMapped; src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped",
+ "test-ref": "conformance:cases/7.2.18@2002-SOURCE-FORMAT-DIRECTIVE/g2_source_format_library_text",
+ "notes": "§2002:7.2.18.2 GR5: a SOURCE FORMAT directive in library text holds to its end and the COPY's format is restored after it, shown both ways with debugging lines ([LIB-D-FREE] [LIB-FREE] then [MAIN-D-FIXED] [MAIN-FIXED]; [LIB2-D-FIXED] then [MAIN-D-FREE] [MAIN-FREE]). --std 2002 run of g2_source_format_library_text printed the derived nine lines."
+}

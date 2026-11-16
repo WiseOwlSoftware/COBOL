@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-6",
+ "rule-digest": "c396c5bcc3e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/CounterResolver.cs#LinageFileOf",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-linage-counter-two-fds; conformance:cases/8.4.1.1@2002-Qualification/g2-qual-linage-counter-two-fds-unqualified; conformance:cases/8.4.1.1.2@2002-LINAGE-COUNTER/pb5166-linage-counter-own-entries-2002",
+ "notes": "§2002:8.4.1.1.2 SR6: with two LINAGE FDs in one source element the qualified counters are separate (L1 03 03, L2 05 per §2002:13.16.32.3 GR7, matched at --std 2002) and the unqualified reference is refused COBOL5997; the one-own-FD nested-GLOBAL leg is pb5166-linage-counter-own-entries-2002."
+}
