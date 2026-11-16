@@ -74,7 +74,7 @@ public sealed class DataBindState
     /// nearest container's GLOBAL file (§2023:13.18.27.4 GR1; <see cref="InheritedGlobals.Files"/>, known before the unit binds). A
     /// container's GLOBAL record qualified by its file (§2023:8.4.2.2.2 Format 1's file-report-qualifier) resolves through it
     /// too (kb/Work PB3557 review R2-1).</summary>
-    public FileNameScope VisibleFiles => new(Files.FilesByName, Inherited.Files);
+    public FileNameScope VisibleFiles => new(Files.FilesByName, Inherited.Files, Inherited.HiddenFileNames);
 
     /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this unit's forest (the P6 Step-6
     /// completion gate). Advanced by <c>DataBinder.BindResolve</c> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the

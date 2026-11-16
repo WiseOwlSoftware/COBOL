@@ -27,7 +27,9 @@ public sealed class RecordAreaUseDriftTests
     public void TheIntoSender_ReadsTheAreaWhole()
     {
         string source = Code(Path.Combine("CodeGen", "Emit", "OperandText.cs"));
-        Assert.Matches(@"CurrentRecordImage\s*\(\s*BoundCurrentRecord\s+n\s*\)\s*=>\s*RuntimeApi\.StrWindow\(\s*RecordAreaImage\(\s*n\.Area\s*,\s*use:\s*AreaUse\.Whole\s*\)", source);
+        // The area arm (:) is the description-wide record area, read WHOLE; the other arm is the connector's current record
+        // where the RECORD clause sizes the record larger than every description (kb/Work PB5785).
+        Assert.Matches(@"CurrentRecordImage\s*\(\s*BoundCurrentRecord\s+n\s*\)\s*=>\s*RuntimeApi\.StrWindow\(\s*n\.File\.RecordClauseExceedsDescriptions[^;]*:\s*RecordAreaImage\(\s*n\.Area\s*,\s*use:\s*AreaUse\.Whole\s*\)", source);
     }
 
     [Fact]

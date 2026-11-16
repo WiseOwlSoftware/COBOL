@@ -2401,6 +2401,11 @@ internal static class RuntimeApi
     public static string SortLastReturnedLength(string sd) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedLength)}({sd})";
 
+    /// <summary>The just-returned record's image at its own length — <c>CobolSort.LastReturnedImage</c> (kb/Work PB5785): the
+    /// record a RETURN … INTO sends where the SD's RECORD clause sizes it larger than every description.</summary>
+    public static string SortLastReturnedImage(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedImage)}({sd})";
+
     /// <summary>The just-returned record's extent table — <c>CobolSort.LastReturnedExtents</c> (determination D-FRA
     /// (v); kb/Work PB1053).</summary>
     public static string SortLastReturnedExtents(string sd) =>
