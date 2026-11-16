@@ -1,4 +1,4 @@
-## PB5832: an integer argument that is a product, an item quotient or holds a numeric function is refused at every edition
+## Entry 3793 — 2026-11-16 14:36 PST — PB5832: an integer argument that is a product, an item quotient or holds a numeric function is refused at every edition
 
 kb/Work PB5832 (the 1985 code reads, batch 9, mechanism 1). At `--std 85` an integer argument of an intrinsic function written as
 `WN * 0.5`, `A / B` or `FUNCTION SQRT (N) + 64` compiled and was silently truncated: `FACTORIAL (WN * 0.5)` answered 1, `MOD (A / B, 3)`
@@ -43,3 +43,4 @@ landing addendum kb/Work/PB5832/2026-11-16-residue.md and in the NodeVerdicts ta
 appear with `IntrinsicArgumentRules.cs` restored to the base.
 
 **Gate.** `=== BUILD-LOCAL GATE: GREEN — Conformance 27,748/27,748 ran · Unit 41,097/41,097 ran · RepoDrift 175/175 ran · Characterization 37/37 ran (skipped 0)` at f17b8057b0 (run `000001-20261116T213014Z`); the 56 `pb5832` cases of `Conformance.trx` all Passed.
+
