@@ -260,6 +260,21 @@ build; there was a predicate that stopped short.
   resolver, the INITIALIZE cursor and the MOVE CORRESPONDING cursor — is built by the ONE factory
   `RedefViewPlace.For`; those three each had their own copy of the offset law, which is how the bit unit came to
   be missing from all three at once. Full derivation in `docs/DATA_MODEL_DESIGN.md` D19.
+- **A class under a group VALUE is seeded from the group's AREA, whatever tier it is and wherever it is rooted**
+  (kb/Work PB5851; §2023:13.18.63.4 GR5, §1985:VI.5.15.6 GR3). The area of a group VALUE governs every physical field
+  below it: a class rooted AT the VALUE group is seeded by the image lane from the group's own area
+  (`GroupImageCodec.ImageInitOf` → `GroupValueSlicer.AreaOf`), and a class rooted at a MEMBER takes the slice of the
+  area over that member from the ONE positional walk (`GroupValueSlicer.ComposedInit` → `SliceInit`/`SliceBitInit` →
+  `MemberFromSlice`): a Tier-A canonical's typed field decodes its slice like any typed member, a Tier-B canonical's
+  backing is seeded from it by `GroupImageCodec.BackingSeedOver`, and every redefiner takes no slice (it overlays
+  its target's positions, §2023:13.18.44.4 GR1). The walk is TOTAL when an area exists — a member it cannot place
+  is an internal error naming it, never the member's own default — because the earlier gate ("distribute only a
+  subtree with no shared-storage member") sent every other subtree to the member-wise default and lost the whole
+  VALUE to one REDEFINES pair anywhere under the group. A NATIONAL group's area is stored in a byte-addressed
+  backing as two bytes per position (`GroupImageCodec.AreaImageOf`, D-N1), as its leaves' are.
+  `GroupValueAreaStorageFormDriftTests` plants a group VALUE over each storage form (typed members, each stored
+  tier rooted at a member in each unit, rooted at the group, a level down, a table, LOCAL-STORAGE) and asks the
+  binder that each case builds the class it names.
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
 - **Tier-C decision — AS BUILT (Step D, LANDED):** there is no Tier C. A genuine mixed-USAGE REDEFINES pun is
   ADMITTED as Tier B, and `ComputeTier`'s remaining reason arms carry only the boundaries that survive — the

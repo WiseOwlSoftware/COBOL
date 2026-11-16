@@ -105,9 +105,9 @@ internal readonly record struct GroupArea(string Head, string Unit, int Width, b
 }
 
 /// <summary>The group-VALUE positional distributor (P7 Step 9l; ISO §2023:13.18.63): a GROUP-level VALUE
-/// initializes the whole area as ONE value of the group's own category, sliced positionally over the
-/// (distributable) subtree at compile time; otherwise the member-wise composed initializer. Wired by
-/// <see cref="DataEmitter"/>.</summary>
+/// initializes the whole area as ONE value of the group's own category, sliced positionally over EVERY physical
+/// field of the subtree at compile time — typed members and Tier-B backings alike (kb/Work PB5851); a group with no
+/// VALUE takes the member-wise composed initializer. Wired by <see cref="DataEmitter"/>.</summary>
 internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
 {
     /// <param name="subs">The OCCURRENCE CONTEXT — the subscripts of every OCCURS level entered on the way down
@@ -122,11 +122,17 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         // A GROUP-level VALUE initializes the whole AREA (ISO §2023:13.18.63.4 GR5) — the ONE area rule lives in
         // AreaOf, which also says which UNIT the area is measured in; here it distributes over the subordinate
         // items POSITIONALLY at compile time (NC104A `01 MOVE29A VALUE "$123.45". 02 MOVE30 PIC $999.99.`).
-        // Distribution requires every leaf string-stored and no shared-storage member in the subtree; anything
-        // else keeps the member-wise default (a SHARED-STORAGE subtree is not a loss — its Tier-B / EXTERNAL /
-        // BASED backing is seeded by GroupImageCodec.ImageInitOf, which applies the SAME AreaOf rule to the
-        // same group).
-        if (recipe is SeedRecipe.InitialState && AreaOf(group, ctx, subs) is { } area && DistributableSubtree(group))
+        // ⛔ WHEN AN AREA EXISTS THE DISTRIBUTION IS TOTAL (kb/Work PB5851). It used to be taken only when the
+        // subtree held no shared-storage member, and every other subtree fell to the member-wise default below —
+        // each member initialized from its OWN description as though the group carried no VALUE. A REDEFINES
+        // anywhere under the group (`01 G VALUE "ABCD". 05 A PIC X(4). 05 B REDEFINES A PIC X(4).`, or one pair a
+        // level down) lost the VALUE for EVERY member, at every edition. The comment that justified it said a
+        // Tier-B backing "applies the SAME AreaOf rule to the same group" — true only when the class is rooted AT
+        // the group carrying the VALUE; a class rooted at a MEMBER asked AreaOf of the member, which has none.
+        // Now the walk below gives every physical field its slice: a typed member decodes it, a Tier-B backing
+        // rooted at a member is seeded from it (GroupImageCodec.BackingSeedOver), and a member it cannot place is
+        // an internal error naming the item — never the member-wise default.
+        if (recipe is SeedRecipe.InitialState && AreaOf(group, ctx, subs) is { } area)
             return area.Bits ? SliceBitInit(group, area, subs.Count) : SliceInit(group, area, subs.Count);
         var parts = phys.PhysicalChildrenOf(group, subs, recipe).Select(f => $"{f.Name} = {f.Init}");
         return $"new {group.StructName} {{ {string.Join(", ", parts)} }}";
@@ -220,63 +226,64 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
         return CobolLiteral.IsStringLiteral(raw) ? GroupArea.Of(CobolLiteral.Decode(raw), pad, width, bits) : null;
     }
 
-    /// <summary>Whether the group's subtree can take the area text as a compile-time POSITIONAL slice per
-    /// subordinate. Every admitted leaf is string-stored or a native CHARACTER-FORM numeric, so its slice IS its
-    /// own image and the offsets are character offsets.
-    ///
-    /// <para>⚠ The usage arms below are NOT a Tier-C boundary and are no longer a known gap (they were read as
-    /// one, and PB184 was registered against them). §2023:13.18.63.3 SR14 makes a BINARY / PACKED / float / INDEX /
-    /// BIT leaf under an ALPHANUMERIC group item carrying a VALUE non-conforming, and
-    /// <c>CheckGroupValueDeclarationsPass</c> now rejects it (COBOL1702) — so for that population the
-    /// predicate is answering about source the binder has already screened, and it is kept as the defensive
-    /// statement of what a positional character slice can mean. The <c>Class is null</c> arm is the live one: a
-    /// shared-storage (REDEFINES-class) subtree is seeded through its BACKING by
-    /// <see cref="GroupImageCodec.ImageInitOf"/> instead, from the same <see cref="AreaOf"/> rule.</para>
-    /// <para>⛔ SR14 IS WRITTEN ABOUT AN ALPHANUMERIC GROUP AND DOES NOT SCREEN A NATIONAL ONE (kb/Work PB646) —
-    /// a <c>GROUP-USAGE NATIONAL</c> group carrying a VALUE reaches here with every leaf at usage NATIONAL by
-    /// §2023:13.18.29.3 SR3, numeric leaves included by that rule's own wording, so the numeric arm below is LIVE
-    /// source for it, not a defensive statement. Reading the character-form predicate rather than a usage
-    /// spelling is what keeps the two screens from disagreeing.</para>
-    /// <para>A BIT group passes on its <c>Boolean</c> arm and takes <see cref="SliceBitInit"/> rather than
-    /// <see cref="SliceInit"/>: every member of a bit group is a bit leaf or a nested bit group
-    /// (§2023:13.18.29.3 SR2), so each one's slice IS its own boolean carrier — the same property in the other
-    /// unit.</para></summary>
-    private static bool DistributableSubtree(DataItem item) =>
-        item.Class is null && (item.IsGroup
-            ? item.Children.All(DistributableSubtree)
-            : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean   // string-stored — the slice is the chars (D-N4 identity)
-              // ⛔ BOTH CHARACTER-FORM USAGES (PicInfo.IsCharacterFormNumeric, kb/Work PB646): the slice is
-              // CHARACTER positions and a national-form numeric leaf's image is the same digit run its DISPLAY
-              // twin holds (design D-N7), so it decodes from its slice exactly as that twin does. This arm read
-              // DISPLAY alone, and a NATIONAL GROUP is the case §2023:13.18.63.3 SR14 does NOT screen — SR14's usage
-              // requirement is written about items "subordinate to an alphanumeric group item", while
-              // §2023:13.18.29.3 SR3 requires "All elementary items subordinate to the subject of the entry shall be
-              // explicitly or implicitly described as usage national" and contemplates numeric ones by name
-              // ("Any signed numeric data items shall be described with the SIGN IS SEPARATE clause"). So a
-              // conforming `01 NG GROUP-USAGE NATIONAL VALUE N"AB123". 05 NGA PIC N(2). 05 NGB PIC 9(3).`
-              // reached this predicate, failed on NGB, and took the member-wise default for the WHOLE subtree:
-              // MEASURED `NGA=[  ] NGB=[000]` against its alphanumeric twin's `AGA=[AB] AGB=[123]`. Before
-              // PB646 the shape could not compile at all, so the DISPLAY-only arm had never been contradicted.
-              || item.Pic is { IsCharacterFormNumeric: true });
-
-    /// <summary>Build the composed initializer of <paramref name="item"/> from its positional <paramref name="slice"/>
-    /// of the group VALUE text — each subordinate (and each OCCURS occurrence) takes its own window.</summary>
-    private static string SliceInit(DataItem item, GroupArea slice, int depth)
+    /// <summary>⛔ THE ONE PLACEMENT OF A GROUP'S AREA OVER ITS PHYSICAL FIELDS (kb/Work PB5851): what a member that is
+    /// NOT a nested record struct makes of the positions under it, or the internal error that names it. It is
+    /// asked of every member both slice walks reach, so no member under a group VALUE is ever initialized
+    /// without its slice.
+    /// <list type="bullet">
+    ///   <item>A member that is the canonical of a Tier-B REDEFINES class is stored as the class's ONE string
+    ///     backing (<see cref="PhysicalModel"/>): the backing is seeded from the slice by the image lane
+    ///     (<see cref="GroupImageCodec.BackingSeedOver"/>), padded to the class width. Its redefiners are views
+    ///     over that backing and take no slice of their own (the walks skip them).</item>
+    ///   <item>A native CHARACTER-FORM numeric leaf decodes its zoned slice to the unscaled value through the one
+    ///     <c>ParseDisplay</c> every image read uses — both usages §2023:13.18.60.4 GR7/GR8 name, through
+    ///     <see cref="PicInfo.IsCharacterFormNumeric"/>: a national-form numeric's digit characters ARE its
+    ///     DISPLAY twin's (design D-N7, kb/Work PB646). §2023:13.18.63.3 SR14 does not screen a NATIONAL group,
+    ///     and §2023:13.18.29.3 SR3 admits numeric national leaves under one by name, so that arm is live
+    ///     source.</item>
+    ///   <item>A string-stored leaf (alphanumeric / edited / national / boolean / StoreAsImage) keeps the
+    ///     characters (D-N4 identity) — a boolean leaf of a bit group keeps its boolean positions, its own
+    ///     carrier.</item>
+    ///   <item>Anything else is not a shape conforming source reaches: §2023:13.18.63.3 SR14 makes every item
+    ///     under an alphanumeric group carrying a VALUE usage DISPLAY (<c>CheckGroupValueDeclarationsPass</c>,
+    ///     COBOL1702), SR3 makes every leaf under a national one usage NATIONAL and SR2 every member of a bit
+    ///     group a bit item. So it throws, naming the item — it does not take the member's own default.</item>
+    /// </list></summary>
+    /// <param name="c">The member.</param>
+    /// <param name="slice">The positions of the area over <paramref name="c"/> (one occurrence of it).</param>
+    /// <param name="sliceGroup">Composes a NESTED record-struct member from its slice (the caller's own walk:
+    /// characters or bits).</param>
+    private (string Field, string Init) MemberFromSlice(DataItem c, GroupArea slice, Func<DataItem, GroupArea, string> sliceGroup)
     {
-        // A native (long-stored) CHARACTER-FORM numeric leaf decodes its zoned slice to the unscaled value
-        // (sign-aware overpunch/separate decode — the same ParseDisplay every image read uses). Both usages
-        // §2023:13.18.60.4 GR7/GR8 name, through the one PicInfo.IsCharacterFormNumeric predicate: the national
-        // form's digit characters ARE the twin's (design D-N7), so one decode serves both and the arm cannot
-        // drift from DistributableSubtree's admission above. String-stored leaves (alphanumeric / edited /
-        // national / boolean / StoreAsImage) keep the characters.
-        if (!item.IsGroup && !item.StoreAsImage && item.Pic is { IsCharacterFormNumeric: true })
-            return $"({item.ElementType}){RuntimeApi.NumParseDisplay(EmitText.CsLiteral(slice.Text), item.ProfileName)}";
-        if (!item.IsGroup) return EmitText.CsLiteral(slice.Text);
+        if (c.Class is { Tier: RedefinesTier.StringCanonical } cls)
+            return (cls.BackingClrName, RuntimeApi.StrStore(phys.Codec.BackingSeedOver(c, slice), $"{cls.Width}"));
+        if (c.IsGroup) return (c.ClrName, sliceGroup(c, slice));
+        if (!c.StoreAsImage && c.Pic is { IsCharacterFormNumeric: true })
+            return (c.ClrName, $"({c.ElementType}){RuntimeApi.NumParseDisplay(EmitText.CsLiteral(slice.Text), c.ProfileName)}");
+        if (c.StoreAsImage || c.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean)
+            return (c.ClrName, EmitText.CsLiteral(slice.Text));
+        throw new InvalidOperationException(
+            $"the group VALUE area over '{c.CobolName ?? "FILLER"}' cannot be placed in its storage form "
+            + "(§2023:13.18.63.4 GR5; §2023:13.18.63.3 SR14 should have refused the entry, COBOL1702) — kb/Work PB5851");
+    }
+
+    /// <summary>Whether <paramref name="c"/> is a member a slice walk passes over: a REDEFINING entry overlays its
+    /// target's positions (§2023:13.18.44.4 GR1) and occupies none of its own, so it neither takes a slice nor
+    /// advances the walk — its storage is its target's field or its class's backing, which the walk seeds from the
+    /// same positions. A level-66/88 entry is no storage at all.</summary>
+    private static bool TakesNoSlice(DataItem c) => c.RedefinesTargetName is not null || !(c.IsGroup || c.IsElementary);
+
+    /// <summary>Build the composed initializer of the group <paramref name="item"/> from its positional
+    /// <paramref name="slice"/> of the group VALUE text — each physical member (and each OCCURS occurrence) takes its
+    /// own window, through <see cref="MemberFromSlice"/>.</summary>
+    private string SliceInit(DataItem item, GroupArea slice, int depth)
+    {
         var parts = new List<string>();
         int off = 0;
         foreach (var c in item.Children)
         {
+            if (TakesNoSlice(c)) continue;
             int w = c.ImageWidth;
             if (c.Occurs is { } n)
             {
@@ -287,12 +294,13 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, slice.PeriodFor(w),
                     (a, b) => slice.SameWindow(at + (a - 1) * w, at + (b - 1) * w, w));
                 parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
-                    o => SliceInit(c, slice.Window(at + (o - 1) * w, w, ' '), depth + 1), depth));
+                    o => MemberFromSlice(c, slice.Window(at + (o - 1) * w, w, ' '), (g, s) => SliceInit(g, s, depth + 1)).Init, depth));
                 off += w * n;
             }
             else
             {
-                parts.Add($"{c.ClrName} = {SliceInit(c, slice.Window(off, w, ' '), depth)}");
+                var (field, init) = MemberFromSlice(c, slice.Window(off, w, ' '), (g, s) => SliceInit(g, s, depth));
+                parts.Add($"{field} = {init}");
                 off += w;
             }
         }
@@ -311,18 +319,22 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
     /// first available byte" and the bits between are implicit filler, which a sum cannot express (this is the
     /// same reason <see cref="BitLayout.ExtentBits"/> is a cursor walk and not a sum).</para>
     ///
-    /// <para>A redefining member overlays its target and occupies no positions of its own (§2023:13.18.44), so it
-    /// takes no slice; <see cref="DistributableSubtree"/> has already excluded any subtree that has one, and
-    /// skipping it here states the rule rather than relying on that.</para></summary>
-    private static string SliceBitInit(DataItem item, GroupArea area, int depth)
+    /// <para>A redefining member overlays its target and occupies no positions of its own (§2023:13.18.44.4 GR1), so
+    /// it takes no slice (<see cref="TakesNoSlice"/>); a member that is the canonical of a Tier-B class takes its
+    /// slice into the class's backing (<see cref="MemberFromSlice"/>), as it does in <see cref="SliceInit"/>.</para></summary>
+    private string SliceBitInit(DataItem item, GroupArea area, int depth)
     {
-        if (!item.IsGroup) return EmitText.CsLiteral(area.Text);
         var parts = new List<string>();
         foreach (var c in item.Children)
         {
-            if (c.RedefinesTargetName is not null) continue;
+            if (TakesNoSlice(c)) continue;
             int at = BitLayout.StartBitWithin(item, c);
-            if (at < 0) continue;      // an unmodelled overlay chain — StartBitWithin's documented -1
+            // StartBitWithin's documented -1 is an overlay chain it does not model; a non-redefining member is
+            // never one, so a -1 here is a member the area cannot be placed over — loud, never the member's default.
+            if (at < 0)
+                throw new InvalidOperationException(
+                    $"the bit group VALUE area of '{item.CobolName ?? "FILLER"}' cannot be placed over '{c.CobolName ?? "FILLER"}' "
+                    + "(§2023:13.18.63.4 GR5) — kb/Work PB5851");
             int per = BitLayout.WidthBits(c);
             if (c.Occurs is { } n)
             {
@@ -335,9 +347,13 @@ internal sealed class GroupValueSlicer(EmitContext ctx, PhysicalModel phys)
                 var runs = OccurrenceRunEmit.RunsOfRepeats(n, area.PeriodFor(stride),   // kb/Work PB1722
                     (a, b) => area.SameWindow(at + (a - 1) * stride, at + (b - 1) * stride, per));
                 parts.Add($"{c.ClrName} = " + OccurrenceRunEmit.Array(c.ElementType, n, runs,
-                    o => SliceBitInit(c, BitWindow(area, at + (o - 1) * stride, per), depth + 1), depth));
+                    o => MemberFromSlice(c, BitWindow(area, at + (o - 1) * stride, per), (g, s) => SliceBitInit(g, s, depth + 1)).Init, depth));
             }
-            else parts.Add($"{c.ClrName} = {SliceBitInit(c, BitWindow(area, at, per), depth)}");
+            else
+            {
+                var (field, init) = MemberFromSlice(c, BitWindow(area, at, per), (g, s) => SliceBitInit(g, s, depth));
+                parts.Add($"{field} = {init}");
+            }
         }
         // ⛔ THE IMPLICIT FILLER IS PART OF THE AREA THE VALUE INITIALIZES (§2023:13.18.63.4 GR5 — "the group area is initialized
         // without consideration for the individual elementary or group items contained within this group", kb/Work
