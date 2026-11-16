@@ -1590,6 +1590,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // `unpopulatable-antecedent` (no program can observe a contained program's object code) and 1985-GR-IV.4.4.2-L2.1 on
             // `definitional`, each standing on the UPHELD record of tests/version-matrix/derivation-refutations/pb5791-pb5792-1985.jsonl.
             "1985-GR-X.2.3.3-3", "1985-GR-IV.4.4.2-L2.1",
+            // ⚙ One more, added deliberately (kb/Work PB5822 and PB5729, signature `claude: 2026-11-16`): 1985-GR-XIII.3.14.4-2 on
+            // `unpopulatable-antecedent` (no 1985 program can read a report group's area after another group was built), standing on
+            // the UPHELD record of tests/version-matrix/derivation-refutations/pb5822-1985-kept-4.jsonl; its chain closed when PB5729 made GR-13.18.33.4-3 CONFORMS.
+            "1985-GR-XIII.3.14.4-2",
         ];
 
         var s = LoadSchema();
