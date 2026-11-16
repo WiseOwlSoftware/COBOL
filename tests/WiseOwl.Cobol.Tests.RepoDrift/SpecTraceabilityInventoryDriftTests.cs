@@ -164,6 +164,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
         //: the register the schema POINTS AT, and `AnchorObliged` needs it to tell a WITHDRAWN A.1 item from a
         //: documented decline. Injectable so the fabricated-inventory self-test drives both arms hermetically.
         IReadOnlySet<string> RegisterItems,
+        //: The keys of docs/CONFORMANCE.md's section 3 and 3.1 determinations (`D-<NAME>`), from the same extract: with
+        //: `RegisterItems`, the keys an `unfalsifiable-under-determination` derivation may name (kb/Work PB5831). Twin of
+        //: `inventory_schema.Schema.determination_keys`; injectable like `RegisterItems`.
+        IReadOnlySet<string> DeterminationKeys,
         //: §1.1's signed alternative to §1(c)'s test — `null` when the schema declares none, so removing
         //: the object from the JSON closes the door in both engines at once.
         DerivationRule? Derivation,
@@ -252,6 +256,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             kinds,
             anchored,
             ConformanceRegister.Determinations.Keys.ToHashSet(StringComparer.Ordinal),
+            ConformanceRegister.DeterminationKeys,
             root.TryGetProperty("derivation", out var derivation) ? LoadDerivation(derivation) : null,
             Catalogs.Value,
             root.GetProperty("next").GetProperty("kinds").EnumerateObject()
@@ -412,23 +417,49 @@ public sealed class SpecTraceabilityInventoryDriftTests
     }
 
     /// <summary>
-    /// A row's state at its OWN edition (DESIGN-spec-conformance-review.md §10.2 and §10.6, kb/Work PB4994, PB5675): the
-    /// newest edition's, and an older row not of the chained (KEPT) kind, by <see cref="DerivedState"/>; a KEPT row's is its
-    /// chain's AND its own witness: OK when it carries into at least one rule, every rule it carries into is OK at the next
-    /// held edition with an <c>editions</c> band that includes this edition, and the row carries a spec-derived test-ref
-    /// of its own (the one own-edition rule of every older edition; the LINEAGE READS audit holds that test-ref to a suite
-    /// case that runs at this edition). Mirrors <c>lineage.state_of</c> in Python. <paramref name="next"/> are the next
-    /// held edition's rows and their states by id.
+    /// A row's state at its OWN edition (DESIGN-spec-conformance-review.md §10.2 and §10.6, kb/Work PB4994, PB5675, PB5822):
+    /// the newest edition's, and an older row not of the chained (KEPT) kind, by <see cref="DerivedState"/>; a KEPT row's is
+    /// its chain's (<see cref="ChainClosed"/>) AND its own-edition evidence: a spec-derived test-ref of its own (the LINEAGE
+    /// READS audit holds it to a suite case that runs at this edition), or, for a rule no program can witness, a derivation
+    /// of its own that stands (<see cref="DerivationRefusalsAt"/>, never its target's). Mirrors <c>lineage.state_of</c> in
+    /// Python. <paramref name="next"/> are the next held edition's rows and their states by id.
     /// </summary>
     private static string StateAt(
         TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
         IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next)
     {
-        if (edition.IsNewest || r.Next?.Kind != s.ChainedKind) return DerivedState(r, s);
-        bool chainClosed = r.Next.To.Count > 0 && r.Next.To.All(t => next.TryGetValue(t, out var target) && target.State == "OK"
-            && Split(target.Row.Editions, s.EditionsSeparator).Contains(edition.Spelling, StringComparer.Ordinal));
-        return chainClosed && Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s)) ? "OK" : "GAP";
+        if (ChainOf(r, edition, s, next) is not { } chainClosed) return DerivedState(r, s);
+        bool ownEvidence = Split(r.TestRef, s.TestRefSeparator).Any(x => IsSpecDerived(x, s))
+            || (s.Derivation is not null && r.Derivation.Trim().Length > 0 && DerivationRefusalsAt(r, edition, s, next).Count == 0);
+        return chainClosed && ownEvidence ? "OK" : "GAP";
     }
+
+    /// <summary>Is the chain of the chained (KEPT) row <paramref name="r"/> closed at <paramref name="edition"/>: it carries
+    /// into at least one rule, and every rule it carries into is OK at the next held edition with an <c>editions</c> band
+    /// that names this edition? Twin of <c>lineage.chain_closed</c>.</summary>
+    private static bool ChainClosed(
+        TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next) =>
+        r.Next is { To.Count: > 0 } n && n.To.All(t => next.TryGetValue(t, out var target) && target.State == "OK"
+            && Split(target.Row.Editions, s.EditionsSeparator).Contains(edition.Spelling, StringComparer.Ordinal));
+
+    /// <summary>The verdict <paramref name="r"/> is judged under, as <see cref="DerivationRefusals"/> takes it (kb/Work
+    /// PB5822): for a chained (KEPT) row of an older edition, whether its chain is closed; null for every other row, which
+    /// is judged under a verdict of its own. Twin of <c>lineage.chain_of</c>.</summary>
+    private static bool? ChainOf(
+        TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next) =>
+        edition.IsNewest || r.Next?.Kind != s.ChainedKind ? null : ChainClosed(r, edition, s, next);
+
+    /// <summary>
+    /// ⛔ THE ONE PREDICATE of a derivation on a row of <paramref name="edition"/> (kb/Work PB5822): why the row's OWN
+    /// derivation does not stand, judged under the verdict the row is judged under (<see cref="ChainOf"/>). Asked by
+    /// <see cref="StateAt"/>, <see cref="BadDerivations"/> and the parity fixture. Twin of <c>lineage.derivation_refusals</c>.
+    /// </summary>
+    private static List<Refusal> DerivationRefusalsAt(
+        TraceabilityInventory.Row r, TraceabilityInventory.Edition edition, Schema s,
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next) =>
+        DerivationRefusals(r, s, ChainOf(r, edition, s, next));
 
     /// <summary>Every rule of <paramref name="edition"/>'s view and its state at that edition: the newest edition's by
     /// <see cref="DerivedState"/>, an older one's through its change records against the next held edition's states.</summary>
@@ -469,7 +500,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
     /// time and <see cref="DerivedState"/> asks only whether the list is empty. Writing the bounds twice is how a
     /// writer and a gate come to disagree about one rule — the entire content of <c>kb/Work/PB315</c>.
     /// </remarks>
-    private static List<Refusal> DerivationRefusals(TraceabilityInventory.Row r, Schema s)
+    /// <param name="r">the row</param>
+    /// <param name="s">the schema</param>
+    /// <param name="chainClosed">the verdict the row is judged under: null for a row with a verdict of its own; for a
+    /// chained (KEPT) row of an older edition, whether its chain is closed (<see cref="ChainOf"/>, kb/Work PB5822)</param>
+    private static List<Refusal> DerivationRefusals(TraceabilityInventory.Row r, Schema s, bool? chainClosed = null)
     {
         var bad = new List<Refusal>();
         if (s.Derivation is not { } d) return bad;
@@ -493,8 +528,19 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 + "may not close on a derivation (design doc §1.1 refusal 1)"));
         }
 
-        // ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine.
-        if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves)
+        // ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine. A chained
+        // row's verdict is its chain's, so for it the refusal reads "its chain is not closed" (kb/Work PB5822).
+        if (chainClosed is { } closed)
+        {
+            if (!closed)
+            {
+                bad.Add(new("verdict-does-not-resolve",
+                    $"{r.RuleId}: its chain is not closed (a rule it carries into is not OK at the next held edition with "
+                    + "a band that names this edition) — a derivation stands in for the row's own witness, not for its "
+                    + "chain's verdict"));
+            }
+        }
+        else if (!s.Verdicts.TryGetValue(r.Verdict, out var v) || !v.Resolves)
         {
             bad.Add(new("verdict-does-not-resolve",
                 $"{r.RuleId}: verdict '{r.Verdict}' does not resolve — a derivation stands in for the covering "
@@ -613,6 +659,16 @@ public sealed class SpecTraceabilityInventoryDriftTests
                         + "in its edition's catalog"));
                 }
                 break;
+            case "register-key":
+                // kb/Work PB5831: the determination the argument rests on is a row of the conformance register.
+                string registerKey = m.Groups[1].Value;
+                if (!s.RegisterItems.Contains(registerKey) && !s.DeterminationKeys.Contains(registerKey))
+                {
+                    bad.Add(new("determination-not-in-register",
+                        $"{r.RuleId}: determination '{key}': names '{registerKey}', which is no row of the conformance "
+                        + "register (a section 7 item or a section 3 determination)"));
+                }
+                break;
             default:
                 bad.Add(new("unknown-check",
                     $"{r.RuleId}: determination '{key}': arm {entry.Arm} declares check '{arm.Check}', which "
@@ -631,10 +687,22 @@ public sealed class SpecTraceabilityInventoryDriftTests
     private static string Spaced(string text) =>
         string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
-    /// <summary>Every live row whose <c>derivation</c> claim does not stand — the gate over §1.1.</summary>
-    private static List<string> BadDerivations(IEnumerable<TraceabilityInventory.Row> rows, Schema s) =>
+    /// <summary>Every live row of <paramref name="edition"/> whose <c>derivation</c> claim does not stand — the gate over
+    /// §1.1 — each judged at its own edition by the one predicate (<see cref="DerivationRefusalsAt"/>, kb/Work PB5822):
+    /// <paramref name="next"/> are the next held edition's rows and states (empty for the newest).</summary>
+    private static List<string> BadDerivations(
+        IEnumerable<TraceabilityInventory.Row> rows, TraceabilityInventory.Edition edition, Schema s,
+        IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> next) =>
         [.. rows.Where(r => r.Derivation.Trim().Length > 0)
-                .SelectMany(r => DerivationRefusals(r, s)).Select(x => $"[{x.Code}] {x.Message}")];
+                .SelectMany(r => DerivationRefusalsAt(r, edition, s, next)).Select(x => $"[{x.Code}] {x.Message}")];
+
+    /// <summary>The next held edition's rows and their states for <paramref name="edition"/>'s chains (empty for the
+    /// newest), computed once per call by <see cref="StatesOf"/>.</summary>
+    private static IReadOnlyDictionary<string, (TraceabilityInventory.Row Row, string State)> NextStates(
+        TraceabilityInventory.Edition edition, Schema s) =>
+        edition.NextHeld is { } year
+            ? StatesOf(TraceabilityInventory.Editions.Single(e => e.Year == year), s)
+            : new Dictionary<string, (TraceabilityInventory.Row Row, string State)>(StringComparer.Ordinal);
 
     /// <summary>
     /// The register anchor this row's KIND obliges, COMPUTED from the row's own rule-id — or <c>null</c> when the
@@ -1382,7 +1450,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(s.Derivation is not null,
             "inventory-schema.json declares no `derivation` — §1.1's evidence kind is gone, so this gate would "
             + "measure nothing and the schema, not the gate, is what changed.");
-        var bad = BadDerivations(rows, s);
+        // Each edition's rows at their own edition (kb/Work PB5822): a chained row's derivation is judged under its chain.
+        var bad = TraceabilityInventory.Editions
+            .SelectMany(e => BadDerivations(TraceabilityInventory.RowsOf(e), e, s, NextStates(e, s))).ToList();
         var claimed = rows.Where(r => r.Derivation.Trim().Length > 0)
             .Select(r => DerivationAnchor(r, s)[(DerivationAnchor(r, s).IndexOf('#') + 1)..])
             .ToHashSet(StringComparer.Ordinal);
@@ -1501,13 +1571,26 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // device is line-oriented, section 3.3), each on the UPHELD record of
             // tests/version-matrix/derivation-refutations/records-85-held-send-gr17-gr18.jsonl.
             "1985-GR-XIV.3.6.4-17", "1985-GR-XIV.3.6.4-18",
+            // ⚙ Twelve more, added deliberately (kb/Work PB5822, signature `claude: 2026-11-16`): the first derivations on
+            // chained rows, each argued one standing on the UPHELD record of an independent cobol-refuter pass,
+            // tests/version-matrix/derivation-refutations/pb5822-1985-kept.jsonl (§8 DRV-1985-… and DRV-1989-RV-…).
+            "1985-GR-VI.6.17.4-7", "1985-GR-XI.4.4.4-4", "1985-GR-VI.6.25.4-12", "1985-GR-VI.6.27.4-21",
+            "1985-GR-VI.6.10.4-10", "1989-RV-A.2.11.3-2", "1989-RV-A.2.11.3-3", "1989-RV-A.2.22.4-3",
+            "1989-RV-A.2.46.3-3", "1985-GR-XI.4.1.4-10", "1985-GR-XIII.3.21.4-1", "1989-RV-A.2.19.4-3",
+            // ⚙ Five more, added deliberately (kb/Work PB5822 and PB5831, signature `claude: 2026-11-16`): two on
+            // `unpopulatable-antecedent` over one physical extent, one on D-MEDIUM-85, and two on the sixth arm
+            // `unfalsifiable-under-determination` (DOC-A.1-197), each on the UPHELD record of the second and third refuter passes,
+            // tests/version-matrix/derivation-refutations/pb5822-1985-kept-2.jsonl and pb5822-1985-kept-3.jsonl (and, for the first two, pb5822-1985-kept.jsonl).
+            "1985-GR-VII.4.3.4-22", "1985-GR-XIII.4.5.4-15", "1985-GR-XIII.4.5.4-9",
+            "1985-GR-VI.5.13.4-3", "1985-GR-VI.5.13.4-4",
         ];
 
         var s = LoadSchema();
-        // EVERY held edition's rows (kb/Work PB5374): a 1985 row closed on a derivation is a row of this population too.
-        var closed = TraceabilityInventory.Editions.SelectMany(TraceabilityInventory.RowsOf)
-            .Where(r => r.Derivation.Trim().Length > 0 && DerivedState(r, s) == "OK")
-            .Select(r => r.RuleId).Order(StringComparer.Ordinal).ToList();
+        // EVERY held edition's rows (kb/Work PB5374), each in its state AT its edition (kb/Work PB5822: a chained row closed
+        // on a derivation of its own is OK only through its chain, which DerivedState alone never reads).
+        var closed = TraceabilityInventory.Editions.SelectMany(e => StatesOf(e, s).Values)
+            .Where(x => x.Row.Derivation.Trim().Length > 0 && x.State == "OK")
+            .Select(x => x.Row.RuleId).Order(StringComparer.Ordinal).ToList();
 
         Assert.True(population.Order(StringComparer.Ordinal).SequenceEqual(closed, StringComparer.Ordinal),
             "the set of rows closed on a signed derivation is not the measured population.\n"
@@ -1556,8 +1639,19 @@ public sealed class SpecTraceabilityInventoryDriftTests
         {
             var s = WorldSchema(baseSchema, world, c);
             var r = FixtureRow(c.GetProperty("row"));
-            mine.Add((c.GetProperty("name").GetString()!, DerivedState(r, s),
-                      [.. DerivationRefusals(r, s).Select(x => x.Code).Order(StringComparer.Ordinal)]));
+            // A case is judged at its `edition` (the newest held one when it names none) against its `next-states`, the
+            // next held edition's rules a chained row carries into (kb/Work PB5822).
+            var edition = c.TryGetProperty("edition", out var y)
+                ? TraceabilityInventory.Editions.Single(e => e.Year == y.GetInt32())
+                : TraceabilityInventory.Newest;
+            var next = new Dictionary<string, (TraceabilityInventory.Row Row, string State)>(StringComparer.Ordinal);
+            if (c.TryGetProperty("next-states", out var states))
+            {
+                foreach (var t in states.EnumerateObject())
+                    next[t.Name] = (FixtureRow(t.Value) with { RuleId = t.Name }, Str(t.Value, "state"));
+            }
+            mine.Add((c.GetProperty("name").GetString()!, StateAt(r, edition, s, next),
+                      [.. DerivationRefusalsAt(r, edition, s, next).Select(x => x.Code).Order(StringComparer.Ordinal)]));
         }
 
         var bad = new List<string>();
@@ -1651,6 +1745,8 @@ public sealed class SpecTraceabilityInventoryDriftTests
             Catalog = catalog,
             RegisterItems = Field("register-items").EnumerateArray().Select(x => x.GetString()!)
                 .ToHashSet(StringComparer.Ordinal),
+            DeterminationKeys = Field("determinations").EnumerateArray().Select(x => x.GetString()!)
+                .ToHashSet(StringComparer.Ordinal),
         };
     }
 
@@ -1658,7 +1754,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Str(e, "rule-id"), Str(e, "section"), Str(e, "kind"),
         e.TryGetProperty("ordinal", out var o) ? o.GetInt32() : 0, Str(e, "subject"),
         Str(e, "verdict"), Str(e, "code-location"), Str(e, "test-ref"), Str(e, "derivation"),
-        Str(e, "editions"), Str(e, "notes"));
+        Str(e, "editions"), Str(e, "notes"),
+        e.TryGetProperty("next", out var n) && n.ValueKind == JsonValueKind.Object
+            ? new TraceabilityInventory.ChangeRecord(Str(n, "kind"),
+                n.TryGetProperty("to", out var to) ? [.. to.EnumerateArray().Select(x => x.GetString()!)] : [])
+            : null);
 
     /// <summary>Every traceability link still points at code that exists — the link is the whole point of it.</summary>
     [Fact]
@@ -2218,5 +2318,83 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.Equal(["determination-not-stated"], Codes(DerivationRefusals(
             Doc("DOC-A.1-19") with { CodeLocation = $"{Anchor}; {Src}", Derivation = Drv19 },
             docS with { RegisterItems = new HashSet<string>(StringComparer.Ordinal) })));
+
+        // ⛔ A CHAINED (KEPT) ROW CLOSES ON A DERIVATION OF ITS OWN (kb/Work PB5822), judged under its chain and against
+        // its OWN edition's catalog, and never on the derivation of the rule it carries into.
+        DerivationRule Quoting(string quote) => d with
+        {
+            Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+            {
+                ["DRV-1985-X-1"] = new("DRV-1985-X-1", "undefined-in-rule", $"\"{quote}\"", "…", signed, "—"),
+                ["DRV-X-6"] = new("DRV-X-6", "undefined-in-rule", "\"the content is undefined when the operands overlap\"",
+                                  "…", signed, "—"),
+            },
+            Undefined = new Dictionary<int, IReadOnlySet<string>>(),
+        };
+        var cs = s with
+        {
+            Derivation = Quoting("the result of the transfer is undefined"),
+            Catalog = new Dictionary<string, (int Year, string Text)>(StringComparer.Ordinal)
+            {
+                ["1985-X-1"] = (1985, "If the operands overlap, the result of the transfer is undefined."),
+                ["X-6"] = (2023, "After the move the content is undefined when the operands overlap."),
+            },
+        };
+        var derivedKept = kept with { TestRef = "", Derivation = DerivationAnchor(kept, cs) };   // computed, never typed
+        var closedChain = new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (Target(older85), "OK") };
+        var openChain = new Dictionary<string, (TraceabilityInventory.Row, string)> { ["X-6"] = (Target(older85), "GAP") };
+        Assert.Equal("OK", StateAt(derivedKept, older, cs, closedChain));
+        Assert.Empty(DerivationRefusalsAt(derivedKept, older, cs, closedChain));
+        // …its chain not closed: GAP, under the stable code, read as "its chain is not closed"
+        Assert.Equal("GAP", StateAt(derivedKept, older, cs, openChain));
+        var open = DerivationRefusalsAt(derivedKept, older, cs, openChain);
+        Assert.Equal(["verdict-does-not-resolve"], Codes(open));
+        Assert.Contains("its chain is not closed", open[0].Message, StringComparison.Ordinal);
+        // …an arm true only of the 2023 rule it carries into: refused against the row's OWN catalog text
+        var targetsQuote = cs with { Derivation = Quoting("the content is undefined when the operands overlap") };
+        Assert.Equal(["quote-not-in-rule"], Codes(DerivationRefusalsAt(derivedKept, older, targetsQuote, closedChain)));
+        Assert.Equal("GAP", StateAt(derivedKept, older, targetsQuote, closedChain));
+        // …beside a spec-derived test-ref of its own: refused (refusal 1); the row closes on the test
+        var tested85 = derivedKept with { TestRef = kept.TestRef };
+        Assert.Equal(["has-spec-derived-test"], Codes(DerivationRefusalsAt(tested85, older, cs, closedChain)));
+        Assert.Equal("OK", StateAt(tested85, older, cs, closedChain));
+        // …and never inherited: a target closed on a derivation of its own does not close the row that carries into it
+        var derivedTarget = new Dictionary<string, (TraceabilityInventory.Row, string)>
+        {
+            ["X-6"] = (Target(older85) with { Derivation = DerivationAnchor(Target(older85), cs) }, "OK"),
+        };
+        Assert.Equal("GAP", StateAt(kept with { TestRef = "" }, older, cs, derivedTarget));
+        // …and the newest edition's row, whatever its record says, is judged under a verdict of its own
+        Assert.Null(ChainOf(derivedKept, TraceabilityInventory.Newest, cs, closedChain));
+
+        // ⛔ THE SIXTH ARM, `unfalsifiable-under-determination` (kb/Work PB5831): the Names cell is a register key, the arm is
+        // argued, so a refuter-bound signature stands only on an UPHELD refuter record of the row.
+        string deciding = d.Signatures.Order(StringComparer.Ordinal).First(k => d.RefuterSigners.Contains(SignerOf(k)));
+        Schema Under(string names, string refuter = "refute.jsonl") => cs with
+        {
+            Derivation = cs.Derivation! with
+            {
+                Register = new Dictionary<string, ConformanceRegister.DerivationRow>(StringComparer.Ordinal)
+                {
+                    ["DRV-1985-X-1"] = new("DRV-1985-X-1", "unfalsifiable-under-determination", names, "…", deciding, refuter),
+                },
+                RefuterRecords = f => f == "refute.jsonl"
+                    ? new Dictionary<string, string>(StringComparer.Ordinal) { ["1985-X-1"] = "UPHELD" }
+                    : null,
+            },
+            RegisterItems = new HashSet<string>(StringComparer.Ordinal) { "DOC-A.1-197" },
+            DeterminationKeys = new HashSet<string>(StringComparer.Ordinal) { "D-NATURAL-BOUNDARY" },
+        };
+        var ownVerdict = derivedKept with { Next = null, Verdict = "CONFORMS", CodeLocation = "scripts/spec/inventory_schema.py" };
+        foreach (string names in new[] { "DOC-A.1-197", "D-NATURAL-BOUNDARY" })
+        {
+            Assert.Equal("OK", StateAt(derivedKept, older, Under(names), closedChain));      // a chained row
+            Assert.Equal("OK", StateAt(ownVerdict, older, Under(names), closedChain));       // an own-verdict row
+        }
+        Assert.Equal(["determination-not-in-register"], Codes(DerivationRefusalsAt(derivedKept, older, Under("D-NOWHERE"), closedChain)));
+        Assert.Equal(["determination-not-in-register"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("D-NOWHERE"), closedChain)));
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(derivedKept, older, Under("DOC-A.1-197", "—"), closedChain)));
+        Assert.Equal(["no-refuter-record"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197", "—"), closedChain)));
+        Assert.Equal(["names-shape"], Codes(DerivationRefusalsAt(ownVerdict, older, Under("DOC-A.1-197 and the rest"), closedChain)));
     }
 }

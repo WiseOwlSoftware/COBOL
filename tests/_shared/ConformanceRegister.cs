@@ -91,6 +91,12 @@ internal static class ConformanceRegister
         return map;
     }
 
+    /// <summary>The keys of the section 3 and 3.1 determinations (<c>D-&lt;NAME&gt;</c>), which a derivation of the
+    /// <c>unfalsifiable-under-determination</c> arm may name (kb/Work PB5831).</summary>
+    internal static IReadOnlySet<string> DeterminationKeys { get; } =
+        Extract.Value.GetProperty("determinations").EnumerateArray().Select(e => e.GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+
     /// <summary>The diagnostic codes the Annex A.3 register (<c>"A3"</c>, §2) or the Annex A.4 register (<c>"A4"</c>, §5) names.</summary>
     internal static HashSet<string> DeclinedCodes(string annex) =>
         Extract.Value.GetProperty("declinedCodes").GetProperty(annex).EnumerateArray()

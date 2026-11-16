@@ -43,7 +43,7 @@ The measured population before the door opened was **eight rows** — every CONF
 except `DOC-A.1-93`, which is a real defect (`kb/Work/PB383`).
 
 A **derivation** is a determination recorded in `docs/CONFORMANCE.md` §8, keyed by the inventory `rule-id`,
-naming ONE of five arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
+naming ONE of six arms and signed by a dated decision. It stands in place of §1(c) **and of nothing else**: (a) and
 (b) are paid in full, and a `kind: DOC` row still pays its register anchor and its observability cost.
 
 **Every edition's rows** (`kb/Work/PB5374`). §8 holds rows of every held edition, keyed `DRV-<rule-id>`; a rule-id
@@ -52,6 +52,29 @@ the id names the edition. Each row is checked against its OWN edition's catalog.
 edition's store (`audit_derivations.py --check`, `SpecTraceabilityInventoryDriftTests.EveryDerivation_StandsUnderItsOwnArm`),
 and a §8 row that no row of a held edition claims is refused: a derivation on a row of an edition a checker did not
 open would otherwise be skipped, never checked.
+
+**A chained (KEPT) row of an older edition** (`kb/Work/PB5822`, 2026-11-15). Such a row holds no verdict of its own:
+its verdict is its chain's, and it closes on own-edition evidence (section 10.2). That evidence is ONE of two things:
+a spec-derived conformance-suite `test-ref` of its own (`kb/Work/PB5675`), or, for a rule no program can witness, a
+derivation of its own. The derivation stands in for the row's own-edition WITNESS and for nothing else:
+- it is keyed `DRV-<the row's own rule-id>`, takes one of the arms above, is checked against the row's OWN edition's
+  catalog and signed, and an argued arm carries its UPHELD refuter record, exactly as on any row;
+- the chain must still be closed (every rule the row carries into is OK at the next held edition with a band that
+  names this edition), so for a chained row refusal 2 below reads **"its chain is not closed"**, under the same
+  code `verdict-does-not-resolve`;
+- it is **never inherited**. A derivation on the rule a row carries into closes that rule at its own edition and
+  does not close the older row: the older rule is judged by its own edition's text (owner 2026-11-14: "2002 spec
+  covers 2002 rules"), and an arm can be true at one edition only (Annex A.2 lists the 2023 text, and what this
+  implementation reaches differs by `--std`). A target closed on a derivation is a pointer to where an argument may be
+  found, as a target's cases are a pointer to candidate witnesses.
+
+Refusal 1 applies unchanged: a chained row with a spec-derived `test-ref` of its own takes no derivation. The one
+predicate per engine is `lineage.derivation_refusals` (Python) and `DerivationRefusalsAt` (C#): `Derivation.refusals`
+judged under the verdict the row is judged under (`lineage.chain_of`: a chained row's chain, `None` for every other
+row). The state rule (`lineage.state_of`, `lineage.unwitnessed` through `lineage.own_evidence`; `StateAt`), the writer
+(`record_verdicts.validate`), the audits (`audit_derivations.py --check`, `audit_witness_loss.py --check` through
+`statement_losses`) and the parity fixture ask it. Re-recording such a row as CHANGED with a verdict of its own was
+rejected: the requirement is the same, so the record would state a difference that does not exist.
 
 **Who signs** (`kb/Work/PB5373`, 2026-11-12). A `Signed` cell is a key `<signer>: <date>` of the schema's
 `signatures` map, and its signer is a key of `signers`. The owner signed every row through 2026-10 (`owner:`); from
@@ -69,6 +92,7 @@ record of the row's rule-id in it reading UPHELD. An overturned derivation becom
 | `indistinguishable-consequent` | the consequent is byte-identical to another rule's, so no conforming program can distinguish them | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must be a `rule-id` that EXISTS in the catalog and is not this row's own. |
 | `definitional` | the rule DEFINES a property of the user's program (§2023:4.4's conforming run unit) and obliges the implementation to nothing — owner decision `kb/Work/R43` item 4, extending `PB386` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell must open `defines` and state the property and whose it is (≥20 characters after the word). A rule whose subject is the implementation or the implementor is never this arm. |
 | `undefined-in-rule` | the rule's OWN text declares the result undefined or unpredictable — how an edition with no Annex A.2 says it (the 1985 standard); `kb/Work/PB5373` class 1 | **MECHANICAL.** The `Names` cell is a quotation in double quotes, of four or more words, containing `undefined` or `unpredictable`; the checker requires it to lie inside the row's own catalog text in its edition (each whitespace run compared as one space). A row an Annex A.2 item resolves to is refused here: it keeps `undefined-A.2`, so one fact has one arm. |
+| `unfalsifiable-under-determination` | a term of the rule is the implementor's to settle (the standard says so), this implementation's determination of that term is documented in the conformance register, and under that meaning of the term ALONE the rule's requirement is true of every state a compiler could produce, **any behaviour, a defective one included**, so no program can fail on it; `kb/Work/PB5831` | **REVIEWED ARGUMENT, shape-checked.** The `Names` cell is the register key of the determination, alone: a section 7 item (`DOC-A.1-<n>`) or a section 3 determination (`D-<NAME>`); the checker requires it to be a row of the register, read through the extract the DOC anchors read (`Schema.register_items`, `Schema.determination_keys`; no second parser). The argument cites the words that leave the term to the implementor, quotes the determination of the term, says why every behaviour satisfies the rule under that meaning alone, and that the derivation is CONTINGENT on it. |
 
 **What is REFUSED, by the writer and by the gate.** Each of these is a bound the owner set, encoded rather than
 described:
@@ -88,7 +112,26 @@ described:
    `docs/CONFORMANCE.md` §8 carries **no row**;
 7. an `undefined-in-rule` arm whose quotation is **not in the row's own catalog text**, or on a row an Annex A.2
    item resolves to;
-8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row.
+8. an ARGUED arm signed by a signer whose `refuter` is set with **no UPHELD refuter record** of the row;
+9. an `unfalsifiable-under-determination` arm naming a key that is **not a row of the conformance register**
+   (code `determination-not-in-register`, `kb/Work/PB5831`).
+
+⚖ **The bound on `unfalsifiable-under-determination`: the term alone, never the behaviour.** Every rule a correct
+compiler implements is true in every state that compiler reaches; that is not this arm. The test is whether ANY
+behaviour, a defective one included, could make the rule false while the MEANING OF THE TERM stands. Only the term's
+meaning is held fixed: the determination may fix what the term means, never the behaviour under test. A register entry
+often states behaviour beside the term: `DOC-A.1-197` says every byte position is a natural boundary, and also that the
+compiler "adds no slack bytes". Holding that promise fixed would make §1985:VI.5.13.4 GR8b (an item that "does not
+terminate at an appropriate natural boundary", and the implicit FILLER it brings) unbreakable, yet a compiler that
+added slack would break it, and the case `g85_f09_02` witnesses it. So the refuter's job on this arm is to describe a
+behaviour that violates the rule under the term's meaning alone; if one exists, a program can witness the rule and
+the row takes a test. The first rows it was made for, §1985:VI.5.13.4 GR3 and GR4 (SYNCHRONIZED LEFT and RIGHT
+position an item at the left or right character position of its natural boundary), hold of every placement once every
+byte position is a natural boundary: a one-character boundary begins and ends where the item does. The term is the
+implementor's because the 1985 text ties natural boundaries to the computer (§1985:VI.5.13.1: "alignment of an
+elementary item on the natural boundaries of the computer memory"), names byte boundaries among them (§1985:IV.4.3.7)
+and leaves which boundary is appropriate to the implementation (GR8b); GR8's "must specify how ... are handled" alone
+does not give it.
 
 ⚖ **How this coexists with `PB280` Q2 ("no" for anchor-only DOC rows), which it does NOT reverse.** A DOC row
 asks the implementor to STATE a choice, so "there is nothing to observe" is unfalsifiable there and cannot close
@@ -982,13 +1025,14 @@ row, cross-checked against a register PARSED by one reader per language.
 
 | part | file | owns |
 |---|---|---|
-| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the owner signatures (one per dated owner decision), and the four arms with their `names-pattern` + `check` |
+| the rules, as DATA | `tests/version-matrix/inventory-schema.json` → `derivation` | the record field, the anchor template, the §8 heading, the signers and signatures (one per dated decision), and the six arms with their `names-pattern` + `check` |
 | the register | `docs/CONFORMANCE.md` **§8** | the determinations themselves — one row per closed rule, keyed `DRV-<rule-id>` |
 | the register parser | `conformance_source.Conformance.rows_at` / `tests/_shared/ConformanceRegister.cs` | ONE markdown-table reader per language, addressing a section by its NUMBER and stopping at the section's next heading — §7 and §8 are two calls, not two parsers |
 | the undefined-element list | `tests/version-matrix/annex-a2-undefined.json`, generated by `scripts/spec/extract_annex_a2.py` | Annex A.2's 66 items, each item's own trailing citation, and the catalog `rule-id`s that citation RESOLVES to |
-| the state rule | `Schema.state_for` / `DerivedState` | the same clause, in both engines, in the same change set (`kb/Work/PB315`'s lesson) |
-| the writer | `record_verdicts.validate` | the six refusals of §1.1, at record time |
-| the gates | `SpecTraceabilityInventoryDriftTests` · `AnnexA2UndefinedListDriftTests` | that every derivation row still holds, and that the A.2 artifact still equals the spec |
+| the predicate | `inventory_schema.Derivation.refusals` / `DerivationRefusals`, asked at a row's own edition through `lineage.derivation_refusals` / `DerivationRefusalsAt` | every refusal of §1.1 with its stable code, judged under the verdict the row is judged under (`lineage.chain_of` / `ChainOf`: a chained row's chain, `kb/Work/PB5822`) |
+| the state rule | `Schema.state_for` / `DerivedState`; for a chained row of an older edition `lineage.state_of` (`own_evidence`) / `StateAt` | the same clause, in both engines, in the same change set (`kb/Work/PB315`'s lesson) |
+| the writer | `record_verdicts.validate` | the refusals of §1.1, at record time, on a row with its own verdict and on a chained row alike |
+| the gates | `audit_derivations.py --check` · `audit_witness_loss.py --check` · `SpecTraceabilityInventoryDriftTests` · `AnnexA2UndefinedListDriftTests` | that every derivation row of every held edition still holds at its own edition, that none is erased (`statement_losses`, a chained row's under its chain), that the two engines agree on the parity fixture (`tests/version-matrix/derivation-parity-cases.json`, chained cases included), and that the A.2 artifact still equals the spec |
 
 - **The A.2 list is a GENERATED ARTIFACT, not a parse at check time, and that is the shape that makes the next
   A.2 row automatic.** The extraction lives in exactly one place — a Python script that reads
@@ -1316,7 +1360,10 @@ obsolete. A later edition's lists are one more data file read by the same code.
 **A verdict is held once per chain.** A run of KEPT links is one chain; its verdict, code location and test live on the
 chain's NEWEST row, and an older row in it holds none (the schema refuses them there), so 2023's adjudicated work serves
 every 1985 rule that carries into it without a copy. The older row's state is the chain's, evaluated at its own edition:
-the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md).
+the chain's test must also be placed at that edition (the conformance suite's placement, DESIGN-conformance-suite.md),
+and the row carries own-edition evidence of its own, a witness or, for a rule no program can witness, a derivation of
+its own (section 10.6, section 1.1, kb/Work PB5675, PB5822); the schema's `next.verdict-fields` (a verdict and its
+code read) are what an older chained row may not carry.
 CHANGED and REMOVED rows, and NEW ones, carry verdicts of their own. The fleet's work is therefore only what changed.
 Both languages compute it: Python's `lineage.state_of` and the C# view's `StateAt` in the drift test over
 `TraceabilityInventory.RowsOf`, held to each other for every held edition by
@@ -1786,9 +1833,16 @@ none of correct, wrong or not probed is kept as written and its row listed `unin
    `needs-accepting-case`, review R2-3) needs an ACCEPTED case too: no refusal of a forbidden form shows a permitted one
    accepted. This is a TEXT HEURISTIC THAT FAILS CLOSED: a match sends the rule to an accepted case, so a prohibition
    worded with one of the words (other than "may not") is over-refused, never over-kept; it misses a grant no sentence of
-   the rule states (a form only its general format shows). A general, argument or returned-value rule witnessed only by a
-   refusal is refused `no own-edition witness` (the review found 160 of 222 kept records resting on refusals alone, three
-   of them behaviour rules such as START with no KEY). A unit or C# test is no witness at an older edition: it does not
+   the rule states (a form only its general format shows). A rule of ANY kind whose text WITHHOLDS a property from a
+   clause or phrase (the table's `withholding-rules`: "<clause> does not imply", kb/Work PB5783) is diagnosable too,
+   when no `needs-accepting-case` pattern matches it (those win): no accepted program can tell the property was
+   withheld (§1985:X.4.5.4 GR3, EXTERNAL does not imply GLOBAL, where a contained program's own declaration wins either
+   way), so the refusal of a program that relies on it is its one witness. Over the held catalogs the pattern makes
+   exactly one rule diagnosable, `1985-GR-X.4.5.4-3`; the 2002 and 2023 EXTERNAL rules carry the same sentence beside
+   "may be accessed" and still need an accepted case, and the OCCURS DEPENDING ON rules' "This does not imply" (a gloss
+   on a rule with observable results) is not a clause's. Any other general, argument or returned-value rule witnessed
+   only by a refusal is refused `no own-edition witness` (the review found 160 of 222 kept records resting on refusals
+   alone, three of them behaviour rules such as START with no KEY). A unit or C# test is no witness at an older edition: it does not
    run there. One function holds 3 and 4 for a NEW record (`lineage_reads.kept_witnesses`: `pairing_problems`, then
    the candidate search `Witnesses.search` through the targets' cases), shared by the import's decisions and the writer.
    The cases it finds are the record's OWN WITNESS: the writer writes them as the row's `test-ref` (`conformance:<key>`,
@@ -1897,13 +1951,17 @@ proof; only then are the KEPT records written (for a stored row, by `witness-bat
 **A KEPT row closes on its own witness, at every older edition (kb/Work PB5675).** The chain says the older rule states
 the newer one's requirement; it does not show the compiler meets it at the older `--std`. So a chained row's state
 (`lineage.state_of`, mirrored by the C# `SpecTraceabilityInventoryDriftTests.StateAt`) is OK only when its chain is
-closed (section 10.2) AND it carries a spec-derived `test-ref` of its own (`Schema.has_spec_derived_test`, the predicate
-a newest row closes on). The state reads only the row's own fields, so every view stays a join of the store with the
-catalog and no view reads the suite. Nothing in the evidence test reads the direction or the target of the lineage
-pointer: the targets are where the writer LOOKS for candidate cases, and once found the cases are the row's own. A
-chained row with no witness of its own is a GAP, and every per-edition report counts such rows apart from the rows
-nobody adjudicated (`inventory_view.gap_causes`: the session probe's `invent` line, `inventory_view.py --summary` and
-the ledger's per-edition line). A stored record's witness is written by `python scripts/spec/lineage_reads.py
+closed (section 10.2) AND it carries own-edition evidence (`lineage.own_evidence`): a spec-derived `test-ref` of its own
+(`Schema.has_spec_derived_test`, the predicate a newest row closes on), or, where no program can witness its rule, a
+derivation of its own that stands (section 1.1, `lineage.derivation_refusals`, kb/Work PB5822: checked against its own
+edition's catalog, refused while its chain is not closed, never inherited from a target). The state reads only the
+row's own fields, so every view stays a join of the store with the catalog and no view reads the suite. Nothing in the
+evidence test reads the direction or the target of the lineage pointer: the targets are where the writer LOOKS for
+candidate cases, and once found the cases are the row's own. A chained row with neither is a GAP, and every per-edition
+report counts such rows apart from the rows nobody adjudicated (`inventory_view.gap_causes` through `lineage.unwitnessed`:
+the session probe's `invent` line, `inventory_view.py --summary` and the ledger's per-edition line). The planners'
+population (`lineage_reads.bare_kept`, so `witness-batch` and `widen`) leaves out a chained row its own derivation
+closed, by the state the view computed for it. A stored record's witness is written by `python scripts/spec/lineage_reads.py
 witness-batch --edition YEAR --out BATCH`, the writer's candidate search over the stored record's targets (the read's
 licence where the record came from one), one witness-only record per row it finds a witness for at EVERY target, applied
 by `record_verdicts.py --edition YEAR`; a second run writes nothing. The audit of a STORED record asks no pairing: the
@@ -1942,7 +2000,9 @@ there, or only diagnosed there for a diagnosable rule or a read whose licence pa
 witnesses are in a reference format the row's edition defines (`format_problem`, above). A later change that narrows
 a witness's band, moves or deletes its case, or rewrites a read under a stored record, turns it red, naming the row and
 the case: an evidence loss is never one more GAP. The WITNESS LOSS audit (`audit_witness_loss.py --check`) compares
-every held edition's rows with the merge base's, so a witness erased from a chained row is red as a newest row's is.
+every held edition's rows with the merge base's, so a witness erased from a chained row is red as a newest row's is, and
+so is a chained row's derivation erased while its chain is closed (`statement_losses` judges it under its chain, kb/Work
+PB5822). A chained row's derivation is no error of this audit: `audit_derivations.py --check` judges it (section 1.1).
 
 **1985, the earliest edition.** The 1985 pairing pairs none of its 2,274 rules (its wording never matches 2023's word
 for word), so the writer refuses every new 1985 KEPT record (`targets are not the pairing's`). That is intended: 1985 is
