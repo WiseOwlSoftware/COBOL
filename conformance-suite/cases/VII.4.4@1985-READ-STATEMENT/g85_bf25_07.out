@@ -1,0 +1,5 @@
+A=00 [   ABCDE] [ABCDE]
+B=00 LEN=03 [ABC  ]
+C=00 [B1..A3]
+D-END=10
+D=[KEEP]
