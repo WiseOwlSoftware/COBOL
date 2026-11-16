@@ -9,6 +9,9 @@ namespace WiseOwl.Cobol.CodeGen;
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
 internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move, ArithmeticEmitter arith, EcEmitter ec)
 {
+    /// <summary>The statement emitter, for a COBOL-85 MOVE pair's identification steps (<see cref="BoundCorresponding.PairIdentification"/>).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>
     /// MOVE/ADD/SUBTRACT CORRESPONDING (ISO §2023:14.7.6): render the bind-time-expanded pairs as the per-pair implied
     /// statements, in D1 declaration order. MOVE pairs are ordinary MOVEs (MOVE GR11 §2023:14.9.25.4 — "the same as if
@@ -29,7 +32,11 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
             Deferred(() =>
             {
                 foreach (var p in c.Pairs)
+                {
+                    // §1985:VI.6.19.4 GR1/GR2: a COBOL-85 pair identifies the groups afresh, immediately before its move (kb/Work PB5767).
+                    foreach (var step in c.PairIdentification) Statements.EmitStatement(step);
                     move.Emit(p.Move!);   // BOUND with the pair (kb/Work PB880); never null for CorrVerb.Move
+                }
             });
             return;
         }

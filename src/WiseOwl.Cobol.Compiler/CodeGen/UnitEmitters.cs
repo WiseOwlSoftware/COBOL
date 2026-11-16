@@ -96,6 +96,7 @@ internal sealed class UnitEmitters
         // already took KeyedIo for the shared READ/REWRITE bodies).
         Ec.Statements = Statements;
         Brackets.Statements = Statements;
+        Corresponding.Statements = Statements;
         Arith.Statements = Statements;
         Evaluate.Statements = Statements;
         Strings.Statements = Statements;
