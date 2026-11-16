@@ -452,8 +452,10 @@ public abstract class CobolParserCoreBase : Parser
     /// of that rule is a user-defined-word slot (VersionConformancePass.VisitReservedGatedWord relies on the same fact):
     /// a definition slot, or <c>procedureName</c>, whose REFERENCES match the word only where the full-context parse
     /// found no keyword reading of it that parses — the evidence <see cref="NoteGatedOffender"/> takes from a syntax
-    /// error (kb/Work PB4206). Recorded only when §2023:8.9 leaves it free here; where §2023:8.9 reserves it the match stands and
-    /// the funnel answers COBOL0901. Actions never run during prediction.</summary>
+    /// error (kb/Work PB4206), or the computer-name, a system-name slot that offers the rule only where the word is free
+    /// (<see cref="gatedWordFreeHere"/>, kb/Work PB5804), and a free word is retyped there for the same reason. Recorded only
+    /// when §2023:8.9 leaves it free here; where §2023:8.9 reserves it the match stands and the funnel answers COBOL0901.
+    /// Actions never run during prediction.</summary>
     protected void gatedDeclaration(IToken? word) => FreeGatedWord(word);
 
     private void FreeGatedWord(IToken? word)
@@ -513,6 +515,14 @@ public abstract class CobolParserCoreBase : Parser
     /// FOLLOW set), so no conforming source loses a reading: the parse stops at the word, where the missing period (ISO
     /// §2023:13.16.2 ends the entry with a separator period) is the report and the recovery. Read-only, so safe in prediction.</summary>
     protected bool noHeaderWrittenHere() => !ClosesAHeader(TokenStream.LA(2));
+
+    /// <summary>⛔ A FREE GATED WORD IS A COMPUTER-NAME (kb/Work PB5804) — the predicate on <c>computerName</c>'s
+    /// <c>reservedGatedWord</c> arm. A computer-name is a system-name (§1985:VI.4.4.3 SR1), and §2023:8.3.2.1 SR1 bars only a
+    /// reserved word from it, so a reservation-gated word §2023:8.9 leaves free at the targeted edition (CLASS-ID at COBOL-85)
+    /// is the name; one it reserves (<see cref="ReservedGatedWord"/>, migration-blind) is not, and the optional slot is skipped
+    /// for the construct the word heads (<c>OBJECT-COMPUTER.</c> then <c>REPOSITORY.</c> at 2023). Read-only, so safe in
+    /// prediction.</summary>
+    protected bool gatedWordFreeHere() => ReservedGatedWord(TokenStream.LT(1)) is null;
 
     /// <summary>Is <paramref name="tokenType"/> SECTION or DIVISION, the word a section or division header writes after its
     /// first word (<c>LINKAGE SECTION</c>, <c>PROCEDURE DIVISION</c>)?</summary>

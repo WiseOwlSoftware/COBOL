@@ -110,7 +110,7 @@ public sealed class EditionReadDriftTests
             "FreeGatedWord", "HeaderReadingRefused", "IsKeywordReadingHere", "KeywordContinuesFrom", "NoteGatedOffender", "PrintsConstantName", "PrintsKeyword", "ReservedAsAName", "ReservedGatedWord",
             "ReservedProcedureName", "ReservedUserWordViolation", "ReservedWord", "ReservedWordHere", "UserWordViolationOf", "conditionalPhraseAssociates",
             "entryNameHere", "facilityWord",
-            "gatedDeclaration", "is2002", "is2014",
+            "gatedDeclaration", "gatedWordFreeHere", "is2002", "is2014",
             "is2023", "is85", "keywordContinuesHere", "pointerOperandHere", "procedureHeaderHere", "reservedHere", "screenPositionAhead", "setLocaleAhead",
             "userWordHere",
         ],
@@ -156,6 +156,9 @@ public sealed class EditionReadDriftTests
         // ... and of the screen description entry, whose §2023:13.17.2 format prints the same optional name (kb/Work PB4890).
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolScreen.g4 | screenDescriptionEntry | entryNameHere"] = (1, Verdict.WordStatus),
         ["src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolWords.g4 | reservedGatedWord | gatedDeclaration"] = (1, Verdict.WordStatus),
+        // The computer-name slot takes a reservation-gated word only where §2023:8.9 leaves it free here; where it reserves the
+        // word the optional name is skipped for the construct the word heads (kb/Work PB5804).
+        ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | computerName | gatedWordFreeHere"] = (1, Verdict.WordStatus),
         // A paragraph or section header names a word §2023:8.9 reserves here only where its period or SECTION follows it;
         // elsewhere the word is its keyword (a stray END-DISPLAY beginning a sentence, kb/Work PB4132 review R1-1).
         ["src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4 | paragraphName | procedureHeaderHere"] = (1, Verdict.WordStatus),

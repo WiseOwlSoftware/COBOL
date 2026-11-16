@@ -453,7 +453,7 @@ its `ParseToFixpoint` is THE gate loop, and EVERY whole-group parse calls it —
 this grammar and a front end that skips the loop can never read a gated word as a name; train 49 dropped PB655
 over exactly that third arm, and `ReservationGateParseEntryDriftTests` now fails on any source file that calls
 `compilationUnit()` without the loop). A parse pass that meets a gated word the compile edition leaves free
-(`userWordHere`) either in a `reservedGatedWord` user-word slot, or as the offending token of a syntax error
+(`userWordHere`) either in a `reservedGatedWord` user-word slot (or the computer-name system-name slot, which offers it only where the word is free, kb/Work PB5804), or as the offending token of a syntax error
 (the keyword reading failed, and the only other reading §2023:8.9 leaves is a user-defined word — this is how a name
 introduced in a slot that does not offer `reservedGatedWord`, an index-name or a SPECIAL-NAMES class-name,
 is reached), has found a user-defined word: every occurrence of that word is retyped to `IDENTIFIER` and the
@@ -1045,6 +1045,16 @@ name-less WITH DEBUGGING MODE clause is the same 2002 relaxation (kb/Work PB5609
 inside the required name's bracket, §2002:12.2.4.1 (rendered, PDF p212 / folio 190) prints `[ computer-name-1 ] [ WITH
 DEBUGGING MODE ]`, so `VisitSourceComputerParagraph` asks `computer-name-optional-2002` for a clause without a name,
 and the clause's own row (`debugging-mode-removed-2014`) still makes it obsolete at 2002 and removed at 2014.
+Both paragraphs share `computerName : cobolWord | {gatedWordFreeHere()}? reservedGatedWord` (kb/Work PB5804). A
+computer-name is a system-name (§1985:VI.4.4.3 SR1), which §2023:8.3.2.1 SR1 bars only from being a reserved word, so a
+reservation-gated word the targeted edition leaves free is a computer-name: the arm's match frees it for the token-level
+gate (`ReservationGateRewriter`, §3.3a above), exactly as a definition slot's does. Without it the optional name let the parse leave the paragraph at a
+word that heads a later edition's construct (`OBJECT-COMPUTER. CLASS-ID.` at 85 opened a class definition), and the gate's
+second witness never saw the word. The predicate is left-edge and migration-blind: where the edition reserves the word the
+slot is skipped for the construct it heads (`OBJECT-COMPUTER.` then `REPOSITORY.` at 2023). The one name check the
+paragraphs make beyond the parse is 1985's: a computer-name spelled as one of this implementation's implementor-names
+(the `ImplementorNames` and `ImplementorCodeNames` tables) is COBOL7624 below 2002 (§1985:IV.4.2.2.1.2's disjoint
+system-name sets; kb/Work PB5795), asked by `VersionConformancePass.GateComputerName` from both paragraph visitors.
 
 ### 3.4 Delete dead grammars; quarantine JSON/XML (D5)
 
