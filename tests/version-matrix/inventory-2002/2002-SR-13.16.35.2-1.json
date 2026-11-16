@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.35.2-1",
+ "rule-digest": "ed7d9a5a67ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportNextGroupClause; src/WiseOwl.Cobol.Compiler/Binding/ReportSectionBinder.cs#BindNextGroupClauses",
+ "test-ref": "conformance:cases/13.18.37-NEXT-GROUP/pb957-next-group-exceeds-page-limit",
+ "notes": "Own verdict from the read lineage-reads-2002/u-15.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.37.3-1, witnessed at 2002 by the cases test-ref names. The read: Identical but for the PAGE clause number; same general format in both editions. Cited: §2002:13.16.35.2 SR1."
+}

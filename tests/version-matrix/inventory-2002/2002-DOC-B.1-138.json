@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-DOC-B.1-138",
+ "rule-digest": "15ca6d4dfc03",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ScreenFacility",
+ "test-ref": "conformance:wiseowl/cases/13.18.50-SECURE/a42-screen-secure",
+ "notes": "Own verdict from the read lineage-reads-2002/u-35.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer DOC-A.1-172, witnessed at 2002 by the cases test-ref names. The read: SECURE format and GR1-4 identical. 2002's item text has a typo ('item is item is required'; catalog requirement 'unclassified'). The 2023 row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support on its own ground (screen section processor-dependent), and the compiler declines with a diagnostic at 2002. Cited: §2002:B.1; §2002:13.16.48.2 GR4; §2002:B.3; §2002:3.1.5."
+}

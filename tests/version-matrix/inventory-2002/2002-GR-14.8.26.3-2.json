@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-2",
+ "rule-digest": "95fc49cce84a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/Sharing/OpenTable19.cs#Cell; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/WiseOwl.Cobol.Runtime/IO/FileRegistry.cs#SharedClose; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/Sharing/OpenTable19.cs#Conflicts; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/12.4.5.15-SHARING/pb321_table19_open_arbitration; conformance:cases/9.1.15-Sharing-mode/pb740_clauseless_share_2002; conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-4, witnessed at 2002 by the cases test-ref names. The read: Tables have the same cells (renumbered); Table 21/20 differ only in 2023 writing DELETE RECORD (DELETE FILE is 2023-only). Cited: §2002:14.8.26.3 GR2."
+}

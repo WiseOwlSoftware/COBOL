@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.73.3-1",
+ "rule-digest": "8427faa22470",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#TestDateYyyymmdd",
+ "test-ref": "conformance:cases/15.90.4-Returned-value-rule/pb254_total_integer_arguments; conformance:cases/15.90.4-Returned-value-rule/intrinsics_test_validators",
+ "notes": "Own verdict from the read lineage-reads-2002/u-33.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.90.4-1, witnessed at 2002 by the cases test-ref names. The read: Word for word the same apart from digit grouping; same format and argument rule; twin witnesses run at 2002. Cited: §2002:15.73.3 RV1."
+}

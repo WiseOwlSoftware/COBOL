@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.10.3-1",
+ "rule-digest": "460f5174a165",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs#ReplacementFor; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#ArgCarrierText; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/UdfBinder.cs#UdfArg",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model; conformance:cases/8.4.3.1-Identifier/pb1630_null_argument_crossing",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.10.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical rule; pointer chosen by me (slice gave none). Witnesses pass at 2002. Cited: §2002:8.4.2.10.3 GR1."
+}

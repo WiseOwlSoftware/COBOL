@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-8.8.4.1.5.1",
+ "rule-digest": "311962fb5450",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/Binding/Bound/BoundAlterSwitches.cs#BoundSwitchCondition; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/l1_search_when_condition_forms; conformance:cases/8.8.4.6-Simple-switch-status-condition/pb1464_parenthesized_bare_conditions",
+ "notes": "Own verdict from the read lineage-reads-2002/u-48.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-8.8.4.6.2, witnessed at 2002 by the cases test-ref names. The read: Word-identical format; pointer chosen (renumbered clause); witnesses run green at 2002. Cited: §2002:8.8.4.1.5."
+}

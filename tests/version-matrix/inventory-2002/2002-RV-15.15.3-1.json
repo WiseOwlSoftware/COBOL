@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.15.3-1",
+ "rule-digest": "7bd045ccd33e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Dec.cs#SignDec; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Cos; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+ "test-ref": "conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.20.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical words (only the minus sign glyph differs). Same format, argument class numeric in both. The 2002-only standard-arithmetic mode is shown by fe4. No communication or debugging reach that changes anything (a CD numeric item is just a numeric argument). Cited: §2002:15.15.3 RV1."
+}

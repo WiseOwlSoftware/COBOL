@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.5.2-5",
+ "rule-digest": "4d6f5c4d9c01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/FileControlKeyRules.cs#BeyondMinimum; src/WiseOwl.Cobol.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf",
+ "test-ref": "conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1025-alternate-key-beyond-minimum",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.4.5.6.3-5, witnessed at 2002 by the cases test-ref names. The read: Identical words; only the RECORD clause cross-reference renumbers (13.16.41 -> 13.18.43). The 2002 RECORD clause has the same three formats (fixed, VARYING, CONTAINS integer-4 TO integer-5) and the same minimum-size meaning; 2023's additions (dynamic-length members) only widen. The key operands are the same (data-name-1, SOURCE data-name-2). Indexed files only, no CD reach. Cited: §2002:12.3.4.5.2 SR5; §2002:13.16.41.3 GR7."
+}

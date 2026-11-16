@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.10.1",
+ "rule-digest": "b1dd290375e1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#blockContainsClause; src/WiseOwl.Cobol.Compiler/Validation/IntegerOperandPass.cs#Slots",
+ "test-ref": "conformance:cases/13.18.10-BLOCK-CONTAINS/l1c02_block_contains_forms",
+ "notes": "Own verdict from the read lineage-reads-2002/u-51.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.10.2, witnessed at 2002 by the cases test-ref names. The read: Format identical (CONTAINS and CHARACTERS optional words in both). FD only, no CD reach. Cited: §2002:13.16.10.2 SR1."
+}

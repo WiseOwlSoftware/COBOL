@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-15.6.1",
+ "rule-digest": "33eb74214c67",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsic",
+ "test-ref": "conformance:cases/15.7-ABS/pb40_integer_argument_positions; conformance:cases/15.7.4-Returned-value-rule/pb2_float_argument_exact_family",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-15.7.2, witnessed at 2002 by the cases test-ref names. The read: Identical format, argument rule and returned value rule. Cited: §2002:15.6.2 AR1."
+}

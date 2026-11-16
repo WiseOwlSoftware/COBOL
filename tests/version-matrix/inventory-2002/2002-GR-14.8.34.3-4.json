@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.34.3-4",
+ "rule-digest": "ae585bffda7a",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs",
+ "test-ref": "conformance:cases/14.9.9-CONTINUE/ec_range_search",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.37.4-4, witnessed at 2002 by the cases test-ref names. The read: Word-identical except 'general rule' capitalization. The exception names are the same in both editions and the twin witness passes at 2002. Cited: §2002:14.8.34.3 GR4."
+}

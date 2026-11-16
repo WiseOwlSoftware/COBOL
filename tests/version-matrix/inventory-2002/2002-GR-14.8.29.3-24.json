@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-24",
+ "rule-digest": "d0f4b9ff46ae",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadSequential",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_read_alt_dup_walk",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.30.4-27, witnessed at 2002 by the cases test-ref names. The read: Normative text identical; only the NOTEs differ ('should not' vs 'cannot'), and they are informative. Status 02 means the same in §2002:9.1.12.1 2) and 2023 9.1.13.2 2). The 2023 EC-I-O-WARNING does not change the setting of 02. The pointer's test passes at 2002. Cited: §2002:14.8.29.3 GR24."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.10.3-6",
+ "rule-digest": "5afda919bade",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#FieldAsString; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay; src/WiseOwl.Cobol.Compiler/Binding/Model/DataItem.cs#TransferImageCapable; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/GroupImageCodec.cs#EmitImageMethods",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/pb148_display_forms; conformance:cases/14.9.11-DISPLAY/ca3_figurative_display_pcs; conformance:cases/14.9.11-DISPLAY/initialize_phrases; conformance:cases/13.18.40-PICTURE/national_data; conformance:cases/14.9.11-DISPLAY/pb244_pointer_group_transfer",
+ "notes": "Own verdict from the read lineage-reads-2002/u-22.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.11.4-6, witnessed at 2002 by the cases test-ref names. The read: Same requirement. pb164_vlg_display (2014 data kinds) is outside the 2002 scope. General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined. Cited: §2002:14.8.10.3 GR6."
+}

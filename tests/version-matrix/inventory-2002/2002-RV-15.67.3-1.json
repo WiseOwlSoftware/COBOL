@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.67.3-1",
+ "rule-digest": "d41351b8b995",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Sin; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#WholeRangeBodies; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.TwoPi.cs#ReduceQuarterTurns",
+ "test-ref": "conformance:cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range; conformance:cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument; conformance:cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument",
+ "notes": "Own verdict from the read lineage-reads-2002/u-33.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.82.4-1, witnessed at 2002 by the cases test-ref names. The read: Same words and same format; the rule fixes only approximation and range, which the twin's 2002-running witnesses show. Cited: §2002:15.67.3 RV1."
+}

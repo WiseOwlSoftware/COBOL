@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.16.14.3-6",
+ "rule-digest": "f2dad7e1ee8d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolReportWriter.g4#reportColumnClause; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements; src/WiseOwl.Cobol.Compiler/Binding/ReportModel.cs#ReportColumnSpec",
+ "test-ref": "conformance:cases/13.18.14-COLUMN/pb1220_column_alignment",
+ "notes": "Own verdict from the read lineage-reads-2002/u-14.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.18.14.4-6, witnessed at 2002 by the cases test-ref names. The read: Identical after erasing the bold markup on '1'. Same Format 1 (LEFT/CENTER/RIGHT, integer-1, PLUS integer-2) and same printable-size (GR3) in both editions; report section only. Cited: §2002:13.16.14.3 GR6."
+}

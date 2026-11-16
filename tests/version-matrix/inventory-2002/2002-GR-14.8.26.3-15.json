@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.26.3-15",
+ "rule-digest": "151dc03622f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#OpenCore; src/WiseOwl.Cobol.Runtime/IO/KeyedConnector.cs#OpenCore",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_open_optional_create",
+ "notes": "Own verdict from the read lineage-reads-2002/u-25.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.27.4-17, witnessed at 2002 by the cases test-ref names. The read: 2023 states the '05' inside the rule; 2002 states the same 05 in 9.1.12.1 item 4 for the same case, so the requirement is the same. Cited: §2002:14.8.26.3 GR15; §2002:9.1.12.1."
+}

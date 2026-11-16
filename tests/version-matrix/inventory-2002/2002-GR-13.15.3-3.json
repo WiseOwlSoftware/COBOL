@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.15.3-3",
+ "rule-digest": "986b603ee3c7",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportSection",
+ "test-ref": "conformance:wiseowl/cases/9.2.3-CRT-status/a42-screen-section",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.17.3-10, witnessed at 2002 by the cases test-ref names. The read: The slice's pointer GR-13.17.4-1 is the lowest-level-wins rule (distant); the 2023 counterpart is SR-13.17.3-10 (2023 made the general rule a syntax rule and excluded zero-length literals, which 2002 does not have). Both rows are DOCUMENTED-NON-SUPPORT with the same a42-screen-section witness; 2002 licenses the non-support and the compiler declines at --std 2002. Cited: §2002:13.15.3 GR3; §2002:3.1.5; §2002:B.3."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.8.2-6",
+ "rule-digest": "0cc49257b1b3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#selfAndSuper; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
+ "test-ref": "conformance:cases/8.4.3.1-Identifier/pb1425_qualified_super; conformance:cases/8.4.3.8-SELF-and-SUPER/oo_super",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.8.3-6, witnessed at 2002 by the cases test-ref names. The read: Rename only; the rule's subject is the single-base class, which both editions require and the row's witnesses show at 2002. Cited: §2002:8.4.2.8.2 SR6."
+}
