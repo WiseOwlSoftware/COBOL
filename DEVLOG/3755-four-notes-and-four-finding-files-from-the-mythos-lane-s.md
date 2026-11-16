@@ -1,4 +1,4 @@
-## Four notes and four finding files from the Mythos lane's batch-11 rulings of 2026-11-16
+## Entry 3755 — 2026-11-16 05:31 PST — Four notes and four finding files from the Mythos lane's batch-11 rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed, and a Sites block.
 
@@ -8,3 +8,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 - PB5859 (defect, MINOR): INSPECT TALLYING with a reference-modified numeric counter passes the binder and fails in the C# compile (CS1503, exit 70), at every edition; the fix of PB5734 covered STRING and UNSTRING only.
 
 Four dated finding files beside existing notes: `kb/Work/PB5731/2026-11-16-two-superseded-branches.md` (two branches abandoned as superseded), `kb/Work/PB5816/2026-11-16-the-no-pointer-form.md`, `kb/Work/PB5734/2026-11-16-inspect-is-a-note-of-its-own.md`, and the ruling copied unchanged as `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-11.md`.
+
