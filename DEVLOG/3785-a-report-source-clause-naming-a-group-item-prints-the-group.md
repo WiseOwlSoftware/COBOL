@@ -1,4 +1,4 @@
-## A report SOURCE clause naming a group item prints the group's characters, as the MOVE of the same group stores them (PB5807)
+## Entry 3785 — 2026-11-16 12:08 PST — A report SOURCE clause naming a group item prints the group's characters, as the MOVE of the same group stores them (PB5807)
 
 **Defect.** `SOURCE WS-G` over a `PIC 999` printable item, WS-G a group holding `4X7`, printed `047` at every edition where `MOVE WS-G TO N3` gives `4X7`. Re-probed on this build before the change: the report file held `047` at `--std 85`.
 
@@ -9,3 +9,4 @@
 **Golden.** `conformance-suite/cases/13.18.53-SOURCE/pb5807_report_source_group_sender` (accepted at 85, 2002, 2014, 2023; no negative, the rule exists at 1985): a numeric, a numeric-edited, a wider and a narrower printable item over `4X7`, and a two-leaf group; expected line `4X7 4X7 4X7   4X 12AB`. With the fix disabled the same program prints `047  47 00047 4X 0012`.
 
 **Rows.** `GR-13.18.53.4-1` PARTIAL to CONFORMS (GAP 20 to 19). The 1985 row `1985-SR-XIII.3.18.3-2` keeps its stored code read; its row follows the 2023 row it is KEPT to.
+
