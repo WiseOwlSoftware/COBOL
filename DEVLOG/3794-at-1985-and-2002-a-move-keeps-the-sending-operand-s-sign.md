@@ -1,4 +1,4 @@
-## At 1985 and 2002 a MOVE keeps the sending operand's sign over a zero result (kb/Work PB5852)
+## Entry 3794 — 2026-11-16 14:41 PST — At 1985 and 2002 a MOVE keeps the sending operand's sign over a zero result (kb/Work PB5852)
 
 **The defect.** At `--std 85`, `MOVE -100 TO PIC S99 SIGN LEADING SEPARATE` stored `+00`. §1985:VI.6.19.4 GR4b1 says "the
 sign of the sending operand is placed in the receiving item", so `-00` is due. The re-probe on this tree printed `+00`,
@@ -35,3 +35,4 @@ it, the closure, and the empty set at 2023.
 
 **Register.** `1985-GR-VI.6.19.4-4` keeps CONFORMS with its new witnesses. Its change record now says the sign changed in
 2014. kb/Work PB5852 is landed. D-EDIT-SIGN-ZERO and DOC-A.1-85 now say which editions they speak for.
+
