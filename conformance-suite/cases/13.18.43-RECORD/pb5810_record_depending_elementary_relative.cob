@@ -19,7 +19,8 @@
                FILE STATUS IS FS.
        DATA DIVISION.
        FILE SECTION.
-       FD RL RECORD IS VARYING IN SIZE FROM 2 TO 8 CHARACTERS DEPENDING ON TL.
+       FD RL RECORD IS VARYING IN SIZE FROM 2 TO 8 CHARACTERS
+           DEPENDING ON TL.
        01 RL-R PIC X(8).
        WORKING-STORAGE SECTION.
        01 FS PIC XX.
@@ -29,10 +30,10 @@
            OPEN OUTPUT RL
            MOVE "12345678" TO RL-R
            MOVE 9 TO TL
-           WRITE RL-R
+           WRITE RL-R INVALID KEY DISPLAY "IK" END-WRITE
            DISPLAY "W9 " FS
            MOVE 5 TO TL
-           WRITE RL-R
+           WRITE RL-R INVALID KEY DISPLAY "IK" END-WRITE
            DISPLAY "W5 " FS
            CLOSE RL
            STOP RUN.
