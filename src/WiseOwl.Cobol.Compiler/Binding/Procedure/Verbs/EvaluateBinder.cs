@@ -381,14 +381,30 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // range cannot draw two diagnostics about the same operand.
         // ⛔ A STRONGLY-TYPED GROUP'S CLASS IS ITS TYPE-NAME (§2023:8.5.2.1, kb/Work PB3355): the lattice answers
         // alphanumeric for it (§2023:15.3 item 2, a function ARGUMENT), so the pair asks the one same-class identity.
-        if (!excluded && loClass is { } lc && hiClass is { } hc && !IntrinsicArgumentRules.SameClass(lo, lc, hi, hc))
+        if (!excluded && loClass is { } lc && hiClass is { } hc)
+        {
+            if (!IntrinsicArgumentRules.SameClass(lo, lc, hi, hc))
+            {
+                ok = false;
+                ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
+                    $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
+                    + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
+                    + "§2023:14.9.13.3 SR4 requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
+                    + "category, so alphabetic and alphanumeric are two classes)");
+            }
+        }
+        // ⛔ A FIGURATIVE END ABSTAINS FROM TableTwoClassOf BUT IS NOT CLASS-FREE (kb/Work PB5796): SPACE, QUOTE,
+        // HIGH-VALUE and LOW-VALUE are character values (§2023:8.3.3.6.4 GR1; §1985:IV.4.2.2.2.3 — nonnumeric literals,
+        // category alphanumeric by §1985:IV.4.2.2.2.1.3 GR3), so `SPACE THRU 9` and `1 THRU HIGH-VALUE` join two
+        // classes exactly as `"A" THRU 9` does. Only ZERO also stands for the numeric value 0 and so pairs with any class (§2023:8.3.3.6.4 GR1).
+        else if (!excluded && (loClass is null || hiClass is null) && !IntrinsicArgumentRules.CanShareClass(lo, hi))
         {
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
-                + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
-                + "§2023:14.9.13.3 SR4 requires them to be of the same class (§2023:8.5.2.1 Table 2 — CLASS, not "
-                + "category, so alphabetic and alphanumeric are two classes)");
+                + $"{IntrinsicArgumentRules.DescribeClasses(lo)} and class {IntrinsicArgumentRules.DescribeClasses(hi)}, "
+                + "which share no class; ISO §2023:14.9.13.3 SR4 requires them to be of the same class (a figurative "
+                + "constant other than ZERO represents a character value, §2023:8.3.3.6.4 GR1)");
         }
         // SR9 — a variable-length group is §2023:8.5.1.12.1's: "a group item whose data description has at least one
         // dynamic-length elementary item or dynamic-capacity table as a subordinate item". ⛔ NOT an

@@ -56,7 +56,17 @@ public static class ArchOracle
     /// <c>matrix/goback-raising@2014+permissive</c>, <c>negative/pb1234_x</c>.</param>
     /// <param name="Population">The suite and edition it is counted under, e.g. <c>suite/2023</c>.</param>
     /// <param name="Observe">Compile the case and observe it.</param>
-    internal sealed record OracleCase(string Id, string Population, Func<Observation> Observe);
+    internal sealed record OracleCase(string Id, string Population, Func<Observation> Compile)
+    {
+        /// <summary>Compile the case and observe it, ALWAYS for real (kb/Work PB5862): never a result from the
+        /// compiled-program store, whose hit carries no recorded inputs, so an observation never depends on whether
+        /// another test host has warmed the store.</summary>
+        public Observation Observe()
+        {
+            using var cold = CompiledProgramCache.Cold();
+            return Compile();
+        }
+    }
 
     /// <summary>One enrolled row source: a partitioned theory family's unpartitioned row member, and how one of its
     /// rows becomes oracle cases (none for the family's empty-manifest sentinel row).</summary>
@@ -189,7 +199,7 @@ public static class ArchOracle
 
     /// <summary>Compile in a fresh scratch directory (the corpus runner's and the golden run's shape: the source stays
     /// where it is, the outputs go to scratch) and observe it before the directory is removed.</summary>
-    private static Observation InScratch(Func<string, CompilerDriver.Result> compile)
+    internal static Observation InScratch(Func<string, CompilerDriver.Result> compile)
     {
         string dir = ScratchDirectory.Create("WiseOwlCobol_Oracle_");
         try
@@ -263,8 +273,11 @@ public static class ArchOracle
     /// digest the differential can carry: it is named <see cref="AmbientProgram"/>.</summary>
     internal static bool Ambient(CompilerDriver.Result r, string scratch)
     {
-        string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(scratch)) + Path.DirectorySeparatorChar;
-        bool Inside(string path) => Path.GetFullPath(path).StartsWith(root, StringComparison.OrdinalIgnoreCase);
+        // The compile's own places: its scratch directory, and the store's staging directory, where a source and its
+        // companions sit in a directory named by their content alone (CompiledProgramCache.StagedRoot, kb/Work PB5862).
+        string[] own = [.. new[] { scratch, CompiledProgramCache.StagedRoot }
+            .Select(d => Path.TrimEndingDirectorySeparator(Path.GetFullPath(d)) + Path.DirectorySeparatorChar)];
+        bool Inside(string path) => own.Any(o => Path.GetFullPath(path).StartsWith(o, StringComparison.OrdinalIgnoreCase));
         return r.Inputs.EnvironmentReads.Count > 0 || r.Inputs.ReadsRepository
             || r.Inputs.FilesRead.Any(f => !Inside(f)) || r.Inputs.Probes.Any(p => p.Exists && !Inside(p.Path));
     }
@@ -275,8 +288,9 @@ public static class ArchOracle
     /// does). Sorted, distinct; empty when none.</summary>
     internal static IReadOnlyList<string> AbsentOutside(CompilerDriver.Result r, string scratch)
     {
-        string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(scratch)) + Path.DirectorySeparatorChar;
-        return [.. r.Inputs.Probes.Where(p => !p.Exists && !Path.GetFullPath(p.Path).StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        string[] own = [.. new[] { scratch, CompiledProgramCache.StagedRoot }
+            .Select(d => Path.TrimEndingDirectorySeparator(Path.GetFullPath(d)) + Path.DirectorySeparatorChar)];
+        return [.. r.Inputs.Probes.Where(p => !p.Exists && !own.Any(o => Path.GetFullPath(p.Path).StartsWith(o, StringComparison.OrdinalIgnoreCase)))
             .Select(p => Portable(Path.GetFullPath(p.Path), scratch)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)];
     }
 

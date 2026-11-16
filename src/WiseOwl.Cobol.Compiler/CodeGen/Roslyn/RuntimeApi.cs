@@ -2008,13 +2008,10 @@ internal static class RuntimeApi
     // "without a SHARING phrase" arm and <see cref="FileOpenShared"/> for a phrase-bearing one — so the DRIFT IS
     // COMPILE-ENFORCED: there is no phrase-less implicit-open renderer left for a new call site to reach.
 
-    /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
-    public static string FileClose(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
-
-    /// <summary>The IMPLICIT close (§2023:14.9.5 GR9 — only a connector "that is open") — <c>CobolFile.CloseIfOpen</c>.</summary>
-    public static string FileCloseIfOpen(string name) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.CloseIfOpen)}({name})";
+    /// <summary>The guard of a program's IMPLICIT CLOSE (§2023:14.9.5.4 GR9 — only a connector "that is open") —
+    /// <c>CobolFile.IsOpen</c>; the CLOSE behind it is <see cref="FileClose(string, Binding.Bound.BoundCloseKind)"/>.</summary>
+    public static string FileIsOpen(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.IsOpen)}({name})";
 
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
@@ -2239,6 +2236,15 @@ internal static class RuntimeApi
     /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
+
+    /// <summary>The one open mode a USE open-mode switch selects on, from the set of modes (a bit mask of ordinals) the unit
+    /// declares a procedure for — <c>CobolFile.UseModeOf</c>.</summary>
+    public static string FileUseModeOf(string name, int declaredModes) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.UseModeOf)}({name}, {declaredModes})";
+
+    /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
+    public static string FileOpenedModeOf(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>

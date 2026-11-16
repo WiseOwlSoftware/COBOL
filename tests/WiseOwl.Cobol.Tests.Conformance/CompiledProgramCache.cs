@@ -52,6 +52,29 @@ internal static class CompiledProgramCache
         ResolveEnabled(Environment.GetEnvironmentVariable(SwitchVariable), Environment.GetEnvironmentVariable("CI"));
 
     /// <summary>The store's root directory.</summary>
+    /// <summary>A scope in which <see cref="Compile"/> compiles for real and takes nothing from the store (kb/Work PB5862):
+    /// the architecture oracle observes the COMPILER, and a hit returns a result whose <see cref="CompilerDriver.Result.Inputs"/>
+    /// is empty, so an observation made through a warm store would differ from one made through a cold store. Staging
+    /// (<see cref="StageSource"/>) is unchanged: its directory is named by the staged content alone.</summary>
+    internal static IDisposable Cold()
+    {
+        bool outer = s_cold.Value;
+        s_cold.Value = true;
+        return new Restore(() => s_cold.Value = outer);
+    }
+
+    private static readonly AsyncLocal<bool> s_cold = new();
+
+    private sealed class Restore(Action undo) : IDisposable
+    {
+        public void Dispose() => undo();
+    }
+
+    /// <summary>Where <see cref="StageSource"/> stages a source and its companions when the store is on: each in a directory
+    /// named by the hash of exactly that content (the source text, its name and every companion's bytes), so a file read
+    /// there is the compile's own staged input and never an ambient one (kb/Work PB5862; <c>ArchOracle.Ambient</c>).</summary>
+    internal static string StagedRoot => Path.Combine(Root, "src");
+
     internal static string Root { get; } =
         Environment.GetEnvironmentVariable(DirVariable) is { Length: > 0 } dir
             ? Path.GetFullPath(dir)
@@ -75,7 +98,7 @@ internal static class CompiledProgramCache
     /// <see cref="CompilerDriver.Result.Inputs"/> is empty (the inputs were verified, not re-read).</summary>
     public static CompilerDriver.Result Compile(CompilerDriver.Options options)
     {
-        if (!Enabled) return CompileCold(options);
+        if (!Enabled || s_cold.Value) return CompileCold(options);
         EnsureMaintained();
         return CompileThrough(options, Root).Result;
     }
@@ -143,7 +166,7 @@ internal static class CompiledProgramCache
         var identity = new StringBuilder(fileName).Append('\0').Append(sourceText);
         foreach (var (name, bytes) in others) identity.Append('\0').Append(name).Append('\0').Append(Sha256Hex(bytes));
 
-        string dir = Path.Combine(Root, "src", Sha256Hex(Encoding.UTF8.GetBytes(identity.ToString()))[..32]);
+        string dir = Path.Combine(StagedRoot, Sha256Hex(Encoding.UTF8.GetBytes(identity.ToString()))[..32]);
         string path = Path.Combine(dir, fileName);
         Directory.CreateDirectory(dir);
         StageFile(path, source);
@@ -488,7 +511,7 @@ internal static class CompiledProgramCache
                     if (!live.Contains(blob.Name) && blob.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(-10))
                         FileHarness.TryDelete(blob.FullName);
             }
-            var staged = new DirectoryInfo(Path.Combine(Root, "src"));
+            var staged = new DirectoryInfo(StagedRoot);
             if (staged.Exists)
                 foreach (var dir in staged.EnumerateDirectories().Where(d => d.LastWriteTimeUtc < DateTime.UtcNow.AddDays(-7)))
                     ScratchDirectory.Remove(dir.FullName);
