@@ -1433,11 +1433,11 @@ internal static class RuntimeApi
 
     /// <summary>One receiving area's extraction — <c>CobolStringOps.UnstringExtract</c> (out-vars for the examined
     /// field, the matched delimiter's content and its position in the DELIMITED list, −1 for none; the call's value
-    /// is −1 = not acted upon).</summary>
+    /// is −1 = not acted upon; <paramref name="initiating"/> is the first receiving area's).</summary>
     public static string UnstringExtract(string src, string dels, string noDelimSize,
-        string ptrVar, string fldVar, string dlmVar, string matchedVar) =>
+        string ptrVar, string fldVar, string dlmVar, string matchedVar, bool initiating) =>
         $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {noDelimSize}, " +
-        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar})";
+        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar}, out var {matchedVar}, {(initiating ? "true" : "false")})";
 
     /// <summary>The contiguous repeats of a matched ALL delimiter — <c>CobolStringOps.UnstringSkipRun</c>, run after the
     /// receiving area's INTO store (D-UNS2).</summary>

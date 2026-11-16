@@ -1,0 +1,16 @@
+## Ruled and landed (wave 20262078 group A, 2026-11-16)
+
+**Re-probe (this tree, before the fix).** `unsn.cob` at `--std 85` printed `N OVERFLOW` then `N X=[QQQ] T=00`; at `--std 2023` neither phrase ran. Reproduced.
+
+**Ruling for 1985, in the implementer's words (each quotation checked with `python scripts/spec/cite.py --check`, verdict OK).**
+1. NOT AN OVERFLOW. `§1985:VI.6.27.4 GR17a` tests "the value in the data item referenced by identifier-7"; with no POINTER phrase there is none, and `§1985:VI.6.27.4 GR13a` only starts the examination "beginning with the leftmost character position". The STRING twin states an implicit pointer ("as if the user had specified identifier-4 referencing a data item with an initial value of 1", `§1985:VI.6.25.4 GR6`); UNSTRING states none. `§1985:VI.6.27.4 GR17b` needs "characters that have not been examined", and a zero-size sender has none, so `§1985:VI.6.27.4 GR20` runs NOT ON OVERFLOW.
+2. THE FIRST TRANSFER HAPPENS, and the text carries it. `§1985:VI.6.27.4 GR13`: "When the UNSTRING statement is initiated, the current receiving area is the data item referenced by identifier-4. Data is transferred" (the repetition is only GR13g, for the next receiving areas). `GR13b`: "If the end of the data item referenced by identifier-1 is encountered before the delimiting condition is met, the examination terminates with the last character examined", so zero characters; `GR13c` moves them as an alphanumeric item by the MOVE rules (an alphanumeric receiver is space filled, a numeric one gets 0); `GR13d`: the DELIMITER IN item "is space filled" at the end of the sender; `GR13e`: COUNT IN gets the number of characters examined, 0; `GR7` and `GR16`: the TALLYING item grows by 1 per receiving item accessed. No later receiving item is touched.
+3. 2002 and 2023 keep their GR2 guard (zero-length sender ends the statement at once, `DialectBehavior.UnstringZeroLengthSenderTerminates`).
+
+**Built.** `StringEmitter.EmitUnstring` emits the GR17a initiation test only when a POINTER phrase is written (no new `DialectBehavior` value); `CobolStringOps.UnstringExtract` takes `initiating` (the first receiving area, `RuntimeApi.UnstringExtract` passes `k == 0`) and acts on that area with an empty field when the sender is empty. Witness `pb5816_unstring_zero_length_sender_overflow` (1985): leg C corrected to `C NO OVERFLOW` / `X=[   ]`; legs D (every point of 2) and E (numeric receiver, 000) added. Unit: `UnstringKernelTests.Extract_InitiatingAreaOfAnEmptySender_IsActedUponWithZeroCharacters`. VCR row 7.80 and the behavior's documentation state the split.
+
+**STRING sibling.** No change: `§1985:VI.6.25.4 GR6` itself gives STRING the implicit pointer 1, so a zero-size receiving item or sender there follows the STRING rules the emitter already implements. (The brief's `VI.6.26.4` is SUBTRACT in the 1985 text; STRING is 6.25.)
+
+**Sites:**
+- `src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs` (`EmitUnstring`)
+- `src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs` (`UnstringExtract`)

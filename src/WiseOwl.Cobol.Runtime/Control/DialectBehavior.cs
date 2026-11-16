@@ -289,8 +289,9 @@ public enum DialectBehavior
     /// statement terminates immediately" (§2023:14.9.48.4 GR2 the same), before the overflow test of GR15a, so a zero-length sender is
     /// neither an overflow nor a completed transfer: neither phrase runs. §1985:VI.6.27.4 has no such rule, and its GR17 makes a POINTER
     /// value "greater than the size of the data item referenced by identifier-1" an overflow, so at <c>--std 85</c> a zero-length sender
-    /// with the implicit or any pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). Both editions
-    /// are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
+    /// with a WRITTEN pointer of 1 is the overflow condition and runs ON OVERFLOW (kb/Work PB5816; VCR row 7.80). With no POINTER phrase
+    /// there is no identifier-7 (GR13a: the examination begins "with the leftmost character position"), so no overflow: the first transfer
+    /// of GR13 examines zero characters and NOT ON OVERFLOW runs (GR20; kb/Work PB5858). Both editions are QUOTED. The consumer is <c>StringEmitter.EmitUnstring</c>.</summary>
     UnstringZeroLengthSenderTerminates = 24,
     /// <summary>§2014:8.8.1.3.1.3.1 situation 2 — under ARITHMETIC IS STANDARD a standard intermediate data item "is the argument of a
     /// function and there is no equivalent arithmetic expression defined for the rules of the function" is rounded to 31 digits, and
@@ -434,8 +435,9 @@ public static class DialectBehaviors
         new(DialectBehavior.UnstringZeroLengthSenderTerminates, "unstring-zero-length-sender-terminates", 2002,
             "7.80", "§2002:14.8.44.3 GR2", "§1985:VI.6.27.4 GR17",
             "an UNSTRING whose sending item is a zero-length item terminates immediately, running neither the ON OVERFLOW nor the "
-            + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a POINTER value of 1 is greater than the "
-            + "sender's size of 0 and the statement is an overflow"),
+            + "NOT ON OVERFLOW phrase, only from COBOL-2002; COBOL-85 has no such rule, so a written POINTER value of 1 is greater "
+            + "than the sender's size of 0 and the statement is an overflow, while a statement with no POINTER phrase is none and makes its first "
+            + "transfer from zero characters"),
         new(DialectBehavior.IntegerArgumentRoundedUnderStandardArithmetic, "integer-argument-rounded-under-standard-arithmetic", 2014,
             "7.81", "§2014:8.8.1.3.1.3.1", "§2002:15.34.3 RV1",
             "under ARITHMETIC IS STANDARD the argument of FUNCTION INTEGER that is a standard intermediate data item is rounded to 31 "
