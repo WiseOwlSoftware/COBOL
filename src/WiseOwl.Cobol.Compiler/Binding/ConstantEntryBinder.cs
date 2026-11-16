@@ -415,7 +415,8 @@ internal sealed class ConstantEntryBinder(DataBinder owner)
         // own (§2023:3.164; kb/Work PB3164), and two methods, or a method and its object, may each declare the name freely.
         if (d.Scope.Bound.TryGetValue(name, out var prior))
         {
-            if (!WiseOwl.Cobol.Frontend.Preprocessor.TextWordSequence.Matches(prior.Specification, def.Specification))
+            if (!WiseOwl.Cobol.Frontend.Preprocessor.TextWordSequence.Matches(prior.Specification, def.Specification,
+                    owner.Edition.Edition.HasCompilerDirectives))
                 owner.Edition.Error(DiagnosticCatalog.ConstantEntryRule, $"{where}: duplicates constant-name "
                     + $"'{prior.Name}' with a different specification ('{def.Specification}', where the other entry "
                     + $"specifies '{prior.Specification}') — a duplicated constant-name shall carry the same "

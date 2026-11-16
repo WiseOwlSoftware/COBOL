@@ -105,7 +105,7 @@ public sealed class CommentEntryResolutionOrderDriftTests
     {
         var physical = new PhysicalLine(7, "       COPY BOOK. >>IF X IS DEFINED ==", null);
         string carrier = CommentEntryCarrier.Encode(isHeader: false, isFixed: true, ccvsIndicators: false, inclusion: 3, physical);
-        Assert.Empty(TextWordScanner.Scan(carrier));
+        Assert.Empty(TextWordScanner.Scan(carrier, directiveLines: true));
         Assert.False(ReferenceFormatProcessor.HoldsNoProgramText(carrier));   // it is a line of text, to be decided, not a blank one
         Assert.False(carrier.TrimStart().StartsWith(">>", StringComparison.Ordinal));
     }

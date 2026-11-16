@@ -126,7 +126,7 @@ public sealed class CopyProcessor(
         // The scope of a REPLACE statement (kb/Work PB5277): the edition's own end — the separately compiled program
         // (§1985:XII.3.4 GR3) before 2002, the compilation group (§2002:7.1.3.3 GR5; §2023:7.2.4.4 GR5) from it. The ends are
         // offsets in the text, so the text between two REPLACE statements is applied in the pieces each scope leaves.
-        int[] scopeEnds = edition.ReplaceScopeEndsWithSeparatelyCompiledProgram ? SeparatelyCompiledProgramEnds(text) : [];
+        int[] scopeEnds = edition.ReplaceScopeEndsWithSeparatelyCompiledProgram ? SeparatelyCompiledProgramEnds(text, edition) : [];
         int nextEnd = 0;
 
         void ApplyActive(int from, int to)
@@ -148,7 +148,7 @@ public sealed class CopyProcessor(
 
         while (pos < text.Length)
         {
-            int replaceIdx = FindStatementKeyword(text, pos, "REPLACE", glued => diagnostics?.ReportError(
+            int replaceIdx = FindStatementKeyword(text, pos, "REPLACE", edition, glued => diagnostics?.ReportError(
                 Editions.Diagnostics.DiagnosticCatalog.TextManipulationStatementSyntax.Code,
                 "REPLACE is glued to the character-string before it (no space follows the period, comma or semicolon), "
                 + "so it forms no REPLACE statement — §2023:7.2.4.3 SR2: \"A REPLACE statement shall be preceded by a space "
@@ -164,7 +164,7 @@ public sealed class CopyProcessor(
             // The statement is parsed over text-words (§2023:7.2.4.2 general format) through its separator period — a
             // period INSIDE pseudo-text is a text-word of the operand, never the statement's end (kb/Work PB1354).
             var statement = new StatementCursor(mapped, replaceIdx + "REPLACE".Length, diagnostics, "REPLACE", "§2023:7.2.4.2",
-                formats);
+                formats, edition);
             // §2023:7.2.4.3 SR2: "A REPLACE statement shall be preceded by a space except when it is the first statement in
             // a compilation group" — REPLACE directly after a parenthesis, a colon, a literal or a pseudo-text delimiter.
             if (replaceIdx > 0 && !CobolSpace.IsSeparator(text[replaceIdx - 1]))
@@ -175,7 +175,7 @@ public sealed class CopyProcessor(
             // §1985:XII.3.3 SR1: "It must be preceded by a separator period except when it is the first statement in a
             // separately compiled program" — the rule §2002:7.1.3.2 SR1 relaxed (the constructs row replace-anywhere-2002).
             if (diagnostics is not null && !ConstructRegistry.IsAvailable(edition, Constructs.ReplaceAnywhere2002)
-                && !FollowsSeparatorPeriod(text, pos, replaceIdx))
+                && !FollowsSeparatorPeriod(text, pos, replaceIdx, edition))
                 ConstructRegistry.Check(edition, new BagSink(diagnostics, mapped.LocateAt(replaceIdx)),
                     Constructs.ReplaceAnywhere2002, "REPLACE does not follow a separator period — §1985:XII.3.3 SR1: "
                     + "\"It must be preceded by a separator period except when it is the first statement in a separately "
@@ -299,11 +299,11 @@ public sealed class CopyProcessor(
     /// scan (<see cref="TextWordScanner.TryNext"/>), never the text before it. <paramref name="from"/> is where the text
     /// between statements begins: the start of the text, or just past the previous REPLACE statement, which ends with its
     /// separator period — so no text-word between the two is a REPLACE that follows one.</summary>
-    private static bool FollowsSeparatorPeriod(string text, int from, int replaceIdx)
+    private static bool FollowsSeparatorPeriod(string text, int from, int replaceIdx, EditionInfo edition)
     {
         bool any = false;
         TextWord last = default;
-        for (int p = from; TextWordScanner.TryNext(text, ref p, out var word) && word.Start < replaceIdx;)
+        for (int p = from; TextWordScanner.TryNext(text, ref p, out var word, edition.HasCompilerDirectives) && word.Start < replaceIdx;)
             if (!word.IsSpaceForMatching) (any, last) = (true, word);
         return !any || last.IsSeparatorPeriod;
     }
@@ -311,10 +311,10 @@ public sealed class CopyProcessor(
     /// <summary>The offsets just past each <c>END PROGRAM name.</c> header that ends a SEPARATELY COMPILED program — one
     /// not contained in another (kb/Work PB5277) — read as text-words, so pseudo-text and literals are never
     /// mistaken for a header. A program begins at its PROGRAM-ID paragraph and the header closes the innermost one open.</summary>
-    private static int[] SeparatelyCompiledProgramEnds(string text)
+    private static int[] SeparatelyCompiledProgramEnds(string text, EditionInfo edition)
     {
         var ends = new List<int>();
-        var words = TextWordScanner.Scan(text);
+        var words = TextWordScanner.Scan(text, edition.HasCompilerDirectives);
         int open = 0;
         for (int i = 0; i < words.Count; i++)
         {
@@ -348,7 +348,7 @@ public sealed class CopyProcessor(
     {
         var inputOrigins = MappedText.Identity(text, "").Lines;   // origin Line = 1-based input line
         var map = new int[inputOrigins.Length];
-        if (FindStatementKeyword(text, 0, "REPLACE") < 0)
+        if (FindStatementKeyword(text, 0, "REPLACE", edition) < 0)
         {
             for (int i = 0; i < map.Length; i++) map[i] = i;
             return map;
@@ -453,12 +453,12 @@ public sealed class CopyProcessor(
     /// on <c>Q&gt;1</c>), which is asked of the TEXT: the text-word scanner skips a comment, so no word ever starts with
     /// its indicator. A blank line cannot arrive at all: an empty line inside a written pseudo-text-2 (NIST SM208A) is
     /// the line-count-preserving trace of a discarded blank line, not a blank line of the resultant text.</summary>
-    private static string? ForbiddenIn(string produced, ResultRule rule)
+    private static string? ForbiddenIn(string produced, ResultRule rule, EditionInfo edition)
     {
-        if (TextWordScanner.HoldsComment(produced)) return "a comment";
+        if (TextWordScanner.HoldsComment(produced, edition.HasCompilerDirectives)) return "a comment";
         int pos = 0;
         bool directiveNext = false;
-        while (TextWordScanner.TryNext(produced, ref pos, out var w))
+        while (TextWordScanner.TryNext(produced, ref pos, out var w, edition.HasCompilerDirectives))
         {
             if (w.IsWord("COPY")) return "a COPY statement";
             if (rule.ForbidsReplaceStatement && w.IsWord("REPLACE")) return "a REPLACE statement";
@@ -535,7 +535,7 @@ public sealed class CopyProcessor(
         // (§2023:7.3.4 1)), so one lying inside a matched span is written back, on its own line, after the replacement.
         var words = new List<TextWord>();
         var directives = new List<TextWord>();
-        foreach (var t in TextWordScanner.Scan(text))
+        foreach (var t in TextWordScanner.Scan(text, edition.HasCompilerDirectives))
         {
             if (t.Kind == TextWordKind.DirectiveLine) directives.Add(t);
             else if (!t.IsSpaceForMatching) words.Add(t);
@@ -631,7 +631,7 @@ public sealed class CopyProcessor(
                 string produced = leading ? string.Concat(to.Text.AsSpan(), word[part.Length..])
                     : string.Concat(word[..^part.Length], to.Text.AsSpan());
                 sb.Append(produced.AsSpan(), at);
-                if (ForbiddenIn(produced, rule) is { } what) Forbidden(operand, words[w].Start, what);
+                if (ForbiddenIn(produced, rule, edition) is { } what) Forbidden(operand, words[w].Start, what);
                 copiedUpTo = words[w].End;
                 w++;
                 matched = true;
@@ -741,7 +741,7 @@ public sealed class CopyProcessor(
         // §2023:7.2.3.3 SR9: "The length of a text-word within pseudo-text and within library text shall be from 1 through
         // 65,535 character positions" (§2002:7.1.2.2 SR11: 322) — the library-text half (the pseudo-text half is
         // ScreenOperandPair's).
-        for (int scan = 0; TextWordScanner.TryNext(normalized, ref scan, out var libraryWord);)
+        for (int scan = 0; TextWordScanner.TryNext(normalized, ref scan, out var libraryWord, edition.HasCompilerDirectives);)
             if (libraryWord.Kind != TextWordKind.DirectiveLine && libraryWord.End - libraryWord.Start > edition.MaxTextWordLength)
             {
                 new OperandScreen(CopyOperandRules, _diagnostics, normalizedMapped, edition).TextWordTooLong(libraryWord.Start,
@@ -756,7 +756,7 @@ public sealed class CopyProcessor(
         // not). Detection uses the SAME FindStatementKeyword the expander splices by, so the report and the
         // recursion can never disagree about what counts as a COPY statement. Expansion continues after the
         // report — the diagnostic is the verdict; the splice keeps the downstream parse coherent.
-        bool libraryHoldsCopy = FindStatementKeyword(normalized, 0, "COPY") >= 0;
+        bool libraryHoldsCopy = FindStatementKeyword(normalized, 0, "COPY", edition) >= 0;
         // Before 2002 the combination is not the only violation: §1985:XII.2.4 GR12 forbids ANY COPY statement in the
         // text a COPY statement produces, so the edition's own introduction gate speaks for both arms (kb/Work PB5126),
         // at the OUTER statement the library text belongs to. The text it judges IS the produced text in the one respect a
@@ -847,7 +847,7 @@ public sealed class CopyProcessor(
     private CopyStatement ParseCopyStatement(MappedText mapped, int copyIdx)
     {
         var c = new StatementCursor(mapped, copyIdx + "COPY".Length, _diagnostics, "COPY", "§2023:7.2.3.2",
-            _referenceFormats);
+            _referenceFormats, EditionInfo.Of(dialectLevel, permissive));
 
         string? textName = ReadCopyName(mapped, c, "text-name-1 or literal-1", out bool textNameIsWord);
         string? libraryName = null;
@@ -1053,7 +1053,7 @@ public sealed class CopyProcessor(
         int pos = 0;
         while (pos < text.Length)
         {
-            int copyIdx = FindStatementKeyword(text, pos, "COPY", glued => ReportPlacement(mapped.LocateAt(glued),
+            int copyIdx = FindStatementKeyword(text, pos, "COPY", EditionInfo.Of(dialectLevel, permissive), glued => ReportPlacement(mapped.LocateAt(glued),
                 "COPY is glued to the character-string before it (no space follows the period, comma or semicolon), "
                 + "so it forms no COPY statement — §2023:7.2.3.3 SR2: \"A COPY statement shall be preceded by a space "
                 + "except when it is the first statement in a compilation group\""));
@@ -1070,7 +1070,7 @@ public sealed class CopyProcessor(
             if (one.Outcome == CopyOutcome.Found)
             {
                 w.NewLine(copyLine);
-                var library = new DivisionCursor(standsInIdentification);   // the library text starts where the COPY stands
+                var library = new DivisionCursor(standsInIdentification, EditionInfo.Of(dialectLevel, permissive).HasCompilerDirectives);   // the library text starts where the COPY stands
                 var processed = expandCopybook(one.Mapped!, depth + 1, w.LineCount, library);   // CC + nested COPY on the copybook
                 division.Adopt(library);                                    // and the text goes on where the library text left it
                 // §1985:XII.2.4 GR9: "each text word introduced appears on a debugging line if the COPY statement begins on
@@ -1164,10 +1164,10 @@ public sealed class CopyProcessor(
     /// SR2 mistake ("shall be preceded by a space"), and <paramref name="onGlued"/> is told where it is so the caller
     /// can name the rule instead of leaving the downstream parser to trip over the word.</para>
     /// </summary>
-    private static int FindStatementKeyword(string text, int startPos, string keyword, Action<int>? onGlued = null)
+    private static int FindStatementKeyword(string text, int startPos, string keyword, EditionInfo edition, Action<int>? onGlued = null)
     {
         int pos = startPos;
-        while (TextWordScanner.TryNext(text, ref pos, out var word))
+        while (TextWordScanner.TryNext(text, ref pos, out var word, edition.HasCompilerDirectives))
         {
             if (word.IsWord(keyword)) return word.Start;
             if (onGlued is not null && word.Kind == TextWordKind.CharacterString && word.Span.Length > keyword.Length
@@ -1187,13 +1187,13 @@ public sealed class CopyProcessor(
     /// kb/Work PB1384), so the question has ONE answer for COPY and REPLACE alike. <c>InPseudoText</c> says the text ends
     /// between a pair of pseudo-text delimiters — the place §2023:7.2.3.3 SR10 / §2023:7.2.4.3 SR10 bar a directive line from
     /// (kb/Work PB1353).</summary>
-    internal static (string Keyword, int Start, bool InPseudoText)? OpenStatementAt(string text)
+    internal static (string Keyword, int Start, bool InPseudoText)? OpenStatementAt(string text, EditionInfo edition)
     {
         int pos = 0;
         string? keyword = null;
         int start = -1;
         bool inPseudoText = false;
-        while (TextWordScanner.TryNext(text, ref pos, out var word))
+        while (TextWordScanner.TryNext(text, ref pos, out var word, edition.HasCompilerDirectives))
         {
             if (keyword is null)
             {
@@ -1227,7 +1227,7 @@ public sealed class CopyProcessor(
     /// words the lexer's own screen uses (COBOL5563, <c>LiteralScreen.ReportUnterminated</c>), and it is the statement's
     /// first error: nothing else is reported for the text it swallowed.</para></summary>
     private sealed class StatementCursor(MappedText mapped, int pos, DiagnosticBag? diagnostics, string statement,
-        string clause, IReadOnlyDictionary<string, ReferenceFormatMap>? formats)
+        string clause, IReadOnlyDictionary<string, ReferenceFormatMap>? formats, EditionInfo edition)
     {
         public string Text { get; } = mapped.Text;
 
@@ -1247,7 +1247,7 @@ public sealed class CopyProcessor(
 
         private bool PeekFrom(int p, out TextWord word)
         {
-            while (TextWordScanner.TryNext(Text, ref p, out word))
+            while (TextWordScanner.TryNext(Text, ref p, out word, edition.HasCompilerDirectives))
                 if (!word.IsSpaceForMatching) return true;
             return false;
         }
@@ -1256,7 +1256,7 @@ public sealed class CopyProcessor(
         public bool TryTake(out TextWord word)
         {
             int p = Pos;
-            if (!TextWordScanner.TryNext(Text, ref p, out word)) return false;
+            if (!TextWordScanner.TryNext(Text, ref p, out word, edition.HasCompilerDirectives)) return false;
             Pos = p;
             ScreenLiteral(word);
             return true;
@@ -1342,6 +1342,9 @@ public sealed class CopyProcessor(
         private bool _partialWordGated;
 
         public OperandRules Rules { get; } = rules;
+
+        /// <summary>The edition the operands are read at.</summary>
+        public EditionInfo Edition => edition;
 
         /// <summary>The introduction gate of the partial-word phrases — <c>LEADING</c> / <c>TRAILING</c> partial-word-1
         /// BY partial-word-2 of §2023:7.2.3.2 and §2023:7.2.4.2 — at the edition constructs row
@@ -1565,7 +1568,7 @@ public sealed class CopyProcessor(
             if (ReadOperand(c, screen, nonPseudoText, nestedCopy) is not { } to) return;
             ScreenOperandPair(screen, from, to, kind);
             into.Add(new Replacement(from.MatchWords, to.Written, to.IsPseudoText, kind,
-                kind == ReplaceKind.Whole ? ForbiddenIn(to.Text, screen.Rules.Result) : null,
+                kind == ReplaceKind.Whole ? ForbiddenIn(to.Text, screen.Rules.Result, screen.Edition) : null,
                 kind == ReplaceKind.Whole ? IntroducedLiterals(c, to) : null));
             any = true;
         }

@@ -97,7 +97,7 @@ public static partial class ConditionalCompilationProcessor
     {
         var run = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor,
             dialectLevel, permissive, inputs, implicitOps);
-        var expanded = run.Render(text, new DivisionCursor(startsInIdentificationDivision: true));   // a source text begins in an IDENTIFICATION DIVISION
+        var expanded = run.Render(text, new DivisionCursor(startsInIdentificationDivision: true, EditionInfo.Of(dialectLevel, permissive).HasCompilerDirectives));   // a source text begins in an IDENTIFICATION DIVISION
         var edition = EditionInfo.Of(dialectLevel, permissive);
         var resultant = CopyProcessor.ApplyReplaceStatements(expanded, edition, diagnostics, copyProcessor.ReferenceFormats);   // Step 3 — REPLACE over the expanded compilation group
         if (run.Encounters.Count == 0) return new ConditionalCompilationResult(resultant, [], []);
@@ -219,7 +219,7 @@ public static partial class ConditionalCompilationProcessor
         /// wholly within one emitting block, so multi-line COPY REPLACING and mid-line COPY are handled by the
         /// copybook engine's char scan.</summary>
         public string Render(string text)
-            => Render(MappedText.Identity(text, _diag.SourcePath ?? "<source>"), new DivisionCursor(startsInIdentificationDivision: true)).Text;
+            => Render(MappedText.Identity(text, _diag.SourcePath ?? "<source>"), new DivisionCursor(startsInIdentificationDivision: true, _edition.HasCompilerDirectives)).Text;
 
         /// <summary>The MAPPED render (kb/Work PB82): every output line carries the origin of the input line it came
         /// from — an omitted or directive line its own, a block its lines', a copybook expansion the copybook's.
@@ -274,8 +274,21 @@ public static partial class ConditionalCompilationProcessor
                 // was read from (kb/Work PB1353). The block is not flushed — the discarded line takes nothing from the text —
                 // so the question is asked of the statement text WITHOUT consuming it; the next directive line asks it again.
                 if (trimmed.Length == 0 && _copy is not null && _copy.IsDiscardedFormatDirective(origin.Origin)
-                    && CopyProcessor.OpenStatementAt(PendingStatementText()) is { } within)
+                    && CopyProcessor.OpenStatementAt(PendingStatementText(), _edition) is { } within)
                     _diag.WithinStatement(within.Keyword, within.InPseudoText);
+
+                // ⛔ COBOL-85 HAS NO COMPILER DIRECTIVE LINES (kb/Work PB5803; §1985:III.2 item 3): a line there that begins `>>`
+                // and lies inside the pseudo-text of a COPY or REPLACE statement is text — "Any other sequence of contiguous
+                // COBOL characters ... bounded by separators" — which pseudo-text-1 and pseudo-text-2 may hold
+                // (§1985:XII.3.3 SR3, SR4), not a directive for §2023:7.3.3 SR8 b) / §2023:7.2.4.3 SR10 to refuse. Outside
+                // pseudo-text the line stays the one this loop gates (kb/Work PB725): COBOL0900 names the directive.
+                if (!_edition.HasCompilerDirectives && trimmed.StartsWith(">>", StringComparison.Ordinal)
+                    && CopyProcessor.OpenStatementAt(PendingStatementText(), _edition) is { InPseudoText: true })
+                {
+                    if (_stack.Count == 0 || _stack.Peek().Emitting) { block.Add(line); blockOrigins.Add(origin); }
+                    else { Flush(); output.Add(""); outputOrigins.Add(origin.AsOmitted()); }
+                    continue;
+                }
 
                 if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
                 {
@@ -300,7 +313,7 @@ public static partial class ConditionalCompilationProcessor
                 // since the statement began — carried across directive lines, so a statement split by several is
                 // reported at each — and the directive then takes effect like any other (superset-continue).
                 openStatementText = PendingStatementText();
-                if (CopyProcessor.OpenStatementAt(openStatementText) is { } open)
+                if (CopyProcessor.OpenStatementAt(openStatementText, _edition) is { } open)
                 {
                     _diag.WithinStatement(open.Keyword, open.InPseudoText);
                     openStatementText = openStatementText[open.Start..];

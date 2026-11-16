@@ -371,8 +371,8 @@ public sealed class TextManipulationStatementTests : IDisposable
         var (text, bag) = Run(" COPY NOSUCH.\n MOVE 1 TO X.\n", edition);
         Assert.Contains(bag.Diagnostics, d => d.Code == "CBL3620");
         Assert.Contains(CopyProcessor.NotePrefix, text, StringComparison.Ordinal);
-        Assert.False(TextWordScanner.HoldsComment(text), text);
-        Assert.Equal(["MOVE", "1", "TO", "X", "."], TextWordScanner.MatchWords(text).Select(w => w.Value));
+        Assert.False(TextWordScanner.HoldsComment(text, directiveLines: true), text);
+        Assert.Equal(["MOVE", "1", "TO", "X", "."], TextWordScanner.MatchWords(text, directiveLines: true).Select(w => w.Value));
     }
 
     [Fact] // §2023:6.5 2): a blank line written inside pseudo-text-2 was logically discarded before text manipulation, so the

@@ -396,7 +396,7 @@ public sealed class Frontend
         // those stages have finished with, reading its division words through the group's word map. After conditional
         // compilation, COPY, REPLACE and the COBOL-WORDS stage, and before anything lexes the text:
         // CommentEntryResolutionOrderDriftTests keeps the order. Line-count preserving like the stages above.
-        var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, referenceFormatGates);
+        var resolved = CommentEntryResolver.Resolve(new MappedText(text, mapped.Lines), cobolWordsMap, EditionInfo.Of(DialectLevel, Permissive), referenceFormatGates);
         text = resolved.Text.Text;
         var lineOrigins = resolved.Text.Lines;
         // ⛔ COBOL-85 HAS NO FLOATING COMMENT INDICATOR (kb/Work PB5470): its fixed-form conversion left `*>` in the text as an

@@ -53,14 +53,16 @@ internal static class CommentEntryResolver
     /// <see cref="Resolution.ProgramText"/>). The line count and every other line are untouched.</summary>
     /// <param name="words">The compilation group's <c>&gt;&gt;COBOL-WORDS</c> map (<see cref="CobolWordsMap.Empty"/> when
     /// there is none), through which the division words of the finished text are read.</param>
+    /// <param name="edition">The targeted edition, which decides whether a line beginning <c>&gt;&gt;</c> is a compiler directive
+    /// line (<see cref="EditionInfo.HasCompilerDirectives"/>).</param>
     /// <param name="gates">The compilation's reference-format diagnostics, which a candidate that is program text reports
     /// through as every ordinary line does.</param>
-    public static Resolution Resolve(MappedText text, CobolWordsMap words, ReferenceFormatDiagnostics? gates)
+    public static Resolution Resolve(MappedText text, CobolWordsMap words, EditionInfo edition, ReferenceFormatDiagnostics? gates)
     {
         if (!text.Text.Contains(CommentEntryCarrier.Prefix, StringComparison.Ordinal)) return new Resolution(text, null);
         string[] lines = text.Text.Split('\n');
         var origins = (LineOrigin[])text.Lines.Clone();
-        var cursor = new DivisionCursor(startsInIdentificationDivision: true, words);   // a source text begins in an IDENTIFICATION DIVISION
+        var cursor = new DivisionCursor(startsInIdentificationDivision: true, edition.HasCompilerDirectives, words);   // a source text begins in an IDENTIFICATION DIVISION
         Candidate? candidate = null;
         CommentEntryPin? programText = null;   // the earliest candidate that is program text
 
