@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-13.16.14.2-11",
+ "rule-digest": "f1f62a527afd",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.14-COLUMN/a42-screen-column",
+ "notes": "Own verdict from the read lineage-reads-2002/u-13.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-13.18.14.3-11, witnessed at 2002 by the cases test-ref names. The read: Same rule (the dash is typeset differently). Screen format only; DOCUMENTED-NON-SUPPORT licensed in 2002 (processor-dependent) and declined at --std 2002. Cited: §2002:13.16.14.2 SR11; §2002:3.1.5; §2002:B.3."
+}

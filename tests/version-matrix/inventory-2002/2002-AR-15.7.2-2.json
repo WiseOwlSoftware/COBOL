@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.7.2-2",
+ "rule-digest": "62ceda7998d3",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Acos; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.cs#FromDouble; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#DomainScaled; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#DomainArg; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.8.3-Argument-rules/pb952_argument_domain_bound_adjacent",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer AR-15.8.3-2, witnessed at 2002 by the cases test-ref names. The read: Identical (the minus glyph differs only in transcription). Cited: §2002:15.7.2 AR2."
+}

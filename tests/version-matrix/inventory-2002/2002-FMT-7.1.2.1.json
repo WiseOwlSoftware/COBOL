@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-7.1.2.1",
+ "rule-digest": "51f032620b6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseCopyStatement; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ReadCopyName; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#ParseReplacingOperands; src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#GateCopyPhrase",
+ "test-ref": "conformance:cases/7.1.2.1@2002-COPY-STATEMENT/g2-copy-replacing-operand-arms; conformance:wiseowl/cases/7.1.2.1@2002-COPY-STATEMENT/g2-copy-header-arms",
+ "notes": "§2002:7.1.2.1 gives COPY {literal-1 | text-name-1} [{OF | IN} {literal-2 | library-name-1}] [SUPPRESS PRINTING] and REPLACING {==pseudo-text-1== | text-1 | literal-3 | word-1} BY {...-2} with LEADING/TRAILING partial words; §2002:7.1.2.3 GR8/GR9 replace each match. At --std 2002 one COPY with every REPLACING arm printed BBBNEWLT, B22, WORD-1, yz, edcba, G2Q, [PT], N1, OT, and g2-copy-header-arms (default library, then literal-1 OF library-name-1 SUPPRESS PRINTING, text-name-1 IN literal-2, text-name-1 OF library-name-1, literal-1 IN literal-2) printed DEFAULT and LIBOK four times, as derived."
+}

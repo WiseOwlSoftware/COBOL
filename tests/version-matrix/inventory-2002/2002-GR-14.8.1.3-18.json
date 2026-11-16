@@ -1,0 +1,7 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-18",
+ "rule-digest": "05c41ff01456",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned",
+ "notes": "Own verdict from the read lineage-reads-2002/u-20.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.1.4-18, witnessed at 2002 by the cases test-ref names. The read: 'declared' vs 'described' only. Screen facility processor-dependent in 2002 (B.3 item 1; the CURSOR clause is in the same item), declined with diagnostics at 2002. Cited: §2002:14.8.1.3 GR18a; §2002:B.3."
+}

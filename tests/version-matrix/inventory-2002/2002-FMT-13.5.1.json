@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.5.1",
+ "rule-digest": "fe63b996e97c",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#localStorageSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#Bind; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#dataDivision; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitLocalStorageSection",
+ "test-ref": "conformance:cases/13.10-Constant/pb1227_constant_byte_length",
+ "notes": "Own verdict from the read lineage-reads-2002/u-47.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.6.2, witnessed at 2002 by the cases test-ref names. The read: 2002 lists three entry kinds; a TYPEDEF entry is a record-description-entry in 2002 (13.10: any level-1 item is a record). 2023 names it type-declaration-entry inside the same format, so the 2002 scope maps onto one 2023 format, not a split. Cited: §2002:13.5.3 GR1; §2002:13.10."
+}

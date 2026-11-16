@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.44.3-11",
+ "rule-digest": "27ee489fd8a9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/WiseOwl.Cobol.Compiler/Binding/Procedure/SendingValueTemp.cs#ConceptualCharacterItem; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ReceivingStore.cs#ExaminationSize; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/WiseOwl.Cobol.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
+ "test-ref": "conformance:cases/14.9.48-UNSTRING/pb979_unstring_receiver_size; conformance:cases/14.9.48-UNSTRING/pb979_unstring_any_length_national",
+ "notes": "Own verdict from the read lineage-reads-2002/u-29.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.48.4-11, witnessed at 2002 by the cases test-ref names. The read: Identical text, same format, same SR4 receiver categories. g) cites 'general rules 12b through 12f' in BOTH printed editions (GR12 has no sub-items in either; the 2023 transcription carries the addendum correction to 11b-11f), so the same intended referent. The MOVE rules it defers to (alphanumeric-to-numeric as unsigned integer, 31-digit literal cap, EC-DATA-INCOMPATIBLE) read the same in §2002:14.8.24.3 and §2023:14.9.25.4. Cited: §2002:14.8.44.3 GR11."
+}

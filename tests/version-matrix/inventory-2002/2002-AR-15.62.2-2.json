@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.62.2-2",
+ "rule-digest": "21d8a7a10499",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Float.cs#Random",
+ "test-ref": "conformance:cases/15.62@2002-RANDOM-FUNCTION/g2rnd02-random-seed-class-and-domain",
+ "notes": "§2002:15.62.2 AR2: a specified argument-1 'shall be zero or a positive integer. It is used as the seed value'. Positive (7, six shapes) and zero seeds are accepted, raise nothing under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON (W-RAISED stays N) and are used as seeds (equal first values by RV2/AR3): 'SAME N'. A negative integer (-1) is an incorrect argument value, so §2002:15.2 sets EC-ARGUMENT-FUNCTION; the declarative is selected (§2002:14.8.45.3 GR3), records FUNCTION EXCEPTION-STATUS (§2002:15.28.2 RV1) and RESUME AT NEXT STATEMENT returns after the COMPUTE (§2002:14.8.31.3 GR2): 'NEG=Y E... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

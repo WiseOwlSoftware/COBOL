@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-29",
+ "rule-digest": "24c4717766f4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Rewrite; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Ordinal",
+ "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_rewrite_alt_key_order",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.30.4-32, witnessed at 2002 by the cases test-ref names. The read: Same words; only the invalid-key clause number differs. The pointer's test passes at 2002. Probe p08 adds the not-found arm, which the pointer's test does not exercise, and it is correct at 2002. Cited: §2002:14.8.29.3 GR29."
+}

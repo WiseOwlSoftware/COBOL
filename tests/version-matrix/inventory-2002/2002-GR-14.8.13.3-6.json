@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.13.3-6",
+ "rule-digest": "646286b9dd9b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitExitProgram; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitRaisingStage; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/CallEmitter.cs#EmitPropagationPickup; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#TakeRaisedPropagation; src/WiseOwl.Cobol.Compiler/CodeGen/DispatchEmitter.cs",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi02_exit_program_called",
+ "notes": "§2002:14.8.13.3 GR6: EXIT PROGRAM returns to the CALL with the PD-header RETURNING value as result, the caller unaltered but for shared items, an initial program cancelled and a RAISING condition existing after it; g2exi02 at --std 2002 printed C=1, R=11 S=5 K=7, C=1, DECL-IX, R=22, DONE as derived."
+}

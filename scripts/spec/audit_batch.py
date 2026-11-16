@@ -78,6 +78,11 @@ A ninth pass serves the 1985 transcription, not the change records (kb/Work PB49
                                                                                    # one has a witness at its own
                                                                                    # edition; each failing record is
                                                                                    # refused alone, PB5597)
+    python scripts/spec/audit_batch.py own-verdict-batch --edition 2002 --state DIR --out FILE
+                                                                                   # an imported run's own verdicts from
+                                                                                   # pointers (a rule with no candidate
+                                                                                   # pair), each pointer witnessed at
+                                                                                   # the edition (section 10.6)
     python scripts/spec/test_audit_batch.py                                       # its self-test: a fake client, no API call
 
 RESTARTABLE. A pass lives in `DIR/<pass>/`: `items.json` (written by `plan`: custom id -> the item, every input its prompt
@@ -1268,6 +1273,58 @@ def change_batch(a: argparse.Namespace) -> int:
     return 0
 
 
+def own_verdict_batch(a: argparse.Namespace) -> int:
+    """`own-verdict-batch` (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): an IMPORTED run's own verdicts
+    from pointers as one record_verdicts batch of the older edition `--edition`. A SAME its refuter upheld, for a rule no
+    candidate pair pairs, is never KEPT (`lineage_reads.decide`'s `own-verdict-from-pointer`): its row is recorded with
+    its OWN verdict, the pointers' one verdict, once every pointer has a witness at the edition of the kind the rule
+    needs (`lineage_reads.own_verdict_problems`, the evidence check a KEPT record passes; `own_verdict` writes it). A row
+    whose store record already holds a verdict or a change record is left as it is (`recorded already`); each other row
+    not written is listed with every reason in `<out>.refused.json`. Own verdicts follow only from reads, so the run must
+    be one `import-reads` wrote."""
+    import lineage_reads  # noqa: PLC0415  (the one check of an own verdict, and its record)
+    import lineage_screen  # noqa: PLC0415
+    ed = edition(a.edition)
+    if ed.next_held is None:
+        raise SystemExit(f"{TOOL}: own-verdict-batch --edition {a.edition}: the newest held edition has no pointers")
+    state = pathlib.Path(a.state)
+    if not (state / READS).exists():
+        raise SystemExit(f"{TOOL}: {state} was not imported from reads ({READS} is absent): an own verdict from a "
+                         "pointer follows only from a read")
+    imported = json.loads((state / READS).read_text(encoding="utf-8"))
+    if imported["edition"] != a.edition:
+        raise SystemExit(f"{TOOL}: {state} holds the reads of {imported['edition']}, not {a.edition}")
+    slices = lineage_reads.load(a.edition, pathlib.Path(imported["record"]))
+    reads = {rid: r for s in slices for rid, r in s.reads.items()}
+    w, lin = witnesses_of(ed.next_held), lineage_reads.Lineage.of(ed)
+    held = read_store(inventory_dir(ed, pathlib.Path(a.repo)))
+    kept, refused, already = [], [], []
+    for d in lineage_reads.decide(ed, slices, lineage_screen.committed(a.edition), w, lin):
+        if d.work != lineage_reads.OWN_VERDICT_FROM_POINTER:
+            continue
+        stored = held.get(d.rule_id) or {}
+        if stored.get("verdict") or (stored.get("next") or {}).get("kind"):
+            already.append(d.rule_id)
+        elif d.refused:
+            refused.append({"rule-id": d.rule_id, "to": list(d.to), "slice": d.slice,
+                            "reasons": [f"{r}: {x}" for r, x in d.refused]})
+        else:
+            kept.append(lineage_reads.own_verdict(ed, reads[d.rule_id], lin, w))
+    out = pathlib.Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    write_atomic(out, json.dumps({"batch": f"lineage-own-verdict:{state.name}", "records": kept}, indent=1,
+                                 ensure_ascii=False) + "\n")
+    refused_file = out.with_name(out.stem + ".refused.json")
+    write_atomic(refused_file, json.dumps({"refused": refused, "recorded-already": already}, indent=1,
+                                          ensure_ascii=False) + "\n")
+    by_reason = collections.Counter(why for r in refused for why in {y.split(":", 1)[0] for y in r["reasons"]})
+    verdicts = collections.Counter(r["verdict"] for r in kept)
+    print(f"own-verdict-batch: {len(kept)} own verdict(s) {dict(sorted(verdicts.items()))} -> {out}; refused "
+          f"{len(refused)} {dict(sorted(by_reason.items()))}; recorded already {len(already)} -> {refused_file}\n"
+          f"  validate: python scripts/spec/record_verdicts.py --edition {a.edition} --dry-run {out}", flush=True)
+    return 0
+
+
 def witnesses_of(newer: int) -> Any:
     """The next edition's rules' suite witnesses, where each runs (lineage_reads.Witnesses.of: the generator's reading of
     the suite). A module attribute, so the self-test plants its own."""
@@ -1392,6 +1449,13 @@ def build_parser() -> argparse.ArgumentParser:
     cb.add_argument("--source", help="an audit run's next.source (default: audit-<edition>/<the state directory's name>)")
     cb.add_argument("--repo", default=str(spec_pdf.REPO),
                     help="the repository whose store's adjudications outrank the run's records")
+    ov = sub.add_parser("own-verdict-batch", help="write an imported run's own verdicts from pointers (an upheld SAME of "
+                                                  "a rule with no candidate pair, each pointer witnessed at the edition) "
+                                                  "as a record_verdicts batch")
+    ov.add_argument("--edition", type=int, required=True, help="the older held edition whose own verdicts are written")
+    ov.add_argument("--state", required=True, help="the run import-reads wrote")
+    ov.add_argument("--out", required=True, help="the batch file to write")
+    ov.add_argument("--repo", default=str(spec_pdf.REPO), help="the repository whose store's records are left as they are")
     ir = sub.add_parser("import-reads", help="start a run from the reads of an older edition's rules (a fleet's reader "
                                              "and refuter files): the tracked read records, and the run's map and "
                                              "verify passes, for change-batch --state")
@@ -1418,6 +1482,8 @@ def main(argv: list[str] | None = None, client_factory: Callable[[str], Any] = m
     a = build_parser().parse_args(argv)
     if a.cmd == "change-batch":
         return change_batch(a)
+    if a.cmd == "own-verdict-batch":
+        return own_verdict_batch(a)
     state = pathlib.Path(a.state)
     if a.cmd == "results":
         disp = dispositions(state)

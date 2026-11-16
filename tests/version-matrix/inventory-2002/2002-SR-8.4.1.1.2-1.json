@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.1.1.2-1",
+ "rule-digest": "8b00ef79bf49",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/QualifiedNameClasses.cs#QualifiedNameClasses; src/WiseOwl.Cobol.Compiler/Binding/NameResolution.cs#ResolveIndexName; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#UniqueOrReportAmbiguous; src/WiseOwl.Cobol.Compiler/Binding/Model/SymbolTable.cs#IndexCandidates",
+ "test-ref": "conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-two-cds; conformance:cases/8.4.1.1@2002-Qualification/g2-qual-cd-name-ambiguous",
+ "notes": "§2002:8.4.1.1.2 SR1: nonunique FLD/FLD-YES/TAB/TX under two CDs are made unique by cd-name qualifiers (g2-qual-cd-name-two-cds, matched at --std 2002), and the unqualified MOVE TO FLD is refused COBOL1639 at line 37 (g2-qual-cd-name-ambiguous)."
+}

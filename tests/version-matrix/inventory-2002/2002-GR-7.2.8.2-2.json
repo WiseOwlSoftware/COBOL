@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.2.8.2-2",
+ "rule-digest": "068f6606ae47",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Editions/CompilerDirectiveCatalog.cs#CheckWords; tests/version-matrix/constructs/call-convention-directive-2002.json#call-convention-directive-2002",
+ "test-ref": "conformance:cases/7.3.9-CALL-CONVENTION/pb1383_call_convention_cobol",
+ "notes": "Own verdict from the read lineage-reads-2002/u-02.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-7.3.9.3-2, witnessed at 2002 by the cases test-ref names. The read: Only the hyphen in 'implementor-defined' differs. The five constructs listed are the same in both editions and the 2002 general format (COBOL | call-convention-name-1) is the 2023 one. Cited: §2002:7.2.8.2 GR2a; §2002:7.2.8.2 GR2."
+}

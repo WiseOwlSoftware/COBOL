@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.9.3-2",
+ "rule-digest": "a917ba942bdf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/FileConnector.cs#Status",
+ "test-ref": "conformance:cases/9.1.13.7-Logic-error-condition-with-unsuccessful-completion/pb140_read_gate",
+ "notes": "Own verdict from the read lineage-reads-2002/u-22.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.10.4-2, witnessed at 2002 by the cases test-ref names. The read: Same requirement; 2002 adds the abbreviation '(MSCS)' and names the DELETE statement. The row's DELETE FILE witnesses (pb140_delete_file_gate, unit ReadGate_DeleteFile41...) are 2023-only forms outside the 2002 scope. General format of 2002 14.8.9.1 is the single DELETE file-name-1 RECORD [retry-phrase] [INVALID KEY/NOT INVALID KEY] [END-DELETE], identical to 2023 Format 1 (record); 2023 Format 2 (DELETE FILE) is an addition outside the 2002 scope. 'DELETE statement' (2002) and 'DELETE RECORD statement' (2023) name the same statement. No communication-section, debugging-line or removed-form reach: file-name-1 is a file-name only. Cited: §2002:14.8.9.3 GR2."
+}

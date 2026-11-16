@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.7.1-1",
+ "rule-digest": "520edbf1f5c8",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceXor; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#cceNot; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#GateLogicalOperators",
+ "test-ref": "conformance:cases/7.2.7@2002-CONSTANT-CONDITIONAL-EXPRESSION/g2cce01_permitted_forms",
+ "notes": "§2002:7.2.7.1 SR1 permits relation (8.8.4.1.1, same category, non-numeric only IS [NOT] EQUAL TO/=), boolean, defined and AND/OR/NOT complex conditions; g2cce01's twelve legs print the derived TRUE/FALSE lines at --std 2002, and <> (no 2002 operator), non-numeric <, mixed category, abbreviation, XOR and a length-2 boolean condition (g2cce02-08) are refused."
+}

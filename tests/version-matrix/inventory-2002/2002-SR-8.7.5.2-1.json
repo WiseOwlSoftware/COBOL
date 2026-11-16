@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.7.5.2-1",
+ "rule-digest": "1b85ae8e9f57",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#comparisonOperator; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#MapOperator",
+ "test-ref": "conformance:cases/8.7.5@2002-RELATIONAL-OPERATORS/g2-relop-not-one-operator",
+ "notes": "§2002:8.7.5.2 SR1: NOT with a simple operator is one negated operator, carried whole by an abbreviation (§2002:8.8.4.2.4.3 GR1, GR2b: A NOT > 3 OR 7 is true at A = 5), in general, boolean and pointer relations; g2-relop-not-one-operator at --std 2002 printed the derived R1..R14."
+}

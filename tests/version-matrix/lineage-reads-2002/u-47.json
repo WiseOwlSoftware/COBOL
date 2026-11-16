@@ -1,0 +1,1514 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-47 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-47",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-8.4.2.5.1",
+   "2002-FMT-8.4.2.6.1",
+   "2002-FMT-8.4.2.7.1",
+   "2002-FMT-8.4.2.8.1",
+   "2002-FMT-8.4.2.9.1",
+   "2002-FMT-8.4.2.10.1",
+   "2002-FMT-8.4.2.11.1",
+   "2002-FMT-8.4.2.12.1",
+   "2002-FMT-8.4.2.13.1",
+   "2002-FMT-8.4.2.14.1",
+   "2002-FMT-8.4.3.1",
+   "2002-FMT-10.5.1",
+   "2002-FMT-11.5.1",
+   "2002-FMT-13.5.1",
+   "2002-FMT-10.6.1",
+   "2002-FMT-11.6.1",
+   "2002-FMT-13.6.1",
+   "2002-FMT-15.6.1",
+   "2002-FMT-14.6.8.1",
+   "2002-FMT-11.7.1",
+   "2002-FMT-13.7.1",
+   "2002-FMT-15.7.1",
+   "2002-FMT-8.7.5.1",
+   "2002-FMT-11.8.1",
+   "2002-FMT-13.8.1"
+  ],
+  "pointers": {
+   "2002-FMT-8.4.2.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.5.2",
+    "similarity": 0.415
+   },
+   "2002-FMT-8.4.2.6.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-8.4.3.6.2",
+    "similarity": 0.793
+   },
+   "2002-FMT-8.4.2.7.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.4.2.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.8.2",
+    "similarity": 0.263
+   },
+   "2002-FMT-8.4.2.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.9.2",
+    "similarity": 0.392
+   },
+   "2002-FMT-8.4.2.10.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.4.2.11.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-8.4.3.11.2",
+    "similarity": 0.809
+   },
+   "2002-FMT-8.4.2.12.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.13.2",
+    "similarity": 0.398
+   },
+   "2002-FMT-8.4.2.13.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.14.2",
+    "similarity": 0.298
+   },
+   "2002-FMT-8.4.2.14.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.4.3.15.2",
+    "similarity": 0.303
+   },
+   "2002-FMT-8.4.3.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-8.4.4.2",
+    "similarity": 0.946
+   },
+   "2002-FMT-10.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-10.6.1",
+    "similarity": 0.68
+   },
+   "2002-FMT-11.5.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-11.6.2",
+    "similarity": 0.927
+   },
+   "2002-FMT-13.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.6.2",
+    "similarity": 0.568
+   },
+   "2002-FMT-10.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-10.7.2",
+    "similarity": 0.589
+   },
+   "2002-FMT-11.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-11.7.2",
+    "similarity": 0.419
+   },
+   "2002-FMT-13.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.7.2",
+    "similarity": 0.506
+   },
+   "2002-FMT-15.6.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.7.2",
+    "similarity": 0.843
+   },
+   "2002-FMT-14.6.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.7.9.2",
+    "similarity": 0.449
+   },
+   "2002-FMT-11.7.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-11.8.2",
+    "similarity": 0.864
+   },
+   "2002-FMT-13.7.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.8.2",
+    "similarity": 0.496
+   },
+   "2002-FMT-15.7.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.8.2",
+    "similarity": 0.845
+   },
+   "2002-FMT-8.7.5.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-8.7.5.1",
+    "similarity": 0.749
+   },
+   "2002-FMT-11.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-11.9.2",
+    "similarity": 0.549
+   },
+   "2002-FMT-13.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-13.9.2",
+    "similarity": 0.594
+   }
+  }
+ },
+ "read": {
+  "slice": "u-47",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-8.4.2.5.1",
+    "to": [
+     "FMT-8.4.3.5.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.5.1",
+    "clause-2023": "8.4.3.5.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.5",
+      "quote": "An object-view causes an object reference to be treated as though it had the specified description",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.5.1",
+      "quote": "An object-view causes an object reference to be treated as though it had the specified description",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "identifier-1 AS [FACTORY OF] class-name-1 [ONLY]",
+     "identifier-1 AS interface-name-1",
+     "identifier-1 AS UNIVERSAL",
+     "the three-way brace (FACTORY OF / ONLY only with the class alternative)"
+    ],
+    "evidence-2002": [
+     "all alternatives: covered by conformance:cases/8.4.3.1-Identifier/pb1425_object_view, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "brace (interface alternative takes no ONLY): pb1425-object-view-interface-phrase refused COBOL2872 at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)"
+    ],
+    "reason": "Same diagram and same SR/GR text. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.6.1",
+    "to": [
+     "FMT-8.4.3.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.6.1",
+    "clause-2023": "8.4.3.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.6",
+      "quote": "EXCEPTION-OBJECT is a predefined object reference that is used in a declarative procedure",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.6.1",
+      "quote": "EXCEPTION-OBJECT is a predefined object reference that is used in a declarative procedure",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the predefined object reference EXCEPTION-OBJECT"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.4.3.1-Identifier/pb922_exception_object_reference, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical one-word format; the clause's SRs and GRs are word-identical.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.7.1",
+    "to": [
+     "FMT-8.4.3.7.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.7.1",
+    "clause-2023": "8.4.3.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.7",
+      "quote": "NULL is a predefined object reference that contains the null object reference value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.7.1",
+      "quote": "NULL is a predefined object reference that contains the null object reference value",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NULL as the predefined object reference"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "The slice gave no pointer because 2002 has two one-word NULL formats (8.4.2.7 object reference, 8.4.2.10 address). The same-subject 2023 rule is FMT-8.4.3.7.2 (8.4.3.7 NULL object reference), CONFORMS; its clause text (general sentence, SR1, SR2, GR1) is word-identical to 2002 8.4.2.7.",
+    "probe": null,
+    "widening": null,
+    "pointer-note": "pointer supplied by the reader: FMT-8.4.3.7.2 (inventory row exists, CONFORMS)"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.8.1",
+    "to": [
+     "FMT-8.4.3.8.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.8.1",
+    "clause-2023": "8.4.3.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.8",
+      "quote": "SELF and SUPER are predefined object references that reference the object on which the current method is executing",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.8.1",
+      "quote": "SELF and SUPER are predefined object references that reference the object on which the current method is executing",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SELF",
+     "SUPER",
+     "class-name-1 OF SUPER"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_predefined_object_operands and pb1425_qualified_super, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "SUPER placement and qualifier refusals: pb1425-super-operand (COBOL2900) and pb1425-super-qualifier-not-inherited (COBOL2777) refused at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)"
+    ],
+    "reason": "Same diagram. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart. (2023 GR3 adds wording on SUPER method resolution; that is a GR, not this format.)",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.9.1",
+    "to": [
+     "FMT-8.4.3.9.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.9.1",
+    "clause-2023": "8.4.3.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.9.2 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.9.3 SR1",
+      "quote": "Property-name-1 shall be an object property specified in the REPOSITORY paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "property-name-1 OF class-name-1",
+     "property-name-1 OF identifier-1"
+    ],
+    "evidence-2002": [
+     "covered by pb1425_object_property_identifier and pb1449_interface_property, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "NULL object refused: pb1425-property-object-null refused COBOL2918 at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)"
+    ],
+    "reason": "Same diagram. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.10.1",
+    "to": [
+     "FMT-8.4.3.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.10.1",
+    "clause-2023": "8.4.3.10.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.10",
+      "quote": "NULL is a predefined address of class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.10.1",
+      "quote": "NULL is a predefined address of class pointer or a predefined content of class message-tag",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.10.2 SR1",
+      "quote": "This format may be used only as a sending operand in an INITIALIZE or a SET statement",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "NULL as the predefined address of a data-pointer",
+     "NULL as the predefined address of a program-pointer"
+    ],
+    "evidence-2002": [
+     "data-pointer and program-pointer NULL in SET, INITIALIZE and relations: conformance:cases/8.4.3.1-Identifier/pb1427_null_operand_model, accepted at 2002, PASS at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)"
+    ],
+    "reason": "The slice gave no pointer (two one-word NULL formats in 2002). The same-subject 2023 rule is FMT-8.4.3.10.2 (8.4.3.10 NULL address pointer and message tag content), CONFORMS. The format is the one word NULL in both; 2023's clause adds function-pointer and message-tag cases, which 2002 lacks.",
+    "probe": null,
+    "widening": "2023 also covers NULL for function-pointer and message-tag items (no 2002 counterpart); the 2002 cases (data-pointer, program-pointer) are a subset.",
+    "pointer-note": "pointer supplied by the reader: FMT-8.4.3.10.2 (inventory row exists, CONFORMS)"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.11.1",
+    "to": [
+     "FMT-8.4.3.11.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.11.1",
+    "clause-2023": "8.4.3.11.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11",
+      "quote": "A data-address-identifier references the unique data item that contains the address of a data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.11.1",
+      "quote": "A data-address-identifier references the unique data item that contains the address of a data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ADDRESS OF identifier-1"
+    ],
+    "evidence-2002": [
+     "covered by address_of_qualified and pb1407_address_of_reference_modified, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical format. The SRs differ (2023 adds CONSTANT RECORD and dynamic-length exclusions; 2002 SR4 on STRONG types) but those are separate rules; the format admits the same identifier-1.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.12.1",
+    "to": [
+     "FMT-8.4.3.13.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.12.1",
+    "clause-2023": "8.4.3.13.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.12",
+      "quote": "A program-address-identifier references the unique data item that contains the address of a program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.13.1",
+      "quote": "A program-address-identifier references the unique data item that contains the address of a program",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ADDRESS OF PROGRAM identifier-1",
+     "ADDRESS OF PROGRAM literal-1",
+     "ADDRESS OF PROGRAM program-prototype-name-1"
+    ],
+    "evidence-2002": [
+     "covered by pb549_program_address_identifier and pb1452_program_address_identifier_operands, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical format (2023 inserts 8.4.3.12 Function-address-identifier before it, hence the renumbering).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.13.1",
+    "to": [
+     "FMT-8.4.3.14.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.4.2.13.1",
+    "clause-2023": "8.4.3.14.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.13",
+      "quote": "The LINAGE-COUNTER identifier is generated by the presence of a LINAGE clause in a file description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.13.2 SR3",
+      "quote": "Qualification requirements for LINAGE-COUNTER are defined by 8.4.1.1, Qualification",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.14.3 SR3",
+      "quote": "Qualification requirements for LINAGE-COUNTER are defined by 8.4.2.2, Qualification",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "LINAGE-COUNTER",
+     "LINAGE-COUNTER IN file-name-1",
+     "LINAGE-COUNTER OF file-name-1"
+    ],
+    "evidence-2002": [
+     "unqualified, IN and OF: not shown through the row (its one witness, conformance-test:LinageConformanceTests.QualifiedCounter_TwoLinageFiles, compiles at the default edition 2023); shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/linage-ctr.cob (IN-F1=03 OF-F2=02 at 2002 and 2023, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/misc1.txt)"
+    ],
+    "reason": "Same requirement word for word (format identical; the qualification cross-reference moved from 8.4.1.1 to 8.4.2.2 with the same content). DIFFERENT only on evidence: the row's witness never runs at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/linage-ctr.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for LINAGE-COUNTER IN/OF file-name (the row's only witness runs at 2023): candidate E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/linage-ctr.cob",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/linage-ctr.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.14.1",
+    "to": [
+     "FMT-8.4.3.15.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.2.14.1",
+    "clause-2023": "8.4.3.15.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.14",
+      "quote": "The PAGE-COUNTER and LINE-COUNTER identifiers are generated automatically and exist independently for each report",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.15.3 SR2",
+      "quote": "Qualification requirements for PAGE-COUNTER and LINE-COUNTER are defined by 8.4.2.2, Qualification",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "PAGE-COUNTER / LINE-COUNTER, unqualified or IN/OF report-name-1"
+    ],
+    "evidence-2002": [
+     "covered by pb1456_other_report_counters_85 (widened, PASS at 2002) and pb1456_counter_in_source_expression, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical format; SRs and GRs word-identical except the qualification clause number.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.3.1",
+    "to": [
+     "FMT-8.4.4.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.4.3.1",
+    "clause-2023": "8.4.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.4.3.2 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.4.3 SR1",
+      "quote": "Condition-name-1 shall be associated with a switch-name in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "Format 1 switch-status condition-name",
+     "Format 2 qualified-condition-name-with-subscripts (level 88)"
+    ],
+    "evidence-2002": [
+     "both formats: pb390_procedure_and_condition_operands (SWITCH-1 ON/OFF STATUS and a level-88), widened, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical two formats (renumbered 8.4.3 to 8.4.4).",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-10.5.1",
+    "to": [
+     "FMT-10.6.1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.5.1",
+    "clause-2023": "10.6.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:10.5.2 SR1",
+      "quote": "Within a compilation group, function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.2 SR1",
+      "quote": "Within a compilation group, function-prototypes and program-prototypes shall precede all other types of source units",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "program-prototype",
+     "function-prototype",
+     "program-definition (nested)",
+     "function-definition",
+     "class-definition with factory and instance definitions",
+     "interface-definition",
+     "method-definition"
+    ],
+    "evidence-2002": [
+     "program and function shapes: pb1507_source_unit_shapes_legal, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "malformed shapes refused at 2002: pb1507-function-in-program, -program-in-function, -function-without-end-marker, -end-function-closes-program, -contained-program-without-procedure-division, all COBOL2274 at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)",
+     "prototypes, class, factory, object, method, interface units: pb988_end_markers (FMT-10.7.2's witness), E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Every sub-format is printed identically except class-name to object-class-name (rename only). The communication-section ban sits in 2002 SR4, a separate rule; the format's data-division term is the same reference.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.5.1",
+    "to": [
+     "FMT-11.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.5.1",
+    "clause-2023": "11.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.5",
+      "quote": "The INTERFACE-ID paragraph indicates that this identification division is introducing an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:11.6.1",
+      "quote": "The INTERFACE-ID paragraph indicates that this identification division is introducing an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.5.2 SR1",
+      "quote": "Literal-1 shall be an alphanumeric literal or a national literal and shall not be a figurative constant",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "INTERFACE-ID. name [AS literal-1] [INHERITS FROM ...] [USING ...]."
+    ],
+    "evidence-2002": [
+     "USING: pb759_parameterized_class, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "AS figurative refused: pb303_as_interface_id_literal COBOL1794 at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)",
+     "INHERITS and AS literal: pb1502_interface_inherits_legal, l1p5_interface_inherits_multiple, pb4893-interface-externalized-method-name PASS at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)"
+    ],
+    "reason": "Identical format.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.5.1",
+    "to": [
+     "FMT-13.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.5.1",
+    "clause-2023": "13.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.5.3 GR1",
+      "quote": "Data items in the local-storage section are automatic data",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.10",
+      "quote": "Any data item that has been described with level-number 1 is a record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.12",
+      "quote": "A type declaration entry is a data description entry that contains a TYPEDEF clause",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "77-level entry",
+     "constant-entry",
+     "record-description-entry (in 2002 including a level-1 entry with TYPEDEF)"
+    ],
+    "evidence-2002": [
+     "all kinds: pb1227_constant_byte_length LOCAL-STORAGE (77, constants, TYPEDEF, record of the type), E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/ls-lk-kinds.cob (2002 and 2023 identical output, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/misc1.txt)"
+    ],
+    "reason": "2002 lists three entry kinds; a TYPEDEF entry is a record-description-entry in 2002 (13.10: any level-1 item is a record). 2023 names it type-declaration-entry inside the same format, so the 2002 scope maps onto one 2023 format, not a split.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/ls-lk-kinds.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-10.6.1",
+    "to": [
+     "FMT-10.7.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "10.6.1",
+    "clause-2023": "10.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:10.6.2 SR1",
+      "quote": "An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.7.3 SR1",
+      "quote": "An end marker shall be present in every source unit that contains, is contained in, or precedes another source unit",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the nine END markers"
+    ],
+    "evidence-2002": [
+     "all nine (END PROGRAM prototype/program, END FUNCTION prototype/function, END CLASS, FACTORY, OBJECT, METHOD, INTERFACE): pb988_end_markers, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)"
+    ],
+    "reason": "Identical format. 2002 prints class-name-1 where 2023 prints object-class-name-1: a rename of the metalanguage term (2023 keeps class-name for the class condition); both denote a class named in the REPOSITORY paragraph, so no program can tell them apart.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.6.1",
+    "to": [
+     "FMT-11.7.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.6.1",
+    "clause-2023": "11.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.6",
+      "quote": "The METHOD-ID paragraph indicates that this identification division is introducing a method definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "METHOD-ID. method-name-1 [AS literal-1] [OVERRIDE] [IS FINAL].",
+     "METHOD-ID. GET|SET PROPERTY property-name-1 [OVERRIDE] [IS FINAL]."
+    ],
+    "evidence-2002": [
+     "OVERRIDE/FINAL: oo_override_final; GET/SET PROPERTY: oo_property_methods, pb1449_interface_property, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "AS literal: pb4893-interface-externalized-method-name PASS at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt); the row's pb303_as_module_name_and_invoke fails at 2002 only because it calls FUNCTION MODULE-NAME (2023)"
+    ],
+    "reason": "Identical format.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.6.1",
+    "to": [
+     "FMT-13.7.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.6.1",
+    "clause-2023": "13.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.6",
+      "quote": "The linkage section describes formal parameters and returning items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.10",
+      "quote": "Any data item that has been described with level-number 1 is a record",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "77-level entry",
+     "constant-entry",
+     "record-description-entry (incl. TYPEDEF entries)"
+    ],
+    "evidence-2002": [
+     "all kinds: pb1252_linkage_section_four_entry_kinds, accepted at 2002, PASS (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt); USING on a linkage entry refused at 2002 (pb1252-linkage-entry-using-phrase, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)"
+    ],
+    "reason": "Same as the local-storage format: 2023's type-declaration-entry is 2002's TYPEDEF record entry under its own name in the same format.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.6.1",
+    "to": [
+     "FMT-15.7.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.6.1",
+    "clause-2023": "15.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.6.2 AR1",
+      "quote": "Argument-1 shall be of class numeric",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.7.3 AR1",
+      "quote": "Argument-1 shall be of class numeric",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FUNCTION ABS (argument-1), integer and numeric argument"
+    ],
+    "evidence-2002": [
+     "pb40_integer_argument_positions runs clean at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt); pb2_float_argument_exact_family widened, PASS at 2002; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob"
+    ],
+    "reason": "Identical format, argument rule and returned value rule.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-14.6.8.1",
+    "to": [
+     "FMT-14.7.9.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.6.8.1",
+    "clause-2023": "14.7.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.6.8",
+      "quote": "the MSCS is to continue to attempt to obtain access in the event that a file or record is locked",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETRY n TIMES",
+     "RETRY FOR n SECONDS",
+     "RETRY FOREVER"
+    ],
+    "evidence-2002": [
+     "w73a_retry_parenthesized_count and l1m8_rewrite_format_phrases both run clean at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)"
+    ],
+    "reason": "Identical format; 2002 says MSCS where 2023 spells out mass storage control system.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-11.7.1",
+    "to": [
+     "FMT-11.8.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "11.7.1",
+    "clause-2023": "11.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.7",
+      "quote": "The OBJECT paragraph indicates that this identification division is introducing an instance object definition",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OBJECT. [IMPLEMENTS interface-name-1 ... .]"
+    ],
+    "evidence-2002": [
+     "oo_implements_repeated, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002)",
+     "oo_interface PASS at 2002 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)"
+    ],
+    "reason": "Identical format.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-13.7.1",
+    "to": [
+     "FMT-13.8.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.7.1",
+    "clause-2023": "13.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.7.3",
+      "quote": "An RD entry shall be followed by one or more report group description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.8.4",
+      "quote": "An RD entry shall be followed by one or more report group description entries",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "REPORT SECTION. {RD {constant-entry | report-group-description-entry}...}..."
+    ],
+    "evidence-2002": [
+     "constant entry after an RD: pb1226_report_section_constant accepted at 2002, PASS (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)",
+     "RD with no report group, and with constants only, refused at 2002: pb1226-rd-without-report-group, pb1226-rd-constant-entry-only (COBOL2708, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/refuse-2002.txt)"
+    ],
+    "reason": "Identical diagram. 2002's term table lists 77-level-entry (not in the diagram), which changes nothing.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.7.1",
+    "to": [
+     "FMT-15.8.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.7.1",
+    "clause-2023": "15.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.7.2 AR2",
+      "quote": "The value of argument-1 shall be greater than or equal to",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.8.3 AR2",
+      "quote": "The value of argument-1 shall be greater than or equal to",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "FUNCTION ACOS (argument-1)"
+    ],
+    "evidence-2002": [
+     "not shown through the row: its one witness general_format_intrinsics_batch1 is refused at 2002 (COBOL1502: it also calls FUNCTION CONCAT, a 2023 function; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt); shown by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob (ACOS(1)=0, ACOS(0)=1.57080, ACOS(-1)=3.14159 at 2002)"
+    ],
+    "reason": "Same requirement word for word; DIFFERENT only on evidence: the row's witness cannot compile at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for FUNCTION ACOS (the row's witness also uses CONCAT): candidate E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/fn-abs-acos.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-8.7.5.1",
+    "to": [
+     "FMT-8.7.5.1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.7.5.1",
+    "clause-2023": "8.7.5.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:8.7.5.1 Format 1",
+      "quote": "IS NOT GREATER THAN",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.1 Format 2",
+      "quote": "IS NOT GREATER THAN",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR1",
+      "quote": "When specified, NOT creates one relational operator that defines the comparison to be executed for truth value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2b",
+      "quote": "If the relational operator following the word NOT is a simple relational operator, then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "IS [NOT] GREATER THAN / > / LESS THAN / < / EQUAL TO / = (simple operators, NOT included)",
+     "GREATER THAN OR EQUAL TO, >=, LESS THAN OR EQUAL TO, <= (extended, no NOT)",
+     "no <> operator"
+    ],
+    "evidence-2002": [
+     "all 16 spellings: pb1034_printed_relational_operator_set widened, E:/COBOL-coord/scratch/op-20261114/adopt-2002/s1-run-classified.json (PASS at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/relop-ok.cob",
+     "NOT x is part of the simple operator in an abbreviated relation (2002 GR2b): probe relop-ok line ABBR1 printed at 2002",
+     "<> refused at 2002 (COBOL0900) and NOT >= refused at both: E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/relop.txt"
+    ],
+    "reason": "2002 makes IS NOT GREATER/LESS/EQUAL simple operators; 2023 moves the NOT forms to Format 2 and adds <>. The operator set 2002 permits is a subset of 2023's; the reclassification matters only for the abbreviated combined relation, where 2002 GR2b gives the expansion 2023's example table gives, and the probe shows it at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/relop-ok.cob",
+    "widening": "2023 adds the <> operator; the compiler refuses it at --std 2002."
+   },
+   {
+    "rule-id": "2002-FMT-11.8.1",
+    "to": [
+     "FMT-11.9.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "11.8.1",
+    "clause-2023": "11.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:11.8.1",
+      "quote": "OPTIONS arithmetic-clause entry-convention-clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.2 SR1",
+      "quote": "One of the separator periods in the general format may be omitted if none of the clauses in the OPTIONS paragraph is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "If the STANDARD phrase is specified, the techniques used in handling arithmetic expressions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "ENTRY-CONVENTION clause (entry-convention-names, their meanings and the default when not specified). This item is optional.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:5.1",
+      "quote": "shall be written in the compilation group in the sequence given in the general format",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "OPTIONS. with no clause, one period omissible",
+     "ARITHMETIC IS NATIVE | STANDARD",
+     "ENTRY-CONVENTION IS entry-convention-name-1 (names implementor-defined, optional)",
+     "clause order arithmetic before entry-convention; terminating period when a clause is written"
+    ],
+    "evidence-2002": [
+     "empty forms and ARITHMETIC NATIVE: pb1508_options_period_bracket accepted at 2002, PASS (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/cases-2002.txt)",
+     "ARITHMETIC IS STANDARD inside OPTIONS: not shown through the row (2023 has no STANDARD); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/opt-arith-std.cob accepted and runs at 2002, refused COBOL0807 at 2023",
+     "ENTRY-CONVENTION: no name is accepted at 2002 (COBOL is the 2014 alternative, COBOL0900; any other name COBOL2385), licensed by §2002:B.1 item 44 (optional); the row's ENTRY-CONVENTION IS COBOL evidence is 2023-only",
+     "missing terminating period refused at 2002 (opt-noperiod); 2014 clauses refused at 2002 (opt-stddec, opt-defrnd, opt-fbin, opt-irnd); repeated clause refused (pb1508-options-clause-repeated): E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/options.txt"
+    ],
+    "reason": "The paragraph's own format matches 2023's in substance, but its arithmetic-clause term admits STANDARD in 2002 (11.8.4.1) and not in 2023 (NATIVE, STANDARD-BINARY, STANDARD-DECIMAL), and its entry-convention slot has no usable name at 2002. The row's evidence shows neither 2002 form.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/opt-arith-std.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for OPTIONS. ARITHMETIC IS STANDARD. (its arithmetic is the known 34-vs-32-digit standard-arithmetic defect, not rediscovered here), and a note that ENTRY-CONVENTION has no name at 2002 under §2002:B.1 item 44",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/options.txt)"
+   },
+   {
+    "rule-id": "2002-FMT-13.8.1",
+    "to": [
+     "FMT-13.9.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "13.8.1",
+    "clause-2023": "13.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:13.8.2 SR1",
+      "quote": "The screen section shall not be specified within an interface definition",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "SCREEN SECTION. [constant-entry | screen-description-entry]..."
+    ],
+    "evidence-2002": [
+     "declined with a diagnostic at 2002: probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/screen-sec.cob, COBOL1560 (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/misc1.txt); the same as the 2023 row's DOCUMENTED-NON-SUPPORT"
+    ],
+    "reason": "Identical format. The 2023 row is DOCUMENTED-NON-SUPPORT; 2002 licenses the same non-support by its own text (B.3 item 1 processor-dependent, 3.1.5), and the compiler refuses the section at 2002. COBOL1560's text cites the 2023 optional-module grounds at --std 2002 (already noted by q-09; wording only).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-47/screen-sec.cob",
+    "widening": null,
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-47",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-8.4.2.5.1",
+    "verdict": "UPHELD",
+    "reason": "Object-view diagram identical but for the class-name/object-class-name metalanguage rename. identifier-1 shall be an object reference (SR), so the 2002 identifier reach into a communication-section record (qualification by cd-name) adds no case a program can show beyond what the twin's evidence covers.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.6.1",
+    "verdict": "UPHELD",
+    "reason": "One-word format EXCEPTION-OBJECT in both; no operand, no list, no reach into the communication section.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.7.1",
+    "verdict": "UPHELD",
+    "reason": "One-word NULL object-reference format in both; no operand.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.8.1",
+    "verdict": "UPHELD",
+    "reason": "SELF / [class-name-1 OF] SUPER identical but for the rename; no operand that can reach a CD.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.9.1",
+    "verdict": "UPHELD",
+    "reason": "property-name-1 OF {class-name-1 | identifier-1}: identical but for the rename; identifier-1 is an object reference, so no practical communication-section reach.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.10.1",
+    "verdict": "UPHELD",
+    "reason": "One-word NULL predefined-address; 2023 widens to function-pointer and message-tag; the 2002 pointer cases are a subset.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.11.1",
+    "verdict": "UPHELD",
+    "reason": "ADDRESS OF identifier-1 identical. 2002 SR1 confines identifier-1 to the file, working-storage, local-storage and linkage sections, so the communication section is not reached.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.2.11.2 SR1",
+      "quote": "Identifier-1 shall reference a data item defined in the file section, working-storage section, local-storage section, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.12.1",
+    "verdict": "DOUBTFUL",
+    "reason": "Format identical, but in 2002 identifier-1 (any alphanumeric or national identifier) may be an item of a record under a CD, qualified by cd-name (2002 qualified-data-name carries file-cd-report-qualifier); 2023 has no such operand. The compiler handles it at 2002 (probe prints PA), but no test at --std 2002 witnesses the CD case. Settled by a ruling on whether an identifier operand that may name a communication-section item counts as communication-reach (the class definition names only entries under a CD and operands that are cd-names); if it does, OVERTURNED communication-reach with the probe as the candidate witness.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "where file-cd-report-qualifier is",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-47/cd-progaddr.cob"
+   },
+   {
+    "rule-id": "2002-FMT-8.4.2.14.1",
+    "verdict": "UPHELD",
+    "reason": "Report counters format identical; qualifier is report-name only.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.4.3.1",
+    "verdict": "OVERTURNED",
+    "reason": "Format 2 is qualified-condition-name-with-subscripts-1 in both, but the term it rests on differs: 2002's qualified-condition-name ends in file-cd-report-qualifier (IN/OF file-name, cd-name or report-name), 2023's ends in file-name-1 only. So in 2002 this format governs a level-88 condition-name in a record description under a CD, qualified by the cd-name (IF Q-BLANK OF ICD); 2023 has no such form. The twin's evidence (pb390) shows no CD-qualified condition-name. Compiler at 2002 is correct: probe prints C0 C1 C2 C3 at --std 2002 (and 85); refused COBOL0902 at 2023.",
+    "citations": [
+     {
+      "cite": "§2002:8.4.3.1",
+      "quote": "qualified-condition-name-with-subscripts-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.4.2",
+      "quote": "qualified-condition-name-with-subscripts-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.1.1.1",
+      "quote": "condition-name-1 [ data-qualifier ] …[ file-cd-report-qualifier ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.2.2.2",
+      "quote": "condition-name-1 [ data-qualifier ] …[ file-name-1 ]",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-47/cd-cond.cob",
+    "needs": "a 2002 witness for a condition-name in a CD record qualified by the cd-name: candidate cd-cond.cob (output cd-cond.txt)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-FMT-10.5.1",
+    "verdict": "OVERTURNED",
+    "reason": "The compilation-group format's data-division and options-paragraph terms are defined by reference (term table: clause 13 and 11.8). In 2002 clause 13's data division contains a COMMUNICATION SECTION, so a 2002 program-definition with a communication section is a valid compilation group under this format (2002 SR4 has to forbid it only in methods, which shows the format reaches it); 2023's data division has no communication section. The options-paragraph term likewise admits ARITHMETIC IS STANDARD in 2002 only (the reader's own DIFFERENT on 2002-FMT-11.8.1). The reader dismissed both as 'the same reference', but the referenced clauses differ. No 2023-row evidence shows a 2002 program with a communication section; compiler at 2002 accepts one (cd-cond.cob runs at 2002, warning COBOL0903 obsolete).",
+    "citations": [
+     {
+      "cite": "§2002:10.5.1",
+      "quote": "where the following meta-language terms are described in the indicated subclauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:10.6.1",
+      "quote": "where the following meta-language terms are described in the indicated subclauses",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1",
+      "quote": "The communication section is located in the data division of a source program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:10.5.2 SR4",
+      "quote": "The data division of a method in a class definition shall not contain a communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "If the STANDARD phrase is specified, the techniques used in handling arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-47/cd-cond.cob",
+    "needs": "a 2002 witness for a program-definition whose data division contains a communication section (candidate cd-cond.cob) and one for OPTIONS ARITHMETIC IS STANDARD (reader's opt-arith-std.cob)",
+    "compiler-at-2002": "correct"
+   },
+   {
+    "rule-id": "2002-FMT-11.5.1",
+    "verdict": "UPHELD",
+    "reason": "INTERFACE-ID format identical. 2023 adds SR6/SR7 (no repeated INHERITS/USING names) and the zero-length-literal ban, but those are separate SR rows, not this format.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.5.1",
+    "verdict": "UPHELD",
+    "reason": "LOCAL-STORAGE entry kinds identical (2023's type-declaration-entry is 2002's TYPEDEF record entry); no communication reach; no data-description form 2002 has and 2023 lacks was found.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-10.6.1",
+    "verdict": "UPHELD",
+    "reason": "Nine end markers identical but for the rename; no term table.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-11.6.1",
+    "verdict": "UPHELD",
+    "reason": "METHOD-ID format identical. 2023 SR changes (method resolution signature, zero-length literal, ACTIVE-CLASS) are separate SR rows.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.6.1",
+    "verdict": "UPHELD",
+    "reason": "LINKAGE entry kinds as for local-storage; no communication reach.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-15.6.1",
+    "verdict": "UPHELD",
+    "reason": "FUNCTION ABS format identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-14.6.8.1",
+    "verdict": "UPHELD",
+    "reason": "RETRY format identical; GRs identical but for MSCS spelled out and the I-O status cross-reference.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-11.7.1",
+    "verdict": "UPHELD",
+    "reason": "OBJECT paragraph format and rules identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-13.7.1",
+    "verdict": "UPHELD",
+    "reason": "Report section diagram identical.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.7.5.1",
+    "verdict": "UPHELD",
+    "reason": "2002 classes NOT GREATER/LESS/EQUAL as simple operators, 2023 as extended. The only place the class matters is the abbreviated combined relation (2002 GR2b: NOT after AND/OR joins a following simple operator). Probed AND NOT > c, AND NOT GREATER THAN c, AND NOT = c, AND IS NOT < b and the NOTE example at both editions: identical correct results (A1-A5).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2b",
+      "quote": "If the relational operator following the word NOT is a simple relational operator, then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-47/abbr-not.cob"
+   },
+   {
+    "rule-id": "2002-FMT-13.8.1",
+    "verdict": "UPHELD",
+    "reason": "Format identical; 2002 makes the screen section processor-dependent (B.3 item 1) and 3.1.5 permits non-support with a compile-time warning mechanism and documentation; the compiler refuses it at 2002 (COBOL1560) and docs/conformance/4/SCREEN.md documents it.",
+    "citations": [
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "254d261eea921c1b09dcbb3eb9998ab19548d48b131dec34311bf24e4b24e086",
+  "read": "e4d250b48bf9ca6d1cf5236b7318bab6d78416e07aae6871dbea3e8f43dda2c9",
+  "refute": "557146f9530c4586aed3a5bb3d734a425d7eb5f08e68ae5dca45799d9e33d382"
+ }
+}

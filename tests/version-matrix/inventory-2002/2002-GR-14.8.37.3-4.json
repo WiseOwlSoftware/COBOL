@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.37.3-4",
+ "rule-digest": "8cb2363be23e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitStart; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitStoreFileStatus; src/WiseOwl.Cobol.Runtime/IO/SequentialConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#StartFirstLast; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#Start; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#StartFirstLast",
+ "test-ref": "conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last",
+ "notes": "Own verdict from the read lineage-reads-2002/u-28.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.41.4-4, witnessed at 2002 by the cases test-ref names. The read: Identical apart from the clause number of I-O status (9.1.12 / 9.1.13). The START status values (00, 23, 46, 47 ...) are the same in both; 2023's EC-I-O-WARNING for successful nonzero statuses does not arise from START. Cited: §2002:14.8.37.3 GR4."
+}

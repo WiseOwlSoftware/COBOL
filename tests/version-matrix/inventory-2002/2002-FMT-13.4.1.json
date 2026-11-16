@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.4.1",
+ "rule-digest": "d671db26f7ee",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#workingStorageSection; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindEntries",
+ "test-ref": "conformance:cases/13.5-Working-storage-section/pb1309_working_storage_four_entry_kinds",
+ "notes": "Own verdict from the read lineage-reads-2002/u-46.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.5.2, witnessed at 2002 by the cases test-ref names. The read: 2023 names type-declaration-entry separately; in 2002 the same TYPEDEF entry is a record-description-entry, so the admitted programs coincide. Cited: §2002:13.4.1; §2002:13.4."
+}

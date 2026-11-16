@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.47.3-3",
+ "rule-digest": "f6b40a7781bf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+ "test-ref": "conformance:cases/14.9.32-RELEASE/pb348_from_into_move_rules_2023",
+ "notes": "Own verdict from the read lineage-reads-2002/u-30.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.51.4-5, witnessed at 2002 by the cases test-ref names. The read: Same equivalence; 2023 adds an informative NOTE on overlapping operands. The MOVE rules it defers to are those of the edition in force, and their 2002 differences are the MOVE rows' business. Cited: §2002:14.8.47.3 GR3."
+}

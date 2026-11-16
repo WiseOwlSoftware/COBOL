@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.1.3-24",
+ "rule-digest": "5e88e396e2d3",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+ "test-ref": "conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-positioned; conformance:wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-exception",
+ "notes": "Own verdict from the read lineage-reads-2002/u-20.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.1.4-24, witnessed at 2002 by the cases test-ref names. The read: 2023 rewords the flow-of-control sentences (control 'returned from' vs 2002's explicit-transfer wording); the words differ but 2002 formats 1 and 2 carry no exception phrase, so the rule governs only the screen format, which 2002 makes processor-dependent and the compiler declines with diagnostics at 2002. The differing words change nothing a 2002 program can show on this implementation. Cited: §2002:14.8.1.3 GR24; §2002:B.3."
+}

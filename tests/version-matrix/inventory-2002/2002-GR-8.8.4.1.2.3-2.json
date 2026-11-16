@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.8.4.1.2.3-2",
+ "rule-digest": "eb8b659e5c2e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolExpressions.g4#unaryLogicalExpression; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs",
+ "test-ref": "conformance:cases/8.8.2-Boolean-expressions/pb1465_boolean_paren_after_operator; conformance:cases/8.8.4.3-Simple-boolean-condition/pb1464_parenthesized_boolean_operands",
+ "notes": "Own verdict from the read lineage-reads-2002/u-07.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.8.4.3.4-2, witnessed at 2002 by the cases test-ref names. The read: Words identical; format identical; 2002 operators a subset of 2023's. Cited: §2002:8.8.4.1.2.3 GR2."
+}

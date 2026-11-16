@@ -1,0 +1,1716 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-55 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-55",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-15.54.1",
+   "2002-FMT-15.55.1",
+   "2002-FMT-15.56.1",
+   "2002-FMT-15.57.1",
+   "2002-FMT-15.58.1",
+   "2002-FMT-15.59.1",
+   "2002-FMT-15.60.1",
+   "2002-FMT-15.61.1",
+   "2002-FMT-15.62.1",
+   "2002-FMT-15.63.1",
+   "2002-FMT-15.64.1",
+   "2002-FMT-15.65.1",
+   "2002-FMT-15.66.1",
+   "2002-FMT-15.67.1",
+   "2002-FMT-15.68.1",
+   "2002-FMT-15.69.1",
+   "2002-FMT-15.70.1",
+   "2002-FMT-15.71.1",
+   "2002-FMT-15.72.1",
+   "2002-FMT-15.73.1",
+   "2002-FMT-15.74.1",
+   "2002-FMT-15.75.1",
+   "2002-FMT-15.76.1",
+   "2002-FMT-15.77.1",
+   "2002-FMT-15.78.1"
+  ],
+  "pointers": {
+   "2002-FMT-15.54.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.67.2",
+    "similarity": 0.844
+   },
+   "2002-FMT-15.55.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-15.68.2",
+    "similarity": 0.907
+   },
+   "2002-FMT-15.56.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.69.2",
+    "similarity": 0.848
+   },
+   "2002-FMT-15.57.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.70.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.58.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.71.2",
+    "similarity": 0.846
+   },
+   "2002-FMT-15.59.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.72.2",
+    "similarity": 0.846
+   },
+   "2002-FMT-15.60.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.73.2",
+    "similarity": 0.803
+   },
+   "2002-FMT-15.61.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.74.2",
+    "similarity": 0.874
+   },
+   "2002-FMT-15.62.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.75.2",
+    "similarity": 0.844
+   },
+   "2002-FMT-15.63.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.76.2",
+    "similarity": 0.841
+   },
+   "2002-FMT-15.64.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.77.2",
+    "similarity": 0.859
+   },
+   "2002-FMT-15.65.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.78.2",
+    "similarity": 0.846
+   },
+   "2002-FMT-15.66.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.81.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-15.67.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.82.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.68.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.84.2",
+    "similarity": 0.839
+   },
+   "2002-FMT-15.69.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-15.85.2",
+    "similarity": 0.905
+   },
+   "2002-FMT-15.70.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.86.2",
+    "similarity": 0.865
+   },
+   "2002-FMT-15.71.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.88.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.72.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.89.2",
+    "similarity": 0.837
+   },
+   "2002-FMT-15.73.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.90.2",
+    "similarity": 0.865
+   },
+   "2002-FMT-15.74.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.91.2",
+    "similarity": 0.862
+   },
+   "2002-FMT-15.75.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.93.2",
+    "similarity": 0.854
+   },
+   "2002-FMT-15.76.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-15.94.2",
+    "similarity": 0.911
+   },
+   "2002-FMT-15.77.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.95.2",
+    "similarity": 0.857
+   },
+   "2002-FMT-15.78.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.97.2",
+    "similarity": 0.733
+   }
+  }
+ },
+ "read": {
+  "slice": "u-55",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.54.1",
+    "to": [
+     "FMT-15.67.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.54.1 General format (NUMVAL function)",
+    "clause-2023": "15.67.2 General format (NUMVAL function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION NUMVAL with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument accepted and evaluated": "covered by cases/15.67.3-Argument-rules/pb60_numval_one_scan (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (NUMVAL -00012.5000)",
+     "any other count refused": "covered by probes neg/numval_2args.cob, neg/numval_0args.cob ('takes 1 argument(s); 2 given' at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.54",
+      "quote": "The NUMVAL function returns the numeric value represented by the character string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.1",
+      "quote": "The NUMVAL function returns the numeric value represented by the character string",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of NUMVAL is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.55.1",
+    "to": [
+     "FMT-15.68.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.55.1 General format (NUMVAL-C function)",
+    "clause-2023": "15.68.2 General format (NUMVAL-C function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 alone",
+     "argument-1 argument-2",
+     "argument-1 LOCALE [locale-name-1]",
+     "optional ANYCASE last, after any of the above",
+     "argument-2 and LOCALE are alternatives"
+    ],
+    "evidence-2002": {
+     "argument-1 / argument-2 / ANYCASE": "covered by cases/15.68.3-Argument-rules/pb4359_numval_c_anycase_2002 (accept [2002, 2014, 2023]), cases/15.67.3-Argument-rules/pb60_numval_one_scan (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (NUMVALC..NUMVALC4)",
+     "LOCALE [locale-name-1] [ANYCASE]": "covered by probes neg/numvalc_locale_ok.cob, neg/numvalc_locale_name_ok.cob (compile clean at --std 2002)",
+     "alternatives / ANYCASE position / extra operand refused": "covered by probes neg/numvalc_locale_and_arg2.cob, neg/numvalc_arg2_locale.cob, neg/numvalc_anycase_first.cob, neg/numvalc_3args.cob (COBOL1504 at --std 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.55.1",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.2",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.55.2",
+      "quote": "If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are case-insensitive",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of NUMVAL-C is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. ANYCASE and LOCALE are both in the 2002 format (§2002:15.55.2 AR3), and the 2002 reconciliation ledger records no transcription error in the formats of pages 645-670.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.56.1",
+    "to": [
+     "FMT-15.69.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.56.1 General format (NUMVAL-F function)",
+    "clause-2023": "15.69.2 General format (NUMVAL-F function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION NUMVAL-F with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by cases/15.69.3-Argument-rules/numvalf_decimal_comma_and_spaces (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out)",
+     "other counts refused": "covered by cases/15.69-NUMVAL-F/l1-numvalf-arity (refusal; reject-at omits only 85) and probe neg/numvalf_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.56",
+      "quote": "The NUMVAL-F function returns the value or an approximation of the value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.1",
+      "quote": "The NUMVAL-F function returns the value or an approximation of the value",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of NUMVAL-F is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.57.1",
+    "to": [
+     "FMT-15.70.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.57.1 General format (ORD function)",
+    "clause-2023": "15.70.2 General format (ORD function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ORD with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by cases/12.3.7-SPECIAL-NAMES/ca26_char_unicode_pcs (accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (ORD 66)",
+     "other counts refused": "covered by probe neg/ord_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.57",
+      "quote": "The ORD function returns an integer value that is the ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.70.1",
+      "quote": "The ORD function returns an integer value that is the ordinal position",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of ORD is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.58.1",
+    "to": [
+     "FMT-15.71.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.58.1 General format (ORD-MAX function)",
+    "clause-2023": "15.71.2 General format (ORD-MAX function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ORD-MAX with one or more argument-1 (a table ALL subscript supplies repetitions)"
+    ],
+    "evidence-2002": {
+     "one or more arguments": "covered by cases/15.75.3-Argument-rules/pb1_intrinsic_formats (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (ORDMAX 2, ORDMAXALL 2)",
+     "zero refused": "covered by probe neg/ordmax_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.58",
+      "quote": "The ORD-MAX function returns a value that is the ordinal number of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.71.1",
+      "quote": "The ORD-MAX function returns a value that is the ordinal number of",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of ORD-MAX is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.59.1",
+    "to": [
+     "FMT-15.72.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.59.1 General format (ORD-MIN function)",
+    "clause-2023": "15.72.2 General format (ORD-MIN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ORD-MIN with one or more argument-1"
+    ],
+    "evidence-2002": {
+     "one or more arguments": "covered by cases/15.75.3-Argument-rules/pb1_intrinsic_formats (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (ORDMIN 3)",
+     "zero refused": "covered by probe neg/ordmin_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.59",
+      "quote": "The ORD-MIN function returns a value that is the ordinal number of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.72.1",
+      "quote": "The ORD-MIN function returns a value that is the ordinal number of",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of ORD-MIN is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.60.1",
+    "to": [
+     "FMT-15.73.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.60.1 General format (PI function)",
+    "clause-2023": "15.73.2 General format (PI function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION PI with no argument"
+    ],
+    "evidence-2002": {
+     "no argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (PI +00003.1415); the row's l1_pi_format_native is accept [2023] only",
+     "an argument refused": "covered by probe neg/pi_1arg.cob ('takes 0 argument(s); 1 given' at --std 2002)",
+     "empty parentheses": "accepted at --std 2002 (neg/pi_emptyparens.cob); the project's adjudicated 2002 function-identifier reading (kb/Work PB5163: §2002:8.4.2.2.1 brackets argument-1 inside the parentheses; golden cases/8.4.3.2-Function-identifier/pb5163_empty_argument_list_2002), not a property of this format"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.60",
+      "quote": "The PI function returns a value that is an approximation of π,",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.73.1",
+      "quote": "The PI function returns a value that is an approximation of π,",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR6",
+      "quote": "Specific rules governing the number, class, category, and type of argument-1 are given for intrinsic functions",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of PI is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. FUNCTION PI () is accepted at 2002 as at 2023 under the project's adjudicated PB5163 reading of the 2002 function-identifier format.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.61.1",
+    "to": [
+     "FMT-15.74.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.61.1 General format (PRESENT-VALUE function)",
+    "clause-2023": "15.74.2 General format (PRESENT-VALUE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION PRESENT-VALUE with argument-1 and one or more argument-2"
+    ],
+    "evidence-2002": {
+     "two or more arguments": "covered by cases/15.75.3-Argument-rules/pb1_intrinsic_formats (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (PV 200, PV1 100)",
+     "fewer than two refused": "covered by probe neg/pv_1arg.cob ('takes at least 2 argument(s)')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.61.1",
+      "quote": "FUNCTION PRESENT-VALUE ( argument-1 { argument-2 } … )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.74.2",
+      "quote": "FUNCTION PRESENT-VALUE ( argument-1 { argument-2 } … )",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of PRESENT-VALUE is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.62.1",
+    "to": [
+     "FMT-15.75.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.62.1 General format (RANDOM function)",
+    "clause-2023": "15.75.2 General format (RANDOM function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION RANDOM",
+     "FUNCTION RANDOM ( )",
+     "FUNCTION RANDOM ( argument-1 )"
+    ],
+    "evidence-2002": {
+     "all three forms": "covered by cases/15.75.3-Argument-rules/pb1_intrinsic_formats (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (RANDOM(1), RANDOM, RANDOM() compile and run)",
+     "two arguments refused": "covered by probe neg/random_2args.cob ('takes 0..1 argument(s)')"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.62",
+      "quote": "The RANDOM function returns a numeric value that is a pseudo-random number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.75.1",
+      "quote": "The RANDOM function returns a numeric value that is a pseudo-random number",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of RANDOM is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.63.1",
+    "to": [
+     "FMT-15.76.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.63.1 General format (RANGE function)",
+    "clause-2023": "15.76.2 General format (RANGE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION RANGE with one or more argument-1"
+    ],
+    "evidence-2002": {
+     "one or more": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (RANGE 7); the row's pb62 golden is accept [2023]",
+     "zero refused": "covered by probe neg/range_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.63",
+      "quote": "The RANGE function returns a value that is equal to the value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.76.1",
+      "quote": "The RANGE function returns a value that is equal to the value",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of RANGE is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.64.1",
+    "to": [
+     "FMT-15.77.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.64.1 General format (REM function)",
+    "clause-2023": "15.77.2 General format (REM function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION REM with exactly argument-1 argument-2"
+    ],
+    "evidence-2002": {
+     "two arguments": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (REM 3)",
+     "other counts refused": "covered by probes neg/rem_1arg.cob, neg/rem_3args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.64.1",
+      "quote": "FUNCTION REM ( argument-1 argument-2 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.77.2",
+      "quote": "FUNCTION REM ( argument-1 argument-2 )",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of REM is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.65.1",
+    "to": [
+     "FMT-15.78.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.65.1 General format (REVERSE function)",
+    "clause-2023": "15.78.2 General format (REVERSE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION REVERSE with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (REVERSE cba)",
+     "other counts refused": "covered by probe neg/reverse_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.65",
+      "quote": "The REVERSE function returns a character string of exactly the same length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.78.1",
+      "quote": "The REVERSE function returns a character string of exactly the same length",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of REVERSE is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.66.1",
+    "to": [
+     "FMT-15.81.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.66.1 General format (SIGN function)",
+    "clause-2023": "15.81.2 General format (SIGN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION SIGN with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (SIGN -1)",
+     "other counts refused": "covered by probe neg/sign_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.66",
+      "quote": "The SIGN function returns +1, 0, or –1 depending on the sign",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.81.1",
+      "quote": "The SIGN function returns +1, 0, or -1 depending on the sign",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of SIGN is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.67.1",
+    "to": [
+     "FMT-15.82.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.67.1 General format (SIN function)",
+    "clause-2023": "15.82.2 General format (SIN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION SIN with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (SIN 0)",
+     "other counts refused": "covered by probe neg/sin_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.67",
+      "quote": "The SIN function returns a numeric value that approximates the sine of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.82.1",
+      "quote": "The SIN function returns a numeric value that approximates the sine of",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of SIN is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.68.1",
+    "to": [
+     "FMT-15.84.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.68.1 General format (SQRT function)",
+    "clause-2023": "15.84.2 General format (SQRT function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION SQRT with exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (SQRT 4)",
+     "other counts refused": "covered by probe neg/sqrt_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.68",
+      "quote": "The SQRT function returns a numeric value that approximates the square root",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.84.1",
+      "quote": "The SQRT function returns a numeric value that approximates the square root",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of SQRT is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.69.1",
+    "to": [
+     "FMT-15.85.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.69.1 General format (STANDARD-COMPARE function)",
+    "clause-2023": "15.85.2 General format (STANDARD-COMPARE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 argument-2",
+     "optional ordering-name-1 (an ORDER TABLE name) then optional argument-4",
+     "order of the optional operands fixed"
+    ],
+    "evidence-2002": {
+     "two, three and four operands": "covered by cases/12.3.7-SPECIAL-NAMES/pb101_standard_compare (accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (SC2..SC5)",
+     "1 or 5 operands, argument-4 before ordering-name refused": "covered by probes neg/scmp_1arg.cob, neg/scmp_5args.cob, neg/scmp_lvl_before_ot.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.69.1",
+      "quote": "FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.85.2",
+      "quote": "FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.3 GR17",
+      "quote": "The implementor specifies the allowable content of literal-9",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.69.2 AR4",
+      "quote": "the default ordering table ‘ISO14651_2002_TABLE1’ specified in ISO/IEC 14651:2001 shall be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of STANDARD-COMPARE is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. Observation, not a defect of this rule: an ORDER TABLE literal naming 2002's default table 'ISO14651_2002_TABLE1' draws warning COBOL1662 (implementor's choice under §2002:12.2.6.3 GR17); the message cites §2023 and the 2020 table at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.70.1",
+    "to": [
+     "FMT-15.86.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.70.1 General format (STANDARD-DEVIATION function)",
+    "clause-2023": "15.86.2 General format (STANDARD-DEVIATION function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "one or more argument-1"
+    ],
+    "evidence-2002": {
+     "one or more": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (STDDEV 2); the row's pb56 golden is accept [2023]",
+     "zero refused": "covered by probe neg/stddev_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.70",
+      "quote": "The STANDARD-DEVIATION function returns a numeric value that approximates the standard deviation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.86.1",
+      "quote": "The STANDARD-DEVIATION function returns a numeric value that approximates the standard deviation",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of STANDARD-DEVIATION is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.71.1",
+    "to": [
+     "FMT-15.88.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.71.1 General format (SUM function)",
+    "clause-2023": "15.88.2 General format (SUM function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "one or more argument-1"
+    ],
+    "evidence-2002": {
+     "one or more": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (SUM 6.5)",
+     "zero refused": "covered by probe neg/sum_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.71",
+      "quote": "The SUM function returns a value that is the sum of the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.88.1",
+      "quote": "The SUM function returns a value that is the sum of the",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of SUM is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.72.1",
+    "to": [
+     "FMT-15.89.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.72.1 General format (TAN function)",
+    "clause-2023": "15.89.2 General format (TAN function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TAN 0)",
+     "other counts refused": "covered by probe neg/tan_2args.cob and cases/15.89-TAN/l1-tan-two-arguments (refusal)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.72",
+      "quote": "The TAN function returns a numeric value that approximates the tangent of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.89.1",
+      "quote": "The TAN function returns a numeric value that approximates the tangent of",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TAN is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.73.1",
+    "to": [
+     "FMT-15.90.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.73.1 General format (TEST-DATE-YYYYMMDD function)",
+    "clause-2023": "15.90.2 General format (TEST-DATE-YYYYMMDD function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one": "covered by cases/15.90.4-Returned-value-rule/intrinsics_test_validators (accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TDATE 3)",
+     "other counts refused": "covered by probe neg/tdate_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.73",
+      "quote": "The TEST-DATE-YYYYMMDD function tests whether a date in standard date form (YYYYMMDD)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.90.1",
+      "quote": "The TEST-DATE-YYYYMMDD function tests whether a date in standard date form (YYYYMMDD)",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TEST-DATE-YYYYMMDD is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.74.1",
+    "to": [
+     "FMT-15.91.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.74.1 General format (TEST-DAY-YYYYDDD function)",
+    "clause-2023": "15.91.2 General format (TEST-DAY-YYYYDDD function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one": "covered by cases/15.90.4-Returned-value-rule/intrinsics_test_validators (accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TDAY 2)",
+     "other counts refused": "covered by probe neg/tday_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.74",
+      "quote": "The TEST-DAY-YYYYDDD function tests whether a date in Julian date form (YYYYDDD)",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.91.1",
+      "quote": "The TEST-DAY-YYYYDDD function tests whether a date in Julian date form (YYYYDDD)",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TEST-DAY-YYYYDDD is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.75.1",
+    "to": [
+     "FMT-15.93.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.75.1 General format (TEST-NUMVAL function)",
+    "clause-2023": "15.93.2 General format (TEST-NUMVAL function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one": "covered by cases/15.90.4-Returned-value-rule/intrinsics_test_validators (accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TNUMVAL 3)",
+     "other counts refused": "covered by probe neg/tnumval_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.75",
+      "quote": "The TEST-NUMVAL function verifies that the contents of argument-1 conform to the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.93.1",
+      "quote": "The TEST-NUMVAL function verifies that the contents of argument-1 conform to the",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TEST-NUMVAL is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.76.1",
+    "to": [
+     "FMT-15.94.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.76.1 General format (TEST-NUMVAL-C function)",
+    "clause-2023": "15.94.2 General format (TEST-NUMVAL-C function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 alone",
+     "argument-1 argument-2",
+     "argument-1 LOCALE [locale-name-1]",
+     "optional ANYCASE last",
+     "argument-2 and LOCALE alternatives"
+    ],
+    "evidence-2002": {
+     "argument-1 / argument-2 / ANYCASE": "covered by cases/15.90.4-Returned-value-rule/intrinsics_test_validators and cases/15.94-TEST-NUMVAL-C/pb250_test_numvalc_remaining_shapes (both accept [2002]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TNUMVALC..TNUMVALC3)",
+     "LOCALE locale-name-1": "covered by probe neg/tnumvalc_locale_ok.cob (compiles at --std 2002)",
+     "argument-2 with LOCALE refused": "covered by probe neg/tnumvalc_arg2_locale.cob (COBOL1504) and cases/15.94-TEST-NUMVAL-C/pb250-test-numvalc-locale-and-argument2-are-alternatives"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.76.1",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION TEST-NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.94.2",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION TEST-NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TEST-NUMVAL-C is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. ANYCASE and LOCALE are both in the 2002 format (§2002:15.55.2 AR3), and the 2002 reconciliation ledger records no transcription error in the formats of pages 645-670.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.77.1",
+    "to": [
+     "FMT-15.95.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.77.1 General format (TEST-NUMVAL-F function)",
+    "clause-2023": "15.95.2 General format (TEST-NUMVAL-F function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1"
+    ],
+    "evidence-2002": {
+     "one": "covered by cases/15.67.3-Argument-rules/pb60_numval_one_scan (accept [2002, 2023]) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (TNUMVALF 0)",
+     "other counts refused": "covered by probe neg/tnumvalf_0args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.77",
+      "quote": "The TEST-NUMVAL-F function verifies that the contents of argument-1 conform to the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.95.1",
+      "quote": "The TEST-NUMVAL-F function verifies that the contents of argument-1 conform to the",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of TEST-NUMVAL-F is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-15.78.1",
+    "to": [
+     "FMT-15.97.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.78.1 General format (UPPER-CASE function)",
+    "clause-2023": "15.97.2 General format (UPPER-CASE function)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exactly one argument-1, no LOCALE phrase in 2002"
+    ],
+    "evidence-2002": {
+     "one argument": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob (fmt_all-2002.out; run at --std 2002, output identical to fmt_all-2023.out) (UPPER ABC)",
+     "LOCALE phrase refused at 2002 (not in the 2002 format)": "covered by probe neg/upper_locale.cob (refused at --std 2002: 'the LOCALE phrase of UPPER-CASE / LOWER-CASE requires COBOL-2014'; accepted at 2023) and cases/15.97.2-General-format/pb4311-case-locale-phrase-below-2014",
+     "other counts refused": "covered by probe neg/upper_2args.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.78",
+      "quote": "The UPPER-CASE function returns a character string containing the value of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.97.1",
+      "quote": "The UPPER-CASE function returns a character string that contains the value of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.97.2",
+      "quote": "FUNCTION UPPER-CASE ( argument-1 [ LOCALE locale-name-1 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.78.2",
+      "quote": "shall be of class alphabetic, alphanumeric, or national and shall be at least one character position in length",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 general format of UPPER-CASE is identical, operand for operand, to the 2023 one (the similarity below 1.0 comes from the 2023 transcription's trailing section anchor and 2023's added LOCALE phrase). Format compared first: same keywords, operands, optionality and repetition. The host function-identifier (§2002:8.4.2.2; SR6 leaves arity to the function's own definition) reads the same; no list membership, no CD or debugging-line reach, no obsolete element. At --std 2002 every legal form compiles and runs with the same output as 2023, and every malformed reference probed is refused. 2023 is wider (LOCALE locale-name-1); the compiler refuses that phrase at --std 2002, so the 2002 scope is exactly the one-argument form.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/fmt_all.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-55/neg/ (gen_neg.py)",
+    "widening": "2023 adds [ LOCALE locale-name-1 ] (§2023:15.97.2); refused at --std 2002"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-55",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.54.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.54.1 General format (NUMVAL function) vs 15.67.2 General format (NUMVAL function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Also checked: 2002's FLAG-85 NUMVAL option (§2002:7.2.11.3 GR4) flags NUMVAL references, a 2002-only directive; that is the directive's own rule, not this format, and its missing flagging is already open as kb/Work PB5600 (probe r55b.cob: compiles clean, no flag). Witness note: row evidence that runs at --std 2002 - no: numval_argument_formats is accept [2023]; 2002 shown by pb60_numval_one_scan (accept [2002, 2023], another row) and probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.54",
+      "quote": "The NUMVAL function returns the numeric value represented by the character string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.1",
+      "quote": "The NUMVAL function returns the numeric value represented by the character string",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "The word or words following FLAG-85 indicate the syntax to be diagnosed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob; E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55b.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.55.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.55.1 General format (NUMVAL-C function) vs 15.68.2 General format (NUMVAL-C function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Rendered 2002 PDF p.646: the LOCALE [locale-name-1] / argument-2 bracket and trailing [ANYCASE] match 2023. FLAG-85 NUMVAL also names NUMVAL-C (directive rule, PB5600). Witness note: row evidence that runs at --std 2002 - yes: pb4359_numval_c_anycase_2002.",
+    "citations": [
+     {
+      "cite": "§2002:15.55.1",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.2",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.56.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.56.1 General format (NUMVAL-F function) vs 15.69.2 General format (NUMVAL-F function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: numvalf_decimal_comma_and_spaces (accept [2002, 2023]).",
+    "citations": [
+     {
+      "cite": "§2002:15.56",
+      "quote": "The NUMVAL-F function returns the value or an approximation of the value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.1",
+      "quote": "The NUMVAL-F function returns the value or an approximation of the value",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.57.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.57.1 General format (ORD function) vs 15.70.2 General format (ORD function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: ca26_char_unicode_pcs (accept [2002]).",
+    "citations": [
+     {
+      "cite": "§2002:15.57",
+      "quote": "The ORD function returns an integer value that is the ordinal position",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.70.1",
+      "quote": "The ORD function returns an integer value that is the ordinal position",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.58.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.58.1 General format (ORD-MAX function) vs 15.71.2 General format (ORD-MAX function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: pb1_intrinsic_formats (accept [2002, 2023]).",
+    "citations": [
+     {
+      "cite": "§2002:15.58.1",
+      "quote": "FUNCTION ORD-MAX ( { argument-1 } … )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.71.2",
+      "quote": "FUNCTION ORD-MAX ( { argument-1 } … )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.59.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.59.1 General format (ORD-MIN function) vs 15.72.2 General format (ORD-MIN function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: pb1_intrinsic_formats (accept [2002, 2023]).",
+    "citations": [
+     {
+      "cite": "§2002:15.59.1",
+      "quote": "FUNCTION ORD-MIN ( { argument-1 } … )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.72.2",
+      "quote": "FUNCTION ORD-MIN ( { argument-1 } … )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.60.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.60.1 General format (PI function) vs 15.73.2 General format (PI function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. FUNCTION PI () rests on the 2002 function-identifier format (§2002:8.4.2.2.1), adjudicated in kb/Work PB5163; not a property of this format. Witness note: row evidence that runs at --std 2002 - no: l1_pi_format_native is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.60",
+      "quote": "The PI function returns a value that is an approximation of π,",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.73.1",
+      "quote": "The PI function returns a value that is an approximation of π,",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.61.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.61.1 General format (PRESENT-VALUE function) vs 15.74.2 General format (PRESENT-VALUE function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: pb1_intrinsic_formats (accept [2002, 2023]).",
+    "citations": [
+     {
+      "cite": "§2002:15.61.1",
+      "quote": "FUNCTION PRESENT-VALUE ( argument-1 { argument-2 } … )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.74.2",
+      "quote": "FUNCTION PRESENT-VALUE ( argument-1 { argument-2 } … )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.62.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.62.1 General format (RANDOM function) vs 15.75.2 General format (RANDOM function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Rendered 2002 PDF p.654 confirms [ ( [ argument-1 ] ) ]. The §2002:8.4.2.2.2 SR4 parenthesis rule and its RANDOM note are the same as §2023:8.4.3.2.3 SR6; probe r55a shows MAX(FUNCTION RANDOM (A) 2) and MAX(FUNCTION RANDOM () A 2) resolve identically at both editions. FLAG-85 FUNCTION-ARGUMENT (§2002:7.2.11.3 GR4) is the directive's rule (PB5600). Witness note: row evidence that runs at --std 2002 - no: the row names a differential test and nist IF131A; 2002 shown by pb1_intrinsic_formats (accept [2002, 2023], 5 RANDOM references, another row) and probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.62",
+      "quote": "The RANDOM function returns a numeric value that is a pseudo-random number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.75.1",
+      "quote": "The RANDOM function returns a numeric value that is a pseudo-random number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "The word or words following FLAG-85 indicate the syntax to be diagnosed",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.63.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.63.1 General format (RANGE function) vs 15.76.2 General format (RANGE function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: pb62 is accept [2023] (and refused at 2002 for an unrelated TRIM(ALL) reason, S1 list B); 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.63",
+      "quote": "The RANGE function returns a value that is equal to the value",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.76.1",
+      "quote": "The RANGE function returns a value that is equal to the value",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.64.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.64.1 General format (REM function) vs 15.77.2 General format (REM function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: nist IF133A and a differential test; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.64.1",
+      "quote": "FUNCTION REM ( argument-1 argument-2 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.77.2",
+      "quote": "FUNCTION REM ( argument-1 argument-2 )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.65.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.65.1 General format (REVERSE function) vs 15.78.2 General format (REVERSE function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: a differential test and nist IF134A; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.65",
+      "quote": "The REVERSE function returns a character string of exactly the same length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.78.1",
+      "quote": "The REVERSE function returns a character string of exactly the same length",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.66.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.66.1 General format (SIGN function) vs 15.81.2 General format (SIGN function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: pb9_reserved_intrinsic_names is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.66",
+      "quote": "The SIGN function returns +1, 0, or –1 depending on the sign",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.81.1",
+      "quote": "The SIGN function returns +1, 0, or -1 depending on the sign",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.67.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.67.1 General format (SIN function) vs 15.82.2 General format (SIN function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: l1_sin_format_value is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.67",
+      "quote": "The SIN function returns a numeric value that approximates the sine of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.82.1",
+      "quote": "The SIN function returns a numeric value that approximates the sine of",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.68.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.68.1 General format (SQRT function) vs 15.84.2 General format (SQRT function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: pb52_intrinsic_argument_stage is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.68",
+      "quote": "The SQRT function returns a numeric value that approximates the square root",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.84.1",
+      "quote": "The SQRT function returns a numeric value that approximates the square root",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.69.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.69.1 General format (STANDARD-COMPARE function) vs 15.85.2 General format (STANDARD-COMPARE function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Rendered 2002 PDF p.661 confirms the format. 2023 differs only in argument rules (AR4 zero-length literals, AR5 default table 'ISO 14651_2020_TABLE1' vs 2002 'ISO14651_2002_TABLE1'), which are separate 2002 rules (2002-AR-15.69.2-4), not this format. Witness note: row evidence that runs at --std 2002 - yes: pb101_standard_compare (accept [2002]).",
+    "citations": [
+     {
+      "cite": "§2002:15.69.1",
+      "quote": "FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.85.2",
+      "quote": "FUNCTION STANDARD-COMPARE ( argument-1 argument-2 [ ordering-name-1 ] [ argument-4 ] )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.70.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.70.1 General format (STANDARD-DEVIATION function) vs 15.86.2 General format (STANDARD-DEVIATION function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: pb56_dec_carrier_intrinsics is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.70.1",
+      "quote": "FUNCTION STANDARD-DEVIATION ( { argument-1 } … )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.86.2",
+      "quote": "FUNCTION STANDARD-DEVIATION ( { argument-1 } … )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.71.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.71.1 General format (SUM function) vs 15.88.2 General format (SUM function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: pb62 is accept [2023] and the row's other ref is a unit drift test; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.71",
+      "quote": "The SUM function returns a value that is the sum of the",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.88.1",
+      "quote": "The SUM function returns a value that is the sum of the",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.72.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.72.1 General format (TAN function) vs 15.89.2 General format (TAN function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - no: l1_tan_format is accept [2023]; 2002 shown only by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.72",
+      "quote": "The TAN function returns a numeric value that approximates the tangent of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.89.1",
+      "quote": "The TAN function returns a numeric value that approximates the tangent of",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.73.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.73.1 General format (TEST-DATE-YYYYMMDD function) vs 15.90.2 General format (TEST-DATE-YYYYMMDD function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: intrinsics_test_validators (accept [2002]).",
+    "citations": [
+     {
+      "cite": "§2002:15.73.1",
+      "quote": "FUNCTION TEST-DATE-YYYYMMDD ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.90.2",
+      "quote": "FUNCTION TEST-DATE-YYYYMMDD ( argument-1 )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.74.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.74.1 General format (TEST-DAY-YYYYDDD function) vs 15.91.2 General format (TEST-DAY-YYYYDDD function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: intrinsics_test_validators (accept [2002]).",
+    "citations": [
+     {
+      "cite": "§2002:15.74.1",
+      "quote": "FUNCTION TEST-DAY-YYYYDDD ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.91.2",
+      "quote": "FUNCTION TEST-DAY-YYYYDDD ( argument-1 )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.75.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.75.1 General format (TEST-NUMVAL function) vs 15.93.2 General format (TEST-NUMVAL function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: intrinsics_test_validators (accept [2002]).",
+    "citations": [
+     {
+      "cite": "§2002:15.75.1",
+      "quote": "FUNCTION TEST-NUMVAL ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.93.2",
+      "quote": "FUNCTION TEST-NUMVAL ( argument-1 )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.76.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.76.1 General format (TEST-NUMVAL-C function) vs 15.94.2 General format (TEST-NUMVAL-C function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Rendered 2002 PDF p.668 confirms the bracket structure. Witness note: row evidence that runs at --std 2002 - yes: intrinsics_test_validators, pb250_test_numvalc_remaining_shapes.",
+    "citations": [
+     {
+      "cite": "§2002:15.76.1",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION TEST-NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.94.2",
+      "quote": "LOCALE [ locale-name-1 ] FUNCTION TEST-NUMVAL-C ( argument-1 [ ANYCASE ] ) argument-2",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.77.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.77.1 General format (TEST-NUMVAL-F function) vs 15.95.2 General format (TEST-NUMVAL-F function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. Witness note: row evidence that runs at --std 2002 - yes: pb60_numval_one_scan (accept [2002, 2023]).",
+    "citations": [
+     {
+      "cite": "§2002:15.77.1",
+      "quote": "FUNCTION TEST-NUMVAL-F ( argument-1 )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.95.2",
+      "quote": "FUNCTION TEST-NUMVAL-F ( argument-1 )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   },
+   {
+    "rule-id": "2002-FMT-15.78.1",
+    "verdict": "UPHELD",
+    "reason": "General format compared operand by operand in both texts (15.78.1 General format (UPPER-CASE function) vs 15.97.2 General format (UPPER-CASE function)): same keywords, operands, optionality and repetition; host function-identifier format and syntax rules (§2002:8.4.2.2 / §2023:8.4.3.2) the same apart from 2023's added function-pointer-name-1. No CD/cd-name reach (argument-1 is an identifier, literal or expression), no debugging-line form, no 2002 obsolete element, no enumeration membership, no deferral. Reader's fmt_all outputs at 2002/2023 re-diffed identical; refuter probe r55a.cob (ALL subscripts, national arguments, RANDOM inside MAX, ANYCASE forms) runs identically at --std 2002 and 2023. 2023 is wider (adds [ LOCALE locale-name-1 ]); the 2002 rule's scope is the one-argument form, and the compiler refuses LOCALE at --std 2002 (the row's own pb4311 golden). Witness note: row evidence that runs at --std 2002 - partly: pb4311-case-locale-phrase-below-2014 witnesses the 2002 refusal of LOCALE; the accepted one-argument form at 2002 is shown by probes.",
+    "citations": [
+     {
+      "cite": "§2002:15.78",
+      "quote": "The UPPER-CASE function returns a character string containing the value of argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.97.1",
+      "quote": "The UPPER-CASE function returns a character string that contains the value of",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.97.2",
+      "quote": "FUNCTION UPPER-CASE ( argument-1 [ LOCALE locale-name-1 ] )",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-55/r55a.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "e55f47cf7df0a2f4936528488cee4d8e27422f3ed61e5306599570df0d75f7dd",
+  "read": "e8988d1b93f49c5e4ae512342bf51d839ed85954c3b4027a43749f7530fd5333",
+  "refute": "e8b1299b9cba21e9aea4b424d32ee7c05e6b2cab4d7bcf499d15607edeb9c9d3"
+ }
+}

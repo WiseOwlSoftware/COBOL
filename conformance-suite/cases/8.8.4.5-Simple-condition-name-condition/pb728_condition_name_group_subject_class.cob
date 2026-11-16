@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb728_condition_name_group_subject_class
 *> rules: [GR-8.8.4.5.3-2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

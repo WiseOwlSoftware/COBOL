@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.6.3-1",
+ "rule-digest": "71981df3a257",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#CallBindLinkage; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#GlobalBridgesOf",
+ "test-ref": "conformance:cases/13.7-Linkage-section/l1c17_linkage_based_access",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.7.4-1, witnessed at 2002 by the cases test-ref names. The read: A pointer to the BASED clause, whose own rules are their own rows; only the clause number differs. Witness holds at 2002. Cited: §2002:13.6.3 GR1."
+}

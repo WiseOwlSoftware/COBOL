@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: pb82_exception_location_source_line
       *> rules: [RV-15.30.3-2]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> files: [pb82loc_data.cpy, pb82loc_proc.cpy]
       *> source-format: fixed
       *> portable: unverified

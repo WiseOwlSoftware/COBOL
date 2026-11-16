@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-8.4.2.3.3-5",
+ "rule-digest": "e84a7943a851",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Model/Place.cs#RefModPlace; src/WiseOwl.Cobol.Runtime/Values/Text/CobolString.cs#RefMod; src/WiseOwl.Cobol.Compiler/Binding/RefModBinder.cs#LiteralRefModRangeViolation; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#BindPosition",
+ "test-ref": "conformance:cases/8.4.3.3-Reference-modification/ec_bound_ref_mod; conformance:cases/8.4.3.3-Reference-modification/pb3960_figurative_zero_refmod_position",
+ "notes": "Own verdict from the read lineage-reads-2002/u-05.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-8.4.3.3.4-5, witnessed at 2002 by the cases test-ref names. The read: 2023 adds the REF-MOD-ZERO-LENGTH directive (absent from 2002 and refused there) and names a zero value as an EC-BOUND-REF-MOD case; 2002 forbids a zero length by 'shall' without naming the exception, so raising EC-BOUND-REF-MOD on a zero length is within 2002's latitude (the result of violating the 'shall' is unspecified). The NOTE on UTF-16 surrogates differs but is non-normative. Witnesses run at --std 2002. Cited: §2002:8.4.2.3.3 GR5c; §2002:8.4.2.3.3 GR5."
+}

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: exit_perform_cycle
 *> rules: [GR-14.9.14.4-5]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

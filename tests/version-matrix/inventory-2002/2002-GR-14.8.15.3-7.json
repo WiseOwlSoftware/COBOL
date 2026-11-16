@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.15.3-7",
+ "rule-digest": "d69c0ab10731",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/ReportWriter.cs#Generate; src/WiseOwl.Cobol.Runtime/Exceptions/ExceptionState.cs#ReportInactiveError",
+ "test-ref": "conformance:cases/14.8.15@2002-GENERATE-STATEMENT/g2-generate-inactive-report",
+ "notes": "Per §2002:14.8.15.3 GR7 with §2002:13.7.3 and §2002:14.5.12.1, GENERATE (data-name and report-name) before INITIATE and after TERMINATE raises EC-REPORT-INACTIVE when checking is on, and not between them; the --std 2002 run printed DECL-1..DECL-3 with G3 K=2 and K=3 as derived."
+}

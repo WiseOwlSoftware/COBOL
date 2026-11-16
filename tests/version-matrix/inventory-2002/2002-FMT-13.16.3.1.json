@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.3.1",
+ "rule-digest": "44ffd62ae831",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.3-AUTO/a42-screen-auto",
+ "notes": "Own verdict from the read lineage-reads-2002/u-51.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.3.2, witnessed at 2002 by the cases test-ref names. The read: Same format; screen section only. 2002 licenses non-support through its own text and the compiler refuses it at --std 2002 with a named diagnostic. Cited: §2002:3.1.5; §2002:B.3."
+}

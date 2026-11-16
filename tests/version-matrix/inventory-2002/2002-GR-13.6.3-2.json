@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.6.3-2",
+ "rule-digest": "1e1815298592",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/ProgramEmitter.cs; src/WiseOwl.Cobol.Runtime/Control/CallAbi.cs#Call; src/WiseOwl.Cobol.Compiler/Binding/LinkageBinder.cs#LinkageFormal",
+ "test-ref": "conformance:cases/13.7-Linkage-section/l1c17_linkage_index_separate",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.7.4-2, witnessed at 2002 by the cases test-ref names. The read: Only the procedure-division clause number differs (14.1.3 vs 14.2.3). Witness holds at 2002. Cited: §2002:13.6.3 GR2."
+}

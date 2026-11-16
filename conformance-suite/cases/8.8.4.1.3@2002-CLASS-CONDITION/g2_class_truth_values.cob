@@ -1,10 +1,14 @@
       *>--- conformance-case
       *> id: g2_class_truth_values
-      *> rules: [2002-GR-8.8.4.1.3.3-2, 2002-GR-8.8.4.1.3.3-3]
+      *> rules: [2002-GR-8.8.4.1.3.3-2, 2002-GR-8.8.4.1.3.3-3, 2002-FMT-8.8.4.1.3.1]
       *> accept: [2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
+      *> §2002:8.8.4.1.3.1 - every alternative of the format: NUMERIC,
+      *> ALPHABETIC, ALPHABETIC-LOWER (C1/C2), ALPHABETIC-UPPER (D1/D2),
+      *> BOOLEAN (E1/E2), alphabet-name G2STD (F1/F2), class-name G2HEX
+      *> (G1/G2), with IS NOT (N1-N7).
       *> §2002:8.8.4.1.3.3 GR2 - the truth value of each class phrase
       *> over a non-zero-length item, and GR3 - "If the word NOT is
       *> specified, the truth value is reversed."  (cite.py OK: GR2a,

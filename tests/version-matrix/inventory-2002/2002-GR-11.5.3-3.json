@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-11.5.3-3",
+ "rule-digest": "b24bffd42679",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#classIdParagraph; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#interfaceDefinition; src/WiseOwl.Cobol.Compiler/Oo/OoExpansion.cs#Expand",
+ "test-ref": "conformance:cases/11.3-CLASS-ID/pb759_parameterized_class",
+ "notes": "§2002:11.5.3 GR3 with §2002:12.2.7.3 GR8 and §2002:9.3.13: INTERFACE-ID. PB759IPUT USING T is a parameterized interface whose expansion over PB759BOX functions as an ordinary interface, so an object implementing one specifier's expansion is a value of another's and INVOKE P \"PUT\" USING B prints PUTTER PUT / BOX 042; the case ran at --std 2002 (--source-format free) and matched its .out."
+}

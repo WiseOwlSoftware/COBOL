@@ -1,0 +1,5 @@
+       01 G2S-A PIC X(G2N).
+       01 G2S-B PIC 9(G2N) VALUE 7.
+       01 PFX-NAME PIC X(4) VALUE "WXYZ".
+       01 CNT-SFX PIC 9(2) VALUE 42.
+       01 G2S-C PIC X(G2M).

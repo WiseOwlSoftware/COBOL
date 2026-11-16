@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.7.1-2",
+ "rule-digest": "881f8c2190ca",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateOperand; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#FormationViolation; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs",
+ "test-ref": "conformance:cases/7.2.7@2002-CONSTANT-CONDITIONAL-EXPRESSION/g2cce10_arith_standard_range",
+ "notes": "§2002:7.2.7.1 SR2 forms the CCE's arithmetic per 7.2.5 (standard intermediate, 32 digits), so 31-digit operands and 32-digit intermediates are admitted in >>IF and >>WHEN; g2cce10 prints IF-ZERO/IF-31-NINES/WHEN-99 at --std 2002 as derived (32-digit truncation, integer part), and exponentiation, division by zero and a floating literal (g2cce11-13) are refused COBOL1619."
+}

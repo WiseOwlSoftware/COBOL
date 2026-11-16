@@ -1,0 +1,1615 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-39 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-39",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-DOC-B.1-50",
+   "2002-DOC-B.1-51",
+   "2002-DOC-B.1-52",
+   "2002-DOC-B.1-53",
+   "2002-DOC-B.1-54",
+   "2002-DOC-B.1-55",
+   "2002-DOC-B.1-56",
+   "2002-DOC-B.1-57",
+   "2002-DOC-B.1-58",
+   "2002-DOC-B.1-6",
+   "2002-DOC-B.1-60",
+   "2002-DOC-B.1-61",
+   "2002-DOC-B.1-62",
+   "2002-DOC-B.1-63",
+   "2002-DOC-B.1-64",
+   "2002-DOC-B.1-65",
+   "2002-DOC-B.1-66",
+   "2002-DOC-B.1-67",
+   "2002-DOC-B.1-68",
+   "2002-DOC-B.1-69",
+   "2002-DOC-B.1-7",
+   "2002-DOC-B.1-71",
+   "2002-DOC-B.1-72",
+   "2002-DOC-B.1-73",
+   "2002-DOC-B.1-74"
+  ],
+  "pointers": {
+   "2002-DOC-B.1-50": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-69",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-51": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-70",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-52": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-71",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-53": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-72",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-54": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-73",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-55": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-74",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-56": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-75",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-57": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-76",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-58": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-77",
+    "similarity": 0.995
+   },
+   "2002-DOC-B.1-6": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-6",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-60": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-DOC-B.1-61": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-81",
+    "similarity": 0.916
+   },
+   "2002-DOC-B.1-62": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-82",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-63": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-83",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-64": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-84",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-65": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-85",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-66": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-86",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-67": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-88",
+    "similarity": 0.997
+   },
+   "2002-DOC-B.1-68": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-89",
+    "similarity": 0.995
+   },
+   "2002-DOC-B.1-69": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-90",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-7": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "DOC-A.1-7",
+    "similarity": 0.996
+   },
+   "2002-DOC-B.1-71": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-92",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-72": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-95",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-73": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-96",
+    "similarity": 1.0
+   },
+   "2002-DOC-B.1-74": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "DOC-A.1-97",
+    "similarity": 1.0
+   }
+  }
+ },
+ "read": {
+  "slice": "u-39",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d (24372b7b17), cobol.exe --std 2002; witnesses run by probes-u-39/run.py against that tree's conformance-suite (logs cases-*.log)",
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-50",
+    "to": [
+     "DOC-A.1-69"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 50 (14.5.12.1.2 Fatal exception conditions)",
+    "clause-2023": "A.1 item 69 (14.6.13.1.3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "which fatal exception conditions the compiler detects at compile time, and when (closing paragraph of 14.5.12.1.2)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-Implementor-defined-language-element-list/l1_fatal_ec_runtime_detection at --std 2002 (MATCH, cases-50-51.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Fatal exception condition (whether detected at compile time, circumstances under which detected). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:A.1",
+      "quote": "Fatal exception condition (whether detected at compile time, circumstances under which detected). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "It is implementor-defined which fatal exception conditions, if any, are detected at compile time, and the circumstances under which they are detected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "It is implementor-defined which fatal exception conditions, if any, are detected at compile time, and the circumstances under which they are detected",
+      "check": "OK"
+     }
+    ],
+    "reason": "The closing paragraph of 14.5.12.1.2 is word-identical to 2023's. 2023's clause adds items (SORT/MERGE, fatal EC-I-O, PERFORM WHEN, APPLY COMMIT ROLLBACK) about dispositions, not about compile-time detection. The determination (COBOL1662 ORDER TABLE, the literal reference-modification check; constant subscript, zero divisor and SQRT(-1) raised at run time) is shown at 2002 by the twin's witness, which matches its golden at --std 2002. No communication or debugging reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-50-51.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-51",
+    "to": [
+     "DOC-A.1-70"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 51 (14.5.12.1.2 rule 5)",
+    "clause-2023": "A.1 item 70 (14.6.13.1.3 item 8)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native arithmetic size error without a phrase, checking off (receivers keep low-order digits, execution continues)",
+     "zero divisor / exponentiation violation / unformable intermediate with checking off (termination)",
+     "2002 STANDARD arithmetic: a standard intermediate outside 10^-999..10^1000-10^968 is EC-SIZE-OVERFLOW/UNDERFLOW (§2002:8.8.1.3.1 rule 2), fatal; disposition with checking off"
+    ],
+    "evidence-2002": [
+     "native arms covered at --std 2002: pb77_move_past_the_carrier, pb3975_remainder_after_quotient_size_error, pb4031_report_source_size_checking, pb4031_report_overflow_checking, pb4092_size_checking_is_per_name, pb4093_truncation_not_enabled_stores_low_order_digits, pb4092_report_compose_per_name, pb639_store_landing_low_order_digits_2002, pb640_call/invoke_argument_landing_checked_2002, pb3869_not_size_error_alone, pb4640 (all MATCH, cases-50-51.log, cases-51b.log); pb129, pb3990 x2, pb4031_prohibited (ROUNDED MODE, 2014 form) and pb75 / pb3975_standard_decimal (STANDARD-DECIMAL, 2014 form) refused at 2002 as they should be",
+     "standard-arithmetic arm NOT shown, and wrong: probe p51_std_overflow.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "how any receiving operands are affected when events that would cause a fatal exception to exist occur but checking for that condition is not enabled",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.13.1.3",
+      "quote": "If checking for the exception condition is not enabled, the implementor defines whether or not execution will continue, how it will continue, and how any receiving operands are affected",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1",
+      "quote": "The size error condition is raised and the EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW exception condition is set to exist if the value is too large or too small",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "Rule 5 of 2002 is 2023's item 8 without the APPLY COMMIT sentence. In 2002 the fatal conditions this item governs include the standard intermediate's overflow under ARITHMETIC IS STANDARD (32 digits, 10^-999 to 10^1000-10^968), a form the 2023 row never shows (its standard arm is STANDARD-DECIMAL, a 2014 form refused at 2002). DOC-A.1-70's determination says an intermediate that cannot be formed terminates the run unit with checking off. Probe at --std 2002: OPTIONS ARITHMETIC IS STANDARD, B=10, E=1001, R PIC 9(5) VALUE 7, COMPUTE R = B ** E with no phrase: prints AFTER R=00000, exit 0. 10^1001 exceeds 2002's standard intermediate, so EC-SIZE-OVERFLOW exists; the compiler never raises it (it carries decimal128) and stores low-order digits. This is the known PB5575 (2002 standard arithmetic uses 2014's 34-digit decimal128 model, range included) reaching this row, not a new defect.",
+    "class": "other",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for a standard-arithmetic intermediate overflow with checking off is continue with low-order digits (no EC raised); a 2002 witness after PB5575",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p51_std_overflow.cob, log p51_std_overflow.log; known defect PB5575, expected: EC-SIZE-OVERFLOW per §2002:8.8.1.3.1 rule 2 and then the documented unchecked disposition, termination)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p51_std_overflow.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-52",
+    "to": [
+     "DOC-A.1-71"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 52 (12.3.4 File control entry SR5, SR6)",
+    "clause-2023": "A.1 item 71 (12.4.5.2 SR5, SR6)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the allowable TO-phrase operands (device-name-1, literal-1) and their combinations with USING data-name-1, in all four SELECT formats"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/12.4.5-File-control/pb829_assign_device_class (MATCH at --std 2002) and pb829-assign-target-list (refused COBOL2256 at --std 2002, as at 2023) (cases-52-54.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FILE-CONTROL entry, ASSIGN clause (TO phrase meaning and rules). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.2 SR5",
+      "quote": "The meaning and rules for the allowable specification of device-name-1 and the value of literal-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.2 SR5",
+      "quote": "The meaning and rules for the allowable specification of device-name-1 and the value of literal-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.2 SR6",
+      "quote": "The allowable and required syntactical combinations of data-name-1 with device-name-1 and of data-name-1 with literal-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "The ASSIGN clause is printed the same in the four formats of both editions (TO {device-name-1 | literal-1} ... [USING data-name-1] | USING data-name-1). SR5 and SR6 are word-identical. 2023 SR4 adds 'nor a zero-length literal', a form 2002 does not have. No CD or debugging reach.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-52-54.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-53",
+    "to": [
+     "DOC-A.1-72"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 53 (12.3.4.3 GR1 b)",
+    "clause-2023": "A.1 item 72 (12.4.5.3 GR1 b)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the consistency rule for data-name-1/device-name-1/literal-1 across file control entries of one external file connector (one compilation group, and separately compiled elements)"
+    ],
+    "evidence-2002": [
+     "the row's only witness wiseowl/cases/.../l1c09_external_assign_consistency is refused at --std 2002: its >>TURN EC-EXTERNAL-FILE-MISMATCH names a 2023-only exception (COBOL0878, cases-52-54.log)",
+     "in-group arm covered by probe p53_ext_ok.cob (runs, B RAN/DONE) and p53_ext_bad.cob (COBOL6847 citing §2002:12.3.4.3 GR1) at --std 2002 (p53_ext.log)",
+     "cross-unit arm: probes-u-39/xu at --std 2002, inconsistent connector runs unchecked (p53_crossunit_2002.log); 2002 has no EC-EXTERNAL-FILE-MISMATCH, so it states no consequence"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR1",
+      "quote": "The implementor shall specify the consistency rules for data-name-1, device-name-1, and literal-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR1",
+      "quote": "The implementor shall specify the consistency rules for data-name-1, device-name-1, and literal-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Text the same; 2023 lists more items under GR1 (SUPPRESS WHEN, lock mode) but item b) is identical. The documented rule (the resolved target must be the same) is edition-neutral, and the compiler applies it at 2002 within a compilation group. The pointer's evidence does not run at 2002, so the 2002 scope is shown only by the probe.",
+    "class": "other",
+    "needs": "a 2002 witness for the in-group consistency rule (probes-u-39/p53_ext_ok.cob and p53_ext_bad.cob are candidates)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p53_ext.log)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p53_ext_bad.cob",
+    "widening": "2023 adds EC-EXTERNAL-FILE-MISMATCH as the run-time consequence; 2002 states none"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-54",
+    "to": [
+     "DOC-A.1-73"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 54 (12.3.4.3 GR4)",
+    "clause-2023": "A.1 item 73 (12.4.5.3 GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the content of data-name-1 as an assign target: association at each OPEN/SORT/MERGE",
+     "space trimming of the content",
+     "an empty content names no file: the OPEN is unsuccessful ('31')"
+    ],
+    "evidence-2002": [
+     "association and re-association covered by conformance:cases/12.4.5-File-control/pb746_assign_using_2002 at --std 2002 (MATCH)",
+     "trimming and the blank-content '31' arm: the row's witness pb324_assign_using_dynamic is refused at --std 2002 (LINE SEQUENTIAL, DELETE FILE: 2023 forms); shown only by probe p54_using.cob (BLANK=31, PADOPEN=00, VIA-LITERAL=00 ABCDE at 2002 and 2023)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FILE-CONTROL entry, ASSIGN clause (USING phrase meaning and rules). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.3.4.3 GR4",
+      "quote": "When the USING phrase is specified, the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:12.4.5.3 GR4",
+      "quote": "When the USING phrase is specified, the meaning and rules for the allowable content of the data item referenced by data-name-1 are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text and same determination; the compiler applies it at 2002. The row's evidence for two of the determination's three arms runs only at 2023.",
+    "class": "other",
+    "needs": "a 2002 witness for space trimming and the blank-content status 31 (probes-u-39/p54_using.cob is a candidate)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p54_using.log)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p54_using.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-55",
+    "to": [
+     "DOC-A.1-74"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 55 (8.3.1.2.5 Figurative constant values GR1)",
+    "clause-2023": "A.1 item 74 (8.3.3.6.4 GR1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the representation of ZERO, SPACE, QUOTE in the alphanumeric and national coded character sets"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.3.3.6-Figurative-constant-values/l1c10_figurative_space_quote_zero_chars and l1c10_figurative_code_values at --std 2002 (MATCH, cases-55-63.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Figurative constant values (representation of zero, space, and quote). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.5.3 GR1",
+      "quote": "The implementor shall specify the unique representation of ZERO, SPACE, and QUOTE in the computer's alphanumeric and national coded character sets",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.6.4 GR1",
+      "quote": "The implementor shall specify the unique representation of ZERO, SPACE, and QUOTE in the computer's alphanumeric and national coded character sets",
+      "check": "OK"
+     }
+    ],
+    "reason": "GR1 identical; the three figurative constants and both character sets exist in 2002. Witnesses (including the national one) match at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-56",
+    "to": [
+     "DOC-A.1-75"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 56 (9.1.14 Sharing mode)",
+    "clause-2023": "A.1 item 75 (9.1.15)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the interaction of COBOL file sharing with other facilities' sharing (host locks, other run units)"
+    ],
+    "evidence-2002": [
+     "covered by unit:RunUnitFileLockDriftTests and unit:FileLockPostureDriftTests: runtime-only; their one edition input (FileRegistry.ImplementorDefaultSharing(mode, 2023)) changes behaviour only where DialectBehavior.FileSharingFacility is inactive (85), so 2002 = 2023",
+     "the facility runs at 2002: l1c11_sharing_every_device_shareable and pb322_default_sharing_by_open_mode MATCH at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "File sharing (interaction with other facilities and languages). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "their interaction with COBOL file sharing is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.15",
+      "quote": "their interaction with COBOL file sharing is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The SHARING clause in the file control entry and the SHARING phrase on the OPEN statement are dependent on the capabilities of the processor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Sentence identical; sharing is processor-dependent in 2002 (B.3 item 24) and claimed. The determination is runtime arbitration with no edition input from 2002 on.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-57",
+    "to": [
+     "DOC-A.1-76"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 57 (9.1.14)",
+    "clause-2023": "A.1 item 76 (9.1.15)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "which devices allow concurrent access to a physical file (every device)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/l1c11_sharing_every_device_shareable at --std 2002 (MATCH; header accept [2002])"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "File sharing (which devices allow concurrent access to the file). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "The implementor shall specify which devices allow concurrent access to a physical file",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.15",
+      "quote": "The implementor shall specify which devices allow concurrent access to a physical file",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical sentence; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-58",
+    "to": [
+     "DOC-A.1-77"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 58 (9.1.3; 9.1.14; 14.8.26 GR22)",
+    "clause-2023": "A.1 item 77 (9.1.3; 9.1.15; 14.9.27 GR23)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the sharing mode of an OPEN with no SHARING phrase and no SHARING clause"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.9.27-OPEN/pb322_default_sharing_by_open_mode at --std 2002 (MATCH); unit:OpenTable19Tests runtime"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "File sharing (default mode when unspecified). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.14",
+      "quote": "If no specification is made in either location, the implementor defines the sharing mode in which the file is opened",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:9.1.15",
+      "quote": "If no specification is made in either location, the implementor defines the sharing mode in which the file is opened",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ from the pointer only in the referenced clause and rule numbers (renumbering). The default is a function of the open mode at 2002 as at 2023 (FileRegistry.ImplementorDefaultSharing: only 85 differs).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-6",
+    "to": [
+     "DOC-A.1-6"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 6 (8.5.1.5.1, 8.5.1.5.5)",
+    "clause-2023": "A.1 item 6 (8.5.1.6.1, 8.5.1.6.5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alignment of the start of an alphanumeric group, and of a strongly-typed group, relative to its first item"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-.../l1c01_group_start_coincident and l1c01_group_start_typed_national_bit at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Alignment of alphanumeric group items (relative to first elementary item). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.1.5.1",
+      "quote": "The alignment of the start of an alphanumeric group item relative to the first item within that group is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.6.1",
+      "quote": "The alignment of the start of an alphanumeric group item relative to the first item within that group is defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentences; groups always coincide with their first item; witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-60",
+    "to": [],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 60 (7.2.11 FLAG-85 directive GR1)",
+    "clause-2023": "none (FLAG-85 removed in 2023)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "a warning mechanism, documented, for each FLAG-85 option: CORRESPONDING, DE-EDITING, DIVIDE, FUNCTION-ARGUMENT, MOVE, NUMVAL, SET, STANDARD-1, STANDARD-2, ZERO-LENGTH, ALL"
+    ],
+    "evidence-2002": [
+     "not shown; probe p60_flag85.cob shows no warning at all"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FLAG-85 directive (warning mechanism). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR1",
+      "quote": "The implementor shall provide a warning mechanism that flags the incompatibilities potentially affecting existing programs for the selected option",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "A de-editing MOVE statement shall be flagged",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.11.3 GR4",
+      "quote": "The NUMVAL and NUMVAL-C intrinsic functions shall be flagged",
+      "check": "OK"
+     }
+    ],
+    "reason": "No 2023 pointer: the directive was removed in 2023. Probe at --std 2002: '>>FLAG-85 ALL ON' then STANDARD-1 and STANDARD-2 ALPHABET clauses, a de-editing MOVE, DIVIDE ... REMAINDER into an unsigned quotient with a signed divisor, FUNCTION NUMVAL: compiles and runs with no diagnostic (rc 0, output 001.50 07 +01 012.50). Each is to be flagged by GR4 c), d), g), i), j). The directive is gated as a word only (constructs flag-85-directive-window.json: 'Content unchecked by decision'). Known defect PB5600 (filed; this row is another it reaches).",
+    "class": "own-text",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for >>FLAG-85 is recognize-and-ignore, no warning mechanism and no documentation; after PB5600 a 2002 witness per option",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p60_flag85.cob, log p60_flag85.log; expected a warning per option per §2002:7.2.11.3 GR1/GR4; observed none; known PB5600)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p60_flag85.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-61",
+    "to": [
+     "DOC-A.1-81"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 61 (14.5.8 rule 2)",
+    "clause-2023": "A.1 item 81 (14.6.8.3 rule 1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "how data is aligned when FLOAT-SHORT, FLOAT-LONG or FLOAT-EXTENDED receives it"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/14.6.8.3-.../pb1110_float_short_every_landing at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Floating-point numeric item (alignment when used as a receiving operand). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "If the receiving data item is described as a floating-point numeric item, the alignment of the data is specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.6.8.3",
+      "quote": "the content of the receiving operand is set to the algebraic value of the sending operand",
+      "check": "OK"
+     }
+    ],
+    "reason": "Words differ in the referenced rule: 2002 leaves the alignment wholly to the implementor; 2023 requires the algebraic value and lets the implementor name exception conditions. The determination (one correctly rounded conversion into the receiver's format) lies inside 2002's latitude, covers 2002's three float usages, and its witness runs at 2002. Documentation not required in either edition.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": "2023 narrows the latitude (algebraic value) and adds standard floating-point usages; 2002's scope is a subset"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-62",
+    "to": [
+     "DOC-A.1-82"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 62 (8.3.1.2.2.2 rule 3)",
+    "clause-2023": "A.1 item 82 (8.3.3.3.3 rule 3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the permitted exponent range of a floating-point literal, inside 2002's form: exponent of at most three digits, significand 1 through 31 digits"
+    ],
+    "evidence-2002": [
+     "the row's main witness pb99_floating_literal_extremes is refused at --std 2002 (COBOL0900, numeric-literal VALUE for a numeric-edited item, a 2023 form); pb156_float_literal_exact_native MATCH; pb99-floating-literal-range refused COBOL1661 as at 2023",
+     "probe p62_float_lit.cob: 1.0E+1000 and a 32-digit significand are accepted at --std 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Floating-point numeric literals (maximum permitted value and minimum permitted value of the exponent). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "It may be signed and shall have a maximum of three digits and no decimal point",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.2.2",
+      "quote": "The significand shall be 1 through 31 digits in length",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.3.3",
+      "quote": "It may be signed and shall have a maximum of four digits and no decimal point",
+      "check": "OK"
+     }
+    ],
+    "reason": "The item's sentence is the same, but the rule it rests on bounds the exponent at three digits in 2002 (four in 2023). DOC-A.1-82 states the 2023 form (36-digit significand, four-digit exponent) and the decimal128 range. At --std 2002 'IF 1.0E+1000 > 1.0E+999' compiles and runs (FOUR-DIGIT EXPONENT ACCEPTED), and a 32-digit significand is accepted. Known defect PB5613 reaches this row.",
+    "class": "other",
+    "needs": "its own verdict: at --std 2002 the compiler permits exponents past three digits (1.0E+1000 accepted) and 32+-digit significands; after PB5613 a 2002 witness for the range limits",
+    "compiler-at-2002": "wrong (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p62_float_lit.cob, log p62_float_lit.log; expected a diagnostic per §2002:8.3.1.2.2.2 rules 2 and 3; known PB5613)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p62_float_lit.cob",
+    "widening": "2023 widens the form to four exponent digits and 36 significand digits"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-63",
+    "to": [
+     "DOC-A.1-83"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 63 (13.16.21 FOREGROUND-COLOR GR4)",
+    "clause-2023": "A.1 item 83 (13.18.23 GR4)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the foreground color of a screen item when the clause is absent or outside 0-7"
+    ],
+    "evidence-2002": [
+     "declined at --std 2002: wiseowl/cases/13.18.23-FOREGROUND-COLOR/a42-screen-foreground-color refused COBOL1560 (cases-55-63.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FOREGROUND-COLOR clause (the foreground color when the clause is not specified or the value specified is not in the range 0 to 7). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.21.3 GR4",
+      "quote": "When a FOREGROUND-COLOR clause is not specified or the value is not in the range 0 to 7, the foreground color is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "When the element is part of a feature that is optional or processor-dependent, the item is not required if the optional or processor-dependent feature is not implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:3.1.5 with §2002:B.3 items 1 and 2 (screen section, FOREGROUND-COLOR); the §2002:B.1 preamble withdraws the item",
+    "reason": "Twin is DOCUMENTED-NON-SUPPORT under 2023's optional-module licence. 2002's own licence is processor-dependence (same ground q-44 recorded for items 25, 36, 37, 70). The compiler declines with COBOL1560 at 2002. Observation: COBOL1560's text names 2023's A.4.2 licence at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-55-63.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-64",
+    "to": [
+     "DOC-A.1-84"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "B.1 item 64 (13.16.22 FORMAT clause GR10)",
+    "clause-2023": "A.1 item 84 (13.18.24 GR10)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the external representation FORMAT BIT/CHARACTER/NUMERIC DATA produces (a required clause in 2002: not in Annex A, not in B.3)"
+    ],
+    "evidence-2002": [
+     "not shown by the pinned compiler: wiseowl/cases/13.16.22@2002-FORMAT-CLAUSE/format_external_representation and cases/13.18.24-FORMAT-clause/format_roundtrip_character_numeric are refused COBOL1705 at --std 2002 (cases-64-67.log), because the pinned tree 24372b7b17 predates PB5578 (c3b28dd630, which implements FORMAT, is not its ancestor)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (representation produced). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR10",
+      "quote": "The implementor shall specify the representation produced as a result of processing the FORMAT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:13.18.24.4 GR10",
+      "quote": "The implementor shall specify the representation produced as a result of processing the FORMAT clause",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     }
+    ],
+    "reason": "13.16.22 (2002) and 13.18.24 (2023) carry the same format and GR10/GR11; 2023 SR3 adds message-tag. The row (main) is CONFORMS with a 2002-specific golden, but the pinned compiler cannot run it. Settle by running the three witnesses at --std 2002 on a build at or after c3b28dd630. If they match, SAME.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-64-67.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-65",
+    "to": [
+     "DOC-A.1-85"
+    ],
+    "verdict": "DOUBTFUL",
+    "clause-2002": "B.1 item 65 (13.16.22 GR11)",
+    "clause-2023": "A.1 item 85 (13.18.24 GR11)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "exclusions from restoring formatted items to the same internal representation (bit filler, signed zero)"
+    ],
+    "evidence-2002": [
+     "not shown by the pinned compiler: format_roundtrip_bit refused COBOL1705 at --std 2002 (pinned tree predates PB5578); unit:RecordFormatTests is runtime"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "FORMAT clause (exclusions on restoring to same internal representation). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.22.3 GR11",
+      "quote": "Data items selected for formatting are restored to the same internal representation when read with the same FORMAT clause on the same implementation, except for exclusions specified by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same text. Settle by running format_roundtrip_bit at --std 2002 on a build containing PB5578 (c3b28dd630).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-64-67.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-66",
+    "to": [
+     "DOC-A.1-86"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 66 (13.16.38 PICTURE GR14; 13.16.58 USAGE GR3)",
+    "clause-2023": "A.1 item 86 (13.18.40 GR15; 13.18.60 GR3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "VALIDATE format-validation compatibility rules for items of usage other than display or national (required, documented)"
+    ],
+    "evidence-2002": [
+     "not shown: twin is DOCUMENTED-NON-SUPPORT under 2023's optional A.4.14; at --std 2002 pb5577-validate-format-stage draws COBOL1580 'performs no content validation' and declined-validate-class COBOL1708 (cases-64-67.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Format validation (rules for checking items of usages other than display or national). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR14",
+      "quote": "If the usage of the subject of the entry is not display or national, character-string-1 is used in combination with the USAGE clause to check",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.58.3 GR3",
+      "quote": "The VALIDATE statement may be used to check that the content of a data item is compatible with any PICTURE, SIGN and USAGE clauses specified in the description of the item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1",
+      "quote": "An implementation may optionally provide the elements specified in Annex A, Communications facility",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.1",
+      "quote": "An implementation shall accept the syntax and provide the functionality for all standard language elements required by this International Standard",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "none (VALIDATE is neither in 2002's Annex A nor in B.3)",
+    "reason": "2002 makes only the communications facility optional, so VALIDATE and this item are required. The pinned compiler declines format validation at 2002. Known defect PB5577 (open; S1, the format stage, has landed on main after the pinned tree, but the row is still DNS).",
+    "class": "other",
+    "needs": "2002 requires VALIDATE format validation; the compiler declines it",
+    "compiler-at-2002": "wrong (cases/14.9.50-VALIDATE/pb5577-validate-format-stage at --std 2002: COBOL1580, no validation; log cases-64-67.log; known PB5577)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-64-67.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-67",
+    "to": [
+     "DOC-A.1-88"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 67 (8.4.2.2.3 GR5d)",
+    "clause-2023": "A.1 item 88 (8.4.3.2.4 GR6d)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "execution of a non-COBOL function through a function-prototype-name, conditioned on support for calling non-COBOL functions (absent)"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/A.1-.../w59h_non_cobol_names_not_found at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.3 GR5d",
+      "quote": "if function-prototype-name-1 is specified and the function to be activated is not a COBOL function, the execution is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.4 GR6d",
+      "quote": "the function to be activated is not a COBOL function, the execution is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.1 preamble, conditionally required (same words as A.1)",
+    "reason": "2002 GR5d is 2023 GR6d without function-pointer-name-1 (2023 widening). The condition is absent at 2002 as at 2023 and the witness of the absence runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-64-67.log",
+    "widening": "2023 adds function-pointer-name-1"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-68",
+    "to": [
+     "DOC-A.1-89"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "B.1 item 68 (8.4.2.2.3 GR5c)",
+    "clause-2023": "A.1 item 89 (8.4.3.2.4 GR6c)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the runtime resources checked before activating a user-defined function (stack depth -> EC-PROGRAM-RESOURCES)"
+    ],
+    "evidence-2002": [
+     "the row's conformance-tests compile at --std 2023 only (ActivationResourcesTests: new WiseOwlCobolCompiler(2023)); unit tests are runtime",
+     "covered by probe p68_recfn.cob at --std 2002: STARTED, abnormal termination EC-PROGRAM-RESOURCES, exit 1 (p68_recfn.log)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Function-identifier (object time resources that are checked). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.3 GR5c",
+      "quote": "The runtime resources that are checked in order to determine the availability of the function for execution are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.4.3.2.4 GR6c",
+      "quote": "The runtime resources that are checked in order to determine the availability of the function for execution are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence. The compiler behaves at 2002 as documented, but the row's compiled witnesses run only at 2023. Observation: the 2002 run's message cites §2023:8.4.3.2.4 GR6c.",
+    "class": "other",
+    "needs": "a 2002 witness for the function stack check (probes-u-39/p68_recfn.cob is a candidate)",
+    "compiler-at-2002": "correct (probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p68_recfn.log)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/p68_recfn.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-69",
+    "to": [
+     "DOC-A.1-90"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 69 (15.2 Arguments)",
+    "clause-2023": "A.1 item 90 (15.3)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the result of a function reference whose argument violates its rules with EC-ARGUMENT-FUNCTION checking off, for 2002's intrinsic functions"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (MATCH, cases-69-74.log): pb65_domain_guards, l1_argument_default_boolean_length, pb59_char_representative, l1_char_national_argument_bound, l1_char_national_also_positions, pb470_locale_argument_substitute_2002; pb470_locale_argument_substitute refused (2014 functions), its 2002 variant covers the locale arm"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Function-identifier (result when argument rules are violated and checking for the EC-ARGUMENT-FUNCTION exception condition is not enabled). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.3",
+      "quote": "the implementor defines the result of the function reference",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence (2002 AR13, 2023 AR14). The determination is one substitution rule per function family; witnesses for 2002's functions run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": "2023 has more intrinsic functions"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-7",
+    "to": [
+     "DOC-A.1-7"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 7 (8.5.1.5.4; 13.16.53 GR9)",
+    "clause-2023": "A.1 item 7 (8.5.1.6.4; 13.18.55 GR10)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "special or automatic alignment for efficiency (optional; not provided)"
+    ],
+    "evidence-2002": [
+     "covered by wiseowl/cases/A.1-.../l1c40_no_automatic_alignment at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Alignment of data for increased efficiency (special or automatic alignment: interpretation, implicit filler, semantics of statements). This item is optional",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.1.5.4",
+      "quote": "Each implementor who provides for special types of alignment shall specify the precise interpretations that are to be made",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.53.3 GR9",
+      "quote": "An implementor may optionally specify automatic alignment for any internal data representations except for bit data items",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.1 item 7 is itself optional",
+    "reason": "Words differ only in clause/rule numbers. Optional in 2002 as in 2023; not provided, and the witness of no automatic alignment runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-71",
+    "to": [
+     "DOC-A.1-92"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 71 (15.3.1)",
+    "clause-2023": "A.1 item 92 (15.4.1)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "characteristics, representation and value of numeric/integer function results under native arithmetic"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (MATCH): pb73_table16_function_type_and_boolean_view, pb60_numval_one_scan, pb2_float_argument_exact_family; da2_function_as_text refused (SMALLEST-ALGEBRAIC, 2023)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Function returned values (characteristics, representation, and returned value for native arithmetic). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When native arithmetic is in effect, the characteristics and representation of the returned value are defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.4.1",
+      "quote": "the characteristics and representation of the returned value are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "reason": "Native arm only (the standard arm is outside this item; PB5575 governs it). Three of the row's four witnesses run at 2002 and cover the native determination.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-72",
+    "to": [
+     "DOC-A.1-95"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 72 (8.3.1.2.1.3 GR4)",
+    "clause-2023": "A.1 item 95 (8.3.3.2.4 GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the result of a hex alphanumeric group with no corresponding character"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002 (MATCH): l1c12_hex_alphanumeric_every_group, pb2919_hex_literal_ff_is_the_storage_byte"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Hexadecimal alphanumeric literals (mapping for non-existing corresponding character). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR4",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.2.4 GR5",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence (renumbered GR4 -> GR5); hex-literal syntax rules 5 and 6 identical. Witnesses run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-73",
+    "to": [
+     "DOC-A.1-96"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 73 (8.3.1.2.1.3 GR4)",
+    "clause-2023": "A.1 item 96 (8.3.3.2.4 GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "mapping when characters are not multiples of four bits (condition absent: 8-bit groups)"
+    ],
+    "evidence-2002": [
+     "covered at --std 2002: l1c12_hex_alphanumeric_every_group MATCH; r03-hex-literal-digit-grouping refused COBOL1635 as at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Hexadecimal alphanumeric literals (mapping when characters not multiples of four bits). This item is conditionally required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR4",
+      "quote": "The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Conditionally required: If the associated feature or language element is implemented then this element is also required",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.1 preamble, conditionally required (same words as A.1)",
+    "reason": "Same sentence and same condition; absent at 2002 as at 2023; both witnesses behave the same at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-74",
+    "to": [
+     "DOC-A.1-97"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "B.1 item 74 (8.3.1.2.4.3 GR4)",
+    "clause-2023": "A.1 item 97 (8.3.3.5.4 GR5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the result of a hex national group with no corresponding character"
+    ],
+    "evidence-2002": [
+     "covered by conformance:cases/8.3.3.5-National-literals/l1c12_hex_national_no_character at --std 2002 (MATCH)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:B.1",
+      "quote": "Hexadecimal national literals (mapping for non-existing corresponding character). This item is required",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.3.1.2.4.3 GR4",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.3.3.5.4 GR5",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same sentence; witness runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-39/cases-69-74.log",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-39",
+  "compiler": "E:/COBOL-wt/coderead85-tree-d cobol.exe (pinned), probes under out/refute-u-39/",
+  "cases": [
+   {
+    "rule-id": "2002-DOC-B.1-50",
+    "verdict": "UPHELD",
+    "reason": "The closing paragraph of 14.5.12.1.2 is word-identical. The fatal/non-fatal column of 2002's exception table equals 2023's for every 2002 exception-name (scripted diff of both tables: the only differences are names 2023 added), so the set of fatal conditions the item ranges over is the same. The documented compile-time detection (literal reference-modification) applies alike to an item of a record under a CD at --std 2002 (probe r50_cd_refmod.cob: COBOL2670 for both the working-storage and the CD item), so the communication reach behaves as documented.",
+    "citations": [
+     {
+      "cite": "§2002:14.5.12.1.2",
+      "quote": "It is implementor-defined which fatal exception conditions, if any, are detected at compile time",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-39/r50_cd_refmod.cob (log r50.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-52",
+    "verdict": "UPHELD",
+    "reason": "ASSIGN is printed identically in all four 2002 formats and all four 2023 formats; SR5 and SR6 are identical. 2002 has no zero-length literal, so 2023 SR4's extra clause narrows nothing in 2002. Data-name-1 in 2002 (SR7) may be an item of a record under a CD, but SR6 governs only the syntactical combinations, not the item's location or content (content is item 54, already DIFFERENT).",
+    "citations": [
+     {
+      "cite": "§2002:12.3.4.2 SR7",
+      "quote": "Data-name-1 shall reference an alphanumeric data item and shall not be subordinate to the file description entry for file-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-55",
+    "verdict": "UPHELD",
+    "reason": "GR1 is identical and concerns the representation of ZERO, SPACE and QUOTE in the coded character sets, not any data item, so no CD or debugging-line reach changes it; 2002 has no figurative-constant form among these three that 2023 lacks.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-56",
+    "verdict": "UPHELD",
+    "reason": "Read 2002 9.1.14 against 2023 9.1.15 whole: the same three sharing modes with identical text, the same default and other-facilities sentences; 2023 adds only APPLY COMMIT lock retention (a widening). No CD reach (files only).",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-57",
+    "verdict": "UPHELD",
+    "reason": "Identical sentence in an identical clause (see 56); the witness runs at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-58",
+    "verdict": "UPHELD",
+    "reason": "The referenced OPEN rule is word-identical: 2002 14.8.26.3 GR22 = 2023 14.9.27.4 GR23 (the reader's '14.9.27 GR23' locator is the general-rules clause 14.9.27.4). Sharing mode clause identical (see 56).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.26.3 GR22",
+      "quote": "If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.27.4 GR23",
+      "quote": "If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-6",
+    "verdict": "OVERTURNED",
+    "reason": "8.5.1.5.1 governs the start of EVERY alphanumeric group item. In 2002 the record description entries following a CD entry are alphanumeric groups that implicitly redefine the CD record area (A.1.1.2; A.1.2.2 SR5/SR9/SR14), and the compiler implements the communication section at --std 2002 (warning COBOL0903 only). The row's witnesses (l1c01_group_start_coincident, l1c01_group_start_typed_national_bit) show only working-storage groups, so the CD-record part of the 2002 scope has no evidence through the 2023 row. Probe r6_cd_group_start.cob at --std 2002: an output CD with 01 CREC (CA X(4), CB X(4)) and 01 CRE2 X(8); MOVE 'ABCDEFGH' TO CRE2 gives CA=ABCD CB=EFGH, lengths 8 8: the group start coincides with its first item, as documented. Compiler correct; the probe is a candidate 2002 witness.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.1.5.1",
+      "quote": "The alignment of the start of an alphanumeric group item relative to the first item within that group is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.1.6.1",
+      "quote": "The alignment of the start of an alphanumeric group item relative to the first item within that group is defined by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for the group start of a record under a CD (refute-u-39/r6_cd_group_start.cob is a candidate)",
+    "compiler-at-2002": "correct (probe r6.log)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-39/r6_cd_group_start.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-61",
+    "verdict": "OVERTURNED",
+    "reason": "2002 14.5.8 rule 2 governs every receiving item described as floating-point numeric. In 2002 a user record under an output CD may contain FLOAT-SHORT/LONG/EXTENDED items (no Annex A rule restricts usage there), and such an item may be a receiving operand; the compiler accepts this at --std 2002. The row's witness pb1110_float_short_every_landing receives only into working-storage items, so the CD-record receiving operand (the reach u-34 overturned for item 1's ACCEPT identifier-1) has no evidence through the 2023 row. Probe r7_61_cd_items.cob at --std 2002: FLOAT-LONG CFL in a CD record; COMPUTE CFL = 1 / 3 equals the working-storage twin, MOVE 123.25 TO CFL compares equal to 123.25. Compiler correct; candidate 2002 witness. (The reader's own note stands: 2002 leaves the alignment wholly to the implementor where 2023 requires the algebraic value; the determination lies inside 2002's latitude.)",
+    "citations": [
+     {
+      "cite": "§2002:14.5.8",
+      "quote": "If the receiving data item is described as a floating-point numeric item, the alignment of the data is specified by the implementor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a floating-point receiving item in a record under a CD (refute-u-39/r7_61_cd_items.cob is a candidate)",
+    "compiler-at-2002": "correct (probe r7_61.log)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-39/r7_61_cd_items.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-63",
+    "verdict": "UPHELD",
+    "reason": "2002 licenses non-support by processor dependence: B.3 item 1 makes the whole screen section processor-dependent and 3.1.5 lets an implementation not claim it; the compiler refuses every screen-section construct at --std 2002 (COBOL1560 on the section header and on FOREGROUND-COLOR), so it claims no part of it and the B.1 preamble withdraws the item. Only the diagnostic's wording (it cites 2023's A.4.2 licence at 2002) differs; that is not a requirement difference.",
+    "citations": [
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "The CURSOR and CRT STATUS clauses in the SPECIAL-NAMES paragraph, the screen section, the screen format of the ACCEPT statement",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-67",
+    "verdict": "UPHELD",
+    "reason": "Conditionally required in both; the condition (non-COBOL function activation) is absent at 2002 as at 2023 and the absence witness runs at 2002. 2023's function-pointer-name-1 is a widening.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-69",
+    "verdict": "OVERTURNED",
+    "reason": "The item governs the result whenever a 2002 function's argument rules are violated with checking off, so it defers to every function's argument rules, and those differ. 2002 NUMVAL caps argument-1 at 31 digits UNCONDITIONALLY (AR1 'one to 31 digits', AR2), including under ARITHMETIC IS STANDARD; 2023 caps 31 only under native arithmetic and allows 34 under standard-decimal. Probe r69_numval_std.cob at --std 2002 with OPTIONS ARITHMETIC IS STANDARD: FUNCTION NUMVAL of a 33-digit string returns +1234567890123456789012345.678901 (the value), not the documented default 0; the native twin r69_numval_nat.cob returns 0 as documented. So at --std 2002 a violation of a 2002 argument rule is not detected under standard arithmetic and the implementor-defined result is not produced. The row's witnesses run native only. This is the PB5575 family (2002 standard arithmetic modelled on 2014's 34-digit decimal) reaching this row; the same 31-digit cap stands in 2002 NUMVAL-C and NUMVAL-F (not probed).",
+    "citations": [
+     {
+      "cite": "§2002:15.2 AR13",
+      "quote": "If the EC-ARGUMENT-FUNCTION exception condition is set to exist and checking for EC-ARGUMENT-FUNCTION is not enabled, the implementor defines the result of the function reference",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.54.2 AR1",
+      "quote": "where space-string is a string of one or more space characters and digit is a string of one to 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.54.2 AR2",
+      "quote": "The total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.3 AR3",
+      "quote": "If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.3 AR4",
+      "quote": "If standard-decimal arithmetic is in effect, the total number of digits in argument-1 shall not exceed 34",
+      "check": "OK"
+     }
+    ],
+    "class": "deferral",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD, NUMVAL with a 32-to-34-digit argument returns the value instead of the documented default 0 (no EC-ARGUMENT-FUNCTION); a 2002 witness after the PB5575 fix",
+    "compiler-at-2002": "wrong (probe r69_numval_std.cob, log r69.log; expected EC-ARGUMENT-FUNCTION and the documented result 0 per §2002:15.54.2 AR2 and §2002:15.2 AR13; observed the value; likely PB5575)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-39/r69_numval_std.cob"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-7",
+    "verdict": "UPHELD",
+    "reason": "Optional in 2002; the compiler provides no special or automatic alignment, so 8.5.1.5.4's obligation never arises. The 'not provided' determination is implementation-wide; probe r7_61_cd_items.cob shows a record under a CD also unaligned (X, S9(9) COMP, FLOAT-LONG, X = 14 bytes, same as working storage), so the CD reach agrees.",
+    "citations": [
+     {
+      "cite": "§2002:8.5.1.5.4",
+      "quote": "Each implementor who provides for special types of alignment shall specify the precise interpretations that are to be made",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-39/r7_61_cd_items.cob (log r7_61.log)"
+   },
+   {
+    "rule-id": "2002-DOC-B.1-71",
+    "verdict": "UPHELD",
+    "reason": "The item is the native-arithmetic sentence only; every 2002 intrinsic function exists in 2023 (scripted comparison of the clause-15 function headings: none 2002-only). The standard arm is PB5575's, outside this item. Witnesses run at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-72",
+    "verdict": "UPHELD",
+    "reason": "Same GR (renumbered); the result concerns the literal's value in the coded character set, not where it is used, and 2002 has no hex-literal form 2023 lacks (2023 adds zero-length).",
+    "citations": [
+     {
+      "cite": "§2002:8.3.1.2.1.3 GR4",
+      "quote": "The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-73",
+    "verdict": "UPHELD",
+    "reason": "Same sentence and same absent condition; witnesses behave the same at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-DOC-B.1-74",
+    "verdict": "UPHELD",
+    "reason": "Same sentence for hex national literals; NX literals exist in both; witness runs at 2002.",
+    "citations": [],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "ca4f0b39ab947a325841d6ee9870f5690a84f530d5fe01dacae21cb9e9d0a75a",
+  "read": "aded31bdb00bc8cb92aee5f57c24544441e780f4f536e1fca8397e61031007ae",
+  "refute": "e845b69038f2fb32d92eed8a7bd2d68acc3c5bfe45f9cd0b34177050206b2a6b"
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.24.2-10",
+ "rule-digest": "1ff4f360fe37",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/StatementValidation.cs#CheckCorrespondingGroupOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/CorrespondingBinder.cs#Bind",
+ "test-ref": "conformance:cases/14.8.24@2002-MOVE-STATEMENT/g2mov19_cd_move_corresponding",
+ "notes": "SR10: 'Identifier-3 and identifier-4 shall specify group data items and shall not be reference modified.' A CD record group is a group item, so MOVE CORR CG TO WG (CD sender), WH TO CK (CD receiver) and CG TO CK (both) are accepted and run (g2mov19 M1-M3). The prohibition is witnessed by g2mov20: identifier-3 CE1 OF CG, an elementary CD record item, is refused at line 21 while the group control at line 22 is accepted. Run at --std 2002 on the pinned dc1f2dcce8 build matched."
+}

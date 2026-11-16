@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-6.1.2.1-8",
+ "rule-digest": "e03cadfdaf0e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/ReferenceFormatProcessor.LogicalLineBuilder.cs#CheckNoFloatingDebuggingOnFixedIndicator",
+ "test-ref": "conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2-floating-debugging-indicator-on-fixed-debugging-line-refused; conformance:cases/6.1.2@2002-FLOATING-INDICATORS/g2-floating-debugging-indicator-on-continuation-line-refused",
+ "notes": "§2002:6.1.2.1 SR8 forbids >>D on a line holding a fixed debugging or continuation indicator. At --std 2002 both the D-line and the '-'-line programs are refused with COBOL5770 at the >>D."
+}

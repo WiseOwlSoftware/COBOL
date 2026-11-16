@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.1.2-2",
+ "rule-digest": "5353531af06b",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#BindAcceptFromMnemonic",
+ "test-ref": "conformance:cases/14.9.1-ACCEPT/l1-accept-from-undeclared-mnemonic; conformance:cases/14.9.1-ACCEPT/l1-accept-from-output-only-device",
+ "notes": "Own verdict from the read lineage-reads-2002/u-20.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.1.3-2, witnessed at 2002 by the cases test-ref names. The read: 2002 says 'associated with a hardware device'; 2023 'an implementor-defined device-name ... capable of providing data'. 2002 does not require input capability in this rule, but its SPECIAL-NAMES SR7 lets the implementor restrict mnemonic-names of specific device-names, and DOC-A.1-189 states exactly that restriction, so the COBOL0817 refusal is licensed at 2002. The implementor's devices are the one table at every edition. No operand reaches a CD. Cited: §2002:14.8.1.2 SR2; §2002:12.2.6.2 SR7."
+}

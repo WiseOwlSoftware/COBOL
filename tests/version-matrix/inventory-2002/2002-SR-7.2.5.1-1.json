@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-7.2.5.1-1",
+ "rule-digest": "1a8b13ac3ee5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvalArith; src/WiseOwl.Cobol.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateDirectiveArithmetic; src/WiseOwl.Cobol.Compiler/Binding/ConstantEntryBinder.cs#BindConstantArithmetic",
+ "test-ref": "conformance:cases/7.2.5@2002-COMPILE-TIME-ARITHMETIC-EXPRESSIONS/g2cta01_formation_in_range",
+ "notes": "§2002:7.2.5.1 SR1 admits 8.8.1 expressions of fixed-point literals whose every intermediate lies in the §2002:8.8.1.3.1.1 range; g2cta01 reaches 10**999 and 10**-999 (both bounds inclusive) and fractional operands and at --std 2002 prints C1=001/C2=001/C3=016/C4=099 as derived, while exponentiation, a floating literal, division by zero and 10**1000 / 10**-1000 intermediates (g2cta02-06) are refused COBOL1547."
+}

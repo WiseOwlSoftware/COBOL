@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_search_when_condition_forms
       *> rules: [GR-8.8.4.6.3-1, SR-14.9.37.3-6, FMT-8.8.4.6.2]
-      *> accept: [85, 2023]
+      *> accept: [85, 2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.45.1",
+ "rule-digest": "f5b2dfeb37aa",
+ "verdict": "DOCUMENTED-NON-SUPPORT",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ScreenFacility.cs#ReportClause",
+ "test-ref": "conformance:wiseowl/cases/13.18.47-REQUIRED/a42-screen-required",
+ "notes": "Own verdict from the read lineage-reads-2002/u-52.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.47.2, witnessed at 2002 by the cases test-ref names. The read: General format identical (the single word REQUIRED). In 2002 the clause exists only in the screen section, which is a processor-dependent element (B.3 item 1); 3.1.5 lets the implementor not claim it, requires a compile-time diagnostic, and no executable code. The 2023 row is DOCUMENTED-NON-SUPPORT (2023 optional module); the compiler refuses the clause by name at --std 2002 (COBOL1560), so the same non-support holds under the 2002 licence. Note: the COBOL1560 text cites the 2023 licence only. Cited: §2002:13.16.45; §2002:B.3; §2002:3.1.5."
+}
