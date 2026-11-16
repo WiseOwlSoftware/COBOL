@@ -1,4 +1,4 @@
-## records-1985-reread: the re-read of the 12 open PARTIAL 1985 rows; five re-recorded CONFORMS, seven restated, four defects filed (GAP 844 to 839)
+## Entry 3722 — 2026-11-15 20:30 PST — records-1985-reread: the re-read of the 12 open PARTIAL 1985 rows; five re-recorded CONFORMS, seven restated, four defects filed (GAP 844 to 839)
 
 A registrar landing (no compiler source changes) of the operator's re-read of the twelve 1985 rows that stood PARTIAL:
 two adjudicators and their refuters read them on tree 5e49d46678 (`op-20261115/open-rows-1985`). Every probe of theirs
@@ -66,3 +66,4 @@ XIII.4.9.2, 1985-GR-VI.5.8.4-3, VI.6.19.4-5, VI.6.22.4-9 and VI.6.27.4-13. PB573
 **Checks.** `generate.py --check`, `case_collisions.py --check`, `work.py check`, `inventory_view.py --check`,
 `lineage_reads.py --check` and `audit_witness_loss.py --check` all GREEN. Every citation written was run through
 `cite.py --check`.
+
