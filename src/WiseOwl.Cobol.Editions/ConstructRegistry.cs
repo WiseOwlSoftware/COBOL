@@ -28,9 +28,10 @@ public static partial class ConstructRegistry
 
     /// <summary>The code <see cref="Check"/> reports construct <paramref name="id"/> under at <paramref name="edition"/> when that
     /// report is an ERROR, else null (in force, obsolete, or removed under a permissive edition, all of which report a warning
-    /// or nothing). The quiet twin for a binder that refuses a construct by its own rule and must not draw a second error
-    /// where the edition gate, which runs after binding, already will (kb/Work PB5538); it reads the same row and the same
-    /// severity policy as <see cref="Check"/>.</summary>
+    /// or nothing). The quiet twin for a binder that asks the construct's edition gate itself (it calls <see cref="Check"/>)
+    /// and also refuses the construct by its own rule: where the gate's report is an error, that error is the one report and
+    /// the binder adds none of its own (kb/Work PB5538, the ENTER statement's binder). It reads the same row and the same
+    /// severity policy as <see cref="Check"/>, so the two cannot disagree on whether the gate's report is an error.</summary>
     public static string? GateErrorCodeAt(EditionInfo edition, string id)
     {
         var c = Find(id) ?? throw new ArgumentException($"unregistered construct id '{id}'", nameof(id));

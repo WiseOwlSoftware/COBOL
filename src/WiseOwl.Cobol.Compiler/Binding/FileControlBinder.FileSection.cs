@@ -214,7 +214,7 @@ public sealed partial class FileControlBinder
     /// across both kinds (the entry at that position is the one that stands; see <see cref="DescriptionRepeated"/>).</summary>
     private static Dictionary<string, int> FirstDescriptionPositions(Core.FileSectionContext fs)
     {
-        var first = new Dictionary<string, int>(StringComparer.Ordinal);
+        var first = new Dictionary<string, int>(CobolNames.Comparer);   // the file model's key: a file-name is a COBOL word, case-folded (§2023:8.1.3.2 GR3)
         void Note(string? name, Antlr4.Runtime.IToken start)
         {
             if (name is null) return;
