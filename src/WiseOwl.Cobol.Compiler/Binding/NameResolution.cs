@@ -196,6 +196,10 @@ internal sealed class NameResolution(ReferenceResolver refs, DataBinder data)
         ReportUnreferenceableLinkage(DataBinder.WrittenText(dref), record);
     }
 
+    /// <summary>Whether <see cref="ScreenLinkageReference"/> would refuse a reference to <paramref name="item"/>: a caller that QUEUES the screen
+    /// (the subscript walk, which reports only once it commits to a position, kb/Work PB5846) asks this before it allocates the entry.</summary>
+    internal bool IsUnreferenceableLinkage(DataItem item) => data.Linkage.UnreferenceableLinkageRecord(item) is not null;
+
     /// <summary>The ONE wording of COBOL2746, whichever kind of name (data-name, condition-name, index-name) the
     /// written reference is.</summary>
     internal void ReportUnreferenceableLinkage(string written, DataItem record) =>

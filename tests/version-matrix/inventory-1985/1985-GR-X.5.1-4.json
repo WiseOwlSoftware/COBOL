@@ -1,7 +1,7 @@
 {
  "rule-id": "1985-GR-X.5.1-4",
  "rule-digest": "19aad336fec5",
- "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/g85_f21_06",
+ "test-ref": "conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/g85_f21_06; conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/pb5846-linkage-subscript-not-referenceable; conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/pb5846-linkage-refmod-not-referenceable; conformance:cases/X.5@1985-PROCEDURE-DIVISION-IN-THE-INTER-PROGRAM/pb5846-linkage-using-operand-position",
  "next": {
   "kind": "KEPT",
   "edition": 2023,
