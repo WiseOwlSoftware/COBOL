@@ -1,0 +1,18 @@
+LIT->L  [+00]
+S3->L   [+00]
+S3->T   [00+]
+S3->P   [0{]
+S1->L   [-01]
+L->L4   [+00]
+LOW->L3 [+00]
+S3->U   [00]
+POS->L5 [+00]
+INIT    [+00]
+FILE    [+0000+]
+FILE->L5[+00]
+L = 0
+L ZERO
+L NOT NEGATIVE
+L NOT POSITIVE
+COMPUTE [+00]
+ADD 1   [+01]

@@ -94,7 +94,7 @@ internal static class SendersSignStore
         int lo = -r.Scale, hi = r.Digits - r.Scale - 1;
         return sender switch
         {
-            BoundNumericLiteral lit => lit.Text.Contains('E', StringComparison.OrdinalIgnoreCase)
+            BoundNumericLiteral lit => lit.Text.AsSpan().IndexOfAny('E', 'e') >= 0
                 || NonZeroDigitExponents(lit.Text).All(e => e < lo || e > hi),
             BoundFieldOperand { Place.Item.Pic: { } s } => -s.Scale < lo || s.UnscaledDigitBound - s.Scale - 1 > hi,
             _ => true,
