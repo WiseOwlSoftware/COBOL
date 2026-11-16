@@ -571,6 +571,7 @@
       "WiseOwl.Cobol.Binding.Procedure.BinderContext",
       "WiseOwl.Cobol.Binding.Procedure.CallBinder",
       "WiseOwl.Cobol.Binding.Procedure.ControlFlowBinder",
+      "WiseOwl.Cobol.Binding.Procedure.CorrespondingBinder",
       "WiseOwl.Cobol.Binding.Procedure.ExpressionBinder",
       "WiseOwl.Cobol.Binding.Procedure.MoveBinder",
       "WiseOwl.Cobol.Binding.Procedure.OoBinder",

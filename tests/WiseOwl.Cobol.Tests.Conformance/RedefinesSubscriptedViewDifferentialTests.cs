@@ -93,10 +93,11 @@ public sealed class RedefinesSubscriptedViewDifferentialTests
     /// DESIGN-frontend-grammar §3.11 determination), and in the second the condition is FALSE, so GR5 ignores the THEN phrase and the ELSE arm
     /// runs. The IF branches are both exercised; the NEXT SENTENCE PLACEMENT is one arm, and the other —
     /// NEXT SENTENCE in an ELSE phrase, §2023:14.9.19.4 GR6 — is measured by the spec-derived golden
-    /// conformance-suite/cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline.cob (kb/Work PB414).</summary>
+    /// conformance-suite/cases/14.9.19-IF/pb414_next_sentence_last_sentence_inline.cob (kb/Work PB414). Compiled at COBOL-2002:
+    /// at COBOL-85 an IF with END-IF may not have the NEXT SENTENCE phrase (§1985:VI.6.16.3 SR3, COBOL7486, kb/Work PB5798).</summary>
     [Fact]
     public void NextSentence_SkipsTrailOfOwnSentence()
-        => AssertMatchesGolden("""
+        => DifferentialGolden.Assert(edition: 2002, source: """
             IDENTIFICATION DIVISION.
             PROGRAM-ID. RSV5.
             DATA DIVISION.
