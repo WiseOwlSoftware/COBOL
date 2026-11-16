@@ -288,6 +288,36 @@ def case_05c_a_row_closed_on_its_own_derivation_is_planned_no_witness(expect):
                  [r["rule-id"] for r in rows if R.lineage.unwitnessed(r, e85, schema, targets)], [falls, bare])
 
 
+def case_05d_a_rule_that_withholds_a_property_is_witnessed_by_a_refusal(expect):
+    """kb/Work PB5783, option 1: a rule of any kind that WITHHOLDS a property ("does not imply") is witnessed by the
+    refusal of a program that relies on it; a granting word in the same rule still sends it to an accepted case."""
+    t = R.EvidenceTable.load()
+    withholds = "Use of the EXTERNAL clause does not imply that the associated file-name or data-name is a global name."
+    expect("a general rule that says a clause 'does not imply' a property is diagnosable", t.diagnosable("GR", withholds))
+    expect("... but the same text granting a form ('may be accessed') still needs an accepted case (the heuristic "
+           "fails closed and wins)",
+           not t.diagnosable("GR", withholds + " The data item may be accessed by any program that describes it."))
+    expect("a general rule with neither is not diagnosable",
+           not t.diagnosable("GR", "The EXTERNAL clause makes the record available to every program describing it."))
+    expect("a syntax rule is unchanged: a prohibition diagnosable, a grant not",
+           t.diagnosable("SR", "The clause shall not be specified twice.")
+           and not t.diagnosable("SR", "The clause may be specified twice."))
+    for y in R.inventory_schema.HELD:
+        rules = R.edition(y).rules()
+        made = sorted(r["id"] for r in rules if r.get("kind") not in t.diagnosed
+                      and t.diagnosable(r.get("kind", ""), r.get("text", "")))
+        print(f"    INFO  {y}: the withholding pattern makes diagnosable {made or 'no rule'}")
+    expect.equal("on the 1985 catalog it makes diagnosable exactly 1985-GR-X.4.5.4-3 (kb/Work PB5783)",
+                 sorted(r["id"] for r in R.edition(1985).rules() if r.get("kind") not in t.diagnosed
+                        and t.diagnosable(r.get("kind", ""), r.get("text", ""))), ["1985-GR-X.4.5.4-3"])
+    bad = pathlib.Path(scratch_dir("withholding")) / "table.json"
+    doc = json.loads(R.EVIDENCE_TABLE.read_text(encoding="utf-8"))
+    doc["withholding-rules"] = [{"pattern": "x"}]
+    bad.write_text(json.dumps(doc), encoding="utf-8")
+    expect("a withholding pattern without its why is refused at load",
+           F.raises(lambda: R.EvidenceTable.load(bad), "withholding-rules"))
+
+
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),
@@ -616,7 +646,8 @@ def case_11_a_rule_that_grants_a_form_needs_an_accepted_case(expect):
     expect("a prohibition (\"may not\", \"shall not\") is diagnosable by a refusal",
            t.diagnosable("SR", "Identifier-1 may not be reference modified.")
            and t.diagnosable("SR", "The clause shall not be specified twice."))
-    expect("a general rule is never diagnosable", not t.diagnosable("GR", "The clause shall not be specified twice."))
+    expect("a general rule that withholds nothing is not diagnosable",
+           not t.diagnosable("GR", "The clause shall not be specified twice."))
     sr = "2002-SR-2.1.2-9"
     s = R.normal_slice("p-01", F.record("p-01", [F.read(sr)], [F.refute(sr)]))
     lin = F.lineage([sr])

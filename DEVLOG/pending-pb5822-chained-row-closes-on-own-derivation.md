@@ -1,0 +1,52 @@
+## PB5822: a chained (KEPT) row of an older edition closes on a derivation of its own
+
+kb/Work PB5822 (a decision, filed in this change) lets a chained row whose rule no program can witness close on a
+derivation OF ITS OWN (DESIGN-spec-conformance-review.md section 1.1). Before it, `lineage.state_of` and the C#
+`StateAt` closed a KEPT row only on a spec-derived test-ref of its own, and the schema's `next.verdict-fields` listed
+`derivation`, so `lineage.next_errors` refused one there: the twenty KEPT rows of 1985 that seven decision notes hold
+unwitnessable could never close.
+
+**The mechanism.** One predicate per engine, `lineage.derivation_refusals` (Python) and `DerivationRefusalsAt` (C#):
+`Derivation.refusals` judged under the verdict the row is judged under (`lineage.chain_of` / `ChainOf`: a chained row's
+chain, None for every other row). Refusal 2 keeps its stable code `verdict-does-not-resolve` and, for a chained row,
+reads "its chain is not closed"; every other refusal (the computed anchor, refusal 1, the register row, signature,
+arm, the UPHELD refuter record, the arm's check against the row's OWN edition's catalog) applies unchanged. A target's
+derivation is never read. `lineage.own_evidence` (a spec-derived test-ref of its own, or its own derivation standing)
+is what `state_of` and `unwitnessed` ask; `StateAt` mirrors it. `next.verdict-fields` is now `verdict` and
+`code-location`.
+
+**Its askers.** The writer: `record_verdicts.validate`'s chained branch now asks the predicate (it used to `continue`
+past the derivation block) and `statement_losses` (a chained row's statements could be erased by the writer before).
+The audits: `audit_derivations.py --check` judges each held edition's rows at their own edition against the next
+edition's view rows; `audit_witness_loss.py --check` passes each older row's chain to `statement_losses`, whose
+derivation excuse (`Schema.derivation_superseded`) would otherwise have excused every chained row's lost derivation on
+its empty verdict. The planners: `lineage_reads.bare_kept` leaves out a chained row the view computed OK with no
+witness of its own (the one line changed there). C#: `EveryDerivation_StandsUnderItsOwnArm` and
+`TheRowsClosedOnADerivation_AreTheEnumeratedPopulation` judge each edition's rows at their edition (`StatesOf`), so a
+chained row closed on a derivation is in the measured population and its refusals are its chain's.
+
+**Tests, all planted (no real row is recorded).** `lineage.py --self-test` (9 new cases: OK on a standing derivation,
+the own-edition catalog check for both catalog arms, refusal 1, the open chain, next_errors, never inherited, the loss
+rule under the chain); `audit_witness_loss.py --self-test` (the writer at 1985: accepted, three refusals, the
+withdrawal; the WITNESS LOSS audit red on an erased chained derivation); `test_reads.py` case 05c (bare_kept and
+unwitnessed leave out the derivation-closed row and keep one whose derivation does not stand); six chained cases in
+`derivation-parity-cases.json`, evaluated by both engines with refusal codes compared, and two new
+`audit_derivations.py --self-test` checks that the chain is load-bearing; the C# fabricated-inventory self-test.
+Reverting `state_of` to the old rule turns the lineage self-test, `test_reads.py` and the parity check red.
+
+**Unchanged real stores.** No row carries a chained derivation (counted: 0 in every edition), the 1985 `--states`
+output is byte-identical before and after, `audit_derivations.py --check` reports no findings over 52 claimed
+derivations, and `lineage_reads.py --check 1985` and `--check 2002` are GREEN.
+
+The design document's sections 1.1, 8.2, 10.2 and 10.6 state the rule; the schema's `next` `$comment` and its
+`$refusals` item 2 too.
+
+**Second mechanism, kb/Work PB5783 option 1: a rule that withholds a property is witnessed by a refusal.** The
+evidence table (`scripts/spec/data/lineage-evidence-kinds.json`) gains `withholding-rules`, one pattern: a CLAUSE or
+PHRASE that "does not imply" something. `EvidenceTable.diagnosable` is now: no `needs-accepting-case` pattern matches
+(that fail-closed heuristic still wins) AND (a diagnosed kind OR a withholding pattern matches); `load` refuses the key
+missing or a pattern without its why. Measured on the held catalogs: a bare "does not imply" matched two rules per
+edition, and at 1985 it would have made the OCCURS DEPENDING ON rule `1985-GR-VI.5.8.4-2` diagnosable (its "This does
+not imply" glosses a rule with observable results), so the pattern names the clause as the subject. With it the new
+key makes exactly `1985-GR-X.4.5.4-3` diagnosable; at 2002 and 2023 none (the EXTERNAL rules say "may be accessed" in
+the same rule). Planted cases in `test_reads.py` case 05d; the row and its refusal case are the registrar's.

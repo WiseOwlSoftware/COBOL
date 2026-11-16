@@ -471,19 +471,28 @@ class EvidenceTable:
     """What a witness of each kind shows (`EVIDENCE_TABLE`, data): a DIAGNOSIS (a refusal test's `refuse-at`, a flagged
     case's `at`) witnesses a rule only when what the rule asks of a compiler IS a diagnosis (its catalog `kind` is one
     of `diagnosed`: a syntax rule or a general format, which a program can violate) or the next-edition rule's facility
-    is DECLINED (its verdict is `declined`, and then the read must state the older text's licence to decline it). Every
-    other rule needs a case that RUNS and passes at the edition."""
+    is DECLINED (its verdict is `declined`, and then the read must state the older text's licence to decline it), or the
+    rule of any kind WITHHOLDS something (`withholds`: "does not imply", whose one observable consequence is the refusal
+    of a program that relies on what is withheld, kb/Work PB5783). Every other rule needs a case that RUNS and passes at
+    the edition."""
     diagnosed: frozenset[str]
     declined: str
-    #: `needs-accepting-case`: the patterns that mark a diagnosed kind's rule text as GRANTING a form ("may be
-    #: specified", "is optional", "in any order"), which no refusal of a forbidden form can witness (review R2-3). A text
-    #: heuristic that fails closed: a match sends the rule to an accepted case.
+    #: `needs-accepting-case`: the patterns that mark a rule text as GRANTING a form ("may be specified", "is optional",
+    #: "in any order"), which no refusal of a forbidden form can witness (review R2-3). A text heuristic that fails
+    #: closed: a match sends the rule to an accepted case, whatever its kind and whatever else it says.
     grants: tuple[re.Pattern[str], ...] = ()
+    #: `withholding-rules`: the patterns that mark a rule text, of any kind, as WITHHOLDING a property from a clause or
+    #: phrase ("does not imply"): no accepted program can tell it was withheld (a local declaration wins either way, for
+    #: EXTERNAL and GLOBAL), so a refusal of a program that relies on it is its witness (kb/Work PB5783, option 1).
+    withholds: tuple[re.Pattern[str], ...] = ()
 
     def diagnosable(self, kind: str, text: str) -> bool:
-        """Can a DIAGNOSIS witness a rule of catalog `kind` whose text is `text`? Only a diagnosed kind that grants
-        nothing the patterns see."""
-        return kind in self.diagnosed and not any(p.search(text) for p in self.grants)
+        """Can a DIAGNOSIS witness a rule of catalog `kind` whose text is `text`? Only one that grants nothing the
+        `needs-accepting-case` patterns see (they fail closed and win) and that is of a diagnosed kind or withholds
+        something a `withholding-rules` pattern sees."""
+        if any(p.search(text) for p in self.grants):
+            return False
+        return kind in self.diagnosed or any(p.search(text) for p in self.withholds)
 
     @classmethod
     def load(cls, path: pathlib.Path = EVIDENCE_TABLE, kinds: Iterable[str] | None = None) -> "EvidenceTable":
@@ -499,7 +508,12 @@ class EvidenceTable:
         if not isinstance(grants, list) or not all(isinstance(g, dict) and g.get("pattern") and (g.get("why") or "").strip()
                                                      for g in grants):
             raise SystemExit(f"{TOOL}: {path.name}: needs-accepting-case lists each pattern with its why")
-        return cls(frozenset(diagnosed), doc["declined-verdict"], tuple(re.compile(g["pattern"], re.I) for g in grants))
+        withholds = doc.get("withholding-rules")
+        if not isinstance(withholds, list) or not withholds or not all(
+                isinstance(g, dict) and g.get("pattern") and (g.get("why") or "").strip() for g in withholds):
+            raise SystemExit(f"{TOOL}: {path.name}: withholding-rules lists each pattern with its why")
+        return cls(frozenset(diagnosed), doc["declined-verdict"], tuple(re.compile(g["pattern"], re.I) for g in grants),
+                   tuple(re.compile(g["pattern"], re.I) for g in withholds))
 
 
 @dataclasses.dataclass(frozen=True)
