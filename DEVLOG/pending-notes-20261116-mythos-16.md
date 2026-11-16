@@ -1,4 +1,4 @@
-## Entry — Five notes and three finding files from the Mythos lane's rulings of 2026-11-16
+## Five notes and three finding files from the Mythos lane's rulings of 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record).
 
