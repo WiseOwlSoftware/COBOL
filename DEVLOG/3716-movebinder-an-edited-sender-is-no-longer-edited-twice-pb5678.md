@@ -1,4 +1,4 @@
-## MoveBinder: an edited sender is no longer edited twice (PB5678), and REWRITE FROM a user-defined function is legal at 2002 (PB5645)
+## Entry 3716 — 2026-11-15 19:41 PST — MoveBinder: an edited sender is no longer edited twice (PB5678), and REWRITE FROM a user-defined function is legal at 2002 (PB5645)
 
 Two mechanisms, both in the MOVE binder's reach.
 
@@ -28,3 +28,4 @@ REWRITE FILE rows), and `MoveBinder.ScreenFromFunctionClass` exempts a user-defi
 `2002-SR-14.8.33.2-9` recorded CONFORMS; `2002-GR-14.8.33.3-6` gains its witness.
 
 Inventory: 2023 GAP 9 to 8, 2002 GAP 1805 to 1803.
+
