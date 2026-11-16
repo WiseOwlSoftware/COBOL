@@ -73,7 +73,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   KEPT records have a witness at 85 for every target and stay closed (written as their own test-ref), 232 have one for
   some targets and 571 for none. The 570 rest on the old comparison audit plus a witness at 85; their read in 1985's own
   terms is still owed, so 835 is a lower bound (844 after the registrar landing records-sample-pb5692: eight KEPT rows
-  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732). 1985 is the earliest edition: its rows are recorded with their own
+  follow their corrected 2023 targets and `1985-GR-XII.2.4-12` is re-recorded PARTIAL for kb/Work PB5732; **671** after the 1985 golden lane's landing golden-1985-2 gave 173 KEPT rows a new case of their own). 1985 is the earliest edition: its rows are recorded with their own
   verdicts, never as new KEPT records (its word-identical pairing is empty). Since the PB5692 ruling of
   2026-11-15 a shared verdict does not close a 1985 row: each of the 1,373 KEPT rows owes a code adjudication at
   `--std 85` (kb/Work PB5683), and until the record-format switch (kb/Work PB5682) shows a verdict's provenance, the
