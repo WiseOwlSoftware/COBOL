@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: l1_external_fd_agreement
 *> rules: [GR-13.4.5.4-2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

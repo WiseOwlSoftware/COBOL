@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_open_not_open_statements
       *> rules: [GR-14.9.27.4-6, GR-14.9.35.4-3, GR-14.9.51.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

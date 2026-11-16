@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-13.3.4.3-2",
+ "rule-digest": "563eed5552d0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Control/ExternalTable.cs#Describe; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#BindFileSection; src/WiseOwl.Cobol.Compiler/Binding/ExternalFileConnectorRules.cs#Check",
+ "test-ref": "conformance:cases/13.4.5-File-description/l1_external_fd_agreement; conformance:cases/13.4.5-File-description/l1_external_fd_report_agreement",
+ "notes": "Own verdict from the read lineage-reads-2002/u-12.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-13.4.5.4-2, witnessed at 2002 by the cases test-ref names. The read: Items a-e identical; 2023 adds only an informative NOTE. FD formats carry the same clauses (2002 writes LINAGE inline). No CD reach. Both pointer witnesses run green at 2002 although their accept lists only 2023. Cited: §2002:13.3.4.3 GR2."
+}

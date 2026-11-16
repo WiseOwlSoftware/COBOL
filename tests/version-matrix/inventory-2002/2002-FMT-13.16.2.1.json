@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.2.1",
+ "rule-digest": "ea9648a82bf0",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#anyLengthClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitAnyLengthClause; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#any-length-clause-2002",
+ "test-ref": "conformance:cases/13.18.2-ANY-LENGTH/any_length_contained",
+ "notes": "Own verdict from the read lineage-reads-2002/u-51.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.2.2, witnessed at 2002 by the cases test-ref names. The read: Format identical (ANY LENGTH). Linkage only, so no CD reach; no 2002-only form. Cited: §2002:13.16.2.2 SR1."
+}

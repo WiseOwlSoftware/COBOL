@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.1.2-5",
+ "rule-digest": "82982ec04a01",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#RepertoireViolation; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#HEX_BODY; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs#Screen; src/WiseOwl.Cobol.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#ParseOperandFragment",
+ "test-ref": "conformance:cases/8.3.3.2-Alphanumeric-literals/w73a-hex-literal-non-hex-digit",
+ "notes": "Own verdict from the read lineage-reads-2002/u-04.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.3.3.2.3-5, witnessed at 2002 by the cases test-ref names. The read: Same sentence; the 2023 rule adds only NOTE 2 (zero-length hexadecimal literals), a 2014 form 2002 forbids by its own SR1 (a separate row). The hexadecimal-digit definition is word-identical in both editions. No CD, debugging or removed-form reach (a lexical rule). The pointer's refusal witness runs at 2002. Cited: §2002:8.3.1.2.1.2 SR5."
+}

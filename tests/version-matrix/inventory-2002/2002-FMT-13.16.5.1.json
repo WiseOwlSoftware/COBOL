@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-13.16.5.1",
+ "rule-digest": "09abbeb9da6e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolData.g4#basedClause; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitBasedClause; src/WiseOwl.Cobol.Compiler/Binding/DataBinder.cs#isBased",
+ "test-ref": "conformance:cases/13.18.5-BASED/based_pointer",
+ "notes": "Own verdict from the read lineage-reads-2002/u-51.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer FMT-13.18.5.2, witnessed at 2002 by the cases test-ref names. The read: Format identical; not admitted in a CD record (SR15), so no communication reach. Cited: §2002:13.14.2 SR15."
+}

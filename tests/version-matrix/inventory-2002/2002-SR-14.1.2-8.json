@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.1.2-8",
+ "rule-digest": "48247b24383f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/RaisingPhrase.cs#Partition; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingTarget",
+ "test-ref": "conformance:cases/14.2-Procedure-division-structure/pb815_raising_factory_interface",
+ "notes": "Own verdict from the read lineage-reads-2002/u-19.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.2.2-8, witnessed at 2002 by the cases test-ref names. The read: class-name-1 renamed object-class-name-1 in 2023; same meaning (a class name; the RAISING diagram is the same). Cited: §2002:14.1.2 SR8."
+}

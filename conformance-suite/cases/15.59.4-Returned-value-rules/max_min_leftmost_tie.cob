@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: max_min_leftmost_tie
 *> rules: [RV-15.59.4-2, FMT-15.59.2, FMT-15.63.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

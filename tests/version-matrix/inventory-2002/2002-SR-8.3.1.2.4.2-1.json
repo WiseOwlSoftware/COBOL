@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.3.1.2.4.2-1",
+ "rule-digest": "77c515a9878d",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#LengthViolation; src/WiseOwl.Cobol.Frontend/Parsing/LiteralScreen.cs; src/WiseOwl.Cobol.Frontend/Common/CobolLiteral.cs#MaxPositions",
+ "test-ref": "conformance:cases/8.3.1.2.4@2002-NATIONAL-LITERALS/g2002_national_literal_forms",
+ "notes": "Length >0 and <=160 national positions: N\"AB\" (2) and a 160-position N literal continued with the floating indicator \"- (§2002:6.1.2) accepted (N160(80:2)=AB, N160(160:1)=B, LENGTH 160, lines 4-5); N\"\"/NX'' (0) and 161 refused.. cobol.exe (pinned dc1f2dcce8) --std 2002 --run: MATCH; zero twins COBOL0900; 161 twin COBOL0814 'is 161 national character positions long'. Equals derivation."
+}

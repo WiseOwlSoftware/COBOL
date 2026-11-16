@@ -1,0 +1,1618 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-20 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-20",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-GR-14.1.3-13",
+   "2002-GR-14.1.3-2",
+   "2002-GR-14.1.3-6",
+   "2002-GR-14.1.3-9",
+   "2002-GR-14.6.8.2-1",
+   "2002-GR-14.6.8.2-2",
+   "2002-GR-14.6.8.2-3",
+   "2002-GR-14.6.8.2-4",
+   "2002-SR-14.8.1.2-1",
+   "2002-SR-14.8.1.2-2",
+   "2002-SR-14.8.1.2-3",
+   "2002-GR-14.8.1.3-1",
+   "2002-GR-14.8.1.3-11",
+   "2002-GR-14.8.1.3-13",
+   "2002-GR-14.8.1.3-18",
+   "2002-GR-14.8.1.3-2",
+   "2002-GR-14.8.1.3-22",
+   "2002-GR-14.8.1.3-24",
+   "2002-GR-14.8.1.3-25",
+   "2002-GR-14.8.1.3-3",
+   "2002-GR-14.8.1.3-4",
+   "2002-GR-14.8.1.3-5",
+   "2002-SR-14.8.2.2-2",
+   "2002-SR-14.8.2.2-6",
+   "2002-GR-14.8.2.3-1"
+  ],
+  "pointers": {
+   "2002-GR-14.1.3-13": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.2.3-13",
+    "similarity": 0.997
+   },
+   "2002-GR-14.1.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.2.3-2",
+    "similarity": 0.988
+   },
+   "2002-GR-14.1.3-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.2.3-6",
+    "similarity": 0.997
+   },
+   "2002-GR-14.1.3-9": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.2.3-9",
+    "similarity": 0.942
+   },
+   "2002-GR-14.6.8.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.7.9.3-1",
+    "similarity": 0.972
+   },
+   "2002-GR-14.6.8.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.7.9.3-2",
+    "similarity": 0.989
+   },
+   "2002-GR-14.6.8.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.7.9.3-3",
+    "similarity": 0.927
+   },
+   "2002-GR-14.6.8.2-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.7.9.3-4",
+    "similarity": 0.942
+   },
+   "2002-SR-14.8.1.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.1.3-1",
+    "similarity": 0.95
+   },
+   "2002-SR-14.8.1.2-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "SR-14.9.1.3-2",
+    "similarity": 0.668
+   },
+   "2002-SR-14.8.1.2-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.1.3-3",
+    "similarity": 0.941
+   },
+   "2002-GR-14.8.1.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-1",
+    "similarity": 0.967
+   },
+   "2002-GR-14.8.1.3-11": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-11",
+    "similarity": 0.997
+   },
+   "2002-GR-14.8.1.3-13": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-13",
+    "similarity": 0.993
+   },
+   "2002-GR-14.8.1.3-18": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-18",
+    "similarity": 0.996
+   },
+   "2002-GR-14.8.1.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-2",
+    "similarity": 0.941
+   },
+   "2002-GR-14.8.1.3-22": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-22",
+    "similarity": 0.97
+   },
+   "2002-GR-14.8.1.3-24": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.1.4-24",
+    "similarity": 0.687
+   },
+   "2002-GR-14.8.1.3-25": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "GR-14.9.1.4-25",
+    "similarity": 0.67
+   },
+   "2002-GR-14.8.1.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-3",
+    "similarity": 0.97
+   },
+   "2002-GR-14.8.1.3-4": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-4",
+    "similarity": 0.995
+   },
+   "2002-GR-14.8.1.3-5": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.1.4-5",
+    "similarity": 0.944
+   },
+   "2002-SR-14.8.2.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.2.3-2",
+    "similarity": 0.977
+   },
+   "2002-SR-14.8.2.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "SR-14.9.2.3-6",
+    "similarity": 0.934
+   },
+   "2002-GR-14.8.2.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "GR-14.9.2.4-1",
+    "similarity": 0.968
+   }
+  }
+ },
+ "read": {
+  "slice": "u-20",
+  "seed": null,
+  "probe-folder": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20",
+  "notes": "Compiler: pinned E:/COBOL-wt/coderead85-tree-d (commit 24372b7b17, PR #1704). The pointer rows' conformance cases were all run at --std 2002 with probes-u-20/run.py; the log is probes-u-20/cases-2002.txt. Every citation below was checked with scripts/spec/cite.py --check (probes-u-20/cites.py, results cites.json; the definition citation re-checked as §2002:4). AcceptDifferentialTests compile at dialect 85 by default (some at 2023) and HostEntryTests at 2023 (NonCobolElement.CompileCobol dialect = 2023): neither runs at 2002, so for those rows the probes here are what shows the behaviour at 2002. Communication-section reach is judged as the earlier p-15, p-16 and q-24 reads did: an identifier operand of a 2002 statement may reference a data item of a record under a CD (§2002:A.1.1.2), and a CALL argument or RETURNING item may be one by name (§2002:14.8.4.2 SR3 and SR7).",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.1.3-13",
+    "to": [
+     "GR-14.2.3-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.1.3 General rules (procedure division structure), GR13",
+    "clause-2023": "14.2.3 General rules, GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.2",
+      "quote": "No requirement is placed on an implementation to support this interaction",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "documentation of the restrictions and mechanisms for each supported non-COBOL language product (2002 B.1 item 108, conditionally required; 3.1.2 makes the interaction itself optional)",
+     "the documented mechanism, for a program compiled at --std 2002"
+    ],
+    "evidence-2002": {
+     "documentation": "covered by docs/conformance DOC-A.1-141 (the 2023 A.1 item 141 is 2002 B.1 item 108, same words): .NET languages as the activating element only, through the generated Cobol.<assembly>.<name>.Call / Cancel",
+     "mechanism at 2002": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/host_entry.cob compiled --std 2002 and called from a .NET host (host_entry.ps1, PowerShell 7.7 on .NET 11): output host_entry-2002.out 'RET=42 N=21 X=HOSTD' (positional ref parameters, returned value). The row's HostEntryTests compile at 2023 only."
+    },
+    "reason": "Word-identical except 'NOTE' vs 'NOTE 2'. The rule is a documentation requirement on the implementor; 2002 states the same item in B.1 (108) and makes the non-COBOL interaction optional (3.1.2) exactly as 2023 does. The documented .NET host mechanism works for a 2002-compiled program.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/host_entry.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-2",
+    "to": [
+     "GR-14.2.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.1.3 GR2",
+    "clause-2023": "14.2.3 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR2",
+      "quote": "The correspondence between the arguments and the formal parameters is established on a positional basis",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR2",
+      "quote": "The correspondence between the arguments and the formal parameters is established on a positional basis",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.1.3 GR2",
+      "quote": "are specified in 14.7, Conformance for parameters and returning items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.4.3 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, or linkage section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "positional correspondence for the five argument sources: CALL USING, INVOKE USING, inline method invocation, function reference, implicit SET property method",
+     "arguments that are data items of the file, working-storage, local-storage, linkage AND communication section (2002 CALL SR3)"
+    ],
+    "evidence-2002": {
+     "five sources, non-CD": "covered by cases/14.2-Procedure-division-structure/l1c22_call_positional_formals and l1c22_positional_formals_oo_func, both PASS at --std 2002 (probes-u-20/cases-2002.txt): F=, I=, N=, P= BBBAAA/BBB",
+     "CD-record argument": "not shown by the 2023 row; covered by probe probes-u-20/cd_ops.cob at 2002 (cd_ops-2002.out: CALL U20CDS USING BY CONTENT CX BY REFERENCE CK RETURNING CR, all CD items -> 'CALLEE L-X [ABCDEFGHIJ] L-K +0021')"
+    },
+    "reason": "Word-identical but for the cross-reference (2002 14.7 vs 2023 14.8.2/14.8.3; those conformance rules are their own rows). The argument list is the same five sources. In 2002 an argument may be a communication-section item (CALL SR3 names that section; 2023 SR3 does not), which the 2023 row cannot show. Probe correct at 2002.",
+    "needs": "a 2002 witness for a communication-section argument (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-6",
+    "to": [
+     "GR-14.2.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.1.3 GR6 (with 14.5.5 Results of runtime element execution)",
+    "clause-2023": "14.2.3 GR6 (with 14.6.5)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR6",
+      "quote": "for the result that is returned to the activating element according to 14.5.5, Results of runtime element execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR6",
+      "quote": "for the result that is returned to the activating element according to 14.6.5, Results of runtime element execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.5.5",
+      "quote": "the result is placed in the data item referenced by that RETURNING phrase of that activating statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR7",
+      "quote": "Identifier-3 shall reference a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "program RETURNING via CALL ... RETURNING; function RETURNING via a function reference; method RETURNING via INVOKE ... RETURNING and inline invocation",
+     "a CALL RETURNING item in the communication section (2002 CALL SR7)"
+    ],
+    "evidence-2002": {
+     "program": "covered by cases/8.3.2.2-User-defined-words/pb237_program_prototype PASS at 2002 (CALL SCALE-IT ... RETURNING WS-OUT -> SCALED =0004)",
+     "function, INVOKE, inline": "covered by cases/14.2-Procedure-division-structure/l1c22_positional_formals_oo_func PASS at 2002",
+     "CD RETURNING item": "not shown by the 2023 row; covered by probe probes-u-20/cd_ops.cob at 2002: CALL ... RETURNING CR (CD item) -> 'CR +0042'"
+    },
+    "reason": "Identical but for the cross-reference number; 2002 14.5.5 and 2023 14.6.5 are word-identical. In 2002 the activating CALL's RETURNING item may be a communication-section item (SR7), which the 2023 row cannot show. Probe correct.",
+    "needs": "a 2002 witness for a CALL RETURNING item in the communication section (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.1.3-9",
+    "to": [
+     "GR-14.2.3-9"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.1.3 GR9",
+    "clause-2023": "14.2.3 GR9",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR9",
+      "quote": "where the maximum length is used if the argument is described as a variable-occurrence data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR9",
+      "quote": "a dynamic-length elementary item of the same category and described with the same dynamic-length-structure-name as the formal parameter",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.4.2 SR3",
+      "quote": "a data item defined in the file, working-storage, local-storage, linkage, or communication section",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "BY CONTENT to a program with no program-specifier and no NESTED: record of the argument's length (maximum for a variable-occurrence argument), moved without conversion",
+     "BY CONTENT to a prototyped or NESTED program, a method or a function: ANY LENGTH formal (argument's category, usage, length) or the formal's description, filled by COMPUTE / SET / MOVE",
+     "arguments in the communication section"
+    ],
+    "evidence-2002": {
+     "the legs, non-CD": "covered by pb640_call_argument_landing_checked_2002, pb640_call_argument_landing_legs_2002, pb640_invoke_argument_landing_checked_2023, pb288, pb663, pb970_image_carried_binary_packed_argument, pb970_pointer_by_content_storage_image, pb2549, pb2587: all PASS at 2002; pb970-pointer-by-content-prototype-alnum-formal refused COBOL1688 at 2002 and 2023 alike (probes-u-20/cases-2002.txt). pb640 legs_2014/legs_2023 are refused at 2002 (DYNAMIC LENGTH, COBOL0900): the 2023-only bullet",
+     "variable-occurrence argument": "covered by probe probes-u-20/bycontent_odo.cob: identical at 2002 and 2023 (callee L 'AB   ' LEN 5; caller unchanged)",
+     "CD argument": "covered by probe probes-u-20/cd_ops.cob: BY CONTENT CX (CD item) -> callee sees ABCDEFGHIJ, its MOVE of Z's leaves the caller's CX unchanged"
+    },
+    "reason": "2023 inserts the DYNAMIC LENGTH bullet (2014+), a widening; the rest is word-identical, including the SET classes (index, object, pointer). In 2002 the argument may be a communication-section item, which the 2023 row cannot show. Probes correct.",
+    "needs": "a 2002 witness for a BY CONTENT communication-section argument (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob, bycontent_odo.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": "2023 adds the dynamic-length elementary formal bullet (DYNAMIC LENGTH is not in 2002)"
+   },
+   {
+    "rule-id": "2002-GR-14.6.8.2-1",
+    "to": [
+     "GR-14.7.9.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.6.8.2 RETRY phrase GR1",
+    "clause-2023": "14.7.9.3 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.6.8.2 GR1",
+      "quote": "If arithmetic-expression-1 does not evaluate to an integer, the value of arithmetic-expression-1 is rounded up to the next whole number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR1",
+      "quote": "If arithmetic-expression-1 does not evaluate to an integer, the value of arithmetic-expression-1 is rounded up to the next whole number",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETRY n TIMES on the 2002 statements that take it (DELETE record, OPEN, READ, REWRITE, START, WRITE): re-attempts after the initial failure, non-integer count rounded up",
+     "arithmetic-expression-1 operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "count, full value": "covered by cases/14.7.9-RETRY/pb1033_integer_operand_full_value PASS at 2002 (OPEN INPUT RETRY 4294967297 TIMES)",
+     "count against holders": "covered by probe probes-u-20/retry_own.cob (2002: RETRY 2 TIMES / 1.5 TIMES against this run unit's hold -> 61; same at 2023) and retry_xrun.py (2002: RETRY 4294967297 TIMES waits while another run unit holds, '00' and reads H1 after release); unit CobolFileLockTests are edition-free runtime",
+     "CD operand": "not shown by the 2023 row; covered by probe probes-u-20/retry_cd.cob (2002: RETRY CNT TIMES with CNT a CD item: -1 -> 61, 3 while held -> 61, 3 after release -> 00)"
+    },
+    "reason": "'MSCS' vs 'mass storage control system' only; format identical. 2023 adds RETRY on DELETE FILE (2014+), a widening. In 2002 the count's identifiers may be communication-section items, which the 2023 row cannot show. Probes correct.",
+    "needs": "a 2002 witness for a RETRY count read from a communication-section item (candidate: probes-u-20/retry_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_cd.cob, retry_own.cob, retry_xrun.py)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_cd.cob",
+    "widening": "2023 adds the RETRY phrase of DELETE FILE"
+   },
+   {
+    "rule-id": "2002-GR-14.6.8.2-2",
+    "to": [
+     "GR-14.7.9.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.6.8.2 GR2",
+    "clause-2023": "14.7.9.3 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.6.8.2 GR2",
+      "quote": "The implementor shall specify the maximum meaningful value of arithmetic-expression-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR2",
+      "quote": "The implementor shall specify the maximum meaningful value of arithmetic-expression-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "maximum meaningful time-out value and internal representation",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "implementor's n, m, maximum meaningful value and retry frequency (2002 B.1 item 133, documented)",
+     "RETRY FOR n SECONDS behaviour under those values",
+     "arithmetic-expression-2 operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "documentation": "covered by DOC-A.1-166 (n = 1, m = 0, maximum 0: no retries in a zero-length period); the 2002 item is B.1 133",
+     "behaviour": "covered by probes probes-u-20/retry_own.cob (2002: FOR 1 SECONDS and FOR 0 SECONDS -> 61 at once) and retry_xrun.py (2002: FOR 30 SECONDS against another run unit's hold returns 61 within 4 s, the documented maximum 0)",
+     "CD operand": "not shown by the 2023 row; covered by probe probes-u-20/retry_cd.cob (FOR SEC SECONDS, SEC a CD item = 0 -> 61)"
+    },
+    "reason": "'MSCS' vs 'mass storage control system' only. The implementor values are documented once and apply at every edition. In 2002 the seconds operand may be a communication-section item, which the 2023 row cannot show. Probes match the documentation.",
+    "needs": "a 2002 witness for a RETRY FOR SECONDS operand from a communication-section item (candidate: probes-u-20/retry_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_cd.cob, retry_xrun.py)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_cd.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.6.8.2-3",
+    "to": [
+     "GR-14.7.9.3-3"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.6.8.2 GR3",
+    "clause-2023": "14.7.9.3 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.6.8.2 GR3",
+      "quote": "If the FOREVER phrase is specified, the MSCS shall attempt to gain access to a locked resource until the input-output operation has been completed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR3",
+      "quote": "If the FOREVER phrase is specified, the mass storage control system shall attempt to gain access to a locked resource until the input-output operation has been completed",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "RETRY FOREVER on the 2002 statements: wait for a holder in another run unit until the operation completes",
+     "a hold of this run unit's own other connector (the documented deadlock handling, 2002 B.1 item 85 = DOC-A.1-109)"
+    ],
+    "evidence-2002": {
+     "outside holder": "covered by unit CobolFileLockTests.RetryForever_AgainstAHolderOutsideTheRunUnit_WaitsUntilTheOperationCompletes (edition-free runtime) and, for a 2002-compiled program, probe probes-u-20/retry_xrun.py (retry_xrun-2002.out: waiter still running after 4 s while held; after release OPEN 00, READ 00 H1)",
+     "own run-unit hold": "covered by probe probes-u-20/retry_own.cob at 2002 (OPEN INPUT RETRY FOREVER -> 61 at once; after CLOSE of the holder -> 00; READ RETRY FOREVER after UNLOCK -> 00 R1), identical at 2023"
+    },
+    "reason": "Only 'MSCS' is spelt out in 2023. No operand. The row's conformance witness pb3340_retry_forever_own_run_unit_hold does not compile at 2002 (COMMIT / APPLY COMMIT / DELETE FILE are later editions), but its runtime unit tests are edition-free and the probes show the same behaviour for 2002-compiled programs.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_xrun.py",
+    "widening": "2023 adds DELETE FILE ... RETRY"
+   },
+   {
+    "rule-id": "2002-GR-14.6.8.2-4",
+    "to": [
+     "GR-14.7.9.3-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.6.8.2 GR4 (with 2002 9.1.12, I-O status, not yet catalogued)",
+    "clause-2023": "14.7.9.3 GR4 (with 9.1.13)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.6.8.2 GR4a",
+      "quote": "the appropriate value is placed in the I-O status associated with the file connector, and execution proceeds as indicated for unsuccessful execution",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR4a",
+      "quote": "the appropriate value is placed in the I-O status associated with the file connector according to the rules for 9.1.13, I-O status",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to an attempt to access a record that is currently locked by another file connector",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) no RETRY, or a count/seconds that evaluates negative or zero: unsuccessful with the conflict's status (61 file sharing, 51 record locked: the same values in 2002 9.1.12 and 2023 9.1.13)",
+     "b) re-attempts per GR1-GR3; success as if no conflict, else unsuccessful",
+     "count or seconds operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "a)": "covered by probe probes-u-20/retry_own.cob at 2002: OPEN no RETRY / RETRY 0 TIMES / RETRY -1 TIMES / FOR 0 SECONDS -> 61; READ no RETRY -> 51",
+     "b)": "covered by retry_own.cob (RETRY 2 TIMES -> 61 / READ RETRY 2 TIMES -> 51 while held) and retry_xrun.py (FOREVER and 4294967297 TIMES succeed with 00 after another run unit releases, the record then read)",
+     "CD operand": "not shown by the 2023 row; covered by retry_cd.cob (CNT = -1 from a CD item -> 61)"
+    },
+    "reason": "2023 adds 'according to the rules for 9.1.13' and spells out MSCS; the statuses for the two conflicts are 51 and 61 in both editions' I-O status clauses. The row's conformance witness pb3340_sequential_holding_exception_paths does not compile at 2002 (COMMIT); probes show a) and b) at 2002. In 2002 the evaluated operands may be communication-section items, not shown by the 2023 row.",
+    "needs": "a 2002 witness for GR4 a) and b) on a 2002-compilable program (candidates: probes-u-20/retry_own.cob, retry_cd.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_own.cob, retry_cd.cob, retry_xrun.py)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_own.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-1",
+    "to": [
+     "SR-14.9.1.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.1.2 ACCEPT syntax rules, SR1",
+    "clause-2023": "14.9.1.3 SR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR1",
+      "quote": "Identifier-1 shall reference neither a strongly-typed group item nor a data item of class index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR1",
+      "quote": "Identifier-1 shall reference neither a strongly-typed group item nor a data item of class index, message-tag, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 (hardware) identifier-1: refuse strongly-typed group, class index, object, pointer (incl. program-pointer)",
+     "the same receivers when they are communication-section items"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb139-accept-strong-group, -index-name, -object-receiver, -pointer-receiver: refused COBOL0818/COBOL1637 at 2002 as at 2023 (cases-2002.txt); probe acc_temporal_bad.cob (USAGE INDEX, POINTER, PROGRAM-POINTER refused COBOL0818 at 2002)",
+     "CD": "not shown by the 2023 row; probe cd_neg.cob: a USAGE INDEX item under a CD refused COBOL0818; cd_strong.cob: a strongly-typed item under a CD refused (COBOL1532/5991 and COBOL0818). A level-01 pointer record under a CD cannot be declared at 2002 (the earlier p-16 finding, COBOL0899), so that leg is not shown"
+    },
+    "reason": "2023 adds message-tag (a 2023-only class): a widening. Format 1 is identical. In 2002 identifier-1 may be a communication-section item, which the 2023 row cannot show; probes correct for the CD index item.",
+    "needs": "a 2002 witness for a communication-section receiver (candidate: probes-u-20/cd_neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_neg.cob, acc_temporal_bad.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_neg.cob",
+    "widening": "2023 adds class message-tag"
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-2",
+    "to": [
+     "SR-14.9.1.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.2 SR2 (with 12.2.6.2 SPECIAL-NAMES SR7)",
+    "clause-2023": "14.9.1.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR2",
+      "quote": "shall be specified in the SPECIAL-NAMES paragraph of the environment division and shall be associated with a hardware device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR2",
+      "quote": "identified in the operating environment as a hardware or software device capable of providing data to the program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "The implementor may specify additional restrictions on the use of mnemonic-names that reference specific device-names",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "mnemonic-name-1 declared in SPECIAL-NAMES (device-name IS mnemonic-name-3)",
+     "associated with a device; the implementor's further restriction to an input-capable device (2002 SPECIAL-NAMES SR7)"
+    ],
+    "evidence-2002": {
+     "undeclared": "covered by l1-accept-from-undeclared-mnemonic, refused COBOL0817 at 2002",
+     "output-only device": "covered by l1-accept-from-output-only-device, refused COBOL0817 at 2002; the restriction is documented as SR7's additional restriction in DOC-A.1-189, and 2002 12.2.6.2 SR7 grants it in the same words",
+     "positive": "covered by probe acc_dev.cob at 2002: ACCEPT X6 FROM INDEV (SYSIN) -> [BXYZ  ]"
+    },
+    "reason": "2002 says 'associated with a hardware device'; 2023 'an implementor-defined device-name ... capable of providing data'. 2002 does not require input capability in this rule, but its SPECIAL-NAMES SR7 lets the implementor restrict mnemonic-names of specific device-names, and DOC-A.1-189 states exactly that restriction, so the COBOL0817 refusal is licensed at 2002. The implementor's devices are the one table at every edition. No operand reaches a CD.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-3",
+    "to": [
+     "SR-14.9.1.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.1.2 SR3",
+    "clause-2023": "14.9.1.3 SR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR3",
+      "quote": "Identifier-2 shall not reference a data item of class alphabetic, boolean, index, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR3",
+      "quote": "Identifier-2 shall not reference a data item of class alphabetic, boolean, index, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 2 (chronological) identifier-2: refuse class alphabetic, boolean, index, object, pointer",
+     "the same receivers when they are communication-section items"
+    ],
+    "evidence-2002": {
+     "alphabetic, boolean": "covered by pb139-accept-alphabetic-temporal, pb139-accept-boolean-temporal: refused COBOL0818 at 2002",
+     "index, object, pointer": "not in the row's witnesses; covered by probe acc_temporal_bad.cob at 2002 (USAGE POINTER, INDEX, OBJECT REFERENCE, PROGRAM-POINTER FROM DATE/TIME/DAY/DAY-OF-WEEK all refused COBOL0818)",
+     "CD": "covered by probe cd_neg.cob: ACCEPT CI FROM TIME, CI a USAGE INDEX item under a CD, refused COBOL0818; cd_ops.cob: a numeric CD item accepts TIME"
+    },
+    "reason": "2023 adds message-tag (2023-only): a widening. Format 2 is identical (named chronological vs temporal). The row's witnesses show only alphabetic and boolean; the index, object and pointer legs and the communication-section receiver are shown at 2002 by probes only.",
+    "needs": "a 2002 witness for the index/object/pointer temporal receivers and for a communication-section receiver (candidates: probes-u-20/acc_temporal_bad.cob, cd_neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_temporal_bad.cob, cd_neg.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_temporal_bad.cob",
+    "widening": "2023 adds class message-tag"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-1",
+    "to": [
+     "GR-14.9.1.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.1.3 GR1",
+    "clause-2023": "14.9.1.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR1",
+      "quote": "The ACCEPT statement causes the transfer of data from the hardware device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR1",
+      "quote": "The ACCEPT statement causes the transfer of data from the device",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1: data from the device replaces identifier-1, with the implementor's conversion (alphanumeric, numeric, boolean, float receivers)",
+     "identifier-1 a communication-section item"
+    ],
+    "evidence-2002": {
+     "non-CD": "the row's AcceptDifferentialTests compile at dialect 85/2023, not 2002; covered at 2002 by probe acc_dev.cob (acc_dev-2002.out identical to acc_dev-2023.out: NUM 0043, BOOL 101, FLT 12.5, alphanumeric left-aligned)",
+     "CD": "covered by probe cd_ops.cob at 2002: ACCEPT into CD items CX, CY, CW, CN ('CD ACCEPT NUM 0043')"
+    },
+    "reason": "'hardware device' vs 'device' (2023 admits software devices; the implementor's devices are the same table). In 2002 identifier-1 may be a communication-section item, which the 2023 row cannot show; probes correct.",
+    "needs": "a 2002 witness for a communication-section receiver (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob, cd_ops.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": "2023 'device' includes software devices"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-11",
+    "to": [
+     "GR-14.9.1.4-11"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR11",
+    "clause-2023": "14.9.1.4 GR11",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR11",
+      "quote": "TIME is based on the elapsed time since midnight on a 24-hour clock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR11",
+      "quote": "TIME is based on the elapsed time since midnight on a 24-hour clock",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the TIME conceptual item: eight digits hhmmsscc, ranges per the table, LEAP-SECOND directive dependency"
+    ],
+    "evidence-2002": {
+     "TIME": "the row's AcceptDifferentialTests compile at 85; covered at 2002 by probe acc_dev.cob (ACCEPT T8 FROM TIME: hours, minutes, hundredths in range; identical at 2023)"
+    },
+    "reason": "Word-identical (table typography only). The rule describes the conceptual item; the receiver is governed by GR6 (MOVE rules), so no operand of this rule reaches a CD. The behaviour is shown at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-13",
+    "to": [
+     "GR-14.9.1.4-13"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR13 (format 3, screen)",
+    "clause-2023": "14.9.1.4 GR13",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR13",
+      "quote": "provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR13",
+      "quote": "provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (processor-dependent; support not claimed need not be implemented; absence documented, use diagnosed)",
+    "scope-2002": [
+     "initial values of screen items for an ACCEPT screen statement (the declined screen facility)"
+    ],
+    "evidence-2002": {
+     "declined at 2002": "covered by wiseowl/cases/14.9.1-ACCEPT/a42-accept-screen-minimal and a42-accept-screen-positioned: refused COBOL1560 (screen section) and COBOL1707 (ACCEPT format 3) at 2002 (cases-2002.txt); docs/CONFORMANCE.md states screen handling not claimed"
+    },
+    "reason": "Same text (table header 'Figurative constant' vs 'constant'). The 2023 row is DOCUMENTED-NON-SUPPORT under 2023's optional-element licence; 2002 gives its own licence: the screen section and the screen format of ACCEPT are processor-dependent (B.3 item 1), and 3.1.5 lets an implementation not claim them provided the absence is documented and their use is diagnosed. The compiler refuses them at 2002 with diagnostics. Note: the diagnostics and CONFORMANCE.md cite the 2023 licence (A.4.2 / 4.2.7), not 2002 B.3.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-18",
+    "to": [
+     "GR-14.9.1.4-18"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR18 (screen)",
+    "clause-2023": "14.9.1.4 GR18",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR18a",
+      "quote": "is the start of the first input field declared within screen-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR18a",
+      "quote": "is the start of the first input field described within screen-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "scope-2002": [
+     "initial cursor position of an ACCEPT screen statement, with or without the CURSOR clause (both declined)"
+    ],
+    "evidence-2002": {
+     "declined at 2002": "covered by a42-accept-screen-minimal / -positioned refused COBOL1560/COBOL1707 at 2002"
+    },
+    "reason": "'declared' vs 'described' only. Screen facility processor-dependent in 2002 (B.3 item 1; the CURSOR clause is in the same item), declined with diagnostics at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-2",
+    "to": [
+     "GR-14.9.1.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR2",
+    "clause-2023": "14.9.1.4 GR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR2",
+      "quote": "The implementor shall define, for each hardware device, the size of a data transfer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR2",
+      "quote": "The implementor shall define, for each device, the size of a data transfer",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the documented transfer size of each input device (CONSOLE, SYSIN: one 80-character record)"
+    ],
+    "evidence-2002": {
+     "documentation": "covered by DOC-A.1-5",
+     "behaviour": "covered at 2002 by probe acc_dev.cob: a 100-position receiver takes record 1 at position 1 and record 2 at position 81 ('WIDE [1][2]'), an 80-position receiver takes one record; identical at 2023. The row's AcceptDifferentialTests run at 85, AcceptSourceTests are runtime unit tests"
+    },
+    "reason": "'hardware device' vs 'device' only; the implementor's device table is the same at every edition. No operand.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-22",
+    "to": [
+     "GR-14.9.1.4-22"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR22 (screen)",
+    "clause-2023": "14.9.1.4 GR22",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR22",
+      "quote": "If two or more of these elementary screen items overlap, the EC- SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR22",
+      "quote": "If two or more of these elementary screen items overlap, the EC-SCREEN-FIELD-OVERLAP exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "scope-2002": [
+     "transfer from TO/USING screen items to their data items (NUMVAL, NUMVAL-C, MOVE), EC-SCREEN-FIELD-OVERLAP (declined facility; a TO/USING target in the communication section is covered by the same decline)"
+    ],
+    "evidence-2002": {
+     "declined at 2002": "covered by a42-accept-screen-minimal / -positioned refused COBOL1560/COBOL1707 at 2002"
+    },
+    "reason": "Word-identical (code typography). Screen facility processor-dependent in 2002 and declined with diagnostics at 2002.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-24",
+    "to": [
+     "GR-14.9.1.4-24"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR24 (screen; ON EXCEPTION exists only in format 3)",
+    "clause-2023": "14.9.1.4 GR24",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR24",
+      "quote": "If control is transferred to imperative-statement-2, execution continues according to the rules for each statement specified in imperative-statement-2",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR24",
+      "quote": "If control is returned from imperative-statement-2, control is then transferred to the end of the ACCEPT statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "scope-2002": [
+     "NOT ON EXCEPTION flow of an ACCEPT screen statement (the only 2002 ACCEPT with exception phrases)"
+    ],
+    "evidence-2002": {
+     "declined at 2002": "covered by a42-accept-screen-positioned and a42-accept-screen-exception refused COBOL1560/COBOL1707 at 2002 (the exception phrase named in COBOL1707)"
+    },
+    "reason": "2023 rewords the flow-of-control sentences (control 'returned from' vs 2002's explicit-transfer wording); the words differ but 2002 formats 1 and 2 carry no exception phrase, so the rule governs only the screen format, which 2002 makes processor-dependent and the compiler declines with diagnostics at 2002. The differing words change nothing a 2002 program can show on this implementation.",
+    "probe": null,
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-25",
+    "to": [
+     "GR-14.9.1.4-25"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR25 (screen)",
+    "clause-2023": "14.9.1.4 GR25",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR25b",
+      "quote": "If the ON EXCEPTION phrase is not specified in the ACCEPT statement and an applicable Declarative exists, control is transferred to that Declarative",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR25b",
+      "quote": "if there is no applicable WHEN phrase and there is an applicable declarative, control is transferred to that declarative",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5",
+    "scope-2002": [
+     "ON EXCEPTION / declarative / fatal EC-DATA-INCOMPATIBLE flow of an unsuccessful or function-key-terminated ACCEPT screen statement"
+    ],
+    "evidence-2002": {
+     "declined at 2002": "covered by a42-accept-screen-minimal / -positioned refused COBOL1560/COBOL1707 at 2002"
+    },
+    "reason": "2023 adds the exception-checking PERFORM WHEN arm (2023-only) and rewords a); 2002 refers to its 14.5.12.1.2 fatal conditions. The rule governs only the screen format (the cause list is screen-specific: function key, EC-SCREEN, the GR21 screen EC-DATA-INCOMPATIBLE), which is processor-dependent in 2002 and declined with diagnostics at 2002.",
+    "probe": null,
+    "widening": "2023 adds the exception-checking PERFORM WHEN arm"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-3",
+    "to": [
+     "GR-14.9.1.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.1.3 GR3",
+    "clause-2023": "14.9.1.4 GR3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR3",
+      "quote": "If a hardware device is capable of transferring data of the same size as the receiving data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR3",
+      "quote": "If a device is capable of transferring data of the same size as the receiving data item",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "exact-size transfer into the receiving item (an 80-position receiver)",
+     "the receiver a communication-section item"
+    ],
+    "evidence-2002": {
+     "non-CD": "row tests run at 85 (AcceptDifferentialTests); covered at 2002 by probe acc_dev.cob ('EXACT [AAA][ZZZ]', one 80-character record)",
+     "CD": "covered at 2002 by probe cd_ops.cob (CD receivers); an exact 80-position CD receiver is not separately shown"
+    },
+    "reason": "'hardware device' vs 'device' only. In 2002 the receiving item may be a communication-section item, which the 2023 row cannot show.",
+    "needs": "a 2002 witness for a communication-section receiver (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob, cd_ops.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-4",
+    "to": [
+     "GR-14.9.1.4-4"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.1.3 GR4",
+    "clause-2023": "14.9.1.4 GR4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR4b",
+      "quote": "If identifier-1 references a zero-length item, all the characters of the transferred data are ignored",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR4b",
+      "quote": "If identifier-1 references a zero-length item, all the characters of the transferred data are ignored",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "a) short transfer stored left-aligned, additional data requested",
+     "b) long transfer: leftmost characters kept, rest ignored; zero-length receiver (an OCCURS 0 TO n DEPENDING group at 0) ignores all",
+     "the receiver a communication-section item"
+    ],
+    "evidence-2002": {
+     "a), b)": "row tests run at 85 / unit; covered at 2002 by probe acc_dev.cob ('GR4A [ABC       ]', 'GR4B [ABC][XY]', 'WIDE [1][2]')",
+     "zero-length": "covered at 2002 by probe acc_zero.cob ('ZERO [BBBB ] LEN 000000000': the record consumed, the next ACCEPT reads the next record)",
+     "CD": "covered at 2002 by probe cd_ops.cob ('CD ACCEPT SHORT [ABC       ]', 'CD ACCEPT LONG [ABC]', 'CD ACCEPT WIDE [1][2]')"
+    },
+    "reason": "'hardware device' vs 'device' only. In 2002 the receiver may be a communication-section item, which the 2023 row cannot show; probes correct.",
+    "needs": "a 2002 witness for a communication-section receiver (candidate: probes-u-20/cd_ops.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob, acc_dev.cob, acc_zero.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-5",
+    "to": [
+     "GR-14.9.1.4-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.1.3 GR5",
+    "clause-2023": "14.9.1.4 GR5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM option is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM phrase is not specified",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "the documented default device of a FROM-less format 1 ACCEPT (standard input)"
+    ],
+    "evidence-2002": {
+     "default device": "documented (DOC-A.1-2 per DOC-A.1-189); covered at 2002 by probe acc_dev.cob (FROM-less ACCEPT X10 reads standard input: 'GR4A [ABC       ]'); the row's AcceptDifferentialTests run at 85"
+    },
+    "reason": "'option' vs 'phrase' only. No operand.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/acc_dev.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.2.2-2",
+    "to": [
+     "SR-14.9.2.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.2.2 ADD syntax rules, SR2",
+    "clause-2023": "14.9.2.3 SR2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR2",
+      "quote": "Identifier-1 and identifier-2 shall reference a numeric data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.3 SR2",
+      "quote": "Identifier-1 and identifier-2 shall reference numeric data items",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 identifier-1 (addend) and identifier-2 (in-place receiver), format 2 identifier-1 and identifier-2 (addends): numeric only",
+     "those operands as communication-section items"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by da6-alphanumeric-numeric-operand, da6-group-numeric-operand, da6-refmod-numeric-operand (COBOL0844), pb128-add-edited-in-place (COBOL1675) refused at 2002; pb128_resultant_categories PASS at 2002",
+     "CD": "covered by probe cd_ops.cob ('CD ADD F1 0025') and cd_neg.cob (ADD 1 TO CX refused COBOL1675; ADD CX TO CN refused COBOL0844) at 2002"
+    },
+    "reason": "Same requirement ('a numeric data item' vs 'numeric data items'); formats identical but for rounded-phrase. In 2002 the operands may be communication-section items, which the 2023 row cannot show; probes correct.",
+    "needs": "a 2002 witness for communication-section operands (candidates: probes-u-20/cd_ops.cob, cd_neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_neg.cob, cd_ops.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_neg.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-SR-14.8.2.2-6",
+    "to": [
+     "SR-14.9.2.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "communication-reach",
+    "clause-2002": "14.8.2.2 SR6 (with the definition 4.11 alphanumeric group item)",
+    "clause-2023": "14.9.2.3 SR6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR6",
+      "quote": "shall be alphanumeric group items, national group items, or strongly-typed group items and shall not be described with level-number 66",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.3 SR6",
+      "quote": "shall be alphanumeric group items, national group items, variable-length groups, or strongly-typed group items",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:4",
+      "quote": "alphanumeric group item: Any group item except for",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "ADD CORRESPONDING operands: alphanumeric, national or strongly-typed groups; not elementary, not bit groups (2002 4.11 excludes them from alphanumeric groups), not level 66",
+     "those groups under a CD"
+    ],
+    "evidence-2002": {
+     "non-CD": "covered by pb236-add-corr-elementary, pb236-add-corr-level-66, pb966-add-corr-level66-alias, pb392-subtract-corresponding-bit-group refused COBOL1757 at 2002; pb392_corresponding_group_kinds PASS at 2002. corresponding_rounded_mode is refused at 2002 (ROUNDED MODE, 2014+)",
+     "CD": "covered by probe cd_ops.cob ('CD ADD CORR 006 009' into a CD group) and cd_neg.cob (CD elementary CN and a level-66 CRN over a CD record refused COBOL1757) at 2002"
+    },
+    "reason": "2023 adds variable-length groups (2014+; 2023 also removes them from 'alphanumeric group item'), a widening; 2002's definition excludes bit, national and strongly-typed groups the same way. In 2002 the groups may be under a CD, which the 2023 row cannot show; probes correct.",
+    "needs": "a 2002 witness for CD-record groups (candidates: probes-u-20/cd_ops.cob, cd_neg.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob, cd_neg.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/cd_ops.cob",
+    "widening": "2023 adds variable-length groups"
+   },
+   {
+    "rule-id": "2002-GR-14.8.2.3-1",
+    "to": [
+     "GR-14.9.2.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "14.8.2.3 GR1 (with 8.8.1.3 standard arithmetic)",
+    "clause-2023": "14.9.2.4 GR1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.3 GR1",
+      "quote": "When standard arithmetic is in effect, the result of the initial evaluation is equivalent to the result of the arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.2.4 GR1",
+      "quote": "When standard-decimal arithmetic or standard-binary arithmetic is in effect, the result of the initial evaluation is equivalent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.2",
+      "quote": "The result shall be the exact sum truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "scope-2002": [
+     "format 1 under native arithmetic: initial evaluation then sum into identifier-2",
+     "format 1 under ARITHMETIC IS STANDARD: (operand-1 + ... + operand-n), then (initial-evaluation + identifier-2), each addition truncated to 32 significant digits",
+     "operands that are communication-section items"
+    ],
+    "evidence-2002": {
+     "native": "covered by ca6_binary_operand_composite and pb45_function_in_sending_operands PASS at 2002",
+     "standard": "NOT shown by the row: its standard witness pb228_add_standard_decimal is refused at 2002 (ARITHMETIC IS STANDARD-DECIMAL, COBOL0900). Probe add_std.cob at 2002 (pinned tree) gives C=+1, expected 0",
+     "CD": "covered by probe cd_ops.cob ('CD ADD F1 0025')"
+    },
+    "reason": "2002's 'standard arithmetic' is ARITHMETIC IS STANDARD, the 32-digit truncating model of 2002 8.8.1.3, not 2023's standard-decimal/standard-binary. The row cannot show it. Probe: ARITHMETIC IS STANDARD; C PIC S9(31) VALUE -10**30; ADD 10**30 and twenty times H (PIC SV99 VALUE .05) TO C. Each partial sum 10**30 + 0.05 has 33 significant digits; truncated to 32 it stays 10**30, so C must end 0. The pinned compiler gives +1 at 2002 (and at 2014), the 34-digit model. This is kb/Work PB5575 (known; its run-time arm landed on main after this tree, DEVLOG 3690): re-probe on main. Operands may also be CD items (probe correct).",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for ADD format 1 under ARITHMETIC IS STANDARD is C=+1 where 2002 requires 0 (probes-u-20/add_std.cob, pinned tree); recheck after PB5575's run-time arm, then a 2002 witness for the standard branch and for CD operands",
+    "compiler-at-2002": "wrong (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/add_std.cob, add_std-2002.out 'ADD-F1 C=+0000000000000000000000000000001'; expected +0 per §2002:8.8.1.3.2; known defect kb/Work PB5575, pinned tree predates its run-time arm)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/add_std.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-20",
+  "notes": "Refuter pass over the reader's 11 SAME verdicts. Compiler: pinned E:/COBOL-wt/coderead85-tree-d (cobol.exe --std 2002 / 2023). Probes in E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-20/. Every citation below passed scripts/spec/cite.py --check (verdict line 'OK'). Attack lines tried on every SAME: CD reach (the 2002 Annex A ACCEPT MESSAGE COUNT is a separate statement, §2002:A.2.1, not a format of 14.8.1, so the 14.8.1 FORMAT 1/3 rules do not reach a cd-name); forms of the clause dropped by 2023 (14.8.1.1 formats 1-3 and 14.6.8.1 are identical; 2002 RETRY statements DELETE/OPEN/READ/REWRITE/WRITE are a subset of 2023's); deferrals (LEAP-SECOND directive, B.1 items, B.3 licence).",
+  "cases": [
+   {
+    "rule-id": "2002-GR-14.1.3-13",
+    "verdict": "UPHELD",
+    "reason": "Word-identical; a documentation requirement. 2002 B.1 item 108 has the same element words, the same 'conditionally required' status and documentation duty as 2023 A.1 item 141; 2002 3.1.2 makes the non-COBOL interaction optional exactly as 2023 does. No operand: the CD-argument reach does not touch it (the documented mechanism is .NET as activating element only, so no non-COBOL callee receives a CD item). No 2002-only form reaches it.",
+    "citations": [
+     {
+      "cite": "§2002:14.1.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.2.3 GR13",
+      "quote": "the implementor shall specify the restrictions and mechanisms for all supported language products",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.2",
+      "quote": "No requirement is placed on an implementation to support this interaction",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.6.8.2-3",
+    "verdict": "UPHELD",
+    "reason": "Only 'MSCS' is spelt out in 2023. FOREVER has no operand, so the CD reach that overturned GR1/GR2/GR4 cannot apply. The 2002 statements carrying retry-phrase (DELETE, OPEN, READ, REWRITE, WRITE) are a subset of 2023's (2023 adds DELETE FILE). The own-run-unit hold (returns the conflict status at once) rests on the deadlock text, which is word-identical in 2002 9.1.12.7 and 2023 9.1.13.8, and B.1 item 85 = A.1 item 109; 2002 has no commit/rollback that could release a lock mid-statement, so the 2023 reasoning (an inside holder cannot release while the statement executes) holds at 2002. The reader's probes (retry_own, retry_xrun) show the behaviour for 2002-compiled programs.",
+    "citations": [
+     {
+      "cite": "§2002:14.6.8.2 GR3",
+      "quote": "If the FOREVER phrase is specified, the MSCS shall attempt to gain access to a locked resource",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.7.9.3 GR3",
+      "quote": "If the FOREVER phrase is specified, the mass storage control system shall attempt to gain access to a locked resource",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:9.1.12.7",
+      "quote": "The input-output statement is unsuccessful due to a deadlock",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-20/retry_own-2002.out"
+   },
+   {
+    "rule-id": "2002-SR-14.8.1.2-2",
+    "verdict": "UPHELD",
+    "reason": "Words differ: 2002 requires only association with a hardware device; 2023 adds 'capable of providing data'. The compiler's extra refusal (output-only SYSOUT, COBOL0817) is licensed in 2002 by 12.2.6.2 SR7 (implementor restrictions on mnemonic-names of specific device-names; B.1 item 152 'names available, restrictions on use'). The 2002 conjunct 'associated with a hardware device' also excludes a switch-name or feature-name mnemonic; the row's tests do not show that case, so I probed it: ACCEPT X6 FROM SW1 (SWITCH-1 IS SW1) is refused COBOL0817 at 2002 and 2023 alike. No operand reaches a CD.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR2",
+      "quote": "shall be associated with a hardware device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.3 SR2",
+      "quote": "capable of providing data to the program",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:12.2.6.2 SR7",
+      "quote": "The implementor may specify additional restrictions on the use of mnemonic-names that reference specific device-names",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-20/acc_switch.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-11",
+    "verdict": "UPHELD",
+    "reason": "Word-identical, table included. The rule defers to the LEAP-SECOND directive; 2002 7.2.14 has the same general format, syntax rule and general rules 1-3 as 2023 7.3.17 for the ACCEPT TIME case (2023 only adds functions), and B.1 item 87 = A.1 item 111. Probed the deferral at 2002: >>LEAP-SECOND ON and >>LEAP-SECOND OFF both compile and run at 2002 (and 2023) with TIME seconds in range ('OK'). No operand; no CD reach.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR11",
+      "quote": "TIME is based on the elapsed time since midnight on a 24-hour clock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR11",
+      "quote": "TIME is based on the elapsed time since midnight on a 24-hour clock",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:7.2.14.3 GR2",
+      "quote": "the implementor defines whether a value greater than 59 may be reported in the seconds position",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-20/leap_on.cob"
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-13",
+    "verdict": "UPHELD",
+    "reason": "Format 3 is identical in both editions and the rule sits under FORMAT 3. The licence is 2002's own: B.3 item 1 makes the screen section and ACCEPT screen format processor-dependent, and 3.1.5 lets support be unclaimed provided the absence is documented and use is diagnosed. Both hold at 2002 (a42-accept-screen-minimal/-positioned/-exception refused COBOL1560/COBOL1707 at 2002, cases-2002.txt lines 86-100; CONFORMANCE.md states screen handling not claimed). Residual nit, not a requirement difference: the diagnostics cite the 2023 licence, not §2002:B.3.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR13",
+      "quote": "provide the initial values displayed for the associated screen item during execution of an ACCEPT screen statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "The absence of processor-dependent elements from an implementation shall be specified in the implementor's user documentation",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-18",
+    "verdict": "UPHELD",
+    "reason": "'declared' vs 'described' only. The CURSOR clause it leans on is in the same B.3 item 1 as the screen format, so the whole rule is in the processor-dependent set declined at 2002 with diagnostics.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR18a",
+      "quote": "is the start of the first input field declared within screen-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-2",
+    "verdict": "UPHELD",
+    "reason": "'hardware device' vs 'device'. Implementor documentation with no operand; B.1 item 5 has the same words as A.1 item 5. 2002 defines a device-name as an input-output device named by the implementor (8.3 / 12.2.6 SR8), the same table at every edition. The reader's acc_dev probe shows the 80-character record at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR2",
+      "quote": "The implementor shall define, for each hardware device, the size of a data transfer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR2",
+      "quote": "The implementor shall define, for each device, the size of a data transfer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "ACCEPT statement (size of data transfer). This item is required",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-22",
+    "verdict": "UPHELD",
+    "reason": "Word-identical. Governs only the ACCEPT screen statement (TO/USING transfer, EC-SCREEN-FIELD-OVERLAP); a TO/USING target under a CD is still only reachable through the declined screen section. B.1 item 3 (overlap result, required) matches A.1 item 3 in both editions.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR22",
+      "quote": "The ACCEPT screen statement causes the transfer of data from each elementary screen item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-24",
+    "verdict": "UPHELD",
+    "reason": "The flow-of-control wording differs, but the rule needs NOT ON EXCEPTION, which exists only in 2002 format 3 (formats 1 and 2 have no exception phrase; ACCEPT MESSAGE COUNT is a separate Annex A statement with none either). No 'all formats' heading precedes GR24 in 2002. The screen format is processor-dependent and declined at 2002 with diagnostics (a42-accept-screen-exception names the phrase in COBOL1707).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR24",
+      "quote": "If control is transferred to imperative-statement-2, execution continues according to the rules for each statement",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.2.1.2 SR1",
+      "quote": "Cd-name-1 shall reference an input CD",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-25",
+    "verdict": "UPHELD",
+    "reason": "2002 b) sends to a declarative where 2023 adds the PERFORM WHEN arm; c)1 points at 2002 14.5.12.1.2. The triggers (function key, EC-SCREEN, unsuccessful completion) and the rule's placement under FORMAT 3 confine it to the screen ACCEPT, declined at 2002 under B.3 item 1 / 3.1.5 with diagnostics. A format 1 ACCEPT cannot reach this rule in 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR25",
+      "quote": "is terminated by a function key stroke, or causes an EC-SCREEN exception condition to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen section, the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-14.8.1.3-5",
+    "verdict": "UPHELD",
+    "reason": "'option' vs 'phrase' only; no operand; B.1 item 2 = A.1 item 2 word for word. FROM-less format 1 is identical in both formats; reader's acc_dev probe shows stdin at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.3 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM option is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.1.4 GR5",
+      "quote": "The implementor shall specify the device that is used if the FROM phrase is not specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "ACCEPT statement (device used when FROM is unspecified). This item is required",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "b43d74f4fdbfad07db496da5b06b52b61c285cc02f03d9628cb08eec9088a9aa",
+  "read": "c2a0be27080eabc6f1a9c929af9b0d6a486a7843cd458f13d33b199c64e7d945",
+  "refute": "0fb59466a8866229e188e4c4ab437549d5c973683470741751adaabd55b75fb3"
+ }
+}

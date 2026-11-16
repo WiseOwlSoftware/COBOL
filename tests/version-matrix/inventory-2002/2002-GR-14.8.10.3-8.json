@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.10.3-8",
+ "rule-digest": "6edf7d43acd1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/AcceptDisplayEmitter.cs#EmitDisplay",
+ "test-ref": "conformance:cases/14.9.11-DISPLAY/l1_display_no_advancing",
+ "notes": "Own verdict from the read lineage-reads-2002/u-22.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.11.4-9, witnessed at 2002 by the cases test-ref names. The read: Same requirement (2002 GR8 is 2023 GR9: 2023 inserted GR7 on variable-length groups). General format 1 of 2002 14.8.10.1 is identical to 2023 Format 1 (device). 2002 says 'hardware device' where 2023 says 'device' (hardware or software); the compiler's devices (standard output, CONSOLE, SYSOUT, SYSERR) are the same at 2002 (probe). No CD reach: identifier-1 may be any data item, and nothing in the rule depends on where it is defined. Cited: §2002:14.8.10.3 GR8."
+}

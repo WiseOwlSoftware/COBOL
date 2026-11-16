@@ -1,0 +1,1537 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-32 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-32",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-AR-15.46.2-1",
+   "2002-RV-15.46.3-1",
+   "2002-AR-15.47.2-1",
+   "2002-RV-15.47.3-1",
+   "2002-RV-15.48.3-1",
+   "2002-RV-15.49.3-3",
+   "2002-AR-15.51.2-1",
+   "2002-RV-15.51.3-1",
+   "2002-RV-15.52.3-1",
+   "2002-AR-15.54.2-1",
+   "2002-AR-15.54.2-2",
+   "2002-RV-15.54.3-2",
+   "2002-AR-15.55.2-2",
+   "2002-AR-15.55.2-3",
+   "2002-AR-15.55.2-5",
+   "2002-AR-15.55.2-6",
+   "2002-AR-15.55.2-7",
+   "2002-RV-15.55.3-1",
+   "2002-AR-15.56.2-1",
+   "2002-AR-15.56.2-2",
+   "2002-RV-15.56.3-2",
+   "2002-AR-15.58.2-1",
+   "2002-RV-15.58.3-2",
+   "2002-AR-15.59.2-1",
+   "2002-RV-15.59.3-2"
+  ],
+  "pointers": {
+   "2002-AR-15.46.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.58.3-1",
+    "similarity": 0.963
+   },
+   "2002-RV-15.46.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.58.4-2",
+    "similarity": 0.988
+   },
+   "2002-AR-15.47.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.59.3-1",
+    "similarity": 0.944
+   },
+   "2002-RV-15.47.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.59.4-1",
+    "similarity": 0.979
+   },
+   "2002-RV-15.48.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.60.4-1",
+    "similarity": 0.907
+   },
+   "2002-RV-15.49.3-3": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.61.4-3",
+    "similarity": 0.97
+   },
+   "2002-AR-15.51.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.63.3-1",
+    "similarity": 0.944
+   },
+   "2002-RV-15.51.3-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.63.4-1",
+    "similarity": 0.978
+   },
+   "2002-RV-15.52.3-1": {
+    "bucket": "identical after clause-number and punctuation erasure",
+    "nearest-2023": "RV-15.64.4-1",
+    "similarity": 1.0
+   },
+   "2002-AR-15.54.2-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "AR-15.67.3-1",
+    "similarity": 0.874
+   },
+   "2002-AR-15.54.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "AR-15.67.3-3",
+    "similarity": 0.779
+   },
+   "2002-RV-15.54.3-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.67.4-2",
+    "similarity": 0.458
+   },
+   "2002-AR-15.55.2-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.68.3-2",
+    "similarity": 0.996
+   },
+   "2002-AR-15.55.2-3": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "AR-15.68.3-3",
+    "similarity": 0.415
+   },
+   "2002-AR-15.55.2-5": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "AR-15.68.3-4",
+    "similarity": 0.823
+   },
+   "2002-AR-15.55.2-6": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.68.3-5",
+    "similarity": 0.904
+   },
+   "2002-AR-15.55.2-7": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "AR-15.68.3-6",
+    "similarity": 0.779
+   },
+   "2002-RV-15.55.3-1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "RV-15.68.4-1",
+    "similarity": 0.884
+   },
+   "2002-AR-15.56.2-1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "AR-15.69.3-1",
+    "similarity": 0.6
+   },
+   "2002-AR-15.56.2-2": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "AR-15.69.3-2",
+    "similarity": 0.793
+   },
+   "2002-RV-15.56.3-2": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "RV-15.69.4-2",
+    "similarity": 0.643
+   },
+   "2002-AR-15.58.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.71.3-1",
+    "similarity": 0.944
+   },
+   "2002-RV-15.58.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.71.4-2",
+    "similarity": 0.969
+   },
+   "2002-AR-15.59.2-1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "AR-15.72.3-1",
+    "similarity": 0.944
+   },
+   "2002-RV-15.59.3-2": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "RV-15.72.4-2",
+    "similarity": 0.969
+   }
+  }
+ },
+ "read": {
+  "slice": "u-32",
+  "seed": null,
+  "compiler": "E:/COBOL-wt/coderead85-tree-d (HEAD 24372b7b17), cobol.exe --std 2002 / --std 2023, --source-format free",
+  "probe-dir": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/",
+  "defects-found": [
+   {
+    "id": "D1-numval-family-cap-under-standard",
+    "summary": "At --std 2002 under ARITHMETIC IS STANDARD the NUMVAL, NUMVAL-C and NUMVAL-F 31-digit argument cap is not applied: a 32-digit argument is accepted (TEST-NUMVAL/-C/-F return 0) and, with >>TURN EC-ARGUMENT-FUNCTION CHECKING ON, no EC-ARGUMENT-FUNCTION is raised and the value is returned. The 2002 cap is unconditional.",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob",
+    "expected": "abnormal termination with EC-ARGUMENT-FUNCTION (fatal) at the first NUMVAL of a 32-digit argument, and TEST-NUMVAL(S32) = 32 as in the NATIVE run",
+    "citations": [
+     "§2002:15.54.2 AR2",
+     "§2002:15.55.2 AR7",
+     "§2002:15.56.2 AR2",
+     "§2002:15.2"
+    ],
+    "observed": "TEST-NUMVAL-32=+000000000 TEST-NUMVAL-C-32=+000000000 TEST-NUMVAL-F-32=+000000000 NUMVAL-32=1234567890123456789012345.678901 NUMVAL-C-32=1234567890123456789012345.678901 NUMVAL-F-32=2345678901234567890123456.789012 END (control numval_cap_NATIVE_ON.cob: TEST-NUMVAL-32=+000000033, then abnormal run-unit termination: EC-ARGUMENT-FUNCTION (fatal))",
+    "code-site": "src/WiseOwl.Cobol.Compiler/Binding/Model/OptionsModel.cs ArithmeticModes.NumvalDigitCap: ArithmeticMode.Standard => 34 (same on origin/main); the 2002 mode needs 31",
+    "rows": [
+     "2002-AR-15.54.2-1",
+     "2002-AR-15.54.2-2",
+     "2002-AR-15.55.2-7",
+     "2002-AR-15.56.2-1",
+     "2002-AR-15.56.2-2"
+    ]
+   },
+   {
+    "id": "D2-numval-f-exponent-width-2002",
+    "summary": "At --std 2002 NUMVAL-F and TEST-NUMVAL-F accept a four-digit exponent n. 2002 allows one, two or three digits, so '1E+0002' is an incorrect argument: EC-ARGUMENT-FUNCTION, and TEST-NUMVAL-F should report the position of the fourth exponent digit.",
+    "program": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalf_NATIVE_02.cob",
+    "expected": "TEST-NUMVAL-F(\"1E+0002\") nonzero (the fourth exponent digit, position 7), and abnormal termination with EC-ARGUMENT-FUNCTION at NUMVAL-F(\"1E+0002\") under >>TURN EC-ARGUMENT-FUNCTION CHECKING ON",
+    "citations": [
+     "§2002:15.56.2 AR1",
+     "§2002:15.2"
+    ],
+    "observed": "TEST-N4=+0000 N4= 00100.000000 END (both NATIVE and STANDARD at --std 2002; identical to --std 2023, where four digits are legal per §2023:15.69.3 AR1)",
+    "code-site": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Exact.cs NvfScan lines 807-809: `if (++ed > 4)` with no edition input; the same scan serves TEST-NUMVAL-F",
+    "rows": [
+     "2002-AR-15.56.2-1"
+    ]
+   }
+  ],
+  "known-defect-reach": {
+   "what": "The 34-digit standard arithmetic at --std 2002 (kb/Work PB5575). The pinned tree 24372b7b17 predates PB5575's run-time arm (commits 7e7b851ee5, bb0c8648e1 on origin/main), and PB5575's own landed note says the intrinsic bodies still form their values on the 34-digit engine. Re-probe these on main.",
+   "rows": [
+    "2002-RV-15.47.3-1",
+    "2002-RV-15.48.3-1",
+    "2002-RV-15.49.3-3",
+    "2002-RV-15.51.3-1",
+    "2002-RV-15.52.3-1",
+    "2002-RV-15.58.3-2",
+    "2002-RV-15.59.3-2"
+   ]
+  },
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.46.2-1",
+    "to": [
+     "AR-15.58.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.46.2 LOWEST-ALGEBRAIC Arguments",
+    "clause-2023": "15.58.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of FUNCTION LOWEST-ALGEBRAIC: a data item of category numeric or numeric-edited",
+     "not an integer function, not a numeric function (intrinsic or user-defined)"
+    ],
+    "evidence-2002": [
+     "category rule: covered by conformance l1-lowest-algebraic-argument-1-shape (refuse-at 2002, 2014 and 2023, COBOL1516) and probe lowalg_bad_AN.cob (COBOL1516 at 2002)",
+     "integer function: covered by probe lowalg_bad_LEN.cob (COBOL1516 at 2002)",
+     "numeric function: covered by probe lowalg_bad_ABS.cob (COBOL1516 at 2002)",
+     "legal numeric and numeric-edited items accepted: probe lowalg.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.46.2 AR1",
+      "quote": "shall not be an integer or numeric function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.3 AR1",
+      "quote": "shall not be an integer function or numeric function",
+      "check": "OK"
+     }
+    ],
+    "reason": "The only difference in wording is 'integer or numeric function' against 'integer function or numeric function', which mean the same thing. The general format is the same, FUNCTION LOWEST-ALGEBRAIC ( argument-1 ). 2023's AR2 and AR3 on standard floating usages are separate rules that have no 2002 counterpart. The refusal test runs at 2002, and the three probes show that each excluded kind of argument is refused at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/lowalg_bad_AN.cob; lowalg_bad_LEN.cob; lowalg_bad_ABS.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.46.3-1",
+    "to": [
+     "RV-15.58.4-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.46.3 LOWEST-ALGEBRAIC Returned values",
+    "clause-2023": "15.58.4 Returned value rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the lowest algebraic value representable in a numeric or numeric-edited argument-1, including signed and unsigned DISPLAY, BINARY, BINARY-CHAR, edited items with CR/DB and floating-point numeric-edited items"
+    ],
+    "evidence-2002": [
+     "covered by conformance highest_lowest_algebraic (accept 2002; output matched the golden at --std 2002 in this session)",
+     "all seven NOTE rows plus a floating-point numeric-edited item: covered by probe lowalg.cob at --std 2002 (S999=-999, S9(4) BINARY=-9999, 99V9(3)=0, $**,**9.99BCR=-99999.99, $**,**9.99=0, BINARY-CHAR SIGNED=-128, UNSIGNED=0, -9.99E+99 => -9.99E+99), identical at 2023"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.46.3 RV1",
+      "quote": "equal to the lowest algebraic value that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.4 RV2",
+      "quote": "The value returned is equal to the lowest finite algebraic value that may be represented in argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds the word 'finite' because it has IEEE floating usages that can hold infinities. 2002's numeric values are algebraic, and its FLOAT-* forms are implementor-defined, so 'lowest algebraic value' is already finite. The compiler returns the same values at both editions.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/lowalg.cob",
+    "widening": "2023 also covers standard floating usages, which 2002 does not have"
+   },
+   {
+    "rule-id": "2002-AR-15.47.2-1",
+    "to": [
+     "AR-15.59.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.47.2 MAX Arguments",
+    "clause-2023": "15.59.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of MAX shall not be of class boolean",
+     "not of class object",
+     "not of class pointer",
+     "not a strongly-typed group item"
+    ],
+    "evidence-2002": [
+     "boolean: not shown by the row (its message-tag witness refuses at 2023 only, and pb58_argument_predicates_legal is accepted at 2023 only); probe cls_MAX_BOOL.cob gives COBOL1627 at 2002",
+     "object: not shown by the row; probe cls_MAX_OBJ.cob gives COBOL1627 at 2002",
+     "pointer: not shown by the row; probe cls_MAX_PTR.cob gives COBOL1627 at 2002",
+     "strongly-typed group: not shown by the row; probe cls_MAX_STG.cob gives COBOL1627 at 2002 (pb58-max-strong also refuses it at 2002 but is tagged AR-15.3-2)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.47.2 AR1",
+      "quote": "Argument-1 shall not be of class boolean, object, or pointer, nor shall it be a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.59.3 AR1",
+      "quote": "Argument-1 shall not be of class boolean, message-tag, object, or pointer",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule excludes four classes of argument. The 2023 row's only class-specific witness is the message-tag refusal, a class 2002 does not have, and that witness runs at 2023 only, so none of the four 2002 exclusions has evidence at 2002 through this row. The compiler is correct: the probes show all four refused at 2002.",
+    "needs": "a 2002 witness for the boolean, object, pointer and strongly-typed-group refusals (candidate: probes cls_MAX_*.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cls_MAX_BOOL.cob; cls_MAX_OBJ.cob; cls_MAX_PTR.cob; cls_MAX_STG.cob",
+    "widening": "2023 adds message-tag to the list, and a zero-length-literal rule (AR3)"
+   },
+   {
+    "rule-id": "2002-RV-15.47.3-1",
+    "to": [
+     "RV-15.59.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.47.3 MAX Returned values (refers to 8.8.4.1 Simple conditions)",
+    "clause-2023": "15.59.4 Returned value rules (refers to 8.8.4.2 Simple relation conditions)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "comparisons of alphanumeric and alphabetic arguments (padding, program collating sequence)",
+     "national arguments",
+     "numeric and integer arguments, including arithmetic expressions under ARITHMETIC IS STANDARD (32-digit standard intermediates, all 32 digits compared)",
+     "index data items"
+    ],
+    "evidence-2002": [
+     "alphanumeric, collating sequence: covered by conformance intrinsic_max_collating (accept 2002; matched its golden at --std 2002) and probe cmp.cob",
+     "national, numeric, index, alphabetic/alphanumeric mix: covered by probe cmp.cob at --std 2002",
+     "standard-arithmetic expression arguments: WRONG on the pinned tree, probe sel_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.47.3 RV1",
+      "quote": "The comparisons used to determine the greatest value are made according to the rules for simple conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "in which case it shall not be rounded and all 32 digits shall be used",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words match apart from the clause referred to (8.8.4.1 in 2002, 8.8.4.2 in 2023), which covers the same relation-condition comparisons. Under 2002 standard arithmetic, though, an argument that is an arithmetic expression is a 32-digit standard intermediate, and comparisons among intrinsic-function arguments use those 32 digits. Under 2002 rules, 1/K*K (K=3) and .9999999999999999999999999999999 + .0000000000000000000000000000009/10 are both 32 nines, so MAX should return the leftmost, which equals b. The compiler computes the first at 34 digits and returns it, so (MAX(b a) - b) * 10**33 prints 9.90 where 2002 gives 0.00. This is the known PB5575 34-digit defect reaching this rule.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for standard-arithmetic expression arguments is 34-digit (sel_std32.cob MAX-minus-b= 9.90, 2002 expects 0.00); re-probe after PB5575's run-time arm (on main, not in the pinned tree)",
+    "compiler-at-2002": "wrong (known PB5575 34-digit standard arithmetic; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/sel_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cmp.cob; sel_std32.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.48.3-1",
+    "to": [
+     "RV-15.60.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.48.3 MEAN Returned values (with 15.3.1)",
+    "clause-2023": "15.60.4 Returned value rule",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "one, two and n arguments (including ALL subscripts)",
+     "native arithmetic: an implementor-defined approximation of the expression",
+     "standard arithmetic: exactly the value of the equivalent expression at 32-digit truncation"
+    ],
+    "evidence-2002": [
+     "1, 2, n and ALL under native and standard: covered by conformance arith_standard (accept 2002) and probes meanmod_NATIVE.cob and meanmod_STANDARD.cob (MEAN1=7, MEAN2=1.5, MEAN3=1.666..., MEANALL=0.775; MEAN-EQ-EXPR under standard)",
+     "standard arithmetic at 32 digits: WRONG on the pinned tree, probe mean_std32b.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.48.3 RV1",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.60.4 RV1",
+      "quote": "The equivalent arithmetic expression is as follows",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words are the same; only the subscript markup differs. What the equivalent expression means under standard arithmetic depends on the edition's arithmetic: 2002 uses a 32-digit truncating standard intermediate, while 2023's standard-decimal uses 34 digits. In 2002, MEAN(1 2 2) = 5/3 = 1.6666666666666666666666666666666 (32 digits), so (MEAN*3-5)*10**31 = -2. The pinned tree prints 0.01, a 34-digit, rounded value. mean_std32.cob also shows the COMPUTE transfer failing to round to 31 digits (§2002:8.8.1.3.1.3 GR3): it prints ...666 where 2002 gives ...667.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 under ARITHMETIC IS STANDARD is (MEAN(1 2 2)*3-5)*10**31 = 0.01, where 2002 requires -2.00; the PB5575 remainder covers the intrinsic bodies",
+    "compiler-at-2002": "wrong (known PB5575; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/mean_std32b.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/meanmod_STANDARD.cob; meanmod_NATIVE.cob; mean_std32.cob; mean_std32b.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.49.3-3",
+    "to": [
+     "RV-15.61.4-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.49.3 MEDIAN Returned values (refers to 8.8.4.1)",
+    "clause-2023": "15.61.4 Returned value rules (refers to 8.8.4.2)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "sort comparisons of numeric arguments per relation conditions",
+     "arguments that are arithmetic expressions under ARITHMETIC IS STANDARD (32-digit standard intermediates)"
+    ],
+    "evidence-2002": [
+     "numeric sort order: not shown by the row at 2002 (pb65_selection_mixed_carriers is accepted at 2023 only); probe cmp.cob gives MED3=3, MED4=2.5, MEDNEG=-2 at 2002",
+     "standard-arithmetic expressions: WRONG on the pinned tree, probe sel_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.49.3 RV3",
+      "quote": "The comparisons used to arrange the argument-1 values in sorted order are made according to the rules for simple conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "in which case it shall not be rounded and all 32 digits shall be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "This has the same mechanism as RV-15.47.3-1. Under 2002 rules, MEDIAN(a b a) with a = 1/K*K and b = 32 nines is three equal values, so (MEDIAN - b)*10**33 = 0. The pinned tree gives 9.90.",
+    "needs": "its own verdict: at --std 2002 under standard arithmetic, sel_std32.cob prints MEDIAN-minus-b= 9.90 where 2002 expects 0.00; also a 2002 witness for the plain sort order (candidate cmp.cob)",
+    "compiler-at-2002": "wrong (known PB5575; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/sel_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cmp.cob; sel_std32.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.51.2-1",
+    "to": [
+     "AR-15.63.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.51.2 MIN Arguments",
+    "clause-2023": "15.63.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of MIN not boolean, object or pointer, and not a strongly-typed group item"
+    ],
+    "evidence-2002": [
+     "all four: not shown by the row (message-tag-refused-min-argument refuses at 2023 only); probes cls_MIN_BOOL.cob, cls_MIN_OBJ.cob, cls_MIN_PTR.cob and cls_MIN_STG.cob each give COBOL1627 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.51.2 AR1",
+      "quote": "Argument-1 shall not be of class boolean, object, or pointer, nor shall it be a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as 2002-AR-15.47.2-1: the row's witness covers only message-tag, a class 2002 does not have.",
+    "needs": "a 2002 witness for the four refusals (candidate: probes cls_MIN_*.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cls_MIN_BOOL.cob; cls_MIN_OBJ.cob; cls_MIN_PTR.cob; cls_MIN_STG.cob",
+    "widening": "2023 adds message-tag"
+   },
+   {
+    "rule-id": "2002-RV-15.51.3-1",
+    "to": [
+     "RV-15.63.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.51.3 MIN Returned values",
+    "clause-2023": "15.63.4 Returned value rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "alphanumeric, alphabetic, national, numeric and index comparisons",
+     "standard-arithmetic expression arguments compared at 32 digits"
+    ],
+    "evidence-2002": [
+     "non-standard cases: covered by conformance pb4622_selection_lands_the_selected_argument_kind and pb4730 (accept 2002, tagged RV-15.63.4-1) and probe cmp.cob (MINAN, MINREV, MINNUM, MINIDX)",
+     "standard arithmetic: WRONG on the pinned tree, probe sel_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.51.3 RV1",
+      "quote": "The comparisons used to determine the least value are made according to the rules for simple conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "in which case it shall not be rounded and all 32 digits shall be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "Under 2002 rules, MIN(a b) has a and b equal at 32 digits, so MIN returns the leftmost, a, and (MIN - a)*10**33 = 0. The pinned tree computes a at 34 digits, so a > b; it returns b and prints -9.90.",
+    "needs": "its own verdict: at --std 2002, sel_std32.cob prints MIN-minus-a=-9.90 where 2002 expects 0.00",
+    "compiler-at-2002": "wrong (known PB5575; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/sel_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cmp.cob; sel_std32.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.52.3-1",
+    "to": [
+     "RV-15.64.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.52.3 MOD Returned values (with 15.3.1 and 15.34.3)",
+    "clause-2023": "15.64.4 Returned value rule",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the equivalent expression under native arithmetic",
+     "the equivalent expression under standard arithmetic: the quotient truncated to 32 digits, INTEGER's argument not rounded"
+    ],
+    "evidence-2002": [
+     "NOTE table (1, 4, -4, -1) under native and standard: not shown by the row at 2002 (pb65_power_receiver is accepted at 2023 only); probes meanmod_NATIVE.cob and meanmod_STANDARD.cob give 1, 4, -4, -1 at 2002",
+     "32-digit integer argument under standard: WRONG on the pinned tree, probe mod_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.52.3 RV1",
+      "quote": "where argument-1 and argument-2 for the INTEGER function are the same as the arguments for the MOD function itself",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "the returned value shall equal the value of the equivalent arithmetic expression",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.5",
+      "quote": "The result shall be the exact quotient truncated to 32 significant digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.34.3 RV1",
+      "quote": "When standard arithmetic is specified, argument-1 is not rounded",
+      "check": "OK"
+     }
+    ],
+    "reason": "Take MOD(0 - (9999999999999999999999999999999*10+7), 3) under 2002 standard arithmetic, a legal integer arithmetic-expression argument. a/3 truncates to -33333333333333333333333333333332, INTEGER leaves it unchanged, 3 times that is -99999999999999999999999999999996, and a minus that is -1. The pinned tree returns the exact mathematical MOD, 2.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for that argument is 2, where the 2002 equivalent expression gives -1; also a 2002 witness for the NOTE table (candidate meanmod_*.cob)",
+    "compiler-at-2002": "wrong (known PB5575 remainder: intrinsic bodies on the 34-digit engine; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/mod_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/meanmod_STANDARD.cob; mod_std32.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.54.2-1",
+    "to": [
+     "AR-15.67.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.54.2 NUMVAL Arguments",
+    "clause-2023": "15.67.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "both content formats (leading sign; trailing +, -, CR or DB)",
+     "CR/DB in any case, in the alphanumeric or the national set",
+     "alphanumeric and national literals and data items",
+     "each digit string 1 to 31 digits, in every arithmetic mode"
+    ],
+    "evidence-2002": [
+     "formats, CR/DB case, national: covered by conformance pb60_numval_one_scan (accept 2002 and 2023; matched its golden at --std 2002) and pb658_numval_category_positions (accept 2002), and probe numval_fmt.cob at 2002",
+     "digit string of at most 31 digits: native correct (numval_cap_NATIVE_ON.cob); WRONG under ARITHMETIC IS STANDARD (numval_cap_STANDARD_ON.cob accepts 32 digits)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.54.2 AR1",
+      "quote": "digit is a string of one to 31 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.3 AR3",
+      "quote": "If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 says a digit string has one to 31 digits in every mode. 2023 says 'one or more' and caps the total only by arithmetic mode. At --std 2002 under ARITHMETIC IS STANDARD the compiler applies 2023's standard-decimal cap of 34.",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 under ARITHMETIC IS STANDARD for a 32-digit NUMVAL argument is acceptance (TEST-NUMVAL=0, value returned, no EC-ARGUMENT-FUNCTION with checking on); 2002 requires EC-ARGUMENT-FUNCTION",
+    "compiler-at-2002": "wrong (defect D1; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_fmt.cob; numval_cap_NATIVE_ON.cob; numval_cap_STANDARD_ON.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.54.2-2",
+    "to": [
+     "AR-15.67.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.54.2 NUMVAL Arguments",
+    "clause-2023": "15.67.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "total digits of argument-1 at most 31 under native arithmetic",
+     "the same under standard arithmetic"
+    ],
+    "evidence-2002": [
+     "native: not shown by the row at 2002 (pb33_numval_family_digit_cap is accepted at 2023 only); probes numval_cap_NATIVE_OFF.cob (0) and numval_cap_NATIVE_ON.cob (EC-ARGUMENT-FUNCTION fatal) are correct at 2002",
+     "standard: WRONG, numval_cap_STANDARD_ON.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.54.2 AR2",
+      "quote": "The total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.3 AR3",
+      "quote": "If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 rule has no mode condition. 2023 limits it to native arithmetic, and 2023's AR4 allows 34 digits under standard-decimal. The compiler maps 2002 STANDARD to 34 (OptionsModel.cs NumvalDigitCap: Standard => 34).",
+    "needs": "its own verdict: at --std 2002 with ARITHMETIC IS STANDARD a 32-digit argument is accepted, where 2002 requires EC-ARGUMENT-FUNCTION",
+    "compiler-at-2002": "wrong (defect D1; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_NATIVE_ON.cob; numval_cap_STANDARD_ON.cob; numval_cap_STANDARD_OFF.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.54.3-2",
+    "to": [
+     "RV-15.67.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.54.3 NUMVAL Returned values",
+    "clause-2023": "15.67.4 Returned value rules (pointer is the sign rule, another subject)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the returned value carries up to 31 decimal digits: a 31-digit argument comes back whole"
+    ],
+    "evidence-2002": [
+     "not shown by the pointer row (RV-15.67.4-2 is the sign rule); probes numval_fmt.cob (D31) and numvalc31_NATIVE.cob / numvalc31_STANDARD.cob (NV31=-1234567890123456789012345.678901) show it at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.54.3 RV2",
+      "quote": "The maximum number of decimal digits represented in the returned value is 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.67.4 RV2",
+      "quote": "If argument-1 contains CR, DB, or the minus sign, the returned value is negative",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 has no such sentence, and the pointer is a different requirement. For conforming arguments the compiler is correct at 2002. A 32-digit argument under STANDARD returns a 32-digit value, but that comes from defect D1 on the argument rule, not from this rule.",
+    "needs": "a 2002 witness: a 31-digit NUMVAL argument returned exactly (candidate numvalc31_*.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalc31_STANDARD.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-2",
+    "to": [
+     "AR-15.68.3-2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.55.2 NUMVAL-C Arguments",
+    "clause-2023": "15.68.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-2 of the same class as argument-1",
+     "at least one non-space character; leading and trailing spaces ignored",
+     "no digits, '*', '+', '-', ',', '.', or CR/DB in any case",
+     "literal (compile time) and data item (run time)"
+    ],
+    "evidence-2002": [
+     "'.': covered by conformance pb5161-numval-c-currency-content (refuse-at 2002, 2014 and 2023, COBOL1627)",
+     "digit, '*', '+', '-', ',', 'cR', 'db', all spaces, national argument-2 against alphanumeric argument-1: probes nvc_a2_1.cob through nvc_a2_9.cob give COBOL1627 at 2002 (the same validator as pb5161)",
+     "data item at run time: probe nvc_a2_run.cob gives EC-ARGUMENT-FUNCTION (fatal) at 2002",
+     "currency string with an internal space: probe numvalc_fmt.cob A2/NAT"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR2",
+      "quote": "Argument-2 shall contain at least one non-space character",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words are the same; the NOTE says 'may' where 2023 says 'can'. NUMVAL-C has the same general format in both editions (LOCALE [locale-name-1] or argument-2, then [ANYCASE]). The row's 2002-running refusal test exercises the one content validator, and the probes confirm every item in the scope at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/nvc_a2_1.cob .. nvc_a2_9.cob; nvc_a2_run.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-3",
+    "to": [
+     "AR-15.68.3-3"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "split-rule",
+    "second-targets": [
+     "AR-15.68.3-4",
+     "AR-15.68.3-5"
+    ],
+    "clause-2002": "15.55.2 NUMVAL-C Arguments rule 3 (ANYCASE)",
+    "clause-2023": "15.68.3 rule 4 f) and rule 5 b) 1 (the pointer AR-15.68.3-3 is the one-currency-string rule, another subject)",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ANYCASE without LOCALE: currency matched case-insensitively",
+     "ANYCASE with LOCALE: the same",
+     "no ANYCASE: currency matched case-sensitively (an argument that does not match is incorrect: EC-ARGUMENT-FUNCTION)"
+    ],
+    "evidence-2002": [
+     "non-LOCALE ANYCASE: covered by conformance pb4359_numval_c_anycase_2002 (accept 2002; matched its golden at --std 2002) and probe numvalc_fmt.cob (ANY=1234.56, TEST-ANY=0)",
+     "LOCALE ANYCASE: covered by conformance pb64t6_numvalc_locale (accept 2002; 'ANYCASE OK' at 2002 in this session)",
+     "case-sensitive without ANYCASE: probe numvalc_fmt.cob TEST-NOANY=1 and numvalc_case_on.cob (EC-ARGUMENT-FUNCTION fatal)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR3",
+      "quote": "the matching rules for detecting a currency string in argument-1 are case-insensitive",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR4",
+      "quote": "If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are as if all uppercase letters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR5",
+      "quote": "If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are case-insensitive",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 states ANYCASE once for both forms. 2023 restates it as 4 f) (a fold to lowercase) for the non-LOCALE form and as 5 b) 1 for the LOCALE form. The nearest-text pointer AR-15.68.3-3 does not cover it. The compiler is correct at 2002 for all three cases.",
+    "needs": "KEPT to both targets AR-15.68.3-4 and AR-15.68.3-5 (both have tests that run at 2002: pb4359_numval_c_anycase_2002, pb64t6_numvalc_locale)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalc_fmt.cob; numvalc_case_on.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-5",
+    "to": [
+     "AR-15.68.3-4"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.55.2 NUMVAL-C Arguments rule 5",
+    "clause-2023": "15.68.3 Argument rules rule 4",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the two non-LOCALE content formats (sign or currency in either order before the number; trailing +, -, CR or DB)",
+     "CR/DB case in the alphanumeric and national sets",
+     "period as decimal separator and comma as grouping separator, swapped by DECIMAL-POINT IS COMMA"
+    ],
+    "evidence-2002": [
+     "formats, CR/DB, grouping: covered by conformance pb60_numval_one_scan (accept 2002; matched at --std 2002) and pb4359_numval_c_anycase_2002 (accept 2002, tagged AR-15.68.3-4), and probe numvalc_fmt.cob (F1a, F1b, F2a, F2b, F2c, A2, NAT)",
+     "DECIMAL-POINT IS COMMA: probe numvalc_comma.cob (COMMA=1234,56, COMMA2=-1234,56)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR5",
+      "quote": "If the LOCALE keyword is not specified, the following rules apply",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR4",
+      "quote": "If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are as if all uppercase letters",
+      "check": "OK"
+     }
+    ],
+    "reason": "The two formats match element for element; 2002's 'space' is 2023's 'space-string'. Sub-items a) to c) are the same as 2023's b) to d). 2023 adds e) (leading and trailing spaces, already part of the 2002 format) and f) (ANYCASE, 2002's AR3). Both additions sit in other 2002 rules, so they widen the 2023 rule without narrowing it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalc_fmt.cob; numvalc_comma.cob",
+    "widening": "2023 rule 4 also carries e) and f), which are 2002's format spaces and AR3"
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-6",
+    "to": [
+     "AR-15.68.3-5"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "15.55.2 NUMVAL-C Arguments rule 6 (LOCALE)",
+    "clause-2023": "15.68.3 Argument rules rule 5",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "locale-name-1 or the current locale's LC_MONETARY",
+     "EC-LOCALE-MISSING when the locale is not available (fatal in 2002)",
+     "items 1 to 7: ANYCASE, national matching, currency_symbol/int_curr_symbol, signs, decimal and grouping separators, at least one digit"
+    ],
+    "evidence-2002": [
+     "covered by conformance pb64t6_numvalc_locale (accept 2002, in the row): CUR, INTCURR, ANYCASE, POS, CASE and HANDLED=EC-LOCALE-MISSING all correct at --std 2002 in this session; PARENS and NEG1 depend on the harness-pinned invariant current locale, which this ad hoc run did not pin",
+     "grouping: conformance pb835_numvalc_locale_grouping (accept 2002, in the row)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR6",
+      "quote": "Usage national representation of locale fields is used for purposes of matching argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR5",
+      "quote": "If the ANYCASE keyword is specified, the matching rules for detecting a currency string in argument-1 are case-insensitive",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 and 2023 have the same text, except that 2023 item 3 adds how ANYCASE folds case (lowercasing per LOWER-CASE with the locale). That is one way of being case-insensitive, which 2002 item 1 requires. EC-LOCALE-MISSING is fatal in the 2002 exception table, and the test observes it at 2002.",
+    "probe": null,
+    "widening": "2023 item 3 adds the fold specification"
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-7",
+    "to": [
+     "AR-15.68.3-6"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.55.2 NUMVAL-C Arguments rule 7",
+    "clause-2023": "15.68.3 Argument rules rule 6",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "total digits of argument-1 at most 31 in every arithmetic mode, for both the LOCALE and the non-LOCALE form"
+    ],
+    "evidence-2002": [
+     "native: probe numval_cap_NATIVE_ON.cob correct at 2002 (TEST-NUMVAL-C-32 nonzero; row tests pb33 and l1_numval_family_cap_discriminators are accepted at 2023 only)",
+     "standard: WRONG, numval_cap_STANDARD_ON.cob (TEST-NUMVAL-C-32=0, NUMVAL-C-32 returned, no EC)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR7",
+      "quote": "The total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR6",
+      "quote": "If native arithmetic is in effect, the total number of digits in argument-1 shall not exceed 31",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's cap is unconditional; 2023's applies to native arithmetic only, and 2023 AR7 allows 34 under standard-decimal. This is defect D1.",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD, a 32-digit NUMVAL-C argument is accepted where 2002 requires EC-ARGUMENT-FUNCTION",
+    "compiler-at-2002": "wrong (defect D1; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob; numval_cap_NATIVE_ON.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.55.3-1",
+    "to": [
+     "RV-15.68.4-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.55.3 NUMVAL-C Returned values",
+    "clause-2023": "15.68.4 Returned value rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the returned value is the numeric value of argument-1",
+     "it is 31 digits: a 31-digit argument returns whole"
+    ],
+    "evidence-2002": [
+     "value: covered by conformance pb60_numval_one_scan (accept 2002, in the row; matched at --std 2002)",
+     "31 digits: not shown by the row; probes numvalc31_NATIVE.cob and numvalc31_STANDARD.cob (NVC31=-1234567890123456789012345.678901) show it at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.55.3 RV1",
+      "quote": "The returned value is 31 digits and is the numeric value represented by argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.4 RV1",
+      "quote": "The returned value is the numeric value represented by argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 states a 31-digit returned value, which the 2023 rule does not. The compiler returns 31 digits exactly at 2002.",
+    "needs": "a 2002 witness for a 31-digit NUMVAL-C value (candidate numvalc31_STANDARD.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalc31_NATIVE.cob; numvalc31_STANDARD.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.56.2-1",
+    "to": [
+     "AR-15.69.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.56.2 NUMVAL-F Arguments",
+    "clause-2023": "15.69.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the content format (optional sign, significand, optional E with a required sign and exponent n)",
+     "n of one, two or three digits",
+     "each digit string 1 to 31 digits",
+     "E in either case, in the alphanumeric or the national set"
+    ],
+    "evidence-2002": [
+     "format: covered by conformance pb3952_numval_f_exponent_sign_required (accept 2002) and probes numvalf_NATIVE_02.cob and numvalf_STANDARD_02.cob (F1, F2, F3, N3)",
+     "n of at most 3 digits: WRONG, a 4-digit exponent is accepted (TEST-N4=0, N4=100, no EC)",
+     "digit strings of at most 31: WRONG under STANDARD (defect D1)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.56.2 AR1",
+      "quote": "n is one, two, or three digits representing the exponent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.3 AR1",
+      "quote": "n is one, two, three, or four digits representing the exponent",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "the EC-ARGUMENT-FUNCTION exception condition is set to exist",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's n allows at most three digits, where 2023's allows four, and 2002's digit is 'one to 31 digits'. The compiler's NvfScan hard-codes four exponent digits for every edition, and under STANDARD it applies the 34-digit cap.",
+    "needs": "its own verdict: at --std 2002, NUMVAL-F(\"1E+0002\") returns 100 and TEST-NUMVAL-F returns 0, where 2002 requires EC-ARGUMENT-FUNCTION (and a nonzero TEST-NUMVAL-F)",
+    "compiler-at-2002": "wrong (defects D2 and D1; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalf_NATIVE_02.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalf_NATIVE_02.cob; numvalf_STANDARD_02.cob; numval_cap_STANDARD_ON.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.56.2-2",
+    "to": [
+     "AR-15.69.3-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "own-text",
+    "clause-2002": "15.56.2 NUMVAL-F Arguments rule 2",
+    "clause-2023": "15.69.3 Argument rules rule 2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "significand digits at most 31 in every arithmetic mode"
+    ],
+    "evidence-2002": [
+     "native: probe numval_cap_NATIVE_ON.cob correct at 2002 (TEST-NUMVAL-F-32=33); row tests are accepted at 2023 only",
+     "standard: WRONG, numval_cap_STANDARD_ON.cob (TEST-NUMVAL-F-32=0, value returned, no EC)"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.56.2 AR2",
+      "quote": "The total number of digits in the significand shall not exceed 31",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.3 AR2",
+      "quote": "If native arithmetic is in effect, the total number of digits in the significand shall not exceed 31",
+      "check": "OK"
+     }
+    ],
+    "reason": "The 2002 cap is unconditional; 2023's applies to native arithmetic only (34 under standard-decimal). This is defect D1.",
+    "needs": "its own verdict: at --std 2002 under ARITHMETIC IS STANDARD, a 32-digit significand is accepted where 2002 requires EC-ARGUMENT-FUNCTION",
+    "compiler-at-2002": "wrong (defect D1; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numval_cap_STANDARD_ON.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-RV-15.56.3-2",
+    "to": [
+     "RV-15.69.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "split-rule",
+    "second-targets": [
+     "RV-15.69.4-3"
+    ],
+    "clause-2002": "15.56.3 NUMVAL-F Returned values",
+    "clause-2023": "15.69.4 Returned values rules 2 and 3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "native arithmetic: an approximation of the value",
+     "standard arithmetic: exactly the value represented"
+    ],
+    "evidence-2002": [
+     "native: not shown by the row at 2002 (its tests are accepted at 2014 or 2023 only); probe numvalf_NATIVE_02.cob shows a value within the approximation licence",
+     "standard: not shown by RV-15.69.4-2 (that rule covers native and standard-binary); probes numvalf_STANDARD_02.cob (SIG31 exact, 0.1 exact) and numvalf_bigexp.cob (1.5E+400 and 1.234567E-300 exact) at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.56.3 RV2",
+      "quote": "If standard arithmetic is in effect, the returned value is the numeric value represented by argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.4 RV2",
+      "quote": "If native arithmetic or standard-binary arithmetic is in effect, the returned value is an approximation",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.69.4 RV3",
+      "quote": "If standard-decimal arithmetic is in effect, the returned value is the numeric value represented by argument-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's one rule covers both modes. In 2023 the native half is RV-15.69.4-2 and the exact half is RV-15.69.4-3 (standard-decimal). The 2002 exact value, for a significand of at most 31 digits and an exponent of at most three digits, fits a 32-digit standard intermediate, so 2002's exactness asks nothing that standard-decimal exactness does not. The compiler is exact at 2002.",
+    "needs": "KEPT to both targets RV-15.69.4-2 and RV-15.69.4-3, plus a 2002 witness (candidate numvalf_STANDARD_02.cob and numvalf_bigexp.cob), since neither row has a test that runs at 2002",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/numvalf_STANDARD_02.cob; numvalf_bigexp.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.58.2-1",
+    "to": [
+     "AR-15.71.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.58.2 ORD-MAX Arguments",
+    "clause-2023": "15.71.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of ORD-MAX not boolean, object or pointer, and not a strongly-typed group item"
+    ],
+    "evidence-2002": [
+     "not shown by the row (message-tag-refused-ord-max-argument refuses at 2023 only; pb58_argument_predicates_legal is accepted at 2023 only); probes cls_ORD-MAX_BOOL.cob, cls_ORD-MAX_OBJ.cob, cls_ORD-MAX_PTR.cob and cls_ORD-MAX_STG.cob each give COBOL1627 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.58.2 AR1",
+      "quote": "Argument-1 shall not be of class boolean, object, or pointer, nor shall it be a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as 2002-AR-15.47.2-1.",
+    "needs": "a 2002 witness for the four refusals (candidate: probes cls_ORD-MAX_*.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cls_ORD-MAX_BOOL.cob; cls_ORD-MAX_OBJ.cob; cls_ORD-MAX_PTR.cob; cls_ORD-MAX_STG.cob",
+    "widening": "2023 adds message-tag"
+   },
+   {
+    "rule-id": "2002-RV-15.58.3-2",
+    "to": [
+     "RV-15.71.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.58.3 ORD-MAX Returned values",
+    "clause-2023": "15.71.4 Returned value rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "comparisons per simple conditions over alphanumeric, alphabetic, national, numeric and index arguments",
+     "standard-arithmetic expression arguments compared at 32 digits"
+    ],
+    "evidence-2002": [
+     "non-standard cases: not shown by the row at 2002 (pb65_selection_alignment is accepted at 2023 only; nist IF128A is an 85 program); probe cmp.cob correct at 2002 (ORDMAXREV=1, ORDMIX=2, ORDMAXNUM=2, ORDIDX=2)",
+     "standard arithmetic: WRONG, ordmax_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.58.3 RV2",
+      "quote": "The comparisons used to determine the greatest valued argument are made according to the rules for simple conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "in which case it shall not be rounded and all 32 digits shall be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "Under 2002 rules, ORD-MAX(b, 1/K*K) with both arguments equal to 32 nines returns 1 (the leftmost, RV3). The pinned tree returns 2 because it computes 1/K*K at 34 digits.",
+    "needs": "its own verdict: at --std 2002 under standard arithmetic, ordmax_std32.cob prints ORD-MAX=2 where 2002 expects 1; also a 2002 witness for the plain comparisons (candidate cmp.cob)",
+    "compiler-at-2002": "wrong (known PB5575; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/ordmax_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cmp.cob; ordmax_std32.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-AR-15.59.2-1",
+    "to": [
+     "AR-15.72.3-1"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.59.2 ORD-MIN Arguments",
+    "clause-2023": "15.72.3 Argument rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "argument-1 of ORD-MIN not boolean, object or pointer, and not a strongly-typed group item"
+    ],
+    "evidence-2002": [
+     "not shown by the row (message-tag-refused-ord-min-argument refuses at 2023 only); probes cls_ORD-MIN_BOOL.cob, cls_ORD-MIN_OBJ.cob, cls_ORD-MIN_PTR.cob and cls_ORD-MIN_STG.cob each give COBOL1627 at 2002"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.59.2 AR1",
+      "quote": "Argument-1 shall not be of class boolean, object, or pointer, nor shall it be a strongly-typed group item",
+      "check": "OK"
+     }
+    ],
+    "reason": "Same as 2002-AR-15.47.2-1.",
+    "needs": "a 2002 witness for the four refusals (candidate: probes cls_ORD-MIN_*.cob)",
+    "compiler-at-2002": "correct",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cls_ORD-MIN_BOOL.cob; cls_ORD-MIN_OBJ.cob; cls_ORD-MIN_PTR.cob; cls_ORD-MIN_STG.cob",
+    "widening": "2023 adds message-tag"
+   },
+   {
+    "rule-id": "2002-RV-15.59.3-2",
+    "to": [
+     "RV-15.72.4-2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "deferral",
+    "clause-2002": "15.59.3 ORD-MIN Returned values",
+    "clause-2023": "15.72.4 Returned value rules",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "comparisons per simple conditions",
+     "standard-arithmetic expression arguments compared at 32 digits"
+    ],
+    "evidence-2002": [
+     "non-standard cases: not shown by the row at 2002 (pb65_selection_alignment is accepted at 2023 only; nist IF129A is an 85 program); probe cmp.cob correct at 2002 (ORDMINREV=2, ORDNAT=2, ORDMINNUM=2, ORDIDX=1)",
+     "standard arithmetic: WRONG, ordmax_std32.cob"
+    ],
+    "citations": [
+     {
+      "cite": "§2002:15.59.3 RV2",
+      "quote": "The comparisons used to determine the least valued argument-1 are made according to the rules for simple conditions",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.3 GR1",
+      "quote": "in which case it shall not be rounded and all 32 digits shall be used",
+      "check": "OK"
+     }
+    ],
+    "reason": "Under 2002 rules, ORD-MIN(1/K*K, b) with both arguments equal to 32 nines returns 1. The pinned tree returns 2.",
+    "needs": "its own verdict: at --std 2002 under standard arithmetic, ordmax_std32.cob prints ORD-MIN=2 where 2002 expects 1; also a 2002 witness for the plain comparisons (candidate cmp.cob)",
+    "compiler-at-2002": "wrong (known PB5575; probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/ordmax_std32.cob)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-32/cmp.cob; ordmax_std32.cob",
+    "widening": null
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-32",
+  "compiler": "E:/COBOL-wt/coderead85-tree-d/src/WiseOwl.Cobol.Cli/bin/Debug/net10.0/cobol.exe (pinned), --std 2002 and --std 2023",
+  "probe-dir": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/",
+  "cases": [
+   {
+    "rule-id": "2002-AR-15.46.2-1",
+    "verdict": "OVERTURNED",
+    "class": "communication-reach",
+    "reason": "Two 2002 reaches the 2023 row cannot show. (1) Communication reach, as q-40 found for LOG/MEAN/MAX: a 'data item of category numeric' in 2002 includes the implicit CD data-names (TEXT LENGTH, MESSAGE COUNT), whose category comes only from Annex A, and the alphanumeric STATUS KEY, which is refused. Probe at --std 2002 (CORRECT): la_cd.cob gives LA-LEN=0, LA-COUNT=0 and LA-CDREC=-999 for a numeric item in a CD record; la_cd_neg.cob refuses LOWEST-ALGEBRAIC(IN-STATUS) with COBOL1516. The CD program is refused outright at --std 2023 (COBOL0902), so the 2023 row's evidence cannot include it. (2) The reader's evidence item 'legal numeric and numeric-edited items accepted' is false at 2002. A floating-point numeric-edited item PIC -9.99E+999 is a legal argument under 2002 AR1 (2002 allows a picture exponent up to +999, 13.16.38.3 GR12) and no 2002 rule restricts it. The compiler refuses it at --std 2002 under native arithmetic (the default) with COBOL1660, citing §2023:15.58.4 r1, a 2023-only restriction (see 2002-RV-15.46.3-1). The 2023 argument set is narrowed by 2023 AR2, AR3 and RV1, none of which exists in 2002. needs: a 2002 witness for CD implicit data-names as argument-1 (candidate la_cd.cob / la_cd_neg.cob), and a fix of the COBOL1660 edition gate (see RV row). compiler-at-2002: correct for the CD reach, wrong for the floating-edited argument.",
+    "citations": [
+     {
+      "cite": "§2002:15.46.2 AR1",
+      "quote": "Argument-1 shall be a data item of category numeric or numeric-edited",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.3 AR1",
+      "quote": "Argument-1 shall be a data item of category numeric or numeric-edited and shall not be an integer function or numeric function",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR2h",
+      "quote": "The TEXT LENGTH clause defines data-name-8 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR12",
+      "quote": "The exponent shall be '+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/la_cd.cob (la_cd-2002.out, la_cd-2023.out); la_cd_neg.cob (la_cd_neg-2002.out); la_bigexp.cob (la_bigexp-2002.out)"
+   },
+   {
+    "rule-id": "2002-RV-15.46.3-1",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "2023 places a restriction on argument-1 beside this rule that 2002 does not have: §2023:15.58.4 RV1 requires a signed floating-point numeric-edited argument's negative extreme to pass IN-ARITHMETIC-RANGE, and 2023's RV2 (the pointer) governs only what is left. 2002 RV1 governs every numeric-edited argument, including PIC -9.99E+999 (legal in 2002: the picture exponent may be +999, 13.16.38.3 GR12). The 2023 verdict says nothing about those arguments. The compiler applies the 2023-only rule at --std 2002: la_bigexp.cob (native arithmetic, the 2002 default per 8.8.1.2) is refused with 'COBOL1660 ... outside the native (binary64) intermediate's range ... (ISO §2023:15.43.4 r1 / §2023:15.58.4 r1)' at --std 2002, for both PIC -9.99E+999 and -9.9(30)E+999. Under 2002 ARITHMETIC IS STANDARD the same argument is accepted and returns -9.99E+999 (la_bigexp_std.cob), which fits 2002's standard intermediate range of 9.999...E+999 (8.8.1.3.1.1). 2002 15.3.1 makes the representation of a native returned value implementor-defined, but no 2002 text licenses refusing the program. Secondary reach: the implicit CD data-names (TEXT LENGTH, MESSAGE COUNT) whose picture, and so whose lowest value, comes only from Annex A (la_cd.cob: 0 and 0, correct). needs: its own verdict: at --std 2002 under native arithmetic, LOWEST-ALGEBRAIC of a floating-point numeric-edited item whose extreme exceeds binary64 is refused with COBOL1660 (a §2023 rule); 2002 has no such restriction. The sibling is HIGHEST-ALGEBRAIC (§2023:15.43.4 RV1, same COBOL1660 gate), which is not in this slice. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:15.46.3 RV1",
+      "quote": "The value returned is equal to the lowest algebraic value that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.4 RV1",
+      "quote": "When argument-1 is a signed floating-point numeric-edited item, the data description entry with which argument-1 is described shall be such that",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.58.4 RV2",
+      "quote": "The value returned is equal to the lowest finite algebraic value that may be represented in argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:13.16.38.3 GR12",
+      "quote": "The exponent shall be '+9', '+99', '+999', or '+9(n)' where n = 1, 2, or 3",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.2",
+      "quote": "Native arithmetic is in effect when the ARITHMETIC IS NATIVE clause is specified in the OPTIONS paragraph or no ARITHMETIC clause is specified",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.1.3.1.1",
+      "quote": "with a precision of 32 decimal digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.3.1",
+      "quote": "When native arithmetic is in effect, the characteristics and representation of the returned value are defined by the implementor",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/la_bigexp.cob (la_bigexp-2002.out, la_bigexp-2023.out); la_bigexp_std.cob (la_bigexp_std-2002.out); la_cd.cob"
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-2",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "2002's blanket alphabetic rule, which 2023 removed (the cause q-39 found for LOCALE-DATE): §2002:8.5.2.1 lets an alphabetic item be specified wherever an elementary alphanumeric item is permitted as an operand, and treats it as alphanumeric where it is not expressly permitted. So in 2002, when argument-1 is alphanumeric, a PIC A(3) VALUE 'EUR' argument-2 is a permitted item treated as alphanumeric, which satisfies 'the same class as argument-1'. 2023 8.5.2.2 has no such sentence (2014 E.2 records the removal). The compiler refuses it at --std 2002 with 'COBOL1627: FUNCTION NUMVAL-C argument-2 is of class alphabetic; ISO §2023:15.3 requires ...' (nvc_alpha_a2.cob). Expected at 2002: accepted, with NUMVAL-C(' EUR 1,234.56', CA) = 1234.56. needs: its own verdict: at --std 2002 an alphabetic argument-2 is refused with COBOL1627 where 2002 8.5.2.1 permits it. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR2",
+      "quote": "Argument-2, if specified, shall be of the same class as argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR2",
+      "quote": "Argument-2, if specified, shall be of the same class as argument-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "Where an alphabetic data item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.5.2.2",
+      "quote": "An elementary data item described as alphabetic by its PICTURE character-string is of category alphabetic",
+      "check": "OK"
+     },
+     {
+      "cite": "§2014:E.2",
+      "quote": "Data items of class and category alphabetic may be used only where rules explicitly allow them",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/nvc_alpha_a2.cob (nvc_alpha_a2-2002.out, nvc_alpha_a2-2023.out)"
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-5",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "This has the same 2002-only cause as AR-15.55.2-2. Sub-item a) governs 'If argument-1 is alphanumeric', and in 2002 an alphabetic argument-1 is permitted where AR1 asks for category alphanumeric and is treated as alphanumeric (§2002:8.5.2.1; 15.2 argument type 2 also admits class alphabetic). So the 2002 non-LOCALE format rule governs PIC A arguments, which the 2023 rule (no blanket rule) does not reach. The compiler refuses an alphabetic argument-1 at --std 2002 with COBOL1627 citing §2023:15.3 (nvc_alpha_a1.cob). Secondary point (doubtful only): the 'currency' element matches 'the default currency sign', and with CURRENCY SIGN 'EUR' only, 2002 counts one currency string where strict 2023 (SR25's implied '$') counts two (the q-41 deferral on AR4). The compiler matches 'EUR' and rejects '$' identically at both editions (nvc_cursign.cob), and no row test exercises a SPECIAL-NAMES currency without argument-2. needs: its own verdict: at --std 2002 an alphabetic argument-1 in the non-LOCALE form is refused where 2002 permits it; plus a 2002 witness for a SPECIAL-NAMES currency string (candidate nvc_cursign.cob). compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR5a",
+      "quote": "If argument-1 is alphanumeric, CR or DB, if specified, shall be the letters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR4b",
+      "quote": "If argument-1 is alphanumeric, CR or DB, if specified, shall be the letters",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.55.2 AR1",
+      "quote": "Argument-1 shall be of category alphanumeric or national",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "An alphabetic data item may be specified wherever an elementary alphanumeric data item is permitted as an operand",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "Alphanumeric. A data item of the class alphabetic or alphanumeric or an alphanumeric literal shall be specified",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/nvc_alpha_a1.cob (nvc_alpha_a1-2002.out); nvc_cursign.cob (nvc_cursign-2002.out, nvc_cursign-2023.out)"
+   },
+   {
+    "rule-id": "2002-AR-15.55.2-6",
+    "verdict": "OVERTURNED",
+    "class": "other",
+    "reason": "This is the LOCALE twin of AR-15.55.2-5. Item b) 2 governs 'If argument-1 is of category alphanumeric', and in 2002 an alphabetic argument-1 is permitted and treated as alphanumeric (§2002:8.5.2.1), so the LOCALE matching rules reach PIC A arguments in 2002 and not in 2023. The compiler refuses NUMVAL-C(SA LOCALE) with SA PIC A(5) at --std 2002 with COBOL1627 citing §2023:15.3 (nvc_alpha_loc.cob). The reader's other points hold: the ANYCASE fold in 2023 item 3 is one way of being case-insensitive, and EC-LOCALE-MISSING is observed at 2002 by pb64t6. needs: its own verdict: at --std 2002 an alphabetic argument-1 with LOCALE is refused where 2002 permits it. compiler-at-2002: wrong.",
+    "citations": [
+     {
+      "cite": "§2002:15.55.2 AR6b",
+      "quote": "If argument-1 is of category alphanumeric, usage national representation of argument-1 is used for purposes of matching locale fields",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.68.3 AR5b",
+      "quote": "If argument-1 is of category alphanumeric, usage national representation of argument-1 is used for purposes of matching locale fields",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.5.2.1",
+      "quote": "Where an alphabetic data item is not expressly permitted, the alphabetic data item is treated as though it were an alphanumeric data item",
+      "check": "OK"
+     }
+    ],
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-32/nvc_alpha_loc.cob (nvc_alpha_loc-2002.out)"
+   }
+  ],
+  "disputed-different": [],
+  "siblings-outside-slice": [
+   "2002-AR-15.55.2-1 (NUMVAL-C AR1, UPHELD by q-41): an alphabetic argument-1 is permitted by §2002:8.5.2.1 and refused at --std 2002 (nvc_alpha_a1.cob); the q-41 upheld verdict missed this.",
+   "HIGHEST-ALGEBRAIC 2002 RV (§2023:15.43.4 RV1 twin): the same COBOL1660 2023-only gate at --std 2002."
+  ]
+ },
+ "imported": {
+  "asked": "063db47e3f1a9a0d4f2af007a48250efad60bf3e961729ee63679875f92b3f34",
+  "read": "9cf5ef5ff51b8a0a37c13d880ba2f6643ec29abb039a12fd5a69eba5189174a1",
+  "refute": "fa65771680b74cdad893e6d451a8d2bbd6d08e5fa02012c0499f201353b25857"
+ }
+}

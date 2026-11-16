@@ -1,7 +1,7 @@
       *>--- conformance-case
       *> id: l1_start_relative_key_item
       *> rules: [GR-14.9.41.4-10]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
       *> source-format: fixed
       *> portable: unverified
       *>---

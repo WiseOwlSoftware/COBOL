@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.65.3-1",
+ "rule-digest": "f1cebeb0cce6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Reverse; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#StrArgVisitor; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/OperandText.cs#AsString",
+ "test-ref": "conformance:cases/15.78.4-Returned-value-rule/pb190_reverse_argument_shapes",
+ "notes": "Own verdict from the read lineage-reads-2002/u-33.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.78.4-1, witnessed at 2002 by the cases test-ref names. The read: Identical format, argument rule and type table in both editions; the twin's conformance witness runs at 2002 and matches. Cited: §2002:15.65.3 RV1."
+}

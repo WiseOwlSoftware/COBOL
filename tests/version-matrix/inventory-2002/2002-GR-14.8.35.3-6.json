@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-6",
+ "rule-digest": "1f9d698b00d9",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindSetCondition; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SetEmitter.cs#EmitSet; src/WiseOwl.Cobol.Compiler/CodeGen/DataDivision/ValueInitializer.cs#InitializerFrom",
+ "test-ref": "conformance:cases/13.18.63-VALUE/pb555_value_false_phrase; conformance:cases/13.18.63-VALUE/pb455_set_false_group_length; conformance:cases/13.18.63-VALUE/pb560_condition_value_float_and_false_2002",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.39.4-7, witnessed at 2002 by the cases test-ref names. The read: Word-identical except the OCCURS clause number. The 2002 witnesses of the row pass at 2002. Cited: §2002:14.8.35.3 GR6."
+}

@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-12.3.4.2-4",
+ "rule-digest": "39b3c03cd49f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolIO.g4#assignTarget; src/WiseOwl.Cobol.Compiler/Binding/AssignTargetRule.cs#Text",
+ "test-ref": "conformance:cases/12.4.5-File-control/pb1078-assign-literal-shape",
+ "notes": "Own verdict from the read lineage-reads-2002/u-11.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-12.4.5.2-4, witnessed at 2002 by the cases test-ref names. The read: 2023 adds only 'nor a zero-length literal'; a zero-length literal is not a 2002 literal at all (the compiler refuses \"\" at --std 2002 with COBOL0900, a COBOL-2014 introduction), so the 2002 rule is the 2023 rule minus a case 2002 cannot write. ASSIGN TO literal-1 is the same in all four formats of both editions (no CD or debugging reach). 2002 literal kinds that are not alphanumeric (numeric, national N\"\", boolean B\"\") and the figurative constants are refused at 2002 exactly as at 2023; a hexadecimal alphanumeric literal is admitted. Cited: §2002:12.3.4.2 SR4."
+}

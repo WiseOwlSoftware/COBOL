@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.35.3-4",
+ "rule-digest": "f7a5351b4a1f",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchBindSet; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SetAlterBinder.cs#SwitchCondOf; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs#AnalyzeBareOperand; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EvaluateBinder.cs#BareOperandKind; src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#setSwitchStatement",
+ "test-ref": "conformance:cases/8.8.4.6-Simple-switch-status-condition/pb400_evaluate_condition_subject_forms",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.39.4-5, witnessed at 2002 by the cases test-ref names. The read: Only the cross-reference differs (2002 8.8.4.1.5 'Switch-status condition', 2023 8.8.4.6 'Simple switch-status condition'). The two clauses' introduction, format and rule are word-identical. Format 3 is identical. Cited: §2002:14.8.35.3 GR4; §2002:8.8.4.1.5.2."
+}

@@ -2,7 +2,7 @@
       *> id: pb1041_trig_log_arc_exact_argument
       *> rules: [RV-15.8.4-1, RV-15.9.4-1, RV-15.10.4-1, RV-15.20.4-1,
       *>    RV-15.55.4-1, RV-15.56.4-1, RV-15.82.4-1, RV-15.89.4-1]
-      *> accept: [85]
+      *> accept: [85, 2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

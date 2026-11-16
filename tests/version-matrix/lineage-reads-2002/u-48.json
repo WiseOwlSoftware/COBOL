@@ -1,0 +1,1368 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-48 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-48",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-15.8.1",
+   "2002-FMT-14.8.1.1",
+   "2002-FMT-14.8.2.1",
+   "2002-FMT-14.8.3.1",
+   "2002-FMT-8.8.3.1",
+   "2002-FMT-11.8.4.1",
+   "2002-FMT-14.8.4.1",
+   "2002-FMT-8.8.4.1.1.1",
+   "2002-FMT-8.8.4.1.2.1",
+   "2002-FMT-8.8.4.1.3.1",
+   "2002-FMT-8.8.4.1.4.1",
+   "2002-FMT-8.8.4.1.5.1",
+   "2002-GR-8.8.4.1.5.2-p1",
+   "2002-FMT-8.8.4.1.6.1",
+   "2002-FMT-8.8.4.1.7.1",
+   "2002-FMT-8.8.4.2.1.1",
+   "2002-FMT-8.8.4.2.2.1",
+   "2002-FMT-8.8.4.2.4.1",
+   "2002-FMT-11.8.5.1",
+   "2002-FMT-14.8.5.1",
+   "2002-FMT-14.8.6.1",
+   "2002-FMT-14.8.7.1",
+   "2002-FMT-14.8.8.1",
+   "2002-FMT-14.8.9.1",
+   "2002-FMT-14.8.10.1"
+  ],
+  "pointers": {
+   "2002-FMT-15.8.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.9.2",
+    "similarity": 0.871
+   },
+   "2002-FMT-14.8.1.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.1.2",
+    "similarity": 0.315
+   },
+   "2002-FMT-14.8.2.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.2.2",
+    "similarity": 0.574
+   },
+   "2002-FMT-14.8.3.1": {
+    "bucket": "near (>=0.90)",
+    "nearest-2023": "FMT-14.9.3.2",
+    "similarity": 0.917
+   },
+   "2002-FMT-8.8.3.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.8.3.1",
+    "similarity": 0.305
+   },
+   "2002-FMT-11.8.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-11.9.5.1",
+    "similarity": 0.312
+   },
+   "2002-FMT-14.8.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.4.2",
+    "similarity": 0.498
+   },
+   "2002-FMT-8.8.4.1.1.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.2.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.3.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.4.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.5.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-GR-8.8.4.1.5.2-p1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.6.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.1.7.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.2.1.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.2.2.1": {
+    "bucket": "no same-subject 2023 rule",
+    "nearest-2023": null,
+    "similarity": 0.0
+   },
+   "2002-FMT-8.8.4.2.4.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-8.8.4.12.2",
+    "similarity": 0.5
+   },
+   "2002-FMT-11.8.5.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-11.9.7.2",
+    "similarity": 0.314
+   },
+   "2002-FMT-14.8.5.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-14.9.5.2",
+    "similarity": 0.878
+   },
+   "2002-FMT-14.8.6.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.6.2",
+    "similarity": 0.317
+   },
+   "2002-FMT-14.8.7.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.8.2",
+    "similarity": 0.531
+   },
+   "2002-FMT-14.8.8.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.9.2",
+    "similarity": 0.038
+   },
+   "2002-FMT-14.8.9.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.10.2",
+    "similarity": 0.258
+   },
+   "2002-FMT-14.8.10.1": {
+    "bucket": "distant (<0.70, same subject exists)",
+    "nearest-2023": "FMT-14.9.11.2",
+    "similarity": 0.498
+   }
+  }
+ },
+ "read": {
+  "slice": "u-48",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.8.1",
+    "to": [
+     "FMT-15.9.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "15.8.1",
+    "clause-2023": "15.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION ANNUITY (argument-1 argument-2), arguments literal, identifier or arithmetic expression"
+    ],
+    "evidence-2002": {
+     "ANNUITY call forms": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p01-annuity.cob (A0 0.25000000, A1 0.12950457, A2 0.57619047 at --std 2002, all correct)",
+     "pointer row witness": "not shown: FMT-15.9.2's refs are a unit drift test and a generic refusal test; no conformance case runs ANNUITY at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.8",
+      "quote": "The ANNUITY function (annuity immediate) returns a numeric value",
+      "check": "OK"
+     }
+    ],
+    "reason": "The general format is word-identical (similarity 0.871 is only the transcription anchor), but the pointer row has no conformance witness that runs at --std 2002, so the 2002 scope is shown only by the probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p01-annuity.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for FUNCTION ANNUITY (probe p01-annuity.cob can serve)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p01-annuity-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.1.1",
+    "to": [
+     "FMT-14.9.1.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.1.1",
+    "clause-2023": "14.9.1.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "Format 1 (hardware): ACCEPT identifier-1 [FROM mnemonic-name-1] [END-ACCEPT]",
+     "Format 2 (chronological): FROM DATE [YYYYMMDD] | DAY [YYYYDDD] | DAY-OF-WEEK | TIME",
+     "Format 3 (screen): ACCEPT screen-name-1 [AT LINE/COLUMN|COL] [ON EXCEPTION / NOT ON EXCEPTION] (processor-dependent in 2002)"
+    ],
+    "evidence-2002": {
+     "Format 1 bare and FROM mnemonic-name": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p02-accept.cob (F1 [HELLO][WORLD]); the pointer's pb2499 cases are refusal tests only",
+     "Format 2 DATE / DATE YYYYMMDD / DAY / DAY YYYYDDD / DAY-OF-WEEK": "covered by probe p02-accept.cob (all OK); the pointer's passing case pb134_scope_terminators shows only ACCEPT FROM TIME",
+     "Format 2 TIME + END-ACCEPT": "covered by pb134_scope_terminators (PASS at 2002, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/ptr-2002-a.txt)",
+     "Format 3 screen": "declined at 2002 with COBOL1707/COBOL1560 (probe p02s-accept-screen.cob; a42-accept-screen-* refuse the same at 2002)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.1.2 SR1",
+      "quote": "Identifier-1 shall reference neither a strongly-typed group item",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format text equal (2002 names the formats hardware/chronological, 2023 device/temporal; PDF p431 rendered). Pointer evidence at 2002 shows only FROM TIME; FROM mnemonic-name and the other temporal sources are probe-only. The screen format is declined under a 2002 licence different from 2023's (2002: processor-dependent, B.3 item 1; 2023: optional module A.4.2); the diagnostic text cites the 2023 licence.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p02-accept.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for ACCEPT FROM mnemonic-name and FROM DATE/DAY/DAY-OF-WEEK (probe p02-accept.cob), and the 2002 licence recorded for format 3",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p02-accept-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p02s-accept-screen-2002.out)",
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (the screen formats of ACCEPT and DISPLAY are processor-dependent; elements for which support is not claimed need not be implemented)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.2.1",
+    "to": [
+     "FMT-14.9.2.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.2.1",
+    "clause-2023": "14.9.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "F1 ADD {id|lit}... TO {id [ROUNDED]}... [ON SIZE ERROR] [NOT ON SIZE ERROR] [END-ADD]",
+     "F2 ADD {id|lit}... [TO] {id|lit} GIVING {id [ROUNDED]}... (TO not underlined, optional; PDF p437 rendered)",
+     "F3 ADD CORRESPONDING|CORR id TO id [ROUNDED] with the size-error phrases"
+    ],
+    "evidence-2002": {
+     "F1/F2 with size-error phrases": "covered by pointer cases phrase_order_arithmetic, optional_on_size_error, pb134_giving_sending_operands, pb45_function_in_sending_operands (PASS at 2002)",
+     "F1/F2 several receivers with ROUNDED, F2 TO literal-2": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p03-add.cob (F1 NSE 03 02, F2 NSE 07 06)",
+     "F2 without TO": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p03b-add-giving-noto.cob (NOTO 03)",
+     "F3 CORR/CORRESPONDING ROUNDED": "covered by probe p03-add.cob (F3 NSE 1112, F3B 1213); the pointer's F3 witness corresponding_rounded_mode is refused at 2002 (COBOL0803, ROUNDED MODE is a 2014 phrase)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.2.2 SR1b",
+      "quote": "In format 2, by using all of the operands in the statement excluding the data items that follow the word GIVING",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.8.2.2 SR1c",
+      "quote": "In format 3, by using the two corresponding operands for each separate pair of corresponding data items",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has plain ROUNDED where 2023 has rounded-phrase (a widening). The pointer row's only format-3 witness uses ROUNDED MODE and does not run at 2002, so CORR is shown at 2002 only by the probe.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p03-add.cob",
+    "widening": "2023 rounded-phrase adds ROUNDED MODE IS",
+    "class": "other",
+    "needs": "a 2002 witness for ADD CORRESPONDING (p03-add.cob) and ADD ... GIVING without TO (p03b-add-giving-noto.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p03-add-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p03b-add-giving-noto-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.3.1",
+    "to": [
+     "FMT-14.9.3.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.3.1",
+    "clause-2023": "14.9.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ALLOCATE {arithmetic-expression-1 CHARACTERS | data-name-1} [INITIALIZED] [RETURNING data-name-2]"
+    ],
+    "evidence-2002": {
+     "every alternative": "covered by pointer cases allocate_initialized and pointer_alloc (PASS at 2002: ALLOCATE n CHARACTERS [INITIALIZED] RETURNING, ALLOCATE based-item [INITIALIZED] [RETURNING]); allocate-chars-no-returning and allocate-non-based refuse at 2002 (COBOL0869); confirmed by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p04-allocate.cob"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.3",
+      "quote": "The ALLOCATE statement obtains dynamic storage",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format (0.917 is the anchor). Pointer witnesses run green at 2002 and cover each alternative.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p04-allocate.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.3.1",
+    "to": [
+     "FMT-8.8.3.1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.3.1",
+    "clause-2023": "8.8.3.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "{literal-1 | concatenation-expression-1} & literal-2 (a literal may be written as a constant-name)"
+    ],
+    "evidence-2002": {
+     "literal & literal, chained": "covered by literal_concat (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p05-concat.cob",
+     "constant-name operand": "not shown by the pointer at 2002: pb1406_concat_word_operands is refused at 2002 (COBOL0900 for its zero-length literal, a 2014 element); shown by probe p05-concat.cob (C2 XKKY)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.3",
+      "quote": "A concatenation expression consists of two operands separated by the concatenation operator",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format; the word-operand witness does not run at 2002 because of an unrelated 2014 element, so that part is probe-only.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p05-concat.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for a constant-name concatenation operand (p05-concat.cob, or pb1406_concat_word_operands without its zero-length-literal leg)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p05-concat-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-11.8.4.1",
+    "to": [
+     "FMT-11.9.5.1"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "11.8.4.1",
+    "clause-2023": "11.9.5.1",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ARITHMETIC [IS] NATIVE",
+     "ARITHMETIC [IS] STANDARD (2002 only; PDF p206 rendered)"
+    ],
+    "evidence-2002": {
+     "NATIVE": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p06a-arith-native.cob",
+     "STANDARD": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p06b-arith-standard.cob (accepted, runs); the pointer's witness l1c01_arithmetic_clause_forms is refused at 2002 (STANDARD-DECIMAL)",
+     "STANDARD-DECIMAL refused at 2002": "probe p06c-arith-stddec.cob COBOL0900 (right: not a 2002 alternative)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.8.4.2 GR2",
+      "quote": "If the STANDARD phrase is specified, the techniques used in handling arithmetic expressions",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 offers NATIVE | STANDARD; 2023 offers NATIVE | STANDARD-BINARY | STANDARD-DECIMAL. ARITHMETIC IS STANDARD exists only in 2002 and the pointer row cannot show it. The 32-digit semantics of STANDARD is the known kb/Work PB5575 defect (general rules, not this format).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p06b-arith-standard.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "its own verdict: the compiler's behaviour at --std 2002 for ARITHMETIC IS STANDARD is to accept it (p06b), NATIVE likewise (p06a)",
+    "compiler-at-2002": "correct for the format (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p06b-arith-standard-2002.out); STANDARD's semantics are the known PB5575 defect"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.4.1",
+    "to": [
+     "FMT-14.9.4.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.4.1",
+    "clause-2023": "14.9.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "F1 on-overflow: CALL id|lit [USING BY REFERENCE/BY CONTENT id...] [RETURNING id] [ON OVERFLOW] [END-CALL]",
+     "F2 on-exception: the same with ON EXCEPTION / NOT ON EXCEPTION",
+     "F3 program-prototype: CALL [id|lit AS] NESTED|prototype-name USING BY REFERENCE id|OMITTED, BY CONTENT/BY VALUE arithmetic-expression|boolean-expression|identifier|literal"
+    ],
+    "evidence-2002": {
+     "F1 ON OVERFLOW": "covered by probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob (F1 R=+0005, F1 OVERFLOW TAKEN); refused at 2023 COBOL0882 (p07-call-2023.out); no pointer evidence",
+     "F2": "covered by pb130_call_format2_bare, pb239_call_address_identifier (PASS at 2002) and p07 (both exception orders)",
+     "F3": "covered by pb46_call_format2_as_nested, pb237_program_prototype, pb133_omitted_args (PASS at 2002) and p07 (BY VALUE arithmetic expression, BY CONTENT boolean expression, OMITTED)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.4.1",
+      "quote": "ON OVERFLOW is an archaic feature and its use should be avoided",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has three formats; 2023 has no on-overflow format. CALL ... ON OVERFLOW is a 2002 form the pointer cannot show.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CALL ... ON OVERFLOW (p07-call.cob; probes of slices p-06, p-17 and q-25 agree)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.1.1",
+    "to": [
+     "FMT-8.8.4.2.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.1.1.1",
+    "clause-2023": "8.8.4.2.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "F1 general-relation: identifier|literal|arithmetic-expression|index-name with every 2002 operator (NOT forms, >=, <=)",
+     "F2 boolean: boolean-expression IS [NOT] EQUAL TO | =",
+     "F3 pointer-or-object-reference: identifier-3 IS [NOT] EQUAL TO | = identifier-4"
+    ],
+    "evidence-2002": {
+     "F1 operators": "covered by pb1034_printed_relational_operator_set (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob R1",
+     "F1 arithmetic-expression and index-name operands": "probe p08-cond.cob R2, R3 only",
+     "F2": "covered by pb1464_parenthesized_boolean_operands (PASS at 2002) and p08 R4",
+     "F3 pointer and object reference": "probe p08-cond.cob R5, R6 only; the pointer's format-3 witness message-tag-relation is refused at 2002 (COBOL0900 for <>)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.1",
+      "quote": "a relation condition involving operands of class pointer or object is a pointer-or-object-reference relation condition",
+      "check": "OK"
+     }
+    ],
+    "reason": "No twin was paired (2023 renumbered the clause to 8.8.4.2.2); pointer chosen by subject. 2023 adds IS <> and message-tag operands (widening). The 2002 format 3 and the index-name operand have no witness at 2002 through the row.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": "2023 adds IS <> and message-tag operands",
+    "class": "other",
+    "needs": "a 2002 witness for format 3 pointer/object-reference relations and index-name operands (p08-cond.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.2.1",
+    "to": [
+     "FMT-8.8.4.3.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.2.1",
+    "clause-2023": "8.8.4.3.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "[NOT] boolean-expression-1 as a condition (boolean items of length 1)"
+    ],
+    "evidence-2002": {
+     "[NOT] boolean-expression": "covered by pb1464_parenthesized_boolean_operands and boolean_ops (PASS at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob B1 agrees"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.3 GR1",
+      "quote": "Boolean-expression-1 evaluates true if the result of the expression is 1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format under a renumbered clause (pointer chosen; the script found none). Witnesses run green at 2002; pb1412 (shift operators) is a 2023-only case, outside 2002 scope.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.3.1",
+    "to": [
+     "FMT-8.8.4.4.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.1.3.1",
+    "clause-2023": "8.8.4.4.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "identifier-1 IS [NOT] NUMERIC | ALPHABETIC | ALPHABETIC-LOWER | ALPHABETIC-UPPER | BOOLEAN | alphabet-name-1 | class-name-1 (identifier-1 may be a function-identifier, SR3; PDF p154 rendered)"
+    ],
+    "evidence-2002": {
+     "NUMERIC, ALPHABETIC, BOOLEAN, alphabet-name, class-name": "covered by pb571_class_condition_one_table, pb590_boolean_class_condition (PASS at 2002)",
+     "ALPHABETIC-LOWER, ALPHABETIC-UPPER": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob K1 only (no pointer case running at 2002 names them)",
+     "function-identifier operand": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08c-class-function.cob only"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.3.2 SR3",
+      "quote": "If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's list is a subset of 2023's (2023 adds the float classes, a widening; their witness pb225_float_class_conditions is refused at 2002, right). Two 2002 alternatives have no pointer evidence at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": "2023 adds FARTHEST-FROM-ZERO, FLOAT-*, IN-ARITHMETIC-RANGE, NEAREST-TO-ZERO",
+    "class": "other",
+    "needs": "a 2002 witness for ALPHABETIC-LOWER / ALPHABETIC-UPPER (p08-cond.cob K1)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08c-class-function-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.4.1",
+    "to": [
+     "FMT-8.8.4.5.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.4.1",
+    "clause-2023": "8.8.4.5.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "condition-name-1 of a conditional variable"
+    ],
+    "evidence-2002": {
+     "condition-name-1": "covered by l1_perform_until_condition_forms (PASS at 2002, UNTIL ST-DONE); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob N1"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4",
+      "quote": "a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format; pointer chosen (renumbered clause); witness runs green at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.5.1",
+    "to": [
+     "FMT-8.8.4.6.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.5.1",
+    "clause-2023": "8.8.4.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "condition-name-1 associated with a switch-name in SPECIAL-NAMES"
+    ],
+    "evidence-2002": {
+     "switch-status condition-name": "covered by pb400_evaluate_condition_subject_forms, l1_search_when_condition_forms, pb1464_parenthesized_bare_conditions (PASS at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob W1/W2"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.5",
+      "quote": "The switch-name and the on or off value associated with the condition shall be named in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format; pointer chosen (renumbered clause); witnesses run green at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.5.2-p1",
+    "to": [
+     "GR-8.8.4.6.3-1"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.5.2",
+    "clause-2023": "8.8.4.6.3",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "the truth of a switch-status condition from the switch's position"
+    ],
+    "evidence-2002": {
+     "ON/OFF truth": "covered by pb400_evaluate_condition_subject_forms, l1_search_when_condition_forms (PASS at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob W1 OFF, then W2 ON after SET SWM TO ON"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.5.2 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     }
+    ],
+    "reason": "The sentence is word-identical to GR-8.8.4.6.3-1 (left unpaired only because the clause was renumbered); witnesses run green at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.6.1",
+    "to": [
+     "FMT-8.8.4.7.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.1.6.1",
+    "clause-2023": "8.8.4.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "arithmetic-expression-1 IS [NOT] POSITIVE | NEGATIVE | ZERO (any arithmetic expression, not only an identifier)"
+    ],
+    "evidence-2002": {
+     "identifier operand, every keyword with and without NOT": "covered by l1c32_sign_condition_format1 (PASS at 2002)",
+     "compound arithmetic-expression operand": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob S1 (A - 5 IS ZERO, A - B IS NEGATIVE) and p08c-class-function.cob (FUNCTION LENGTH(XA) - 3 IS ZERO) only"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.6.2",
+      "quote": "An operand is positive, if its value is greater than zero, negative if its value is less than zero",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format 1 identical; 2023 adds format 2 (standard-float data-name, a widening; its witness is refused at 2002, right). The pointer's format-1 witness tests only data-name operands.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": "2023 adds Format 2 (standard-float)",
+    "class": "other",
+    "needs": "a 2002 witness for a sign condition on a compound arithmetic expression (p08-cond.cob S1)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.7.1",
+    "to": [
+     "FMT-8.8.4.8.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.1.7.1",
+    "clause-2023": "8.8.4.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "data-name-1 IS [NOT] OMITTED, data-name-1 a formal parameter"
+    ],
+    "evidence-2002": {
+     "IS OMITTED / IS NOT OMITTED": "covered by pb133_omitted_args (PASS at 2002); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob (S B-OMITTED) agrees"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.2 SR1",
+      "quote": "Data-name-1 shall be a formal parameter defined in the source element in which this condition is specified",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format under a renumbered clause; witness runs green at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.2.1.1",
+    "to": [
+     "FMT-8.8.4.10.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.2.1.1",
+    "clause-2023": "8.8.4.10.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "NOT condition-1"
+    ],
+    "evidence-2002": {
+     "NOT condition-1": "covered by l1_perform_until_condition_forms (PASS at 2002: UNTIL NOT (CX IS NUMERIC)); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob C1"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.1",
+      "quote": "A condition is negated by use of the logical operator 'NOT', which reverses the truth value",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format; pointer chosen (renumbered clause); witness runs green at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.2.2.1",
+    "to": [
+     "FMT-8.8.4.11.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "8.8.4.2.2.1",
+    "clause-2023": "8.8.4.11.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "condition-1 {AND | OR} condition-2 ..."
+    ],
+    "evidence-2002": {
+     "AND / OR": "not shown through the pointer row: every FMT-8.8.4.11.2 witness is an XOR case, refused at 2002 (logical_xor and pb1390_abbreviated_tail_xor COBOL0900, w73a_xor_parenthesized_condition COBOL0001). Shown at 2002 by l1_perform_until_condition_forms (FMT-8.8.4.10.2's witness, PASS) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob C1"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.2",
+      "quote": "A combined condition results from connecting conditions with one of the logical operators 'AND' or 'OR'",
+      "check": "OK"
+     }
+    ],
+    "reason": "2023 adds EXCLUSIVE-OR / XOR (a widening). The pointer row's evidence is XOR-only and none of it runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": "2023 adds EXCLUSIVE-OR and XOR",
+    "class": "other",
+    "needs": "KEPT with a 2002 witness for AND/OR: l1_perform_until_condition_forms (runs green at 2002) or p08-cond.cob",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.2.4.1",
+    "to": [
+     "FMT-8.8.4.12.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "8.8.4.2.4.1",
+    "clause-2023": "8.8.4.12.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "relation-condition-1 { {AND|OR} {NOT | [NOT] simple-relational-operator | extended-relational-operator} object-1 }... (PDF p158 rendered)"
+    ],
+    "evidence-2002": {
+     "abbreviated tails, the NOT interpretations and the GR2 NOTE examples": "covered by pb1390_abbreviated_tail_and_or (PASS at 2002; it carries the NOTE examples); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob AB1-AB8 match the 2002 expansions",
+     "NOT before >= / <= refused": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08b-not-extended.cob COBOL0902 at 2002 (and at 2023)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2b",
+      "quote": "If the relational operator following the word NOT is a simple relational operator, then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR3",
+      "quote": "The word NOT shall not be followed immediately by the word NOT or the words IS NOT",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:F.1",
+      "quote": "The word NOT is prohibited before the relational operators meaning 'greater than or equal to' and 'less than or equal to'",
+      "check": "OK"
+     }
+    ],
+    "reason": "The words differ only because 2002's simple relational operators carry [NOT] while 2023 moved IS NOT GREATER/LESS/EQUAL into extended-relational-operator. Both formats admit the same tails ('AND NOT < c' parses in both and reads as 'a NOT < c', 2002 GR2b), and both exclude NOT before >= / <=. The expansions at 2002 match the 2002 NOTE table. XOR is a 2023 widening.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p08-cond.cob",
+    "widening": "2023 adds EXCLUSIVE-OR / XOR connectives"
+   },
+   {
+    "rule-id": "2002-FMT-11.8.5.1",
+    "to": [
+     "FMT-11.9.7.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "11.8.5.1",
+    "clause-2023": "11.9.7.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "ENTRY-CONVENTION IS entry-convention-name-1 (names implementor-defined; B.1 item 44 optional; PDF p207 rendered)"
+    ],
+    "evidence-2002": {
+     "ENTRY-CONVENTION IS <name>": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p18b-entry-conv-name.cob: COBOL2385 (no name defined)",
+     "ENTRY-CONVENTION IS COBOL": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p18-entry-conv.cob: COBOL0900 at 2002 (pb4611-entry-convention-cobol-below-2014 refuses the same); the pointer's witness pb232_entry_convention_cobol is refused at 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:11.8.5.3 GR2",
+      "quote": "The meaning of the entry convention specified by entry-convention-name-1 is implementor-defined",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.1",
+      "quote": "ENTRY-CONVENTION clause (entry-convention-names, their meanings and the default when not specified). This item is optional.",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002's format has only entry-convention-name-1; 2023 adds the COBOL keyword. The compiler defines no 2002 entry-convention-name, so every 2002 ENTRY-CONVENTION clause is refused; §2002:B.1 item 44 makes the names optional, which licenses that. The 2023 evidence (IS COBOL accepted) does not hold at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p18b-entry-conv-name.cob",
+    "widening": null,
+    "class": "own-text",
+    "needs": "its own verdict: at --std 2002 the compiler provides no entry-convention-name (any name COBOL2385; IS COBOL COBOL0900), licensed by §2002:B.1 item 44; record the 2002 documentation",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p18-entry-conv-2002.out, E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p18b-entry-conv-name-2002.out)",
+    "licence-2002": "§2002:B.1 item 44 (entry-convention-names are optional)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.5.1",
+    "to": [
+     "FMT-14.9.5.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.5.1",
+    "clause-2023": "14.9.5.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CANCEL {identifier-1 | literal-1 | program-prototype-name-1}..."
+    ],
+    "evidence-2002": {
+     "literal-1": "covered by recursive_ws (PASS at 2002)",
+     "program-prototype-name-1, two operands": "covered by pb237_program_prototype (PASS at 2002)",
+     "identifier-1": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob only (CANCEL \"P07SUB\" NM P07S, then CANCEL OK)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.5",
+      "quote": "The CANCEL statement ensures that the next time the referenced program is called it will be in its initial state",
+      "check": "OK"
+     }
+    ],
+    "reason": "Word-identical format (0.878 is the anchor); the identifier-1 operand has no pointer witness.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call.cob",
+    "widening": null,
+    "class": "other",
+    "needs": "a 2002 witness for CANCEL identifier-1 (p07-call.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p07-call-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.6.1",
+    "to": [
+     "FMT-14.9.6.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.6.1",
+    "clause-2023": "14.9.6.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CLOSE {file-name-1 [ {REEL|UNIT} [FOR REMOVAL] | WITH {NO REWIND | LOCK} ]}... (PDF p450 rendered)"
+    ],
+    "evidence-2002": {
+     "REEL/UNIT FOR REMOVAL, NO REWIND, plain": "covered by pb141_close_forms (PASS at 2002) and probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p20-close.cob",
+     "WITH LOCK": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p20-close.cob only (CLOSE 00, reopen 38 for sequential and relative files); the 2023 format has no LOCK"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.6",
+      "quote": "The CLOSE statement terminates the processing of reels/units and files with rewind, lock, or removal where applicable",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has WITH {NO REWIND | LOCK}; 2023 has WITH NO REWIND only. CLOSE ... WITH LOCK is a 2002 form outside the pointer.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p20-close.cob",
+    "widening": null,
+    "class": "removed-form",
+    "needs": "a 2002 witness for CLOSE WITH LOCK (p20-close.cob; probes p-07 close_lock.cob and q-25 agree)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p20-close-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.7.1",
+    "to": [
+     "FMT-14.9.8.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.7.1",
+    "clause-2023": "14.9.8.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "F1 COMPUTE {identifier-1 [ROUNDED]}... = arithmetic-expression-1 [ON SIZE ERROR] [NOT ON SIZE ERROR] [END-COMPUTE]",
+     "F2 COMPUTE {identifier-2}... = boolean-expression-1 [END-COMPUTE]"
+    ],
+    "evidence-2002": {
+     "F1 size-error phrases": "covered by phrase_order_arithmetic, optional_on_size_error (PASS at 2002)",
+     "F1 ROUNDED on several receivers": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p21-compute.cob only (C1 NSE 04 03); the pointer's ROUNDED witness ca5b_prohibited_multi_receiver_size_error uses ROUNDED MODE and is refused at 2002",
+     "F2": "covered by pb157_compute_bit_group (PASS at 2002) and p21 C3/C4"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.7",
+      "quote": "The COMPUTE statement assigns to one or more data items the value of an arithmetic or boolean expression",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 ROUNDED versus 2023 rounded-phrase (a widening). Plain ROUNDED on several receivers has no pointer witness that runs at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p21-compute.cob",
+    "widening": "2023 rounded-phrase adds ROUNDED MODE IS",
+    "class": "other",
+    "needs": "a 2002 witness for COMPUTE with ROUNDED on several receivers (p21-compute.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p21-compute-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.8.1",
+    "to": [
+     "FMT-14.9.9.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.8.1",
+    "clause-2023": "14.9.9.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "CONTINUE (no phrase)"
+    ],
+    "evidence-2002": {
+     "CONTINUE": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p22-continue.cob only (CONT OK); the pointer's witness continue_after is refused at 2002 (COBOL0878, a 2023 exception-name)",
+     "AFTER phrase refused": "probe p22b-continue-after.cob COBOL0900 (right: not a 2002 form)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.8",
+      "quote": "The CONTINUE statement is a no-operation statement",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 CONTINUE has no AFTER phrase (a 2023 widening). The pointer row's only conformance witness is a CONTINUE AFTER case that does not run at 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p22-continue.cob",
+    "widening": "2023 adds AFTER arithmetic-expression SECONDS",
+    "class": "other",
+    "needs": "a 2002 witness for plain CONTINUE (p22-continue.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p22-continue-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.9.1",
+    "to": [
+     "FMT-14.9.10.2"
+    ],
+    "verdict": "DIFFERENT",
+    "clause-2002": "14.8.9.1",
+    "clause-2023": "14.9.10.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "DELETE file-name-1 [RECORD] [retry-phrase: RETRY n TIMES | FOR n SECONDS | FOREVER] [INVALID KEY] [NOT INVALID KEY] [END-DELETE]"
+    ],
+    "evidence-2002": {
+     "every form": "probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p23-delete.cob only (D1 OK 00, D2 INV 23, D3 00, D4 INV 23, D5 00); the pointer's witnesses pb134_delete_file_format2 and delete_file_absent are DELETE FILE cases, refused at 2002 (COBOL0900)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.9.3 GR6",
+      "quote": "If the RETRY phrase is specified, additional attempts may be made to delete the record",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:14.6.8.2 GR3",
+      "quote": "If the FOREVER phrase is specified, the MSCS shall attempt to gain access to a locked resource",
+      "check": "OK"
+     }
+    ],
+    "reason": "2002 has only the record format (2023 adds DELETE FILE, a widening). The pointer row's witnesses show only the 2023 format, so the 2002 format has no evidence through it.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p23-delete.cob",
+    "widening": "2023 adds Format 2 DELETE FILE",
+    "class": "other",
+    "needs": "a 2002 witness for DELETE record with the RETRY and INVALID KEY phrases (p23-delete.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p23-delete-2002.out)"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.10.1",
+    "to": [
+     "FMT-14.9.11.2"
+    ],
+    "verdict": "SAME",
+    "clause-2002": "14.8.10.1",
+    "clause-2023": "14.9.11.2",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "F1 DISPLAY {id|lit}... [UPON mnemonic-name-1] [WITH NO ADVANCING] [END-DISPLAY]",
+     "F2 DISPLAY screen-name-1 [AT LINE/COLUMN] [ON EXCEPTION] [NOT ON EXCEPTION] (processor-dependent in 2002)"
+    ],
+    "evidence-2002": {
+     "F1": "covered by l1_display_format1_elements and l1_display_standard_device (PASS at 2002: UPON, WITH NO ADVANCING with and without WITH, END-DISPLAY); probe E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p24-display.cob agrees",
+     "F2 screen": "declined at 2002 with COBOL1707/COBOL1560 (a42-display-screen-* refuse at 2002; probe p24s-display-screen.cob)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:14.8.10",
+      "quote": "The DISPLAY statement causes data to be transferred to an appropriate hardware device",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:B.3",
+      "quote": "the screen format of the ACCEPT statement, and the screen format of the DISPLAY statement are dependent on the functionality of the processor",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:3.1.5",
+      "quote": "Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented",
+      "check": "OK"
+     }
+    ],
+    "reason": "Format text equal (line/device naming only). Format 1 witnesses run green at 2002. The screen format is declined with a diagnostic at 2002 and 2002 licenses that (B.3 item 1, 3.1.5), though the diagnostic cites the 2023 licence (A.4.2).",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-48/p24-display.cob",
+    "widening": null,
+    "licence-2002": "§2002:B.3 item 1 with §2002:3.1.5 (the screen formats of ACCEPT and DISPLAY are processor-dependent; elements for which support is not claimed need not be implemented)"
+   }
+  ]
+ },
+ "refute": {
+  "slice": "u-48",
+  "cases": [
+   {
+    "rule-id": "2002-FMT-14.8.3.1",
+    "verdict": "UPHELD",
+    "reason": "Format and every syntax rule (SR1-SR5) are word-identical in 2002 14.8.3 and 2023 14.9.3. data-name-1 must be BASED, and 2002 13.14.2 SR15 limits BASED to the linkage, working-storage and local-storage sections, so no communication-section reach. No removed form. The reader's witnesses allocate_initialized and pointer_alloc PASS at 2002 (probes-u-48/ptr-2002-*.txt, re-read here).",
+    "citations": [
+     {
+      "cite": "§2002:14.8.3",
+      "quote": "The ALLOCATE statement obtains dynamic storage",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.2.1",
+    "verdict": "OVERTURNED",
+    "reason": "Format and SR1 are word-identical, but in 2002 the boolean-expression may reference boolean items of length 1 described in a record under a CD. A.1.1.2 makes those records ordinary 13.14 data description entries that implicitly redefine the CD area, and output-CD records (A.1.2.2 SR9) carry no category limit. 2023 has no communication section, so the row's witnesses (WS items only) cannot show this part of the 2002 scope. Probe r2-cd-condname.cob at 2002: `IF F1 AND NOT F0` with F1/F0 PIC 1 under CD CDOUT gives B1 T, `IF F1 B-AND F0` gives B2 F (correct). At 2023 the program is refused COBOL0902.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.2.2 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.3.3 SR1",
+      "quote": "Boolean-expression-1 shall reference only boolean items of length 1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The record area associated with a communication description entry may be implicitly redefined by user-specified record description entries written immediately following the communication description entry",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a boolean condition on boolean items under a CD (r2-cd-condname.cob B1/B2)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname.cob"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.4.1",
+    "verdict": "OVERTURNED",
+    "reason": "The format is word-identical, but in 2002 condition-name-1 may be a level-88 entry under a CD. A.1.1.2 builds CD records from 13.14 entries, and 13.14 Format 3 is the condition-name entry. So the conditional variable lives in the CD record area, which the MCS-defined layout implicitly redefines. 2023 has no such entry. The row's witness l1_perform_until_condition_forms tests only a working-storage conditional variable. Probe r2-cd-condname.cob at 2002: 88 A1-YES and the range 88 A1-RANGE under CD CDOUT give C1 T, C2 F, C3 T (correct). At 2023 the program is refused COBOL0902.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.4",
+      "quote": "a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.5.1",
+      "quote": "a conditional variable is tested to determine whether or not its value is equal to one of the values associated with condition-name-1",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.1.2",
+      "quote": "The structure of a record description and the elements allowed in a record description entry are explained in 8.5.1.2, Levels, and in 13.14, Data description entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for a condition-name condition whose conditional variable is under a CD (r2-cd-condname.cob C1-C3)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname.cob"
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.5.1",
+    "verdict": "UPHELD",
+    "reason": "The format is identical, and the SPECIAL-NAMES switch-name format (2002 12.2.6.1 = 2023 12.2.6) is identical too. The condition-name is associated only with an implementor-defined external switch, so no CD or debugging reach applies. The witnesses pb400_evaluate_condition_subject_forms, l1_search_when_condition_forms and pb1464_parenthesized_bare_conditions PASS at 2002 (ptr-2002 files re-read).",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.5",
+      "quote": "The switch-name and the on or off value associated with the condition shall be named in the SPECIAL-NAMES paragraph",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-GR-8.8.4.1.5.2-p1",
+    "verdict": "UPHELD",
+    "reason": "The text is identical. The switch position is set by SET mnemonic-name TO ON/OFF or by the implementor's external facility (2002 12.2.6.3 GR2-4), as in 2023, so no unnamed rule changed. The witnesses PASS at 2002, and the reader's p08 W1/W2 show OFF, then ON after SET.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.5.2 GR1",
+      "quote": "The result of the test is true if the switch is set to the specified position corresponding to condition-name-1",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.1.7.1",
+    "verdict": "UPHELD",
+    "reason": "Format and SR1 are identical. data-name-1 is a formal parameter (linkage section), so it has no CD reach. One possible reach is a program activated by the 2002-only CALL ... ON OVERFLOW, but that falls under GR1 (the truth of the test), not under this syntax rule. pb133_omitted_args PASSes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.1.7.2 SR1",
+      "quote": "Data-name-1 shall be a formal parameter defined in the source element in which this condition is specified",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.2.1.1",
+    "verdict": "UPHELD",
+    "reason": "NOT condition-1 is identical and has no operand of its own. Any 2002-only reach (CD operands, abbreviated NOT IS forms) belongs to the simple-condition and abbreviated-relation rules, which are overturned separately. l1_perform_until_condition_forms PASSes at 2002.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.1",
+      "quote": "A condition is negated by use of the logical operator 'NOT', which reverses the truth value",
+      "check": "OK"
+     }
+    ],
+    "class": null,
+    "probe": null
+   },
+   {
+    "rule-id": "2002-FMT-8.8.4.2.4.1",
+    "verdict": "OVERTURNED",
+    "reason": "The reader's claim that both formats admit the same tails is wrong. In 2002 the tail alternative is '[NOT] simple-relational-operator', and the 2002 simple-relational-operator itself begins with IS (8.7.5.1 Format 1: IS [NOT] GREATER THAN ...). So 'a > b AND NOT IS GREATER THAN c' is a legal 2002 tail, and GR2b gives its meaning: the NOT joins the operator. SR3 confirms the form exists, because it forbids only NOT followed by NOT or IS NOT. 2023's alternatives are NOT | simple-relational-operator | extended-relational-operator. Its negated operators are 'IS NOT GREATER THAN' and the like, so 'NOT IS GREATER THAN' matches none of them. Probe r1-abbrev-not-is.cob: at 2002 'A > 1 AND NOT IS GREATER THAN 6' gives T, 'A = 5 AND NOT IS = 4' gives T and 'A > 9 OR NOT IS < 9' gives F, all correct per GR2b. At 2023 all three are refused with COBOL0902 'NOT before an IS-led simple relational operator in an abbreviated relation was removed in COBOL-2014'. pb1390_abbreviated_tail_and_or has no NOT IS tail.",
+    "citations": [
+     {
+      "cite": "§2002:8.8.4.2.4.1",
+      "quote": "where simple-relational-operator and extended-relational-operator are described in 8.7.5, Relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.7.5.2 SR2",
+      "quote": "Format 1 specifies simple relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.2 SR3",
+      "quote": "The word NOT shall not be followed immediately by the word NOT or the words IS NOT",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.8.4.2.4.3 GR2b",
+      "quote": "If the relational operator following the word NOT is a simple relational operator, then the NOT participates as part of the simple relational operator",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR2",
+      "quote": "Format 2 specifies extended relational operators",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.7.5.2 SR6",
+      "quote": "NOT < is an abbreviation for NOT LESS THAN",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:8.8.4.12.4 GR1",
+      "quote": "NOT cannot immediately precede an extended-relational operator",
+      "check": "OK"
+     }
+    ],
+    "class": "removed-form",
+    "needs": "a 2002 witness for an abbreviated tail NOT IS <simple-relational-operator> object (r1-abbrev-not-is.cob)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r1-abbrev-not-is-2002.out; refusal at 2023 in r1-abbrev-not-is-2023.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r1-abbrev-not-is.cob"
+   },
+   {
+    "rule-id": "2002-FMT-14.8.10.1",
+    "verdict": "OVERTURNED",
+    "reason": "Format 1 is word-identical, but in 2002 identifier-1 may reference items under a CD. Those are the implicit CD data-names, whose description exists only in Annex A (TEXT LENGTH is an unsigned 4-digit integer, STATUS KEY is X(2), SYMBOLIC DESTINATION is X(12)), and the record entries that redefine the CD area. 2023 has neither. The row's witnesses (l1_display_format1_elements, l1_display_standard_device) display working-storage items and literals only. Probe r2-cd-condname.cob at 2002: DISPLAY of A1, TL, SK, DC and SD1 prints [000][0012][00][0001][DEST01      ], and DISPLAY CDREC prints 00010. Both are correct: CDREC redefines the output-CD area, so A1 overlays DESTINATION COUNT. At 2023 the program is refused COBOL0902. The screen-format licence part (B.3 with 3.1.5) is not disputed.",
+    "citations": [
+     {
+      "cite": "§2002:14.8.10.2 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class object or class pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:14.9.11.3 SR1",
+      "quote": "Identifier-1 shall not reference a data item of class message-tag, object, or pointer",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.3 GR16b",
+      "quote": "The TEXT LENGTH clause defines data-name-2 as the name of an elementary data item whose implicit description is that of an integer of 4 digits",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:A.1.2.2 SR9",
+      "quote": "Record description entries subordinate to an output CD entry implicitly redefine the record area established by the output CD entry",
+      "check": "OK"
+     }
+    ],
+    "class": "communication-reach",
+    "needs": "a 2002 witness for DISPLAY of implicit CD data-names and CD record items (r2-cd-condname.cob D1 and DISPLAY CDREC)",
+    "compiler-at-2002": "correct (E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname-2002.out)",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/refute-u-48/r2-cd-condname.cob"
+   }
+  ],
+  "disputed-different": []
+ },
+ "imported": {
+  "asked": "7753382d012ef324d20466bdb3e5eaf5a7f86f677f4c85763ae30b9b5aaaf149",
+  "read": "49c336f05be2f8a25ba56500c6485bd9c3968089f9d96fb52c09c89d34bf2763",
+  "refute": "c94b6b238473dd9542a2eba1b28a8cc0f7eb152383eb30f2e68e1ae182353bc1"
+ }
+}

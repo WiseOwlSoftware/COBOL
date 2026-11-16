@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.34.2-6",
+ "rule-digest": "1c158e6dca18",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySide; src/WiseOwl.Cobol.Compiler/Binding/Validation/SearchAllFormat2Rules.cs#CheckKeySubscript; src/WiseOwl.Cobol.Compiler/Binding/SubscriptBinder.cs#SubscriptSegments; src/WiseOwl.Cobol.Compiler/Binding/Passes/OccursKeyResolvePass.cs#OccursKeyResolvePass",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/pb445_search_all_format2_legal; conformance:cases/13.18.38-OCCURS/pb1018_occurs_key_qualified",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.9.37.3-8, witnessed at 2002 by the cases test-ref names. The read: 2002 adds 'may be qualified' (2023 leaves qualification to the general rules of qualification); the row already lists pb1018_occurs_key_qualified, which passes at 2002. The en dash in '–' is typography. Format 2 of SEARCH is identical in both editions. Cited: §2002:14.8.34.2 SR6."
+}

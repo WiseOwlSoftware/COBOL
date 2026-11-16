@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-8.4.2.7.2-2",
+ "rule-digest": "a5d0403a94e5",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindNullInvoke",
+ "test-ref": "conformance:cases/8.4.3.7-NULL-object-reference/pb1137_invoke_argument_forms; conformance:cases/14.9.23-INVOKE/pb1136_invoke_null_receiver",
+ "notes": "Own verdict from the read lineage-reads-2002/u-06.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-8.4.3.7.3-2, witnessed at 2002 by the cases test-ref names. The read: Identical rule in an identical clause; pointer chosen by me (slice gave none). All three row witnesses hold at 2002. Cited: §2002:8.4.2.7.2 SR2."
+}

@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb52_intrinsic_argument_stage
 *> rules: [RV-15.84.4-4, FMT-15.84.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

@@ -1,0 +1,245 @@
+{
+ "$comment": [
+  "THE READ RECORD of slice u-56 of the 2002 rules (kb/Work PB5597; DESIGN-spec-conformance-review.md section 10.6): the reader's and the refuter's files and the flags the slice asked, verbatim, with the digest of each source. Written by audit_batch.py import-reads; read only through lineage_reads.load, the one normalization."
+ ],
+ "slice": "u-56",
+ "edition": 2002,
+ "asked": {
+  "ids": [
+   "2002-FMT-15.79.1",
+   "2002-FMT-15.80.1",
+   "2002-FMT-15.81.1"
+  ],
+  "pointers": {
+   "2002-FMT-15.79.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.98.2",
+    "similarity": 0.848
+   },
+   "2002-FMT-15.80.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.99.2",
+    "similarity": 0.835
+   },
+   "2002-FMT-15.81.1": {
+    "bucket": "changed (0.70-0.90)",
+    "nearest-2023": "FMT-15.100.2",
+    "similarity": 0.882
+   }
+  }
+ },
+ "read": {
+  "slice": "u-56",
+  "seed": null,
+  "cases": [
+   {
+    "rule-id": "2002-FMT-15.79.1",
+    "to": [
+     "FMT-15.98.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.79.1 (VARIANCE function, General format), specs/ISO_COBOL_2002.md line 25386",
+    "clause-2023": "15.98.2 (VARIANCE function, General format), specs/ISO_COBOL_2023.md line 34021",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION VARIANCE ( argument-1 ... ): one or more argument-1, comma or space separated",
+     "zero arguments not admitted (braces + ellipsis: at least one)",
+     "a repeated argument-1 may be a table with an ALL subscript (2002 15.2 AR13, because the format repeats the argument)",
+     "keyword FUNCTION omitted when REPOSITORY names the intrinsic or ALL INTRINSIC (2002 8.4.2.2.2 SR2)"
+    ],
+    "evidence-2002": {
+     "one or more arguments": "not shown by the pointer row at 2002: its conformance witness pb56_dec_carrier_intrinsics is accept [2023] (its 2002 widening was reverted, adopt-2002/S1-lists.md list A) and its unit test IntrinsicRepeatedArgumentDriftTests reads the 2023 text and compiles no program at --std 2002; covered by probe probes-u-56/pos.cob at --std 2002 (VAR3=0.6666, VAR1=0.0000) and by conformance case pb4750_exact_past_the_wide_form_variance_present_value (accept [2002,2014,2023]; run here at --std 2002, output MATCH its .out, probes-u-56/pb4750_2002.txt)",
+     "zero arguments refused": "covered by probes probes-u-56/neg_var0.cob and neg_var0p.cob at --std 2002 (COBOL1504 'takes at least 1 argument(s); 0 given')",
+     "ALL subscript": "covered by probe probes-u-56/pos.cob at --std 2002 (VARIANCE(EL(ALL)) = 0.6666)",
+     "FUNCTION omitted": "covered by probe probes-u-56/pos.cob (REPOSITORY FUNCTION ALL INTRINSIC, VARIANCE(1 2 3 4) = 1.2500) and neg_varnokw.cob (no REPOSITORY: COBOL1543) at --std 2002"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.79",
+      "quote": "The VARIANCE function returns a numeric value that approximates the variance of its arguments.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.98.1",
+      "quote": "The VARIANCE function returns a numeric value that approximates the variance of its arguments.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.79.2 AR1",
+      "quote": "Argument-1 shall be of class numeric.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.2",
+      "quote": "When the definition of a function permits an argument to be repeated a variable number of times, a table may be referenced",
+      "check": "OK (AR13)"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR2",
+      "quote": "the word FUNCTION may be omitted from the function-identifier",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.79.1",
+      "quote": "FUNCTION VARIANCE ( { argument-1 } … ) [diagram]",
+      "check": "quote-too-short for cite.py (3 words); diagram compared by reading: identical to §2023:15.98.2, both keywords underlined, braced argument-1 with ellipsis"
+     }
+    ],
+    "reason": "The 2002 format is word for word the 2023 format (the catalog texts differ only by the 2023 transcription's trailing <a id> anchor, which is what put the pair in the 'changed' bucket). The 2002 function-identifier format (8.4.2.2.1) has the same shape as 2023's (optional FUNCTION, optional argument list with OMITTED). The requirement is the same, but the pointer row's evidence does not hold at --std 2002: its only program witness is accept [2023]. Every scope item is shown at --std 2002 by the probes and by pb4750, which run correctly.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-56/pos.cob",
+    "widening": null,
+    "needs": "a 2002 witness for the written format: assign pb4750_exact_past_the_wide_form_variance_present_value (accept [2002,2014,2023], MATCH at --std 2002) to this row, or adopt probes-u-56/pos.cob plus neg_var0.cob",
+    "compiler-at-2002": "correct (probes-u-56/pos.cob, neg_var0.cob, neg_var0p.cob, neg_varnokw.cob, pb4750_2002.txt)"
+   },
+   {
+    "rule-id": "2002-FMT-15.80.1",
+    "to": [
+     "FMT-15.99.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.80.1 (WHEN-COMPILED function, General format), specs/ISO_COBOL_2002.md line 25429",
+    "clause-2023": "15.99.2 (WHEN-COMPILED function, General format), specs/ISO_COBOL_2023.md line 34069",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION WHEN-COMPILED with no argument list",
+     "an argument list refused (the function has no arguments; 2002 8.4.2.2.2 SR4 applies only when the definition permits arguments)",
+     "result reference modification FUNCTION WHEN-COMPILED (1:4) (alphanumeric function)",
+     "keyword FUNCTION omitted under REPOSITORY (2002 8.4.2.2.2 SR2)"
+    ],
+    "evidence-2002": {
+     "no argument list": "not shown by the pointer row at 2002: its one witness IntrinsicFunctionDifferentialTests.WhenCompiled_CompileTimeConstant_PinnedToSpec runs AssertSpec at its default dialect 85 only; covered by pb120_when_compiled_contained (accept [2002], PASS at --std 2002 per adopt-2002/s1-run-classified.json, today assigned to 2002-RV-15.80.2-2) and by probe probes-u-56/pos.cob at --std 2002 (WC-OK)",
+     "argument list refused": "covered by probe probes-u-56/neg_wc1.cob at --std 2002 (COBOL1504 'takes 0 argument(s); 1 given')",
+     "reference modification": "covered by probe probes-u-56/pos.cob at --std 2002 (WCREF-OK)",
+     "FUNCTION omitted": "covered by probe probes-u-56/pos.cob at --std 2002 (WCNOKW-OK, REPOSITORY FUNCTION ALL INTRINSIC)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.80",
+      "quote": "The WHEN-COMPILED function returns the date and time the compilation unit was compiled as provided by the system on which the compilation unit was compiled.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.99.1",
+      "quote": "The WHEN-COMPILED function returns the date and time the compilation unit was compiled as provided by the system on which the compilation unit was compiled.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.80.2 RV2",
+      "quote": "The returned value is the date and time of compilation of the compilation unit that contains this function.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:8.4.2.2.2 SR4",
+      "quote": "If a function's definition permits arguments and a left parenthesis immediately follows",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.80.1",
+      "quote": "FUNCTION WHEN-COMPILED [diagram]",
+      "check": "quote-too-short for cite.py (3 words); diagram compared by reading: identical to §2023:15.99.2, both words underlined, no parenthesised part"
+     }
+    ],
+    "reason": "Same format in both editions (the catalog difference is only the 2023 anchor tag). The requirement is the same, but the pointer row's only test runs at dialect 85, not at --std 2002. pb120 (accept [2002], PASS at 2002) and the probes show every scope item at --std 2002.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-56/pos.cob",
+    "widening": null,
+    "needs": "a 2002 witness for the format: add pb120_when_compiled_contained (accept [2002], PASS at --std 2002) to this row, plus probes-u-56/neg_wc1.cob for the refused argument list",
+    "compiler-at-2002": "correct (probes-u-56/pos.cob, neg_wc1.cob)"
+   },
+   {
+    "rule-id": "2002-FMT-15.81.1",
+    "to": [
+     "FMT-15.100.2"
+    ],
+    "verdict": "DIFFERENT",
+    "class": "other",
+    "clause-2002": "15.81.1 (YEAR-TO-YYYY function, General format), specs/ISO_COBOL_2002.md line 25464",
+    "clause-2023": "15.100.2 (YEAR-TO-YYYY function, General format), specs/ISO_COBOL_2023.md line 34112",
+    "checked": [
+     "format",
+     "terms",
+     "references",
+     "enumeration",
+     "defaults",
+     "exceptions",
+     "additions-removals"
+    ],
+    "scope-2002": [
+     "FUNCTION YEAR-TO-YYYY (argument-1 argument-2 argument-3): three arguments",
+     "two arguments (argument-3 omitted)",
+     "one argument (argument-2 and argument-3 omitted)",
+     "zero or more than three arguments refused (argument-3 only inside argument-2's brackets)",
+     "keyword FUNCTION omitted under REPOSITORY (2002 8.4.2.2.2 SR2)"
+    ],
+    "evidence-2002": {
+     "three arguments": "covered by the pointer row's intrinsics_date_window (accept [2002], PASS at --std 2002 per adopt-2002/s1-run-classified.json) and probe probes-u-56/pos.cob (Y3=2004, Y3N=1898)",
+     "two arguments": "not shown by the pointer row (no test at any edition, as its refuter recorded); covered by probe probes-u-56/pos.cob at --std 2002 (YEAR-TO-YYYY(4, 23) = 2004, valid for execution years 1981..2080)",
+     "one argument": "not shown by the pointer row (its refuter struck the unit-test claim: CobolDateWindowingTests calls the runtime API, never a COBOL reference); covered by probe probes-u-56/pos.cob at --std 2002 (YEAR-TO-YYYY(4) = 2004)",
+     "arity refused": "covered by probes probes-u-56/neg_y0.cob and neg_y4.cob at --std 2002 (COBOL1504 'takes 1..3 argument(s)')",
+     "FUNCTION omitted": "covered by probe probes-u-56/pos.cob at --std 2002 (YNOKW=2004)"
+    },
+    "citations": [
+     {
+      "cite": "§2002:15.81.1",
+      "quote": "<u>FUNCTION</u> <u>YEAR-TO-YYYY</u> ( argument-1 [ argument-2 [ argument-3 ] ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.2",
+      "quote": "<u>FUNCTION</u> <u>YEAR-TO-YYYY</u> ( argument-1 [ argument-2 [ argument-3 ] ] )",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.81.2 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2023:15.100.3 AR3",
+      "quote": "If argument-2 is omitted, the function shall be evaluated as though 50 were specified for argument-2.",
+      "check": "OK"
+     },
+     {
+      "cite": "§2002:15.81.3 RV2",
+      "quote": "In the year 1995, the returned value for FUNCTION YEAR-TO-YYYY (4, 23) is 2004.",
+      "check": "OK"
+     }
+    ],
+    "reason": "Identical format, cite-checked in both editions (the bucket comes from the 2023 anchor tag in the catalog text). The 3-argument form is witnessed at --std 2002 by the pointer row's own case. The format's optional argument-2 and argument-3 forms have no test in the pointer row, and that gap is the 2023 row's too, not something special to 2002. The probes show them correct at --std 2002, together with the arity refusals.",
+    "probe": "E:/COBOL-coord/scratch/op-20261114/read-2002/out/probes-u-56/pos.cob",
+    "widening": null,
+    "needs": "a 2002 witness for the 1- and 2-argument forms (probes-u-56/pos.cob Y1/Y2, or a pinned case) beside intrinsics_date_window; then KEPT",
+    "compiler-at-2002": "correct (probes-u-56/pos.cob, neg_y0.cob, neg_y4.cob)"
+   }
+  ],
+  "notes": "No compiler defect. Informational: the diagnostics at --std 2002 (COBOL1504, COBOL1543, COBOL1649) cite §2023 clauses, not the 2002 text."
+ },
+ "refute": {
+  "slice": "u-56",
+  "cases": [],
+  "disputed-different": [],
+  "notes": "The reader's file u-56-read.json holds 3 rules (2002-FMT-15.79.1, 2002-FMT-15.80.1, 2002-FMT-15.81.1), all DIFFERENT class other, and no SAME verdict, so there is nothing to uphold or overturn. Each DIFFERENT is the evidence-gap kind that BRIEF-reader.md lines 111 and 151 define: the pointer row's evidence does not hold at --std 2002. None claims a textual difference that does not exist, so none is disputed."
+ },
+ "imported": {
+  "asked": "bc5be338099dfd075edfe620a8daf605550e51f1ba84ad8334ef873d2685e67c",
+  "read": "15141c20e893196f19ef6645efdbbde341e303f54afd72e5d1058aec2bf6ad70",
+  "refute": "3918e95e9db5816b90aa36007a061e4b1eb62417c8ab65068d2b1a4e805863ed"
+ }
+}

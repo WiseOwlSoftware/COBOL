@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-7.1.2.3-2",
+ "rule-digest": "bd25a2a77b39",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Preprocessor/CopyProcessor.cs#FindCopybook",
+ "test-ref": "conformance:wiseowl/cases/7.2.3-COPY/pb1355_library_text_located",
+ "notes": "§2002:7.1.2.3 GR2 'Library-name-1 names a resource ... and shall provide access to the library text': COPY pb1355b OF pb1355lib. reads the library's text (LIB, not DFLT) at --std 2002."
+}

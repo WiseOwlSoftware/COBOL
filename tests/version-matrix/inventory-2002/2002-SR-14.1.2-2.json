@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.1.2-2",
+ "rule-digest": "6427895f0504",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/ProcedureHeaderScreen.cs#ByValueClass; src/WiseOwl.Cobol.Compiler/Binding/OoDataBinder.cs#BindMethodData",
+ "test-ref": "conformance:cases/8.4.3.4-Inline-method-invocation/pb1051_method_by_value",
+ "notes": "Own verdict from the read lineage-reads-2002/u-19.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer SR-14.2.2-2, witnessed at 2002 by the cases test-ref names. The read: 2023 adds class message-tag (a widening: no 2002 data item has it). The COBOL1553 text at 2002 lists \"message-tag\" among the permitted classes, a 2023 term (diagnostic wording only). Cited: §2002:14.1.2 SR2."
+}

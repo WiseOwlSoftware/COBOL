@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.34.3-7",
+ "rule-digest": "5fe355cf5235",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_all_duplicate_keys",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.37.4-7, witnessed at 2002 by the cases test-ref names. The read: 'can be satisfied' vs 'are satisfied' describe the same set of index settings (the conditions are evaluated against the table as it is), so no program behaves differently. The twin witness passes at 2002. Cited: §2002:14.8.34.3 GR7."
+}

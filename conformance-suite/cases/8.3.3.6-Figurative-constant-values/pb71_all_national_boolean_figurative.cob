@@ -2,7 +2,7 @@
 *> id: pb71_all_national_boolean_figurative
 *> rules: [SR-8.3.3.6.3-2, GR-8.3.3.6.4-2, GR-8.3.3.6.4-3,
 *>    GR-8.3.3.6.4-9, GR-14.9.25.4-7, FMT-8.3.3.6.2]
-*> accept: [2023]
+*> accept: [2002, 2023]
 *> source-format: free
 *> portable: unverified
 *>---

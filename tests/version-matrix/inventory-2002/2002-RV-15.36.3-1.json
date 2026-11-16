@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-RV-15.36.3-1",
+ "rule-digest": "1f8585b8ee25",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/Intrinsics/CobolDate.cs#IntegerOfDate; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderNum; src/WiseOwl.Cobol.Compiler/CodeGen/Emit/IntrinsicRenderer.cs#RenderFloat; src/WiseOwl.Cobol.Compiler/Binding/IntrinsicCatalog.cs#Build",
+ "test-ref": "conformance:cases/15.46.4-Returned-value-rule/l1_integer_date_form_returned",
+ "notes": "Own verdict from the read lineage-reads-2002/u-31.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer RV-15.46.4-1, witnessed at 2002 by the cases test-ref names. The read: 2023 states the same thing through the integer date form definition. Pointer test l1_integer_date_form_returned is accept [2023] only; the probe shows it at 2002. Cited: §2002:15.36.3 RV1."
+}

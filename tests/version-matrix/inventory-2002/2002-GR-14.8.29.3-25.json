@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.29.3-25",
+ "rule-digest": "3ee4a684689e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Runtime/IO/RelativeConnector.cs#ReadRandom; src/WiseOwl.Cobol.Runtime/IO/IndexedConnector.cs#ReadRandom; src/WiseOwl.Cobol.Compiler/CodeGen/UseTierEmitter.cs#EmitScopeTiers; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook",
+ "test-ref": "conformance:cases/14.9.30-READ/pb344_use_mode_invalid_key_2002",
+ "notes": "Own verdict from the read lineage-reads-2002/u-26.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.30.4-28, witnessed at 2002 by the cases test-ref names. The read: Same words. Only the number of the invalid-key clause differs. 2002 9.1.13 states the USE path directly and 2023 9.1.14 refers to 'applicable exception processing statements' (adding PERFORM ... WHEN, 2023 only). For a 2002 program the behaviour is the same, and the pointer row carries a test that runs at 2002. Cited: §2002:14.8.29.3 GR25; §2002:9.1.13."
+}

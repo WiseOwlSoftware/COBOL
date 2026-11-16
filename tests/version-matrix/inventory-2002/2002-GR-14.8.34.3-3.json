@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.34.3-3",
+ "rule-digest": "18ff685dfc11",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SearchBinder.cs; src/WiseOwl.Cobol.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs",
+ "test-ref": "conformance:cases/14.9.37-SEARCH/l1_search_index_default; conformance:cases/14.9.37-SEARCH/l1_search_varying_index_data_item; conformance:cases/14.9.37-SEARCH/l1_search_varying_integer_item; conformance:cases/14.9.37-SEARCH/l1_search_varying_same_table_index; conformance:cases/14.9.37-SEARCH/l1_search_varying_other_table_index",
+ "notes": "Own verdict from the read lineage-reads-2002/u-27.json: a SAME its refuter UPHELD, for a rule with no candidate pair; the verdict of its pointer GR-14.9.37.4-3, witnessed at 2002 by the cases test-ref names. The read: Word-identical except 'general rule' capitalization; Format 1 is identical in both editions. The five twin witnesses pass at 2002. Cited: §2002:14.8.34.3 GR3."
+}
