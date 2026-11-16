@@ -53,12 +53,13 @@ internal static class SendersSignStore
 
     /// <summary>Can the sending operand be negative? A literal written with a minus sign and a non-zero digit (a literal
     /// <c>-0</c> keeps its normalized positive sign, kb/Work PB2508: §1985:IV.4.2.2.2.2 does not decide it), a signed numeric
-    /// item, and a numeric function-identifier's value. An unsigned sender generates "a positive sign" (GR4b1), and a
+    /// item, a numeric-edited item whose mask holds a sign (its de-edited value "which may be signed", GR4b), and a numeric
+    /// function-identifier's value. An unsigned sender generates "a positive sign" (GR4b1), and a
     /// figurative ZERO or an alphanumeric sender is unsigned.</summary>
     public static bool SenderMayBeNegative(BoundOperand sender) => sender switch
     {
         BoundNumericLiteral lit => lit.Text.StartsWith('-') && NonZeroDigitExponents(lit.Text).Any(),
-        BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.Numeric, Signed: true } } => true,
+        BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.Numeric or PicCategory.NumericEdited, HoldsSign: true } } => true,
         BoundComputedOperand c => c.IsNumericFunctionValue,
         _ => false,
     };
@@ -87,7 +88,8 @@ internal static class SendersSignStore
     /// <summary>Can the store lose every non-zero digit of the sender? The receiver keeps the digit positions of decimal
     /// exponent <c>-Scale</c> through <c>Digits - Scale - 1</c> (alignment by decimal point, §1985:VI.6.19.4 GR4b, with
     /// truncation at either end); a sender with a digit position outside that window can store zero from a non-zero value. A
-    /// literal is decided on its own non-zero digits; a function-identifier's value has no picture, so it may.</summary>
+    /// literal is decided on its own non-zero digits; a function-identifier's value has no picture and a numeric-edited
+    /// sender's digit positions are its mask's, so each may.</summary>
     public static bool MayTruncateToZero(BoundOperand sender, DataItem receiver)
     {
         var r = receiver.Pic!;
@@ -96,7 +98,7 @@ internal static class SendersSignStore
         {
             BoundNumericLiteral lit => lit.Text.AsSpan().IndexOfAny('E', 'e') >= 0
                 || NonZeroDigitExponents(lit.Text).All(e => e < lo || e > hi),
-            BoundFieldOperand { Place.Item.Pic: { } s } => -s.Scale < lo || s.UnscaledDigitBound - s.Scale - 1 > hi,
+            BoundFieldOperand { Place.Item.Pic: { Category: PicCategory.Numeric } s } => -s.Scale < lo || s.UnscaledDigitBound - s.Scale - 1 > hi,
             _ => true,
         };
     }
