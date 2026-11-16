@@ -136,7 +136,7 @@ public sealed class InheritedGlobals
                 _constants.TryAdd(name, new(def, depth));
     }
 
-    /// <summary>Drop the inherited constants, and hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>:
+    /// <summary>Drop the inherited constants and the inherited GLOBAL files, and hide the inherited symbolic-characters (<paramref name="symbolicDepths"/>:
     /// each with its containment distance), that a declaration in a source element NEARER than their containers' hides
     /// (<paramref name="declaredNearerThan"/>: the name and the container's distance). <see cref="InheritStep"/> only.</summary>
     internal void DropShadowed(Func<string, int, bool> declaredNearerThan, IEnumerable<KeyValuePair<string, int>> symbolicDepths)
@@ -147,6 +147,11 @@ public sealed class InheritedGlobals
         foreach (var (name, depth) in symbolicDepths)
             if (declaredNearerThan(name, depth))
                 _shadowedSymbolics.Add(name);
+        // An inherited GLOBAL file-name is hidden the same way (§2023:8.4.6.2.1 3) a); §1985:X.1.3.8.2 GR3a; kb/Work PB5786): a
+        // data-name, condition-name or index-name of its spelling declared in a nearer source element is the referenced item.
+        foreach (var (name, file) in _files.ToList())
+            if (declaredNearerThan(name, FileDepth(file)))
+                _files.Remove(name);
     }
 
     /// <summary>Offer the containers' GLOBAL reports and data roots, nearest container first. <see cref="InheritStep"/>
