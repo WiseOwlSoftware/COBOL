@@ -1,4 +1,4 @@
-## Eight notes and two finding files from the Mythos lane's batch-4 rulings of 2026-11-15, among them a compiler crash on legal source (PB5801)
+## Entry 3726 — 2026-11-15 22:54 PST — Eight notes and two finding files from the Mythos lane's batch-4 rulings of 2026-11-15, among them a compiler crash on legal source (PB5801)
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed at `--std 85` (and `--std 2023`), and the leads.
 
@@ -14,3 +14,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 Two dated finding files beside existing notes: `kb/Work/PB5775/2026-11-15-two-more-rows.md` (rows `1985-SR-XIII.4.9.3-2` and `1985-SR-XIII.3.18.3-1` join the report-name homonym mechanism) and the source copied unchanged as `kb/Work/PB5683/2026-11-15-rulings-code-reads-batch-4.md`. The finding files for PB5756, PB5757 and PB5758 were skipped: those notes were not on main when this batch was filed.
 
 **The first population is done: 504 KEPT rows read at 1985 (plus the sample's 60).** Of the 564: 50 contradicted (the sample 6, batch 1 9, batch 2 10, batch 3 11, batch 4 14), about 9 %; 4 more undecided on open readings (PB5789, PB5799, PB5800, PB5805); 4 rejected or decided as conforming.
+
