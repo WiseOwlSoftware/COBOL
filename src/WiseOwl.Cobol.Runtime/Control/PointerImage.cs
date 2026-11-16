@@ -87,7 +87,7 @@ public static class PointerImage
 
     /// <summary>A data-pointer whose displacement from its cell lies outside the ±2^31 the shape base + displacement can state (kb/Work PB4925): the entry
     /// its own base names, so its token decodes to exactly it.</summary>
-    internal sealed record FarDisplacement(StorageCell Cell, int Generation, long Offset);
+    internal sealed record FarDisplacement(StorageCell Cell, int Generation, long Offset) : ICellLifeEntry;
 
     /// <summary>Whether base + <paramref name="offset"/> decodes back to its own base: the nearest base (<see cref="DataPointerOf"/>) is the pointer's own while
     /// the displacement is in [-2^31, 2^31), the half-open window the rounding gives each base.</summary>
@@ -96,7 +96,17 @@ public static class PointerImage
     private static readonly ConditionalWeakTable<StorageCell, CellLives> s_cellBases = new();
 
     /// <summary>One life of one storage cell, the entry a decoded data-pointer token names.</summary>
-    internal sealed record CellLife(StorageCell Cell, int Generation);
+    internal sealed record CellLife(StorageCell Cell, int Generation) : ICellLifeEntry;
+
+    /// <summary>An entry that names storage of one life of one cell (<see cref="CellLife"/>, <see cref="FarDisplacement"/>): the slot-image table holds it
+    /// STRONGLY while that life lasts, because a token in a record is the only thing that may still name it (kb/Work PB5820), and drops it once the
+    /// life ends (FREE, CANCEL; review R1-2).</summary>
+    internal interface ICellLifeEntry
+    {
+        StorageCell Cell { get; }
+        int Generation { get; }
+        bool Ended => Generation != Cell.Generation;
+    }
 
     /// <summary>A program- or function-pointer's category and name, the entry a decoded token names.</summary>
     internal sealed record NamedAddress(char Category, string Name);

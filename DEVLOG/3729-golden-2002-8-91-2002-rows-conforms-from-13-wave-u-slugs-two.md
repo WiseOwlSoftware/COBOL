@@ -34,3 +34,9 @@ No validate stage ran, so I validated every draft on this worktree's build at `-
 - 2002-GR-14.6.8.2-1, -2 and -4: RETRY needs a cross-run-unit witness, so the case is withheld.
 - 2002-GR-14.8.3.3-5: storage exhaustion (EC-STORAGE-NOT-AVAIL) cannot be probed on this host (host safety).
 
+
+**The merge group's red, root-fixed here (PB5820).** The first merge group of pull request 1759 failed `SlotImageRoundTripTests.DataPointerOf_APointerDisplacedBeyondTheWindow_ReadsBackAsItself_NeverAsAnotherArea` on Windows shard 4/7. That test had passed at all three of this branch's local gates, and this landing touches no runtime code. The cause was a runtime defect.
+- `SlotImageTable.Note` held a far pointer's `FarDisplacement` entry only by a `WeakReference`, and nothing else references that entry. Any collection between imaging a far pointer and decoding it turned the token foreign.
+- A `GC.Collect()` placed between the two steps reproduces it on every run.
+- The fix: `PointerImage.ICellLifeEntry` (`CellLife`, `FarDisplacement`) is held strongly while its cell life lasts and swept once the life ends. The freed-cell retention test now images a far pointer too.
+- The plan section 0 GAP sentence was dropped on the operator's instruction: every 2002 landing's figure conflicted with the next.

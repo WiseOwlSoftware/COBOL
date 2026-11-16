@@ -21,20 +21,22 @@ internal sealed class SlotImageTable
     private static long s_lastTagBlock;   // PROCESS-wide, like the pointer bases: two run units of one process never issue the same tag block (review R2-1)
 
     private readonly object _gate = new();
-    private readonly Dictionary<long, object> _bases = [];   // CellLife and NamedAddress held strongly, an identity as a WeakReference
+    private readonly Dictionary<long, object> _bases = [];   // a cell-life entry and NamedAddress held strongly, an identity as a WeakReference
     private readonly Dictionary<(string? Mcs, MessageParty Party, string? Name, long High), long> _blockIds = [];   // (party, serial >> SerialBits) -> block token
     private readonly Dictionary<long, (string? Mcs, MessageParty Party, string? Name, long High)> _blocks = [];
     private int _sweepAt = FirstSweepAt;
 
-    /// <summary>Record that <paramref name="entry"/> (a <c>PointerImage.CellLife</c>, a <c>PointerImage.NamedAddress</c> or the
-    /// identity of an addressless pointer) was imaged at <paramref name="baseAddress"/>.</summary>
+    /// <summary>Record that <paramref name="entry"/> (a <c>PointerImage.ICellLifeEntry</c>, a <c>PointerImage.NamedAddress</c> or the
+    /// identity of an addressless pointer) was imaged at <paramref name="baseAddress"/>. A cell-life entry is a fresh object nothing else
+    /// references, so it is held strongly until its life ends: held weakly, a collection between the WRITE that imaged a far pointer and the
+    /// READ that decodes it turned the token foreign (kb/Work PB5820).</summary>
     internal void Note(long baseAddress, object entry)
     {
         lock (_gate)
         {
             if (_bases.TryGetValue(baseAddress, out var held) && (held is not WeakReference { IsAlive: false })) return;
             if (_bases.Count >= _sweepAt) Sweep();
-            _bases[baseAddress] = entry is PointerImage.CellLife or PointerImage.NamedAddress ? entry : new WeakReference(entry);
+            _bases[baseAddress] = entry is PointerImage.ICellLifeEntry or PointerImage.NamedAddress ? entry : new WeakReference(entry);
         }
     }
 
@@ -53,7 +55,7 @@ internal sealed class SlotImageTable
     {
         foreach (var (key, entry) in _bases.ToArray())
         {
-            if (entry is PointerImage.CellLife life ? life.Generation != life.Cell.Generation
+            if (entry is PointerImage.ICellLifeEntry life ? life.Ended
                 : entry is WeakReference { IsAlive: false })
                 _bases.Remove(key);
         }
