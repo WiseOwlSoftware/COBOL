@@ -1,4 +1,4 @@
-## PB5764: no recursive delete of a variable path; one tracked tool runs a probe in a fresh directory
+## Entry 3724 — 2026-11-15 20:41 PST — PB5764: no recursive delete of a variable path; one tracked tool runs a probe in a fresh directory
 
 The owner's instruction of 2026-11-15: agents that probe the compiler reset a run directory with a recursive delete
 of a path built from variables, which is the filesystem root when a variable is empty, and the harness warned the
@@ -33,3 +33,4 @@ re-probe, the finisher brief, the cloud adjudication brief, `build_lane1_inputs.
 the adjudicator, refuter and reviewer roles, the review skill and the workstream skill.
 
 Gate: see the branch's report (tooling lane).
+
