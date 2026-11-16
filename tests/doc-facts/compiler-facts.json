@@ -158,6 +158,11 @@
       "id": "unphrased-size-error-is-fatal",
       "vcrRow": "7.71",
       "changedIn": 2002
+    },
+    {
+      "id": "unstring-zero-length-sender-terminates",
+      "vcrRow": "7.80",
+      "changedIn": 2002
     }
   ],
   "nonstandardExtensionIds": [
