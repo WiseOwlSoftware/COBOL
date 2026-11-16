@@ -260,6 +260,34 @@ def case_05b_one_rule_at_every_older_edition(expect):
                  R.kept_witnesses(e85, rid, [t], None, paired, w), ([f"conformance:cases/X/{t}"], []))
 
 
+def case_05c_a_row_closed_on_its_own_derivation_is_planned_no_witness(expect):
+    """kb/Work PB5822: the planners' population (`bare_kept`, so `witness-batch` and `widen`) leaves out a KEPT row closed
+    on a derivation of its own, as `lineage.unwitnessed` does, and keeps one whose derivation does not stand. The states
+    are the state rule's (`lineage.state_of`) on a planted schema whose derivation reads a fabricated register."""
+    schema = R.inventory_schema.Schema(json.loads(R.inventory_schema.SCHEMA_PATH.read_text(encoding="utf-8")))
+    d, e85, t = schema.derivation, R.edition(1985), "GR-1"
+    stands, falls, bare = "1985-GR-XIV.1-1", "1985-GR-XIV.1-2", "1985-GR-XIV.1-3"
+    text = "If the operands overlap, the result of the transfer is undefined."
+    schema._catalog = {stands: (1985, text), falls: (1985, text), bare: (1985, text), t: (2023, "Other text.")}
+    schema._register_items = set()
+    d._undefined, d._refuters = {}, {}
+    d._register = {f"DRV-{rid}": R.inventory_schema.DerivationRow(f"DRV-{rid}", "undefined-in-rule", f'"{quote}"', "",
+                                                                  "claude: 2026-11-12", "—")
+                   for rid, quote in ((stands, "the result of the transfer is undefined"),
+                                      (falls, "the result of the move is undefined"))}
+    targets = {t: {"rule-id": t, "state": "OK", "editions": "85,2002,2014,2023"}}
+    rows = [_stored(rid, [t], **({"derivation": d.anchor_template.replace("{rule-id}", rid)} if rid != bare else {}))
+            for rid in (stands, falls, bare)]
+    for r in rows:
+        r["state"] = R.lineage.state_of(r, e85, schema, targets)
+    expect.equal("the state rule closes only the row whose own derivation stands",
+                 [r["state"] for r in rows], ["OK", "GAP", "GAP"])
+    expect.equal("bare_kept leaves out the derivation-closed row and keeps one whose derivation does not stand",
+                 [r["rule-id"] for r in R.bare_kept(rows, schema)[1]], [falls, bare])
+    expect.equal("... and agrees with lineage.unwitnessed, the views' count of the same population",
+                 [r["rule-id"] for r in rows if R.lineage.unwitnessed(r, e85, schema, targets)], [falls, bare])
+
+
 def case_06_the_widening_plans_and_edits_only_what_can_witness_the_rule(expect):
     order = ["85", "2002", "2014", "2023"]
     cases = {"cases/X/a": R.CaseInfo("cases/X/a", R.REPO, ("2023",), ("2023",), (), ("GR-1",), None),

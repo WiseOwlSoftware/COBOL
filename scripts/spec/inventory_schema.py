@@ -253,7 +253,9 @@ class ChangeKind:
 class ChangeRecord:
     """The shape of an older edition's change record, the schema's `next` (DESIGN-spec-conformance-review.md section
     10.2, kb/Work PB4993): the keys it may carry, the fields that state a verdict and its evidence, and its kinds. Exactly
-    one kind is `chained` (KEPT): its record carries none of `verdict_fields`, and its rule is judged by its chain."""
+    one kind is `chained` (KEPT): its record carries none of `verdict_fields` (a verdict and the code read behind it), and
+    its rule is judged by its chain; its own-edition evidence, a `test-ref` or a `derivation` of its own, is not among
+    them (kb/Work PB5675, PB5822)."""
     keys: frozenset[str]
     verdict_fields: tuple[str, ...]
     kinds: Mapping[str, ChangeKind]
@@ -495,7 +497,8 @@ def statement_text(row: dict[str, Any], field: str) -> str:
     return (prose_of(value) if field == "notes" else value).strip()
 
 
-def statement_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema") -> list[StatementLoss]:
+def statement_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema",
+                     chain_closed: bool | None = None) -> list[StatementLoss]:
     """Every statement field `before` said something in that `after` says nothing in — THE one definition of an
     erased statement, the sibling of `witness_losses` (kb/Work PB3795, PB3375).
 
@@ -512,12 +515,16 @@ def statement_losses(before: dict[str, Any], after: dict[str, Any], schema: "Sch
     `verdict-does-not-resolve`). Without the second, a rule closed on a derivation and then found defective could
     not be re-adjudicated at all (the derivation is refused when kept, this rule refused when dropped). Nothing
     else is excused: a statement that changed is not a loss, one that went blank is.
+
+    A CHAINED (KEPT) ROW'S DERIVATION goes by the same rule (kb/Work PB5822): it holds no verdict of its own, so the
+    verdict it is judged under is its chain's, and the caller that holds the next edition's rows passes `chain_closed`
+    (`lineage.chain_of`; None for every other row). Without it the row's empty verdict would excuse every loss.
     """
     out: list[StatementLoss] = []
     for field in ADJUDICATED:
         if field in WITNESS_FIELDS or not (was := statement_text(before, field)) or statement_text(after, field):
             continue
-        if field == schema.derivation_field and schema.derivation_superseded(after):
+        if field == schema.derivation_field and schema.derivation_superseded(after, chain_closed):
             continue
         out.append(StatementLoss(before.get("rule-id", ""), field, len(was)))
     return out
@@ -804,6 +811,9 @@ class Derivation:
     1985 edition's mechanical arm, as that standard has no Annex A.2: the rule's own text declares the result undefined.
     A signer whose `refuter` is set (the deciding session, kb/Work PB5373) signs an ARGUED arm only beside an UPHELD
     `cobol-refuter` record of the row (`refuter_outcome`), which keeps the independent read the owner's signature gave.
+    A CHAINED (KEPT) row of an older edition takes one too (kb/Work PB5822): it stands in for that row's own-edition
+    witness and nothing else, its chain must still be closed (refusal 2's reading for it), and a derivation on the rule
+    it carries into never closes it (`lineage.derivation_refusals`).
 
     ⛔ CHECKABLE, NOT A FREE-TEXT ESCAPE HATCH — the note's own second consequence, and the reason this is a
     predicate rather than a convention. The `undefined-A.2` arm is MECHANICAL: Annex A.2 is the standard's own
@@ -913,8 +923,14 @@ class Derivation:
             self._undefined = {it["item"]: set(it["rule-ids"]) for it in doc["items"]}
         return self._undefined
 
-    def refusals(self, row: dict[str, Any], schema: "Schema") -> list[Refusal]:
+    def refusals(self, row: dict[str, Any], schema: "Schema", chain_closed: bool | None = None) -> list[Refusal]:
         """Why this row's derivation does NOT stand — empty when it does.
+
+        `chain_closed` is the verdict the row is judged under (`Schema.judged_verdict_resolves`): None for a row that
+        holds a verdict of its own; for a chained (KEPT) row of an older edition, whether its chain is closed, which the
+        caller computes from the next held edition's rows (`lineage.derivation_refusals`, the one asker that has them,
+        kb/Work PB5822). Every other refusal reads the row's own fields and its OWN edition's catalog unchanged: a
+        derivation on the rule a row carries into is never this row's.
 
         ⛔ ONE PREDICATE, TWO CALLERS, and deliberately so: `record_verdicts.validate` prints these reasons at
         record time and `state_for` merely asks whether the list is empty. Writing the bounds twice is how a
@@ -940,11 +956,15 @@ class Derivation:
             out.append(Refusal("has-spec-derived-test",
                                "this row already carries a SPEC-DERIVED test-ref, so it has an observable "
                                "obligation and may not close on a derivation (design doc §1.1 refusal 1)"))
-        # ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine.
-        if (row.get("verdict") or "") not in schema.resolving:
+        # ⛔ REFUSAL 2 — a derivation explains why no test can exist, never why a non-resolving verdict is fine. A chained
+        # row's verdict is its chain's, so for it the refusal reads "its chain is not closed" (kb/Work PB5822).
+        if not schema.judged_verdict_resolves(row, chain_closed):
             out.append(Refusal("verdict-does-not-resolve",
                                f"verdict '{row.get('verdict') or ''}' does not resolve — a derivation stands in "
-                               "for the covering test, not for the verdict"))
+                               "for the covering test, not for the verdict" if chain_closed is None else
+                               "its chain is not closed (a rule it carries into is not OK at the next held edition "
+                               "with a band that names this edition) — a derivation stands in for the row's own "
+                               "witness, not for its chain's verdict"))
         # ⛔ REFUSAL 3 — a kind that owes a register determination must have STATED it first. A DOC row asks the
         # implementor to state a choice, and "nothing to observe" about an unstated choice is unfalsifiable
         # (kb/Work PB280 Q2); DOC-A.1-19 is admitted precisely because §7 states its determination.
@@ -1330,12 +1350,20 @@ class Schema:
         """The row field a §1.1 derivation is written in, or None when the schema defines none."""
         return self.derivation.field if self.derivation is not None else None
 
-    def derivation_superseded(self, row: dict[str, Any]) -> bool:
+    def judged_verdict_resolves(self, row: dict[str, Any], chain_closed: bool | None = None) -> bool:
+        """Does the verdict `row` is judged under resolve? Its own verdict's, when `chain_closed` is None; for a chained
+        (KEPT) row of an older edition, which holds no verdict of its own (its verdict is its chain's), `chain_closed`
+        itself: whether every rule it carries into is OK at the next held edition with a band that names its edition
+        (`lineage.chain_closed`, kb/Work PB5822). The caller that knows the next edition's rows decides which."""
+        return (row.get("verdict") or "") in self.resolving if chain_closed is None else chain_closed
+
+    def derivation_superseded(self, row: dict[str, Any], chain_closed: bool | None = None) -> bool:
         """Is `row` one a derivation may not stand on: it carries a spec-derived test (the derivation's premise,
-        that none can exist, is refuted) or its verdict does not resolve (a derivation stands in for the covering
-        test, never for the verdict)? These are `Derivation.refusals`' first two refusals; `statement_losses` asks
-        it, so the one place that lets a derivation go is the one place that refuses it staying."""
-        return self.has_spec_derived_test(row) or (row.get("verdict") or "") not in self.resolving
+        that none can exist, is refuted) or the verdict it is judged under does not resolve (a derivation stands in
+        for the covering test, never for the verdict; for a chained row, `chain_closed` False: its chain is not
+        closed, `judged_verdict_resolves`)? These are `Derivation.refusals`' first two refusals; `statement_losses`
+        asks it, so the one place that lets a derivation go is the one place that refuses it staying."""
+        return self.has_spec_derived_test(row) or not self.judged_verdict_resolves(row, chain_closed)
 
     def derivation_stands(self, row: dict[str, Any]) -> bool:
         """Does this row carry a signed DERIVATION that stands in place of §1(c)'s test?

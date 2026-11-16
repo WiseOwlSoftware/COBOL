@@ -15,8 +15,9 @@ kind in the SAME change set, because `kb/Work/PB315` is the note recording what 
 
 This script is both of those costs, on the Python side:
 
-  · `--check` runs the ONE predicate (`inventory_schema.Derivation.refusals`) over every live inventory row that
-    claims a derivation, so the A.2 arm is re-resolved against the standard and the argument arms are re-checked
+  · `--check` runs the ONE predicate (`lineage.derivation_refusals`: `inventory_schema.Derivation.refusals` with the
+    verdict each row is judged under, a chained row's being its chain's, kb/Work PB5822) over every live inventory row
+    that claims a derivation, so the A.2 arm is re-resolved against the standard and the argument arms are re-checked
     for shape as the register, the catalog and the spec change underneath a determination recorded sessions ago.
     It also asserts its own POPULATION — a run that evaluated nothing would report "no findings" about nothing,
     and a MISSING observation is not a NEGATIVE one (`feedback_verdict_evidence_invariant`).
@@ -37,7 +38,8 @@ import pathlib
 import sys
 
 from inventory_schema import DerivationRow, load_schema
-from inventory_view import edition_views
+from inventory_view import edition_views, state_of
+import lineage  # noqa: E402  (THE derivation predicate of a row at its own edition, kb/Work PB5822)
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))  # scripts/, for standard_streams
 from standard_streams import ensure_utf8  # noqa: E402
 
@@ -69,16 +71,21 @@ def schema_for(world: dict):
 
 
 def evaluate_fixture(fixture: dict) -> list[dict]:
-    """`[{name, state, refusals}]` — this engine's answer for every case, in fixture order."""
+    """`[{name, state, refusals}]` — this engine's answer for every case, in fixture order. A case is judged at its
+    `edition` (the newest held one when it names none) by the state rule and the one derivation predicate
+    (`inventory_view.state_of`, `lineage.derivation_refusals`), against its `next-states`: the next held edition's rules a
+    chained row carries into, each with its state and band (kb/Work PB5822)."""
     out = []
     for case in fixture["cases"]:
         world = {**fixture["world"], **case.get("world-overrides", {})}
         schema = schema_for(world)
         row = dict(case["row"])
+        ed = schema.edition(case.get("edition", schema.newest.year))
+        targets = {rid: {"rule-id": rid, **t} for rid, t in case.get("next-states", {}).items()}
         out.append({
             "name": case["name"],
-            "state": schema.state_for(row),
-            "refusals": sorted(r.code for r in schema.derivation.refusals(row, schema)),
+            "state": state_of(ed, row, schema, targets),
+            "refusals": sorted(r.code for r in lineage.derivation_refusals(row, ed, schema, targets)),
         })
     return out
 
@@ -95,15 +102,21 @@ def parity_findings(fixture: dict, answers: list[dict]) -> list[str]:
     return bad
 
 
-def live_findings(schema, rows: list[dict]) -> tuple[list[str], list[str]]:
-    """Every live row that CLAIMS a derivation, and every reason one of them does not stand. `rows` are EVERY held
-    edition's (kb/Work PB5374)."""
+def live_findings(schema, views: dict[int, list[dict]]) -> tuple[list[str], list[str]]:
+    """Every live row that CLAIMS a derivation, and every reason one of them does not stand. `views` are EVERY held
+    edition's rows by year (kb/Work PB5374, `inventory_view.edition_views`), each row judged at its own edition by the
+    one predicate (`lineage.derivation_refusals`): a chained row of an older edition under its chain, against the next
+    held edition's rows (kb/Work PB5822)."""
     claimed, findings = [], []
-    for row in rows:
-        if not (row.get(schema.derivation.field) or "").strip():
-            continue
-        claimed.append(row["rule-id"])
-        findings += [f'{row["rule-id"]}: [{r.code}] {r.message}' for r in schema.derivation.refusals(row, schema)]
+    for year, rows in views.items():
+        ed = schema.edition(year)
+        targets = {} if ed.newest else {r["rule-id"]: r for r in views[ed.next_held]}
+        for row in rows:
+            if not (row.get(schema.derivation.field) or "").strip():
+                continue
+            claimed.append(row["rule-id"])
+            findings += [f'{row["rule-id"]}: [{r.code}] {r.message}'
+                         for r in lineage.derivation_refusals(row, ed, schema, targets)]
     return claimed, findings
 
 
@@ -165,6 +178,19 @@ def self_test() -> int:
     check("dropping the fabricated 1985 catalog breaks the arms that read the row's own edition",
           bool(parity_findings(uncatalogued, evaluate_fixture(uncatalogued))))
 
+    # …and the chained cases (kb/Work PB5822): judged at their edition against the next edition's states, which must be
+    # load-bearing, and driving both outcomes.
+    chained = [(c, a) for c, a in zip(fixture["cases"], answers) if "edition" in c]
+    check("the chained (KEPT) cases drive BOTH outcomes and the chain refusal",
+          {a["state"] for _, a in chained} == {"OK", "GAP"}
+          and any("verdict-does-not-resolve" in a["refusals"] for _, a in chained),
+          f"got {[(a['state'], a['refusals']) for _, a in chained]}")
+    unchained = json.loads(json.dumps(fixture))
+    for c in unchained["cases"]:
+        c.pop("next-states", None)
+    check("dropping the next edition's states breaks the chained cases (the chain is load-bearing)",
+          bool(parity_findings(unchained, evaluate_fixture(unchained))))
+
     # The live gate's two population checks, against a fabricated register and inventory.
     schema = schema_for(fixture["world"])
     claimed = ["GR-14.9.5.4-11"]
@@ -217,7 +243,7 @@ def main() -> int:
             return 1
         views = edition_views(schema)
         rows = [r for year_rows in views.values() for r in year_rows]
-        claimed, live = live_findings(schema, rows)
+        claimed, live = live_findings(schema, views)
         findings += live
         findings += unclaimed_register_rows(schema, claimed)
         findings += schema.derivation.signature_findings()

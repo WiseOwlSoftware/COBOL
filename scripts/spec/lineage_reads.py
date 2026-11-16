@@ -880,9 +880,11 @@ class Unwitnessed:
 
 def bare_kept(rows: Iterable[dict[str, Any]], schema: inventory_schema.Schema) -> tuple[int, list[dict[str, Any]]]:
     """Of an edition's inventory `rows`, the number of STORED KEPT records and those that carry no witness of their own
-    (`lineage.own_witness_refs`): the walk `witness-batch` and `widen` share."""
+    (`lineage.own_witness_refs`): the walk `witness-batch` and `widen` share. A row closed on a derivation of its own
+    (kb/Work PB5822) is left out: its view state, which `lineage.state_of` computed through `lineage.own_evidence`, is
+    OK with no witness of its own, and no program can witness its rule."""
     kept = [r for r in rows if (r.get("next") or {}).get("kind") == KEPT]
-    return len(kept), [r for r in kept if not lineage.own_witness_refs(r, schema)]
+    return len(kept), [r for r in kept if not lineage.own_witness_refs(r, schema) and r.get("state") != "OK"]
 
 
 def unwitnessed(rows: Iterable[dict[str, Any]], decisions: Iterable[Decision],
