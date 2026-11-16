@@ -192,7 +192,7 @@ def case_06_the_plan_is_the_kept_rows_no_read_decides(expect):
                  [F.GR12, F.AR1])
     expect.equal("a stale confirmed read is owed again", C.owed(F.context(repo.path, "111111111111"), records),
                  [F.GR8, F.GR12, F.SR1, F.AR1])
-    expect.equal("the counts", C.store.counts(ctx.rows, ctx.schema, records),
+    expect.equal("the counts", C.store.counts(ctx.rows, ctx.schema, ctx.shared, records),
                  {C.CONFIRMED: 1, C.CONTRADICTED: 0, C.store.UNDECIDED: 1, C.store.STALE: 0, "owed": 3})
 
 
@@ -283,7 +283,7 @@ def case_09_a_reader_who_did_not_decide_is_undecided(expect):
     expect.equal("the stored record stands in the audit", [C.record_problems(records[r], ctx) for r in records],
                  [[], [], []])
     expect.equal("counted where undecided records are counted",
-                 C.store.counts(ctx.rows, ctx.schema, records),
+                 C.store.counts(ctx.rows, ctx.schema, ctx.shared, records),
                  {C.CONFIRMED: 0, C.CONTRADICTED: 0, C.store.UNDECIDED: 3, C.store.STALE: 0, "owed": 4})
     expect.equal("plan still lists each row as owed a read", C.owed(ctx, records), [F.GR8, F.GR12, F.SR1, F.AR1])
     expect("an adjudication still decides the record",
@@ -352,12 +352,12 @@ def case_12_the_plan_leaves_out_a_row_its_own_derivation_closed(expect):
     open_ = {**base[0], "rule-id": "1985-GR-DRV-2", "state": "GAP", "test-ref": ""}
     ok_witnessed = {**base[0], "rule-id": "1985-GR-DRV-3", "state": "OK", "test-ref": "conformance:cases/x/y"}
     rows = {r["rule-id"]: r for r in base + [closed, open_, ok_witnessed]}
-    got = C.store.owed(rows, F.SCHEMA, {})
+    got = C.store.owed(rows, F.SCHEMA, {}, {})
     expect("a chained row OK with no test-ref of its own is not owed", "1985-GR-DRV-1" not in got)
     expect("a chained row whose derivation does not stand (GAP) is owed", "1985-GR-DRV-2" in got)
     expect("a chained row OK on a test-ref of its own is still owed", "1985-GR-DRV-3" in got)
-    expect.equal("the count of rows owed follows the plan", C.store.counts(rows, F.SCHEMA, {})["owed"], len(got))
-    expect("--witnessed leaves the closed row out too", "1985-GR-DRV-1" not in C.store.owed(rows, F.SCHEMA, {}, True))
+    expect.equal("the count of rows owed follows the plan", C.store.counts(rows, F.SCHEMA, {}, {})["owed"], len(got))
+    expect("--witnessed leaves the closed row out too", "1985-GR-DRV-1" not in C.store.owed(rows, F.SCHEMA, {}, {}, True))
 
 
 def case_13_a_contradicted_read_whose_fix_has_landed_is_owed_a_re_read(expect):
@@ -390,7 +390,7 @@ def case_13_a_contradicted_read_whose_fix_has_landed_is_owed_a_re_read(expect):
     expect.equal("the rows owed a read are the plan's other group: a contradicted row is decided, fixed since or not",
                  C.owed(ctx, records), [F.AR1])
     expect.equal("the store's counts still count the fixed-since record as contradicted",
-                 C.store.counts(ctx.rows, ctx.schema, records)[C.CONTRADICTED], 2)
+                 C.store.counts(ctx.rows, ctx.schema, ctx.shared, records)[C.CONTRADICTED], 2)
     # the refusal: a note already landed at the read's pin is no mechanism of a contradiction read after it
     reads, store = repo.path / "reads", repo.path / "store"
     F.plant(reads, "s-01", [F.read(F.GR12, "PARTIAL"), F.read(F.GR8, "PARTIAL")], [])
@@ -493,6 +493,37 @@ def case_17_verify_pins_lists_a_stored_read_that_does_not_resolve_at_its_own_pin
     expect.equal("the records that do not resolve at their own pin, and only those", sorted(got), [F.GR12, F.SR1])
     expect("each names the entry and the pin", any("'NoSuchMember'" in e and pin[:10] in e for e in got[F.GR12]), str(got))
     expect("a pin that is no commit of the repository is named as such", any("no commit" in e for e in got[F.SR1]), str(got))
+
+
+def case_18_a_decline_read_is_judged_against_the_verdict_its_row_shares(expect):
+    """kb/Work PB5865: a documented decline carries no defect fields; a DOUBTFUL needs no `corrected`; the outcome is the
+    one function's, against the verdict the row shares with its chain."""
+    repo, pin = F.tree()
+    dns = "DOCUMENTED-NON-SUPPORT"
+    declined = F.context(repo.path, shared={F.GR8: dns})
+    conforming = F.context(repo.path, shared={F.GR8: "CONFORMS"})
+    nothing = F.context(repo.path)
+    expect.equal("a decline read with no defect fields is a read", C.reader_problems(F.read(F.GR8, dns), declined), [])
+    expect("a PARTIAL read still owes its defect fields",
+           any("`harm`" in e for e in C.reader_problems(F.read(F.GR12, "PARTIAL", harm=""), declined)))
+    expect.equal("a DOUBTFUL with no corrected verdict is a case", C.refuter_problems(F.refute(F.GR8, "DOUBTFUL", corrected="")), [])
+    expect("an OVERTURNED with no corrected verdict is refused",
+           any("right verdict" in e for e in C.refuter_problems(F.refute(F.GR8, "OVERTURNED", corrected=""))))
+    rec = C.record_of(F.read(F.GR8, dns), None, "0b2e58f8a250", pin, "s", {"reader": "a" * 64})
+    expect.equal("a decline read of a declined row is confirmed", C.outcome(rec, declined), C.CONFIRMED)
+    expect.equal("a decline read of a conforming row is contradicted", C.outcome(rec, conforming), C.CONTRADICTED)
+    expect.equal("a decline read of a row whose chain shares no verdict is undecided", C.outcome(rec, nothing), C.store.UNDECIDED)
+    expect("a contradicted decline read names its work, as any contradicted record",
+           "names its mechanism's kb/Work note" in "".join(C.record_problems(rec, conforming)))
+    partial = C.record_of(F.read(F.GR8, "PARTIAL"), None, "0b2e58f8a250", pin, "s", {"reader": "a" * 64})
+    expect.equal("a PARTIAL read stays contradicted whatever the row shares", C.outcome(partial, F.context(repo.path, shared={F.GR8: "PARTIAL"})), C.CONTRADICTED)
+    doubt = C.record_of(F.read(F.GR8), F.refute(F.GR8, "DOUBTFUL", corrected=""), "0b2e58f8a250", pin, "s", {"reader": "a" * 64})
+    expect.equal("a DOUBTFUL CONFORMS with no corrected verdict is undecided", C.outcome(doubt, declined), C.store.UNDECIDED)
+    expect.equal("the shared verdict is the chain's: every target of a chained row, the same verdict",
+                 C.store.shared_verdicts({F.GR8: F.rows()[0]}, F.SCHEMA, {"GR-7.2.2.5-3": {"verdict": dns}}), {F.GR8: dns})
+    expect.equal("targets that differ, or hold none, share nothing",
+                 C.store.shared_verdicts({F.GR8: {**F.rows()[0], "next": {"kind": F.KEPT, "to": ["A", "B"]}}}, F.SCHEMA,
+                                         {"A": {"verdict": dns}, "B": {"verdict": "CONFORMS"}}), {})
 
 
 if __name__ == "__main__":

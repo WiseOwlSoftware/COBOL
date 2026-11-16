@@ -10,10 +10,13 @@ generator; so the view's half imports only what the view already imports (`inven
 `lineage`), and the store and the outcome have this one home.
 
 THE OUTCOME OF A RECORD is ONE function, `outcome`, which the audit, the view and the planner all ask:
-  confirmed     the reader CONFORMS and the refuter UPHELD it; or an adjudication whose verdict is CONFORMS;
-  contradicted  the reader is not CONFORMS; or an adjudication whose verdict is not CONFORMS (it names its `work`);
-  undecided     the refuter OVERTURNED or DOUBTFUL a CONFORMS, or the reader answered UNDECIDED (it did not decide),
-                and nobody has adjudicated it;
+  confirmed     the reader CONFORMS and the refuter UPHELD it; or the reader's verdict RESOLVES (the inventory schema says
+                which: a documented decline) and is the verdict the row SHARES (`lineage.chain_verdict`); or an adjudication
+                whose verdict is CONFORMS;
+  contradicted  the reader's verdict does not resolve, or resolves and differs from the verdict the row shares; or an
+                adjudication whose verdict is not CONFORMS (it names its `work`);
+  undecided     the refuter OVERTURNED or DOUBTFUL a CONFORMS, or the reader answered UNDECIDED (it did not decide), or a
+                resolving non-CONFORMS read of a row whose chain shares no verdict, and nobody has adjudicated it;
   stale         the rule's catalog text is no longer the text it was read against: it counts as no read.
 """
 from __future__ import annotations
@@ -62,9 +65,18 @@ def write(records: dict[str, dict[str, Any]], directory: pathlib.Path) -> int:
                                        directory)
 
 
-def outcome(record: dict[str, Any], rows: dict[str, Row]) -> str:
+def shared_verdicts(rows: dict[str, Row], schema: Schema, targets: dict[str, Row]) -> dict[str, str]:
+    """The verdict each chained row of `rows` shares with its chain at the next held edition, by id (`lineage.chain_verdict`;
+    `targets` are that edition's rows by id). A row that shares none is absent. The store never reads kb/Work (the notes
+    are `code_reads.py`'s); the inventory's rows are all it reads."""
+    return {rid: v for rid, row in rows.items() if (v := lineage.chain_verdict(row, schema, targets))}
+
+
+def outcome(record: dict[str, Any], rows: dict[str, Row], shared: dict[str, str], schema: Schema) -> str:
     """The outcome of `record` against the edition's `rows` by id (module docstring): `stale` when the rule's text moved
-    under it, else the adjudication's, else the reader's (an UNDECIDED reader leaves it undecided) and the refuter's."""
+    under it, else the adjudication's, else the reader's (an UNDECIDED reader leaves it undecided) and the refuter's. A
+    resolving non-CONFORMS verdict (a documented decline) is confirmed by the verdict the row `shared` and contradicts a
+    different one; where the row shares none the record is undecided (kb/Work PB5865)."""
     row = rows.get(record["rule-id"])
     if row is None or row["rule-digest"] != record["rule-digest"]:
         return STALE
@@ -72,27 +84,33 @@ def outcome(record: dict[str, Any], rows: dict[str, Row]) -> str:
         return CONFIRMED if adj["verdict"] == CONFORMS else CONTRADICTED
     if record["reader"]["verdict"] == READER_UNDECIDED:
         return UNDECIDED
-    if record["reader"]["verdict"] != CONFORMS:
-        return CONTRADICTED
+    verdict = record["reader"]["verdict"]
+    if verdict != CONFORMS:
+        if verdict not in schema.resolving:
+            return CONTRADICTED
+        agreed = shared.get(record["rule-id"])
+        return UNDECIDED if agreed is None else CONFIRMED if agreed == verdict else CONTRADICTED
     return CONFIRMED if (record.get("refuter") or {}).get("refutation") == UPHELD else UNDECIDED
 
 
-def owed(rows: dict[str, Row], schema: Schema, records: dict[str, dict[str, Any]], witnessed: bool = False) -> list[str]:
+def owed(rows: dict[str, Row], schema: Schema, shared: dict[str, str], records: dict[str, dict[str, Any]],
+         witnessed: bool = False) -> list[str]:
     """The KEPT rows of `rows` (in their order) that no confirmed or contradicted record decides: a stale or an undecided
     record is still owed. `witnessed` keeps those that carry a test-ref of their own (`lineage.own_witness_refs`). A chained
     row the view computes OK with no test-ref of its own is closed on a derivation of its own (kb/Work PB5822, the one
     predicate `lineage.derivation_refusals`, asked through the state): it needs no code read and is not owed one
     (kb/Work PB5842)."""
-    decided = {rid for rid, r in records.items() if outcome(r, rows) in (CONFIRMED, CONTRADICTED)}
+    decided = {rid for rid, r in records.items() if outcome(r, rows, shared, schema) in (CONFIRMED, CONTRADICTED)}
     return [rid for rid, row in rows.items() if lineage.chained(row, schema) and rid not in decided
             and not (row.get("state") == "OK" and not lineage.own_witness_refs(row, schema))
             and (not witnessed or lineage.own_witness_refs(row, schema))]
 
 
-def counts(rows: dict[str, Row], schema: Schema, records: dict[str, dict[str, Any]]) -> dict[str, int]:
+def counts(rows: dict[str, Row], schema: Schema, shared: dict[str, str],
+           records: dict[str, dict[str, Any]]) -> dict[str, int]:
     """Each outcome's count over `records`, and the KEPT rows still `owed` a read."""
-    by = Counter(outcome(r, rows) for r in records.values())
-    return {**{o: by.get(o, 0) for o in OUTCOMES}, "owed": len(owed(rows, schema, records))}
+    by = Counter(outcome(r, rows, shared, schema) for r in records.values())
+    return {**{o: by.get(o, 0) for o in OUTCOMES}, "owed": len(owed(rows, schema, shared, records))}
 
 
 def count_text(c: dict[str, int]) -> str:
@@ -101,9 +119,12 @@ def count_text(c: dict[str, int]) -> str:
             f"{c[STALE]} stale · {c['owed']} KEPT rows owed a read")
 
 
-def view_line(ed: Edition, schema: Schema, rows: list[Row]) -> str | None:
-    """The inventory view's line for `ed` (`inventory_view.summary`), or None for an edition whose store holds no record
-    (the newest edition never has one). It changes no row's state: it counts the store against the rows."""
+def view_line(ed: Edition, schema: Schema, rows: list[Row], targets: list[Row]) -> str | None:
+    """The inventory view's line for `ed` (`inventory_view.summary`; `targets` are the next held edition's rows), or None
+    for an edition whose store holds no record (the newest edition never has one). It changes no row's state: it counts
+    the store against the rows."""
     if ed.newest or not (records := load(ed.year)):
         return None
-    return f"       {ed.year}: {count_text(counts({r['rule-id']: r for r in rows}, schema, records))} (kb/Work PB5759)"
+    by_id = {r["rule-id"]: r for r in rows}
+    shared = shared_verdicts(by_id, schema, {r["rule-id"]: r for r in targets})
+    return f"       {ed.year}: {count_text(counts(by_id, schema, shared, records))} (kb/Work PB5759)"

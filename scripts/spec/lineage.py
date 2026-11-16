@@ -180,6 +180,16 @@ def chain_closed(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict
     return bool(to)
 
 
+def chain_verdict(row: dict[str, Any], schema: Schema, targets: dict[str, dict[str, Any]]) -> str:
+    """The verdict the chained (KEPT) `row` SHARES (kb/Work PB5865): the verdict every rule it carries into holds at the next
+    held edition; "" for a row that is not chained, one whose target is missing or holds no verdict of its own, or whose
+    targets differ (the chain answers nothing). `targets` are the next held edition's rows by id."""
+    if not chained(row, schema):
+        return ""
+    verdicts = {(targets.get(t) or {}).get("verdict") or "" for t in (row["next"].get("to") or [])}
+    return verdicts.pop() if len(verdicts) == 1 else ""
+
+
 def chain_of(row: dict[str, Any], ed: Edition, schema: Schema, targets: dict[str, dict[str, Any]]) -> bool | None:
     """The verdict `row` is judged under, as `Derivation.refusals` and `statement_losses` take it (kb/Work PB5822): for a
     chained (KEPT) row of an older edition, whether its chain is closed (`chain_closed`); None for every other row, which
