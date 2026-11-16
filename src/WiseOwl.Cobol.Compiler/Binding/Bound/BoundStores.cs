@@ -78,13 +78,13 @@ public static class BoundStores
     /// <summary>Does <paramref name="s"/>, or any statement nested in it, STORE into an item
     /// <paramref name="matches"/> accepts? The second client (kb/Work PB363, ISO §2023:14.9.49.3 SR11 "A USE BEFORE
     /// REPORTING procedure shall not alter the value of any control data item"): the same emitter-verified
-    /// classification, asked of a SET of items instead of one.
+    /// classification, asked of a SET of items instead of one, through the PLACE of each store so a window or one occurrence is not the whole item.
     /// <para>A BY REFERENCE CALL argument and an INVOKE write-back are NOT stores here: whether the callee alters
     /// the argument is not decidable from this source element, and a syntax rule that fired on the possibility
     /// would reject a conforming program. The OO property desugar counts them (it must run the SET accessor after
     /// a crossing), which is why the choice is a parameter of the walk and not of the node.</para></summary>
-    public static bool StoresInto(BoundStatement s, Func<DataItem, bool> matches) =>
-        s.Accept(new StoreKindVisitor(p => matches(p.Item), crossingsStore: false)) is not StoreKind.None;
+    public static bool StoresInto(BoundStatement s, Func<Place, bool> matches) =>
+        s.Accept(new StoreKindVisitor(matches, crossingsStore: false)) is not StoreKind.None;
 
     /// <summary>The place through which <paramref name="s"/> ITSELF — never a statement nested in it — stores into
     /// <paramref name="item"/>, or null when it does not. The third client (X3.23-1985 USE FOR DEBUGGING general rule 6 c, which
