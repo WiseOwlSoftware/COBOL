@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb862-write-advancing-device-mnemonic
-*> rules: [SR-12.3.7.3-7, SR-14.9.51.3-16, DOC-A.1-190, DOC-A.1-221]
+*> rules: [SR-12.3.7.3-7, SR-14.9.51.3-16, 2002-SR-14.8.47.2-16, DOC-A.1-190, DOC-A.1-221]
 *> source-format: free
 *> portable: unverified
 *>---

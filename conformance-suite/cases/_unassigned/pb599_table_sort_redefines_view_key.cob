@@ -23,7 +23,7 @@
       *>   1  T1 = "10a02b31c", elements (10,a) (02,b) (31,c); SORT E1 ASCENDING KEY KN -> numeric order 2, 10, 31:
       *>        02b10a31c
       *>   2  the same data, DESCENDING KEY KN -> 31, 10, 2: 31c10a02b
-      *>   3  a table inside ROW OCCURS 2, ROW(1) = "10a02b31c", ROW(2) = "30d20e10f"; SORT E2(2) ASCENDING KEY KN2
+      *>   3  a table inside ROW OCCURS 2, ROW(1) = "10a02b31c", ROW(2) = "30d20e10f"; SORT E2(2, ALL) ASCENDING KEY KN2
       *>        sorts ROW(2) only (the window is placed by the written outer subscript): ROW(1) is untouched and
       *>        ROW(2) reads 10f20e30d, so the display is 10a02b31c10f20e30d
       *>   4  two keys, the first one a view: T4 = "05a05c07b", ASCENDING KEY KN4 then DESCENDING KEY V4: KN4 = 5, 5, 7
@@ -65,7 +65,7 @@
            DISPLAY "2 " T1
            MOVE "10a02b31c" TO ROW(1)
            MOVE "30d20e10f" TO ROW(2)
-           SORT E3(2) ASCENDING KEY KN3
+           SORT E3(2, ALL) ASCENDING KEY KN3
            DISPLAY "3 " T3
            MOVE "05a05c07b" TO T4
            SORT E4 ASCENDING KEY KN4 DESCENDING KEY V4
