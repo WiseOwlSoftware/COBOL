@@ -95,7 +95,7 @@ def case_02_the_import_takes_every_slice_or_none(expect):
     bad = repo.path / "bad"
     F.plant(bad, "s-01", [F.read(F.GR8), F.read(F.OWN)], [F.refute(F.GR8), F.refute("1985-GR-XII.2.4-77")])
     F.plant(bad, "s-02", [F.read(F.GR12), F.read(F.SR1, "PARTIAL"), F.read(F.GR8)], [F.refute(F.SR1)])
-    (bad / "s-03-refute.json").write_text('{"cases": []}', encoding="utf-8")
+    (bad / "s-03-refute.json").write_text('{"cases": []}', encoding="utf-8", newline="\n")
     empty = repo.path / "empty-store"
     expect("every problem of every slice is named together, and nothing is written",
            F.refused(lambda: C.import_reads(ctx, bad, empty, pin),

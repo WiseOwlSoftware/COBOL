@@ -60,9 +60,9 @@ def refute(rid, refutation="UPHELD", **kw):
 def plant(directory, name, reads, refutes=None, edition=1985):
     """Write the slice `name`: the reader's file and, when `refutes` is given, the refuter's."""
     directory.mkdir(parents=True, exist_ok=True)
-    (directory / f"{name}.json").write_text(json.dumps({"edition": edition, "records": reads}), encoding="utf-8")
+    (directory / f"{name}.json").write_text(json.dumps({"edition": edition, "records": reads}), encoding="utf-8", newline="\n")
     if refutes is not None:
-        (directory / f"{name}-refute.json").write_text(json.dumps({"cases": refutes}), encoding="utf-8")
+        (directory / f"{name}-refute.json").write_text(json.dumps({"cases": refutes}), encoding="utf-8", newline="\n")
 
 
 def refused(fn, *needles):
