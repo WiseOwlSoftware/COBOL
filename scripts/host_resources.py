@@ -3,7 +3,7 @@
 docs/rearchitecture/DESIGN-test-build-ci.md section 3.14.6).
 
     python scripts/host_resources.py            # this host's commit now, and what one gate needs to be admitted
-    python scripts/host_resources.py --self-test
+    (its cases: scripts/selftests/host_resources/)
 
 ⛔ WHY. Three whole-population gates at once, beside two probe fleets, exhausted this host's commit limit on 2026-11-15,
 and one gate reported 24 test failures that were the host's errors (ERROR_PAGEFILE_QUOTA on a CreateDirectory, an out
@@ -262,9 +262,18 @@ if IS_WINDOWS:
     _PROCESS_QUERY_LIMITED_INFORMATION, _PROCESS_VM_READ = 0x1000, 0x0010
 
 
+#: A PLANTED READING (`<limit bytes>:<charge bytes>`): what gate_slot.py's self-test hands each child process it starts, so
+#: its queue arms never wait on this host's commit. Nothing else sets it, and a malformed one raises ValueError.
+PLANTED_READING = "WISEOWL_COBOL_GATE_COMMIT_READING"
+
+
 def read_commit() -> Commit | None:
-    """The host's commit limit and charge now (GetPerformanceInfo); None off Windows (the module docstring: the
-    admission is Windows'). OSError when Windows refuses the reading: never a guessed value."""
+    """The host's commit limit and charge now (GetPerformanceInfo), or the PLANTED_READING a self-test handed this
+    process; None off Windows (the module docstring: the admission is Windows'). OSError when Windows refuses the
+    reading: never a guessed value."""
+    if (planted := os.environ.get(PLANTED_READING)) is not None:
+        limit, _, charge = planted.partition(":")
+        return Commit(int(limit), int(charge))
     if not IS_WINDOWS:
         return None
     info = _PERFORMANCE_INFORMATION()
@@ -378,7 +387,7 @@ def admit_now(labels: dict[int, str], reading: Callable[[], Commit | None] = rea
     return admit(reading(), {labels[k]: (used.get(p) if p is not None else None) for k, p in pids.items()})
 
 
-# ── self-test ────────────────────────────────────────────────────────────────────────────────────────────────────────
+# ── the evidence of each row ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 #: The failure texts of run 000004-20261115T203340Z (kb/Work PB5697), as its trx recorded them, one per signature row.
 OBSERVED = {
@@ -399,82 +408,7 @@ OBSERVED = {
 GENUINE_TEXT = "Assert.Equal() Failure: Values differ\nExpected: True\nActual:   False"
 
 
-def self_test() -> int:
-    results: list[tuple[str, bool, str]] = []
-
-    def expect(name: str, ok: bool, detail: str = "") -> None:
-        results.append((name, ok, detail))
-
-    expect("every signature row has an observed failure text, and each text shows exactly its own row",
-           sorted(OBSERVED) == sorted(s.tag for s in SIGNATURES)
-           and all([s.tag for s in SIGNATURES if s.pattern.search(t)] == [tag] for tag, t in OBSERVED.items()),
-           str({tag: [s.tag for s in SIGNATURES if s.pattern.search(t)] for tag, t in OBSERVED.items()}))
-    expect("a genuine assertion failure, and an output that differs with text, show no signature",
-           not primaries(GENUINE_TEXT) and not secondaries(GENUINE_TEXT)
-           and not secondaries("FAIL: the output differs at line 1: expected 'A', got 'B'"))
-    for tag in ("pagefile-quota", "commitment-limit", "out-of-memory"):
-        j = judge([HostEvidence("Conformance", True, True, {"C.one": OBSERVED[tag], "C.two": OBSERVED["empty-output"]})])
-        res = next(s.resource for s in SIGNATURES if s.tag == tag)
-        expect(f"a run whose one primary signature is {tag} is exhausted, names {res}, and holds no genuine red: the "
-               "secondary case beside it is unjudged too",
-               j.exhausted and j.resources == (res,) and j.unjudged == {"Conformance": ("C.one", "C.two")}
-               and not j.genuine and j.host_is_the_hosts("Conformance"), str(j))
-    j = judge([HostEvidence("Conformance", True, True, {"C.one": OBSERVED["empty-output"], "C.two": OBSERVED["silent-exit"],
-                                                          "C.three": OBSERVED["torn-decode"]})])
-    expect("secondary symptoms alone are never the host's: every case is a genuine red",
-           not j.exhausted and j.genuine == {"Conformance": ("C.one", "C.three", "C.two")} and not j.unjudged, str(j))
-    j = judge([HostEvidence("Conformance", True, True, {"C.q": OBSERVED["pagefile-quota"], "C.e": OBSERVED["empty-output"]}),
-               HostEvidence("Unit", True, True, {"U.g": GENUINE_TEXT})])
-    expect("a mixed run is exhausted AND keeps its genuine red apart: Conformance is the host's, Unit's case is a test red",
-           j.exhausted and j.genuine == {"Unit": ("U.g",)} and j.unjudged == {"Conformance": ("C.e", "C.q")}
-           and j.host_is_the_hosts("Conformance") and not j.host_is_the_hosts("Unit"), str(j))
-    j = judge([HostEvidence("Unit", True, False, {}, "Failed to create CoreCLR, HRESULT: 0x8007000E"),
-               HostEvidence("RepoDrift", True, False, {}, "Test run aborted.")])
-    expect("a host that could not start (its log shows a primary signature, no case explains its red) is the host's "
-           "whole; one whose log shows none stays a test red",
-           j.resources == ("memory",) and j.whole_host == frozenset({"Unit"}) and j.host_is_the_hosts("Unit")
-           and not j.host_is_the_hosts("RepoDrift"), str(j))
-    j = judge([HostEvidence("Conformance", True, False, {"C.q": OBSERVED["pagefile-quota"]}, "Failed!  - Failed: 2")])
-    expect("a host whose unjudged cases do not account for its red (its log counts more failures, and shows no primary "
-           "signature) stays a test red", j.exhausted and not j.host_is_the_hosts("Conformance"), str(j))
-    j = judge([HostEvidence("Unit", False, True, {}, "0x8007000E in a green host's log")])
-    expect("a green host is not judged", not j.exhausted, str(j))
-    expect("the verdict spells both resources", Judgement(("commit", "memory")).named() == "commit limit and memory exhausted")
-
-    big = Commit(limit=140 * GIB, charge=60 * GIB)
-    a = admit(big, {})
-    expect("no holder, 80 GiB free: admitted", a.ok and "80.0 GiB" in a.why, a.why)
-    a = admit(Commit(140 * GIB, 110 * GIB), {})
-    expect("no holder, 30 GiB free (under the need): WAITS, and says the need", not a.ok and gib(GATE_NEED_BYTES) in a.why, a.why)
-    a = admit(big, {"gate A (pid 1)": 2 * GIB, "gate B (pid 2)": GATE_PEAK_COMMIT_BYTES + GIB})
-    expect("a holder that has committed little still reserves the rest of its peak: 80 free less 30 = 50, admitted",
-           a.ok and "less 30.0 GiB" in a.why, a.why)
-    a = admit(Commit(140 * GIB, 80 * GIB), {"gate A (pid 1)": 0, "gate B (pid 2)": None})
-    expect("an unreadable holder reserves a whole peak: 60 free less 64 reserved WAITS", not a.ok, a.why)
-    expect("no reading (off Windows): open, and says why", admit(None, {"x": None}).ok)
-    got = admit_now({0: "gate E:\\w (pid 42, since ...)", 1: "no pid here"}, lambda: big, lambda ps: {p: GIB for p in ps})
-    expect("admit_now reads each holder's pid from its label: pid 42 has 1 GiB of its peak committed (31 reserved), the "
-           "label with no pid is unreadable (32 reserved): 80 free less 63 WAITS",
-           not got.ok and "less 63.0 GiB" in got.why, got.why)
-    expect("holder_pid reads gate.py's and run's labels", holder_pid("gate E:\\x (pid 123, since 2026)") == 123
-           and holder_pid("dotnet test (pid 9, 2026-11-15 10:00:00)") == 9 and holder_pid("none") is None)
-    if IS_WINDOWS:
-        c = read_commit()
-        me = tree_commit([os.getpid(), 0x7FFFFFF0])
-        expect("this host's commit reads a limit above its charge, and this process's tree a positive charge; a pid "
-               "that is not running reads None",
-               c is not None and c.limit > 0 and c.charge > 0 and (me[os.getpid()] or 0) > 0 and me[0x7FFFFFF0] is None,
-               f"{c} {me}")
-    bad = [r for r in results if not r[1]]
-    for name, ok, detail in results:
-        print(f"  {'PASS' if ok else 'FAIL'}  {name}" + (f"  [{detail}]" if not ok and detail else ""))
-    print(f"=== HOST RESOURCES SELF-TEST: {'GREEN' if not bad else 'RED'} — {len(results) - len(bad)}/{len(results)} ===")
-    return 1 if bad else 0
-
-
 def main(argv: list[str]) -> int:
-    if argv[:1] == ["--self-test"]:
-        return self_test()
     c = read_commit()
     if c is None:
         print("host_resources: no commit reading off Windows (the admission is a Windows host's)")

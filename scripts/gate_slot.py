@@ -53,6 +53,15 @@ THE MECHANISM — every piece is an OS file lock, so nothing is ever cleaned up 
            marks a held slot older than HOLD_LONG_FACTOR times the median of its kind's recorded holds `LONG HOLD`
            (kb/Work PB3310): a hung gate keeps its slot for as long as its process lives, and nothing named it. The flag
            is advice, derived from the gates' own history; this tool never stops a holder.
+  commit   THE COMMIT ADMISSION (kb/Work PB5697; scripts/host_resources.py `admit`). A waiter at the head of the queue
+           with a slot free takes it only when the host's free COMMIT (the commit limit, RAM plus the paging files, less
+           the commit charge), less what each holder may still commit up to one gate's measured peak, covers that peak
+           plus a margin (host_resources.GATE_NEED_BYTES, the one statement of the threshold). Otherwise it gives the
+           slot back and WAITS at the head, saying why, and `status` prints the reading and whether a gate would be
+           admitted now. Three whole-population gates beside two probe fleets ran this host out of commit on 2026-11-15
+           and gave 24 false reds: the cap counts gates, the admission reads what the host can hold, so the cap stays
+           safe whatever else (a probe fleet, the kernel's file caches) has committed. It is not a second cap: with room
+           for every gate it never waits.
   defaults THE OWNER'S DECISION, coded here and nowhere else (2026-10-10): the cap is DEFAULT_SLOTS = 3. A setting
            exists only to depart from it. (The implementer scope `leg1|whole` and the LIGHT pool are gone: every gate
            runs the whole population, kb/Work PB4328, and the light pool's one user, the inert lane's Linux half, left
@@ -82,6 +91,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
+import host_resources  # this directory's: the commit a gate needs and this host's reading of it (kb/Work PB5697)
 import process_job  # this directory's: the one Job object a slot holder's process tree is bound into (kb/Work PB5098)
 import sharedfile  # this directory's: the one Windows share-retry rule for the settings file (kb/Work PB2564)
 from detached import kill_tree, pid_alive  # this directory's: the one tree kill and the one liveness probe (PB4008)
@@ -591,6 +601,7 @@ class SlotState:
     holds: dict[str, list[float]] = field(default_factory=dict)  # recorded hold durations per kind (kb/Work PB3310)
     holds_problem: str = ""                                      # why the hold history could not be read, else ""
     pool: Pool = GATE_POOL
+    admission: host_resources.Admission | None = None            # whether one more gate is admitted now (kb/Work PB5697)
 
 
 class QueueAbandoned(Exception):
@@ -625,9 +636,13 @@ class GateSlots:
     are in `directory`, the root itself for the gate pool and a subdirectory for any other."""
 
     def __init__(self, root: Path, poll_s: float = DEFAULT_POLL_S, pool: Pool = GATE_POOL,
-                 heartbeat: Callable[[], Heartbeat] = Heartbeat):
-        """`heartbeat` makes the clock of one wait's heartbeat (`acquire`); a test passes one with a stepped clock."""
+                 heartbeat: Callable[[], Heartbeat] = Heartbeat,
+                 admission: Callable[[dict[int, str]], host_resources.Admission] = host_resources.admit_now):
+        """`heartbeat` makes the clock of one wait's heartbeat (`acquire`); a test passes one with a stepped clock.
+        `admission` answers whether one more gate may take a slot, given the held slots' labels (the module docstring's
+        commit admission, kb/Work PB5697); a test injects the host's reading."""
         self.root, self.poll_s, self.pool, self.heartbeat = root, poll_s, pool, heartbeat
+        self.admission = admission
         self.directory = root / pool.subdir if pool.subdir else root
 
     @classmethod
@@ -724,7 +739,7 @@ class GateSlots:
         seq, ticket_fd = self._take_ticket(label, gate_class)
         beat = self.heartbeat()
         try:
-            reported, told = None, set()
+            reported, told, refused = None, set(), None
             while True:
                 if abandon is not None and abandon():
                     raise QueueAbandoned(f"ticket {seq} withdrawn: the caller's verdict was decided while it queued")
@@ -733,7 +748,23 @@ class GateSlots:
                 cap = self.settings().effective_cap(self.pool)
                 got = self._try_slot(label, cap) if ahead == 0 else None
                 if got is not None:
-                    break
+                    # ⛔ THE COMMIT ADMISSION (kb/Work PB5697): a free slot is taken only when the host can hold one more
+                    # gate; else it is given back at once and this ticket, still first, waits with the reason said.
+                    admitted = self.admission({k: v for k, v in self._held().items() if k != got[0]})
+                    if admitted.ok:
+                        if refused is not None:
+                            say(f"gate-slot: the host can hold one more gate now ({admitted.why})")
+                        break
+                    _unlock(got[1])
+                    os.close(got[1])
+                    got = None
+                    if refused is None or beat.due():
+                        say(f"gate-slot: waiting for COMMIT, next in line with a slot free (ticket {seq}): "
+                            f"{admitted.why}; the gate takes the slot once the host can hold it (kb/Work PB5697)")
+                        beat.mark()
+                    refused = admitted
+                    time.sleep(self.poll_s)
+                    continue
                 if (ahead, cap) != reported:
                     say(f"gate-slot: waiting, {ahead} ahead (ticket {seq}, cap {cap}, {gate_class}, {self.directory})")
                     reported = (ahead, cap)
@@ -772,36 +803,42 @@ class GateSlots:
         say(f"gate-slot: took {slot.describe()}")
         return slot
 
+    def _held(self, held_s: dict[int, float] | None = None) -> dict[int, str]:
+        """EVERY held slot's label, by index: every slot file is probed, not only those below the cap. `held_s`, when
+        given, gets each held slot's seconds held (the label is written when the slot is taken, so the file's write time
+        is the hold's start)."""
+        held: dict[int, str] = {}
+        if not self.directory.is_dir():
+            return held
+        for p in self.directory.iterdir():
+            m = _SLOT_FILE.fullmatch(p.name)
+            if not m:
+                continue
+            fd = _open(p)
+            try:
+                if _try_lock(fd):
+                    _unlock(fd)
+                else:
+                    held[int(m.group(1))] = _read_label(p)
+                    if held_s is not None:
+                        held_s[int(m.group(1))] = max(0.0, time.time() - p.stat().st_mtime)
+            finally:
+                os.close(fd)
+        return held
+
     def state(self) -> SlotState:
         """EVERY slot file is probed, not only those below the cap: a slot taken under an earlier, higher cap is still
         a running gate, and hiding it hid two of three holders from the operator (kb/Work PB2514)."""
         settings = self.settings()
-        held: dict[int, str] = {}
         held_s: dict[int, float] = {}
-        if self.directory.is_dir():
-            for p in self.directory.iterdir():
-                m = _SLOT_FILE.fullmatch(p.name)
-                if not m:
-                    continue
-                fd = _open(p)
-                try:
-                    if _try_lock(fd):
-                        _unlock(fd)
-                    else:
-                        held[int(m.group(1))] = _read_label(p)
-                        # the label is written when the slot is taken, so the file's write time is the hold's start
-                        held_s[int(m.group(1))] = max(0.0, time.time() - p.stat().st_mtime)
-                finally:
-                    os.close(fd)
-            waiting = self._live_tickets()
-        else:
-            waiting = []
+        held = self._held(held_s)
+        waiting = self._live_tickets() if self.directory.is_dir() else []
         try:
             holds, problem = read_holds(self.directory), ""
         except ValueError as e:  # a corrupt history must not hide the holders: status says it instead
             holds, problem = {}, str(e)
         return SlotState(self.directory, settings, settings.effective_cap(self.pool), held, waiting, held_s, holds,
-                         problem, self.pool)
+                         problem, self.pool, self.admission(held))
 
 
 # ── command line ────────────────────────────────────────────────────────────────────────────────────────────────
@@ -838,6 +875,12 @@ def _print_pool(st: SlotState) -> None:
         print(f"  slot {k + 1}: {held}")
     for seq, gate_class, label in st.waiting:
         print(f"  ticket {seq} ({gate_class}): waiting — {label or '(no label)'}")
+    if st.admission is not None:
+        # THE COMMIT ADMISSION (kb/Work PB5697): why a first ticket waits with a slot free, said where the operator looks.
+        free = len(st.held) < st.cap
+        print(f"gate-slot: commit admission {'OPEN' if st.admission.ok else 'WAITS'} — {st.admission.why}"
+              + ("" if st.admission.ok or not free or not st.waiting else
+                 "; the first ticket waits for commit with a slot free"))
 
 
 def _set_by(args: argparse.Namespace) -> str:
@@ -950,6 +993,9 @@ def self_test() -> int:
     # wave 72 group G, kb/Work PB1719); dropping the variables from this process also covers the gate children the
     # arms start.
     isolate()
+    # The arms test the queue, never this host's commit: this process and every child it starts read a planted roomy
+    # reading (kb/Work PB5697), and the `commit_admission` arm drives the admission itself.
+    os.environ[host_resources.PLANTED_READING] = f"{1 << 50}:0"
     me = str(Path(__file__).resolve())
     py = sys.executable
     root = scratch_dir("gate-slot-selftest-")
@@ -1324,6 +1370,38 @@ def self_test() -> int:
             go.touch()
             assert h.finish() == 0 and late.finish() == 0, "the queue behind the withdrawn ticket was not served"
 
+        def commit_admission() -> None:
+            # kb/Work PB5697: a first ticket with a slot free WAITS while the admission refuses (the host's reading
+            # injected, never the host exhausted), keeps no slot while it waits, says why, and takes the slot the moment
+            # the admission opens; status says WAITS with the reason.
+            repo, _ = make_repo("commit")
+            slots, room, told = GateSlots.for_repo(repo, 0.05), [False], []
+            slots.admission = lambda held: host_resources.Admission(room[0], f"planted: room {room[0]}, {len(held)} held")
+            res: list[BaseException | Slot] = []
+
+            def waiter() -> None:
+                try:
+                    res.append(slots.acquire("C", say=told.append))
+                except BaseException as e:  # noqa: BLE001 — the arm reads what ended the wait
+                    res.append(e)
+
+            t = threading.Thread(target=waiter, daemon=True)
+            t.start()
+            _wait_until(lambda: any("waiting for COMMIT" in x for x in told), "the waiter says it waits for commit")
+            st = slots.state()
+            assert st.held == {} and len(st.waiting) == 1, f"a refused waiter kept a slot or left the queue: {st}"
+            assert st.admission is not None and not st.admission.ok and "planted: room False" in st.admission.why, st
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                _print_pool(st)
+            assert "commit admission WAITS" in out.getvalue() and "waits for commit with a slot free" in out.getvalue(), \
+                out.getvalue()
+            room[0] = True
+            t.join(30)
+            assert not t.is_alive() and len(res) == 1 and isinstance(res[0], Slot), f"the open admission did not admit: {res}"
+            assert any("can hold one more gate now" in x for x in told), told
+            res[0].release()
+
         def passer_explained() -> None:
             # kb/Work PB3724: a waiting gate whose "k ahead" count RISES says why (a fix ticket taken after its own is
             # served first, PB3103, PB4888), and the gate next in line says what it waits for.
@@ -1389,6 +1467,8 @@ def self_test() -> int:
         arm("a hold far past the median of its kind's recorded holds is flagged by status, never killed", long_holds)
         arm("a queued waiter whose abandon turns true withdraws its ticket at once and never takes the slot (kb/Work PB5322)",
             withdrawn)
+        arm("a first ticket waits for COMMIT with a slot free while the admission refuses, and takes it once it opens "
+            "(kb/Work PB5697)", commit_admission)
         arm("a waiting gate says why a later ticket is served first (fix before implementer) and what the gate next in line waits for", passer_explained)
         arm("a queued gate whose place does not move still writes a heartbeat line at every interval (kb/Work PB5097)", heartbeat)
     finally:

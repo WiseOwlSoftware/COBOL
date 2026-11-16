@@ -396,6 +396,15 @@ def case_017_classify_red_results_unread_or_no_record_is_uncl(expect):
            cls_of == {"unobserved": lm.UNCLASSIFIED, "timed out": lm.INFRA, "no test failed": lm.INFRA,
                       "no record": lm.UNCLASSIFIED, "inert": lm.RUNNER, "tooling": lm.RUNNER, "skipped": lm.GENUINE, "absent": lm.MERGE,
                       "ran green": lm.RUNNER}, str(cls_of))
+    host = dataclasses.replace(rec_, failed=frozenset({"A.Pass", "A.Skip"}), exhausted=frozenset({"A.Pass", "A.Skip"}),
+                               resources="commit limit exhausted")
+    part = dataclasses.replace(host, exhausted=frozenset({"A.Skip"}))
+    expect("classify_red (kb/Work PB5697): a red whose every case is the runner's host running out is INFRA, naming the "
+           "resource; with a test red beside them the host's cases are set apart and the rest classified (A.Pass ran "
+           "green: RUNNER), the line naming the unjudged ones",
+           classify_red(host)[0] == lm.INFRA and "commit limit exhausted" in classify_red(host)[1]
+           and classify_red(part)[0] == lm.RUNNER and "1 more red case(s) are the host running out" in classify_red(part)[1],
+           f"{classify_red(host)} {classify_red(part)}")
 
 
 def case_018_red_facts_results_of_an_older_bounce_are_never_t(expect):
@@ -409,13 +418,14 @@ def case_018_red_facts_results_of_an_older_bounce_are_never_t(expect):
     tp.synthetic_trx(rec_dir / "Unit.trx", [("A.Pass", ["Passed"]), ("A.Skip", ["NotExecuted"])])
     bounce_dir = wt18 / gate_host.CI_BOUNCE_RESULTS
 
-    def plant_bounce(number: int, cases: list[tuple[str, list[str]]], conclusion: str = "failure") -> None:
+    def plant_bounce(number: int, cases: list[tuple[str, list[str]]], conclusion: str = "failure",
+                     messages: dict[str, str] | None = None) -> None:
         remove_tree(bounce_dir)
         (bounce_dir / "test-results-unit").mkdir(parents=True)
         (bounce_dir / queue_facts.BOUNCE_SOURCE).write_text(
             f"GitHub Actions run 9001 (merge group of pull request #{number}, {conclusion}, x); planted\n",
             encoding="utf-8", newline="\n")
-        tp.synthetic_trx(bounce_dir / "test-results-unit" / "u.trx", cases)
+        tp.synthetic_trx(bounce_dir / "test-results-unit" / "u.trx", cases, messages=messages)
     att18 = {"branch": "w18", "worktree": str(wt18), "end_head": "h18"}
     pr18 = queue_facts.PullRequest(893, "u", "h18", False, "", "BLOCKED", "FAILED_CHECKS at 2026-10-31T10:00:00Z",
                                    (green_gate,), "o/r")
@@ -437,6 +447,18 @@ def case_018_red_facts_results_of_an_older_bounce_are_never_t(expect):
         **json.loads((rec_dir / "verdict.json").read_text(encoding="utf-8")), "reused_from": rec_dir.name}),
         encoding="utf-8", newline="\n")
     reused = red_facts(att18, pr18, fetch)
+    import host_resources  # noqa: PLC0415  (kb/Work PB5697: the gate's one table, which the lane reads too)
+    plant_bounce(893, [("A.Pass", ["Failed"]), ("A.Skip", ["Failed"])],
+                 messages={"A.Pass": host_resources.OBSERVED["commitment-limit"], "A.Skip": host_resources.OBSERVED["empty-output"]})
+    exhausted = red_facts(att18, pr18, fetch)
+    plant_bounce(893, [("A.Pass", ["Failed"])], messages={"A.Pass": host_resources.OBSERVED["empty-output"]})
+    only_empty = red_facts(att18, pr18, fetch)
+    expect("red_facts (kb/Work PB5697): a bounce whose red cases show a primary host signature (and a secondary beside it) "
+           "reads both exhausted and classifies INFRA; an empty output alone is no host evidence and classifies on its "
+           "case (RUNNER: it ran green in the record)",
+           exhausted.exhausted == {"A.Pass", "A.Skip"} and classify_red(exhausted)[0] == lm.INFRA
+           and not only_empty.exhausted and classify_red(only_empty)[0] == lm.RUNNER, f"{exhausted} {only_empty}")
+    fetched[:] = fetched[:3]   # the two planted fetches above are this arm's own; the count below is the original arms'
     (rec_dir / "Unit.trx").unlink()
     pruned = red_facts(att18, pr18, fetch)
     gone = red_facts({**att18, "worktree": str(root / "no-such-worktree")}, pr18, fetch)
