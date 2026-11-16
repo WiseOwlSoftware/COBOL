@@ -47,6 +47,15 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-S - W-S + 0.5", Bin(Bin(ScaledItem, '-', ScaledItem), '+', Lit("0.5")), true },
         { "- 0.25 + 2", Bin(new BoundNegate(Lit("0.25")), '+', Lit("2")), true },
         { "2 ** -1", new BoundPower(Lit("2"), new BoundNegate(Lit("1")), NegativeBaseRealRoots: false), true },
+        // kb/Work PB5832: a product or quotient by a literal scales the spine, so an item's net coefficient is a rational and a step of
+        // the item (0.1 for W-S, 1 for W-I) moves the sum by 0.2 or 0.5: W-S * 2 + 65.5 is 65.7 at W-S = 0.1, W-I / 2 + 0.5 is 1.5 at W-I = 2.
+        { "W-S * 2 + 65.5", Bin(Bin(ScaledItem, '*', Lit("2")), '+', Lit("65.5")), true },
+        { "W-I / 2 + 0.5", Bin(Bin(IntItem, '/', Lit("2")), '+', Lit("0.5")), true },
+        { "W-I * 0.5", Bin(IntItem, '*', Lit("0.5")), true },
+        { "0.5 * W-I", Bin(Lit("0.5"), '*', IntItem), true },
+        // kb/Work PB5832 review R1-1: a product of two items (both at one granule) under a non-integral factor.
+        { "W-S * W-S * 0.5", Bin(Bin(ScaledItem, '*', ScaledItem), '*', Lit("0.5")), true },
+        { "W-I * W-I / 2", Bin(Bin(IntItem, '*', IntItem), '/', Lit("2")), true },
         // Admitted: the constant is integral, or a term defeats the proof (fail open).
         { "1.5 + 0.5", Bin(Lit("1.5"), '+', Lit("0.5")), false },
         { "3 - 1", Bin(Lit("3"), '-', Lit("1")), false },
@@ -54,8 +63,14 @@ public sealed class IntegerArgumentConstantWitnessTests
         { "W-I + 1.5 + 1.5", Bin(Bin(IntItem, '+', Lit("1.5")), '+', Lit("1.5")), false },
         { "0.5 * 4", Bin(Lit("0.5"), '*', Lit("4")), false },
         { "2 ** 6 + 1", Bin(new BoundPower(Lit("2"), Lit("6"), NegativeBaseRealRoots: false), '+', Lit("1")), false },
-        { "W-S * 2 + 65.5 (fail open)", Bin(Bin(ScaledItem, '*', Lit("2")), '+', Lit("65.5")), false },
-        { "W-I / 2 + 0.5 (fail open)", Bin(Bin(IntItem, '/', Lit("2")), '+', Lit("0.5")), false },
+        // The products and quotients by a literal that cancel to a whole net coefficient (kb/Work PB5832).
+        { "W-I * 0.5 * 2", Bin(Bin(IntItem, '*', Lit("0.5")), '*', Lit("2")), false },
+        { "W-I / 2 * 2", Bin(Bin(IntItem, '/', Lit("2")), '*', Lit("2")), false },
+        { "W-I * 0.5 + W-I * 0.5", Bin(Bin(IntItem, '*', Lit("0.5")), '+', Bin(IntItem, '*', Lit("0.5"))), false },
+        { "W-S / 0.1", Bin(ScaledItem, '/', Lit("0.1")), false },
+        { "W-I * 0", Bin(IntItem, '*', Lit("0")), false },
+        { "W-I * W-I * 2", Bin(Bin(IntItem, '*', IntItem), '*', Lit("2")), false },
+        { "W-I * W-I", Bin(IntItem, '*', IntItem), false },
         { "1 / 0 + 0.5 (zero divide is not this screen's)", Bin(Bin(Lit("1"), '/', Lit("0")), '+', Lit("0.5")), false },
     };
 

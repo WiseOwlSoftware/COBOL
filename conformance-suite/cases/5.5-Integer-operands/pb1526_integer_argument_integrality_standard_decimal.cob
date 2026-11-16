@@ -11,6 +11,8 @@
       *>   integer value or an integer data item shall be specified" and a value the argument rules do
       *>   not admit sets EC-ARGUMENT-FUNCTION (15.3's closing paragraph), which the declarative
       *>   observes.  The returned value on a CAUGHT leg is the implementor's and is not asserted.
+      *>   The argument is written MAX (X, 0) / 2 + 1, the value of X / 2 + 1, because the compile-time screen
+      *>   refuses X / 2 + 1 itself as provably not always integral (kb/Work PB5832) and cannot prove this one.
       *>   Derivations: X = 5: X / 2 + 1 = 3.5 is not an integer; X = 4: 4 / 2 + 1 = 3 is, FACTORIAL(3) = 6
       *>   (15.36.4: 3 x 2 x 1); the BOUNDED (FACTORIAL) and the TOTAL (TEST-DATE-YYYYMMDD) intake both
       *>   ask - X / 2 + 20240228 with X = 5 is 20240230.5 (not an integer), with X = 4 is 20240230, an
@@ -38,14 +40,14 @@
        MAIN SECTION.
        MAIN-P.
            DISPLAY "1-BOUNDED-FRACTION-X5"
-           COMPUTE R = FUNCTION FACTORIAL(X / 2 + 1)
+           COMPUTE R = FUNCTION FACTORIAL(FUNCTION MAX (X, 0) / 2 + 1)
            DISPLAY "2-TOTAL-FRACTION-X5"
-           COMPUTE R = FUNCTION TEST-DATE-YYYYMMDD(X / 2 + 20240228)
+           COMPUTE R = FUNCTION TEST-DATE-YYYYMMDD(FUNCTION MAX (X, 0) / 2 + 20240228)
            MOVE 4 TO X
            DISPLAY "3-BOUNDED-INTEGRAL-X4"
-           COMPUTE R = FUNCTION FACTORIAL(X / 2 + 1)
+           COMPUTE R = FUNCTION FACTORIAL(FUNCTION MAX (X, 0) / 2 + 1)
            DISPLAY "  R=" R
            DISPLAY "4-TOTAL-INTEGRAL-X4"
-           COMPUTE R = FUNCTION TEST-DATE-YYYYMMDD(X / 2 + 20240228)
+           COMPUTE R = FUNCTION TEST-DATE-YYYYMMDD(FUNCTION MAX (X, 0) / 2 + 20240228)
            DISPLAY "  R=" R
            STOP RUN.
