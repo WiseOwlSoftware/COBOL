@@ -16,6 +16,9 @@
       *> kb/Work PB5608's review finding R1-1 only the pseudo-text form
       *> was screened, and this word operand replaced the library's
       *> X<U+20AC> by "Z" and the program ran.
+      *> CAN FAIL: word-1 MATCHES the library's only X<U+20AC>, so no
+      *> library word reaches the lexer and the operand screen is the
+      *> only source of COBOL2773 (without it the program prints Z).
       *> The library text PB5608W holds one line, DISPLAY X<U+20AC>.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5608W85.

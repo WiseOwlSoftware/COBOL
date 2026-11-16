@@ -21,6 +21,10 @@
       *> refused-85).
       *> EXPECTED OUTPUT, DERIVED: Z (the library's DISPLAY X<U+20AC>
       *> with the word replaced); a refusal, or no output, fails.
+      *> CAN FAIL: if the operand screen refused the 2014 text-word, or
+      *> if ==X<U+20AC>== failed to match, the library word X<U+20AC>
+      *> would reach the lexer, which refuses it as no COBOL word
+      *> (COBOL2773) at 2014 and 2023.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5608U.
        PROCEDURE DIVISION.
