@@ -1,4 +1,4 @@
-## The 2002 golden lane, sixth landing: 129 witnesses at --std 2002 for 14 wave-u files, 94 more 2002 rows closed (GAP 1,805 to 1,711)
+## Entry 3732 — 2026-11-15 23:42 PST — The 2002 golden lane, sixth landing: 129 witnesses at --std 2002 for 14 wave-u files, 94 more 2002 rows closed (GAP 1,805 to 1,711)
 
 The gl2002 lane (kb/Work PB5597) gives each 2002 row a witness of its own at `--std 2002`. This landing integrates the
 first 14 "wave u" files: rows a 2002 read left needs-own-witness, undecided or uninterpretable. They cover floating
@@ -47,3 +47,4 @@ admitted only for an SR or FMT rule that grants no form (9 records).
   effect, default off): the only observable is the absence of a warning, which a conformance case cannot fail on.
 - 2002-SR-11.2.2-4: sentence 2 (a parameterized class that expands class-name-1) reads two ways and needs an
   adjudication before a witness can be written.
+
