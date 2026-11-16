@@ -1,3 +1,4 @@
-## 1985 mop-up: two witness cases for three rows, one header line, one decision note
+## Entry 3735 — 2026-11-16 00:15 PST — 1985 mop-up: two witness cases for three rows, one header line, one decision note
 
 Added `g85_z01` (COLUMN placement and space fill, rows `1985-GR-XIII.3.11.4-3` and `-4`) and `g85_z02` (OPEN EXTEND keeps the earlier records, row `1985-GR-XIII.4.5.4-10`), each validated at `--std 85` against its expected output and recorded witness-only. `1985-GR-X.4.6.4-3` is closed by listing `GR-13.18.27.4-3` in the `rules:` header of the accepted case `pb1523_global_fd_records_and_redefiners`, whose record was already stored. The draft case for `1985-GR-XIII.4.5.4-18` was overturned by its refuter (the rule states a constraint no conforming program can observe) and does not land; PB5819 records the decision and the row stays open. The 1985 GAP count went from 102 to 99.
+
