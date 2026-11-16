@@ -1,4 +1,4 @@
-## Wave 20262068 group A: a print file is not read back, and seven COBOL-85 rules the compiler read through a later edition
+## Entry 3783 — 2026-11-16 11:48 PST — Wave 20262068 group A: a print file is not read back, and seven COBOL-85 rules the compiler read through a later edition
 
 This branch merged `worktree-wf_f60b9cb3-27d-1` (wave 20262045) onto main acffeb97ab; that branch has since reached main
 through wave 20262057 (entry 3756), so this entry is this group's alone. The finisher merged main again at 858087e09f: main
@@ -43,3 +43,4 @@ Rows, on main 858087e09f and on this branch after the merge: 1985 GAP 61 to 34 a
 1985-GR-IV.4.3.8.4.4-5, 1985-GR-VI.6.19.4-1, 1985-SR-XI.4.2.3-2, 1985-SR-XI.4.3.3-3; the 2023 rows GR-9.1.13.6-6,
 GR-14.9.27.4-4, GR-14.9.27.4-16, GR-12.4.5.5.3-2, GR-12.4.5.10.3-3, GR-14.9.51.4-17, GR-14.9.51.4-18 and GR-8.4.3.3.4-2),
 witnesses added to eleven more. Not done here: PB5804 and PB5795 (the computer-name slot), released to a later wave.
+
