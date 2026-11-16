@@ -36,10 +36,13 @@ def case_00_re_gate_hands_every_host_classes_red(expect):
     sink.clear()
     again = Gate(again_host, d / "runs", say=sink.append).run()
     named = Path(again_host.envs["Unit"].get(FIRST_CLASSES, ""))
-    expect("a re-gate hands every host the classes red at the previous run and in the bounce (one file, FIRST_CLASSES), "
-        "says so, and still runs and checks the whole population",
+    expect("a re-gate hands every population host the classes red at the previous run and in the bounce (one file, "
+        "FIRST_CLASSES), says so, and still runs and checks the whole population (the preflight's hosts run only their "
+        "declared classes, so nothing orders them: kb/Work PB5872)",
         again.verdict == "GREEN" and again.first == ["N.Bounced", "N.Conf"]
-        and all(v.get(FIRST_CLASSES) == str(named) for v in again_host.envs.values())
+        and all(v.get(FIRST_CLASSES) == str(named) for n, v in again_host.envs.items() if not n.startswith("preflight-"))
+        and all(FIRST_CLASSES not in v for n, v in again_host.envs.items() if n.startswith("preflight-"))
+        and fixtures.hosted_once(again_host)
         and named.read_text(encoding="utf-8") == "N.Bounced\nN.Conf\n"
         and said("2 class(es) red at the previous run or the merge queue run first")
         and "2 class(es) first" in again.line and all(p.exact for p in again.populations.values()),
@@ -138,10 +141,17 @@ def case_05_audit_red_only_after_test_hosts_have(expect):
     root, sink, gate, said = fixtures.world()
     o, h = gate("audit-late", plant={"audit-late"})
     expect("an audit that is RED only after the test hosts have started STOPS them: the verdict is RED, the audit "
-        "named, the hosts' partial results are NOT measured (no population) (kb/Work PB4326)",
-        o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line and "STOPPED them" in o.line
+        "named, the hosts' partial results are NOT measured (no population) (kb/Work PB4326); the first hosts are the "
+        "preflight's (kb/Work PB5872), so they are the ones stopped, and no population host starts",
+        o.verdict == "RED" and o.exit_code == 1 and "RENDERED VIEWS RED" in o.line
+        and "beside the preflight was RED and STOPPED its hosts" in o.line
+        and all(n.startswith("preflight-") for n in h.hosts_run)
         and h.built and not o.runs and not o.populations and h.stopped_by_audit.is_set()
         and sink[-1] == o.line and said("PLANTED-AUDIT-OUTPUT"), f"{o.line} {h.events}")
+    o2, h2 = gate("audit-late-no-preflight", plant={"audit-late"}, preflight={})
+    expect("with no preflight declared, the population's hosts are the first, and the late RED audit STOPS them",
+        o2.verdict == "RED" and "STOPPED them" in o2.line and not o2.populations and h2.stopped_by_audit.is_set()
+        and not any(n.startswith("preflight-") for n in h2.hosts_run) and h2.hosts_run, f"{o2.line} {h2.hosts_run}")
 
 
 if __name__ == "__main__":
