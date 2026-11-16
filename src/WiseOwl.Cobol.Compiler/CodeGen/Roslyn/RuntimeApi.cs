@@ -2240,6 +2240,10 @@ internal static class RuntimeApi
     public static string FileOpenModeOf(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
 
+    /// <summary>The mode a connector IS open in, −1 when not open — <c>CobolFile.OpenedModeOf</c>.</summary>
+    public static string FileOpenedModeOf(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenedModeOf)}({name})";
+
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.LastReadLength)}({name})";

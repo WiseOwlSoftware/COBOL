@@ -659,6 +659,12 @@ public abstract class FileConnector
     /// OPEN, after a failed OPEN's or any CLOSE's statement has ended).</summary>
     public int OpenModeView => _statementMode is { } scoped ? (int)scoped : ModeKnown ? (int)Mode : -1;
 
+    /// <summary>The mode the file IS open in, as an ordinal for USE-declarative mode scoping, −1 when it is not open: the second
+    /// view of the open-mode tier. A file "open in the output mode" (§1985:XIII.4.8.4 GR5b, §2023:14.9.49.4 GR6c) is in the
+    /// mode of the USE ON OUTPUT procedure even while an OPEN attempts another mode and fails '41' (§2023:14.9.27.4 GR2), so the
+    /// tier consults this view when the attempted mode (<see cref="OpenModeView"/>) selects no declarative (kb/Work PB5825).</summary>
+    public int OpenedModeView => _openMode ? (int)Mode : -1;
+
     /// <summary>The open mode while the connector IS OPEN (ISO §2023:9.1.4), null otherwise.
     /// ⛔ DELIBERATELY NOT <see cref="OpenModeView"/>: that view also answers with the mode an OPEN now
     /// executing is ATTEMPTING (§2023:14.9.49.4 GR6b's "in the process of being opened"), which is what USE-declarative mode

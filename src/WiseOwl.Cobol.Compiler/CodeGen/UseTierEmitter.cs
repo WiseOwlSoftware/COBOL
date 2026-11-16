@@ -63,14 +63,38 @@ internal static class UseTierEmitter
                                 : $"case var _ when __f == {FileKeyExpr(f)}: {action(i)}");
             }
         if (!decls.Any(d => Qualifies(d) && d.ModeIndex is not null)) return;
-        string head = $"switch ({RuntimeApi.FileOpenModeOf("__f")})";   // open-mode scope (GR3 b)/GR6 b)–e))
-        if (modeTierWhen is not null)
-            head = $"if ({modeTierWhen}) {head}{(modeTierNote is null ? "" : $"   {modeTierNote}")}";
-        using (w.Block(head))
+        // A file the container names in a USE statement without GLOBAL is excepted from the container's open-mode procedures
+        // for the same condition (§1985:VIII.4.8.4 GR5b, §2023:14.9.49.4 GR6b: "except those files referenced by file-name-1
+        // in another USE statement specifying the same condition"), and that non-GLOBAL declarative is not selectable from a
+        // contained program (§1985:X.5.5.4 GR1b), so the outward walk finds no declarative of this container for the file.
+        // kb/Work PB5821.
+        string? excepted = globalOnly
+            ? string.Join(" && ", decls.Where(d => !d.Global).SelectMany(d => d.Files)
+                .Select(f => $"__f != {FileKeyExpr(f)}").Distinct())
+            : null;
+        string? when = modeTierWhen is not null && !string.IsNullOrEmpty(excepted) ? $"({modeTierWhen}) && {excepted}"
+            : modeTierWhen ?? (string.IsNullOrEmpty(excepted) ? null : excepted);
+        void ModeSwitch(string view)
         {
-            for (int i = 0; i < decls.Count; i++)
-                if (Qualifies(decls[i]) && decls[i].ModeIndex is { } m)
-                    w.Line($"case {m}: {action(i)}");
+            using (w.Block($"switch ({view})"))
+                for (int i = 0; i < decls.Count; i++)
+                    if (Qualifies(decls[i]) && decls[i].ModeIndex is { } m)
+                        w.Line($"case {m}: {action(i)}");
+        }
+        // Open-mode scope (GR3 b)/GR6 b)–e)): the mode the executing OPEN or CLOSE is scoped to ("in the process of being opened"),
+        // then the mode the file IS open in, which an OPEN refused '41' leaves unchanged and which names a declarative the
+        // attempted mode does not (§1985:XIII.4.8.4 GR5b/GR5c, §2023:14.9.49.4 GR6c: "open in the output mode"; kb/Work PB5825).
+        // Where both modes have a procedure the text names no order; the attempted mode's runs, as it did before.
+        void Tiers()
+        {
+            ModeSwitch(RuntimeApi.FileOpenModeOf("__f"));
+            ModeSwitch(RuntimeApi.FileOpenedModeOf("__f"));
+        }
+        if (when is null) { Tiers(); return; }
+        using (w.Block($"if ({when})"))
+        {
+            if (modeTierNote is not null) w.Line(modeTierNote);
+            Tiers();
         }
     }
 }

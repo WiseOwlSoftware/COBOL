@@ -207,6 +207,9 @@ public static class CobolFile
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §2023:14.9.49.4 GR6b–e).</summary>
     public static int OpenModeOf(string name) => _reg.OpenModeOf(name);
 
+    /// <summary>The mode the file IS open in, −1 when not open (§2023:14.9.49.4 GR6 b)–e) "open in" mode; kb/Work PB5825).</summary>
+    public static int OpenedModeOf(string name) => _reg.OpenedModeOf(name);
+
     /// <summary>An OPEN statement begins on a file in <paramref name="mode"/> (§2023:14.9.49.4 GR6 b)–e), "in the process of being
     /// opened"): emitted before the OPEN, paired with <see cref="EndModeScope"/> after the statement's USE hook.</summary>
     public static void BeginOpen(string name, FileOpenMode mode) => _reg.BeginOpen(name, mode);
