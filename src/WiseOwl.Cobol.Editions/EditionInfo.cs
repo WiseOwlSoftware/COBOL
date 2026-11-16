@@ -39,6 +39,21 @@ public readonly record struct EditionInfo(int Year, bool Permissive = false)
     /// ONE predicate, asked by every clause that admits the subscript (docs/conformance/3/D-CLAUSE-SUBSCRIPT.md).</summary>
     public bool SubscriptedClauseOperands => Year == 2002;
 
+    /// <summary>⛔ WHETHER A CONTROL OPERAND MAY BE AN INDEX DATA ITEM (kb/Work PB5774): COBOL-85 provides for that control
+    /// ("If the control data item is an index data item, the relation test is for the comparison of two index data items",
+    /// §1985:XIII.3.7.4 GR3b) and limits explicit references to an index data item to Procedure Division statements
+    /// (§1985:VI.5.14.3 SR5 read with §1985:IV.4.4.1), which a Report Section clause is not. COBOL-2023 makes a data-division
+    /// clause naming a data item an explicit reference (§2023:8.4.5) and its SR10 list of the contexts of one
+    /// (§2023:13.18.60.3) does not contain the CONTROL clause.</summary>
+    public bool ControlOperandMayBeIndexDataItem => Year < 2002;
+
+    /// <summary>⛔ WHETHER THE ROUNDED PHRASE OF A SUM CLAUSE NEEDS THE ENTRY'S COLUMN CLAUSE (kb/Work PB5644): COBOL-2014 states it
+    /// ("The ROUNDED phrase may be specified in the SUM clause only if the COLUMN clause is specified for the subject of the entry",
+    /// §2014:13.18.54.2 SR3) and COBOL-2023 keeps it (§2023:13.18.54.3 SR3). COBOL-2002's SUM clause prints the phrase in its general
+    /// format (§2002:13.16.52.1) and its syntax rules (§2002:13.16.52.2) hold no such limit, so an entry with no COLUMN clause may
+    /// write it. COBOL-85's SUM clause has no ROUNDED phrase.</summary>
+    public bool SumRoundedRequiresColumn => Year >= 2014;
+
     /// <summary>⛔ THE ONE HOME OF THE EXCESS ARM OF THE DIGIT CAPACITY (kb/Work PB5529): the descriptor a count of
     /// <paramref name="digits"/> digit positions earns when it passes <see cref="MaxDigits"/> — more than 31 is
     /// <see cref="Diagnostics.DiagnosticCatalog.DigitCapacityOver31"/> at every edition, 19–31 at COBOL-85 is

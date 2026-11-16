@@ -1634,6 +1634,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // §2023:8.4.3.3 — a ref-mod view with a LITERAL length has that static width, and so has one whose length is omitted
         // over an identifier-1 of static length with a literal leftmost position (the positions from the leftmost to the end,
         // §2023:8.4.3.3.4 GR5 c; kb/Work PB5425); a computed position is genuinely runtime.
+        // A table(ALL) argument is its element as a static classifier sees it (TableAllPlace's own contract; kb/Work PB5833), so
+        // `N-EL (ALL) (1:1)` has the reference-modified element's width, not the numeric element's.
+        BoundFieldOperand { Place: TableAllPlace all } => KnownWidth(new BoundFieldOperand(all.Element)),
         BoundFieldOperand { Place: RefModPlace rm } => rm.StaticLength(rm.StaticInnerPositions),
         // A function-identifier whose definition fixes its returned value's length (IntrinsicSig.Length; kb/Work PB5425).
         BoundComputedOperand { Expr: BoundIntrinsicCall call } => ResultWidth(call),
