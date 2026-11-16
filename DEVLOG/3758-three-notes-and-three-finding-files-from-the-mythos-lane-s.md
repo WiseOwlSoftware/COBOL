@@ -1,4 +1,4 @@
-## Three notes and three finding files from the Mythos lane's batch-10r rulings and an oracle flake, 2026-11-16
+## Entry 3758 — 2026-11-16 06:28 PST — Three notes and three finding files from the Mythos lane's batch-10r rulings and an oracle flake, 2026-11-16
 
 Filed in kb/Work (documents only, no compiler source, no case, no inventory record). Each defect note carries the rule text with its `cite.py --check` line, the repro program in full, expected and observed, and a Sites block.
 
@@ -7,3 +7,4 @@ Filed in kb/Work (documents only, no compiler source, no case, no inventory reco
 - PB5862 (defect, MAJOR, `process_only`): `ArchOracleDriftTests.AnObservation_IsPortable_AndRepeatable` fails without a regression: two observations of one case disagree.
 
 Three dated finding files beside existing notes: `kb/Work/PB5123/2026-11-16-the-refusal-is-wrong-at-1985.md`, `kb/Work/PB5683/2026-11-16-a-second-read-finds-what-the-first-missed.md`, and the ruling copied unchanged as `kb/Work/PB5683/2026-11-16-rulings-code-reads-batch-10r.md`.
+
