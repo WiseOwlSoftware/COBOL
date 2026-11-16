@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.22.2-9",
+ "rule-digest": "6975fca7b5f1",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolOO.g4#invokeArgument; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/PtrBinder.cs#BindAddressIdentifier; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg",
+ "test-ref": "conformance:cases/14.8.22@2002-INVOKE-STATEMENT/g2inv42-cd-operand-reach",
+ "notes": "§2002:14.8.22.2 SR9: the CD record item BR and the CD TEXT LENGTH item OTL as identifier-3 receive SET42's 0042, and the address-identifier ADDRESS OF WX passes WXYZ. --std 2002 on the pinned tree matched g2inv42. FO, CO and CP each have their own CD so that no record overlaps another (§2002:A.1.2.2 SR9)."
+}

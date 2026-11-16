@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-GR-14.8.23.3-5",
+ "rule-digest": "7f4db54205c6",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/WiseOwl.Cobol.Compiler/Binding/CollatingModel.cs#CollatingSelection; src/WiseOwl.Cobol.Runtime/IO/SortKeyColumns.cs#SequenceFor",
+ "test-ref": "conformance:cases/14.8.23@2002-MERGE-STATEMENT/g2mrg03-merge-collating-precedence",
+ "notes": "§2002:14.8.23.3 GR5: a) the MERGE COLLATING SEQUENCE phrase first, alphabet-name-1 for alphabetic/alphanumeric keys, alphabet-name-2 for national keys; b) otherwise the program collating sequences, here PRG-AN \"BCA\" and PRG-NAT N\"CAB\" by §2002:12.2.5.3 GR9. Each leg's expected order is that sequence's order of A,B,C: L1 alnum no phrase -> BCA; L2 FOR ALPHANUMERIC REV-AN \"CBA\" -> CBA; L3 national no phrase -> CAB; L4 FOR NATIONAL REV-NAT N\"BAC\" -> BAC; L5 national key with only FOR ALPHANUMERIC -> alphabet-name-1 does not apply to class national, program PRG-NAT -> CAB; L6/L7 positional IS R... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}

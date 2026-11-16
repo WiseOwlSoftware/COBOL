@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.31.1",
+ "rule-digest": "81f8c3066282",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#resumeStatement; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolLexer.g4#RESUME; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitResumeStatement; src/WiseOwl.Cobol.Editions/ConstructRegistry.g.cs#resume-statement-2002",
+ "test-ref": "conformance:cases/14.8.17@2002-GOBACK-STATEMENT/g2-goback-raise-resume-formats",
+ "notes": "Per §2002:14.8.31.1 (rendered p.526, AT optional) RESUME [AT] NEXT STATEMENT and RESUME [AT] procedure-name-1 are all accepted at --std 2002 and transfer per §2002:14.8.31.3 GR2/GR3; the run printed the BACK/AFTER lines and RESUMED AT PROC 2 / PROC 1 with no NOT REACHED line, as derived."
+}

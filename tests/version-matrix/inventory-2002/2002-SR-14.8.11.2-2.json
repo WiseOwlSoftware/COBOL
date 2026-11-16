@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-SR-14.8.11.2-2",
+ "rule-digest": "737d171dfc7e",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/Procedure/ExpressionBinder.cs#ScreenResultant",
+ "test-ref": "conformance:cases/14.8.11@2002-DIVIDE-STATEMENT/g2div04_cd_operand_categories",
+ "notes": "§2002:14.8.11.2 SR2 admits numeric or numeric-edited identifier-3/identifier-4: numeric-edited GIVING/REMAINDER and CD integers TL/DC as receivers give the derived D3-D5, and alphanumeric CD fields as GIVING/REMAINDER are refused (g2div08-09); the --std 2002 runs matched."
+}

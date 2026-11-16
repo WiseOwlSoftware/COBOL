@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-FMT-14.8.13.1",
+ "rule-digest": "40e3f09502cf",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Frontend/Grammar/CobolParserCore.g4#raisingPhrase; src/WiseOwl.Cobol.Frontend/Grammar/Core/CobolControlFlow.g4#exitStatement; src/WiseOwl.Cobol.Compiler/Validation/VersionConformancePass.cs#VisitExitStatement; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcBindRaising",
+ "test-ref": "conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi01_exit_simple_perform_procedure; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi02_exit_program_called; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi03_exit_method_returning; conformance:cases/14.8.13@2002-EXIT-STATEMENT/g2exi04_exit_raising_each_format; conformance:cases/8.4.2.6@2002-EXCEPTION-OBJECT/g2exo01_exception_object_after_exit_method_and_function_raising",
+ "notes": "§2002:14.8.13.1 grants six EXIT formats with RAISING {EXCEPTION name | identifier | LAST [EXCEPTION]} on Formats 2-4 (page 468 rendered); every granted form is written in a 2002 case that ran at --std 2002 with its derived output (g2exi01..04, g2exo01)."
+}

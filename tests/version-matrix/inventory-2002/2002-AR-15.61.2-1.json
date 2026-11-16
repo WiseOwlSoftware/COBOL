@@ -1,0 +1,8 @@
+{
+ "rule-id": "2002-AR-15.61.2-1",
+ "rule-digest": "09a3a3d545a4",
+ "verdict": "CONFORMS",
+ "code-location": "src/WiseOwl.Cobol.Compiler/Binding/IntrinsicArgumentRules.cs#Verified; src/WiseOwl.Cobol.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#CheckArgumentClasses",
+ "test-ref": "conformance:cases/15.61@2002-PRESENT-VALUE-FUNCTION/g2-present-value-class-numeric-shapes",
+ "notes": "§2002:15.61.2 AR1 requires class numeric; §2002:15.2 AR9 (type 9) admits 'An arithmetic expression or a numeric data item'. Each leg is a class-numeric argument of a different shape (literal, signed display item, scaled item, packed-decimal item, arithmetic expression, PIC 9 USAGE NATIONAL item - class numeric at 2002 by §2002:8.5.2.9 item 1 and Table 3, kb/Work PB5625 reading B - and a 2002 input-CD MESSAGE COUNT item), so each must be accepted; each expected value is the 15.61 returned-value rule evaluated on that value and COMPUTEd ROUNDED into the receiver (approximating functions: the ... Run at --std 2002 with the pinned build of dc1f2dcce8: output equals the derived golden."
+}
