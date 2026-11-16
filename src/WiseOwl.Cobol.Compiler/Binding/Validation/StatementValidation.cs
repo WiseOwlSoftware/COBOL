@@ -1429,9 +1429,7 @@ internal sealed class StatementValidation(DataBinder data)
     /// through its inner reference, as before.</para></summary>
     public bool CheckInitializeTargetRenames(string refText, Place place)
     {
-        Place named = place;
-        while (named.DenotedItem is null && named is PlaceDecorator d) named = d.Inner;
-        if ((named.DenotedItem ?? place.Item).Renames is null) return true;
+        if (place.NamedItem.Renames is null) return true;   // the entry the name denotes, under any decoration (Place.NamedItem)
         data.Edition.Error(DiagnosticCatalog.InitializeRenamesItem,
             $"INITIALIZE '{refText}' — the data description entry for identifier-1 shall not contain a RENAMES "
             + "clause (ISO §2023:14.9.20.3 SR5)");
