@@ -26,6 +26,12 @@
       *> R1 W-T (2:, 2)                             = YZ
       *> R2 W-T (, 1 :2)                            = XY
       *> Q1 E OF, G (J)                             = 7
+      *> and before or after a qualifier connective inside a list,
+      *> H = K (3):
+      *> Q2 W-E (K OF, H)                           = Z
+      *> Q3 W-E (K, OF H)                           = Z
+      *> Q4 W-E (K; IN H)                           = Z
+      *> Q5 FUNCTION MIN (A, K, IN H)   MIN (4 3)   = 03
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5793A.
        DATA DIVISION.
@@ -34,6 +40,8 @@
           05 W-E OCCURS 3 TIMES PIC X.
        01 G.
           05 E PIC 9 OCCURS 3 TIMES.
+       01 H.
+          05 K PIC 9 VALUE 3.
        01 I PIC 9 VALUE 1.
        01 J PIC 9 VALUE 2.
        01 A PIC 9 VALUE 4.
@@ -60,4 +68,9 @@
            DISPLAY "R1=" W-T (2:, 2).
            DISPLAY "R2=" W-T (, 1 :2).
            DISPLAY "Q1=" E OF, G (J).
+           DISPLAY "Q2=" W-E (K OF, H).
+           DISPLAY "Q3=" W-E (K, OF H).
+           DISPLAY "Q4=" W-E (K; IN H).
+           COMPUTE R = FUNCTION MIN (A, K, IN H).
+           DISPLAY "Q5=" R.
            STOP RUN.

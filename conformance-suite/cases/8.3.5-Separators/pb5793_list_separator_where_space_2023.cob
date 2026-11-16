@@ -15,6 +15,9 @@
       *> L2 EL (J **, 1 -, 1; )          EL (1)         = 0
       *> L3 MAX (, A J)                 keyword-omitted = 04
       *> L4 MIN (A; , J ; )             MIN (4 2)     = 02
+      *> and before a qualifier connective, H = K (3):
+      *> L5 MIN (A, K, IN H)             MIN (4 3)     = 03
+      *> L6 EL (K, OF H -, 1)             EL (2)         = 7
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB5793B.
        ENVIRONMENT DIVISION.
@@ -25,6 +28,8 @@
        WORKING-STORAGE SECTION.
        01 G.
           05 EL PIC 9 OCCURS 3 TIMES VALUE 0.
+       01 H.
+          05 K PIC 9 VALUE 3.
        01 I PIC 9 VALUE 1.
        01 J PIC 9 VALUE 2.
        01 A PIC 9 VALUE 4.
@@ -38,4 +43,7 @@
            DISPLAY "L3=" R.
            COMPUTE R = MIN (A; , J ; ).
            DISPLAY "L4=" R.
+           COMPUTE R = MIN (A, K, IN H).
+           DISPLAY "L5=" R.
+           DISPLAY "L6=" EL (K, OF H -, 1).
            STOP RUN.

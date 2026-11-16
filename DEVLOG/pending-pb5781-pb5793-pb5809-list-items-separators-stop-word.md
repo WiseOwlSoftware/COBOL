@@ -26,6 +26,12 @@ kept every `, ` / `; ` as FNARG_SEPARATOR, which the grammar admits only between
 not before ')' or a spaced operator) and skips it as the space elsewhere. The argument list and the reference modifier had
 the same shape and are fixed by the same decision. Goldens `pb5793_list_separator_where_space` (1985) and `_2023`; lexer
 facts pin every member of the set. SR-8.3.5-2 and 1985-SR-IV.4.2.1-2 re-affirmed with the list-region witnesses.
+The branch review (round 1, R1-1) found the fix one-sided: a separator was skipped AFTER a qualifier connective or word
+boolean operator but kept BEFORE one, so `W-E (I, OF G)` and `FUNCTION MAX (A I, OF G)` were still COBOL0001 while
+`W-E (I OF G)` compiled. The decision now also reads the word ahead (`CobolLexer.InfixWordAhead`, the set `InfixWords`:
+OF, IN and the binary boolean operators; B-NOT, unary, begins an operand and keeps the boundary), matched as a whole word
+so `OFX` and `INDEX-1` stay names. Both goldens gained list-region qualifier lines (`W-E (K, OF H)`, `MIN (A, K, IN H)`),
+and `ListSeparator_BeforeAnInfixWord_IsSkipped` pins every member.
 
 **PB5809.** `STOP STAR.`, STAR a symbolic-character, was a parse error expecting '&' (the literal rule spells a word only as
 a concatenation operand). A symbolic-character is a figurative constant (§1985:IV.4.2.2.2.3 GR7, GRL2.3), so the grammar

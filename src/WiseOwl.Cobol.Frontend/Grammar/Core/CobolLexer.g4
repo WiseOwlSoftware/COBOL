@@ -192,6 +192,10 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
     // opening parenthesis, an operator, a qualifier connective, another separator: ListOperandFollows), and never before
     // a closing parenthesis or an operator written with its spaces — `(A, * B)` is `(A * B)`, as `(A - 1)` is one
     // subtraction (§2023:8.7.1), while `(A, -1)` keeps the boundary before its signed literal (§2023:8.3.3.3.2).
+    // ⛔ BOTH SIDES OF A WORD OPERATOR (kb/Work PB5793, review R1-1): a qualifier connective or a binary boolean operator
+    // is a WORD, so the test before it reads the word ahead (InfixWordAhead), the twin of ListOperandFollows's OF/IN/B-AND
+    // members after it: `(I, OF G)` is `(I OF G)`, as `(I OF, G)` is. B-NOT is unary and BEGINS an operand, so a
+    // separator before it stays the boundary.
     // Asked by FNARG_SEPARATOR's action, after the match: LA(1) is the character after the separator's spaces.
     private bool ListItemBoundary()
     {
@@ -201,9 +205,31 @@ channels { ABSENT_DEBUG_LINE, EMBEDDED_BLOCK_TEXT }
         {
             ')' or '*' or '/' or ':' or '&' => false,
             '+' or '-' => after != ' ' && after != '\n',
-            _ => true,
+            _ => !InfixWordAhead(),
         };
     }
+
+    // The words that stand only BETWEEN two operands of a list item: the qualifier connectives (§2023:8.4.2.2.2) and the
+    // binary boolean operators (§2023:8.8.2), spelled as their keyword rules spell them. Matched case-insensitively
+    // (the grammar's caseInsensitive), and only as a whole word: `OFX`, `INDEX-1`, `B-ANDER` are names.
+    // CobolLexerModeDriftTests.ListSeparator_BeforeAnInfixWord_IsSkipped pins every member.
+    private static readonly string[] InfixWords =
+        ["OF", "IN", "B-AND", "B-OR", "B-XOR", "B-SHIFT-LC", "B-SHIFT-RC", "B-SHIFT-L", "B-SHIFT-R"];
+
+    private bool InfixWordAhead()
+    {
+        foreach (string word in InfixWords)
+        {
+            int i = 0;
+            while (i < word.Length && char.ToUpperInvariant((char)InputStream.LA(i + 1)) == word[i]) i++;
+            if (i == word.Length && !IsWordCharacter(InputStream.LA(i + 1))) return true;
+        }
+        return false;
+    }
+
+    // A character that continues a COBOL word (§2023:8.3.2.1: basic letters and digits, extended letters, hyphen and underscore).
+    private static bool IsWordCharacter(int c) =>
+        c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-' or '_' || c > 127;
 
     // The tokens after which an OPERAND must follow, so a separator after one stands where only a space can and
     // separates nothing: the three opening parentheses, the arithmetic and concatenation operators (§2023:8.8.1.1, §2023:8.8.3),
