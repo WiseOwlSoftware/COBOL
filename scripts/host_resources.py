@@ -192,12 +192,17 @@ def judge(hosts: Iterable[HostEvidence]) -> Judgement:
 # ── THE ADMISSION ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 #: ⛔ ONE WHOLE-POPULATION GATE'S PEAK COMMIT ON THIS HOST, MEASURED (kb/Work PB5697; DESIGN-test-build-ci.md section
-#: 3.14.6): the PeakJobMemoryUsed of the job a gate's slot holder binds its whole tree into (scripts/process_job.py
-#: `bound_peak_bytes`; every gate records its own in its verdict record as `peak_commit_bytes`, so a re-measurement reads
-#: the records). The measurement it was set from is in the note and the design doc.
-GATE_PEAK_COMMIT_BYTES = 32 * GIB
-#: The margin above the peak a gate needs free to start: what the host's own work (an editor, a language server, the
-#: kernel's pools) may commit while the gate runs, so a gate admitted at its exact need does not take the last page.
+#: 3.14.6): the most private commit a gate's slot-held tree (its build and its four test hosts) held at once. Measured
+#: 2026-11-15 16:32-16:43 PST by sampling, every 2 s, the process trees of two whole-population gates from their slot to
+#: their GREEN verdicts (runs 000004-20261116T000125Z, Conformance 26,277 cases with a 106 s build, and
+#: 000004-20261116T000652Z, 26,182 cases): 7.5 GiB and 8.6 GiB, 12.1 GiB the two together. Rounded up to 9 GiB. Every gate
+#: now records its own (`peak_commit_bytes`, the job's PeakJobMemoryUsed, scripts/process_job.py `bound_peak_bytes`), so a
+#: re-measurement reads the records.
+GATE_PEAK_COMMIT_BYTES = 9 * GIB
+#: The margin above the peak a gate needs free to start. It covers what a gate adds to the host's charge OUTSIDE its tree:
+#: the kernel's paged and nonpaged pools grow with every file the gate touches (about 8 KB a cached file on this host's
+#: ReFS Dev Drive), and what the host's own work (an editor, a language server) commits while the gate runs, so a gate
+#: admitted at its exact need does not take the last page.
 ADMISSION_MARGIN_BYTES = 8 * GIB
 #: THE THRESHOLD, stated once: the free commit, after what the gates already holding a slot have still to commit, that
 #: one more gate needs before it takes a slot.

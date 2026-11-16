@@ -1080,9 +1080,14 @@ the cap bounds the concurrent solution builds as well as the test legs (an inert
   of paged and nonpaged pool per cached file on the ReFS Dev Drive, 4.5 million files, about 44 GB of pool at 15:45 PST on
   2026-11-15, trimmed only under physical pressure), so the tree-based reservation under-counts what a holder has already
   committed and errs toward waiting. Every gate records its slot-held tree's peak (`peak_commit_bytes`: the job's
-  `PeakJobMemoryUsed`, `process_job.bound_peak_bytes`), so the threshold is re-measured from records. THE MEASUREMENT: see
-  kb/Work/PB5697 and its addenda (the gate of branch pb5697-gate-host-exhaustion, and the two gates sampled read-only beside
-  it).
+  `PeakJobMemoryUsed`, `process_job.bound_peak_bytes`), so the threshold is re-measured from records. THE MEASUREMENT
+  (2026-11-15, kb/Work PB5697): two whole-population gates sampled every 2 s from slot to GREEN verdict peaked at 7.5 and
+  8.6 GiB of tree commit (12.1 GiB together), so `GATE_PEAK_COMMIT_BYTES` is 9 GiB and the need 17 GiB. The host's commit
+  limit is 137.7 GiB (127.7 GB of RAM and a 10.25 GB paging file, which grows to about 147.9 GiB on demand); with no gate
+  running 81 GiB was already committed, 26.5 GiB of it by every process together and the rest by the kernel's pools. Three
+  gates (27 GiB) fit on that with nothing else running, so the cap of 3 is safe on commit alone; what ran the host out was
+  the three beside two probe fleets, and an interactive program of 30 GiB later showed the same pressure, which the
+  admission now waits out.
 - **Long holds are flagged, never killed (kb/Work PB3310).** Every released hold records its duration per kind in
   `holds.json` (the last 50 per kind); `gate_slot.py status` marks a held slot older than 5 times the median of its kind
   (at least 5 recorded) `LONG HOLD`, and the session probe prints it. The flag is advice; the operator verifies the holder's
