@@ -4652,14 +4652,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// program's own counter hides its container's GLOBAL one); null otherwise, leaving the caller's own verdict. Two counters
     /// of one program the qualifiers do not tell apart are §2023:8.4.2.2.3 SR1's ambiguity, reported here.
     /// Asked only where the ordinary lookup found no data item, so a data item of the same name keeps its reference.</summary>
-    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject)
+    internal DataItem? SumCounterOperand85(string name, IReadOnlyList<string> qualifiers, string subject, out bool ambiguityReported)
     {
+        ambiguityReported = false;
         if (Edition.DialectLevel >= 2002 || _scope.SumCountersNamed(name, qualifiers) is not { } matches) return null;
         if (matches.Count > 1)
         {
+            // The ONE verdict of the reference (kb/Work PB5627): the caller returns without asking the section rule, which would
+            // name the same operand a second time under a 2023 clause.
+            ambiguityReported = true;
             Edition.Error(DiagnosticCatalog.ReportSumCounterReference, $"{subject}: the reference is ambiguous — {matches.Count} "
                 + $"entries establish a sum counter named '{name}'. A reference shall uniquely identify one resource (ISO "
-                + "§2023:8.4.2.2.1, §2023:8.4.2.2.3 SR1); qualify it by report group entry or report-name.");
+                + "§1985:IV.4.3.8.1 SR3); qualify it by report group entry or report-name.");
             return null;
         }
         // A COBOL-85 report entry has no OCCURS clause, so a counter is never a table there; the guard keeps the 2002 shapes out.
@@ -4673,13 +4677,18 @@ internal sealed class ReportSectionBinder(DataBinder host, ReportScope scope)
     /// that is signed); from COBOL-2002 on, and for a name that is no counter, <see cref="ReportEntryReferenceRefused"/> speaks and
     /// the method returns true. Every clause arm that resolves a data-name operand in a section other than the report section asks
     /// this — <c>DataBinder.ResolveClauseOperand</c> and the file-control key arms — and
-    /// <c>ReportEntryReferenceRefusalDriftTests</c> pins the callers of the raw refusal.</summary>
+    /// <c>ReportItemOperandDriftTests</c> pins the callers of the raw refusal.</summary>
     /// <returns>True when the reference was refused (reported); otherwise <paramref name="counter"/> is the COBOL-85 sum counter
     /// or null, and the caller's own verdict stands.</returns>
     internal bool ReportItemOperandRefused(NameCandidates<DataItem> survivors, string subject, string name,
                                            IReadOnlyList<string> qualifiers, out DataItem? counter, bool inReportSection = false)
     {
-        counter = survivors.Count == 0 && !inReportSection ? SumCounterOperand85(name, qualifiers, subject) : null;
+        counter = null;
+        if (survivors.Count == 0 && !inReportSection)
+        {
+            counter = SumCounterOperand85(name, qualifiers, subject, out bool ambiguityReported);
+            if (ambiguityReported) return true;
+        }
         return counter is null && ReportEntryReferenceRefused(survivors, subject, name, qualifiers, inReportSection);
     }
 
